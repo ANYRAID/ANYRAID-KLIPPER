@@ -2833,5 +2833,860 @@
         "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8"
       }
     ]
+  },
+  "fluiddConfigurationQueueAndRecovery": {
+    "date": "2026-10-07",
+    "sourceHead": "5845f354af4eed18ca050d4931cb0402574ed16c",
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-client-bundle",
+      "manifestSha256": "f76efc7d5ee86feeb123f21161b8d77ce3e80946b70f9545c59af5597afd8808",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "scope": "Actual Fluidd 1.37.6 against one fixed compiled bundle and PTY/dual-MCU models. Partial client evidence; resume accounting discrepancy and database backup request remain unresolved. Not accepted develop, full Moonraker, target performance, physical motion or G3 closure.",
+    "process": {
+      "nativeBase": "http://127.0.0.1:18452",
+      "gateway": "http://127.0.0.1:18453",
+      "processGenerations": 4,
+      "originalDeadlineMs": 900000,
+      "deadlineExtended": false,
+      "gracefulProcessRestart": true,
+      "crashOrForcedPowerLossTested": false,
+      "nativeForceLogins": true,
+      "noApiKeyInjection": true
+    },
+    "configuration": {
+      "actualEditorKeyboard": true,
+      "actualSaveAndFirmwareRestartButton": true,
+      "before": {
+        "status": 200,
+        "text": "[include parts/machine.cfg]\n",
+        "bytes": 28,
+        "sha256": "5910577ee77e76af7b1f9ee17efaf6adda54479af819cb6fb6d54b698edfa7cd"
+      },
+      "saved": {
+        "status": 200,
+        "text": "[include parts/machine.cfg]\n# 同包配置保存验收\n",
+        "bytes": 55,
+        "sha256": "1b728c1b7333811581569bb8e64577d0fd42a8537f0f064457f0b05b850d4fa2"
+      },
+      "restored": {
+        "status": 200,
+        "text": "[include parts/machine.cfg]\n",
+        "bytes": 28,
+        "sha256": "5910577ee77e76af7b1f9ee17efaf6adda54479af819cb6fb6d54b698edfa7cd"
+      },
+      "readOnlyBackupListings": [
+        {
+          "status": 200,
+          "body": {
+            "result": {
+              "dirs": [
+                {
+                  "modified": 1791321011.3983164,
+                  "size": 4096,
+                  "permissions": "r",
+                  "dirname": "parts"
+                }
+              ],
+              "files": [
+                {
+                  "modified": 1791321085.2388039,
+                  "size": 28,
+                  "permissions": "r",
+                  "filename": ".printer.cfg.save-backup-146ddba0-a2c5-4b9c-b339-a30524a6a6d7"
+                },
+                {
+                  "modified": 1791321085.246563,
+                  "size": 55,
+                  "permissions": "rw",
+                  "filename": "printer.cfg"
+                },
+                {
+                  "modified": 1791321011.3983164,
+                  "size": 72,
+                  "permissions": "r",
+                  "filename": "moonraker.conf"
+                }
+              ],
+              "disk_usage": {
+                "total": 401986211840,
+                "used": 61975871488,
+                "free": 319515557888
+              },
+              "root_info": {
+                "name": "config",
+                "permissions": "rw"
+              }
+            }
+          }
+        },
+        {
+          "status": 200,
+          "body": {
+            "result": {
+              "dirs": [
+                {
+                  "modified": 1791321011.3983164,
+                  "size": 4096,
+                  "permissions": "r",
+                  "dirname": "parts"
+                }
+              ],
+              "files": [
+                {
+                  "modified": 1791321085.2388039,
+                  "size": 28,
+                  "permissions": "r",
+                  "filename": ".printer.cfg.save-backup-146ddba0-a2c5-4b9c-b339-a30524a6a6d7"
+                },
+                {
+                  "modified": 1791321106.9659045,
+                  "size": 28,
+                  "permissions": "rw",
+                  "filename": "printer.cfg"
+                },
+                {
+                  "modified": 1791321106.955984,
+                  "size": 55,
+                  "permissions": "r",
+                  "filename": ".printer.cfg.save-backup-fb3afc7f-6bb5-477a-9a1d-cdc079df7ca9"
+                },
+                {
+                  "modified": 1791321011.3983164,
+                  "size": 72,
+                  "permissions": "r",
+                  "filename": "moonraker.conf"
+                }
+              ],
+              "disk_usage": {
+                "total": 401986211840,
+                "used": 61977808896,
+                "free": 319513620480
+              },
+              "root_info": {
+                "name": "config",
+                "permissions": "rw"
+              }
+            }
+          }
+        }
+      ],
+      "nativeReadyAfterSave": {
+        "native_host": {
+          "version": 1,
+          "ready": true,
+          "group_state": "ready",
+          "hardware_state": "ready",
+          "print_state": "idle",
+          "homed_axes": "",
+          "closing": false,
+          "admission_closed": false,
+          "maintenance": false,
+          "mcus": [
+            {
+              "id": "mcu",
+              "state": "ready"
+            },
+            {
+              "id": "aux",
+              "state": "ready"
+            }
+          ]
+        },
+        "print_stats": {
+          "filename": "",
+          "print_duration": 0,
+          "total_duration": 0,
+          "filament_used": 0,
+          "state": "standby",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0,
+          "is_active": false,
+          "file_position": 0,
+          "file_size": 0
+        }
+      },
+      "fixtureMcus": {
+        "resets": [
+          0,
+          1,
+          2
+        ],
+        "configurations": [
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    "activePrintProcessRecovery": {
+      "actualStartAndPauseButtons": true,
+      "before": {
+        "native_host": {
+          "version": 1,
+          "ready": true,
+          "group_state": "ready",
+          "hardware_state": "ready",
+          "print_state": "paused",
+          "homed_axes": "xyz",
+          "closing": false,
+          "admission_closed": false,
+          "maintenance": false,
+          "mcus": [
+            {
+              "id": "mcu",
+              "state": "ready"
+            },
+            {
+              "id": "aux",
+              "state": "ready"
+            }
+          ]
+        },
+        "print_stats": {
+          "filename": "恢复验收 50%.gcode",
+          "print_duration": 9.476262999999976,
+          "total_duration": 29.910791979000003,
+          "filament_used": 0.887,
+          "state": "paused",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0.7641007802017592,
+          "is_active": false,
+          "file_position": 15376,
+          "file_size": 20123
+        },
+        "pause_resume": {
+          "is_paused": true
+        }
+      },
+      "historyBefore": {
+        "count": 2,
+        "jobs": [
+          {
+            "job_id": "000002",
+            "user": "unknown",
+            "filename": "恢复验收 50%.gcode",
+            "status": "in_progress",
+            "start_time": 1791321211.288,
+            "end_time": null,
+            "total_duration": 29.916339355000005,
+            "print_duration": 9.476262999999976,
+            "filament_used": 0.887,
+            "metadata": {
+              "native_request_id": "compat-833b43eb-1302-43c5-af0a-5ff6a0b6a564"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          },
+          {
+            "job_id": "000001",
+            "user": "unknown",
+            "filename": "恢复验收 50%.gcode",
+            "status": "completed",
+            "start_time": 1791321179.963,
+            "end_time": 1791321194.329,
+            "total_duration": 14.366562232999975,
+            "print_duration": 10.229932303999988,
+            "filament_used": 1,
+            "metadata": {
+              "native_request_id": "upload-4140760d-4a10-4429-aa67-029a811af642"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          }
+        ]
+      },
+      "after": {
+        "native_host": {
+          "version": 1,
+          "ready": true,
+          "group_state": "ready",
+          "hardware_state": "ready",
+          "print_state": "idle",
+          "homed_axes": "",
+          "closing": false,
+          "admission_closed": false,
+          "maintenance": false,
+          "mcus": [
+            {
+              "id": "mcu",
+              "state": "ready"
+            },
+            {
+              "id": "aux",
+              "state": "ready"
+            }
+          ]
+        },
+        "print_stats": {
+          "filename": "",
+          "print_duration": 0,
+          "total_duration": 0,
+          "filament_used": 0,
+          "state": "standby",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0,
+          "is_active": false,
+          "file_position": 0,
+          "file_size": 0
+        },
+        "pause_resume": {
+          "is_paused": false
+        }
+      },
+      "historyAfter": {
+        "count": 2,
+        "jobs": [
+          {
+            "job_id": "000002",
+            "user": "unknown",
+            "filename": "恢复验收 50%.gcode",
+            "status": "cancelled",
+            "start_time": 1791321211.288,
+            "end_time": 1791321250.907,
+            "total_duration": 39.61952011700001,
+            "print_duration": 9.476262999999976,
+            "filament_used": 0.887,
+            "metadata": {
+              "native_request_id": "compat-833b43eb-1302-43c5-af0a-5ff6a0b6a564"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          },
+          {
+            "job_id": "000001",
+            "user": "unknown",
+            "filename": "恢复验收 50%.gcode",
+            "status": "completed",
+            "start_time": 1791321179.963,
+            "end_time": 1791321194.329,
+            "total_duration": 14.366562232999975,
+            "print_duration": 10.229932303999988,
+            "filament_used": 1,
+            "metadata": {
+              "native_request_id": "upload-4140760d-4a10-4429-aa67-029a811af642"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          }
+        ]
+      },
+      "actualDashboard": "- navigation:\n  - complementary:\n    - link \"仪表板\":\n      - /url: /./#/\n    - link \"控制台\":\n      - /url: /./#/console\n    - link \"Gcode 预览\":\n      - /url: /./#/preview\n    - link \"任务列表\":\n      - /url: /./#/jobs\n    - link \"任务历史\":\n      - /url: /./#/history\n    - link \"调整\":\n      - /url: /./#/tune\n    - link \"配置\":\n      - /url: /./#/configure\n    - link \"系统\":\n      - /url: /./#/system\n    - link \"设置\":\n      - /url: /./#/settings\n    - button\n- img\n- banner:\n  - link:\n    - /url: /./#/\n    - img\n  - link \"fluidd\":\n    - /url: /./#/\n  - button \"紧急停止\"\n  - button\n  - button\n  - button\n  - button\n- main:\n  - tablist:\n    - tab \"就绪\"\n    - tab \"重新打印\" [selected]\n  - button\n  - table:\n    - rowgroup:\n      - row \"名称 状态 打印时间\":\n        - columnheader\n        - columnheader \"名称\"\n        - columnheader \"状态\"\n        - columnheader \"打印时间\"\n    - rowgroup:\n      - row \"恢复验收 50%.gcode 0m 9s\":\n        - cell\n        - cell \"恢复验收 50%.gcode\"\n        - cell\n        - cell \"0m 9s\"\n  - text: 移动控制\n  - button \"工具\"\n  - button\n  - button [disabled]\n  - button [disabled]\n  - button \"全部归位\"\n  - button [disabled]\n  - button\n  - button [disabled]\n  - button\n  - button \"归位 X\"\n  - button [disabled]\n  - button [disabled]\n  - button \"归位 Y\"\n  - button \"0.1\"\n  - button \"1\"\n  - button \"10\"\n  - button \"25\"\n  - button \"50\"\n  - button \"100\"\n  - text: X [ 0.00 ]\n  - spinbutton \"X [ 0.00 ]\" [disabled]: \"0.00\"\n  - text: Y [ 0.00 ]\n  - spinbutton \"Y [ 0.00 ]\" [disabled]: \"0.00\"\n  - text: Z [ 0.000 ]\n  - spinbutton \"Z [ 0.000 ]\" [disabled]: \"0.000\"\n  - button\n  - button\n  - text: 挤出距离\n  - spinbutton \"挤出距离\" [disabled]: \"10\"\n  - text: mm\n  - button \"回抽\" [disabled]\n  - text: 挤出速度\n  - spinbutton \"挤出速度\" [disabled]: \"5\"\n  - text: mm/s\n  - button \"挤出\" [disabled]\n  - separator\n  - button \"~ 191.4 mm @ 12 mm³/s, 168 mm/s\"\n  - separator\n  - text: 移动速度\n  - button\n  - spinbutton: \"100\"\n  - text: \"%\"\n  - slider\n  - text: 挤出流量\n  - button\n  - spinbutton: \"100\"\n  - text: \"%\"\n  - slider\n  - text: 风扇和输出\n  - button\n  - text: Part Fan\n  - button\n  - spinbutton: \"0\"\n  - text: \"%\"\n  - slider\n  - text: 打印机限制\n  - button\n  - text: 速度\n  - button\n  - spinbutton: \"100\"\n  - text: mm/s\n  - slider\n  - text: 转角速度\n  - button\n  - spinbutton: \"5\"\n  - text: mm/s\n  - slider\n  - text: 加速度\n  - button\n  - spinbutton: \"1000\"\n  - text: mm/s²\n  - slider\n  - text: Minimum Cruise Ratio\n  - button\n  - spinbutton: \"50\"\n  - text: \"%\"\n  - slider\n  - text: 温度\n  - button \"预设\"\n  - button\n  - button\n  - table:\n    - rowgroup:\n      - row \"名称 功率 当前值 目标值\":\n        - columnheader\n        - columnheader \"名称\"\n        - columnheader \"功率\"\n        - columnheader \"当前值\"\n        - columnheader\n        - columnheader \"目标值\"\n    - rowgroup:\n      - row \"Extruder off 25.0°C / °C\":\n        - cell:\n          - button\n        - cell \"Extruder\"\n        - cell \"off\"\n        - cell \"25.0°C\"\n        - cell /\n        - cell \"°C\":\n          - spinbutton: \"0\"\n          - text: °C\n      - row \"Heater Bed off 25.0°C / °C\":\n        - cell:\n          - button\n        - cell \"Heater Bed\"\n        - cell \"off\"\n        - cell \"25.0°C\"\n        - cell /\n        - cell \"°C\":\n          - spinbutton: \"0\"\n          - text: °C\n  - separator\n  - button\n  - text: 控制台\n  - button\n  - button\n  - button\n  - button\n  - button\n  - textbox\n  - textbox\n  - button \"发送\"\n  - text: 任务列表\n  - button\n  - button\n  - list:\n    - listitem \"gcodes\"\n  - button\n  - button\n  - button\n  - button\n  - button\n  - button\n  - textbox\n  - table:\n    - rowgroup:\n      - 'row \"名称: Not sorted. Activate to sort ascending. 上次打印时间: Not sorted. Activate to sort ascending. 修改时间: Sorted descending. Activate to sort ascending. 文件大小: Not sorted. Activate to sort ascending.\"':\n        - columnheader\n        - 'columnheader \"名称: Not sorted. Activate to sort ascending.\"': 名称\n        - 'columnheader \"上次打印时间: Not sorted. Activate to sort ascending.\"': 上次打印时间\n        - 'columnheader \"修改时间: Sorted descending. Activate to sort ascending.\"': 修改时间\n        - 'columnheader \"文件大小: Not sorted. Activate to sort ascending.\"': 文件大小\n    - rowgroup:\n      - row \"恢复验收 50%.gcode -- 2026-10-07 05:12 19.7 kB\":\n        - cell:\n          - img\n        - cell \"恢复验收 50%.gcode\"\n        - cell \"--\"\n        - cell \"2026-10-07 05:12\"\n        - cell \"19.7 kB\"\n      - row \"client-sample.gcode -- 2026-10-07 05:10 19.3 kB\":\n        - cell\n        - cell \"client-sample.gcode\"\n        - cell \"--\"\n        - cell \"2026-10-07 05:10\"\n        - cell \"19.3 kB\"\n  - text: Gcode 预览\n  - button \"载入当前文件\" [disabled]\n  - button\n  - button\n  - text: 当前层数\n  - spinbutton [disabled]: \"0\"\n  - slider\n  - text: 当前层进度\n  - spinbutton [disabled]: \"0\"\n  - slider\n  - text: 总层数 0 当前层高 0\n  - button \"重置文件\" [disabled]\n  - img:\n    - img\n    - img\n    - img\n- contentinfo: \"© 2026 fluidd: v1.37.6-d894c50\"\n- dialog\n- alert\n- alert",
+      "cookieShape": [
+        {
+          "name": "anyraid-client-loopback",
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Strict",
+          "path": "/"
+        }
+      ],
+      "automaticReconnectAndResubscribe": true,
+      "sameDurableRequestCancelledOnce": true,
+      "automaticReplayObserved": false
+    },
+    "queue": {
+      "missingBeforeFixtureAssembly": {
+        "status": 404,
+        "reason": "Fixture Moonraker config omitted job_queue section"
+      },
+      "testConfiguration": {
+        "scope": "Explicit test-only assembly of existing native queue component; no package code change, no queue start or replay",
+        "beforeSha256": "9392fcbd943c5bd0c6b7193588bdfc9a6dd50ac8761e4ce1241ab932e87c6a74",
+        "afterSha256": "a1003e3120cc44258dde014f4e534b5bea10208c839de9627ef99606897f6eef",
+        "bytes": 84
+      },
+      "actualAddButtons": true,
+      "beforeRestart": {
+        "queued_jobs": [
+          {
+            "filename": "恢复验收 50%.gcode",
+            "job_id": "7ED1D65EF8956655",
+            "time_added": 1791321331.797,
+            "time_in_queue": 45.74900007247925
+          },
+          {
+            "filename": "队列验收 50%.gcode",
+            "job_id": "E0DA280A21CAEA20",
+            "time_added": 1791321362.595,
+            "time_in_queue": 14.950999975204468
+          }
+        ],
+        "queue_state": "paused"
+      },
+      "afterRestart": {
+        "queued_jobs": [
+          {
+            "filename": "恢复验收 50%.gcode",
+            "job_id": "7ED1D65EF8956655",
+            "time_added": 1791321331.797,
+            "time_in_queue": 64.7039999961853
+          },
+          {
+            "filename": "队列验收 50%.gcode",
+            "job_id": "E0DA280A21CAEA20",
+            "time_added": 1791321362.595,
+            "time_in_queue": 33.90599989891052
+          }
+        ],
+        "queue_state": "paused"
+      },
+      "historyAfterRestart": {
+        "count": 2,
+        "jobs": [
+          {
+            "job_id": "000002",
+            "user": "unknown",
+            "filename": "恢复验收 50%.gcode",
+            "status": "cancelled",
+            "start_time": 1791321211.288,
+            "end_time": 1791321250.907,
+            "total_duration": 39.61952011700001,
+            "print_duration": 9.476262999999976,
+            "filament_used": 0.887,
+            "metadata": {
+              "native_request_id": "compat-833b43eb-1302-43c5-af0a-5ff6a0b6a564"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          },
+          {
+            "job_id": "000001",
+            "user": "unknown",
+            "filename": "恢复验收 50%.gcode",
+            "status": "completed",
+            "start_time": 1791321179.963,
+            "end_time": 1791321194.329,
+            "total_duration": 14.366562232999975,
+            "print_duration": 10.229932303999988,
+            "filament_used": 1,
+            "metadata": {
+              "native_request_id": "upload-4140760d-4a10-4429-aa67-029a811af642"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          }
+        ]
+      },
+      "actualExplicitStartButton": true,
+      "remainingAfterStart": {
+        "queued_jobs": [
+          {
+            "filename": "队列验收 50%.gcode",
+            "job_id": "E0DA280A21CAEA20",
+            "time_added": 1791321362.595,
+            "time_in_queue": 51.21399998664856
+          }
+        ],
+        "queue_state": "paused"
+      },
+      "actualClearConfirmation": true,
+      "cleared": {
+        "queued_jobs": [],
+        "queue_state": "paused"
+      }
+    },
+    "preparationPause": {
+      "actualPrintPauseButton": true,
+      "paused": {
+        "native_host": {
+          "version": 1,
+          "ready": true,
+          "group_state": "ready",
+          "hardware_state": "ready",
+          "print_state": "paused",
+          "homed_axes": "xyz",
+          "closing": false,
+          "admission_closed": false,
+          "maintenance": false,
+          "mcus": [
+            {
+              "id": "mcu",
+              "state": "ready"
+            },
+            {
+              "id": "aux",
+              "state": "ready"
+            }
+          ]
+        },
+        "print_stats": {
+          "filename": "恢复验收 50%.gcode",
+          "print_duration": 0,
+          "total_duration": 54.424075204999994,
+          "filament_used": 0,
+          "state": "paused",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0,
+          "is_active": false,
+          "file_position": 0,
+          "file_size": 20123
+        },
+        "pause_resume": {
+          "is_paused": true
+        }
+      },
+      "nativePaused": {
+        "scope": "Read-only native print status using separate local fixture observer; no browser mutation, motion or replay",
+        "status": 200,
+        "body": {
+          "result": {
+            "mode": "native",
+            "standard_print": true,
+            "pending_compatibility": 0,
+            "state": "paused",
+            "state_token": "374dd25b-e328-444d-9313-6409bad5653f:3",
+            "pause_pending": false,
+            "paused_before_file": true,
+            "request": {
+              "version": 1,
+              "request_id": "queue-4386d5d6-b3f6-4837-8063-29c42da957c3",
+              "file_id": "bb020905-74da-464b-8d1b-b6a18e90c637",
+              "nozzle": 200,
+              "bed": 60,
+              "expires_at": 1791321442693
+            },
+            "pending_device_actions": 0,
+            "safe_stop_pending": false,
+            "failed": false,
+            "closed": false
+          }
+        }
+      },
+      "actualRefresh": true,
+      "refreshed": {
+        "native_host": {
+          "version": 1,
+          "ready": true,
+          "group_state": "ready",
+          "hardware_state": "ready",
+          "print_state": "paused",
+          "homed_axes": "xyz",
+          "closing": false,
+          "admission_closed": false,
+          "maintenance": false,
+          "mcus": [
+            {
+              "id": "mcu",
+              "state": "ready"
+            },
+            {
+              "id": "aux",
+              "state": "ready"
+            }
+          ]
+        },
+        "print_stats": {
+          "filename": "恢复验收 50%.gcode",
+          "print_duration": 0,
+          "total_duration": 54.723761754,
+          "filament_used": 0,
+          "state": "paused",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0,
+          "is_active": false,
+          "file_position": 0,
+          "file_size": 20123
+        },
+        "pause_resume": {
+          "is_paused": true
+        }
+      },
+      "nativeRefreshed": {
+        "scope": "Read-only native print status using separate local fixture observer; no browser mutation, motion or replay",
+        "status": 200,
+        "body": {
+          "result": {
+            "mode": "native",
+            "standard_print": true,
+            "pending_compatibility": 0,
+            "state": "paused",
+            "state_token": "374dd25b-e328-444d-9313-6409bad5653f:3",
+            "pause_pending": false,
+            "paused_before_file": true,
+            "request": {
+              "version": 1,
+              "request_id": "queue-4386d5d6-b3f6-4837-8063-29c42da957c3",
+              "file_id": "bb020905-74da-464b-8d1b-b6a18e90c637",
+              "nozzle": 200,
+              "bed": 60,
+              "expires_at": 1791321442693
+            },
+            "pending_device_actions": 0,
+            "safe_stop_pending": false,
+            "failed": false,
+            "closed": false
+          }
+        }
+      },
+      "actualResumeButton": true,
+      "terminal": {
+        "native_host": {
+          "version": 1,
+          "ready": true,
+          "group_state": "ready",
+          "hardware_state": "ready",
+          "print_state": "completed",
+          "homed_axes": "xyz",
+          "closing": false,
+          "admission_closed": false,
+          "maintenance": false,
+          "mcus": [
+            {
+              "id": "mcu",
+              "state": "ready"
+            },
+            {
+              "id": "aux",
+              "state": "ready"
+            }
+          ]
+        },
+        "print_stats": {
+          "filename": "恢复验收 50%.gcode",
+          "print_duration": 9.201387535000002,
+          "total_duration": 99.99791473799999,
+          "filament_used": 0.881,
+          "state": "complete",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 1,
+          "is_active": false,
+          "file_position": 20123,
+          "file_size": 20123
+        },
+        "pause_resume": {
+          "is_paused": false
+        }
+      },
+      "finalHistory": {
+        "count": 3,
+        "jobs": [
+          {
+            "job_id": "000003",
+            "user": "unknown",
+            "filename": "恢复验收 50%.gcode",
+            "status": "completed",
+            "start_time": 1791321412.696,
+            "end_time": 1791321512.693,
+            "total_duration": 99.99791473799999,
+            "print_duration": 9.201387535000002,
+            "filament_used": 0.881,
+            "metadata": {
+              "native_request_id": "queue-4386d5d6-b3f6-4837-8063-29c42da957c3"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          },
+          {
+            "job_id": "000002",
+            "user": "unknown",
+            "filename": "恢复验收 50%.gcode",
+            "status": "cancelled",
+            "start_time": 1791321211.288,
+            "end_time": 1791321250.907,
+            "total_duration": 39.61952011700001,
+            "print_duration": 9.476262999999976,
+            "filament_used": 0.887,
+            "metadata": {
+              "native_request_id": "compat-833b43eb-1302-43c5-af0a-5ff6a0b6a564"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          },
+          {
+            "job_id": "000001",
+            "user": "unknown",
+            "filename": "恢复验收 50%.gcode",
+            "status": "completed",
+            "start_time": 1791321179.963,
+            "end_time": 1791321194.329,
+            "total_duration": 14.366562232999975,
+            "print_duration": 10.229932303999988,
+            "filament_used": 1,
+            "metadata": {
+              "native_request_id": "upload-4140760d-4a10-4429-aa67-029a811af642"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          }
+        ]
+      },
+      "fullyPassed": false,
+      "discrepancy": {
+        "expectedNetFilamentMm": 1,
+        "observedMm": 0.881,
+        "missingMm": 0.119,
+        "sourceFileBytes": 20123,
+        "sourceFileSha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "hypothesis": "File execution may precede resume completion while ExtrusionAccounting remains inactive; resume preparation and parking extrusion must remain excluded.",
+        "confirmedLostPhysicalMotion": false,
+        "rootCauseClosed": false
+      }
+    },
+    "system": {
+      "actualPage": "- navigation:\n  - complementary:\n    - link \"仪表板\":\n      - /url: /./#/\n    - link \"控制台\":\n      - /url: /./#/console\n    - link \"Gcode 预览\":\n      - /url: /./#/preview\n    - link \"任务列表\":\n      - /url: /./#/jobs\n    - link \"任务历史\":\n      - /url: /./#/history\n    - link \"调整\":\n      - /url: /./#/tune\n    - link \"配置\":\n      - /url: /./#/configure\n    - link \"系统\":\n      - /url: /./#/system\n    - link \"设置\":\n      - /url: /./#/settings\n- img\n- banner:\n  - link:\n    - /url: /./#/\n    - img\n  - link \"fluidd\":\n    - /url: /./#/\n  - button \"紧急停止\"\n  - button\n  - button\n  - button\n  - button\n- main:\n  - text: 系统信息\n  - button\n  - button\n  - table:\n    - rowgroup:\n      - row \"主机名 deepin-med-01\":\n        - rowheader \"主机名\"\n        - cell \"deepin-med-01\"\n      - row \"CPU AMD Ryzen 5 3500X 6-Core Processor\":\n        - rowheader \"CPU\"\n        - cell \"AMD Ryzen 5 3500X 6-Core Processor\"\n      - row \"内存 15.6 GB\":\n        - rowheader \"内存\"\n        - cell \"15.6 GB\"\n      - row \"处理器描述 64bit x86_64 with 6 cores\":\n        - rowheader \"处理器描述\"\n        - cell \"64bit x86_64 with 6 cores\"\n      - row \"操作系统 Deepin 25\":\n        - rowheader \"操作系统\"\n        - cell \"Deepin 25\"\n      - row \"发行版 Deepin 25\":\n        - rowheader \"发行版\"\n        - cell \"Deepin 25\"\n      - row \"开发代号 crimson\":\n        - rowheader \"开发代号\"\n        - cell \"crimson\"\n      - row \"虚拟化 unknown (unknown)\":\n        - rowheader \"虚拟化\"\n        - cell \"unknown (unknown)\"\n  - button \"重启Klipper\"\n  - button \"重启Firmware\"\n  - button \"Klippy.log\"\n  - button \"Moonraker.log\"\n  - text: 磁盘信息\n  - tablist:\n    - tab \"gcodes\" [selected]\n    - tab \"config\"\n  - button\n  - text: 磁盘使用率\n  - progressbar\n  - text: 57.7 GB 已用 297.6 GB 可用 Moonraker数据库 No existing database backups found.\n  - button \"压缩数据库\"\n  - button \"创建备份\"\n  - text: 系统利用率 Moonraker 负载 1.11 %\n- contentinfo: \"© 2026 fluidd: v1.37.6-d894c50\"\n- dialog\n- alert\n- alert",
+      "systemInfo": {
+        "status": 200,
+        "body": {
+          "result": {
+            "system_info": {
+              "cpu_info": {
+                "cpu_count": 6,
+                "bits": "64bit",
+                "processor": "x86_64",
+                "cpu_desc": "AMD Ryzen 5 3500X 6-Core Processor",
+                "serial_number": "",
+                "hardware_desc": "",
+                "model": "",
+                "total_memory": 16309092,
+                "memory_units": "kB"
+              },
+              "sd_info": {},
+              "distribution": {
+                "name": "Deepin 25",
+                "id": "deepin",
+                "version": "25",
+                "version_parts": {
+                  "major": "25",
+                  "minor": "",
+                  "build_number": ""
+                },
+                "like": "",
+                "codename": "crimson",
+                "release_info": {},
+                "kernel_version": "6.18.36-amd64-desktop-rolling"
+              },
+              "virtualization": {
+                "virt_type": "unknown",
+                "virt_identifier": "unknown"
+              },
+              "provider": "none",
+              "available_services": [],
+              "service_state": {},
+              "instance_ids": {
+                "moonraker": "",
+                "klipper": ""
+              },
+              "runtime": {
+                "name": "node",
+                "version": "v26.10.0"
+              },
+              "network": {},
+              "canbus": {}
+            }
+          }
+        }
+      },
+      "provider": "none",
+      "serviceControlTested": false,
+      "databaseBackup": {
+        "actualCreateButton": true,
+        "rpcMethod": "server.database.post_backup",
+        "successfulBackupObserved": false,
+        "fixtureBackupDirectoryConfigured": false,
+        "pageErrorRetained": true
+      }
+    },
+    "logout": {
+      "deleteHttp200": true,
+      "apiStatus": 401,
+      "cookies": [],
+      "loginNavigationHttp200": true,
+      "frameScopedSnapshotTimedOut": true
+    },
+    "toolObservations": [
+      "Pause SVG matched both chart and print controls; strict selector failure retained, followed by actual named print button.",
+      "Immediate reads following async buttons sometimes preceded mutation acknowledgement; initial snapshots retained separately from settled evidence.",
+      "Logout removes frontend iframe; final frame snapshot timed out. Subsequent GET401, empty cookies and screenshot are retained.",
+      "Database backup RPC was actually sent and page reported an Object error; no backup success inferred. Fixture has no backupDirectory."
+    ],
+    "cleanup": {
+      "driver": "Explicit close and stdin EOF,exit0",
+      "gateway": "Normal TERM,exit0",
+      "native": "Normal TERM,exit0; finally rechecked fixed bundle and removed own fixture directory",
+      "pidsAbsent": [
+        3034972,
+        3035038
+      ],
+      "fixtureDirectoryAbsent": true
+    },
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-maintenance-public-evidence-20261007.log",
+        "sha256": "dd00653e20a0167b3aed13df22aee5c4798eb8e229885fa6f736ca2f32dc8076"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-maintenance-native-page-20261007.log",
+        "sha256": "daadda00b1da04479dea94badafee7e27dd1a5293abb4349b770410d5ea53731"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-maintenance-cli-page-20261007.log",
+        "sha256": "3ef05d1687c32776ddd11aac62fabc60a9a70d7f6d117dfd2b02b4516eb87b15"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-maintenance-fluidd-system-20261007.png",
+        "sha256": "7a4c34d9546e25f83597c1fb5257546cb6634ab57d38fb7f28f49a96896bba29"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-maintenance-fluidd-paused-20261007.png",
+        "sha256": "2e1409573b5f769f1ded657906637bbe1ceca3d440b0e7cf8fc80b33da7cf13d"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-maintenance-fluidd-process-recovered-20261007.png",
+        "sha256": "857f841916d1d927a4e73601e275af600fa35cd568ddfaf5d7cac95a080ab31b"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-maintenance-fluidd-queue-added-20261007.png",
+        "sha256": "3520f84ea9eb276f6abefdd8bc40f24b544f5f37a7a1885baa6a4ff11ed23070"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-maintenance-fluidd-preparation-paused-20261007.png",
+        "sha256": "cc17e3665c56203881fc69b6e4d7258088432a139e32d4ed1d26c0ccb5c96bd7"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-maintenance-fluidd-queue-cleared-20261007.png",
+        "sha256": "ec819829100148964cc0359d0f910e95c64a50635f38342c72d801ba592fb3e7"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-maintenance-fluidd-logout-20261007.png",
+        "sha256": "778aca70af12649cdc54e1d8318f75a286f5abd5871290074365e592da4a671b"
+      }
+    ]
   }
 }
