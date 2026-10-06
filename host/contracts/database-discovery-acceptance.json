@@ -4,7 +4,9 @@
   "source": {
     "host/src/moonraker/configured-server.ts": "b418d510dbbe7d48d6fa69f9f8ad9b77db2356fc06cbf41182184f8d76ea5d54",
     "host/test/configured-server.test.ts": "a0466b8ffee72a7846db33304dc93df7a0044da21dceb6751946139a0581a960",
-    "host/test/api-key-authorization-compiled.test.ts": "be98c27426d7c4b4610154019532b810515334106ed6bfe6319c45e708ff29b8"
+    "host/test/api-key-authorization-compiled.test.ts": "be98c27426d7c4b4610154019532b810515334106ed6bfe6319c45e708ff29b8",
+    "host/src/moonraker/database-backup-files.ts": "535d24d301caa3efb599a7040a6655186fd704ddf72bc871fa546aea2ed12b12",
+    "host/test/database.test.ts": "c7bf8ace298a2bce51594fa57824eb7ab3a195a2b1f0e577d70d290c5d2a5673"
   },
   "problem": {
     "actualClient": "Fluidd1.37.6",
@@ -79,12 +81,12 @@
     "owner": "ConfiguredMoonraker.setInformation",
     "change": "Include actual owned database in immutable component declaration; retain deduplication and lifecycle replacements.",
     "unchanged": [
-      "database algorithms and schema",
       "maintenance gate",
       "authorization policy",
       "restart ownership",
       "motion and print dispatch",
-      "native C sources and precision budgets"
+      "native C sources and precision budgets",
+      "active database record algorithms and schema"
     ]
   },
   "validation": {
@@ -137,9 +139,14 @@
     "typecheck": {
       "exit": 0
     },
-    "actualFixedPage": "pending",
+    "actualFixedPage": "Final snapshot package pending",
     "requiredExactHeadCi": "pending",
-    "normalIntegration": "pending"
+    "normalIntegration": "pending",
+    "finalSource": {
+      "pass": 61,
+      "fail": 0,
+      "durationMs": 17214.196895
+    }
   },
   "artifacts": [
     {
@@ -161,7 +168,222 @@
     {
       "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-before-observer-20261007.json",
       "sha256": "bad82c1abececcbc0b617af93b7654f08f2b1227f9666f0453f26d957f07d858"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-snapshot-before-20261007.log",
+      "sha256": "538cb2121e041063d69546e62a27bd6044668c3e79c4458465f3122a56bbf4ce"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-final-source-20261007.log",
+      "sha256": "e0f37535972651dd3dab9770c6913d74556e4716384aacebd04b835cb17e8b08"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-final-compiled-20261007.log",
+      "sha256": "8b51c0264f9abbc951ad94d171f0584ebc080e807eea95c92d06a3c6ebaf8329"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-snapshot-benchmark-20261007.json",
+      "sha256": "ba4b179a800ffcdebbb63b6740b26a938b9534c4c207f8b5c4310a6ea67a7474"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-after-actual-page-20261007.log",
+      "sha256": "6216e67c8752fb36f3756145ea042ac2753a67557281d0b04d850da42a76bdfc"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-after-native-page-20261007.log",
+      "sha256": "e0fbb392e751ec60aa59ca51235812035eb2cdd0991f00b9770c67337533b294"
     }
   ],
-  "scope": "Desktop local source and independent compiled service. Original actual official-client discrepancy retained. Not full same-bundle clients, target performance, physical motion, G3 or Python retirement closure."
+  "scope": "Desktop local source and independent compiled service. Original actual official-client discrepancy retained. Not full same-bundle clients, target performance, physical motion, G3 or Python retirement closure.",
+  "intermediatePage": {
+    "manifestSha256": "8634fea7e5e9d8b317830549ab77959e6100849f83203b41117200416d1421d2",
+    "sourceHead": "5de421ac",
+    "scope": "Actual discovery fixed and explicit UI restore returned baseline value after owned process restart. Additional WAL snapshot sidecars retained as a new finding, so not final maintenance acceptance.",
+    "beforeRestore": {
+      "status": 200,
+      "body": {
+        "result": {
+          "namespace": "fluidd",
+          "key": "uiSettings.general.instanceName",
+          "value": "C500 数据库恢复后改值"
+        }
+      }
+    },
+    "afterRestore": {
+      "status": 200,
+      "body": {
+        "result": {
+          "namespace": "fluidd",
+          "key": "uiSettings.general.instanceName",
+          "value": "C500 数据库恢复基准"
+        }
+      }
+    },
+    "backupListAfterRestore": {
+      "status": 200,
+      "body": {
+        "result": {
+          "namespaces": [
+            "fluidd",
+            "webcams"
+          ],
+          "backups": [
+            "20261007-055025.db",
+            "20261007-055025.db-shm",
+            "20261007-055025.db-wal"
+          ]
+        }
+      }
+    },
+    "printer": {
+      "status": 200,
+      "body": {
+        "result": {
+          "eventtime": 814691.973431996,
+          "status": {
+            "print_stats": {
+              "filename": "",
+              "print_duration": 0,
+              "total_duration": 0,
+              "filament_used": 0,
+              "state": "standby",
+              "message": "",
+              "info": {
+                "total_layer": null,
+                "current_layer": null
+              }
+            },
+            "native_host": {
+              "version": 1,
+              "ready": true,
+              "group_state": "ready",
+              "hardware_state": "ready",
+              "print_state": "idle",
+              "homed_axes": "",
+              "closing": false,
+              "admission_closed": false,
+              "maintenance": false,
+              "mcus": [
+                {
+                  "id": "mcu",
+                  "state": "ready"
+                },
+                {
+                  "id": "aux",
+                  "state": "ready"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "fluiddSettingsDownload": {
+      "filename": "backup-fluidd-v1.37.6-C500 数据库恢复基准.json",
+      "failure": null
+    }
+  },
+  "snapshotFix": {
+    "reason": "Actual restore left .db-wal and .db-shm, which directory enumeration advertised as backups.",
+    "change": "After online backup finishes, convert only private temporary snapshot to DELETE journal mode, close and sync before atomic publication. Active WAL mode, durability, maintenance exclusion and restart ownership unchanged.",
+    "before": "Strict standalone snapshot regression failed wal !== delete.",
+    "source": {
+      "pass": 61,
+      "fail": 0,
+      "durationMs": 17214.196895
+    },
+    "compiled": {
+      "pass": 1,
+      "fail": 0,
+      "durationMs": 7165.398311,
+      "diagnostics": [
+        {
+          "compiled": true,
+          "oneShotAndLoginPolicy": true,
+          "oneShotStatusMaxMs": 2.3192889999999124,
+          "jwtLifecycle": true,
+          "websocketSurvivesTokenExpiry": true,
+          "logoutEventAfterResponse": true,
+          "websocketStatusP99Ms": 0.1823419999999487,
+          "jwtStatusP99Ms": 2.3736800000000358,
+          "unauthorizedRejected": true,
+          "rotationRevokesOldKey": true,
+          "statusRequests": 200,
+          "statusP99Ms": 1.6446300000000065,
+          "scope": "Sequential local HTTP and WebSocket requests; no physical MCU or concurrent printing"
+        },
+        {
+          "compiled": true,
+          "configurationOwned": true,
+          "policyApplied": true,
+          "persistentIdentityAfterRestart": true,
+          "statusRequests": 200,
+          "statusP99Ms": 1.7554920000000038,
+          "scope": "Sequential local HTTP on independent compiled configured service; no printing or target hardware"
+        }
+      ],
+      "originalStatusP99BudgetMs": 50
+    },
+    "benchmark": {
+      "node": "v26.10.0",
+      "baselineHead": "207fc578d66d29d49b530057255f14b8bd01adfd",
+      "baselineSourceSha256": "faa450921a19bf160b532f74b0dc3114beec024c81de48e2e689f499d591a5cf",
+      "candidateSourceSha256": "535d24d301caa3efb599a7040a6655186fd704ddf72bc871fa546aea2ed12b12",
+      "payload": {
+        "records": 1000,
+        "bytes": 1055781,
+        "sha256": "6e82c2cf31bcab2c82cfa9ae08314fd4e6730dd231fab57be4a0bb4ba4ea41fb"
+      },
+      "warmups": 5,
+      "pairedSamples": 11,
+      "backupsPerBatch": 10,
+      "samples": {
+        "baseline": [
+          281.1186010000001,
+          279.81839500000024,
+          249.17137400000047,
+          275.6331829999999,
+          272.43657299999995,
+          302.69478100000015,
+          283.7090939999998,
+          272.4459339999994,
+          267.0522460000011,
+          278.63112,
+          272.0923389999989
+        ],
+        "candidate": [
+          485.81333099999983,
+          441.1785149999996,
+          454.87037599999985,
+          448.85145099999954,
+          440.50130699999954,
+          437.35124799999903,
+          521.7643689999986,
+          465.47146799999973,
+          464.2076820000002,
+          446.11578700000064,
+          473.9675330000009
+        ]
+      },
+      "summary": {
+        "baseline": {
+          "medianMs": 275.6331829999999,
+          "p95Ms": 302.69478100000015
+        },
+        "candidate": {
+          "medianMs": 454.87037599999985,
+          "p95Ms": 521.7643689999986
+        }
+      },
+      "scope": "Alternating paired same committed ~1MiB input; exact published backup operation including fsync and directory sync. Worker queue/admission overhead excluded. Maintenance is already forbidden while printing or paused, so this is not concurrent printing/target throughput evidence."
+    },
+    "additionalCostAcknowledged": true,
+    "whyPrintingNotMeasuredHere": "Maintenance remains rejected while preparing, printing or paused; no per-move path modified.",
+    "legacySnapshotCompatibilityClaim": false,
+    "references": [
+      "https://www.sqlite.org/wal.html",
+      "https://www.sqlite.org/pragma.html#pragma_journal_mode",
+      "https://moonraker.readthedocs.io/en/latest/external_api/database/"
+    ]
+  }
 }

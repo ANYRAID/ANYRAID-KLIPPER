@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "auditedAt": "2026-10-07",
+  "baseDevelop": "4e731894304de04a34bd7077334c6ad4cd3c6b49",
+  "status": "Previous exact head all prescribed checks success; normal merge of accepted metadata baseline resolves documentation conflict, new head CI pending",
+  "change": "Only Z tilt and quad gantry integration tests retain existing dispatch ownership through their single positive HTTP admission and receipt; production unchanged.",
+  "failures": [
+    {
+      "pr": 19,
+      "run": 37520881231,
+      "job": 112465660384,
+      "stage": "ASAN",
+      "http": 409,
+      "message": "Probe requires an idle homed printer",
+      "suite": {
+        "pass": 18,
+        "fail": 1
+      },
+      "supervisorMs": 24785.985228999984
+    },
+    {
+      "pr": 22,
+      "run": 37516737798,
+      "job": 112451468715,
+      "stage": "ASAN",
+      "http": 409,
+      "message": "Probe requires an idle homed printer",
+      "suite": {
+        "pass": 18,
+        "fail": 1
+      }
+    }
+  ],
+  "diagnosis": {
+    "verified": "Clock maintenance uses opportunistic runWhenIdle; motion port is busy during phase clock; endpoint intentionally rejects non-idle admission. Original positive requests released dispatch ownership before asynchronous HTTP admission.",
+    "controlledWitness": "Modelled maintenance callback holds real dispatch. Pre-admission 409 preserves token and leaves measure/synchronize counts zero and maintenance gate free. One explicit calibration queued behind it succeeds; opportunistic work cannot overtake held dispatch.",
+    "limits": "Remote failure did not capture busy phase. Local witness establishes the scheduling condition, not the complete root cause of every historical failure."
+  },
+  "invariants": {
+    "positiveHttpAttemptsPerCalibration": 1,
+    "automaticRetry": false,
+    "originalUnhomed409": true,
+    "originalUnauthorized401": true,
+    "probeTimerMs": 1,
+    "probeHitOffsetTicks": 50000,
+    "zTiltHits": 2,
+    "quadHits": 4,
+    "passes": 1,
+    "persisted": false,
+    "duplicateReceiptHasNoExtraMotion": true,
+    "coordinateEqualityUnchanged": true,
+    "productionDiff": false,
+    "mathToleranceRelaxed": false,
+    "testDeadlineMs": 60000
+  },
+  "verification": {
+    "ordinary": {
+      "files": [
+        "product-service",
+        "native-probe-endpoint",
+        "gcode-dispatch"
+      ],
+      "pass": 42,
+      "fail": 0,
+      "durationMs": 22597.142265,
+      "supervisorMs": 22623.810064,
+      "exit": 0,
+      "signal": null
+    },
+    "asan": {
+      "files": [
+        "product-service"
+      ],
+      "pass": 19,
+      "fail": 0,
+      "durationMs": 27689.36832,
+      "supervisorMs": 27733.313724,
+      "exit": 0,
+      "signal": null,
+      "attempts": 1,
+      "options": "detect_leaks=0:abort_on_error=1"
+    },
+    "typecheck": {
+      "exit": 0,
+      "node": "26.10.0"
+    },
+    "whitespace": {
+      "exit": 0
+    },
+    "performance": {
+      "required": false,
+      "reason": "Test ownership only; all production and numerical implementation unchanged. No throughput or target-board claim."
+    }
+  },
+  "reusedAddons": {
+    "normalBundle": {
+      "manifestSha256": "d3707a22c7765a176678a8f6e72b68d63f260f16a55c9f6c9ebd4bf76394a80f",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "asanBuildBranchHead": "5755b1d8a687bdfa2b701e2e875409e01c9c3170",
+    "nativeSourceComparison": "git diff --name-only 5755b1d8 -- *.c *.h host/scripts/build-*.ts: empty"
+  },
+  "scope": {
+    "defaultEntry": "Python",
+    "trackedKlippyPythonFiles": 177,
+    "fullGoalComplete": false,
+    "G3": "unresolved",
+    "hardwareAcceptance": false,
+    "completeClientAcceptance": false
+  },
+  "sourceFingerprints": [
+    {
+      "path": "host/test/product-service.test.ts",
+      "sha256": "c89868b3093f75cce41016e3ed7dbdea1c4cb2442eb23c3fc3cb441390608bed"
+    },
+    {
+      "path": "host/test/native-probe-endpoint.test.ts",
+      "sha256": "277e6b410521a2a0edecaaa3478c6f6da0539a270e7965fd32c9c3e100c3ae83"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-calibration-admission-check-20261007.mjs",
+      "sha256": "1771fe23a0209001437114d0a37b76b1cffa822c9e288412bba53fb90190dcb0"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-calibration-admission-source-20261007.log",
+      "sha256": "8cd4e7fe882b1b3627de45e00c95e85826c3a4e893ca0abd150820b2e501917f"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-calibration-admission-asan-20261007.log",
+      "sha256": "144272c1d33bf895497dc0da7bc0aea79c224af3576efd38432dffb94b0ae8dc"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-calibration-admission-whitespace-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-pr19-postmerge-quad-failure-20261007.log",
+      "sha256": "a0abcf5f7a3ff0c7bfbc9804016fb8cc0e93097a9fd660c93600ef587b10a062"
+    }
+  ],
+  "previousExactHead": {
+    "sha": "d79d76a439be5ed60183cee5c173862a0b59bc05",
+    "host": {
+      "run": 37525777021,
+      "job": 112482280088,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        "whitespace",
+        "typecheck",
+        "ordinary",
+        "protocol-native",
+        "UBSAN/ASAN",
+        "LinuxMCU"
+      ]
+    },
+    "firmware": {
+      "run": 37525777071,
+      "job": 112482279778,
+      "status": "completed",
+      "conclusion": "success"
+    }
+  },
+  "newBaseline": "6dd2ec15d0e438e1fd6ce7d706f637e640c51af0",
+  "baselineScope": "Both calibration test files and native math unchanged from verified head; accepted metadata source inherited. No change in original assertions or timeouts."
+}
