@@ -422,5 +422,70 @@
     "klippyPythonFilesRemaining": 177,
     "pythonDefaultChanged": false,
     "fullGoalComplete": false
+  },
+  "normalDevelopIntegration": {
+    "date": "2026-10-07",
+    "oldHead": "95bc8761fd0d52b721d28a79503e47fb26936809",
+    "base": "6ff1a391f4a1b4ba9cc8360a0a326da6a7fd695e",
+    "originalExactHeadCi": {
+      "host": {
+        "runId": 37511175648,
+        "jobId": 112432402905,
+        "status": "completed",
+        "conclusion": "success",
+        "ordinary": "success",
+        "protocol": "success",
+        "sanitizer": "success",
+        "linuxMcu": "success"
+      },
+      "firmware": {
+        "runId": 37511175570,
+        "jobId": 112432407017,
+        "status": "completed",
+        "conclusion": "success"
+      }
+    },
+    "conflictResolution": "Keep both appended evidence sections; current execution table records newly verified state. Normal merge without overwrite or force push.",
+    "validation": {
+      "tests": 31,
+      "failed": 0,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-reasons-develop6ff-regressions-20261007.log",
+        "sha256": "b7729cc12f6282a02b30a0068aedaf0f162b9123f033dd4fa5b84f8dcba6aab3"
+      },
+      "types": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons-6ff-typecheck-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "whitespace": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons-6ff-whitespace-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fullCi": "new exact head required; not yet passed"
+    },
+    "preservedSources": [
+      {
+        "path": "host/src/operations/maintenance-gate.ts",
+        "sha256": "f7df9634dc7f2a87fd1971786d933aed1907c99bde26955c33e947761e8bb9c3"
+      },
+      {
+        "path": "host/src/moonraker/product-print-api.ts",
+        "sha256": "b59e5f9221db8591591e10b33bf4527201df11acf9fa5dcf549abc93625e22e3"
+      },
+      {
+        "path": "host/test/product-print-conflict-reasons.test.ts",
+        "sha256": "78dadf01e132e1d9b24301a5c377d6b37f514c5f5f3fd522de8be246bb7f0919"
+      },
+      {
+        "path": "host/bench/maintenance-gate.ts",
+        "sha256": "942e442bd86d644535f65db85764536cd3998708284e210d70e99913a10ee715"
+      },
+      {
+        "path": "host/bench/product-print-api.ts",
+        "sha256": "edc56320e03c36c2cd72b3e9b7559637503811266ca7b273c6b55fe1033b1c74"
+      }
+    ],
+    "performance": "Original reasons implementation, original benchmark source/load unchanged; retain original scoped paired measurements. Develop preview integration has separate PR21 original mixed performance evidence. No new statistical/target performance claim.",
+    "boundary": "No PR20 preparation-pause source absorbed; old843 package remains prior version; new exact head full CI and normal merge still required."
   }
 }
