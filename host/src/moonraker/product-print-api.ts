@@ -32,27 +32,36 @@ export class ProductPrintApi {
   this.#controller=controller;this.#gate=gate;this.#pressure=pressure;owners.add(controller);
  }
  get status(){const controller=this.#controller,request=controller.currentRequest;return {mode:'native',standard_print:!!this.#compatibility,pending_compatibility:this.#compatPending.size,state:controller.state,state_token:controller.stateToken,request:request?details(request):null,pending_device_actions:controller.pendingDeviceActions,safe_stop_pending:controller.safeStopPending,failed:controller.failure!==undefined,closed:this.#closed};}
+ usesController(controller:PrintController):boolean{return this.#controller===controller;}
  /** Internal live state view; network authorization remains the server's job. */
  watchState(signal:AbortSignal){if(this.#closed)throw new ApiError(503,'Native print API is closed');return this.#controller.watchState(AbortSignal.any([signal,this.#observers.signal]));}
  /** Queue catalogue identity is not print authority. Translate through the same
   * machine policy and journal with the queue's already durable request ID. */
  async startQueued(job:QueuedNativeJob,requestId:string,context:RpcContext):Promise<void>{
-  if(this.#closed||!this.#compatibility)throw new ApiError(503,'Native queued printing unavailable');
-  if(!validJournalId(requestId)||!validJournalId(job.file_id)||printFilename(job.filename)!==job.filename)throw new ApiError(400,'Invalid queued print identity');
+  return this.#startPublished(job,requestId,context,{queued_user:job.user});
+ }
+ /** Explicit multipart print intent binds the freshly published immutable ID,
+  * then uses the same machine policy, authorization and durable admission. */
+ async startUploaded(file:Pick<QueuedNativeJob,'filename'|'file_id'>,requestId:string,context:RpcContext):Promise<void>{
+  return this.#startPublished(file,requestId,context,{});
+ }
+ async #startPublished(job:Pick<QueuedNativeJob,'filename'|'file_id'>,requestId:string,context:RpcContext,authority:Readonly<Record<string,Json>>):Promise<void>{
+  if(this.#closed||!this.#compatibility)throw new ApiError(503,'Native printing unavailable');
+  if(!validJournalId(requestId)||!validJournalId(job.file_id)||printFilename(job.filename)!==job.filename)throw new ApiError(400,'Invalid published print identity');
   if(this.#compatPending.size>=4)throw new ApiError(429,'Standard print policy capacity exceeded');
   const token=this.#controller.stateToken,state=this.#controller.state,current=this.#controller.currentRequest;
   if(!['idle','completed','cancelled'].includes(state))throw new ApiError(409,'A print or recovery still owns the device');
   const signal=AbortSignal.any([context.signal,this.#observers.signal,AbortSignal.timeout(30000)]),expiresAt=Date.now()+30000;
   const policy=Promise.resolve().then(async()=>{
    signal.throwIfAborted();const value=await this.#compatibility!.start(job.filename,signal);signal.throwIfAborted();
-   if(value.fileId!==job.file_id)throw new ApiError(409,'Queued published file changed');
-   let request:StartPrint;try{request=journalRequest({version:1,requestId,fileId:value.fileId,nozzle:value.nozzle,bed:value.bed,expiresAt});}catch{throw new ApiError(400,'Invalid queued print policy result');}
+   if(value.fileId!==job.file_id)throw new ApiError(409,'Published file changed');
+   let request:StartPrint;try{request=journalRequest({version:1,requestId,fileId:value.fileId,nozzle:value.nozzle,bed:value.bed,expiresAt});}catch{throw new ApiError(400,'Invalid print policy result');}
    const translated={version:1,request_id:requestId,file_id:request.fileId,nozzle:request.nozzle,bed:request.bed,expires_at:expiresAt};
-   const authorized=authorizedContext({...context,signal},await context.authorize('printer.print.start',Object.freeze({...translated,filename:job.filename,queued_user:job.user})));signal.throwIfAborted();
+   const authorized=authorizedContext({...context,signal},await context.authorize('printer.print.start',Object.freeze({...translated,filename:job.filename,...authority})));signal.throwIfAborted();
    return {translated,authorized};
   });this.#compatPending.add(policy);void policy.then(()=>this.#compatPending.delete(policy),()=>this.#compatPending.delete(policy));
-  const resolved=await new Promise<Awaited<typeof policy>>((resolve,reject)=>{const abort=()=>reject(new ApiError(499,'Queued print policy cancelled; no operation admitted'));signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();void policy.then(resolve,reject).finally(()=>signal.removeEventListener('abort',abort));});
-  signal.throwIfAborted();if(this.#closed||this.#controller.stateToken!==token)throw new ApiError(409,'Print state changed during queue authorization');
+  const resolved=await new Promise<Awaited<typeof policy>>((resolve,reject)=>{const abort=()=>reject(new ApiError(499,'Print policy cancelled; no operation admitted'));signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();void policy.then(resolve,reject).finally(()=>signal.removeEventListener('abort',abort));});
+  signal.throwIfAborted();if(this.#closed||this.#controller.stateToken!==token)throw new ApiError(409,'Print state changed during authorization');
   if(state!=='idle')try{this.#controller.reset(current!.requestId);}catch{throw new ApiError(409,'Previous print cleanup is still pending');}
   await this.call('start',resolved.translated,resolved.authorized);
  }

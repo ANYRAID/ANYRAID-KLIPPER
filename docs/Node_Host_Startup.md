@@ -289,7 +289,7 @@ Fluidd 的 JWT 场景和 Mainsail 的显式可信回环场景均在实际页面�
 
 旧 profile 已释放、新设备尚未就绪期间，文件列表、目录、元数据、缩略图、
 下载和历史接口继续通过原身份使用，原 WebSocket 继续接收文件／历史事件。
-授权上传只发布不可变文件，不加热或开始打印；在线上传绑定接纳时的设备
+普通授权上传只发布不可变文件，不加热或开始打印；在线上传绑定接纳时的设备
 门禁和取消信号，设备退役会取消它。查询与下载属于进程，可以跨设备交接
 继续；迟到的进程授权须在最终退出前实际排空，数据库不能提前关闭。
 
@@ -299,7 +299,8 @@ Fluidd 的 JWT 场景和 Mainsail 的显式可信回环场景均在实际页面�
 这些操作；离线修改未结束时不能接入新设备，同一文件的并发修改也拒绝。
 清理失败在本进程锁存，不能以租约释放推断停止成功。晚到的旧代际正文
 仍返回 503；在退役后新受理的请求按离线准入重新检查，不能跨授权等待
-作用于新设备。权限、不可变身份、耐久和文件通知沿用原事务，上传不打印。
+作用于新设备。权限、不可变身份、耐久和文件通知沿用原事务；只有显式
+`print=true` 且当前代际的打印准入通过才开始打印，不自动重放上传意图。
 文件／目录移动、复制覆盖、上传覆盖和删除的持久提交事件，等待该次
 文件提交及元数据失效处理终结后，再交给既有授权通知通道。客户端按
 通知立即读取新元数据时，新生成的预览不会再被同一次操作的迟到失效
@@ -1541,6 +1542,24 @@ path 使用 `gcodes/相对目录`，先创建父目录；根目录不可删除�
 32 段、单段 255 UTF-8 字节、总长 1,024 字节；回执另受原 2,048 字节限额。
 命名空间与私有 blob／回执目录分离，可见名字不会作为真实存储路径打开。
 
+显式 `print=true` 支持标准“上传并打印”候选。文件发布后先关闭临时源、
+删除暂存目录并释放文件／设备／进程上传占用，再使用入站时捕获的打印
+API。沿用既有机器温度策略和 30 秒准入期限，重新授权 `printer.print.start`
+并比对不可变文件 ID；同名路径的替换不能改换待打印内容。旧设备退役、
+权限失效、当前作业占用或文件变化均不启动第二个任务，也不自动入队。
+回执提供 `print_started`、`print_queued` 与 `print_request_id`；其中
+`print_started=true` 表示耐久准入成功，不代表准备、物理运动或整件打印
+已完成。启动失败保留已发布文件及 `print_error`，不撤销发布、不重试。
+普通上传省略该字段或提交空、`false`、`0` 时仍不启动。
+丢失回执时应查询文件、当前打印状态与历史，不重发带打印标志的上传；
+当前设备就绪时可用 `/printer/print/status?request_id=...` 核对耐久记录，
+准入前拒绝可能没有该记录。现有 HTTP 200 和 result 别名保持；官方 201
+及 Location 回执差额仍未收口，不据本批声称全部文件契约兼容。
+行为断言、固定字节输入与性能原样本见[上传启动验收](../host/contracts/upload-print-intent-acceptance.json)。
+原版只读工作树可由 `ANYRAID_UPLOAD_BASELINE` 指定，用 Node.js 26 执行
+`node host/bench/upload-print-intent.ts`；基准先核对三个原模块摘要，保留
+5 次预热、11 次交替配对测量。范围仅为桌面上传／耐久准入，未执行运动。
+
 标准上传同名文件时使用新 ID 替换可见路径，退役旧 ID，返回及通知仍为
 `create_file`，不带 `source_item`，也不自动打印。新显式 ID 可用于覆盖，
 重复已有 ID 仍返回 409；目录不存在返回 404。覆盖须有入站时捕获的设备打印所有者或经确认的离线所有者；
@@ -1552,7 +1571,7 @@ path 使用 `gcodes/相对目录`，先创建父目录；根目录不可删除�
 元数据清单不超过 2 MiB；文件、上传、快照与响应限额仍沿用已有配置。
 上传／移动覆盖已有本机增量，独立编译打印、新头 CI／PR 与完整页面仍待验，
 见[覆盖证据](../host/contracts/native-overwrite-acceptance.json)。自动创建上传父目录、
-UFP、上传后受控打印及递归删除尚未闭合，完整 Moonraker 目标仍保留这些差异。API 验收不代替
+UFP、上传后受控打印的正常集成和完整客户端／目标验收尚未闭合，完整 Moonraker 目标仍保留这些差异。API 验收不代替
 固定 Fluidd／Mainsail 页面流程或实机性能。命令和结果见
 [目录文件验收](../host/contracts/native-file-namespace-acceptance.json)。
 
@@ -2417,8 +2436,8 @@ default_source: moonraker
 
 省略 max_login_attempts 表示不限失败次数。稳定 issuer 由产品配置提供，
 不会从临时监听端口推导。未知 default_source 警告后回退到 moonraker；
-trusted_clients 已支持显式数字 IP／CIDR；LDAP、域名信任、cors_domains
-和其他尚未实现的授权规则会在装配前明确报错。此入口不能同时传入外部入站、通知或订阅鉴权回调。
+trusted_clients 已支持显式数字 IP／CIDR；cors_domains 支持下述受限模式。
+LDAP、域名信任和其他尚未实现的授权规则会在装配前明确报错。此入口不能同时传入外部入站、通知或订阅鉴权回调。
 
 loadAuthorized 不监听；成功后调用 server.start()。首次凭据可从本地
 `server.authorization.localApiKey()` 获取，不能写入日志。装配构造完成后，
@@ -2866,3 +2885,55 @@ WebSocket 单帧 1 MiB、全局发送缓冲 8 MiB，有界请求与流式回压�
 原始失败及数值见[接入验收](../host/contracts/protected-client-gateway-acceptance.json)。
 完整同包 Fluidd／Mainsail、进程崩溃恢复、目标板、G3 和全面 Python
 退役仍待完成。
+
+## 元数据 Worker 的关闭确认候选
+
+扫描超时立即拒绝请求、取消全部已准入工作并封闭实例，原扫描期限不变。
+`close()` 保留同一 Promise，已转移句柄的请求记录须等 Worker 回执确认
+`source.close()` 完成后才释放。关闭消息按原串行队列处理，覆盖尚未开始
+解析的源文件；正常关闭宽限为一秒，其后尝试强制终止。宽限不是扫描
+期限的扩展，也不是原生线程终止的总时间保证。若仍缺关闭回执，`close()`
+明确失败，不把 Worker 退出当成源文件释放证明，不用原始 fd 号盲目关闭。
+
+必要对照可设置 `ANYRAID_METADATA_BASELINE` 为原实现仓库的绝对路径后，
+运行 `node host/bench/metadata-worker-close.ts`。基准核验原源码摘要，沿用
+原四种字节输入、5 次预热与 11 次保留样本，检查字段一致性；桌面对照
+不替代目标板或混合打印性能。原远程句柄泄漏尚未本机复现，来源、回归、
+编译包及性能样本见[清理验收](../host/contracts/metadata-worker-close-acceptance.json)。
+
+## 原生 Moonraker 跨域访问配置
+
+在上述原生授权入口的 `[authorization]` 中配置浏览器来源：
+
+```ini
+cors_domains:
+  https://fluidd.example.com
+  https://*.example.com
+```
+
+配置只允许浏览器跨域读取和 WebSocket 升级，API Key／JWT、接口与
+通知授权仍独立执行；CORS 通配符不会授予打印权限。预检允许 Authorization、
+X-Api-Key 和 X-Access-Token。允许来源的鉴权错误携带 CORS 响应头；
+未允许来源拒绝，默认无 Origin 的既有客户端行为沿用。
+
+沿用固定上游的点／星号转换、完整首匹配、顶级域通配符和末尾斜杠
+警告后忽略规则；有有效模式时支持已有数字 trusted_clients 的 IP 回退，
+不会解析域名或扩大信任。保留现有网络边界，只接受规范 HTTP(S) Origin。
+最多 128 个模式，每项最多 1024 字符；匹配使用锁定的 re2-wasm 1.0.2。
+Python 特有的反向引用、前后查找等不受支持，装配时拒绝，不静默转换。
+这项限制是当前兼容差额，不能宣称全部 Python 正则兼容。
+
+`npm run bench:moonraker-cors-policy` 计量原大小与满容量规则；
+编译包混合打印验收可设置 `ANYRAID_BENCH_CORS_ORIGIN=https://fluidd.example.com`，
+沿用全部原负载、运动精度与性能判据。实际 Fluidd／Mainsail 页面、目标板
+和物理打印仍须单独验收，不以 HTTP 协议测试替代。
+
+语义来源为[固定 Moonraker 授权源码](https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/authorization.py)；
+匹配引擎与正则限制见[RE2 WASM 项目](https://github.com/google/re2-wasm)。
+
+组合上传候选在 `6dd2ec15` 基线上通过 123 项相关回归及独立编译
+12 项关键检查；额外装配网关的 `f76efc7d` 固定包已实际验证
+Mainsail 2.19.0 文件选择、显式启动、单作业完成和历史，预览解码
+32×32。该页面包包含尚未集成的候选，不能转记为 develop 或实机
+通过；完整客户端、目标性能和 G3 仍待验。详细边界保留于
+[组合上传验收契约](../host/contracts/upload-print-intent-acceptance.json)。

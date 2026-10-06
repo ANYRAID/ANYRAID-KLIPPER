@@ -1,0 +1,395 @@
+{
+  "schema": 1,
+  "upstreamCommit": "1cfb0c41e468645951a371621f06d32777b6107c",
+  "sourcePath": "moonraker/components/authorization.py",
+  "sourceSha256": "1ee62abc536cdb83e9efe65b07bf05114c9244137cc61befb1073dc54f22bc11",
+  "runtime": "3.12.13",
+  "setup": "self.cors_domains: List[str] = []\nfor domain in config.getlist('cors_domains', []):\n    bad_match = re.search('^.+\\\\.[^:]*\\\\*', domain)\n    if bad_match is not None:\n        self.server.add_warning(f\"[authorization]: Unsafe domain '{domain}' in option 'cors_domains'. Wildcards are not permitted in the top level domain.\")\n        continue\n    if domain.endswith('/'):\n        self.server.add_warning(f\"[authorization]: Invalid domain '{domain}' in option 'cors_domains'.  Domain's cannot contain a trailing slash.\")\n    else:\n        self.cors_domains.append(domain.replace('.', '\\\\.').replace('*', '.*'))",
+  "check": "async def check_cors(self, origin: Optional[str]) -> bool:\n    if origin is None or not self.cors_domains:\n        return False\n    for regex in self.cors_domains:\n        match = re.match(regex, origin)\n        if match is not None:\n            if match.group() == origin:\n                logging.debug(f'CORS Pattern Matched, origin: {origin}  | pattern: {regex}')\n                return True\n            else:\n                logging.debug(f'Partial Cors Match: {match.group()}')\n    else:\n        match = re.search('^https?://([^/:]+)', origin)\n        if match is not None:\n            ip = match.group(1)\n            try:\n                ipaddr = ipaddress.ip_address(ip)\n            except ValueError:\n                pass\n            else:\n                if await self._check_authorized_ip(ipaddr):\n                    logging.debug(f'Cors request matched trusted IP: {ip}')\n                    return True\n        logging.debug(f'No CORS match for origin: {origin}\\nPatterns: {self.cors_domains}')\n    return False",
+  "cases": [
+    {
+      "domains": [
+        "https://fluidd.example.com"
+      ],
+      "trusted": [],
+      "origins": [
+        "https://fluidd.example.com",
+        "https://mainsail.example.com",
+        "https://a.example.com:8443",
+        "https://example.com",
+        "https://evil.invalid",
+        "http://192.168.1.4:7125",
+        "http://192.168.2.4:7125",
+        "http://127.0.0.1:9000",
+        "http://[::1]:9000",
+        "https://fluidd.example.com.evil",
+        "https://fluidd.example.com/path",
+        "null",
+        null
+      ],
+      "expected": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "warnings": []
+    },
+    {
+      "domains": [
+        "https://*.example.com"
+      ],
+      "trusted": [],
+      "origins": [
+        "https://fluidd.example.com",
+        "https://mainsail.example.com",
+        "https://a.example.com:8443",
+        "https://example.com",
+        "https://evil.invalid",
+        "http://192.168.1.4:7125",
+        "http://192.168.2.4:7125",
+        "http://127.0.0.1:9000",
+        "http://[::1]:9000",
+        "https://fluidd.example.com.evil",
+        "https://fluidd.example.com/path",
+        "null",
+        null
+      ],
+      "expected": [
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "warnings": []
+    },
+    {
+      "domains": [
+        "*://*.example.com:*"
+      ],
+      "trusted": [],
+      "origins": [
+        "https://fluidd.example.com",
+        "https://mainsail.example.com",
+        "https://a.example.com:8443",
+        "https://example.com",
+        "https://evil.invalid",
+        "http://192.168.1.4:7125",
+        "http://192.168.2.4:7125",
+        "http://127.0.0.1:9000",
+        "http://[::1]:9000",
+        "https://fluidd.example.com.evil",
+        "https://fluidd.example.com/path",
+        "null",
+        null
+      ],
+      "expected": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "warnings": []
+    },
+    {
+      "domains": [
+        "*"
+      ],
+      "trusted": [],
+      "origins": [
+        "https://fluidd.example.com",
+        "https://mainsail.example.com",
+        "https://a.example.com:8443",
+        "https://example.com",
+        "https://evil.invalid",
+        "http://192.168.1.4:7125",
+        "http://192.168.2.4:7125",
+        "http://127.0.0.1:9000",
+        "http://[::1]:9000",
+        "https://fluidd.example.com.evil",
+        "https://fluidd.example.com/path",
+        "null",
+        null
+      ],
+      "expected": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "warnings": []
+    },
+    {
+      "domains": [
+        "https://example.*"
+      ],
+      "trusted": [],
+      "origins": [
+        "https://fluidd.example.com",
+        "https://mainsail.example.com",
+        "https://a.example.com:8443",
+        "https://example.com",
+        "https://evil.invalid",
+        "http://192.168.1.4:7125",
+        "http://192.168.2.4:7125",
+        "http://127.0.0.1:9000",
+        "http://[::1]:9000",
+        "https://fluidd.example.com.evil",
+        "https://fluidd.example.com/path",
+        "null",
+        null
+      ],
+      "expected": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "warnings": [
+        "[authorization]: Unsafe domain 'https://example.*' in option 'cors_domains'. Wildcards are not permitted in the top level domain."
+      ]
+    },
+    {
+      "domains": [
+        "https://fluidd.example.com/"
+      ],
+      "trusted": [],
+      "origins": [
+        "https://fluidd.example.com",
+        "https://mainsail.example.com",
+        "https://a.example.com:8443",
+        "https://example.com",
+        "https://evil.invalid",
+        "http://192.168.1.4:7125",
+        "http://192.168.2.4:7125",
+        "http://127.0.0.1:9000",
+        "http://[::1]:9000",
+        "https://fluidd.example.com.evil",
+        "https://fluidd.example.com/path",
+        "null",
+        null
+      ],
+      "expected": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "warnings": [
+        "[authorization]: Invalid domain 'https://fluidd.example.com/' in option 'cors_domains'.  Domain's cannot contain a trailing slash."
+      ]
+    },
+    {
+      "domains": [],
+      "trusted": [
+        "192.168.1.0/24"
+      ],
+      "origins": [
+        "https://fluidd.example.com",
+        "https://mainsail.example.com",
+        "https://a.example.com:8443",
+        "https://example.com",
+        "https://evil.invalid",
+        "http://192.168.1.4:7125",
+        "http://192.168.2.4:7125",
+        "http://127.0.0.1:9000",
+        "http://[::1]:9000",
+        "https://fluidd.example.com.evil",
+        "https://fluidd.example.com/path",
+        "null",
+        null
+      ],
+      "expected": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "warnings": []
+    },
+    {
+      "domains": [
+        "https://front.example.com"
+      ],
+      "trusted": [
+        "192.168.1.0/24",
+        "127.0.0.1",
+        "::1"
+      ],
+      "origins": [
+        "https://fluidd.example.com",
+        "https://mainsail.example.com",
+        "https://a.example.com:8443",
+        "https://example.com",
+        "https://evil.invalid",
+        "http://192.168.1.4:7125",
+        "http://192.168.2.4:7125",
+        "http://127.0.0.1:9000",
+        "http://[::1]:9000",
+        "https://fluidd.example.com.evil",
+        "https://fluidd.example.com/path",
+        "null",
+        null
+      ],
+      "expected": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "warnings": []
+    },
+    {
+      "domains": [
+        "https://(fluidd|mainsail).example.com"
+      ],
+      "trusted": [],
+      "origins": [
+        "https://fluidd.example.com",
+        "https://mainsail.example.com",
+        "https://a.example.com:8443",
+        "https://example.com",
+        "https://evil.invalid",
+        "http://192.168.1.4:7125",
+        "http://192.168.2.4:7125",
+        "http://127.0.0.1:9000",
+        "http://[::1]:9000",
+        "https://fluidd.example.com.evil",
+        "https://fluidd.example.com/path",
+        "null",
+        null
+      ],
+      "expected": [
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "warnings": []
+    },
+    {
+      "domains": [
+        "https://fluidd.example.com",
+        "https://bad.*",
+        "https://bad.example/"
+      ],
+      "trusted": [],
+      "origins": [
+        "https://fluidd.example.com",
+        "https://mainsail.example.com",
+        "https://a.example.com:8443",
+        "https://example.com",
+        "https://evil.invalid",
+        "http://192.168.1.4:7125",
+        "http://192.168.2.4:7125",
+        "http://127.0.0.1:9000",
+        "http://[::1]:9000",
+        "https://fluidd.example.com.evil",
+        "https://fluidd.example.com/path",
+        "null",
+        null
+      ],
+      "expected": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "warnings": [
+        "[authorization]: Unsafe domain 'https://bad.*' in option 'cors_domains'. Wildcards are not permitted in the top level domain.",
+        "[authorization]: Invalid domain 'https://bad.example/' in option 'cors_domains'.  Domain's cannot contain a trailing slash."
+      ]
+    }
+  ],
+  "scope": "Actual upstream AST setup and check_cors executed independently. Numeric trusted-IP provider stub implements IP/CIDR only. Origins are raw upstream values; network canonical HTTP(S) origin validation is an additional product boundary."
+}

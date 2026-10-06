@@ -264,6 +264,7 @@ export class ConfiguredMoonraker {
   const releaseProcessFiles=this.#nativeProcessFiles?registerNativeFileInfo(this.endpoints,this.#nativeProcessFiles,{configFiles:this.#configFiles}):()=>{};
   let releaseUploads=this.#nativeUploads?registerNativeFileInfo(this.endpoints,this.#nativeUploads,{metadata:!this.#metadataFiles,readRoutes:!this.#nativeProcessFiles,deleteRoute:!this.#nativeProcessFiles}):()=>{};
   this.#printApi=options.productPrint?new ProductPrintApi(options.productPrint,this.maintenanceGate,options.productPressure,options.productPrintCompatibility):options.nativeDetached?undefined:new PrintApi({backend:()=>this.#stopping?undefined:this.#klippy,maintenanceGate:this.maintenanceGate,beginStart:this.#historyRuntime?(event,request,lifetime)=>this.#historyRuntime!.beginPrint(event.filename,event.user,request,lifetime):undefined,onStartComplete:options.onPrintStartComplete});
+  if(this.#printApi instanceof ProductPrintApi)this.#nativeUploads?.bindPrintController(options.productPrint!,this.#printApi);
   const releaseConfigWriter=this.#configFiles?.bindWriter(context=>this.#beginConfigWrite(context))??(()=>{});
   const releaseConfigSave=this.#configFiles?.registerSave(this.endpoints)??(()=>{});
   const releaseConfigChanges=this.#configFiles?.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications))??(()=>{});
@@ -358,8 +359,8 @@ export class ConfiguredMoonraker {
    authorizeNotification:(method,params,context)=>owner().networkOptions.authorizeNotification!(method,params,context),
    authorizeSubscriptionConnection:(source,target)=>owner().networkOptions.authorizeSubscriptionConnection!(source,target)
   };
-  const {reader,automatic}=await this.#prepare(filename,resolved),policy=readAuthorizationOptions(reader,options.authorization.issuer);
-  const server=new ConfiguredMoonraker(reader,resolved,automatic);
+  const {reader,automatic}=await this.#prepare(filename,resolved),{cors,...policy}=readAuthorizationOptions(reader,options.authorization.issuer);
+  const server=new ConfiguredMoonraker(reader,{...resolved,...cors?{cors}:{}},automatic);
   server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);
   try{
    auth=await ApiKeyAuthorization.open(options.database,policy);server.#authorization=auth;
@@ -551,7 +552,7 @@ export class ConfiguredMoonraker {
    this.#releaseNativeBindings();this.#nativeScope=scope;this.#printApi=api;this.#maintenanceGate=gate;this.#nativeHost=host;this.#nativeUploads=uploads;this.#nativeGeneration++;
    this.#nativeRetirement=undefined;this.#nativeRetirementDrained=false;if(!this.#nativeProcessHistory)this.#nativeHistory=undefined;this.#nativeController=controller;
    try{
-    uploads?.bindPrintController(controller);if(uploads)uploadOwners.add(uploads);
+    uploads?.bindPrintController(controller,api);if(uploads)uploadOwners.add(uploads);
     this.#nativeReleases.push(registerProductPrintApi(this.endpoints,api));this.#nativeReleases.push(registerNativeObjects(this.endpoints,objects));
     const owner=new NativeSubscriptions(objects,{deliver:(id,value,time)=>delivery.deliver(id,value,time),disconnect:id=>this.#network.disconnectClient(id)});
     const delivery=new SubscriptionDelivery({signal:id=>this.#network.connectionSignal(id),subscribe:(id,value,signal)=>owner.subscribe(id,value,signal),remove:id=>owner.remove(id),send:(id,value,time)=>this.#network.dispatchNotification(id,'notify_status_update',[value as Json,time],scope.signal),disconnect:id=>this.#network.disconnectClient(id),enabled:()=>!!this.#network.status.notifications});

@@ -4,7 +4,27 @@ import {registerNativeProbe} from '../src/moonraker/native-probe.ts';
 import {EndpointRegistry} from '../src/moonraker/endpoints.ts';
 import {JsonRpcDispatcher,type RpcContext} from '../src/moonraker/rpc.ts';
 import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
+import {GCodeDispatch} from '../src/gcode/dispatch.ts';
 const context:RpcContext={transport:'http',signal:new AbortController().signal,authorize:()=>{}};
+test('clock ownership rejects before admission; held dispatch admits one explicit calibration',async()=>{
+ const registry=new EndpointRegistry(new JsonRpcDispatcher()),gate=new MaintenanceGate();let clockBusy=false,calls=0,resets=0;
+ const dispatch=new GCodeDispatch({output(){},shutdown(){assert.fail('Unexpected dispatch shutdown');}}),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>();
+ const close=registerNativeProbe(registry,gate,{idle:()=>!clockBusy,measure:async()=>{calls++;return {passes:1};},synchronize:()=>{resets++;}},'quad_gantry_level');
+ const invoke=(verb:string,params:any={})=>registry.invoke('/printer/calibration/quad_gantry_level',verb,params,context) as Promise<any>;
+ const before=await invoke('GET'),request={version:1,state_token:before.state_token};
+ const maintenance=dispatch.runWhenIdle(async()=>{clockBusy=true;entered.resolve();try{await release.promise;}finally{clockBusy=false;}},context.signal);
+ try{
+  await entered.promise;
+  await assert.rejects(invoke('POST',request),error=>error instanceof Error&&'status' in error&&error.status===409&&error.message==='Probe requires an idle homed printer');
+  assert.deepEqual(await invoke('GET'),{...before,available:false});assert.equal(calls,0);assert.equal(resets,0);assert.equal(gate.status.maintenance,false);
+  const calibration=dispatch.runExclusive(async signal=>{
+   assert.equal(clockBusy,false);assert.equal(await dispatch.runWhenIdle(async()=>assert.fail('Maintenance overtook calibration'),signal),false);
+   const result=await invoke('POST',request);assert.equal(result.result.passes,1);assert.notEqual(result.state_token,before.state_token);
+  },context.signal);
+  assert.equal(calls,0);release.resolve();assert.equal(await maintenance,true);await calibration;
+  assert.equal(calls,1);assert.equal(resets,1);
+ }finally{release.resolve();await maintenance;await close();}
+});
 test('typed probe is authorized, exclusive, cache-safe and retry-idempotent',async()=>{
  const registry=new EndpointRegistry(new JsonRpcDispatcher()),gate=new MaintenanceGate();let idle=false,calls=0,resets=0;const pending=Promise.withResolvers<any>();
  const close=registerNativeProbe(registry,gate,{idle:()=>idle,measure:async()=>{calls++;return pending.promise;},synchronize:()=>{resets++;}});
