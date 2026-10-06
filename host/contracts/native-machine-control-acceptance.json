@@ -34,7 +34,8 @@
     "host/test/machine-recovery-journal.test.ts": "0a972584b2c5a387f600eebccddcd74f22523635f351247eb6b9c27db4905029",
     "host/test/native-product-machine-control.test.ts": "649afb07aec39f71d0b59e9024d76dbf37dbbc41063410f420f427b8eff2f6d6",
     "host/bench/machine-recovery.ts": "b05aa4481f03ed84a7e05561a3bbe0da215896b3f599e3e11c113715b8b42862",
-    "host/acceptance/product-compiled-journey.test.ts": "3f80dac830e8cb4e0a663a6ddad492c8a9c1fa48867582641f899fe3a80d9a93"
+    "host/acceptance/product-compiled-journey.test.ts": "3f80dac830e8cb4e0a663a6ddad492c8a9c1fa48867582641f899fe3a80d9a93",
+    "host/test/product-service.test.ts": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc"
   },
   "invariants": [
     "Read-only service source never implicitly grants OS mutation; trusted bounded canonical allowlist only",
@@ -431,7 +432,29 @@
           "sha256": "dadf03dfb78825b523c85fd61eb7829e6d2f99fe1558e645e22310678f8e4e18"
         }
       },
-      "sanitizer": "running",
+      "sanitizer": {
+        "conclusion": "failed",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-sanitized-20261006.log",
+          "sha256": "c0d7bdd7c467b5a3cfe2d6c65a5e5eeff4edceb51995d35f3b6373afb0515ffc"
+        },
+        "phase": "ASan product-service.test.ts",
+        "commandStatus": 1,
+        "commandSignal": null,
+        "passed": 17,
+        "failed": 2,
+        "failures": [
+          {
+            "test": "configured Z tilt HTTP calibration owns probe, motor adjustment and duplicate receipts",
+            "error": "Native motion port busy or paused at forcePosition"
+          },
+          {
+            "test": "skew HTTP persistence reloads exact server coefficients and fences previous service tokens",
+            "error": "409 !== 200 at activated load"
+          }
+        ],
+        "scope": "UBSan phase completed; ASan stops at product-service.test.ts, remaining files not run. Two functional assertions, no sanitizer diagnostic reported."
+      },
       "linuxMCU": {
         "conclusion": "passed",
         "log": {
@@ -440,7 +463,9 @@
         },
         "scope": "Node command generator, Linux MCU build/link; no physical device"
       },
-      "exactHeadCI": "not-run"
+      "exactHeadCI": "not-run",
+      "sourceRevision": "147cfb35848da898ab8ab166166f79f25739439d",
+      "scope": "Historical complete ordinary and sanitized attempts before product-service fixture ownership correction; failures retained unchanged."
     },
     "typecheck": {
       "conclusion": "passed",
@@ -489,6 +514,54 @@
         "sha256": "45bd7b67e2ff237b087f624d53f2d6e1fffc23d4fdfd6513ff52ab39e07bc0bc"
       },
       "scope": "Current account cannot see other-user/system messages; No entries cannot establish absence of hardware errors"
+    },
+    "productServiceFixture": {
+      "conclusion": "passed-focused",
+      "sourceSha256": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc",
+      "ordinary": {
+        "passed": 19,
+        "failed": 0,
+        "durationMs": 22658.745294,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-service-idle-ordinary-20261006.log",
+          "sha256": "406e06de85fc796e7f8b89b128fe7df2976c7c9e11ac96243d79cfff4c916d68"
+        }
+      },
+      "asan": {
+        "passed": 19,
+        "failed": 0,
+        "durationMs": 27507.501754,
+        "status": 0,
+        "signal": null,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-service-idle-asan-20261006.log",
+          "sha256": "962d82413db1b69f6ec89fd73aff27c59e56b40f8f2b98be8438e0ef73ccc6b1"
+        }
+      },
+      "typecheck": {
+        "conclusion": "passed",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-service-idle-type-20261006.log",
+          "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+        }
+      },
+      "intermediateAttempt": {
+        "conclusion": "failed",
+        "passed": 18,
+        "failed": 1,
+        "error": "Initial measure still assumed idle; final correction applies to all four operations.",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-service-fixture-asan-20261006.log",
+          "sha256": "e304eabdc912c69ac0e9b8e43d3fe2210c8efebfff71cd303c08ca5b236dfecc"
+        }
+      },
+      "invariants": [
+        "Z tilt and quad gantry fixture position setup uses the actual dispatch owner, including periodic clock maintenance",
+        "GET availability remains a hint; only exact pre-admission idle errors permit bounded same-token requests within 5 seconds",
+        "Busy rejection preserves token, coefficients, configuration bytes and queue_step count; stale/auth errors remain terminal",
+        "Actual maintenance-gate owner forces a busy rejection; successful measure/save/load/remove preserve exact coefficients across restart"
+      ],
+      "scope": "Product-service file only. Production idle rejection, motion formulas, native addons and original deadlines unchanged; original complete-suite and performance failures are not closed."
     }
   },
   "performance": {

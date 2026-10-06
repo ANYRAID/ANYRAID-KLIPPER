@@ -3,7 +3,7 @@ import {once} from 'node:events';
 import {WebSocket} from 'ws';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,writeFile,open} from 'node:fs/promises';
+import {mkdtemp,rm,writeFile,readFile,open} from 'node:fs/promises';
 import {setTimeout as delay} from 'node:timers/promises';
 import {GCodeFileReader} from '../src/gcode/file-reader.ts';
 import {tmpdir} from 'node:os';
@@ -201,7 +201,9 @@ test('configured Z tilt HTTP calibration owns probe, motor adjustment and duplic
   const state=await (await fetch(base+path,{headers})).json() as any,request={version:1,state_token:state.result.state_token};assert.equal(state.result.available,false);
   const post=()=>fetch(base+path,{method:'POST',headers,body:JSON.stringify(request)});
   assert.equal((await post()).status,409);assert.equal((await fetch(base+path)).status,401);
-  owner.printer.linear.kinematics.markHomed([0,1,2]);await owner.printer.linear.port.forcePosition([50,0,1,0],f.signal);owner.printer.print.gcode.coordinates.resetPosition();
+  await owner.printer.print.gcode.dispatch.runExclusive(async signal=>{
+   owner!.printer.linear.kinematics.markHomed([0,1,2]);await owner!.printer.linear.port.forcePosition([50,0,1,0],signal);owner!.printer.print.gcode.coordinates.resetPosition();
+  },f.signal);
   const fw=transport.firmware[0],probe=owner.printer.hardware.plan.homing.find(h=>h.section==='probe')!,trigger=probe.triggers[0].protocol,handled=new Set<unknown>();let hits=0;
   timer=setInterval(()=>{
    const outputs=fw.outputs,arm=outputs.find(m=>m.name==='endstop_home'&&m.parameters.oid===probe.endstop.oid&&Number(m.parameters.sample_count)>0&&!handled.has(m));
@@ -230,7 +232,9 @@ test('configured quad gantry HTTP calibration owns probe, motor adjustment and d
   const state=await (await fetch(base+path,{headers})).json() as any,request={version:1,state_token:state.result.state_token};assert.equal(state.result.available,false);
   const post=()=>fetch(base+path,{method:'POST',headers,body:JSON.stringify(request)});
   assert.equal((await post()).status,409);assert.equal((await fetch(base+path)).status,401);
-  owner.printer.linear.kinematics.markHomed([0,1,2]);await owner.printer.linear.port.forcePosition([50,0,1,0],f.signal);owner.printer.print.gcode.coordinates.resetPosition();
+  await owner.printer.print.gcode.dispatch.runExclusive(async signal=>{
+   owner!.printer.linear.kinematics.markHomed([0,1,2]);await owner!.printer.linear.port.forcePosition([50,0,1,0],signal);owner!.printer.print.gcode.coordinates.resetPosition();
+  },f.signal);
   const fw=transport.firmware[0],probe=owner.printer.hardware.plan.homing.find(h=>h.section==='probe')!,trigger=probe.triggers[0].protocol,handled=new Set<unknown>();let hits=0;
   timer=setInterval(()=>{
    const outputs=fw.outputs,arm=outputs.find(m=>m.name==='endstop_home'&&m.parameters.oid===probe.endstop.oid&&Number(m.parameters.sample_count)>0&&!handled.has(m));
@@ -243,7 +247,7 @@ test('configured quad gantry HTTP calibration owns probe, motor adjustment and d
   const status=await (await fetch(base+'/printer/objects/query?quad_gantry_level',{headers})).json() as any;assert.deepEqual(status.result.status.quad_gantry_level,{applied:true});
  }finally{if(timer)clearInterval(timer);await owner?.close();await transport.close();await f.dispose();}
 });
-test('skew HTTP persistence reloads exact server coefficients and fences previous service tokens',async()=>{
+test('skew HTTP persistence reloads exact server coefficients and fences previous service tokens',async t=>{
  const {KlipperSaveSession}=await import('../src/config/klipper-save-session.ts');
  const f=await fixture();let next:Awaited<ReturnType<typeof fixture>>|undefined,owner:Awaited<ReturnType<typeof startProductService>>|undefined;
  try{
@@ -256,16 +260,39 @@ test('skew HTTP persistence reloads exact server coefficients and fences previou
   const post=async(path:string,body:unknown,authorized=true)=>{const response=await fetch(base+path,{method:'POST',headers:authorized?headers:{'content-type':'application/json'},body:JSON.stringify(body)});return {status:response.status,body:await response.json() as any};};
   const settings='/printer/settings/skew',configuration='/printer/configuration/skew',state=await get(settings);
   const set={version:1,state_token:state.state_token,action:'measure',measurements:{xy:[142.123456789,141.987654321,100],xz:null,yz:null}};
-  const measured=await post(settings,set);assert.equal(measured.status,200,JSON.stringify(measured));const factors=measured.body.result.factors;
+  const stepCount=()=> (next??f).firmware.reduce((count,fw)=>count+fw.motion.filter(m=>m.name==='queue_step').length,0);
+  // GET availability is a hint. Only an explicit pre-admission idle rejection
+  // permits another POST with the original token. Preserve every busy guard.
+  const postWhenIdle=async(endpoint:string,body:Record<string,unknown>)=>{
+   const before=await get(endpoint),deadline=performance.now()+5000;let rejections=0;
+   assert.equal(before.state_token,body.state_token);
+   for(;;){
+    const hint=await get(endpoint);assert.equal(hint.state_token,before.state_token);assert.deepEqual(hint.factors,before.factors);assert.equal(hint.state,before.state);
+    assert.equal(owner!.printer.controller.state,'idle');assert.equal(owner!.printer.linear.port.status.failed,false);assert.equal(owner!.printer.linear.port.status.pendingMoves,0);
+    assert(performance.now()<deadline,'Skew operation did not reach idle admission');
+    if(!hint.available){await delay(2);continue;}
+    const steps=stepCount(),configurationBefore=await readFile(path),response=await post(endpoint,body);
+    if(response.status!==409){assert.equal(response.status,200,JSON.stringify(response));t.diagnostic(JSON.stringify({skewIdleAdmission:{endpoint,action:body.action,rejections,deadlineMs:5000,sameTokenUntilAccepted:true}}));return response;}
+    const messages=endpoint===settings?['Skew settings require an idle printer','Printer activity blocks skew settings']:['Skew persistence requires idle printer and configuration session','Printer activity blocks skew persistence'];
+    assert(messages.includes(response.body.error?.message),JSON.stringify(response));assert(++rejections<=16,'Unexpected repeated skew admission rejection');
+    assert.equal(stepCount(),steps,'Rejected skew operation submitted motion');assert.deepEqual(await readFile(path),configurationBefore,'Rejected skew operation changed configuration');await delay(2);
+   }
+  };
+  const release=f.product.maintenanceGate.acquire(),beforeBusy=await readFile(path),busySteps=stepCount();
+  try{
+   assert.equal((await get(settings)).available,false);const rejected=await post(settings,set);assert.equal(rejected.status,409);assert.equal(rejected.body.error.message,'Skew settings require an idle printer');
+   const after=await get(settings);assert.equal(after.state_token,state.state_token);assert.deepEqual(after.factors,state.factors);assert.equal(stepCount(),busySteps);assert.deepEqual(await readFile(path),beforeBusy);
+  }finally{release();}
+  const measured=await postWhenIdle(settings,set);const factors=measured.body.result.factors;
   assert.deepEqual(owner.printer.print.gcode.coordinates.state.position,owner.printer.linear.port.position());
   const save={version:1,state_token:(await get(configuration)).state_token,action:'save',profile:'calibrated'};
-  assert.equal((await post(configuration,save,false)).status,401);const receipt=await post(configuration,save);assert.equal(receipt.status,200,JSON.stringify(receipt));assert(receipt.body.result.restart_required);assert.deepEqual(await post(configuration,save),receipt);
+  assert.equal((await post(configuration,save,false)).status,401);const receipt=await postWhenIdle(configuration,save);assert(receipt.body.result.restart_required);assert.deepEqual(await post(configuration,save),receipt);
   assert.equal((await post(settings,{version:1,state_token:(await get(settings)).state_token,action:'clear'})).status,409);assert(loaded.session.status.sealedForRestart);
   await owner.close();owner=undefined;next=await fixture();const restored=await KlipperSaveSession.load(path);
   owner=await startProductService(new ConfigurationReader(restored.source,null),next.connections,'mcu',next.layout,next.options,{...next.product,configurationSession:restored.session},next.serviceOptions,next.signal);base=`http://127.0.0.1:${owner.address.port}`;
   const current=await get(settings);assert.deepEqual(current.factors,{xy:0,xz:0,yz:0});assert.deepEqual(current.profiles,['calibrated']);assert.equal((await post(settings,set)).status,409);assert.equal((await post(configuration,save)).status,409);
-  const activated=await post(settings,{version:1,state_token:current.state_token,action:'load',profile:'calibrated'});assert.equal(activated.status,200);assert.deepEqual(activated.body.result.factors,factors);
-  const remove=await post(configuration,{version:1,state_token:(await get(configuration)).state_token,action:'remove',profile:'calibrated'});assert.equal(remove.status,200,JSON.stringify(remove));const deleted=await KlipperSaveSession.load(path);assert.equal(deleted.source.original['skew_correction calibrated'],undefined);
+  const activated=await postWhenIdle(settings,{version:1,state_token:current.state_token,action:'load',profile:'calibrated'});assert.deepEqual(activated.body.result.factors,factors);
+  const remove=await postWhenIdle(configuration,{version:1,state_token:(await get(configuration)).state_token,action:'remove',profile:'calibrated'});const deleted=await KlipperSaveSession.load(path);assert.equal(deleted.source.original['skew_correction calibrated'],undefined);
  }finally{await owner?.close();await next?.dispose();await f.dispose();}
 });
 test('native dispatch responses enter authorized console history and detach on service close',async()=>{
