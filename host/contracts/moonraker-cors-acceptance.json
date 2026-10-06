@@ -468,5 +468,126 @@
     "177 klippy Python files, remaining Moonraker/legacy scenarios and full Python retirement",
     "Cycnumbris 500 target/physical precision and performance; motion G3",
     "Normal master release/default switch/rollback"
-  ]
+  ],
+  "nativeAuthorizationFixtureRepair": {
+    "date": "2026-10-07",
+    "oldHead": "82347cbc88c90874672b85a1e6521dbf1b4505bf",
+    "repairCommit": "2c2a50be",
+    "normalMergeBase": "6ff1a391f4a1b4ba9cc8360a0a326da6a7fd695e",
+    "originalSource": {
+      "path": "host/test/product-native-authorization.test.ts",
+      "sha256": "aaa448e229008e4fe055e0e6ed87abf0116fbd3eea9d800c181271cbc9fc9c80"
+    },
+    "correctedSource": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-cors-policy/host/test/product-native-authorization.test.ts",
+      "sha256": "497e793ab5dddf4fb88b124ee19fc9c072bf999ed02b059ed02af27f30b80ada"
+    },
+    "originalObservation": {
+      "selectedTests": 1,
+      "failed": 1,
+      "exitCode": 124,
+      "observerLimitSeconds": 30,
+      "testFailureMs": 338.652872,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-native-authorizer-original-diagnostic-20261007.log",
+        "sha256": "eae234dadef9ab3408126f81798d1908493f1362d036402d65ec148a4573bc1b"
+      },
+      "finding": "Previously unsupported cors_domains:* is now accepted. Original assert.rejects fails, accepted profile is not released, process remains until diagnostic observer limit. Not a passed test or changed original deadline."
+    },
+    "originalCi": {
+      "runId": 37495638112,
+      "jobId": 112379331993,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "ordinary": "cancelled",
+      "protocol": "skipped",
+      "sanitizer": "skipped",
+      "linuxMcu": "skipped",
+      "completedLog": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors19-cancelled-ci-20261007.log",
+        "sha256": "b5fea61432287192ad6e7d7cbaa91ce2737261622cf7e98fac89bb4baee16ac9"
+      },
+      "remoteAttribution": "Last visible test was Delta BLTouch assembly; completed remote log does not contain Missing expected rejection stack. Local exact-source cause confirmed; remote causal attribution inferred pending corrected full CI.",
+      "decision": "Cancel only this original stalled workflow after one discriminating exact-source observation; genuine fixture correction produces a new commit rather than unchanged green-seeking rerun."
+    },
+    "change": {
+      "negativeInput": "unknown unsupported_rule:deny; original /Unsupported/ rejection and pre-acquisition/release assertions retained",
+      "cleanup": "Unexpected accepted profile still fails rejection assertion; finally releases acquired owner before database close",
+      "positive": "Existing two-generation native service case now checks configured CORS wildcard still returns unauthenticated 401 and authenticated JWT 200; original login/oneshot replay/upload/download/logout assertions unchanged",
+      "productionAuthorizationChanged": false,
+      "originalMathLoadsTolerancesOrDeadlinesChanged": false
+    },
+    "beforeMerge": {
+      "tests": 33,
+      "failed": 0,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-native-authorizer-corrected-20261007.log",
+        "sha256": "b09410c878da0baaa0e8bee049cb5cf0d72fe56f162f09d78f7cf6439673fbd3"
+      },
+      "scope": "Overlaps prior73; do not sum"
+    },
+    "afterNormalMerge": {
+      "tests": 22,
+      "failed": 0,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-develop6ff-regressions-20261007.log",
+        "sha256": "9f67581e610c6bee01e37cae7d95bc52009a2ce713963f65c34d6b2f2eefcd8b"
+      },
+      "types": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-cors-policy-6ff-typecheck-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "whitespace": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-cors-policy-6ff-whitespace-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fullCi": "new exact head required; not yet passed"
+    },
+    "compiled": {
+      "childProtocolTests": 2,
+      "independentDependencies": true,
+      "emptyPath": true,
+      "noTypeScriptLoading": true,
+      "scope": "Fresh compile of integrated source inside existing wrapper; temporary package deleted normally. Original115 bundle remains original scoped evidence, not new package identity."
+    },
+    "performanceReuse": {
+      "verifiedCors": [
+        {
+          "path": "host/src/moonraker/cors-policy.ts",
+          "sha256": "6866f95e44d47e018cb80a1ea64f83de0317a411ee5a5d4612074c086be1d92f"
+        },
+        {
+          "path": "host/src/moonraker/server.ts",
+          "sha256": "4527b732c4ade8b972cd358260dde61a4b6e8f7feba1e4f0cc156a82ec02fe2f"
+        },
+        {
+          "path": "host/src/moonraker/authorization-config.ts",
+          "sha256": "713f80aa8927c7ba3f3e2cf3e7729855f533dceda8552df9f752c16bb8e901aa"
+        },
+        {
+          "path": "host/src/moonraker/configured-server.ts",
+          "sha256": "f1b8413b903863bf9e22f3786679b0cf439d8ece35ce8499bcbb7f73a4b88b00"
+        },
+        {
+          "path": "host/bench/moonraker-cors-policy.ts",
+          "sha256": "b57d032659426016f9011f5b1870f6af50112044277410bcd5252f5b2d9c5688"
+        },
+        {
+          "path": "host/package.json",
+          "sha256": "ecaaad3de70053474ec444fba9e833b2c2650df4823919b11b8ed6917bcf0b7e"
+        },
+        {
+          "path": "host/package-lock.json",
+          "sha256": "82975ad865eec2d40128626f78a06eab535e85c4acfb736773ba9a7c12023771"
+        }
+      ],
+      "scope": "Unchanged CORS/auth sources, package manifests and policy benchmark; historical original-scope results retained. NativePrintUploads changes inherited from develop PR21, not a new motion or precision change."
+    },
+    "exclusions": [
+      "new exact-head full CI and normal PR integration",
+      "PR20 original mixed failures",
+      "G3",
+      "target board and physical acceptance"
+    ]
+  }
 }

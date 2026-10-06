@@ -1,9 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {spawnSync} from 'node:child_process';
 import {HistoryTracker,historyStrategies} from '../src/moonraker/history-tracker.ts';
 import type {Json} from '../src/moonraker/rpc.ts';
-import {historyTrackerOracle} from './helpers/history-tracker-oracle.ts';
+import {historyReference} from './helpers/history-reference.ts';
 type Op={kind:'state';active:boolean;paused:boolean}|{kind:'update';value:Json}|{kind:'reset';value?:Json};
 test('all seven trackers match pinned Moonraker through reset, pause and new job sequences',()=>{
  const ops:Op[]=[{kind:'update',value:100},{kind:'reset'}, {kind:'state',active:true,paused:false}];
@@ -12,8 +11,7 @@ test('all seven trackers match pinned Moonraker through reset, pause and new job
  for(const initial of [null,'bad',-5,true,[1,2]]){ops.push({kind:'reset',value:initial});for(let i=0;i<120;i++)ops.push({kind:'update',value:i/8});}
  let seed=173;for(let i=0;i<150;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;ops.push({kind:'update',value:(seed-2**31)/1234567});}
  const cases=historyStrategies.flatMap(strategy=>[false,true].map(exclude=>({strategy,exclude,ops})));
- const child=spawnSync('python3',['-c',historyTrackerOracle()+'\nprint(json.dumps([run(c) for c in json.load(sys.stdin)]))'],{input:JSON.stringify(cases),encoding:'utf8',maxBuffer:8*1024*1024});assert.equal(child.status,0,child.stderr);
- const expected=JSON.parse(child.stdout);
+ const expected=historyReference<unknown[]>('history-tracker',JSON.stringify(cases));
  for(const [index,c] of cases.entries()){
   let active=false,paused=false;const t=new HistoryTracker({strategy:c.strategy,excludePaused:c.exclude,trackingEnabled:exclude=>active&&!(exclude&&paused)});
   const values=c.ops.map(op=>{if(op.kind==='state'){active=op.active;paused=op.paused;}else if(op.kind==='update')t.update(op.value);else{t.setResetCallback(op.value===undefined?undefined:()=>op.value!);t.reset();}return {value:t.value,totals:t.hasTotals};});

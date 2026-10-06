@@ -40,6 +40,7 @@ export class NativePrintUploads {
  #offlineReady:(()=>boolean)|undefined;
  readonly #metadataOwner:NativePrintUploads|undefined;
  #deviceFiles:{owner:NativePrintUploads;signal:AbortSignal}|undefined;
+ readonly #notificationBarriers=new Set<Promise<void>>();
  get metadataOwner(){return this.#metadataOwner;}
  constructor(files:PublishedPrintFiles,gate:MaintenanceGate,options:NativeUploadOptions={},metadataOwner?:NativePrintUploads){
   if(!(files instanceof PublishedPrintFiles)||!(gate instanceof MaintenanceGate))throw new Error('Invalid native upload owner');
@@ -83,13 +84,23 @@ export class NativePrintUploads {
   const binding={owner,signal};this.#deviceFiles=binding;
   signal.addEventListener('abort',()=>{if(this.#deviceFiles===binding)this.#deviceFiles=undefined;},{once:true});
  }
+ /** Commit announcements must follow this operation's metadata retirement.
+  * Only accepted storage commits enter this barrier; held authorizers do not
+  * delay unrelated file events. Device delegates share the process observer. */
+ async #metadataMutation<T>(commit:()=>Promise<T>,invalidate:(result:T)=>Promise<void>):Promise<T>{
+  const owner=this.#metadataOwner??this,done=Promise.withResolvers<void>();owner.#notificationBarriers.add(done.promise);
+  try{const result=await commit();await invalidate(result);return result;}
+  finally{owner.#notificationBarriers.delete(done.promise);done.resolve();}
+ }
  observeChanges(observer:(event:Json)=>void):()=>void{
   if(this.#closed)throw new ApiError(503,'Native files closed');
+  let subscribed=true;
+  const announce=(event:Json)=>{const pending=[...(this.#metadataOwner??this).#notificationBarriers];if(!pending.length){observer(event);return;}void Promise.all(pending).then(()=>{if(subscribed&&!this.#closed)observer(event);}).catch(()=>{});};
   const release=this.#files.observeChanges(({action,file,modified,sourceFile})=>{
    if(this.#closed)return;const path=visibleFilePath(file);if(action==='delete_file')void Promise.resolve(this.#metadata.invalidate(path)).catch(()=>{});
-   observer({action,item:{path,root:'gcodes',modified,size:action==='delete_file'?0:file.size,permissions:action==='delete_file'?'':this.canRemove?'rw':'r',file_id:file.id,name:file.name,sha256:file.sha256},...sourceFile?{source_item:{path:visibleFilePath(sourceFile),root:'gcodes'}}:{}});
+   announce({action,item:{path,root:'gcodes',modified,size:action==='delete_file'?0:file.size,permissions:action==='delete_file'?'':this.canRemove?'rw':'r',file_id:file.id,name:file.name,sha256:file.sha256},...sourceFile?{source_item:{path:visibleFilePath(sourceFile),root:'gcodes'}}:{}});
   });
-  try{const directories=this.#files.observeDirectories(({action,path,modified,sourcePath})=>{if(!this.#closed)observer({action,item:{path,root:'gcodes',modified,size:0,permissions:action==='delete_dir'?'':'rw'},...sourcePath?{source_item:{path:sourcePath,root:'gcodes'}}:{}});});return ()=>{release();directories();};}catch(error){release();throw error;}
+  try{const directories=this.#files.observeDirectories(({action,path,modified,sourcePath})=>{if(!this.#closed)announce({action,item:{path,root:'gcodes',modified,size:0,permissions:action==='delete_dir'?'':'rw'},...sourcePath?{source_item:{path:sourcePath,root:'gcodes'}}:{}});});return ()=>{subscribed=false;release();directories();};}catch(error){subscribed=false;release();throw error;}
  }
  remove(params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native files closed'));
@@ -106,7 +117,7 @@ export class NativePrintUploads {
     await this.#authorize(context,{path:params.path,file_id:id,filename:file.name,size:file.size,sha256:file.sha256},signal,'server.files.delete_file');
     try{release=this.#beginFileMutations([id]);}catch{throw new ApiError(409,'Print or maintenance owns this file');}
     if(await this.#files.resolvePath(path,signal)!==id)throw new ApiError(409,'Published path changed during authorization');
-    await this.#files.remove(id,signal,file);await this.#metadata.invalidate(path);
+    await this.#metadataMutation(()=>this.#files.remove(id,signal,file),async()=>{await this.#metadata.invalidate(path);});
     return {item:{path,root:'gcodes',size:0,modified:0,permissions:''},action:'delete_file'};
    }catch(error){if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Published file not found');throw error;}finally{release?.();}
   });this.#pending.add(task);this.#mutations.add(task);return task.finally(()=>{this.#pending.delete(task);this.#mutations.delete(task);});
@@ -126,16 +137,14 @@ export class NativePrintUploads {
      await this.#authorize(context,{source:'gcodes/'+plan.source,dest:'gcodes/'+plan.destination,action:'move_dir'},signal,'server.files.move');
      for(const [index,entry] of plan.changed.entries()){await this.#authorize(context,{source:'gcodes/'+visibleFilePath(entry.before),dest:'gcodes/'+visibleFilePath(entry.after),file_id:entry.before.id,filename:entry.before.name,size:entry.before.size,sha256:entry.before.sha256},signal,'server.files.move');if(index%128===127)await new Promise<void>(resolve=>setImmediate(resolve));}
      try{release=this.#beginFileMutations(plan.changed.map(entry=>entry.before.id));}catch{throw new ApiError(403,'Print or maintenance owns this directory');}
-     const result=await this.#files.moveDirectory(plan,signal);
-     for(const entry of plan.changed){await this.#metadata.invalidate(visibleFilePath(entry.before));await this.#metadata.invalidate(visibleFilePath(entry.after));}
+     const result=await this.#metadataMutation(()=>this.#files.moveDirectory(plan,signal),async()=>{for(const entry of plan.changed){await this.#metadata.invalidate(visibleFilePath(entry.before));await this.#metadata.invalidate(visibleFilePath(entry.after));}});
      return {action:'move_dir',item:{path:result.path,root:'gcodes',modified:result.modified,size:0,permissions:'rw'},source_item:{path:plan.source,root:'gcodes'}};
     }
     const plan=await this.#files.prepareFileMove(source,dest,signal);
     await this.#authorize(context,{source:'gcodes/'+visibleFilePath(plan.before),dest:'gcodes/'+visibleFilePath(plan.after),file_id:plan.before.id,filename:plan.before.name,size:plan.before.size,sha256:plan.before.sha256},signal,'server.files.move');
     if(plan.replaced)await this.#authorize(context,{source:'gcodes/'+visibleFilePath(plan.before),dest:'gcodes/'+visibleFilePath(plan.replaced),target_file_id:plan.replaced.id,size:plan.replaced.size,sha256:plan.replaced.sha256},signal,'server.files.move');
     try{release=this.#beginFileMutations([plan.before.id,...plan.replaced?[plan.replaced.id]:[]]);}catch{throw new ApiError(403,'Print or maintenance owns this source or destination');}
-    const result=await this.#files.moveFile(plan,signal);
-    await this.#metadata.invalidate(visibleFilePath(result.before));await this.#metadata.invalidate(visibleFilePath(result.after));
+    const result=await this.#metadataMutation(()=>this.#files.moveFile(plan,signal),async changed=>{await this.#metadata.invalidate(visibleFilePath(changed.before));await this.#metadata.invalidate(visibleFilePath(changed.after));});
     return {action:'move_file',item:{path:visibleFilePath(result.after),root:'gcodes',modified:result.modified,size:result.after.size,permissions:'rw'},source_item:{path:visibleFilePath(result.before),root:'gcodes'}};
    }catch(error){
     if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);
@@ -171,7 +180,7 @@ export class NativePrintUploads {
     // Only the old destination identity is mutated. An active immutable source
     // may be read; target admission also fences concurrent print starts.
     try{release=this.#beginFileMutations(plan.replaced?[plan.replaced.id]:[]);}catch{throw new ApiError(403,'Print or maintenance owns this copy destination');}
-    const result=await this.#files.copy(plan,signal);for(const e of result.entries)await this.#metadata.invalidate(visibleFilePath(e.created));
+    const result=await this.#metadataMutation(()=>this.#files.copy(plan,signal),async changed=>{for(const e of changed.entries)await this.#metadata.invalidate(visibleFilePath(e.created));});
     return {action:result.action,item:{path:result.destination,root:'gcodes',modified:result.action==='create_dir'?result.directoriesAfter.find(d=>d.path===result.destination)!.modified:result.entries[0].modified,size:result.action==='create_dir'?0:result.entries[0].created.size,permissions:'rw'}};
    }catch(error){
     if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);
@@ -251,7 +260,7 @@ export class NativePrintUploads {
      if(!printOwner)throw new ApiError(503,'Upload replacement requires its current print owner');
      await this.#authorize(context,{root:'gcodes',path:visible!,file_id:id,target_file_id:replacement.replaced.id,filename:replacement.replaced.name,size:replacement.replaced.size,sha256:replacement.replaced.sha256},signal);
      try{releaseFile=printOwner.beginFileMutation(replacement.replaced.id);}catch{throw new ApiError(403,'Print or maintenance owns this upload destination');}
-     record=await this.#files.replaceUpload(replacement,file,signal);await this.#metadata.invalidate(visible!);
+     record=await this.#metadataMutation(()=>this.#files.replaceUpload(replacement,file!,signal),async()=>{await this.#metadata.invalidate(visible!);});
     }else record=await this.#files.publish(id,filename,file,signal,visible);
    }catch(error){
     if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);
@@ -350,7 +359,7 @@ export class NativePrintUploads {
     const survivors=new Set(plan.directoriesAfter.map(e=>e.path));for(const entry of plan.directoriesBefore)if(!survivors.has(entry.path))await this.#authorize(context,{path:'gcodes/'+entry.path,action:'delete_dir'},signal,'server.files.delete_directory');
     for(const {file} of plan.deleted)await this.#authorize(context,{path:'gcodes/'+visibleFilePath(file),file_id:file.id,filename:file.name,size:file.size,sha256:file.sha256},signal,'server.files.delete_directory');
     try{releaseFiles=this.#beginFileMutations(plan.deleted.map(e=>e.file.id));}catch{throw new ApiError(403,'Print or maintenance owns this directory');}
-    const changed=await this.#files.deleteDirectory(plan,signal);for(const {file} of plan.deleted)await this.#metadata.invalidate(visibleFilePath(file));
+    const changed=await this.#metadataMutation(()=>this.#files.deleteDirectory(plan,signal),async()=>{for(const {file} of plan.deleted)await this.#metadata.invalidate(visibleFilePath(file));});
     return {action:changed.action,item:{path,root:'gcodes',modified:0,size:0,permissions:''}};
    }catch(error){if(error instanceof PublishedDeleteCommitError)throw new ApiError(500,'Directory deletion requires recovery',{phase:error.phase});if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);if((error as NodeJS.ErrnoException).code==='ENOENT')throw new ApiError(404,'Directory not found');throw error;}
    finally{releaseFiles?.();release?.();}
