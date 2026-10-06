@@ -32,9 +32,19 @@ function initialize(){
  if(!(version===0&&identity===0&&tables.length===0||[1,2,3,4].includes(version)&&identity===app))throw new Error('Unknown recovery journal schema');
  const expected=version===1?legacySchema:version===2?schemaV2:version===3?schemaV3:schema;
  if(version&&JSON.stringify(tables.map(r=>normalized(String(r.sql))).sort())!==JSON.stringify(expected.split(';').filter(Boolean).map(normalized).sort()))throw new Error('Recovery schema mismatch');
- db.exec('PRAGMA locking_mode=EXCLUSIVE; PRAGMA synchronous=EXTRA; PRAGMA journal_mode=DELETE');const pageSize=Number(db.prepare('PRAGMA page_size').get()!.page_size);db.exec(`PRAGMA max_page_count=${Math.floor(1024*1024/pageSize)}`);
- return transaction(()=>{
+ // Acquire the exclusive writer before checking identity. Do not change the
+ // persistent journal mode of an unrelated or corrupt database on rejection.
+ db.exec('PRAGMA locking_mode=EXCLUSIVE');transaction(()=>{
   if(version&&(db!.prepare('PRAGMA quick_check').get()!.quick_check!=='ok'||db!.prepare('SELECT device_id FROM metadata WHERE id=1').get()?.device_id!==options.deviceId))throw new Error('Recovery journal integrity or device mismatch');
+ });
+ // EXTRA includes FULL WAL durability: each successful commit synchronizes the
+ // WAL before acknowledging it. The worker remains the only connection, with
+ // no long-lived readers preventing automatic checkpoints. Size limit applies
+ // when the log is reused; it is not a hard limit on a single transaction.
+ db.exec('PRAGMA synchronous=EXTRA; PRAGMA journal_mode=WAL; PRAGMA journal_size_limit=262144');
+ if(db.prepare('PRAGMA journal_mode').get()!.journal_mode!=='wal'||db.prepare('PRAGMA synchronous').get()!.synchronous!==3)throw new Error('Recovery durable storage mode unavailable');
+ const pageSize=Number(db.prepare('PRAGMA page_size').get()!.page_size);db.exec(`PRAGMA max_page_count=${Math.floor(1024*1024/pageSize)}; PRAGMA wal_autocheckpoint=${Math.max(1,Math.floor(262144/pageSize))}`);
+ return transaction(()=>{
   if(!version){db!.exec(schema+`PRAGMA application_id=${app}; PRAGMA user_version=4;`);db!.prepare('INSERT INTO metadata VALUES(1,?)').run(options.deviceId);}
   if([1,2,3].includes(version)){
    const old=db!.prepare('SELECT id,token,state,error'+(version===1?'':',kind')+' FROM operations ORDER BY rowid').all().map(row);

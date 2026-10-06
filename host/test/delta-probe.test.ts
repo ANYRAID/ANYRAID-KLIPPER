@@ -118,7 +118,9 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
    t.diagnostic('DeltaProbeBenchmark '+JSON.stringify({run,api:true,wallMs:performance.now()-started}));
    const receipt=(await reply.json() as any).result,result={...receipt.result,bedPosition:receipt.result.bed_position};
    const replay=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body});assert.equal(replay.status,200);assert.deepEqual((await replay.json() as any).result,receipt);assert.equal(hits,2);assert.equal(result.attempts,2);assert.equal(result.samples.length,2);assert.equal(result.retries,0);assert.equal(owner.port.status.failed,false);assert.equal(owner.kinematics.status.homedAxes,'xyz');
-   assert.deepEqual(result.bedPosition,[result.position[0]-2,result.position[1]+3,result.position[2]-.123456789]);assert.equal(result.position[3],0);assert(Math.abs(owner.port.homingPosition()[0]-25)<1e-10);assert(Math.abs(owner.port.homingPosition()[1]+30)<1e-10);assert.deepEqual(live.stops,[0,0]);
+   const terminalPosition=owner.port.homingPosition();
+   if(!(Math.abs(terminalPosition[0]-25)<1e-10&&Math.abs(terminalPosition[1]+30)<1e-10))t.diagnostic('DeltaProbeTerminalMismatch '+JSON.stringify({run,expectedXY:[25,-30],terminalPosition,result,hits,acceptedWireTrace:wireTrace,scope:'Same-invocation software PTY observation; no physical accuracy claim'}));
+   assert.deepEqual(result.bedPosition,[result.position[0]-2,result.position[1]+3,result.position[2]-.123456789]);assert.equal(result.position[3],0);assert(Math.abs(terminalPosition[0]-25)<1e-10);assert(Math.abs(terminalPosition[1]+30)<1e-10);assert.deepEqual(live.stops,[0,0]);
    if(!benchmark){
     calibrating=true;const calibrationUrl='http://127.0.0.1:'+service.address.port+'/printer/calibration/delta',state=await (await fetch(calibrationUrl)).json() as any;
     const body=JSON.stringify({version:1,state_token:state.result.state_token,action:'calibrate'}),started=performance.now();

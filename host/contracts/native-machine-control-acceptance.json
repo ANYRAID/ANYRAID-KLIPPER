@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "status": "candidate-local-full-and-performance-gates-failed",
+  "status": "candidate-storage-microbench-and-default-mixed-passed-full-gates-open",
   "date": "2026-10-06",
   "runtime": "Node.js 26.10.0",
-  "develop": "4e080fcd8ff16168ea27103d502d2b89b4679ffc",
+  "develop": "a2e97c3bf38b1745e517d75c180d148d99099df9",
   "scope": "Explicit trusted Linux service and power capability in the native product process, durable outcomes and real native-device retirement before OS job submission. No actual system service or physical printer mutation was performed.",
   "upstream": {
     "repository": "Arksine/moonraker",
@@ -22,7 +22,7 @@
   "sources": {
     "host/src/moonraker/machine-control.ts": "da2b5320e93b71d353d0dd0b3ce9d274ea7aa2562657e21376d7ce8ee3a03798",
     "host/src/moonraker/product-host-api.ts": "e612f4d137445550e5d3af5fa0b343d9c243718eb60a781045b1df4c0d7b1f9d",
-    "host/src/runtime/host-recovery-journal-worker.ts": "11ba3029a782fae655b563874b68729662ef1c29019e7c71df6cc914b4af73a6",
+    "host/src/runtime/host-recovery-journal-worker.ts": "2dc7ec1384b9802d88cbcae3b4594fff26e3e71561a26aa15a2f2539e792dc84",
     "host/src/runtime/host-recovery-journal.ts": "23c9bf4503dbb33750003e323e489226f4e47f6a2f24a45e587736dc2f633d31",
     "host/src/runtime/native-product-machine.ts": "69f9e4737c2eb5ea3437719cca52676f2be7dce17a40a10d0275ba13560f60b8",
     "host/src/runtime/product-host-control.ts": "d03d307dc3b7a0583cc0d06e9cfff11baa69eaccd7d579d76304295721aaafce",
@@ -35,7 +35,9 @@
     "host/test/native-product-machine-control.test.ts": "649afb07aec39f71d0b59e9024d76dbf37dbbc41063410f420f427b8eff2f6d6",
     "host/bench/machine-recovery.ts": "b05aa4481f03ed84a7e05561a3bbe0da215896b3f599e3e11c113715b8b42862",
     "host/acceptance/product-compiled-journey.test.ts": "34624b8fe50a08e5e4f3f0b4f359c5e896c391d513bef9ef74ad016dbdf2e8fe",
-    "host/test/product-service.test.ts": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc"
+    "host/test/product-service.test.ts": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc",
+    "host/test/host-recovery-wal.test.ts": "42beea964cb6bf413e0fe8316174b3adb9b184c81e50ef8fed2c8d4fcc9fe20a",
+    "host/test/delta-probe.test.ts": "9f3d9c891e9df893e74f311b33b429d0ca3c3d29590a2e7733b735be93d54365"
   },
   "invariants": [
     "Read-only service source never implicitly grants OS mutation; trusted bounded canonical allowlist only",
@@ -48,7 +50,7 @@
     "OS acceptance does not prove target state; self-restart receipt does not wait for own whole-process exit",
     "Before device acquire, explicit foreign device units must be inactive/failed and MainPID=0; not a global lock against external actors",
     "v4 atomic v1/v2/v3 migration preserves identity and order; immutable service payload, shared pending slot, same-kind terminal eviction",
-    "Interrupted queued/running records never replay commands; worker DELETE/EXTRA durability unchanged",
+    "Interrupted queued/running records never replay commands; exclusive worker WAL/EXTRA synchronizes commits before acknowledgement; bounded checkpoint threshold scales with database page size",
     "O(1) counts update only after durable acknowledgement; failed admission does not evict receipts"
   ],
   "bundles": {
@@ -64,6 +66,14 @@
       "manifestSha256": "93edda5e2261c5d44cf9b0cf3f918be06d4f32d5b9ee9d4c5ce9a15275a34fbd",
       "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
       "dependencies": 14
+    },
+    "wal": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-machine-control/host/build/machine-control-wal-bundle",
+      "manifestSha256": "ffa5e93baea8a09f5ab86b8af354b55796bdb3fb7725334280ccfde8f31da2ac",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+      "dependencies": 14,
+      "native": "Unchanged files copied from optimized bundle",
+      "productionDependencies": "Independent copy with verbatim relative links; all identities verified before and after mixed acceptance"
     }
   },
   "validation": {
@@ -473,12 +483,12 @@
         "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-final-observation-type-20261006.log",
         "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
       },
-      "scope": "Final source including added cancellation observation"
+      "scope": "Historical pre-WAL source check; see walOptimization.type for current final source"
     },
     "whitespace": {
       "conclusion": "passed",
       "log": {
-        "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-whitespace-20261006.log",
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-recovery-wal-whitespace-20261006.log",
         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       }
     },
@@ -976,6 +986,515 @@
           "durationMs": 317.66961099999753
         }
       ]
+    },
+    "walOptimization": {
+      "conclusion": "passed-focused-and-desktop-budgets",
+      "rules": {
+        "journalMode": "WAL",
+        "synchronous": "EXTRA (3)",
+        "locking": "EXCLUSIVE",
+        "checkpointBytes": 262144,
+        "reusedJournalSizeLimitBytes": 262144,
+        "maxDatabaseBytes": 1048576,
+        "measuredWalBudgetBytes": 2097152,
+        "limitScope": "Checkpoint and reuse thresholds are not hard per-transaction WAL quotas; max-size page fixtures are independently checked. Not target storage or power-loss validation."
+      },
+      "references": [
+        "https://www.sqlite.org/pragma.html#pragma_synchronous",
+        "https://www.sqlite.org/pragma.html#pragma_journal_size_limit",
+        "https://www.sqlite.org/wal.html"
+      ],
+      "regression": {
+        "passed": 39,
+        "failed": 0,
+        "durationMs": 28408.618768,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-recovery-wal-final-regression-20261006.log",
+          "sha256": "842e4baa9890ac90f004911017734b7ad055ac3fba972fa85c66001ebe428a2a"
+        },
+        "pageSizeCases": [
+          {
+            "pageBytes": 4096,
+            "receipts": 640,
+            "commits": 600,
+            "peakDatabaseBytes": 565248,
+            "peakWalBytes": 288432
+          },
+          {
+            "pageBytes": 65536,
+            "receipts": 640,
+            "commits": 600,
+            "peakDatabaseBytes": 917504,
+            "peakWalBytes": 327832
+          }
+        ],
+        "coverage": "v1/v2/v3 migration, wrong identity rejection without changing file, immutable identity, atomic eviction, single pending, SIGKILL no replay, stopped-owner main-file backup and unclean DB+WAL restore, actual native retirement before synthetic OS command"
+      },
+      "type": {
+        "conclusion": "passed",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-recovery-wal-final-type-20261006.log",
+          "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+        }
+      },
+      "benchmarks": [
+        {
+          "conclusion": "passed",
+          "mode": "legacy",
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-recovery-wal-legacy-20261006.log",
+            "sha256": "6970fa477a8926e9480e1672cc0e0f1469eb755180617c1d020de7c9dafc8478"
+          },
+          "result": {
+            "node": "v26.10.0",
+            "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+            "bundle": "build/machine-control-wal-bundle",
+            "mode": "legacy",
+            "receipts": 256,
+            "statusReads": 500000,
+            "measuredRounds": 8,
+            "statusRoundP99Ms": [
+              0.0021070200000031037,
+              0.0022452399999929183,
+              0.002213819999997213,
+              0.002081820000003063,
+              0.0021340199999940524,
+              0.0020704399999885935,
+              0.002125020000003133,
+              0.00212362000000212
+            ],
+            "statusP99MedianMs": 0.002125020000003133,
+            "actions": 200,
+            "durationMs": 3696.5266089999996,
+            "admission": {
+              "medianMs": 5.689057999999932,
+              "p99Ms": 11.718909999999596,
+              "maxMs": 16.91406300000017
+            },
+            "settlement": {
+              "medianMs": 17.804355000000214,
+              "p99Ms": 29.863099000000147,
+              "maxMs": 32.892704999999296
+            },
+            "eventLoopP99Ms": 1.709055,
+            "cpuUsage": {
+              "user": 2458990,
+              "system": 201552
+            },
+            "databaseBytes": 57344,
+            "scope": "Desktop durable worker and serialized status CPU benchmark with no-op action owner; not service execution, target-board timing or physical printing."
+          },
+          "environment": "Shared desktop; a focused Delta PTY regression and typecheck were also finishing during this benchmark. Not an isolated CPU or target-board result."
+        },
+        {
+          "conclusion": "passed",
+          "mode": "full",
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-recovery-wal-full-20261006.log",
+            "sha256": "1816f93044fe18e0e85ad99563b59fdc831dbfab2f1a7228115bbbdb6f27fa9c"
+          },
+          "result": {
+            "node": "v26.10.0",
+            "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+            "bundle": "build/machine-control-wal-bundle",
+            "mode": "full",
+            "receipts": 640,
+            "statusReads": 500000,
+            "measuredRounds": 8,
+            "statusRoundP99Ms": [
+              0.003257839999969292,
+              0.0033974400000079184,
+              0.0033232399999906194,
+              0.003193439999995462,
+              0.003180039999970177,
+              0.0031404400000246825,
+              0.003187839999991411,
+              0.003138040000012552
+            ],
+            "statusP99MedianMs": 0.003193439999995462,
+            "actions": 200,
+            "durationMs": 3938.540015999999,
+            "admission": {
+              "medianMs": 5.879030000000057,
+              "p99Ms": 13.932074000000284,
+              "maxMs": 18.164953999999852
+            },
+            "settlement": {
+              "medianMs": 19.218166999999085,
+              "p99Ms": 34.8455210000011,
+              "maxMs": 39.46109500000057
+            },
+            "eventLoopP99Ms": 1.898495,
+            "cpuUsage": {
+              "user": 2584665,
+              "system": 177833
+            },
+            "databaseBytes": 102400,
+            "scope": "Desktop durable worker and serialized status CPU benchmark with no-op action owner; not service execution, target-board timing or physical printing."
+          }
+        }
+      ],
+      "mixed": {
+        "conclusion": "passed",
+        "passed": 1,
+        "failed": 0,
+        "durationMs": 70901.16037,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-recovery-wal-mixed-fixed-dependencies-20261006.log",
+          "sha256": "d604cac03f8e9c740d1f8acdf41f3f24c33ef4ba90a7e9319b12cbc4c04f1421"
+        },
+        "input": "Original default namespace case, 1000 movements, all original deadlines/counts; machine control on, no cancellation or priming override",
+        "metrics": {
+          "completedStatistics": {
+            "total_duration": 10.921720036,
+            "print_duration": 5.123938038,
+            "filament_used": 1
+          },
+          "statusP99Ms": 3.6030730000002222,
+          "minimumStepLeadMs": 88.109,
+          "loops": [
+            {
+              "p99Ms": 1.971199,
+              "maxMs": 20.316159
+            },
+            {
+              "p99Ms": 1.959935,
+              "maxMs": 13.320191
+            }
+          ],
+          "movesPrintingGenerations": [
+            1,
+            2
+          ],
+          "fileLoadsPerCategory": 16,
+          "machineControl": {
+            "actions": 12,
+            "printingGenerations": [
+              1,
+              2
+            ],
+            "settlementMs": [
+              70.90243200000077,
+              77.58487199999945,
+              80.12338199999976,
+              70.27877400000034,
+              72.93736699999863,
+              74.10357999999906,
+              76.62428499999805,
+              70.34416899999633,
+              87.96059000000241,
+              77.02239900000131,
+              69.32858699999633,
+              67.43879499999457
+            ],
+            "syntheticCommand": true,
+            "durableReceipts": true,
+            "noDeviceRetirement": true,
+            "hardwareAcceptance": false
+          }
+        },
+        "scope": "One emitted software PTY MCU scenario with synthetic system commands; not all variants, target board, actual systemd or physical printing"
+      },
+      "preparationFailure": {
+        "conclusion": "failed-before-product-start",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-recovery-wal-mixed-default-20261006.log",
+          "sha256": "03a762077711dfc5d800a395b6e600635eeea56cde40e9ac47e28da20569f3b0"
+        },
+        "reason": "Default fs.cp rewrote dependency symlinks to absolute links into the old bundle; identity validator rejected the package. Owned copy recreated using verbatimSymlinks:true; manifest and full dependency identity then passed."
+      }
+    },
+    "walStorageDiscriminator": {
+      "conclusion": "performance-discriminator-only",
+      "sourceManifestSha256": "93edda5e2261c5d44cf9b0cf3f918be06d4f32d5b9ee9d4c5ce9a15275a34fbd",
+      "changes": "Only worker journal parameters changed in an owned copy; old and release bundles untouched",
+      "probeLogs": [
+        {
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-sqlite-delete-sync-20261006.log",
+            "sha256": "688a100f7c9be00c562bedca042b8c85ad72c22c18dbd276fd6aaa14854d4452"
+          },
+          "result": {
+            "node": "v26.10.0",
+            "sqlite": {
+              "version": "3.53.4"
+            },
+            "mode": "DELETE",
+            "pragmas": {
+              "locking_mode": {
+                "locking_mode": "exclusive"
+              },
+              "synchronous": {
+                "synchronous": 3
+              },
+              "journal_mode": {
+                "journal_mode": "delete"
+              },
+              "wal_autocheckpoint": {
+                "wal_autocheckpoint": 1000
+              },
+              "page_size": {
+                "page_size": 4096
+              }
+            },
+            "warmup": 20,
+            "measured": 100,
+            "transactions": 120,
+            "medianMs": 21.55599799999993,
+            "p99Ms": 24.76538299999993,
+            "maxMs": 34.62142199999994,
+            "peakDatabaseBytes": 24576,
+            "peakAuxiliaryBytes": 8720,
+            "scope": "Independent sequential INSERT storage probe only; not the recovery worker or crash/power-loss acceptance."
+          },
+          "syncCounts": [
+            {
+              "category": "journal",
+              "calls": 364,
+              "failures": 0,
+              "totalMs": 1922.771341,
+              "maxMs": 13.277017
+            },
+            {
+              "category": "wal",
+              "calls": 0,
+              "failures": 0,
+              "totalMs": 0,
+              "maxMs": 0
+            },
+            {
+              "category": "database",
+              "calls": 121,
+              "failures": 0,
+              "totalMs": 643.570052,
+              "maxMs": 10.667757
+            },
+            {
+              "category": "other",
+              "calls": 2,
+              "failures": 0,
+              "totalMs": 5.573751,
+              "maxMs": 5.573231
+            }
+          ]
+        },
+        {
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-sqlite-persist-sync-20261006.log",
+            "sha256": "8f1babe6527aa1c08336977e6c0ac17b4a92a7e6a79b06c78b14b0f7563c3d9d"
+          },
+          "result": {
+            "node": "v26.10.0",
+            "sqlite": {
+              "version": "3.53.4"
+            },
+            "mode": "PERSIST",
+            "pragmas": {
+              "locking_mode": {
+                "locking_mode": "exclusive"
+              },
+              "synchronous": {
+                "synchronous": 3
+              },
+              "journal_mode": {
+                "journal_mode": "persist"
+              },
+              "wal_autocheckpoint": {
+                "wal_autocheckpoint": 1000
+              },
+              "page_size": {
+                "page_size": 4096
+              }
+            },
+            "warmup": 20,
+            "measured": 100,
+            "transactions": 120,
+            "medianMs": 21.07846399999994,
+            "p99Ms": 44.449763000000075,
+            "maxMs": 50.750932999999804,
+            "peakDatabaseBytes": 24576,
+            "peakAuxiliaryBytes": 8720,
+            "scope": "Independent sequential INSERT storage probe only; not the recovery worker or crash/power-loss acceptance."
+          },
+          "syncCounts": [
+            {
+              "category": "journal",
+              "calls": 364,
+              "failures": 0,
+              "totalMs": 1935.668696,
+              "maxMs": 28.503246
+            },
+            {
+              "category": "wal",
+              "calls": 0,
+              "failures": 0,
+              "totalMs": 0,
+              "maxMs": 0
+            },
+            {
+              "category": "database",
+              "calls": 121,
+              "failures": 0,
+              "totalMs": 622.483715,
+              "maxMs": 13.220587
+            },
+            {
+              "category": "other",
+              "calls": 1,
+              "failures": 0,
+              "totalMs": 0.0009,
+              "maxMs": 0.0009
+            }
+          ]
+        },
+        {
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-sqlite-wal-sync-20261006.log",
+            "sha256": "0319bfda86e4d5c226f76ff7c706b20c1cb01cae23108f2711ef359e03c7d0ca"
+          },
+          "result": {
+            "node": "v26.10.0",
+            "sqlite": {
+              "version": "3.53.4"
+            },
+            "mode": "WAL",
+            "pragmas": {
+              "locking_mode": {
+                "locking_mode": "exclusive"
+              },
+              "synchronous": {
+                "synchronous": 3
+              },
+              "journal_mode": {
+                "journal_mode": "wal"
+              },
+              "wal_autocheckpoint": {
+                "wal_autocheckpoint": 1000
+              },
+              "page_size": {
+                "page_size": 4096
+              }
+            },
+            "warmup": 20,
+            "measured": 100,
+            "transactions": 120,
+            "medianMs": 6.422721000000024,
+            "p99Ms": 6.74508400000002,
+            "maxMs": 6.746224999999981,
+            "peakDatabaseBytes": 4096,
+            "peakAuxiliaryBytes": 531512,
+            "scope": "Independent sequential INSERT storage probe only; not the recovery worker or crash/power-loss acceptance."
+          },
+          "syncCounts": [
+            {
+              "category": "journal",
+              "calls": 2,
+              "failures": 0,
+              "totalMs": 19.281134,
+              "maxMs": 13.028025
+            },
+            {
+              "category": "wal",
+              "calls": 123,
+              "failures": 0,
+              "totalMs": 780.456894,
+              "maxMs": 6.720104
+            },
+            {
+              "category": "database",
+              "calls": 2,
+              "failures": 0,
+              "totalMs": 12.958313,
+              "maxMs": 6.525472
+            },
+            {
+              "category": "other",
+              "calls": 3,
+              "failures": 0,
+              "totalMs": 12.680371,
+              "maxMs": 6.433722
+            }
+          ]
+        }
+      ],
+      "scope": "No crash or power-loss acceptance for parameter-only copy",
+      "parameterOnlyBenchmark": {
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-recovery-wal-discriminator-full-20261006.log",
+          "sha256": "238ee91092e2f4cbd709aefd9fd2bea328e6b81b48a7e043228c4ef3ea667175"
+        },
+        "result": {
+          "node": "v26.10.0",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "bundle": "/home/dek02/.cache/codex/tmp/anyraid-recovery-wal-discriminator-h5uUga/bundle",
+          "mode": "full",
+          "receipts": 640,
+          "statusReads": 500000,
+          "measuredRounds": 8,
+          "statusRoundP99Ms": [
+            0.003144240000001446,
+            0.003346440000022994,
+            0.0032684399999925516,
+            0.003094439999986207,
+            0.003138440000002447,
+            0.003413440000003902,
+            0.003330839999980526,
+            0.0030900399999882213
+          ],
+          "statusP99MedianMs": 0.0032684399999925516,
+          "actions": 200,
+          "durationMs": 4362.639290000001,
+          "admission": {
+            "medianMs": 6.7468969999972614,
+            "p99Ms": 16.806250999999975,
+            "maxMs": 20.00655799999913
+          },
+          "settlement": {
+            "medianMs": 19.96459799999866,
+            "p99Ms": 40.293478999999934,
+            "maxMs": 53.668571000000156
+          },
+          "eventLoopP99Ms": 1.954815,
+          "cpuUsage": {
+            "user": 2849304,
+            "system": 217759
+          },
+          "databaseBytes": 102400,
+          "scope": "Desktop durable worker and serialized status CPU benchmark with no-op action owner; not service execution, target-board timing or physical printing."
+        }
+      }
+    },
+    "pr14D2Failure": {
+      "conclusion": "failed",
+      "head": "d2bd86463aed6aa47c5f8ff6c994545468c7c39a",
+      "hostRun": 37472081525,
+      "job": 112297884381,
+      "ordinary": {
+        "passed": 4010,
+        "total": 4011,
+        "failed": 1
+      },
+      "test": "Delta automatic product service exposes tokenized two-sample probing (run=0)",
+      "assertion": "abs(homingPosition()[0] - 25) < 1e-10",
+      "location": "host/test/delta-probe.test.ts:121",
+      "missingEvidence": "Actual terminal coordinates and wire trace not recorded at this assertion in that CI invocation; cause remains unresolved",
+      "skipped": [
+        "protocol",
+        "sanitizer",
+        "Linux MCU"
+      ]
+    },
+    "deltaTerminalObservation": {
+      "conclusion": "focused-regression-passed-cause-open",
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 20370.574407,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-terminal-observation-20261006.log",
+        "sha256": "c969a8b20f084a89f4fdfe28d7c99f760b796d226d551d90046aed96840677c9"
+      },
+      "change": "Capture terminal position once, emit bounded same-invocation result/accepted wire trace on mismatch; original 1e-10 tolerances and algorithms unchanged",
+      "scope": "This success does not explain or close the historical CI failure"
     }
   },
   "performance": {
@@ -991,7 +1510,15 @@
     "mixed": "Historical: Six first-generation synthetic OS jobs submitted, latest receipts succeeded and host busy=false at timeout, live X around 68 while commanded X10/E2, approximately 88.5% committed file progress. Priming the original five-extrusion exclusion state did not fix the timeout; investigate already admitted motion before cancellation. Do not drop original 1000 moves or widen deadlines. The new pre-cancel observation confirms commanded E2 and filament_used=2 before cancellation; this excludes using the subsequent exclusion receipt to undo already admitted SKIP movement. Fix fixture admission precondition before assessing mixed timing.",
     "priming": "ANYRAID_BENCH_OBJECT_PRIMING=on adds exclude/reset before the original 1000 moves only as a diagnostic input; default unprimed remains unchanged. Not a replacement passing case.",
     "earlyCancellation": "Optional early discriminator cancels at E=0.377 with original five-extrusion warmup remaining; first print completed with filament_used=1 and print_duration=5.154070777s. 12 synthetic service commands settled during both generations; whole case still failed because only one file move observation overlapped printing across both generations. Generation identity was not logged; instrument before/after operation ownership before attributing cause.",
-    "mixedAfterOwnershipCorrection": "Default namespace software case passed: 12 synthetic OS jobs finish during both printing generations, first file move before/after snapshots share request and file identity, original 16 operations in every workload category retained. Status P99 3.534917 ms, loop P99 1.967103/1.938431 ms, minimum first-step lead 86.817 ms, completed commanded filament 1 mm. No target/physical timing claim; 25-ms durable admission gate still failed."
+    "mixedAfterOwnershipCorrection": "Default namespace software case passed: 12 synthetic OS jobs finish during both printing generations, first file move before/after snapshots share request and file identity, original 16 operations in every workload category retained. Status P99 3.534917 ms, loop P99 1.967103/1.938431 ms, minimum first-step lead 86.817 ms, completed commanded filament 1 mm. No target/physical timing claim; 25-ms durable admission gate still failed.",
+    "walAfterOptimization": {
+      "desktopDurableAdmissionP99Ms": {
+        "legacy": 11.71891,
+        "full": 13.932074
+      },
+      "originalGateMs": 25,
+      "scope": "Desktop budget passed on current independently emitted bundle; original DELETE/EXTRA failures preserved, target-board gate remains open"
+    }
   },
   "notValidation": [
     {
@@ -1009,7 +1536,7 @@
   ],
   "open": [
     "Complete final ordinary/protocol/sanitizer/Linux MCU and exact PR head checks",
-    "Close durable admission; validate actual target/client mixed printing beyond the passed default software simulation",
+    "Validate actual target/client mixed printing and storage durability beyond passed desktop admission and default software simulation",
     "Target system permission install, actual systemd integration and verified rollback using stopped-owner log backups",
     "Full Fluidd/Mainsail page workflows including actual page upload",
     "Cycnumbris 500 verified profile/board and physical stop evidence",
