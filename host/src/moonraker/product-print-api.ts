@@ -31,7 +31,7 @@ export class ProductPrintApi {
   if(compatibility&&typeof compatibility.start!=='function')throw new ApiError(400,'Invalid native print compatibility policy');this.#compatibility=compatibility?{start:compatibility.start.bind(compatibility)}:undefined;
   this.#controller=controller;this.#gate=gate;this.#pressure=pressure;owners.add(controller);
  }
- get status(){const controller=this.#controller,request=controller.currentRequest;return {mode:'native',standard_print:!!this.#compatibility,pending_compatibility:this.#compatPending.size,state:controller.state,state_token:controller.stateToken,request:request?details(request):null,pending_device_actions:controller.pendingDeviceActions,safe_stop_pending:controller.safeStopPending,failed:controller.failure!==undefined,closed:this.#closed};}
+ get status(){const controller=this.#controller,request=controller.currentRequest;return {mode:'native',standard_print:!!this.#compatibility,pending_compatibility:this.#compatPending.size,state:controller.state,state_token:controller.stateToken,pause_pending:controller.pausePending,paused_before_file:controller.pausedBeforeFile,request:request?details(request):null,pending_device_actions:controller.pendingDeviceActions,safe_stop_pending:controller.safeStopPending,failed:controller.failure!==undefined,closed:this.#closed};}
  /** Internal live state view; network authorization remains the server's job. */
  watchState(signal:AbortSignal){if(this.#closed)throw new ApiError(503,'Native print API is closed');return this.#controller.watchState(AbortSignal.any([signal,this.#observers.signal]));}
  /** Queue catalogue identity is not print authority. Translate through the same

@@ -128,7 +128,7 @@ export class PrintController {
     this.#eofPending=requestId;this.#finishEOF();
   }
   #finishEOF():void{
-    if(!this.#eofPending||this.#active||this.#state!=='printing'||this.#faultStop)return;
+    if(!this.#eofPending||this.#active||this.#preparationPause||this.#state!=='printing'||this.#faultStop)return;
     const requestId=this.#eofPending;this.#eofPending=undefined;
     void this.complete(requestId).catch(()=>{});
   }
@@ -218,13 +218,13 @@ export class PrintController {
   get totalDuration():number|null{return this.#durationStart===undefined?this.#duration:Math.max(0,(performance.now()-this.#durationStart)/1000);}
   #changeState(state:PrintState,renew=false):void{
     if(this.#state===state&&!renew)return;
-    if(state==='preparing')this.#extrusionAccounting?.begin();
+    if(state==='preparing'){if(this.#state!=='preparing')this.#extrusionAccounting?.begin();}
     else if(state==='idle')this.#extrusionAccounting?.reset();
     else if(state==='interrupted')this.#extrusionAccounting?.restoreUnknown();
     // Cancellation preserves whether motion was already active: cancelling a
     // paused or faulted job must not restart extrusion/time accounting.
     else if(state!=='cancelling')this.#extrusionAccounting?.setActive(['printing','pausing','finishing'].includes(state)&&this.#state!=='failed'&&this.#state!=='interrupted');
-    if(state==='preparing'){this.#durationStart=performance.now();this.#duration=0;}
+    if(state==='preparing'&&this.#state!=='preparing'){this.#durationStart=performance.now();this.#duration=0;}
     else if(state==='idle'||state==='interrupted'){this.#durationStart=undefined;this.#duration=state==='idle'?0:null;}
     else if(state==='completed'||state==='cancelled'||state==='failed')this.#freezeStatistics();
     this.#state=state;this.#stateToken=this.#stateEpoch+':'+(++this.#stateRevision);
@@ -236,6 +236,11 @@ export class PrintController {
   #cancelTask: { promise: Promise<void>; pending: boolean } | undefined;
   #start: StartPrint | undefined;
   #startPromise: Promise<void> | undefined;
+  #preparationPause: Promise<void> | undefined;
+  #holdBeforeFile = false;
+  #preparedHold = false;
+  get pausePending():boolean{return !!this.#preparationPause&&(this.#state==='preparing'||this.#state==='printing'||this.#state==='pausing');}
+  get pausedBeforeFile():boolean{return this.#preparedHold&&this.#state==='paused';}
   get state(): PrintState {
     return this.#state;
   }
@@ -392,7 +397,7 @@ export class PrintController {
     this.#startPromise = this.#run(
       'start',
       'preparing',
-      'printing',
+      () => this.#preparedHold ? 'paused' : 'printing',
       async (signal) => {
         if (this.#journal) {
           const reservation = await this.#journal.reserve(this.#start!);
@@ -409,6 +414,9 @@ export class PrintController {
         await this.#device.prepare(this.#start!, signal);
         signal.throwIfAborted();
         this.#beforeStart?.();
+        // Preparation is acknowledged, but no file command has been admitted.
+        // A requested pause holds this sealed job until an explicit resume.
+        if(this.#holdBeforeFile){this.#preparedHold=true;return;}
         await this.#device.start(this.#start!.fileId, signal);
         signal.throwIfAborted();
         await this.#persist('started');
@@ -424,6 +432,24 @@ export class PrintController {
   }
   pause(): Promise<void> {
     if(this.#retirement)return Promise.reject(new Error('Print controller retired'));
+    if(this.#state==='preparing'){
+      if(this.#preparationPause)return this.#preparationPause;
+      const request=this.#start!;
+      this.#holdBeforeFile=true;this.#changeState('preparing',true);
+      // Keep the original bounded preparation and its stop owner. Do not run a
+      // concurrent device.pause against homing/heating or replay preparation.
+      const paused=this.#startPromise!.then(()=>{
+        if(this.#start!==request||this.#retirement||this.#cancel||this.#faultStop)throw new Error('Preparation pause invalidated');
+        if(this.#state==='paused'&&this.#preparedHold)return;
+        // The request may arrive after the file-start checkpoint. Serialize
+        // the ordinary acknowledged pause after that start, including EOF.
+        if(this.#state==='printing')return this.pause();
+        throw new Error('Preparation pause invalidated');
+      });
+      this.#preparationPause=paused;
+      const release=()=>{if(this.#preparationPause===paused)this.#preparationPause=undefined;this.#finishEOF();};
+      void paused.then(release,release);return paused;
+    }
     if (this.#state === 'paused') return Promise.resolve();
     if (this.#state === 'pausing') return this.#active!;
     if (this.#state !== 'printing' || this.#active)
@@ -437,10 +463,13 @@ export class PrintController {
     if (this.#state === 'resuming') return this.#active!;
     if (this.#state !== 'paused' || this.#active)
       return Promise.reject(new Error(`Cannot resume while ${this.#state}`));
-    try{this.#beforeResume?.();}catch(error){return Promise.reject(error);}
-    return this.#run('resume', 'resuming', 'printing', (signal) =>
-      this.#device.resume(signal),
-    );
+    try{this.#beforeResume?.();if(this.#preparedHold)this.#beforeStart?.();}catch(error){return Promise.reject(error);}
+    return this.#run('resume', 'resuming', 'printing', async signal => {
+      if(!this.#preparedHold)return this.#device.resume(signal);
+      signal.throwIfAborted();this.#beforeStart?.();
+      await this.#device.start(this.#start!.fileId,signal);signal.throwIfAborted();
+      await this.#persist('started');this.#preparedHold=false;
+    });
   }
   /** Trusted typed machine action after confirmed pause. The callback must use
    * the paused device owner, never the dispatch held by the paused file.
@@ -468,7 +497,7 @@ export class PrintController {
       return Promise.reject(
         new Error('Completion does not belong to current print'),
       );
-    if (this.#state !== 'printing' || this.#active)
+    if (this.#state !== 'printing' || this.#active || this.#preparationPause)
       return Promise.reject(new Error(`Cannot complete while ${this.#state}`));
     const completed = this.#run(
       'finish',
@@ -501,6 +530,7 @@ export class PrintController {
       this.#stopInFlight ||
       this.#safety ||
       this.#journalWrite ||
+      this.#preparationPause ||
       this.#cancelTask?.pending
     )
       throw new Error('Cannot reset before terminal device acknowledgement');
@@ -515,6 +545,7 @@ export class PrintController {
     this.#lastReset = requestId;
     this.#start = undefined;
     this.#startPromise = undefined;
+    this.#holdBeforeFile=false;this.#preparedHold=false;
     this.#cancel = undefined;
     this.#cancelTask = undefined;
     // Never evict idempotency history silently: a late request must not reprint.
@@ -647,7 +678,7 @@ export class PrintController {
   #run(
     operation: 'start' | 'pause' | 'resume' | 'finish' | 'adjust',
     transient: PrintState,
-    success: PrintState,
+    success: PrintState | (()=>PrintState),
     action: (signal: AbortSignal) => Promise<void>,
   ): Promise<void> {
     this.#changeState(transient,operation==='adjust');
@@ -671,7 +702,7 @@ export class PrintController {
           (error) => abort.abort(error),
         );
         abort.signal.throwIfAborted();
-        this.#changeState(success,operation==='adjust');
+        this.#changeState(typeof success==='function'?success():success,operation==='adjust');
       } catch (error) {
         if (this.#state !== 'cancelling') {
           this.#operationError??=error;

@@ -1129,6 +1129,28 @@ JSON-RPC 方法为 `printer.objects.query`，参数示例：
   暂映射 printing，具体过渡状态继续读取 native_host.print_state。
   interrupted/failed 映射 error，消息使用固定公开文本，不暴露内部异常。
 
+### 准备阶段暂停
+
+标准 `/printer/print/pause` 和带当前 request_id／state_token 的原生控制
+可在 preparing 阶段登记暂停；权限、状态代际检查沿用原产品入口。
+`/printer/print/status` 的 `pause_pending` 表示请求仍等待准备确认，
+此时 `print_stats.state` 继续为 printing，不能显示为已停止。准备动作
+仍按原 startMs 完成归零／加热和确认，不并行调用文件暂停或重放准备。
+若请求已越过文件启动检查点，等待该启动确认后进入原文件暂停流程。
+
+在执行文件前保持的作业状态为 paused，`paused_before_file=true`，
+文件进度仍为零。原封存文件、热控与日志所有者保持占用，日志仍为
+reserved，未写 started；所有普通活动文件保护继续生效。显式 resume
+重新检查当前授权、状态代际和产品联锁，按原 resumeMs 启动同一文件，
+写入一次 started；不重放准备，也不建立另一打印状态机。准备期的
+总时长和已接收挤出统计不因登记暂停而重置。
+
+请求断连只停止等待回执，已受理的保持仍生效；恢复需要新的显式授权。
+取消、故障和设备退役均沿用原停止所有者、截止时间及迟到动作清理。
+此保持不代表无热量／无准备运动，不能用来代替急停。进程重启仍由
+权威日志恢复为 interrupted，不自动恢复或重放文件。当前证据属于
+模拟 MCU 软件验收；真实机型与 G3 门禁独立保留。
+
 原生文件支持 `SET_PRINT_STATS_INFO TOTAL_LAYER=100 CURRENT_LAYER=1`。
 层数只作元数据，不触发移动、宏或生命周期操作；命令仍受现有 G-code
 就绪与串行准入控制。值为非负安全整数，CURRENT_LAYER 超过总层数时

@@ -892,5 +892,269 @@
       "Complete Moonraker, remaining 177 tracked klippy Python files, default replacement and master release"
     ],
     "scope": "New partial actual-page acceptance on one pinned compiled Klipper/Moonraker package; does not mark A4, M3, G3, physical printing or full Python retirement complete"
+  },
+  "preparationPauseFollowUp": {
+    "date": "2026-10-07",
+    "scope": "Local Node.js 26.10.0 source and independently installed compiled package, fixed Fluidd 1.37.6, simulated MCU; integration, full mixed gate and physical/target acceptance pending",
+    "base": "1918d905115468cd9abd7be47cbff78e912455ec",
+    "verifiedDevelop": "67da7e990fdbdab8cf8fb8c01bfc0cc25d3b7fae",
+    "sources": {
+      "host/src/operations/print.ts": "38210fca4b19f566da75a0aa1755a4e4dcfd1ecfdfebd0f1409261f8b6733db1",
+      "host/src/moonraker/product-print-api.ts": "e304d0026c64fd11bc33931c6128b3557ef2ee1e03ea5ad30252db62c90d2d91",
+      "host/src/operations/file-print-device.ts": "1857ccb26774185ffb0da40ddbae96ba74d4c867ea842a9cbaac201e8f978ed0",
+      "host/src/operations/thermal-print-device.ts": "ebeb250583895f2980cca4471f6085f033835e3b3ec7f7afb3d4652838d8f9f6",
+      "host/src/gcode/extrusion-accounting.ts": "fbf9fea7b64bf77f08ed43e1bd3a18c8d0cdef55aa3d4a2319b039c5f8ce42a1",
+      "host/acceptance/product-compiled-journey.test.ts": "7415430cb3e5e82d48ee962b66acd84f22daabc5d8b77dbbf850ddd2da4ae780",
+      "host/acceptance/client-probe.ts": "551f352c91c2cac824912ce81cdf0561372c608f815912eb908038266b47d6ec",
+      "host/bench/preparation-pause.ts": "01f08ba9e71f098fcb537026ae6f5075e83d330f8dd2ce507abc5a3fbc64a49e",
+      "host/test/print-preparation-pause.test.ts": "b81a514ae1e7a801f90a369ae64c3eddf17db4f373761a80cf497cbaa76d4389",
+      "host/test/file-print-device.test.ts": "305c299e1560c075a7f8dbe98d60404dd702f57677ab0ab9ff71bbca7305c006",
+      "host/test/product-print-api.test.ts": "a5a64af7e24cc64638b4b08c4b47213185294efce7b5356dc0180675bf305c34"
+    },
+    "bundle": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preparation-pause-final-bundle",
+      "manifestSha256": "c0b199cb1f6adcbe4afe24fbe60f2df125d7606cad91bb130b79ea0ccdfdbfff",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+    },
+    "reproduction": {
+      "originalApiError": 409,
+      "log": "anyraid-preparation-pause-reproduction-20261007.log",
+      "initialMissingAddon": "Original first attempt failed before behavior due to absent sealed-file.node; native build then actual 409 reproduction retained"
+    },
+    "semantics": [
+      "Original preparation ACK then hold before file commands; no parallel pause during homing/heating",
+      "Explicit fresh authorized resume starts same sealed file and persists started once without replaying prepare",
+      "If file checkpoint crossed, serialize original acknowledged file pause after start; retain EOF",
+      "Accepted hold survives client disconnect; cancel/fault/retire and original deadlines retain stop ownership",
+      "Pause registration preserves preparation time and accepted extrusion; process restoration interrupted and never replayed"
+    ],
+    "tests": {
+      "related": {
+        "passed": 166,
+        "total": 166,
+        "durationMs": 15191.49998
+      },
+      "finalBoundaryAndStatistics": {
+        "passed": 19,
+        "total": 19,
+        "durationMs": 1452.706787
+      },
+      "overlap": "Do not add overlapping test runs",
+      "typecheck": "passed",
+      "whitespace": "passed"
+    },
+    "benchmark": {
+      "node": "v26.10.0",
+      "bundles": [
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-preparation-pause-baseline-bundle",
+          "manifestSha256": "0f387e56307920db318c58929f31c93854bfdd7846bf73b72a663d79f71379ff",
+          "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-preparation-pause-final-bundle",
+          "manifestSha256": "c0b199cb1f6adcbe4afe24fbe60f2df125d7606cad91bb130b79ea0ccdfdbfff",
+          "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+        }
+      ],
+      "alternatingOrder": true,
+      "status": {
+        "iterations": 100000,
+        "warmups": 3,
+        "runs": 11,
+        "results": [
+          {
+            "medianUs": 0.37763337999999746,
+            "p95Us": 0.4209892099999979,
+            "samplesUs": [
+              0.4209892099999979,
+              0.38242152999999685,
+              0.38204903000000284,
+              0.38725699999999963,
+              0.37694636999999603,
+              0.37763337999999746,
+              0.37350781999999977,
+              0.37451082999999924,
+              0.375856160000003,
+              0.37667366000000124,
+              0.37837939000000004
+            ]
+          },
+          {
+            "medianUs": 1.045183549999997,
+            "p95Us": 1.1296716000000016,
+            "samplesUs": [
+              1.0482176800000003,
+              1.1296716000000016,
+              1.093362139999999,
+              1.048205780000003,
+              1.0517464299999983,
+              1.042901710000001,
+              1.0433531300000003,
+              1.044422340000001,
+              1.0432754199999998,
+              1.045183549999997,
+              1.0448165400000016
+            ]
+          }
+        ],
+        "maximumAddedP95Us": 5
+      },
+      "controls": {
+        "cycles": 10000,
+        "warmups": 2,
+        "runs": 7,
+        "results": [
+          {
+            "medianUs": 2.1643668000000162,
+            "p95Us": 2.2759941499999967,
+            "samplesUs": [
+              2.2759941499999967,
+              2.132800950000001,
+              2.154065650000007,
+              2.1643668000000162,
+              2.137510449999991,
+              2.171579399999973,
+              2.170651899999984
+            ]
+          },
+          {
+            "medianUs": 2.281478250000009,
+            "p95Us": 2.720881200000008,
+            "samplesUs": [
+              2.720881200000008,
+              2.3077950499999815,
+              2.281478250000009,
+              2.315970200000015,
+              2.262101050000001,
+              2.197405200000003,
+              2.1851385500000107
+            ]
+          }
+        ]
+      },
+      "checksum": 919800000,
+      "scope": "Compiled ProductPrintApi status plus JSON serialization and acknowledged mock-device ordinary pause/resume throughput; two durable owners, no per-control journal writes. Excludes network, physical MCU, heating and target-board speed."
+    },
+    "fullMixed": {
+      "result": "failed; do not merge until discriminated and required gate closed",
+      "originalWorkloadAndDeadlinesUnchanged": true,
+      "baseline": {
+        "result": "passed",
+        "log": "anyraid-preparation-pause-mixed-1-baseline-20261007.log"
+      },
+      "firstCandidate": {
+        "manifest": "22b5f6eeb29e26484bde90f150a1a40b0fc9ce4d95400c404c1db8372efa62f2",
+        "result": "completed vs printing at recursive cleanup checkpoint; ABBA stops immediately, last two runs not executed",
+        "log": "anyraid-preparation-pause-mixed-2-candidate-20261007.log"
+      },
+      "finalCandidate": {
+        "result": "Two generations and all 16 file groups observed, then sensor-fault start rejected 409; no full success",
+        "log": "anyraid-preparation-pause-final-mixed-20261007.log"
+      },
+      "causes": "Unresolved; no unchanged retry and no claim of product or harness root cause"
+    },
+    "page": {
+      "authentication": "Fresh context, actual local-user/JWT UI login; no trusted-loopback bypass or credential seeding",
+      "upload": {
+        "chooserMs": 49.69859700000234,
+        "bytes": 20123,
+        "name": "anyraid-page 50%.gcode",
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "http": 200,
+        "previewPng": true,
+        "actualDownloadSameSha": true
+      },
+      "seededSamplePrinted": false,
+      "journey": [
+        "First explicit start immediately paused during homing/preparation; later acknowledged Paused at 0% retained until explicit Resume, then Ready 100% and one completed history",
+        "Second warm start had already observed file position change before pause; original file pause then user-confirmed Cancel, retained cancelled history and shutdown requiring reinitialization",
+        "Actual standard UI Restart Klipper reconstituted generation 2, same listener/login/files/history, ready without automatic replay",
+        "Third explicit start in new generation paused during preparation; acknowledged Paused at 0%, user-confirmed Cancel, retained cancelled history"
+      ],
+      "history": {
+        "explicitStarts": 3,
+        "completed": 1,
+        "cancelled": 2,
+        "allSameActualUploadedFile": true
+      },
+      "limitations": [
+        "Page 0% is rounded; exact zero file admission independently asserted in sealed-file regression, not physical MCU proof",
+        "Second warm pause is ordinary file pause, not preparation-hold proof",
+        "Initial third-start selector matched two table cells; strict failure and subsequent two original 10s locator timeouts retained; changed to observed jobs route before actual third start",
+        "Full client operations, Mainsail protected identity, physical MCU and target-board performance remain open",
+        "No new cross-origin claim: this package excludes PR19 CORS change"
+      ],
+      "shutdown": {
+        "productExit": 0,
+        "browserExit": 0,
+        "bundleAndInstalledDependenciesUnchanged": true
+      }
+    },
+    "logs": [
+      {
+        "name": "anyraid-preparation-pause-reproduction-20261007.log",
+        "sha256": "4f4663b00e54dc147452fa88ac955e8fd8e0261517b9602e234d06668d695c2d"
+      },
+      {
+        "name": "anyraid-preparation-pause-owner-tests-20261007.log",
+        "sha256": "749a096f3fa0330a2c4cc2efe50581d22c8a2b59e5302fe005e4ab618a06a056"
+      },
+      {
+        "name": "anyraid-preparation-pause-statistics-tests-20261007.log",
+        "sha256": "33207cb433e836740c2eedbc0323ed38f5c5f39d93bf1913c237997f23e76bb6"
+      },
+      {
+        "name": "anyraid-preparation-pause-final-types-20261007.log",
+        "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+      },
+      {
+        "name": "anyraid-preparation-pause-mixed-1-baseline-20261007.log",
+        "sha256": "40e7b6a5213a5dced3dce2c33f2b9397912afaca31922213cc8b7908c39d47e4"
+      },
+      {
+        "name": "anyraid-preparation-pause-mixed-2-candidate-20261007.log",
+        "sha256": "433aa30c98c2102ad0bc63d3fb69d6743a42157932fd01184f62ba652f5b8e2b"
+      },
+      {
+        "name": "anyraid-preparation-pause-final-mixed-20261007.log",
+        "sha256": "856a91fb0bd589b05a7fd2019cfeb43f0231c0da7b971b74d1b561380e542875"
+      },
+      {
+        "name": "anyraid-preparation-pause-compiled-benchmark-20261007.json",
+        "sha256": "25a9812fa2d8466c74ff439e6bc1edafda878062d6711f4ed2a126a34412ed75"
+      },
+      {
+        "name": "anyraid-fluidd-preparation-pause-final-page-20261007.log",
+        "sha256": "084b94d9690819b746f170870064c2ad6b85b1de89ba702dbd95761951792cb1"
+      },
+      {
+        "name": "anyraid-fluidd-preparation-page-observations-20261007.json",
+        "sha256": "1a9ac396f5434265ec9b7a4e4f57e491c140d3a05792eed692aa2ef249d3834e"
+      }
+    ],
+    "screenshots": [
+      {
+        "name": "fluidd-preparation-held-20261007.png",
+        "sha256": "306336e4bd197d5fbb8b0a5910d0f46bffd75cff71f7a80359a60fe8e39564c4"
+      },
+      {
+        "name": "fluidd-preparation-resumed-complete-20261007.png",
+        "sha256": "3149c1e6b3258d6e8e16f25ad321728ade506841c699e44e63450b3a83bb014b"
+      },
+      {
+        "name": "fluidd-preparation-cancel-history-20261007.png",
+        "sha256": "d05e77707ffe302c1b0408459a1d20e020c25e45796d69f9ca37724478ff755a"
+      },
+      {
+        "name": "fluidd-preparation-final-history-20261007.png",
+        "sha256": "3135c19ce2223a929e8717afa0eba43e2d4598482f1122da9f95f7a27a557c16"
+      }
+    ],
+    "limitations": [
+      "Full mixed failed and current precise-head CI/integration still required",
+      "G3 unresolved,177 klippy Python remain, default remains Python",
+      "No motion algorithm, original precision assertion or MCU source modified"
+    ]
   }
 }
