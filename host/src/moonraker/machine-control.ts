@@ -16,6 +16,13 @@ export interface MachineControlPort {
  close():Promise<void>;
 }
 export interface MachineControlOptions {ownUnit:string;allowedUnits?:readonly string[];deviceUnits?:readonly string[];}
+/** Same bounded trusted descriptor is used by runtime and deployment preparation. */
+export function validateMachineControlOptions(options:MachineControlOptions):void{
+ if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).some(k=>!['ownUnit','allowedUnits','deviceUnits'].includes(k)))throw new TypeError('Invalid machine control options');
+ validateSystemServices({allowedUnits:[options.ownUnit]});validateSystemServices({allowedUnits:options.allowedUnits});validateSystemServices({allowedUnits:options.deviceUnits});
+ const allowed=new Set([options.ownUnit,...options.allowedUnits??[]]);
+ if(allowed.size>64||(options.deviceUnits??[]).some(unit=>!allowed.has(unit)))throw new TypeError('Invalid machine control catalogue');
+}
 export interface MachineControlIO {
  command:ServiceCommand;
  readCgroup(signal:AbortSignal):Promise<string>;
@@ -55,10 +62,8 @@ const flags=['--no-pager','--no-ask-password'] as const;
 export class LinuxMachineControl implements MachineControlPort {
  readonly #own:string;readonly #allowed:Set<string>;readonly #device:Set<string>;readonly #io:MachineControlIO;readonly #abort=new AbortController();#pending:Promise<void>|undefined;
  constructor(options:MachineControlOptions,io:Partial<MachineControlIO>={}){
-  if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).some(k=>!['ownUnit','allowedUnits','deviceUnits'].includes(k)))throw new TypeError('Invalid machine control options');
-  validateSystemServices({allowedUnits:[options.ownUnit]});validateSystemServices({allowedUnits:options.allowedUnits});validateSystemServices({allowedUnits:options.deviceUnits});
+  validateMachineControlOptions(options);
   this.#own=options.ownUnit;this.#allowed=new Set([this.#own,...options.allowedUnits??[]]);this.#device=new Set(options.deviceUnits??[]);
-  if(this.#allowed.size>64||[...this.#device].some(unit=>!this.#allowed.has(unit)))throw new TypeError('Invalid machine control catalogue');
   if(!io||typeof io!=='object'||Array.isArray(io)||Object.keys(io).some(k=>!['command','readCgroup','insideContainer'].includes(k))||Object.values(io).some(value=>typeof value!=='function'))throw new TypeError('Invalid machine control dependencies');
   this.#io={...systemIO,...io};
  }

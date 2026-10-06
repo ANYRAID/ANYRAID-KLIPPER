@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "candidate-storage-microbench-and-default-mixed-passed-full-gates-open",
+  "status": "candidate-storage-and-readonly-deployment-preparation-validated-full-gates-open",
   "date": "2026-10-06",
   "runtime": "Node.js 26.10.0",
   "develop": "a2e97c3bf38b1745e517d75c180d148d99099df9",
@@ -20,7 +20,7 @@
     "ownService": "restart only"
   },
   "sources": {
-    "host/src/moonraker/machine-control.ts": "da2b5320e93b71d353d0dd0b3ce9d274ea7aa2562657e21376d7ce8ee3a03798",
+    "host/src/moonraker/machine-control.ts": "15ea9e52dfdaa76e15a724ddf422307c62618ec5656bfe2b77178fbea97a6a8f",
     "host/src/moonraker/product-host-api.ts": "e612f4d137445550e5d3af5fa0b343d9c243718eb60a781045b1df4c0d7b1f9d",
     "host/src/runtime/host-recovery-journal-worker.ts": "2dc7ec1384b9802d88cbcae3b4594fff26e3e71561a26aa15a2f2539e792dc84",
     "host/src/runtime/host-recovery-journal.ts": "23c9bf4503dbb33750003e323e489226f4e47f6a2f24a45e587736dc2f633d31",
@@ -37,7 +37,11 @@
     "host/acceptance/product-compiled-journey.test.ts": "34624b8fe50a08e5e4f3f0b4f359c5e896c391d513bef9ef74ad016dbdf2e8fe",
     "host/test/product-service.test.ts": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc",
     "host/test/host-recovery-wal.test.ts": "42beea964cb6bf413e0fe8316174b3adb9b184c81e50ef8fed2c8d4fcc9fe20a",
-    "host/test/delta-probe.test.ts": "9f3d9c891e9df893e74f311b33b429d0ca3c3d29590a2e7733b735be93d54365"
+    "host/test/delta-probe.test.ts": "9f3d9c891e9df893e74f311b33b429d0ca3c3d29590a2e7733b735be93d54365",
+    "host/src/runtime/product-service-unit.ts": "444649911c8cd0f414e955feefb4029e7893e3c41cb4e2ef48aa0308059dc266",
+    "host/test/product-service-unit.test.ts": "ea411b6f4ace9de8878843281923d4bf478bf1b5fe2077b8e79e8375d9b26505",
+    "host/test/product-machine-control-policy.test.ts": "829d13023b6a39116443635d09e8c1aa73d48760c88874eae637eab216c1225f",
+    "scripts/product-service-unit.ts": "1b024b90fac3c7c2b3805a79d6eeb79f88781124700d2b69d9123ebac05fbd4e"
   },
   "invariants": [
     "Read-only service source never implicitly grants OS mutation; trusted bounded canonical allowlist only",
@@ -51,7 +55,8 @@
     "Before device acquire, explicit foreign device units must be inactive/failed and MainPID=0; not a global lock against external actors",
     "v4 atomic v1/v2/v3 migration preserves identity and order; immutable service payload, shared pending slot, same-kind terminal eviction",
     "Interrupted queued/running records never replay commands; exclusive worker WAL/EXTRA synchronizes commits before acknowledgement; bounded checkpoint threshold scales with database page size",
-    "O(1) counts update only after durable acknowledgement; failed admission does not evict receipts"
+    "O(1) counts update only after durable acknowledgement; failed admission does not evict receipts",
+    "Read-only deployment generator shares bounded capability validation; site policy requires dedicated user plus system-unit and no-new-privileges attributes; preparation grants nothing until separately installed"
   ],
   "bundles": {
     "baseline": {
@@ -74,6 +79,13 @@
       "dependencies": 14,
       "native": "Unchanged files copied from optimized bundle",
       "productionDependencies": "Independent copy with verbatim relative links; all identities verified before and after mixed acceptance"
+    },
+    "deploymentPreparation": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-machine-control/host/build/machine-control-preparation-pinned-bundle",
+      "manifestSha256": "700e50ee9582c3ef2735fc440d4fbc6b5a85a0c919f6ccbbcffb4d9bb1447fc4",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+      "native": "Unchanged native files copied from WAL bundle; TS independently emitted",
+      "validationScope": "Read-only deployment preparation only; old WAL printing/receipt performance results are not transferred to this bundle"
     }
   },
   "validation": {
@@ -1202,6 +1214,26 @@
           "sha256": "03a762077711dfc5d800a395b6e600635eeea56cde40e9ac47e28da20569f3b0"
         },
         "reason": "Default fs.cp rewrote dependency symlinks to absolute links into the old bundle; identity validator rejected the package. Owned copy recreated using verbatimSymlinks:true; manifest and full dependency identity then passed."
+      },
+      "sourceFingerprintsAtExecution": {
+        "host/src/moonraker/machine-control.ts": "da2b5320e93b71d353d0dd0b3ce9d274ea7aa2562657e21376d7ce8ee3a03798",
+        "host/src/moonraker/product-host-api.ts": "e612f4d137445550e5d3af5fa0b343d9c243718eb60a781045b1df4c0d7b1f9d",
+        "host/src/runtime/host-recovery-journal-worker.ts": "2dc7ec1384b9802d88cbcae3b4594fff26e3e71561a26aa15a2f2539e792dc84",
+        "host/src/runtime/host-recovery-journal.ts": "23c9bf4503dbb33750003e323e489226f4e47f6a2f24a45e587736dc2f633d31",
+        "host/src/runtime/native-product-machine.ts": "69f9e4737c2eb5ea3437719cca52676f2be7dce17a40a10d0275ba13560f60b8",
+        "host/src/runtime/product-host-control.ts": "d03d307dc3b7a0583cc0d06e9cfff11baa69eaccd7d579d76304295721aaafce",
+        "host/src/runtime/product-host.ts": "507ddcb50a4dc672d90ba04246d49de93282c486249751fe0b5a40c868eda311",
+        "host/test/helpers/recovery-journal-v1.ts": "154c45385b91c3d4b0415f8e4a50470144ce3591dd046643123c082ed9012347",
+        "host/test/host-recovery-retention.test.ts": "93f489d6b65597af1dcf1cc199710501b101d4d088085fd15c75b6e38d036f40",
+        "host/test/machine-control.test.ts": "74556da80bf28a92873f06b18e17d0322e94e8957a09ffba96d4047f2dca941b",
+        "host/test/machine-control-api.test.ts": "95011a232b3f4390f946bd14c6c071694959f4fb23243959f71fafa85a888ceb",
+        "host/test/machine-recovery-journal.test.ts": "0a972584b2c5a387f600eebccddcd74f22523635f351247eb6b9c27db4905029",
+        "host/test/native-product-machine-control.test.ts": "649afb07aec39f71d0b59e9024d76dbf37dbbc41063410f420f427b8eff2f6d6",
+        "host/bench/machine-recovery.ts": "b05aa4481f03ed84a7e05561a3bbe0da215896b3f599e3e11c113715b8b42862",
+        "host/acceptance/product-compiled-journey.test.ts": "34624b8fe50a08e5e4f3f0b4f359c5e896c391d513bef9ef74ad016dbdf2e8fe",
+        "host/test/product-service.test.ts": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc",
+        "host/test/host-recovery-wal.test.ts": "42beea964cb6bf413e0fe8316174b3adb9b184c81e50ef8fed2c8d4fcc9fe20a",
+        "host/test/delta-probe.test.ts": "9f3d9c891e9df893e74f311b33b429d0ca3c3d29590a2e7733b735be93d54365"
       }
     },
     "walStorageDiscriminator": {
@@ -1495,6 +1527,105 @@
       },
       "change": "Capture terminal position once, emit bounded same-invocation result/accepted wire trace on mismatch; original 1e-10 tolerances and algorithms unchanged",
       "scope": "This success does not explain or close the historical CI failure"
+    },
+    "deploymentPreparation": {
+      "conclusion": "passed-readonly-preparation-actual-authorization-open",
+      "regression": {
+        "passed": 17,
+        "failed": 0,
+        "durationMs": 2232.645111,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-preparation-inode-20261006.log",
+          "sha256": "9cae40dac2d1f7db8031ff5142bdc679def0c20e97b4dbc31b25a2b2152f73df"
+        },
+        "scope": "Final shared validation/runtime lifecycle, O_PATH-pinned descriptor bounds and non-regular rejection, Node VM policy scope, paired CLI plus legacy-name no-self-conflict installed parser checks"
+      },
+      "typecheck": {
+        "conclusion": "passed",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-preparation-inode-type-20261006.log",
+          "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+        }
+      },
+      "compiled": {
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-preparation-pinned-probe-20261006.log",
+          "sha256": "da4c9caaefc6bd933954ad2b4cabc97c643e765d46d7c63f7e33c934d9c7f556"
+        },
+        "probeSource": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-preparation-pinned-probe-20261006.mts",
+          "sha256": "fc06f5cf5dd2a645fd30eb15557781634d9dd7c49cf2a6c8b86ef1cac4fed8b8"
+        },
+        "result": {
+          "conclusion": "passed",
+          "node": "v26.10.0",
+          "identity": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-machine-control/host/build/machine-control-preparation-pinned-bundle",
+            "manifestSha256": "700e50ee9582c3ef2735fc440d4fbc6b5a85a0c919f6ccbbcffb4d9bb1447fc4",
+            "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+          },
+          "fixture": "/home/dek02/.cache/codex/tmp/anyraid-machine-preparation-probe-EnLMRj",
+          "descriptorUnits": 64,
+          "unitSha256": "39745ff18ebb84af39252229ec7efa457c1def69b5a1cd84da5d82e254708e9b",
+          "policySha256": "cf257dc6867d5869f5ade5b1956f61f90a2650eecf778a93fbb3c3eadbf742e1",
+          "systemdParser": "systemd-analyze verify passed",
+          "profileImported": false,
+          "stripTypes": false,
+          "installed": false,
+          "actionsExecuted": 0,
+          "policyVm": {
+            "warmupRounds": 2,
+            "rounds": 8,
+            "callsPerRound": 100000,
+            "accepted": 400000,
+            "rejected": 400000,
+            "perCallRoundMeanMs": [
+              0.00022966816000000108,
+              0.00023840716999999812,
+              0.00022953377000000045,
+              0.0002306532799999991,
+              0.0002140021700000011,
+              0.00021435447000000068,
+              0.00021482467999999925,
+              0.00021363117000000102
+            ],
+            "scope": "Node VM callback only, max 64 declared units; includes assertion overhead, not polkit engine, authorization latency or target board"
+          },
+          "oldBundlePreserved": true
+        }
+      },
+      "localEnvironment": {
+        "systemdParser": "255 (255.2-4deepin31)",
+        "polkitCli": "123",
+        "pid1": "codex",
+        "realAuthorizationExecuted": false
+      },
+      "limits": [
+        "Administrator-only site policy preparation, not automatic installation or general-purpose OS permission package",
+        "Trusted machine profile must actually use the same descriptor; generation deliberately never imports it",
+        "Existing earlier polkit rules can return first; generated callback tests do not establish complete installed permissions",
+        "Power target grants support normal PID1 fallback and are not an independent inhibitor/compromised-service boundary",
+        "Actual systemd/polkit attributes, authorization and rejection, sessions/inhibitors, target state, storage and rollback remain unverified"
+      ],
+      "primaryReferences": [
+        "https://polkit.pages.freedesktop.org/polkit/polkit.8.html",
+        "https://github.com/systemd/systemd/blob/v255/src/core/dbus-util.c",
+        "https://github.com/systemd/systemd/blob/v255/src/systemctl/systemctl-start-special.c",
+        "https://man7.org/linux/man-pages/man2/open.2.html"
+      ]
+    },
+    "pr14WalHeadObservation": {
+      "head": "674c1466e37c7c1c17d80e0de3f682ffd4f32ad4",
+      "hostRun": 37474489682,
+      "hostJob": 112306231944,
+      "typecheck": "success",
+      "ordinary": "success",
+      "protocol": "success",
+      "sanitizer": "in_progress",
+      "linuxMcu": "pending",
+      "firmwareRun": 37474489603,
+      "firmware": "in_progress",
+      "scope": "Live observation before deployment preparation commit; not full CI or new-head validation"
     }
   },
   "performance": {
@@ -1517,7 +1648,7 @@
         "full": 13.932074
       },
       "originalGateMs": 25,
-      "scope": "Desktop budget passed on current independently emitted bundle; original DELETE/EXTRA failures preserved, target-board gate remains open"
+      "scope": "Desktop budget passed for recorded WAL bundle ffa5e93b only; original DELETE/EXTRA failures preserved, target-board gate remains open. Later preparation bundle has separate limited validation."
     }
   },
   "notValidation": [
@@ -1541,5 +1672,6 @@
     "Full Fluidd/Mainsail page workflows including actual page upload",
     "Cycnumbris 500 verified profile/board and physical stop evidence",
     "G3 precision/motion, default Python entry, 177 klippy Python files, full Moonraker and normal master release"
-  ]
+  ],
+  "sourcesScope": "Current candidate source fingerprints. Earlier runtime/performance results remain bound to their recorded bundles and executions; the new preparation bundle has only the explicitly recorded preparation validation."
 }

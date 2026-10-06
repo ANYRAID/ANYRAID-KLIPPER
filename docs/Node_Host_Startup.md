@@ -786,6 +786,68 @@ build-info.json 的产品、平台、架构及 Node ABI，并计算清单内每�
 的资源路径。printer 是必须预先建立的普通用户示例，需按实际机型配置
 串口/CAN 权限以及日志、数据库和发布文件目录权限；工具不创建账号。
 
+### 系统控制的授权准备
+
+候选系统控制需要管理员显式装配 `LinuxMachineControl`；读取服务状态
+不授予操作权限。对于专用打印设备的非 root 服务账号，可以从同一份
+本地 JSON 描述生成配对单元和待审查的站点 polkit 规则：
+
+```json
+{
+  "ownUnit": "anyraid-host.service",
+  "allowedUnits": ["crowsnest.service", "klipper.service"],
+  "deviceUnits": ["klipper.service"]
+}
+```
+
+ownUnit 加 allowedUnits 最多 64 个规范服务名，deviceUnits 必须是其
+子集。描述文件最多 64 KiB，只接受普通文件，拒绝符号链接、FIFO、
+设备、非法 UTF-8 和未知字段。Linux O_PATH 先固定 inode 而不打开
+设备进行 I/O，确认类型后经 /proc/self/fd 读取同一个普通文件；缺少
+procfs 时明确失败，不降级为按原路径读取。描述是管理员数据，不
+接受 HTTP 请求输入。
+机器模块必须从同一份可信描述构造能力；生成器不导入模块，不能证明
+模块采用了这份配置。必须审核模块与实际部署配置是否相符。
+
+```sh
+/opt/node26/bin/node /opt/anyraid/scripts/product-service-unit.js \
+  --bundle /opt/anyraid --profile /etc/anyraid/machine.mjs --user printer \
+  --machine-control /etc/anyraid/control.json > "$TMPDIR/anyraid-host.service"
+/opt/node26/bin/node /opt/anyraid/scripts/product-service-unit.js \
+  --bundle /opt/anyraid --profile /etc/anyraid/machine.mjs --user printer \
+  --machine-control /etc/anyraid/control.json --polkit > "$TMPDIR/49-anyraid-control.rules"
+systemd-analyze verify "$TMPDIR/anyraid-host.service"
+```
+
+Node 路径按最终部署位置替换；TMPDIR 应为已存在、由操作者控制的
+准备目录。单元文件名必须等于 ownUnit；若沿用旧标准服务名称，
+生成器从 Conflicts 中排除自身，切换仍受下方门槛约束。此选项加入
+NoNewPrivileges=yes；规则同时核对专用账号、内核识别的 system_unit
+与 no_new_privileges=true，缺失属性时拒绝，不退回仅按用户名放行。
+服务自身只允许 restart，显式外部单元允许 start／stop／restart；不
+授予管理单元文件、daemon-reload、环境变量或任意临时单元的权限。
+另允许 login1 的基本 reboot／power-off 及 systemctl 正常 PID1 回退
+所用的 reboot.target／poweroff.target 的 start，拒绝 login1 的
+ignore-inhibit／multiple-sessions 等动作。target 准入不是独立阻止器
+策略，也不约束已被攻陷的服务主体通过其他调用使用这项电源权限。
+
+规则为管理员审核的专用站点配置，使用 ES5、不调用外部程序、不缓存
+YES_KEEP；不自动安装，不适合直接作为通用发行版权限包。专用账号
+不应与其他服务或登录用途共用；现有更早执行的规则可能先行返回，
+管理员须检查规则顺序和已有授权，不能把单个生成规则视为完整权限
+证明。属性与规则语义依据 [polkit 手册](https://polkit.pages.freedesktop.org/polkit/polkit.8.html)，
+unit／verb 及电源回退依据 [systemd v255 授权源码](https://github.com/systemd/systemd/blob/v255/src/core/dbus-util.c)
+和 [systemctl 源码](https://github.com/systemd/systemd/blob/v255/src/systemctl/systemctl-start-special.c)。
+
+本机只有解析器及 Node VM 的规则检查，PID1 是 codex；没有执行真实
+systemd／polkit 授权。管理员安装到 systemd 和 polkit 的系统目录、
+属性可用性、准入与拒绝、会话／阻止器、实际服务状态及回滚，仍须在
+目标系统按本项目发布门槛验收。禁止把生成成功当作安装、切换或 G3
+通过。使用本机准备目录进行 17 项回归和独立编译入口验证的证据见
+[系统控制验收](../host/contracts/native-machine-control-acceptance.json)。
+
+### 停止与默认切换门槛
+
 服务设置 Restart=no，故障退出后需要明确诊断和恢复。SIGTERM 先交给
 主进程完成停止与资源清理；KillMode=mixed 在 90 秒停止超时后清理剩余
 进程。进程退出或 systemd active 状态都不能证明硬件物理停止或就绪；
