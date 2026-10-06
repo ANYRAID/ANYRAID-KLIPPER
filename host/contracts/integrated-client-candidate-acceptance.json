@@ -1,0 +1,1484 @@
+{
+  "date": "2026-10-07",
+  "scope": "Isolated same-package software candidate; not accepted develop integration, full client or physical delivery",
+  "runtime": {
+    "node": "v26.10.0",
+    "binarySha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+    "playwright": "1.62.1",
+    "chrome": "153.0.8010.36"
+  },
+  "composition": {
+    "node": "v26.10.0",
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-client-final-bundle",
+      "manifestSha256": "e5bc7946a93ba71e16adde5b2fce4bd0c0a44492dddf51813fae10d926c68ca8",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "installation": {
+      "durationMs": 833.780155,
+      "dependencies": 15
+    },
+    "changed": [
+      "host/src/moonraker/authorization-config.js",
+      "host/src/moonraker/configured-server.js",
+      "host/src/moonraker/cors-policy.js",
+      "host/src/moonraker/native-print-uploads.js",
+      "host/src/moonraker/product-print-api.js",
+      "host/src/moonraker/server.js",
+      "host/src/operations/maintenance-gate.js",
+      "host/src/operations/print.js",
+      "package-lock.json",
+      "package.json"
+    ],
+    "heads": {
+      "base": "67da7e990fdbdab8cf8fb8c01bfc0cc25d3b7fae",
+      "cors": "82347cbc88c90874672b85a1e6521dbf1b4505bf",
+      "preparationPause": "9359d0a1f2f0a7e8e88a1e09a30d4f2034d9385f",
+      "preview": "bebd20c3c2237b9ba8e4f785f4dc2df084f5f454",
+      "reasons": "95bc8761fd0d52b721d28a79503e47fb26936809"
+    },
+    "integrationAccepted": false,
+    "supersedesManifest": "317a8d97089c22055b3b0fd6b168bdb269a58f31f25d143f3b46254db4c4325c",
+    "correction": "Initial isolated composition omitted committed CORS dependency manifests; original candidate is retained as invalid, not a product or original PR failure."
+  },
+  "integration": {
+    "preview": {
+      "pr": 21,
+      "head": "bebd20c3c2237b9ba8e4f785f4dc2df084f5f454",
+      "merge": "6ff1a391f4a1b4ba9cc8360a0a326da6a7fd695e",
+      "selfReview": 6022354679,
+      "exactHeadHostRun": 37508215637,
+      "exactHeadFirmwareRun": 37508215783,
+      "exactHeadChecks": "completed/success",
+      "postMergeHostRun": 37513468936,
+      "postMergeFirmwareRun": 37513468883,
+      "postMergeChecks": "in_progress at receipt preparation"
+    },
+    "remaining": "PR19 and PR22 checks in progress; PR20 original two failures remain open. Combined candidate is not permission to merge these heads."
+  },
+  "sourceFiles": {
+    "host/package.json": "ecaaad3de70053474ec444fba9e833b2c2650df4823919b11b8ed6917bcf0b7e",
+    "host/package-lock.json": "82975ad865eec2d40128626f78a06eab535e85c4acfb736773ba9a7c12023771",
+    "host/src/moonraker/authorization-config.ts": "713f80aa8927c7ba3f3e2cf3e7729855f533dceda8552df9f752c16bb8e901aa",
+    "host/src/moonraker/configured-server.ts": "f1b8413b903863bf9e22f3786679b0cf439d8ece35ce8499bcbb7f73a4b88b00",
+    "host/src/moonraker/cors-policy.ts": "6866f95e44d47e018cb80a1ea64f83de0317a411ee5a5d4612074c086be1d92f",
+    "host/src/moonraker/native-print-uploads.ts": "e07525ba1cf9a196bd9b68ef16a4238e5f6dd3f25b2c07c3d1af9b37b1d03698",
+    "host/src/moonraker/product-print-api.ts": "94ad140f043555af56e49db8a5c8a98a25a0aa765826c97ba335128e32c72ed4",
+    "host/src/moonraker/server.ts": "4527b732c4ade8b972cd358260dde61a4b6e8f7feba1e4f0cc156a82ec02fe2f",
+    "host/src/operations/maintenance-gate.ts": "f7df9634dc7f2a87fd1971786d933aed1907c99bde26955c33e947761e8bb9c3",
+    "host/src/operations/print.ts": "38210fca4b19f566da75a0aa1755a4e4dcfd1ecfdfebd0f1409261f8b6733db1",
+    "host/test/authorization-config.test.ts": "058738f0e7f49c7db15ecf5b2c76ff6c44b89ac2a62d0bb6826e9cd6fd679930",
+    "host/test/configured-authorization.test.ts": "deb020ddbfa7ec039ed3152750396e7189fceac6f18f0b241843cd16cd037ce6",
+    "host/test/configured-cors-compiled.test.ts": "f85e18b3c1aa27d2006a9e2b68a5d67b68aa3e73820bb0228bb856dbd62cd3a0",
+    "host/test/configured-cors.test.ts": "d8b3a4eb983eabdd2c8c188bbe1eb1b3fb7a8f067094fb74b0289f154be4d232",
+    "host/test/cors-policy.test.ts": "6b8e84a328893b3ebc5ae1dab27e572c07f4c7a055a1ad08d3f5ed6b2ba0c681",
+    "host/test/native-file-preview-notification.test.ts": "51d399df1dceffc2800662d5b687cbf0a20b58af9583ec6a3c05dc99f2faae3b",
+    "host/test/print-preparation-pause.test.ts": "b81a514ae1e7a801f90a369ae64c3eddf17db4f373761a80cf497cbaa76d4389",
+    "host/test/product-print-conflict-reasons.test.ts": "78dadf01e132e1d9b24301a5c377d6b37f514c5f5f3fd522de8be246bb7f0919",
+    "host/test/file-print-device.test.ts": "305c299e1560c075a7f8dbe98d60404dd702f57677ab0ab9ff71bbca7305c006",
+    "host/test/product-print-api.test.ts": "a5a64af7e24cc64638b4b08c4b47213185294efce7b5356dc0180675bf305c34",
+    "host/contracts/moonraker-cors-reference.json": "a1d13f275b648203e36e6ec4a4d723e763c7fefbefaa3d707282862e20756742",
+    "host/bench/moonraker-cors-policy.ts": "b57d032659426016f9011f5b1870f6af50112044277410bcd5252f5b2d9c5688"
+  },
+  "fixtureFiles": {
+    "host/acceptance/client-probe.ts": "551f352c91c2cac824912ce81cdf0561372c608f815912eb908038266b47d6ec",
+    "host/test/helpers/compiled-client-host.ts": "bc2886d1bdb8b2081ff6fde9bfe77b2307e1a36680ae322e0931bd5f336a8316",
+    "host/test/helpers/product-machine.ts": "789581f4ccf6123bc3ff20aa1d221ef8ced8f0b410acd973f01b3ffffdcc503c",
+    "host/test/helpers/client-firmware.ts": "1ca7525cf508d6183c90bde4d488be2ac60f615aa2f651347bdc76320d827ff8"
+  },
+  "regressions": {
+    "uniqueCases": 67,
+    "groups": [
+      {
+        "cases": 48,
+        "passed": 48
+      },
+      {
+        "cases": 8,
+        "passed": 8
+      },
+      {
+        "cases": 11,
+        "passed": 11
+      }
+    ],
+    "typecheck": "exit 0",
+    "whitespace": "exit 0 before receipt/doc updates",
+    "originalInputsPreserved": true
+  },
+  "failuresRetained": [
+    {
+      "phase": "First composition",
+      "manifest": "317a8d97089c22055b3b0fd6b168bdb269a58f31f25d143f3b46254db4c4325c",
+      "cause": "Source-only assembly omitted committed PR19 production manifests; independent compiled CORS check could not import re2-wasm. Original invalid bundle retained."
+    },
+    {
+      "phase": "CORS reference test setup",
+      "cause": "Original committed JSON reference absent; eight independent cases passed, restored fixture then ran only eleven previously unstarted cases."
+    },
+    {
+      "phase": "First probe parent launch",
+      "cause": "Source parent serialqueue.node not built; probe did not start. Relaunched from existing built parent with four identical helper hashes."
+    },
+    {
+      "phase": "First browser driver",
+      "cause": "Non-TTY stdin EOF ended driver before page start; TTY driver then completed and closed normally."
+    },
+    {
+      "phase": "Normal product process restart between jobs",
+      "observation": "Browser emitted one Socket disconnected pageerror; automatic reconnect/resubscribe and authenticated functionality recovered without refresh or relogin."
+    }
+  ],
+  "mixedLoad": {
+    "fixturePath": "/home/dek02/.cache/codex/tmp/anyraid-client-page-upload-proof/host/acceptance/product-compiled-journey.test.ts",
+    "fixtureSha256": "7415430cb3e5e82d48ee962b66acd84f22daabc5d8b77dbbf850ddd2da4ae780",
+    "testName": "namespace=true nativeAuthorization=true apiLoad=true load=false spi=false",
+    "automaticQueue": "on",
+    "machineControl": "on",
+    "groups": 16,
+    "mcus": 2,
+    "generations": 2,
+    "originalAssertionsDeadlinesTolerancesUnchanged": true,
+    "terminalExitCode": 0,
+    "durationMs": 74500.631682,
+    "diagnostics": [
+      {
+        "retainedBundle": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-client-final-bundle",
+          "manifestSha256": "e5bc7946a93ba71e16adde5b2fce4bd0c0a44492dddf51813fae10d926c68ca8",
+          "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+        }
+      },
+      {
+        "earlyObjectCancellation": {
+          "before": {
+            "gcode_move": {
+              "speed_factor": 1,
+              "speed": 600,
+              "extrude_factor": 1,
+              "absolute_coordinates": true,
+              "absolute_extrude": true,
+              "homing_origin": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "position": [
+                2.49,
+                0,
+                0,
+                0.249
+              ],
+              "gcode_position": [
+                2.49,
+                0,
+                0,
+                0.249
+              ],
+              "axis_map": {
+                "X": 0,
+                "Y": 1,
+                "Z": 2,
+                "E": 3
+              }
+            },
+            "print_stats": {
+              "filename": "parts/first/renamed journey.gcode",
+              "print_duration": 0.021033830999998827,
+              "total_duration": 4.258013019,
+              "filament_used": 0.249,
+              "state": "printing",
+              "message": "",
+              "info": {
+                "total_layer": null,
+                "current_layer": null
+              }
+            }
+          },
+          "after": {
+            "gcode_move": {
+              "speed_factor": 1,
+              "speed": 600,
+              "extrude_factor": 1,
+              "absolute_coordinates": true,
+              "absolute_extrude": true,
+              "homing_origin": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "position": [
+                3.77,
+                0,
+                0,
+                0.377
+              ],
+              "gcode_position": [
+                3.77,
+                0,
+                0,
+                0.377
+              ],
+              "axis_map": {
+                "X": 0,
+                "Y": 1,
+                "Z": 2,
+                "E": 3
+              }
+            },
+            "print_stats": {
+              "filename": "parts/first/renamed journey.gcode",
+              "print_duration": 0.030073601999998572,
+              "total_duration": 4.2670511499999995,
+              "filament_used": 0.377,
+              "state": "printing",
+              "message": "",
+              "info": {
+                "total_layer": null,
+                "current_layer": null
+              }
+            }
+          },
+          "originalMoves": 1000,
+          "priming": false,
+          "appliesTo": "future_admissions"
+        }
+      },
+      {
+        "pausedMotionReport": {
+          "live_position": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "live_velocity": 0,
+          "live_extruder_velocity": 0
+        }
+      },
+      {
+        "filamentRunout": {
+          "sensor": "filament_switch_sensor tool",
+          "compiled": true,
+          "automaticPause": true,
+          "absentResumeRejected": true,
+          "runoutPauseMs": 1805.4065899999987,
+          "settledStepClock": true,
+          "noAutomaticResume": true
+        }
+      },
+      {
+        "beforeObjectCancellation": {
+          "objectPriming": false,
+          "earlyObjectCancellation": true,
+          "cancelState": {
+            "state_token": "eafa161a-756c-4106-8de7-b833eced4c1e",
+            "request_id": "complete",
+            "available": true,
+            "objects": [
+              {
+                "name": "LIVE"
+              },
+              {
+                "name": "SKIP"
+              }
+            ],
+            "excluded_objects": [
+              "SKIP"
+            ],
+            "current_object": null,
+            "applies_to": "future_admissions"
+          },
+          "progress": {
+            "eventtime": 802651.720447161,
+            "status": {
+              "virtual_sdcard": {
+                "progress": 0.8850289882176922,
+                "is_active": false,
+                "file_position": 18929,
+                "file_size": 21388
+              },
+              "gcode_move": {
+                "speed_factor": 1,
+                "speed": 600,
+                "extrude_factor": 1,
+                "absolute_coordinates": true,
+                "absolute_extrude": true,
+                "homing_origin": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "position": [
+                  10,
+                  0,
+                  0,
+                  2
+                ],
+                "gcode_position": [
+                  10,
+                  0,
+                  0,
+                  2
+                ],
+                "axis_map": {
+                  "X": 0,
+                  "Y": 1,
+                  "Z": 2,
+                  "E": 3
+                }
+              },
+              "toolhead": {
+                "estimated_print_time": 12.798764,
+                "homed_axes": "xyz",
+                "axis_minimum": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "axis_maximum": [
+                  200,
+                  200,
+                  200,
+                  0
+                ],
+                "position": [
+                  10,
+                  0,
+                  0,
+                  1
+                ],
+                "extruder": "extruder",
+                "max_velocity": 100,
+                "max_accel": 1000,
+                "square_corner_velocity": 5,
+                "minimum_cruise_ratio": 0.5
+              },
+              "print_stats": {
+                "filename": "parts/first/renamed journey.gcode",
+                "print_duration": 3.0618697549999996,
+                "total_duration": 7.5190389999999985,
+                "filament_used": 1,
+                "state": "paused",
+                "message": "",
+                "info": {
+                  "total_layer": null,
+                  "current_layer": null
+                }
+              }
+            }
+          },
+          "skipOffset": 21229
+        }
+      },
+      {
+        "objectCancellation": {
+          "compiled": true,
+          "firstTargetCancellation": false,
+          "objectPriming": false,
+          "earlyObjectCancellation": true,
+          "paused": true,
+          "retryWithoutMotion": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 1,
+          "group": 0,
+          "durationMs": 221.4466930000017,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "nativeTemperatureHistory": {
+          "samples": 14,
+          "sensors": [
+            "extruder",
+            "heater_bed"
+          ],
+          "authenticated": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 1,
+          "group": 1,
+          "durationMs": 225.306743000001,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 1,
+          "group": 2,
+          "durationMs": 217.5536690000008,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 1,
+          "group": 3,
+          "durationMs": 354.99394499999835,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 1,
+          "group": 4,
+          "durationMs": 125.1471930000007,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 1,
+          "group": 5,
+          "durationMs": 104.8722409999973,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 1,
+          "group": 6,
+          "durationMs": 101.51674599999751,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 1,
+          "group": 7,
+          "durationMs": 104.07533999999578,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "idleTimeout": {
+          "heaterOff": true,
+          "motorRelease": true,
+          "hostRemainsReady": true
+        }
+      },
+      {
+        "pausedTimeout": {
+          "cancelled": true,
+          "resumeRejected": true
+        }
+      },
+      {
+        "compiledOfflineManagement": {
+          "sameListener": true,
+          "priorJwt": true,
+          "originalSockets": true,
+          "unauthorizedRejected": true,
+          "copy": true,
+          "movePreservesIdentity": true,
+          "copyOverwriteReplacesIdentity": true,
+          "delete": true,
+          "recursiveDelete": true,
+          "nestedMetadataRevoked": true,
+          "sharedPrintSourcePreserved": true,
+          "downloadSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+          "notifications": 16,
+          "recursiveDeleteNotifications": 4
+        }
+      },
+      {
+        "compiledConfigOffline": {
+          "originalJwt": true,
+          "realConfiguration": true,
+          "readOnly": true,
+          "sameProcessRoot": true
+        }
+      },
+      {
+        "compiledDetachedWindow": {
+          "sameListener": true,
+          "priorJwt": true,
+          "originalSockets": true,
+          "metadataAndHistory": true,
+          "downloadSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+          "noPrintReplay": true,
+          "fileQueries": 50,
+          "fileQueryP99Ms": 0.4541769999996177
+        }
+      },
+      {
+        "retainedProcessServer": {
+          "sameAddress": true,
+          "priorJwtAccepted": true,
+          "originalSocketsOpen": true,
+          "reinitializeMs": 4151.0662019999945
+        }
+      },
+      {
+        "temperatureHistoryRestart": {
+          "preserved": true,
+          "samplesBefore": 42,
+          "samplesAfter": 45
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 2,
+          "group": 0,
+          "durationMs": 229.4110209999999,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 2,
+          "group": 1,
+          "durationMs": 358.5056020000047,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 2,
+          "group": 2,
+          "durationMs": 245.9815000000017,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 2,
+          "group": 3,
+          "durationMs": 371.1424479999987,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 2,
+          "group": 4,
+          "durationMs": 105.1187809999974,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 2,
+          "group": 5,
+          "durationMs": 119.18904899999325,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 2,
+          "group": 6,
+          "durationMs": 109.69400200000382,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "compiledRecursiveDelete": {
+          "generation": 2,
+          "group": 7,
+          "durationMs": 107.9962489999889,
+          "sharedSourcePreserved": true
+        }
+      },
+      {
+        "nativeAuthorizationRestart": {
+          "compiled": true,
+          "processRestart": true,
+          "persistedLogin": true,
+          "priorTokenAccepted": true,
+          "filesAndHistory": true,
+          "noReplay": true,
+          "interruptedResumeRejected": true,
+          "explicitCancel": true,
+          "logoutRevoked": true
+        }
+      },
+      {
+        "namespace": true,
+        "automaticQueue": true,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 10086.826624
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 10378.548829
+            },
+            "durationMs": 291.7257249999984
+          },
+          {
+            "generation": 1,
+            "group": 1,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 16834.095802
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 16997.72203
+            },
+            "durationMs": 163.63129800000024
+          },
+          {
+            "generation": 1,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 20424.915868
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 20564.17633
+            },
+            "durationMs": 139.2615220000007
+          },
+          {
+            "generation": 1,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23857.733169
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23937.306593
+            },
+            "durationMs": 79.57363400000031
+          },
+          {
+            "generation": 1,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 27273.300738
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 27351.719387
+            },
+            "durationMs": 78.41494800000146
+          },
+          {
+            "generation": 1,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 28982.2943
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 29072.350534
+            },
+            "durationMs": 90.05614399999831
+          },
+          {
+            "generation": 1,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 30658.352769
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 30736.247069
+            },
+            "durationMs": 77.89411100000143
+          },
+          {
+            "generation": 1,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 32162.556058
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 32187.127047
+            },
+            "durationMs": 24.571318999998766
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 51818.628634
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 52349.084702
+            },
+            "durationMs": 530.4563879999987
+          },
+          {
+            "generation": 2,
+            "group": 1,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 54970.888511
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 55118.607042
+            },
+            "durationMs": 147.7188909999968
+          },
+          {
+            "generation": 2,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 58249.466623
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 58506.953318
+            },
+            "durationMs": 257.4866639999964
+          },
+          {
+            "generation": 2,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 61886.160602
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 62129.564347
+            },
+            "durationMs": 243.40380500000174
+          },
+          {
+            "generation": 2,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 65253.834691
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 65492.29726
+            },
+            "durationMs": 238.46271900000283
+          },
+          {
+            "generation": 2,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 67024.224021
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 67098.728904
+            },
+            "durationMs": 74.50503300000855
+          },
+          {
+            "generation": 2,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 68598.91029
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 68686.406356
+            },
+            "durationMs": 87.49612599999818
+          },
+          {
+            "generation": 2,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 70270.517208
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4576cf24-66ab-430f-a479-378965e31e09",
+              "fileId": "authorized-file",
+              "atMs": 70346.704373
+            },
+            "durationMs": 76.18714500000351
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 2187,
+        "configListP99Ms": 10.696782999999414,
+        "configDownloads": 2187,
+        "configDownloadP99Ms": 10.318988000006357,
+        "liveMotionSamples": 6062,
+        "liveExtrusionSamples": 1441,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 11.087998949,
+          "print_duration": 5.2395879789999995,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "e5bc7946a93ba71e16adde5b2fce4bd0c0a44492dddf51813fae10d926c68ca8",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 10608,
+        "phaseP99Ms": 5.04172699999981,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 336,
+            "writes": 43
+          },
+          {
+            "statusReads": 216,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 2174,
+        "historyP99Ms": 55.09859499999584,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 245.37810200000058,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 502.94499799999903,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 371.41160500000115,
+        "copiesDuringPrint": 3,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 381.60181399999783,
+        "movesDuringPrint": 2,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 390.23567300000286,
+        "directoryMovesDuringPrint": 2,
+        "moveRequests": 16,
+        "moveP95Ms": 529.943131,
+        "deleteRequests": 16,
+        "deleteP95Ms": 467.7299070000008,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 248.01947999999538,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 82.86399900000106,
+        "metadataRequests": 16,
+        "metadataP95Ms": 406.1962160000003,
+        "downloads": 16,
+        "downloadP95Ms": 56.65718499999639,
+        "wireCommands": 235,
+        "wireSteps": 7956,
+        "minimumStepLeadMs": 85.983,
+        "directoryRequests": 8966,
+        "directoryP99Ms": 39.184703000006266,
+        "statusRequests": 42440,
+        "uploads": 16,
+        "statusP99Ms": 5.052818000003754,
+        "uploadP95Ms": 290.2477139999992,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.028543,
+              "maxMs": 19.333119
+            },
+            "cpu": {
+              "user": 13582928,
+              "system": 2478996
+            },
+            "rss": 355602432
+          },
+          {
+            "loop": {
+              "p99Ms": 1.950719,
+              "maxMs": 13.131775
+            },
+            "cpu": {
+              "user": 8010998,
+              "system": 1769178
+            },
+            "rss": 401694720
+          }
+        ]
+      },
+      {
+        "compiledMachineControl": {
+          "actions": 12,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "settlementMs": [
+            94.4425740000006,
+            73.38347200000135,
+            84.28335799999877,
+            84.53527200000099,
+            79.69893700000102,
+            81.63794300000154,
+            82.25627800000075,
+            77.00903699999617,
+            90.8138919999983,
+            60.86679300000105,
+            115.74969399999827,
+            67.34081799999694
+          ],
+          "syntheticCommand": true,
+          "durableReceipts": true,
+          "noDeviceRetirement": true,
+          "hardwareAcceptance": false
+        }
+      },
+      {
+        "compiledServices": {
+          "syntheticSystemd": true,
+          "samples": 35,
+          "failedQueries": 1,
+          "queries": 2045,
+          "queryP99Ms": 8.267070000001695,
+          "notifications": 132,
+          "authorizedNotifications": true,
+          "sharedNativeUnit": true
+        }
+      },
+      {
+        "networkChanges": {
+          "sourceSamples": 8,
+          "notifications": 24,
+          "authorizedObservers": 4,
+          "failedCommandRetained": true,
+          "deviceGenerations": [
+            1,
+            2
+          ],
+          "systemQueries": 628,
+          "systemQueryP99Ms": 4.976695999997901
+        }
+      },
+      {
+        "compiledQueue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2432,
+          "queryP99Ms": 4.617342000001372,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        }
+      },
+      {
+        "replacements": {
+          "seed": {
+            "operations": 32,
+            "p95Ms": 229.26831700000002,
+            "maxMs": 253.2756470000022
+          },
+          "upload": {
+            "operations": 16,
+            "p95Ms": 303.2267060000013,
+            "maxMs": 303.2267060000013
+          },
+          "move": {
+            "operations": 16,
+            "p95Ms": 601.3720319999993,
+            "maxMs": 601.3720319999993
+          },
+          "uploadDuringPrintGenerations": [
+            1,
+            2
+          ],
+          "moveDuringPrintGenerations": [
+            1,
+            2
+          ],
+          "notifications": 320,
+          "originalNotifications": 776
+        }
+      },
+      {
+        "configBackupLoad": {
+          "requests": 2187,
+          "p99Ms": 4.303636999999071,
+          "mutationsBlockedDuringPrint": true
+        }
+      }
+    ],
+    "comparison": "One run of genuinely new combined package, no controlled baseline pair. Do not claim statistical acceleration, target speed or closure of old PR20 failures.",
+    "hardwareAcceptance": false
+  },
+  "fluidd": {
+    "client": {
+      "version": "1.37.6",
+      "commit": "d894c50d580212c245a7c552ae695008c441683b",
+      "assets": "/home/dek02/.cache/codex/tmp/anyraid-fixed-frontends/fluidd-1.37.6",
+      "assetFiles": 255,
+      "assetTreeSha256": "61769e745cfd4e0c58430052db3cd2df5bcdc5961d6661d059b1b5bdde9647ae",
+      "algorithm": "SHA-256 of JSON sorted depth-first [relative path, file SHA-256] pairs; ordinary files only"
+    },
+    "authorization": "Actual local-user JWT page login; no trusted-loopback bypass. Test credentials excluded.",
+    "input": {
+      "filename": "整合验收 50%.gcode",
+      "renamed": "整合重命名 50%.gcode",
+      "bytes": 20123,
+      "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+      "moves": 1000,
+      "feedRate": "F60",
+      "thumbnail": "HTTP 200 and browser decoded 32x32 PNG before printing"
+    },
+    "chooser": {
+      "realFileChooser": true,
+      "registeredBeforeClick": true,
+      "elapsedMs": 42.116588,
+      "uploadHttpStatus": 200
+    },
+    "verified": [
+      "Page upload, Unicode/percent rename and actual browser download with identical bytes",
+      "First explicit page print completed; durable job 000001",
+      "Second explicit page print paused during preparation; paused_before_file true, fileposition zero, pending actions zero",
+      "Only local supervisor WS closed; page automatically reconnected and subscribed to the same paused request without refresh or relogin",
+      "Explicit page Resume completed second request; durable job 000002",
+      "Third explicit page print paused then Cancel and Yes; durable job 000003 cancelled",
+      "Page reports required device reinitialization and disables motion; explicit Restart Klipper creates ready generation2 with idle state and no replay",
+      "Actual page history and authenticated read-only history contain two completed and one cancelled uploaded-file records",
+      "Supervisor normally restarted emitted product between terminal jobs; same pinned bundle, persisted files and three records, idle state, automatic reconnection",
+      "Actual page download after process restart equals original SHA256",
+      "Browser driver normal close and stdin EOF exit0; probe normal SIGTERM cleanup exit0; bundle identity verified at shutdown and again read-only"
+    ],
+    "pausedRequest": "compat-6b1af190-34ee-4a5c-8dd6-966f00430434",
+    "states": {
+      "paused": {
+        "mode": "native",
+        "standard_print": true,
+        "pending_compatibility": 0,
+        "state": "paused",
+        "state_token": "a76937fd-3975-47a6-8f66-f7a18b9fec51:8",
+        "pause_pending": false,
+        "paused_before_file": true,
+        "request": {
+          "version": 1,
+          "request_id": "compat-6b1af190-34ee-4a5c-8dd6-966f00430434",
+          "file_id": "e0fc671d-bf59-458c-b352-5d0820aeb396",
+          "nozzle": 200,
+          "bed": 60,
+          "expires_at": 1791311806309
+        },
+        "pending_device_actions": 0,
+        "safe_stop_pending": false,
+        "failed": false,
+        "closed": false
+      },
+      "reconnected": {
+        "mode": "native",
+        "standard_print": true,
+        "pending_compatibility": 0,
+        "state": "paused",
+        "state_token": "a76937fd-3975-47a6-8f66-f7a18b9fec51:8",
+        "pause_pending": false,
+        "paused_before_file": true,
+        "request": {
+          "version": 1,
+          "request_id": "compat-6b1af190-34ee-4a5c-8dd6-966f00430434",
+          "file_id": "e0fc671d-bf59-458c-b352-5d0820aeb396",
+          "nozzle": 200,
+          "bed": 60,
+          "expires_at": 1791311806309
+        },
+        "pending_device_actions": 0,
+        "safe_stop_pending": false,
+        "failed": false,
+        "closed": false
+      },
+      "resumed": {
+        "mode": "native",
+        "standard_print": true,
+        "pending_compatibility": 0,
+        "state": "completed",
+        "state_token": "a76937fd-3975-47a6-8f66-f7a18b9fec51:12",
+        "pause_pending": false,
+        "paused_before_file": false,
+        "request": {
+          "version": 1,
+          "request_id": "compat-6b1af190-34ee-4a5c-8dd6-966f00430434",
+          "file_id": "e0fc671d-bf59-458c-b352-5d0820aeb396",
+          "nozzle": 200,
+          "bed": 60,
+          "expires_at": 1791311806309
+        },
+        "pending_device_actions": 0,
+        "safe_stop_pending": false,
+        "failed": false,
+        "closed": false
+      },
+      "cancelled": {
+        "mode": "native",
+        "standard_print": true,
+        "pending_compatibility": 0,
+        "state": "cancelled",
+        "state_token": "a76937fd-3975-47a6-8f66-f7a18b9fec51:18",
+        "pause_pending": false,
+        "paused_before_file": false,
+        "request": {
+          "version": 1,
+          "request_id": "compat-be17eb79-7f73-4fae-984c-6bd97ac6467d",
+          "file_id": "e0fc671d-bf59-458c-b352-5d0820aeb396",
+          "nozzle": 200,
+          "bed": 60,
+          "expires_at": 1791311889223
+        },
+        "pending_device_actions": 0,
+        "safe_stop_pending": false,
+        "failed": false,
+        "closed": false
+      },
+      "device-restarted": {
+        "mode": "native",
+        "standard_print": true,
+        "pending_compatibility": 0,
+        "state": "idle",
+        "state_token": "3e48bb9c-9042-4c45-a0c6-8e206bd2faed:0",
+        "pause_pending": false,
+        "paused_before_file": false,
+        "request": null,
+        "pending_device_actions": 0,
+        "safe_stop_pending": false,
+        "failed": false,
+        "closed": false
+      },
+      "process-restarted": {
+        "mode": "native",
+        "standard_print": true,
+        "pending_compatibility": 0,
+        "state": "idle",
+        "state_token": "db5fb407-e397-4cec-b060-6fac781630ff:0",
+        "pause_pending": false,
+        "paused_before_file": false,
+        "request": null,
+        "pending_device_actions": 0,
+        "safe_stop_pending": false,
+        "failed": false,
+        "closed": false
+      }
+    },
+    "supervisor": {
+      "probeSession": 92018,
+      "driverSession": 36074,
+      "terminalExitCodes": [
+        0,
+        0
+      ],
+      "signals": {
+        "SIGUSR2": "Close only local test WebSocket connections",
+        "SIGUSR1": "Normal emitted product child stop/start",
+        "SIGTERM": "Fixture cleanup"
+      }
+    },
+    "excluded": [
+      "API-seeded client-sample.gcode not counted as page upload or printed file",
+      "PTY fake MCU is not physical heating/motion/safety",
+      "Same-origin asset proxy does not by itself prove cross-origin client operation",
+      "No config editor/save acceptance",
+      "No active/interrupted job process recovery",
+      "No after-restart PNG decode claim from loading screenshot",
+      "No Mainsail same-package acceptance"
+    ],
+    "screenshots": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-fluidd-upload-20261007.png",
+        "sha256": "bbcdc9f2578c4296156c580b6618d2d2ee33262e9b4e0a3dc28b4b63d80543ca",
+        "scope": "Captured actual page; immediate screenshots may contain pending/loading states"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-fluidd-pause-20261007.png",
+        "sha256": "55a0d6a137dff9339a8a70c277a12a85b34c129f9521487457540f79e795de85",
+        "scope": "Captured actual page; immediate screenshots may contain pending/loading states"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-fluidd-disconnect-20261007.png",
+        "sha256": "7536b47f008fdd3c7317b623df9d1561da44769d047d4820da10a891d0fa05c2",
+        "scope": "Captured actual page; immediate screenshots may contain pending/loading states"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-fluidd-cancel-20261007.png",
+        "sha256": "8ffe304d52d0072a282a5688a997690bb2420bb1c659a47aba2245941ec4a844",
+        "scope": "Captured actual page; immediate screenshots may contain pending/loading states"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-fluidd-history-20261007.png",
+        "sha256": "ae581931ef349dca37b87f4ee79fd169696445c6a75eb9ed602ee6f85eec8554",
+        "scope": "Actual screenshot visually inspected"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-fluidd-process-restarted-20261007.png",
+        "sha256": "ae581931ef349dca37b87f4ee79fd169696445c6a75eb9ed602ee6f85eec8554",
+        "scope": "Captured actual page; immediate screenshots may contain pending/loading states"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-fluidd-final-files-20261007.png",
+        "sha256": "732b5a077e87e299783c054273e21a6e6fe440940107f7b0efd5a8ab0b879998",
+        "scope": "Actual screenshot visually inspected"
+      }
+    ],
+    "observers": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-page-paused-state-20261007.json",
+        "sha256": "04929bd9c46d814ccedca0ccd2f8bf4657b8a8bbe6d39251dec8bd311e98e8fe",
+        "scope": "Read-only authenticated native status, objects, history and files; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-page-reconnected-state-20261007.json",
+        "sha256": "11ab54c89c1c2629cc4c113b54eb9780a93c954162b657f8092c6caca0749928",
+        "scope": "Read-only authenticated native status, objects, history and files; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-page-resumed-state-20261007.json",
+        "sha256": "e09e9353fe5b93f5a0550e2d665846d39afc04a8598324c5dc89cd6d6940a44b",
+        "scope": "Read-only authenticated native status, objects, history and files; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-page-cancelled-state-20261007.json",
+        "sha256": "457c333083604e602f6c788eca268aa25ccdb92551520227e3184014e5394bf8",
+        "scope": "Read-only authenticated native status, objects, history and files; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-page-device-restarted-state-20261007.json",
+        "sha256": "9266487ed4a3c2626374e4bef3d864fb75a9b2907e1e1a961bf92ee5d09ee5e7",
+        "scope": "Read-only authenticated native status, objects, history and files; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-page-process-restarted-state-20261007.json",
+        "sha256": "82d612712d01003970a5c979438f003900803dbcbf2608e5d6e3a0d4a8203ad4",
+        "scope": "Read-only authenticated native status, objects, history and files; no seeded actions"
+      }
+    ]
+  },
+  "retainedArtifacts": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-regressions-20261007.log",
+      "sha256": "0455d9341cc5d6fe04cf4ddd09a7b40bb9959140428c064fc72856f874f061e1",
+      "scope": "48 source cases passed after required native build"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-cors-regressions-20261007.log",
+      "sha256": "bbbc6b71b445693ceb80a710cbc568155e9e2f918dc7e55fd2cf3f8a2e2750e2",
+      "scope": "Retained assembly failure: omitted CORS manifests and reference fixture"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-cors-corrected-regressions-20261007.log",
+      "sha256": "75dcecbd35784102ac3e5093a096ee7773a13267253817cb1dcaa7250f3bcf8a",
+      "scope": "Eight cases pass; missing reference prevents one module starting"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-cors-reference-regressions-20261007.log",
+      "sha256": "1e7525fbe3564b2bb8434741dfd1b7daa485d6fec2aa74cb0b52878525603065",
+      "scope": "Original reference restored; previously unstarted eleven cases pass"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-final-types-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Final type check exit 0"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-final-whitespace-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Source root whitespace check exit 0 before evidence-only updates"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-final-build-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Final product build exit 0"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-final-mixed-20261007.log",
+      "sha256": "968d2dd5449acaef092f4dfddd3d3fbbef3325544d51732a3f46fe479e43b1d7",
+      "scope": "Original compiled mixed load terminal exit 0"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-mixed-diagnostics-20261007.json",
+      "sha256": "cbd6553e40ce15b7e86b9cdca429bf58879ec8e71c7a33a122c85c4a0f5b638b",
+      "scope": "All parsed original mixed-load diagnostics"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-page-transcript-20261007.log",
+      "sha256": "90a7ec72a703ffe38a09ec856b580fa5e7ff413a8316fde5237eb313650fed67",
+      "scope": "Sanitized collected browser observations; login commands excluded, some large DOM output truncated"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-probe-transcript-20261007.log",
+      "sha256": "5401d2922aec9a6d43223c1238b76cdd17b1ed2d38bea0df37c8a2b19740f3dd",
+      "scope": "Collected probe output from pause onward; not a complete initial-login trace"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-page-file-driver-20261007.mjs",
+      "sha256": "1a683cd13029f3b7b8503511acebf5a4a430fea32b0a407731a4da3a4834aaeb",
+      "scope": "Actual Playwright action driver; no embedded login credentials"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-final-bundle-20261007.json",
+      "sha256": "62bf99bf62f4ffad1bee68510487d42716b6cc49437a3a954bd596c5046621b8",
+      "scope": "Final independent package build receipt"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-bundle-20261007.json",
+      "sha256": "8114e09611d725dfb0c53dedb97de8b0eca928cd6d4402a97e1c122494b06b46",
+      "scope": "Earlier invalid assembly retained, superseded only for testing"
+    }
+  ],
+  "downloads": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-fluidd-download-20261007.gcode",
+      "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+      "scope": "Actual page download after rename"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-fluidd-after-restart-download-20261007.gcode",
+      "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+      "scope": "Actual page download after normal process restart"
+    }
+  ],
+  "postRunIdentity": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-client-final-bundle",
+    "manifestSha256": "e5bc7946a93ba71e16adde5b2fce4bd0c0a44492dddf51813fae10d926c68ca8",
+    "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+  },
+  "remaining": [
+    "Normal upstream integration and post-merge CI",
+    "PR20 original failure observations remain unresolved",
+    "Same-package complete Fluidd config and protected Mainsail journeys",
+    "G3 motion gate, real board precision/performance and Cycnumbris500 acceptance",
+    "Complete Moonraker and consumer controlled operations",
+    "177 klippy Python files and all Python build/install/test retirement",
+    "Normal master PR/release and default replacement"
+  ]
+}

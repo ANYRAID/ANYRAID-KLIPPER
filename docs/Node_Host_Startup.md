@@ -300,6 +300,12 @@ Fluidd 的 JWT 场景和 Mainsail 的显式可信回环场景均在实际页面�
 清理失败在本进程锁存，不能以租约释放推断停止成功。晚到的旧代际正文
 仍返回 503；在退役后新受理的请求按离线准入重新检查，不能跨授权等待
 作用于新设备。权限、不可变身份、耐久和文件通知沿用原事务，上传不打印。
+文件／目录移动、复制覆盖、上传覆盖和删除的持久提交事件，等待该次
+文件提交及元数据失效处理终结后，再交给既有授权通知通道。客户端按
+通知立即读取新元数据时，新生成的预览不会再被同一次操作的迟到失效
+撤销。设备委托使用同一进程边界；授权等待尚未通过的请求不进入该边界，
+取消订阅或进程关闭后不补发迟到事件。元数据失败仍保留原查询／恢复
+规则和失败响应，不能把通知解释为整个操作成功，也不自动重放请求。
 历史删除仅隐藏已结束记录，原幂等回执不删除；统计重置仍受日志校验。
 非空目录 `DELETE /server/files/directory`／`server.files.delete_directory`
 候选接受 `force=true`，并按固定上游接受布尔值及大小写不敏感的
@@ -1129,6 +1135,28 @@ JSON-RPC 方法为 `printer.objects.query`，参数示例：
   暂映射 printing，具体过渡状态继续读取 native_host.print_state。
   interrupted/failed 映射 error，消息使用固定公开文本，不暴露内部异常。
 
+### 准备阶段暂停
+
+标准 `/printer/print/pause` 和带当前 request_id／state_token 的原生控制
+可在 preparing 阶段登记暂停；权限、状态代际检查沿用原产品入口。
+`/printer/print/status` 的 `pause_pending` 表示请求仍等待准备确认，
+此时 `print_stats.state` 继续为 printing，不能显示为已停止。准备动作
+仍按原 startMs 完成归零／加热和确认，不并行调用文件暂停或重放准备。
+若请求已越过文件启动检查点，等待该启动确认后进入原文件暂停流程。
+
+在执行文件前保持的作业状态为 paused，`paused_before_file=true`，
+文件进度仍为零。原封存文件、热控与日志所有者保持占用，日志仍为
+reserved，未写 started；所有普通活动文件保护继续生效。显式 resume
+重新检查当前授权、状态代际和产品联锁，按原 resumeMs 启动同一文件，
+写入一次 started；不重放准备，也不建立另一打印状态机。准备期的
+总时长和已接收挤出统计不因登记暂停而重置。
+
+请求断连只停止等待回执，已受理的保持仍生效；恢复需要新的显式授权。
+取消、故障和设备退役均沿用原停止所有者、截止时间及迟到动作清理。
+此保持不代表无热量／无准备运动，不能用来代替急停。进程重启仍由
+权威日志恢复为 interrupted，不自动恢复或重放文件。当前证据属于
+模拟 MCU 软件验收；真实机型与 G3 门禁独立保留。
+
 原生文件支持 `SET_PRINT_STATS_INFO TOTAL_LAYER=100 CURRENT_LAYER=1`。
 层数只作元数据，不触发移动、宏或生命周期操作；命令仍受现有 G-code
 就绪与串行准入控制。值为非负安全整数，CURRENT_LAYER 超过总层数时
@@ -1463,6 +1491,16 @@ pause/resume/cancel 接受空参数；对应 WebSocket JSON-RPC 方法相同。
 只允许 idle/completed/cancelled，已完成或取消的任务必须先通过原控制器
 清理门槛才能开始下一任务；failed/interrupted 仍要求显式恢复。
 暂停、恢复、取消保持原控制器的状态及物理停止约束。
+
+原生控制器因共享维护所有者拒绝操作时，候选在原 HTTP／WebSocket
+409 错误及原通用消息中补充 `data.reason`。`maintenance_active` 表示
+原准入检查时维护正在占用，`admission_closed` 表示原准入已关闭，
+`activity_capacity` 表示原 65,536 项活动上限，`producer_busy` 是其他
+维护所有者冲突。原因来自实际错误实例，不按消息字符串、客户端字段
+或事后状态猜测；不输出底层异常文本或堆栈。身份、授权、400／410／499
+及其他 409 沿用原响应。仅该原因字段不能证明整个请求未产生设备效果，
+仍须查询请求／设备状态；不能自动重试或重放动作。被初始维护准入拒绝
+的开始请求不创建预约，维护结束后必须由用户显式提交新的请求。
 
 策略与二次授权最多同时保留 4 项，每次准入等待最多 30 秒；断开后尚未
 结束的外部策略继续计入容量，但迟到返回不能产生设备操作。已经持久准入
@@ -2411,8 +2449,8 @@ default_source: moonraker
 
 省略 max_login_attempts 表示不限失败次数。稳定 issuer 由产品配置提供，
 不会从临时监听端口推导。未知 default_source 警告后回退到 moonraker；
-trusted_clients 已支持显式数字 IP／CIDR；LDAP、域名信任、cors_domains
-和其他尚未实现的授权规则会在装配前明确报错。此入口不能同时传入外部入站、通知或订阅鉴权回调。
+trusted_clients 已支持显式数字 IP／CIDR；cors_domains 支持下述受限模式。
+LDAP、域名信任和其他尚未实现的授权规则会在装配前明确报错。此入口不能同时传入外部入站、通知或订阅鉴权回调。
 
 loadAuthorized 不监听；成功后调用 server.start()。首次凭据可从本地
 `server.authorization.localApiKey()` 获取，不能写入日志。装配构造完成后，
@@ -2814,3 +2852,34 @@ node host/acceptance/client-probe.ts /absolute/path/to/mainsail 18334 --trusted-
 已能进入 Standby 和作业页面。页面上传等未完成项仍阻止完整流程声明。
 默认探针仍
 使用凭据模式，Fluidd 的登录验收入口不变。
+
+
+## 原生 Moonraker 跨域访问配置
+
+在上述原生授权入口的 `[authorization]` 中配置浏览器来源：
+
+```ini
+cors_domains:
+  https://fluidd.example.com
+  https://*.example.com
+```
+
+配置只允许浏览器跨域读取和 WebSocket 升级，API Key／JWT、接口与
+通知授权仍独立执行；CORS 通配符不会授予打印权限。预检允许 Authorization、
+X-Api-Key 和 X-Access-Token。允许来源的鉴权错误携带 CORS 响应头；
+未允许来源拒绝，默认无 Origin 的既有客户端行为沿用。
+
+沿用固定上游的点／星号转换、完整首匹配、顶级域通配符和末尾斜杠
+警告后忽略规则；有有效模式时支持已有数字 trusted_clients 的 IP 回退，
+不会解析域名或扩大信任。保留现有网络边界，只接受规范 HTTP(S) Origin。
+最多 128 个模式，每项最多 1024 字符；匹配使用锁定的 re2-wasm 1.0.2。
+Python 特有的反向引用、前后查找等不受支持，装配时拒绝，不静默转换。
+这项限制是当前兼容差额，不能宣称全部 Python 正则兼容。
+
+`npm run bench:moonraker-cors-policy` 计量原大小与满容量规则；
+编译包混合打印验收可设置 `ANYRAID_BENCH_CORS_ORIGIN=https://fluidd.example.com`，
+沿用全部原负载、运动精度与性能判据。实际 Fluidd／Mainsail 页面、目标板
+和物理打印仍须单独验收，不以 HTTP 协议测试替代。
+
+语义来源为[固定 Moonraker 授权源码](https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/authorization.py)；
+匹配引擎与正则限制见[RE2 WASM 项目](https://github.com/google/re2-wasm)。
