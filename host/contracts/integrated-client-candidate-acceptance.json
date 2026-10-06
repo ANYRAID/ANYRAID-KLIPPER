@@ -2258,5 +2258,580 @@
       }
     ],
     "remaining": "Current head CI/normal integration, full same-package clients, target board performance/precision, G3 and Python retirement."
+  },
+  "explicitUploadPrintControlsAndFluidd": {
+    "date": "2026-10-07",
+    "sourceHead": "5845f354af4eed18ca050d4931cb0402574ed16c",
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-client-bundle",
+      "manifestSha256": "f76efc7d5ee86feeb123f21161b8d77ce3e80946b70f9545c59af5597afd8808",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "scope": "Actual official frontend paths against one fixed compiled native process on PTY/MCU models. Not accepted develop integration, full client/config/queue/system/preparation-pause, physical printing, target performance or G3 closure.",
+    "process": {
+      "nativeBase": "http://127.0.0.1:42139",
+      "sameProcessBetweenClients": true,
+      "deviceGenerations": [
+        1,
+        2
+      ],
+      "bothMcus": {
+        "resets": [
+          0,
+          1
+        ],
+        "configurations": [
+          1,
+          2
+        ]
+      },
+      "originalDeadlineMs": 900000,
+      "deadlineExtended": false,
+      "nativeForceLogins": true,
+      "noApiKeyInjection": true
+    },
+    "actualMainsail": {
+      "version": "2.19.0",
+      "realChooser": {
+        "filename": "控制验收 50%.gcode",
+        "bytes": 19123,
+        "sha256": "9a646413042182038bedf6746e8f6a8d074029bebaf7b4c338164fdaac8473c2",
+        "elapsedMs": 85.14046299999973
+      },
+      "uploadReceipt": {
+        "item": {
+          "path": "控制验收 50%.gcode",
+          "root": "gcodes",
+          "modified": 1791320086.711767,
+          "size": 19123,
+          "permissions": "rw"
+        },
+        "action": "create_file",
+        "file": {
+          "version": 1,
+          "id": "6e1ec8f9-d8fa-4c97-a675-d70b400852ec",
+          "name": "控制验收 50%.gcode",
+          "sha256": "9a646413042182038bedf6746e8f6a8d074029bebaf7b4c338164fdaac8473c2",
+          "size": 19123,
+          "path": "控制验收 50%.gcode"
+        },
+        "print_started": true,
+        "print_queued": false,
+        "print_request_id": "upload-718f1f16-c30f-4130-b551-6e4878c7943a",
+        "result": {
+          "item": {
+            "path": "控制验收 50%.gcode",
+            "root": "gcodes",
+            "modified": 1791320086.711767,
+            "size": 19123,
+            "permissions": "rw"
+          },
+          "action": "create_file",
+          "file": {
+            "version": 1,
+            "id": "6e1ec8f9-d8fa-4c97-a675-d70b400852ec",
+            "name": "控制验收 50%.gcode",
+            "sha256": "9a646413042182038bedf6746e8f6a8d074029bebaf7b4c338164fdaac8473c2",
+            "size": 19123,
+            "path": "控制验收 50%.gcode"
+          },
+          "print_started": true,
+          "print_queued": false,
+          "print_request_id": "upload-718f1f16-c30f-4130-b551-6e4878c7943a"
+        }
+      },
+      "pause": {
+        "print_stats": {
+          "filename": "控制验收 50%.gcode",
+          "print_duration": 37.591179780000004,
+          "total_duration": 52.035177184,
+          "filament_used": 0.375,
+          "state": "paused",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0.2618313026198818,
+          "is_active": false,
+          "file_position": 5007,
+          "file_size": 19123
+        }
+      },
+      "refreshedPause": {
+        "print_stats": {
+          "filename": "控制验收 50%.gcode",
+          "print_duration": 37.591179780000004,
+          "total_duration": 74.183008749,
+          "filament_used": 0.375,
+          "state": "paused",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0.2618313026198818,
+          "is_active": false,
+          "file_position": 5007,
+          "file_size": 19123
+        }
+      },
+      "actualRefreshDom": "- navigation:\n  - link \"Dashboard\":\n    - /url: /\n  - link \"Console\":\n    - /url: /console\n  - link \"G-Code Files\":\n    - /url: /files\n  - link \"G-Code Viewer\":\n    - /url: /viewer\n  - link \"History\":\n    - /url: /history\n  - link \"Machine\":\n    - /url: /config\n- banner:\n  - button\n  - link:\n    - /url: /\n    - img\n  - text: deepin-med-01\n  - button \"Emergency Stop\"\n  - button\n  - button\n  - button\n- main:\n  - progressbar:\n    - img\n  - text: 24% Paused\n  - button\n  - button\n  - button\n  - text: 控制验收 50%.gcode\n  - img \"控制验收 50%.gcode\"\n  - tablist:\n    - tab [selected]\n    - tab\n    - tab\n    - tab \"Badge\":\n      - status \"Badge\": \"0\"\n  - separator\n  - strong: Speed\n  - text: 0 mm/s\n  - strong: Flow\n  - text: 0.0 mm³/s\n  - strong: Filament\n  - text: 0.38 mm\n  - strong: Layer\n  - text: 0 of 0\n  - separator\n  - strong: Estimate\n  - text: 0:01:28\n  - strong: Slicer\n  - text: \"--\"\n  - strong: Total\n  - text: 0:01:34\n  - strong: ETA\n  - text: 04:57 Toolhead\n  - button\n  - button\n  - text: \"Position: absolute [ 0.00 ]\"\n  - spinbutton \"[ 0.00 ]\": \"3.75\"\n  - text: X [ 0.00 ]\n  - spinbutton \"[ 0.00 ]\": \"0.00\"\n  - text: Y [ 0.000 ]\n  - spinbutton \"[ 0.000 ]\": \"0.000\"\n  - text: Z\n  - button \"ALL\"\n  - button\n  - button \"–100\"\n  - button \"–10\"\n  - button \"–1\"\n  - button \"X\"\n  - button \"+1\"\n  - button \"+10\"\n  - button \"+100\"\n  - button \"–100\"\n  - button \"–10\"\n  - button \"–1\"\n  - button \"Y\"\n  - button \"+1\"\n  - button \"+10\"\n  - button \"+100\"\n  - button \"–25\"\n  - button \"–1\"\n  - button \"–0.1\"\n  - button \"Z\"\n  - button \"+0.1\"\n  - button \"+1\"\n  - button \"+25\"\n  - separator\n  - text: \"Z-Offset: 0.000\"\n  - button \"+0.005\"\n  - button \"+0.01\"\n  - button \"+0.025\"\n  - button \"+0.05\"\n  - button \"−0.005\"\n  - button \"−0.01\"\n  - button \"−0.025\"\n  - button \"−0.05\"\n  - separator\n  - text: Speed factor\n  - spinbutton: \"100\"\n  - text: \"%\"\n  - button\n  - slider\n  - button\n  - text: Machine\n  - button\n  - text: Velocity\n  - textbox \"Velocity\": \"100\"\n  - text: mm/s\n  - button\n  - button\n  - button\n  - text: Square Corner Velocity\n  - textbox \"Square Corner Velocity\": \"5\"\n  - text: mm/s\n  - button\n  - button\n  - button\n  - text: Acceleration\n  - textbox \"Acceleration\": \"1000\"\n  - text: mm/s²\n  - button\n  - button\n  - button\n  - text: Min. Cruise Ratio\n  - textbox \"Min. Cruise Ratio\": \"50\"\n  - text: \"%\"\n  - button\n  - button\n  - button\n  - text: Miscellaneous\n  - button\n  - text: Fan\n  - spinbutton: \"0\"\n  - text: \"%\"\n  - button [disabled]\n  - slider\n  - button\n  - text: Temperatures\n  - button \"Cooldown\"\n  - button\n  - button\n  - table:\n    - rowgroup:\n      - row \"Name State Current Target\":\n        - columnheader\n        - columnheader \"Name\"\n        - columnheader \"State\"\n        - columnheader \"Current\"\n        - columnheader \"Target\"\n    - rowgroup:\n      - row \"Extruder 0 % 220.0°C °C\":\n        - cell:\n          - button\n        - cell \"Extruder\"\n        - cell \"0 %\"\n        - cell \"220.0°C\"\n        - cell \"°C\":\n          - spinbutton: \"200\"\n          - text: °C\n          - button [disabled]\n      - row \"Heater Bed 0 % 80.0°C °C\":\n        - cell:\n          - button\n        - cell \"Heater Bed\"\n        - cell \"0 %\"\n        - cell \"80.0°C\"\n        - cell \"°C\":\n          - spinbutton: \"60\"\n          - text: °C\n          - button [disabled]\n  - separator\n  - img: Temperature [°C] 50 100 150 200 250 300 04:38 04:40 04:42 04:44 04:46 04:48 04:50 04:52 04:54 04:56\n  - text: Console\n  - button\n  - button\n  - button\n  - button\n  - text: Send code...\n  - textbox \"Send code...\"\n  - button \"Send code... appended action\"\n  - text: 04:55 - Type HELP to get a list of available commands. - Click on the \"?\" button to get a searchable list. - Commands in the console are clickable and will be placed into the input field. - Use the tab key to complete your inputs. If there are several options, a list is displayed. - Use the ⇵ arrow keys to navigate through the previous entries.\n  - separator",
+      "resume": {
+        "print_stats": {
+          "filename": "控制验收 50%.gcode",
+          "print_duration": 50.413290623999984,
+          "total_duration": 141.736641187,
+          "filament_used": 0.503,
+          "state": "printing",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0.3874915023793338,
+          "is_active": true,
+          "file_position": 7410,
+          "file_size": 19123
+        }
+      },
+      "secondPause": {
+        "print_stats": {
+          "filename": "控制验收 50%.gcode",
+          "print_duration": 51.59548307300001,
+          "total_duration": 153.106924157,
+          "filament_used": 0.503,
+          "state": "paused",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0.3874915023793338,
+          "is_active": false,
+          "file_position": 7410,
+          "file_size": 19123
+        }
+      },
+      "cancel": {
+        "print_stats": {
+          "filename": "控制验收 50%.gcode",
+          "print_duration": 51.59548307300001,
+          "total_duration": 153.13040354,
+          "filament_used": 0.503,
+          "state": "cancelled",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0,
+          "is_active": false,
+          "file_position": 0,
+          "file_size": 0
+        },
+        "native_host": {
+          "version": 1,
+          "ready": false,
+          "group_state": "stopped",
+          "hardware_state": "stopped",
+          "print_state": "cancelled",
+          "homed_axes": "",
+          "closing": false,
+          "admission_closed": true,
+          "maintenance": false,
+          "mcus": [
+            {
+              "id": "mcu",
+              "state": "closed"
+            },
+            {
+              "id": "aux",
+              "state": "closed"
+            }
+          ]
+        }
+      },
+      "cancelledHistory": {
+        "count": 1,
+        "jobs": [
+          {
+            "job_id": "000001",
+            "user": "unknown",
+            "filename": "控制验收 50%.gcode",
+            "status": "cancelled",
+            "start_time": 1791320086.729,
+            "end_time": 1791320239.859,
+            "total_duration": 153.13040354,
+            "print_duration": 51.59548307300001,
+            "filament_used": 0.503,
+            "metadata": {
+              "native_request_id": "upload-718f1f16-c30f-4130-b551-6e4878c7943a"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          }
+        ]
+      },
+      "firmwareRestart": {
+        "actualButton": true,
+        "observed": {
+          "print_stats": {
+            "filename": "",
+            "print_duration": 0,
+            "total_duration": 0,
+            "filament_used": 0,
+            "state": "standby",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "virtual_sdcard": {
+            "progress": 0,
+            "is_active": false,
+            "file_position": 0,
+            "file_size": 0
+          },
+          "native_host": {
+            "version": 1,
+            "ready": true,
+            "group_state": "ready",
+            "hardware_state": "ready",
+            "print_state": "idle",
+            "homed_axes": "",
+            "closing": false,
+            "admission_closed": false,
+            "maintenance": false,
+            "mcus": [
+              {
+                "id": "mcu",
+                "state": "ready"
+              },
+              {
+                "id": "aux",
+                "state": "ready"
+              }
+            ]
+          }
+        },
+        "historyAfter": {
+          "count": 1,
+          "jobs": [
+            {
+              "job_id": "000001",
+              "user": "unknown",
+              "filename": "控制验收 50%.gcode",
+              "status": "cancelled",
+              "start_time": 1791320086.729,
+              "end_time": 1791320239.859,
+              "total_duration": 153.13040354,
+              "print_duration": 51.59548307300001,
+              "filament_used": 0.503,
+              "metadata": {
+                "native_request_id": "upload-718f1f16-c30f-4130-b551-6e4878c7943a"
+              },
+              "auxiliary_data": [],
+              "exists": true
+            }
+          ]
+        }
+      },
+      "historyDom": "- navigation:\n  - link \"Dashboard\":\n    - /url: /\n  - link \"Console\":\n    - /url: /console\n  - link \"G-Code Files\":\n    - /url: /files\n  - link \"G-Code Viewer\":\n    - /url: /viewer\n  - link \"History\":\n    - /url: /history\n  - link \"Machine\":\n    - /url: /config\n- banner:\n  - button\n  - link:\n    - /url: /\n    - img\n  - text: deepin-med-01\n  - button \"Upload & Print\"\n  - button \"Emergency Stop\"\n  - button\n  - button\n  - button\n- main:\n  - text: Statistics\n  - button\n  - table:\n    - rowgroup:\n      - row \"Total Print Time 52s\":\n        - cell \"Total Print Time\"\n        - cell \"52s\"\n      - row \"Longest Print Time 52s\":\n        - cell \"Longest Print Time\"\n        - cell \"52s\"\n      - row \"Print Time - Ø 52s\":\n        - cell \"Print Time - Ø\"\n        - cell \"52s\"\n      - row \"Total Filament Used 0 m\":\n        - cell \"Total Filament Used\"\n        - cell \"0 m\"\n      - row \"Total Jobs 1\":\n        - cell \"Total Jobs\"\n        - cell \"1\"\n  - img: cancelled\n  - button \"Chart\"\n  - button \"Table\"\n  - button \"Jobs\"\n  - button \"Filament\"\n  - button \"Time\"\n  - img: Filament 0 10 23 25 27 29 3 5 7 Oct\n  - button \"Filament usage\"\n  - button \"Print Time - Ø\"\n  - text: Print History search\n  - textbox \"search\"\n  - button\n  - button\n  - button\n  - separator\n  - table:\n    - rowgroup:\n      - 'row \"Not sorted. Activate to sort ascending. Filename: Not sorted. Activate to sort ascending. Not sorted. Activate to sort ascending. Start Time: Sorted descending. Activate to remove sorting. Estimated Time: Not sorted. Activate to sort ascending. Print Time: Not sorted. Activate to sort ascending. Filament Used: Not sorted. Activate to sort ascending. Slicer: Not sorted. Activate to sort ascending.\"':\n        - columnheader\n        - columnheader \"Not sorted. Activate to sort ascending.\"\n        - 'columnheader \"Filename: Not sorted. Activate to sort ascending.\"': Filename\n        - columnheader \"Not sorted. Activate to sort ascending.\"\n        - 'columnheader \"Start Time: Sorted descending. Activate to remove sorting.\"': Start Time\n        - 'columnheader \"Estimated Time: Not sorted. Activate to sort ascending.\"': Estimated Time\n        - 'columnheader \"Print Time: Not sorted. Activate to sort ascending.\"': Print Time\n        - 'columnheader \"Filament Used: Not sorted. Activate to sort ascending.\"': Filament Used\n        - 'columnheader \"Slicer: Not sorted. Activate to sort ascending.\"': Slicer\n    - rowgroup:\n      - row \"控制验收 50%.gcode 2026年10月7日 04:54 -- 52s 0.50 mm --\":\n        - cell\n        - cell\n        - cell \"控制验收 50%.gcode\"\n        - cell\n        - cell \"2026年10月7日 04:54\"\n        - cell \"--\"\n        - cell \"52s\"\n        - cell \"0.50 mm\"\n        - cell \"--\"\n  - text: Jobs\n  - button \"10\":\n    - text: \"10\"\n    - textbox \"Jobs\"\n  - text: 1-1 of 1\n  - button \"Previous page\" [disabled]\n  - button \"Next page\" [disabled]",
+      "logout": {
+        "deleteHttp200": true,
+        "cookies": [],
+        "apiStatus": 401
+      },
+      "noSeparateStartRpc": true
+    },
+    "actualFluidd": {
+      "version": "1.37.6-d894c50",
+      "realChooser": {
+        "filename": "同包Fluidd 50%.gcode",
+        "bytes": 20123,
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "elapsedMs": 50.737360000028275
+      },
+      "uploadReceipt": {
+        "item": {
+          "path": "同包Fluidd 50%.gcode",
+          "root": "gcodes",
+          "modified": 1791320450.2493753,
+          "size": 20123,
+          "permissions": "rw"
+        },
+        "action": "create_file",
+        "file": {
+          "version": 1,
+          "id": "41853286-0b75-4b3a-84a4-696d32de8d1c",
+          "name": "同包Fluidd 50%.gcode",
+          "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+          "size": 20123,
+          "path": "同包Fluidd 50%.gcode"
+        },
+        "print_started": true,
+        "print_queued": false,
+        "print_request_id": "upload-b7a0767c-7144-45e3-8def-df16e6687439",
+        "result": {
+          "item": {
+            "path": "同包Fluidd 50%.gcode",
+            "root": "gcodes",
+            "modified": 1791320450.2493753,
+            "size": 20123,
+            "permissions": "rw"
+          },
+          "action": "create_file",
+          "file": {
+            "version": 1,
+            "id": "41853286-0b75-4b3a-84a4-696d32de8d1c",
+            "name": "同包Fluidd 50%.gcode",
+            "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+            "size": 20123,
+            "path": "同包Fluidd 50%.gcode"
+          },
+          "print_started": true,
+          "print_queued": false,
+          "print_request_id": "upload-b7a0767c-7144-45e3-8def-df16e6687439"
+        }
+      },
+      "terminal": {
+        "print_stats": {
+          "filename": "同包Fluidd 50%.gcode",
+          "print_duration": 10.23689360999997,
+          "total_duration": 14.13775374700001,
+          "filament_used": 1,
+          "state": "complete",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 1,
+          "is_active": false,
+          "file_position": 20123,
+          "file_size": 20123
+        }
+      },
+      "historyBeforeRename": {
+        "count": 2,
+        "jobs": [
+          {
+            "job_id": "000002",
+            "user": "unknown",
+            "filename": "同包Fluidd 50%.gcode",
+            "status": "completed",
+            "start_time": 1791320450.269,
+            "end_time": 1791320464.406,
+            "total_duration": 14.13775374700001,
+            "print_duration": 10.23689360999997,
+            "filament_used": 1,
+            "metadata": {
+              "native_request_id": "upload-b7a0767c-7144-45e3-8def-df16e6687439"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          },
+          {
+            "job_id": "000001",
+            "user": "unknown",
+            "filename": "控制验收 50%.gcode",
+            "status": "cancelled",
+            "start_time": 1791320086.729,
+            "end_time": 1791320239.859,
+            "total_duration": 153.13040354,
+            "print_duration": 51.59548307300001,
+            "filament_used": 0.503,
+            "metadata": {
+              "native_request_id": "upload-718f1f16-c30f-4130-b551-6e4878c7943a"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          }
+        ]
+      },
+      "preview": [
+        {
+          "tag": "IMG",
+          "naturalWidth": 32,
+          "naturalHeight": 32,
+          "text": "",
+          "title": null,
+          "aria": null,
+          "html": "<img data-v-57777f09=\"\" src=\"http://127.0.0.1:18451/server/files/gcodes/.thumbs/thumb-1feb29c0-344a-4c6e-9d14-0ff12d8edd33/0.png?date=1791320450.2493753\" style=\"max-width: 32px; max-height: 32px;\">"
+        },
+        {
+          "tag": "IMG",
+          "naturalWidth": 32,
+          "naturalHeight": 32,
+          "text": "",
+          "title": null,
+          "aria": null,
+          "html": "<img data-v-57777f09=\"\" src=\"http://127.0.0.1:18451/server/files/gcodes/.thumbs/thumb-3ad8c397-2853-4907-8c84-fbb1e1c888a4/0.png?date=1791320086.711767\" style=\"max-width: 32px; max-height: 32px;\">"
+        }
+      ],
+      "download": {
+        "filename": "同包Fluidd 50%.gcode",
+        "failure": null,
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8"
+      },
+      "rename": {
+        "actualMenu": true,
+        "newName": "改名Fluidd 50%.gcode",
+        "moveRpcCount": 1,
+        "newPreview": [
+          {
+            "tag": "IMG",
+            "naturalWidth": 32,
+            "naturalHeight": 32,
+            "text": "",
+            "title": null,
+            "aria": null,
+            "html": "<img data-v-57777f09=\"\" src=\"http://127.0.0.1:18451/server/files/gcodes/.thumbs/thumb-f595ae63-a067-49fc-8481-4ded1919978f/0.png?date=1791320450.2493753\" style=\"max-width: 32px; max-height: 32px;\">"
+          },
+          {
+            "tag": "IMG",
+            "naturalWidth": 32,
+            "naturalHeight": 32,
+            "text": "",
+            "title": null,
+            "aria": null,
+            "html": "<img data-v-57777f09=\"\" src=\"http://127.0.0.1:18451/server/files/gcodes/.thumbs/thumb-3ad8c397-2853-4907-8c84-fbb1e1c888a4/0.png?date=1791320086.711767\" style=\"max-width: 32px; max-height: 32px;\">"
+          }
+        ],
+        "download": {
+          "filename": "改名Fluidd 50%.gcode",
+          "failure": null,
+          "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8"
+        },
+        "history": {
+          "count": 2,
+          "jobs": [
+            {
+              "job_id": "000002",
+              "user": "unknown",
+              "filename": "改名Fluidd 50%.gcode",
+              "status": "completed",
+              "start_time": 1791320450.269,
+              "end_time": 1791320464.406,
+              "total_duration": 14.13775374700001,
+              "print_duration": 10.23689360999997,
+              "filament_used": 1,
+              "metadata": {
+                "native_request_id": "upload-b7a0767c-7144-45e3-8def-df16e6687439"
+              },
+              "auxiliary_data": [],
+              "exists": true
+            },
+            {
+              "job_id": "000001",
+              "user": "unknown",
+              "filename": "控制验收 50%.gcode",
+              "status": "cancelled",
+              "start_time": 1791320086.729,
+              "end_time": 1791320239.859,
+              "total_duration": 153.13040354,
+              "print_duration": 51.59548307300001,
+              "filament_used": 0.503,
+              "metadata": {
+                "native_request_id": "upload-718f1f16-c30f-4130-b551-6e4878c7943a"
+              },
+              "auxiliary_data": [],
+              "exists": true
+            }
+          ]
+        }
+      },
+      "historyDom": "- navigation:\n  - complementary:\n    - link \"仪表板\":\n      - /url: /./#/\n    - link \"控制台\":\n      - /url: /./#/console\n    - link \"Gcode 预览\":\n      - /url: /./#/preview\n    - link \"任务列表\":\n      - /url: /./#/jobs\n    - link \"任务历史\":\n      - /url: /./#/history\n    - link \"调整\":\n      - /url: /./#/tune\n    - link \"配置\":\n      - /url: /./#/configure\n    - link \"系统\":\n      - /url: /./#/system\n    - link \"设置\":\n      - /url: /./#/settings\n- img\n- banner:\n  - link:\n    - /url: /./#/\n    - img\n  - link \"fluidd\":\n    - /url: /./#/\n  - button \"紧急停止\"\n  - button\n  - button\n  - button\n  - button\n- main:\n  - text: 打印任务统计\n  - button \"重置统计信息\"\n  - button\n  - text: 总任务次数 2 单次耗时最长 2m 33s 总时间 2m 47s 平均时间 1m 23s 总打印时间 1m 1s 平均打印时间 0m 30s 总消耗耗材 1.5 mm 平均消耗耗材 0.8 mm 任务历史\n  - button \"全部加载\" [disabled]\n  - button \"删除全部\"\n  - button\n  - button\n  - textbox\n  - table:\n    - rowgroup:\n      - 'row \"名称: Not sorted. Activate to sort ascending. 状态: Not sorted. Activate to sort ascending. 开始时间: Sorted descending. Activate to remove sorting. 结束时间: Not sorted. Activate to sort ascending. 总耗时: Not sorted. Activate to sort ascending. 修改时间: Not sorted. Activate to sort ascending. 文件大小: Not sorted. Activate to sort ascending. 展开\"':\n        - columnheader\n        - 'columnheader \"名称: Not sorted. Activate to sort ascending.\"': 名称\n        - 'columnheader \"状态: Not sorted. Activate to sort ascending.\"': 状态\n        - 'columnheader \"开始时间: Sorted descending. Activate to remove sorting.\"': 开始时间\n        - 'columnheader \"结束时间: Not sorted. Activate to sort ascending.\"': 结束时间\n        - 'columnheader \"总耗时: Not sorted. Activate to sort ascending.\"': 总耗时\n        - 'columnheader \"修改时间: Not sorted. Activate to sort ascending.\"': 修改时间\n        - 'columnheader \"文件大小: Not sorted. Activate to sort ascending.\"': 文件大小\n        - columnheader \"展开\"\n    - rowgroup:\n      - row \"同包Fluidd 50%.gcode 2026-10-07 05:00 2026-10-07 05:01 0m 14s -- --\":\n        - cell\n        - cell \"同包Fluidd 50%.gcode\"\n        - cell\n        - cell \"2026-10-07 05:00\"\n        - cell \"2026-10-07 05:01\"\n        - cell \"0m 14s\"\n        - cell \"--\"\n        - cell \"--\"\n        - cell:\n          - button\n      - row \"控制验收 50%.gcode 2026-10-07 04:54 2026-10-07 04:57 2m 33s -- --\":\n        - cell\n        - cell \"控制验收 50%.gcode\"\n        - cell\n        - cell \"2026-10-07 04:54\"\n        - cell \"2026-10-07 04:57\"\n        - cell \"2m 33s\"\n        - cell \"--\"\n        - cell \"--\"\n        - cell:\n          - button\n  - text: \"Rows per page:\"\n  - button \"15\":\n    - text: \"15\"\n    - textbox \"Rows per page:\"\n  - text: 1-2 of 2\n  - button \"Previous page\" [disabled]\n  - button \"Next page\" [disabled]\n- contentinfo: \"© 2026 fluidd: v1.37.6-d894c50\"\n- dialog",
+      "logout": {
+        "deleteHttp200": true,
+        "apiStatus": 401,
+        "preAckCookieSnapshot": [
+          {
+            "name": "anyraid-client-loopback",
+            "httpOnly": true,
+            "secure": false,
+            "sameSite": "Strict",
+            "path": "/"
+          }
+        ],
+        "finalCookieSnapshotTaken": false,
+        "loginNavigationHttp200": true
+      },
+      "noSeparateStartRpc": true
+    },
+    "toolObservations": [
+      "After real Mainsail refresh, service worker navigation showed standalone frontend rather than wrapper iframe; frame-scoped snapshot timed out, observed root DOM confirmed unchanged paused file position.",
+      "Fluidd logout cookie inspection preceded async DELETE acknowledgement and is retained as pre-ack evidence. Subsequent history GET returned401 and login navigation returned200; no final empty-cookie claim."
+    ],
+    "cleanup": {
+      "driver": "Explicit browser close and stdin EOF,exit0",
+      "gateways": "Normal TERM,exit0",
+      "native": "Normal TERM,exit0; helper rechecked fixed package inventory in finally",
+      "pidsAbsent": [
+        3032058,
+        3030878,
+        3030624
+      ]
+    },
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-controls-public-evidence-20261007.log",
+        "sha256": "ea2d2e94d5c5a54f98fd6ca40b262b4bd8e28cf0964b534ef13f88c16e75679d"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-controls-native-page-20261007.log",
+        "sha256": "e81707a2e8e1ea6a23197ea049fb13e88690faa4bb74c920e32339cba9179a74"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-controls-cli-page-20261007.log",
+        "sha256": "74c319b0fd5b5fdcd41e2da3ad2a2a0048eb6bb5f28a86ebe89cf2fc65094239"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-fluidd-cli-page-20261007.log",
+        "sha256": "2afa173acd32c21cfd014c4a9ddb5a7356383654f9cbacf11bff99fc14701534"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-controls-paused-refresh-20261007.png",
+        "sha256": "6d19b80d24bf02b6e7c7eb189608e3820cd902ab8dcc28c0fba66fd3a089ed2a"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-controls-cancelled-20261007.png",
+        "sha256": "220f7f2d76ec796181d1cdddfa0e7cb514e4e92c23c11315977e8d84a49e4e55"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-controls-history-20261007.png",
+        "sha256": "4ee3eb6834fc1b6cda6a13c9157d6ac6762fec30ea47800fdd1c252331c779fa"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-fluidd-history-20261007.png",
+        "sha256": "31dfed800400d01c4fa343871092fb6d85320ecf29d68d5de07e7c7c51b1b722"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-fluidd-logged-out-20261007.png",
+        "sha256": "259ed843eaf67696dd6a5f4536b2813eace8863a670ed62225f8fb11c1061985"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-fluidd-download-20261007.gcode",
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-fluidd-renamed-download-20261007.gcode",
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8"
+      }
+    ]
   }
 }
