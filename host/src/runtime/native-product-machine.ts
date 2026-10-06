@@ -13,6 +13,7 @@ import {PrintJournal} from '../operations/print-journal.ts';
 import {ConfiguredMoonraker} from '../moonraker/configured-server.ts';
 import {resetConfiguredFirmware} from './firmware-restart.ts';
 import {NativeConfigFiles,type NativeConfigFilesOptions} from '../moonraker/native-config-files.ts';
+import type {MachineControlPort} from '../moonraker/machine-control.ts';
 
 type NativeAdapterServer<T>=T extends unknown?Omit<T,'nativeUploads'|'productPrintCompatibility'|'nativeProcessFiles'|'nativeProcessHistory'|'configFiles'>:never;
 export interface NativeMachineAdapter {
@@ -41,6 +42,8 @@ export interface NativeProductMachineOptions {
 }
 export interface NativeProductProcessResources {
  server:NativeMachineAdapter['server'];
+ /** Optional writable capability; host owns final cancellation and joins. */
+ machineControl?:MachineControlPort;
  /** Runs after final server closure, or failed pre-server startup. Managed
   * server components have transferred to the server; release other resources
   * and close any components that never transferred. Must be idempotent. */
@@ -156,6 +159,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
   processOpening??=(async()=>{
    processResources=await processOptions!.createProcess(structuredClone(config),s);s.throwIfAborted();
    if(!processResources||typeof processResources.release!=='function')throw new TypeError('Native process resources must own cleanup');
+   if(processResources.machineControl&&(['retirement','execute','assertDeviceAvailable','close'] as const).some(key=>typeof processResources!.machineControl![key]!=='function'))throw new TypeError('Invalid native machine control capability');
    assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);
    if(['nativeDetached','productPrint','nativeHost','nativeObjects','maintenanceGate','nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory','configFiles'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
    if(snapshot.configFiles){configFiles=await NativeConfigFiles.open(snapshot.configFiles);if(!configFiles.contains(config.printerConfig))throw new TypeError('Printer config must be inside the explicit config root');s.throwIfAborted();}
@@ -188,10 +192,11 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  };
  factory.close=()=>{
   if(closing)return closing;stopped.abort(new Error('Native product factory closed'));
-  closing=(async()=>{await pending?.catch(()=>{});await bootstrapping?.catch(()=>{});const results=await Promise.allSettled([resources?.close()]);await Promise.allSettled([processOpening]);for(const close of [()=>configFiles?.close(),()=>processJournal?.close(),()=>processResources?.release?.()])try{await close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process cleanup failed');})();return closing;
+  closing=(async()=>{await pending?.catch(()=>{});await bootstrapping?.catch(()=>{});const results=await Promise.allSettled([resources?.close()]);await Promise.allSettled([processOpening]);for(const close of [()=>processResources?.machineControl?.close(),()=>configFiles?.close(),()=>processJournal?.close(),()=>processResources?.release?.()])try{await close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process cleanup failed');})();return closing;
  };
  if(processOptions){
   Object.defineProperty(factory,'serverLifetime',{value:'process',enumerable:true});
+  Object.defineProperty(factory,'machineControl',{get:()=>processResources?.machineControl,enumerable:true});
   factory.resetFirmware=(profile,signal)=>resetConfiguredFirmware(profile.reader,profile.policies,signal);
   factory.bootstrap=(incoming,control)=>{
    if(stopped.signal.aborted)return Promise.reject(stopped.signal.reason);incoming.throwIfAborted();

@@ -30,7 +30,7 @@ test('v1 migration preserves all old identities, including generated-looking IDs
   opened=await HostRecoveryJournal.open(options);assert.deepEqual(opened.records,[old[0],{...old[1],state:'interrupted',error:'Process ended before acknowledged recovery completion'}]);
   for(let i=0;i<150;i++)await finish(opened.journal,record('standard-'+i,true));await opened.journal.close();opened=await HostRecoveryJournal.open(options);
   assert.equal(opened.records.filter(r=>r.kind==='restart').length,64);assert.deepEqual(opened.records.find(r=>r.request_id===old[0].request_id),old[0]);assert.equal(opened.records.find(r=>r.request_id==='pending')?.state,'interrupted');assert.equal(opened.records.find(r=>r.request_id==='standard-85'),undefined);assert.equal(opened.records.find(r=>r.request_id==='standard-86')?.state,'succeeded');
-  await opened.journal.close();const db=new DatabaseSync(options.path,{readOnly:true});try{assert.equal(db.prepare('PRAGMA user_version').get()!.user_version,3);}finally{db.close();}
+  await opened.journal.close();const db=new DatabaseSync(options.path,{readOnly:true});try{assert.equal(db.prepare('PRAGMA user_version').get()!.user_version,4);}finally{db.close();}
  }finally{await opened?.journal.close();await rm(root,{recursive:true,force:true});}
 });
 test('unknown or malformed legacy schemas are rejected without migrating their contents',async()=>{

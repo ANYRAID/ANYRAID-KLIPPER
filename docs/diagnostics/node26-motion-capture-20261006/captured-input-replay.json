@@ -1,0 +1,22 @@
+{
+  "node": "v26.10.0",
+  "flags": [
+    "--no-maglev",
+    "--no-turbofan"
+  ],
+  "inputSha256": "5841eba781b5309f039dac3dc8e69618dd3fa4ad7cf0ff71f73fc976d84b47a6",
+  "sampleCount": 12266,
+  "updatedBitDifferences": 1,
+  "examples": [
+    {
+      "index": 10215,
+      "captured": 28.51161271215666,
+      "recomputed": 28.511612712153344,
+      "difference": 3.3146818623208674e-12,
+      "capturedBits": "0x403c82f90cfaee43",
+      "recomputedBits": "0x403c82f90cfaea9e",
+      "xor": "0x4dd"
+    }
+  ],
+  "scope": "One offline replay of retained same-invocation nominal positions, not a new full motion run or root-cause closure; diagnostic filter only."
+}

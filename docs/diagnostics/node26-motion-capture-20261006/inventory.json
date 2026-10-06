@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-06",
+  "originalDirectory": "/home/dek02/.cache/codex/tmp/anyraid-node-asan-ZxlyNa",
+  "files": [
+    {
+      "path": "docs/diagnostics/node26-motion-capture-20261006/motion-mismatch-2892195-8.bin.gz",
+      "bytes": 2588960,
+      "sha256": "afabe7240f035ed75691aee32de0c94a18778fa774aaaa498bc12929da98805c",
+      "rawBytes": 4690926,
+      "rawSha256": "5841eba781b5309f039dac3dc8e69618dd3fa4ad7cf0ff71f73fc976d84b47a6"
+    },
+    {
+      "path": "docs/diagnostics/node26-motion-capture-20261006/motion-mismatch-2892195-8.bin.repeat.gz",
+      "bytes": 1031263,
+      "sha256": "015d85e1403c1896f4db5333b02ed67716cf3bed9f7ab6b7dc2603a2171021be",
+      "rawBytes": 2139444,
+      "rawSha256": "e17eaaeb47aad77efaa7a8029db183d3641b6e263f98dc54044da5204bd0b617"
+    },
+    {
+      "path": "docs/diagnostics/node26-motion-capture-20261006/fixture.mjs",
+      "bytes": 3436,
+      "sha256": "41ed23abcf964c8ab9ac9e0d0834017c9f3880ad9f713d8626d2c120e23c6b3c",
+      "rawBytes": 3436,
+      "rawSha256": "41ed23abcf964c8ab9ac9e0d0834017c9f3880ad9f713d8626d2c120e23c6b3c"
+    },
+    {
+      "path": "docs/diagnostics/node26-motion-capture-20261006/report.json",
+      "bytes": 4217,
+      "sha256": "c6a02e700061793bcfe7960121e20cbab1dd36477473d35ce9dae4d880ab8b97",
+      "rawBytes": 4217,
+      "rawSha256": "c6a02e700061793bcfe7960121e20cbab1dd36477473d35ce9dae4d880ab8b97"
+    }
+  ],
+  "sourceHashesVerified": true,
+  "scope": "Retained full-test failure with same-invocation inputs; no tolerance changes, runtime repetition or root-cause closure."
+}

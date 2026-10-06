@@ -21,5 +21,24 @@
     "没有在本次样本中复现历史失配",
     "未定位根因",
     "不是实际打印运动性能或目标板验收"
-  ]
+  ],
+  "latestSameInvocationFailure": {
+    "date": "2026-10-06",
+    "node": "v26.10.0",
+    "state": "failed",
+    "origin": "Complete M4 candidate ordinary tests: 3986/3993, seven failures, 346354.51679 ms",
+    "execution": "source",
+    "flags": [
+      "--no-maglev",
+      "--no-turbofan"
+    ],
+    "note": "These flags disable Maglev/Turbofan but do not prove all JIT disabled.",
+    "report": "docs/diagnostics/node26-motion-capture-20261006/report.json",
+    "inventory": "docs/diagnostics/node26-motion-capture-20261006/inventory.json",
+    "inspection": "docs/diagnostics/node26-motion-capture-20261006/inspection.json",
+    "capturedInputReplay": "docs/diagnostics/node26-motion-capture-20261006/captured-input-replay.json",
+    "result": "Same-invocation nominal input and all derivative/panel-copy invariants match. Reference velocity curve 0 differs at two indices and acceleration at three; one captured weighted position at index 10215 differs from one offline replay by 3.3146818623208674e-12. Repeated curve matches reference. No claim of root cause or physical planner failure.",
+    "g3": "unresolved",
+    "rawSha256": "5841eba781b5309f039dac3dc8e69618dd3fa4ad7cf0ff71f73fc976d84b47a6"
+  }
 }

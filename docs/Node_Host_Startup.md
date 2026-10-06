@@ -373,10 +373,10 @@ HTTP／RPC 失败均保留原连接和查询，不发送 reset 或虚假 ready �
 
 已淘汰普通回执的查询返回 operation:null；新受控请求禁止使用 restart-
 及 firmware-restart- 前缀，保留的三类记录不能互相冒充，避免将过期标准
-ID 重新解释为新操作。当前格式为 v3：v1 原子迁移并将所有原记录视作受控
-类型，v2 原子迁移并完整保留原 kind、身份和顺序；均不按名称
+ID 重新解释为新操作。系统控制候选将格式升级为 v4：v1 原子迁移并将所有原记录视作受控
+类型，v2／v3 原子迁移并完整保留原 kind、身份和顺序；均不按名称
 猜测；即使旧 128 条全部占满，普通重启仍可使用独立保留容量。旧包不能
-打开 v3 日志；部署前应在停止日志所有者后保留可恢复副本，降级需要对应
+打开 v4 日志；部署前应在停止日志所有者后保留可恢复副本，降级需要对应
 旧格式副本，不删除新日志来绕过检查。未知格式、结构、损坏或不同设备
 的日志拒绝迁移。容量／迁移及编译产品证据见
 [恢复回执保留验收](../host/contracts/native-recovery-retention-acceptance.json)。
@@ -2600,7 +2600,7 @@ shell 脚本执行。虚拟化检测不可用时明确返回 unknown。
 未知实例仍为空字符串，不能推测为已安装的独立服务。采用外部 Klippy 的
 独立实例识别、moonraker.asvc 的受控安装兼容仍待接入。
 
-这是服务状态出口；服务控制、系统重启／关机、权限配置、安装验证与回滚
+这是服务状态出口；系统控制候选的显式接入见下节，权限配置、安装验证与回滚
 仍待完成。已有产品 RESTART／FIRMWARE_RESTART 是设备代次操作，不能
 冒充系统单元重启。系统单元自重启必须接通真实停止与响应交接后才准入。
 网络变化在后续
@@ -2612,6 +2612,51 @@ shell 脚本执行。虚拟化检测不可用时明确返回 unknown。
 [系统信息验收](../host/contracts/native-system-information-acceptance.json)。
 服务状态增量、失败门禁与各项测量见
 [服务状态验收](../host/contracts/native-service-state-acceptance.json)。
+
+### 原生系统控制候选
+
+可信 `createProcess` 可显式返回 `machineControl: new LinuxMachineControl(...)`，
+选项为实际 `ownUnit`、`allowedUnits` 和其中持有设备的 `deviceUnits`。
+单位必须使用规范 `.service` 名称；最多 64 个，请求不能增加范围。
+只读 `systemServices` 不创建此权限。包装工厂须转发 `machineControl`
+getter 与 `close`，退出取消并等待子进程回收。当前没有目标机型安装配置，
+不能从历史包推测本机单位、权限或硬件归属。
+
+授权 HTTP POST／WebSocket RPC 支持以下标准端点：
+
+| 端点 | 参数 | 语义 |
+| --- | --- | --- |
+| `/machine/services/start`、`stop`、`restart` | 仅 `{service: "crowsnest"}` 形式的无后缀允许名 | 当前进程自己的单元仅支持 restart；其他允许单元支持三种动作 |
+| `/server/restart` | 无参数 | 重启真实当前进程单元 |
+| `/machine/reboot`、`/machine/shutdown` | 无参数 | 请求系统重启／关机；容器中拒绝 |
+
+响应 `"ok"` 只表示 durable queued 回执已受理，不代表目标服务已达到状态。
+同一进程的 `/printer/host/status` 返回 `machine_control.available_kinds`
+及每类最新 `operations`；可按 `request_id` 查询回执。响应未交接则不执行，
+queued 冲突；只有同代际、同动作、同服务的 running 请求合并为原操作。
+无显式能力返回 503，范围拒绝 403；忙碌或身份／单位条件不满足拒绝。
+异步命令失败保留 failed 回执与可查询服务，不隐式重试。
+
+每次 OS 请求重验内核 cgroup 身份、规范单位及 loaded 状态。固定
+systemctl 参数无 shell、sudo、交互授权或任意脚本；两秒／64 KiB 上限。
+使用 `--no-block`，仅确认作业提交且等待命令子进程 close。外部无设备服务
+可与打印并行；设备单位、自己重启与电源动作先同步撤销生产者，完成旧代
+真实停止及所有清理后才提交 OS 命令。停止失败没有 OS 副作用。
+提交后保留退役 API；显式 RESTART 接入前验证允许的其他设备单位
+inactive／failed 且 MainPID=0，不把 stop 作业受理当停止证明。
+这些检查不提供对任意外部启动者的全局排他锁。
+
+候选日志 v4 增加六类各 64 条独立回执（总计 640）；服务身份为不可变字段。
+一个共享 pending 槽；只淘汰同类终态记录，淘汰与准入同事务提交。
+SIGKILL 或重开后的 queued／running 变 interrupted，不重新执行 OS 动作。
+持久写入继续采用 worker、DELETE／EXTRA，不降低 fsync 要求。
+高频计数只在耐久提交确认后更新，状态查询不扫描全部历史。
+
+目前已有软件停止／权限拒绝／子进程回收／崩溃回执证据；模拟 OS 命令不算
+实际 systemd 安装或目标板验收。持久准入和并发打印性能仍有失败，完整检查、
+目标权限安装、停止后的日志副本及恢复旧包回滚仍待完成。候选不得切换默认
+Python 入口。源码、产物、成功与失败指纹见
+[系统控制验收](../host/contracts/native-machine-control-acceptance.json)。
 
 交互夹具收到某 MCU 的停止确认后，不再向它的 PTY 发送 ADC 数据。
 准备阶段取消可能使设备需要重新初始化；状态应如实保留，不为了通过
