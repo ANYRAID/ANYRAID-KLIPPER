@@ -14,11 +14,11 @@ const snapshot=(active='active'):ServiceSnapshot=>({provider:'systemd_cli',avail
 test('service cache and deltas use authorized HTTP/RPC/real websocket fanout and close with the process owner',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'configured-services-'));const path=join(dir,'moonraker.conf');await writeFile(path,'[server]\nhost=127.0.0.1\nport=0');
  let calls=0,fail=false,next=snapshot();const clients:WebSocket[]=[];
- const service=await ConfiguredMoonraker.load(path,{authorize,authorizeNotification:(_m,_p,c)=>{if(c.connectionId!==service.clients[0]?.id)throw new ApiError(403,'Denied observer');},information,systemInformation:{source:async()=>({runtime:{name:'node'},provider:'none'})},systemServices:{source:async()=>{calls++;if(fail)throw new Error('private systemctl failure');return structuredClone(next);}}});
+ const service=await ConfiguredMoonraker.load(path,{authorize,authorizeNotification:(_m,_p,c)=>{if(c.connectionId!==service.clients[0]?.id)throw new ApiError(403,'Denied observer');},information,systemInformation:{source:async()=>({runtime:{name:'node'},network:{},canbus:{},provider:'none'})},systemServices:{source:async()=>{calls++;if(fail)throw new Error('private systemctl failure');return structuredClone(next);}}});
  try{
   const address=await service.start(),url=`http://127.0.0.1:${address.port}`;assert.equal(calls,1);assert.equal(service.systemServicesStatus!.notifications.received,0);
   const denied=await fetch(url+'/machine/system_info');assert.equal(denied.status,401);await denied.arrayBuffer();
-  const result:any=await(await fetch(url+'/machine/system_info',{headers:{'x-api-key':'test'}})).json();assert.deepEqual(result.result.system_info,{runtime:{name:'node'},...snapshot()});assert.equal(calls,1);
+  const result:any=await(await fetch(url+'/machine/system_info',{headers:{'x-api-key':'test'}})).json();assert.deepEqual(result.result.system_info,{runtime:{name:'node'},network:{},canbus:{},...snapshot()});assert.equal(calls,1);
   for(let i=0;i<2;i++){const ws=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{'x-api-key':'test'}});clients.push(ws);await once(ws,'open');}
   const messages:any[][]=[[],[]];clients.forEach((ws,i)=>ws.on('message',data=>messages[i].push(JSON.parse(String(data)))));
   clients[0].send(JSON.stringify({jsonrpc:'2.0',id:7,method:'machine.system_info'}));const rpcDeadline=Date.now()+3000;while(!messages[0].some(m=>m.id===7)&&Date.now()<rpcDeadline)await new Promise(r=>setTimeout(r,10));assert.deepEqual(messages[0].find(m=>m.id===7).result,result.result);assert.equal(calls,1);
