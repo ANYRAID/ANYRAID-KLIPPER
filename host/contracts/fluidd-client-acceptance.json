@@ -743,5 +743,154 @@
       "status": "Path absent on live inspection; configured shared runtime not located"
     },
     "scope": "Browser chooser tool failure, not upload/product acceptance; no page success inferred from protocol or seeded files."
+  },
+  "samePackageBundledPlaywrightFollowUp": {
+    "date": "2026-10-07",
+    "reviewedCandidate": "82347cbc88c90874672b85a1e6521dbf1b4505bf",
+    "productionSourceMerge": "15e9668094e373f53382667f635f914a17e3ace9",
+    "integratedBase": "cad9fde62a658f00eaeeb751eab3f9b483c682f8",
+    "client": {
+      "name": "Fluidd",
+      "version": "1.37.6",
+      "commit": "d894c50d580212c245a7c552ae695008c441683b",
+      "archive": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fixed-frontends/fluidd-1.37.6.zip",
+        "sha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed456",
+        "scope": "Fixed official client archive"
+      },
+      "assetTreeSha256": "61769e745cfd4e0c58430052db3cd2df5bcdc5961d6661d059b1b5bdde9647ae",
+      "assetFiles": 255,
+      "treeAlgorithm": "SHA-256 of JSON sorted depth-first [relative path, file SHA-256] pairs; directories sorted by code-unit name; ordinary files only"
+    },
+    "runtime": {
+      "node": "v26.10.0",
+      "playwright": "1.62.1",
+      "chrome": "153.0.8010.36",
+      "provider": "Desktop bundled Node dependency runtime; old shared Playwright README still absent",
+      "browser": "Independent headless local Chrome with fresh browser context; actual fixed Fluidd page, no browser request interception or seeded browser auth"
+    },
+    "bundle": {
+      "manifestSha256": "115e01e6fb7a52b1a82dfa115050f2d92bad8ce53a5876d5853244290c3f3e6d",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb",
+      "unchanged": "Existing externalAcceptanceBundle and assertAcceptanceBundleUnchanged verify emitted files and independent installed dependency tree at admission and fixture shutdown; final parent process exit 0",
+      "productChild": "Emitted JS product-host.js with PATH=/no-programs and type stripping disabled; PTY simulation stays in test parent"
+    },
+    "authorization": "Actual local-user login/JWT; no trusted-loopback bypass and no backend authorization change",
+    "input": {
+      "filename": "anyraid-page 50%.gcode",
+      "bytes": 20123,
+      "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+      "moves": 1000,
+      "feedRate": "F60",
+      "thumbnail": "Actual 32x32 PNG",
+      "metadata": "PrusaSlicer; layer_height 0.2 mm; filament 1.0 mm",
+      "origin": "Generated local test G-code chosen through the actual page file chooser. API-seeded client-sample.gcode was not selected or printed."
+    },
+    "chooser": {
+      "ordering": "Register page.waitForEvent(filechooser) before clicking actual Upload files menu; FileChooser.setFiles with absolute local path",
+      "timeoutMs": 10000,
+      "elapsedMs": 49.56449799999973,
+      "uploadHttpStatus": 200,
+      "thumbnailHttpStatus": 200
+    },
+    "verified": [
+      "Actual JWT login and fixed-version page initialization",
+      "Page upload, file row metadata, blue PNG preview and authorized download",
+      "Downloaded bytes exactly equal original 20123 bytes and SHA-256",
+      "First page-started uploaded-file print reaches 100 percent/ready and completed history icon",
+      "Three explicit page starts produce exactly three completed records for the uploaded filename",
+      "Third explicit print pauses after live 1.0 mm/s movement; actual page ariaSnapshot shows Paused and Resume",
+      "Supervisor WebSocket drop followed by page refresh restores paused state; page Resume completes the same third print",
+      "Supervisor restarts only the emitted product child, reusing the same package/data; fresh page shows the same three completed records with no automatic replay",
+      "Driver browser closed normally, then stdin EOF and exit 0; product fixture stopped by SIGINT and exit 0"
+    ],
+    "boundaries": [
+      "WebSocket drop and refresh were performed consecutively; this does not independently prove unassisted automatic reconnect latency",
+      "Process recovery uses test supervisor SIGUSR1, not a standard UI service restart button or real systemd restart",
+      "UI reports verified history records; physical heating, motion, timing and safety are not represented by the PTY simulator",
+      "The page uses the same-origin local asset proxy. Cross-origin acceptance is covered separately by the exact CORS candidate tests and mixed-load evidence, not inferred from this page journey",
+      "Screenshots immediately after control clicks may show a pending operation. Paused status was verified by later ariaSnapshot; resumed completion by later history rows"
+    ],
+    "failuresRetained": [
+      {
+        "phase": "Second explicit print; immediate pause while preparation is still active",
+        "rpc": "printer.print.pause",
+        "rpcId": 10034,
+        "code": 409,
+        "message": "Print request was not completed; query request state",
+        "observation": "Pause did not take effect; the second print subsequently completed. Not counted as a passing preparation-pause control and not diagnosed as a firmware fault."
+      },
+      {
+        "phase": "Optional final attempt to close the opened printer drawer",
+        "timeoutMs": 10000,
+        "cause": "Drawer overlay intercepted header button; browser then closed normally. Standard service restart was not attempted or passed."
+      }
+    ],
+    "performance": "No runtime changes from PR #19 and no new performance measurement in this page check. Existing exact-package original mixed load and CORS/control benchmark remain separately scoped; page chooser elapsed time is a tool observation, not printer throughput.",
+    "sourceFiles": {
+      "host/acceptance/client-probe.ts": "551f352c91c2cac824912ce81cdf0561372c608f815912eb908038266b47d6ec",
+      "host/test/helpers/compiled-client-host.ts": "bc2886d1bdb8b2081ff6fde9bfe77b2307e1a36680ae322e0931bd5f336a8316",
+      "host/test/helpers/acceptance-bundle.ts": "60f5f9236c8d45ceb0d3fdf29aaa5a0dfde14b107e209f0b24df5e61e1a6ed08",
+      "host/test/helpers/client-firmware.ts": "1ca7525cf508d6183c90bde4d488be2ac60f615aa2f651347bdc76320d827ff8",
+      "host/src/moonraker/product-print-api.ts": "ce188cd6fcc1c52b05eaa27d5f5d240d014c6739a9d2240fcc9fa99b3a59e8dd",
+      "host/src/operations/print.ts": "cc4278a130b8692637fa10d41cd6781fde8dcd521ed0de889eaf08e0f83db430"
+    },
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-cors-fixed-page-20261007.log",
+        "sha256": "028edf8abe17b9d1084d06a9de94993141524eedd76f7427468ca5212279d791",
+        "scope": "Sanitized fixture HTTP/RPC/generation log; no credential values"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-page-observations-20261007.json",
+        "sha256": "467576c6ceef555bdcdbeda71cb8f2aace6f1f7e56d2e38b3b114ba142695c6e",
+        "scope": "Actual chooser, upload, resumed-history and process-recovery DOM observations; no login command values"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-page-driver-20261007.mjs",
+        "sha256": "124948d286094bff7eadc3256cf8aa02f427b3781a2502f30881ba86f7ce2dee",
+        "scope": "Temporary Node/Playwright action driver; code and fixed runtime location, no embedded login credentials"
+      }
+    ],
+    "screenshots": [
+      {
+        "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/pr-proof/fluidd-cors-page-upload-20261007.png",
+        "sha256": "b519ee254415c870cc7551e3811b69dda0364d6efbad0b8a53de1ff538114d49",
+        "scope": "Actual uploaded file menu with blue PNG preview"
+      },
+      {
+        "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/pr-proof/fluidd-cors-page-print-20261007.png",
+        "sha256": "87755d11a32be58369ccb8865c6e0e69ede74bfffd23dd6866bf464d22900e3a",
+        "scope": "First print 100 percent/ready"
+      },
+      {
+        "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/pr-proof/fluidd-cors-page-history-20261007.png",
+        "sha256": "3c32df65a5f067d62402410eccb50698cd668b7dc70e1c5bc9575734c1e262b2",
+        "scope": "First matching history record"
+      },
+      {
+        "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/pr-proof/fluidd-cors-page-paused-20261007.png",
+        "sha256": "895bf1597dfda959333ebbe0b71f4bb6e1fddfb6dc27b1a8a61ee8b741fab168",
+        "scope": "Pause request pending; later DOM verifies actual paused state"
+      },
+      {
+        "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/pr-proof/fluidd-cors-page-resumed-20261007.png",
+        "sha256": "9c7faee1e68b3f946438bd20a7f10068e8c71fd600a670104466457e405e72eb",
+        "scope": "Paused state during resume admission; later history verifies completion"
+      },
+      {
+        "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/pr-proof/fluidd-cors-page-process-recovery-20261007.png",
+        "sha256": "1e7d5e3850e64dd37a51dc859bebe3cdcecf1e935c948a1cf49ee5b19b8f28ac",
+        "scope": "Same three completed history records after child process restart"
+      }
+    ],
+    "remaining": [
+      "Preparation-stage pause user journey; retain the observed 409 and continuing print until a defined controlled behavior is delivered",
+      "Same-package directory, rename/copy/delete, config editor and standard restart/cancel controls were not revalidated here",
+      "Fixed Mainsail complete protected-access page acceptance",
+      "G3 motion failures, target-board precision/performance and Cycnumbris 500 physical acceptance",
+      "Complete Moonraker, remaining 177 tracked klippy Python files, default replacement and master release"
+    ],
+    "scope": "New partial actual-page acceptance on one pinned compiled Klipper/Moonraker package; does not mark A4, M3, G3, physical printing or full Python retirement complete"
   }
 }
