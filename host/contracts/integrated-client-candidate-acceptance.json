@@ -3688,5 +3688,379 @@
         "sha256": "778aca70af12649cdc54e1d8318f75a286f5abd5871290074365e592da4a671b"
       }
     ]
+  },
+  "preparationPauseAccountingRecheck": {
+    "date": "2026-10-07",
+    "sourceHead": "b48b1e66c27ea621f942b62bc667b8681fefc566",
+    "fixPr": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/27",
+    "fixHead": "300deeacb2184ced490cc273b7a56aed40534928",
+    "identity": {
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-accounting-client-bundle",
+        "manifestSha256": "e70d6ee506f0b22c0ef3f1c806d229fb8c5f5edb4372779ec2db67f6d204ac9d",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      },
+      "installed": {
+        "durationMs": 829.378731,
+        "dependencies": 15
+      }
+    },
+    "scope": "Actual Fluidd 1.37.6 prepared-before-file pause, refresh and explicit resume on new compiled PTY/dual-MCU model bundle. Same original20123-byte file, ordinary explicit upload-and-print admission. Original discrepancy used queue admission; all queue modes and full clients are not revalidated here. Not accepted develop, target board, physical motion or G3 closure.",
+    "process": {
+      "nativeBase": "http://127.0.0.1:18462",
+      "gateway": "http://127.0.0.1:18463",
+      "forceLogins": true,
+      "noApiKeyInjection": true,
+      "originalDeadlineMs": 900000,
+      "deadlineExtended": false
+    },
+    "actualFluidd": {
+      "chooser": {
+        "elapsedMs": 45.87095599999884
+      },
+      "uploadReceipt": {
+        "item": {
+          "path": "恢复验收 50%.gcode",
+          "root": "gcodes",
+          "modified": 1791322560.7487953,
+          "size": 20123,
+          "permissions": "rw"
+        },
+        "action": "create_file",
+        "file": {
+          "version": 1,
+          "id": "bf22b823-04b1-479e-b1e5-3bdbd54f688f",
+          "name": "恢复验收 50%.gcode",
+          "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+          "size": 20123,
+          "path": "恢复验收 50%.gcode"
+        },
+        "print_started": true,
+        "print_queued": false,
+        "print_request_id": "upload-b676299a-7406-47bb-90f6-2ab406b351c4",
+        "result": {
+          "item": {
+            "path": "恢复验收 50%.gcode",
+            "root": "gcodes",
+            "modified": 1791322560.7487953,
+            "size": 20123,
+            "permissions": "rw"
+          },
+          "action": "create_file",
+          "file": {
+            "version": 1,
+            "id": "bf22b823-04b1-479e-b1e5-3bdbd54f688f",
+            "name": "恢复验收 50%.gcode",
+            "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+            "size": 20123,
+            "path": "恢复验收 50%.gcode"
+          },
+          "print_started": true,
+          "print_queued": false,
+          "print_request_id": "upload-b676299a-7406-47bb-90f6-2ab406b351c4"
+        }
+      },
+      "pause": {
+        "print_stats": {
+          "filename": "恢复验收 50%.gcode",
+          "print_duration": 0,
+          "total_duration": 10.026740005000008,
+          "filament_used": 0,
+          "state": "paused",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0,
+          "is_active": false,
+          "file_position": 0,
+          "file_size": 20123
+        },
+        "pause_resume": {
+          "is_paused": true
+        },
+        "native_host": {
+          "version": 1,
+          "ready": true,
+          "group_state": "ready",
+          "hardware_state": "ready",
+          "print_state": "paused",
+          "homed_axes": "xyz",
+          "closing": false,
+          "admission_closed": false,
+          "maintenance": false,
+          "mcus": [
+            {
+              "id": "mcu",
+              "state": "ready"
+            },
+            {
+              "id": "aux",
+              "state": "ready"
+            }
+          ]
+        }
+      },
+      "nativePaused": {
+        "scope": "Read-only native print status using separate local fixture observer; no browser mutation, motion or replay",
+        "status": 200,
+        "body": {
+          "result": {
+            "mode": "native",
+            "standard_print": true,
+            "pending_compatibility": 0,
+            "state": "paused",
+            "state_token": "20f94977-6f54-4c9a-81e9-7bfd5390db94:3",
+            "pause_pending": false,
+            "paused_before_file": true,
+            "request": {
+              "version": 1,
+              "request_id": "upload-b676299a-7406-47bb-90f6-2ab406b351c4",
+              "file_id": "bf22b823-04b1-479e-b1e5-3bdbd54f688f",
+              "nozzle": 200,
+              "bed": 60,
+              "expires_at": 1791322590765
+            },
+            "pending_device_actions": 0,
+            "safe_stop_pending": false,
+            "failed": false,
+            "closed": false
+          }
+        }
+      },
+      "actualRefresh": true,
+      "refreshed": {
+        "print_stats": {
+          "filename": "恢复验收 50%.gcode",
+          "print_duration": 0,
+          "total_duration": 10.281773605999994,
+          "filament_used": 0,
+          "state": "paused",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0,
+          "is_active": false,
+          "file_position": 0,
+          "file_size": 20123
+        },
+        "pause_resume": {
+          "is_paused": true
+        },
+        "native_host": {
+          "version": 1,
+          "ready": true,
+          "group_state": "ready",
+          "hardware_state": "ready",
+          "print_state": "paused",
+          "homed_axes": "xyz",
+          "closing": false,
+          "admission_closed": false,
+          "maintenance": false,
+          "mcus": [
+            {
+              "id": "mcu",
+              "state": "ready"
+            },
+            {
+              "id": "aux",
+              "state": "ready"
+            }
+          ]
+        }
+      },
+      "actualResume": true,
+      "beforeOuterResumeAck": {
+        "print_stats": {
+          "filename": "恢复验收 50%.gcode",
+          "print_duration": 0.023260325999988708,
+          "total_duration": 26.597679064999998,
+          "filament_used": 0.119,
+          "state": "paused",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 0,
+          "is_active": true,
+          "file_position": 0,
+          "file_size": 20123
+        },
+        "pause_resume": {
+          "is_paused": true
+        },
+        "native_host": {
+          "version": 1,
+          "ready": true,
+          "group_state": "ready",
+          "hardware_state": "ready",
+          "print_state": "resuming",
+          "homed_axes": "xyz",
+          "closing": false,
+          "admission_closed": false,
+          "maintenance": false,
+          "mcus": [
+            {
+              "id": "mcu",
+              "state": "ready"
+            },
+            {
+              "id": "aux",
+              "state": "ready"
+            }
+          ]
+        }
+      },
+      "terminal": {
+        "print_stats": {
+          "filename": "恢复验收 50%.gcode",
+          "print_duration": 10.26187741999999,
+          "total_duration": 36.836330089,
+          "filament_used": 1,
+          "state": "complete",
+          "message": "",
+          "info": {
+            "total_layer": null,
+            "current_layer": null
+          }
+        },
+        "virtual_sdcard": {
+          "progress": 1,
+          "is_active": false,
+          "file_position": 20123,
+          "file_size": 20123
+        },
+        "pause_resume": {
+          "is_paused": false
+        },
+        "native_host": {
+          "version": 1,
+          "ready": true,
+          "group_state": "ready",
+          "hardware_state": "ready",
+          "print_state": "completed",
+          "homed_axes": "xyz",
+          "closing": false,
+          "admission_closed": false,
+          "maintenance": false,
+          "mcus": [
+            {
+              "id": "mcu",
+              "state": "ready"
+            },
+            {
+              "id": "aux",
+              "state": "ready"
+            }
+          ]
+        }
+      },
+      "history": {
+        "count": 1,
+        "jobs": [
+          {
+            "job_id": "000001",
+            "user": "unknown",
+            "filename": "恢复验收 50%.gcode",
+            "status": "completed",
+            "start_time": 1791322560.768,
+            "end_time": 1791322597.606,
+            "total_duration": 36.836330089,
+            "print_duration": 10.26187741999999,
+            "filament_used": 1,
+            "metadata": {
+              "native_request_id": "upload-b676299a-7406-47bb-90f6-2ab406b351c4"
+            },
+            "auxiliary_data": [],
+            "exists": true
+          }
+        ]
+      },
+      "historyDom": "- navigation:\n  - complementary:\n    - link \"仪表板\":\n      - /url: /./#/\n    - link \"控制台\":\n      - /url: /./#/console\n    - link \"Gcode 预览\":\n      - /url: /./#/preview\n    - link \"任务列表\":\n      - /url: /./#/jobs\n    - link \"任务历史\":\n      - /url: /./#/history\n    - link \"调整\":\n      - /url: /./#/tune\n    - link \"配置\":\n      - /url: /./#/configure\n    - link \"系统\":\n      - /url: /./#/system\n    - link \"设置\":\n      - /url: /./#/settings\n- img\n- banner:\n  - link:\n    - /url: /./#/\n    - img\n  - link \"fluidd\":\n    - /url: /./#/\n  - button \"紧急停止\"\n  - button\n  - button\n  - button\n  - button\n- main:\n  - text: 打印任务统计\n  - button \"重置统计信息\"\n  - button\n  - text: 总任务次数 1 单次耗时最长 0m 36s 总时间 0m 36s 平均时间 0m 36s 总打印时间 0m 10s 平均打印时间 0m 10s 总消耗耗材 1.0 mm 平均消耗耗材 1.0 mm 任务历史\n  - button \"全部加载\" [disabled]\n  - button \"删除全部\"\n  - button\n  - button\n  - textbox\n  - table:\n    - rowgroup:\n      - 'row \"名称: Not sorted. Activate to sort ascending. 状态: Not sorted. Activate to sort ascending. 开始时间: Sorted descending. Activate to remove sorting. 结束时间: Not sorted. Activate to sort ascending. 总耗时: Not sorted. Activate to sort ascending. 修改时间: Not sorted. Activate to sort ascending. 文件大小: Not sorted. Activate to sort ascending. 展开\"':\n        - columnheader\n        - 'columnheader \"名称: Not sorted. Activate to sort ascending.\"': 名称\n        - 'columnheader \"状态: Not sorted. Activate to sort ascending.\"': 状态\n        - 'columnheader \"开始时间: Sorted descending. Activate to remove sorting.\"': 开始时间\n        - 'columnheader \"结束时间: Not sorted. Activate to sort ascending.\"': 结束时间\n        - 'columnheader \"总耗时: Not sorted. Activate to sort ascending.\"': 总耗时\n        - 'columnheader \"修改时间: Not sorted. Activate to sort ascending.\"': 修改时间\n        - 'columnheader \"文件大小: Not sorted. Activate to sort ascending.\"': 文件大小\n        - columnheader \"展开\"\n    - rowgroup:\n      - row \"恢复验收 50%.gcode 2026-10-07 05:36 2026-10-07 05:36 0m 36s -- --\":\n        - cell\n        - cell \"恢复验收 50%.gcode\"\n        - cell\n        - cell \"2026-10-07 05:36\"\n        - cell \"2026-10-07 05:36\"\n        - cell \"0m 36s\"\n        - cell \"--\"\n        - cell \"--\"\n        - cell:\n          - button\n  - text: \"Rows per page:\"\n  - button \"15\":\n    - text: \"15\"\n    - textbox \"Rows per page:\"\n  - text: 1-1 of 1\n  - button \"Previous page\" [disabled]\n  - button \"Next page\" [disabled]\n- contentinfo: \"© 2026 fluidd: v1.37.6-d894c50\"",
+      "logout": {
+        "apiStatus": 401,
+        "cookies": [],
+        "loginDom": "- main:\n  - region \"打印控制台登录\":\n    - text: ANYRAID\n    - heading \"打印控制台\" [level=1]\n    - paragraph: Cycnumbris 500 系列\n    - paragraph: 登录后查看打印任务、管理文件和设备配置。\n    - heading \"登录账号\" [level=2]\n    - text: 用户名\n    - textbox \"用户名\"\n    - text: 密码\n    - textbox \"密码\"\n    - alert\n    - button \"登录打印控制台\""
+      }
+    },
+    "result": {
+      "boundedPathPassed": true,
+      "originalExpectedMm": 1,
+      "oldObservedMm": 0.881,
+      "newObservedMm": 1,
+      "prefixCountedDuringResumingMm": 0.119,
+      "physicalMotionLossPreviouslyProved": false,
+      "allHistoricalRootsClosed": false
+    },
+    "validation": {
+      "integratedSource": {
+        "pass": 14,
+        "fail": 0,
+        "durationMs": 243.884511
+      },
+      "typecheck": {
+        "exit": 0
+      },
+      "fixedCompiledProduct": true,
+      "independentProductionDependencies": 15,
+      "noTsChild": true
+    },
+    "toolObservations": [
+      "An initial exact navigation selector used 任务 rather than actual 任务列表 and timed out; no mutation occurred. Subsequent actual link used the observed full label.",
+      "Immediate DOM after history navigation preceded reactive page update; subsequent settled history DOM confirmed one job and1.0mm. Initial snapshot retained."
+    ],
+    "cleanup": {
+      "driver": "Explicit close and stdin EOF,exit0",
+      "gateway": "Normal TERM,exit0",
+      "native": "Normal TERM,exit0; finally rechecked fixed package and removed own fixture",
+      "pidsAbsent": [
+        3042396,
+        3042449
+      ]
+    },
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-accounting-public-evidence-20261007.log",
+        "sha256": "d0fcad05290160b138210fe6b2b718b9bc738ecb8997c966e1a1d9dbbc9c16b2"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-accounting-native-page-20261007.log",
+        "sha256": "d451e6ad74a9f47020a2c5343e61f2bf1cd6d1fae2d91397a37cba1f5d9c47e7"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-accounting-cli-page-20261007.log",
+        "sha256": "faea5bd40a2ce4749c1365af49da1859a00cde5bebed5c557c4a05754c84236d"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-accounting-preparation-source-20261007.log",
+        "sha256": "12641c8db1a4a164cd4481d351f26f9a9329c58900c47be58d4929a692a357b7"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-accounting-preparation-paused-20261007.png",
+        "sha256": "f1135598ff729685a37397f6e0454843536ec4ff39782d3a1a6855b4f0e232af"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-accounting-completed-20261007.png",
+        "sha256": "bb6fd398c51dbe127d2b984565b9bfb206569cd043e5e20b485eccca88beb3de"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-accounting-history-20261007.png",
+        "sha256": "8228a3dee78ca06b9e03b660e8e3e151a86185663ae2d3499cf36fb195cf4207"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-accounting-logout-20261007.png",
+        "sha256": "778aca70af12649cdc54e1d8318f75a286f5abd5871290074365e592da4a671b"
+      }
+    ]
   }
 }
