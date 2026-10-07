@@ -1,8 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
 import { JobState } from '../src/moonraker/job-state.ts';
-import { jobStateOracle } from './helpers/job-state-oracle.ts';
+import { stateReference } from './helpers/moonraker-state-reference.ts';
 const states = [
   'standby',
   'printing',
@@ -28,11 +27,7 @@ test('job state transition and layer events match pinned Moonraker Python', () =
       })),
     ),
   );
-  const expected = spawnSync('/usr/bin/python3', ['-c', jobStateOracle()], {
-    input: JSON.stringify(cases),
-    encoding: 'utf8',
-  });
-  assert.equal(expected.status, 0, expected.stderr);
+  const expected = stateReference<unknown>('job-test-0', JSON.stringify(cases));
   const actual = cases.map((c) => {
     const job = new JobState();
     job.initialize(c.initial);
@@ -40,7 +35,7 @@ test('job state transition and layer events match pinned Moonraker Python', () =
     job.disconnect();
     return { events, stats: job.lastStats, event: job.lastEvent };
   });
-  assert.deepEqual(actual, JSON.parse(expected.stdout));
+  assert.deepEqual(actual, expected);
 });
 test('job state snapshots isolate owners and invalid input leaves state unchanged', () => {
   const job = new JobState();
@@ -78,11 +73,7 @@ test('unknown layer counts match real Klippy reset and upstream nullable layer e
       updates: [{ info: { current_layer: 1 } }],
     },
   ];
-  const py = spawnSync('/usr/bin/python3', ['-c', jobStateOracle()], {
-    input: JSON.stringify(cases),
-    encoding: 'utf8',
-  });
-  assert.equal(py.status, 0, py.stderr);
+  const py = stateReference<unknown>('job-test-1', JSON.stringify(cases));
   const actual = cases.map((c) => {
     const job = new JobState();
     job.initialize(c.initial);
@@ -92,7 +83,7 @@ test('unknown layer counts match real Klippy reset and upstream nullable layer e
       event: job.lastEvent,
     };
   });
-  assert.deepEqual(actual, JSON.parse(py.stdout));
+  assert.deepEqual(actual, py);
 });
 test('job state initialization and accumulated fields share an atomic capacity limit', () => {
   const job = new JobState(),

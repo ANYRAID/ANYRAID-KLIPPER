@@ -1,0 +1,459 @@
+{
+  "date": "2026-10-07",
+  "base": "bcd65b2319b7d9d40499f80dddaf9ad96e77f3a9",
+  "status": "Local candidate; exact-head required CI and normal PR integration pending",
+  "scope": "Retire Python runtime dependency from two Moonraker test files and two high-frequency observation benchmarks. Existing GcodeStore, JobState, subscriptions, lifecycle and authoritative print owners remain unchanged. This is not full Moonraker or Python retirement.",
+  "environment": {
+    "node": "v26.10.0",
+    "nodeSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+    "python": "Python 3.12.13",
+    "pythonExecutableSha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "kernel": "6.18.36-amd64-desktop-rolling",
+    "arch": "x64",
+    "typescript": "7.0.2"
+  },
+  "capsule": {
+    "path": "host/contracts/moonraker-state-python-reference.json.gz",
+    "compressedSha256": "a8dd07f8587f220878cf5c6306aefe33d4f182313f2a024be887c226057a1cd5",
+    "rawSha256": "409f79b9a2b95a27236d58f82e9ce975b245e3dab6d00b57effcc744681c0710",
+    "rawBytes": 143351,
+    "compressedBytes": 4536,
+    "sourceRefs": {
+      "data-store": {
+        "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+        "sourceSha256": "d32cc0f2a0673ae14f4075b76d0738be43d2ec7063b3849af7e2e75d1ce22dde"
+      },
+      "job-state": {
+        "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+        "sourceSha256": "71c1647f8fabe4f4ee6678af1e55b75ce21f316b836ed1f3758340591214fe9e",
+        "enumSourceSha256": "dce362e0b0951b0e30250d7cd5cd4beeae36a7e29874d9d980710a4094a5e8b4"
+      }
+    }
+  },
+  "originalSourceFingerprints": {
+    "host/src/moonraker/gcode-store.ts": "296d696ecad10538f8dc9ece993fc79e0a5cb9cf1e399b9bf7cd7527fc954bae",
+    "host/src/moonraker/job-state.ts": "48b28513101dae2109fc4407e01933ac82e26d31b342b769a05dd3bda64a3a57",
+    "host/src/moonraker/configured-server.ts": "25080943f3286fd8f36de5ff386ccbb9ebbbf6f43acef823a5ad1c503eae276e",
+    "host/src/moonraker/klippy-lifecycle.ts": "bd0df1dd4d14ae3e7641566894923b3aa8f4f77c682062d23fd6b1dbedad9592",
+    "host/contracts/moonraker-data-store.json": "4ef5086055a357c8ea1a500c1d8534932989aaf48ea5380715b7e82b721221e5",
+    "host/contracts/moonraker-job-state.json": "223f283c4663c36ce1d3e7559f97d93ea3df2030ab7f04f9b4d97c20021a5543"
+  },
+  "originalDrivers": [
+    {
+      "id": "gcode-test",
+      "path": "host/test/gcode-store.test.ts",
+      "sourceSha256": "eb09f8da39cb7a63616b7de7436ee2deb9215928f5b7ef2cbb3bdd63c6417667"
+    },
+    {
+      "id": "job-test",
+      "path": "host/test/job-state.test.ts",
+      "sourceSha256": "b63538255ebb4f2ff2c52e13094ea7df3b0624a98dcd712f20f0deb3a2579fa5"
+    },
+    {
+      "id": "gcode-bench",
+      "path": "host/bench/gcode-store.ts",
+      "sourceSha256": "c385255299fd056bee767e57fb7c90e6912c6834c73a6d3aece64680b0fb6bd8"
+    },
+    {
+      "id": "job-bench",
+      "path": "host/bench/job-state.ts",
+      "sourceSha256": "df5230f049ffdb5e73cda9a337ca22f56883afbd3bf2ceea76d3946aeee6530e"
+    }
+  ],
+  "compiledOutputs": {
+    "host/test/helpers/moonraker-state-reference.js": "f4acedfba2ed62c6d356c5b5d7585bd851b86932c14c4f74f12086e175e9eb9b",
+    "host/test/gcode-store.test.js": "a488964819db851e2c14459bd258215dc46b2e45e45a2bad656e59766d91a90d",
+    "host/test/job-state.test.js": "39846113fb5d1817e48d130e9ad1b7c158e4bb81e225b6bf79e1f4fd7532b72b",
+    "host/test/moonraker-state-reference.test.js": "bcc2169ffc308caa35f8df7c68b996041c3ac11750c8381896aae03d5414af28",
+    "host/src/moonraker/gcode-store.js": "b99b22dc4b171f14c687891aab6c1cc58a810b6132b4a7ddaa049436959a6b23",
+    "host/src/moonraker/job-state.js": "05b45452074315c9629a18d391b9c9dc3e580ca68a6960d5f56188fc7d550ec2"
+  },
+  "validation": {
+    "originalTests": 7,
+    "sourceTests": 10,
+    "compiledTests": 10,
+    "overlapping": true,
+    "doNotAdd": true,
+    "cases": {
+      "gcodeCapacities": 4,
+      "gcodeCounts": 17,
+      "gcodeEntriesPerCapacity": 60,
+      "jobTransitions": 108,
+      "nullableLayerCases": 3
+    },
+    "precision": "Original deepEqual, Unicode/count slicing, complete G-code script, timestamps, state/layer/disconnect, isolation and capacity assertions unchanged.",
+    "restrictions": "PATH=/no-programs PYTHON=/no-python Node --permission --allow-fs-read=*; tests use --test-isolation=none so no child grant is needed. No addons or workers.",
+    "originalUnderRestriction": "Original unmodified G-code test fails explicitly with ERR_ACCESS_DENIED ChildProcess /usr/bin/python3; other original cases still execute. Raw denial retained.",
+    "typecheck": true,
+    "requiredWhitespace": true,
+    "independentCompile": true,
+    "benchmarkContract": "Final helper rejects count other than 100000 or actual retained sample count other than 11, missing counts, changed messages or uncaptured ID/input. Both benchmarks supply actual count and samples.length; numeric timing loops are unchanged."
+  },
+  "performance": {
+    "input": "Original 13 rounds, two warmups, 11 samples; 100000 appends/updates per round, 10000 tail-20 queries. Original count, terminal event and ring-size assertions unchanged.",
+    "sampling": "Original before and final after-default both Node default permission flags; finite sequential observations, no randomization. After-restriction is additional separately retained evidence, not mixed into the default comparison.",
+    "p95": "Original 11-sample nearest-rank P95 is sample maximum; not a statistically resolved tail estimate.",
+    "gcodeAppend": {
+      "before": {
+        "medianMs": 14.429503000000011,
+        "p95Ms": 15.579668999999996
+      },
+      "after": {
+        "medianMs": 14.821166000000005,
+        "p95Ms": 19.175944000000015
+      },
+      "medianChangePercent": 2.7143207912288636,
+      "p95ChangePercent": 23.08312840279225
+    },
+    "gcodeTail20Queries10000": {
+      "before": {
+        "medianMs": 3.1362720000000195,
+        "p95Ms": 4.144734999999997
+      },
+      "after": {
+        "medianMs": 3.234622999999999,
+        "p95Ms": 4.967886000000021
+      },
+      "medianChangePercent": 3.1359206089261127,
+      "p95ChangePercent": 19.860159937849463
+    },
+    "jobUpdates": {
+      "before": {
+        "medianMs": 111.21508099999994,
+        "p95Ms": 112.17915300000004
+      },
+      "after": {
+        "medianMs": 111.52124700000002,
+        "p95Ms": 121.23317600000007
+      },
+      "medianChangePercent": 0.2752918014779615,
+      "p95ChangePercent": 8.071038831965538
+    },
+    "python": "Only the original actually captured timings, explicitly historical; no current Python speed, target-board budget or printing throughput claim. Full raw unsorted values are retained for both Python profiles.",
+    "limitations": "Production hot paths and dependencies are byte unchanged. Some Node medians/P95 rise; no zero-regression, speedup or performance cause claim.",
+    "beforeCountGuard": {
+      "gcodeAppend": {
+        "before": {
+          "medianMs": 14.429503000000011,
+          "p95Ms": 15.579668999999996
+        },
+        "after": {
+          "medianMs": 14.76019599999998,
+          "p95Ms": 19.356296999999984
+        },
+        "medianChangePercent": 2.2917837156274157,
+        "p95ChangePercent": 24.24074606463069
+      },
+      "gcodeTail20Queries10000": {
+        "before": {
+          "medianMs": 3.1362720000000195,
+          "p95Ms": 4.144734999999997
+        },
+        "after": {
+          "medianMs": 3.2880340000000103,
+          "p95Ms": 4.876904999999994
+        },
+        "medianChangePercent": 4.838929786701862,
+        "p95ChangePercent": 17.66506181939249
+      },
+      "jobUpdates": {
+        "before": {
+          "medianMs": 111.21508099999994,
+          "p95Ms": 112.17915300000004
+        },
+        "after": {
+          "medianMs": 112.75046799999996,
+          "p95Ms": 115.67454699999996
+        },
+        "medianChangePercent": 1.3805564732718434,
+        "p95ChangePercent": 3.1159033621870114
+      },
+      "scope": "Prior helper version lacked explicit benchmark workload/sample-count rejection. All raw results and helper/bench/test versions retained; not pooled with final."
+    }
+  },
+  "archive": {
+    "path": "host/contracts/moonraker-state-retirement-evidence.json.gz",
+    "compressedSha256": "aad17c0b5b17750b73a898362bc631594c10754c65f6333c2b6a40a6bff474f9",
+    "rawSha256": "4afb242e417cd3eddec6d822d04456cb51e6528834c8ec6f29fc34edc7828c31",
+    "rawBytes": 318015,
+    "compressedBytes": 35535,
+    "entries": [
+      {
+        "name": "after-tests.log",
+        "sha256": "729ecf0849cfee39bd07e27cd54856ef84ae1ad4baa6281b16dfeb9d6a5b0f0a"
+      },
+      {
+        "name": "before-count-guard-after-tests.log",
+        "sha256": "cc03df748490e15c691fdd73199df4bfc6eb10b59794a955b195a1c12b8e3ab7"
+      },
+      {
+        "name": "before-count-guard-compile.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "before-count-guard-compiled-tests.log",
+        "sha256": "cfdfdec721df4cbba2aea40d5bc27dedc48edaa1a0572877be3d8363ddcdbf3f"
+      },
+      {
+        "name": "before-count-guard-gcode-store.ts",
+        "sha256": "0060fc7b7385220b9ea19226950319d8fe4781e88495f2c7169062d01ff59e97"
+      },
+      {
+        "name": "before-count-guard-job-state.ts",
+        "sha256": "76c3c021300d01b48c23ee995d6d1769892c1492e8fa76e7cb89e5106a2e63e8"
+      },
+      {
+        "name": "before-count-guard-moonraker-state-reference.test.ts",
+        "sha256": "6ebbb7137e7b5804dbc07e05b0821e13b133d79d9c129c03c6858a299fc26404"
+      },
+      {
+        "name": "before-count-guard-moonraker-state-reference.ts",
+        "sha256": "20998264d8481b345a1159121414627b18ea0f7c059ef5fb603d2900717e5b0d"
+      },
+      {
+        "name": "before-count-guard-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "before-count-guard-whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "capsule.json",
+        "sha256": "0352f5b5b1fb8f0b995b95f5cd24ca9cef05589dd7239db49e03a06003d700d6"
+      },
+      {
+        "name": "capture-child.mjs",
+        "sha256": "9da5cc8573d4fec294a55cc5d785f0979bf52c93d8416f567224317994c6e35d"
+      },
+      {
+        "name": "compile-first.log",
+        "sha256": "22d754e33e5e414d820e237c9e477c81ec8db495c45ab51f7665351a89a3c783"
+      },
+      {
+        "name": "compile.json",
+        "sha256": "f699555e022be782fcd12885047523e061178c3697bc97c53429c234a5097fcc"
+      },
+      {
+        "name": "compile.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "compiled-tests.log",
+        "sha256": "da191707b093c6d92a1dbac24007c32db0b120be048e8d5e8c2c43148cc85b0b"
+      },
+      {
+        "name": "final-gcode-store.ts",
+        "sha256": "b37d2453a5b20d16447c831ba171a88a13deffd172c58ab4a9362a47ee47b146"
+      },
+      {
+        "name": "final-job-state.ts",
+        "sha256": "668f8cce857cabfe7a231f64d98db71ef7182969dbe2bc4be7b7d37d25112537"
+      },
+      {
+        "name": "final-moonraker-state-reference.test.ts",
+        "sha256": "d2abb504a41be116e198a87f4c6738900fdd8120ef09dc65534932427c203b75"
+      },
+      {
+        "name": "final-moonraker-state-reference.ts",
+        "sha256": "29bdab22c63914312f569bf5f44c4547dcc4b5c130189cec527895524ae1b618"
+      },
+      {
+        "name": "gcode-bench-0.json",
+        "sha256": "2b9665327f65fde25e68b9ff3bb42c9f5259d007920d13f09191197c65771285"
+      },
+      {
+        "name": "gcode-bench.after-default.json",
+        "sha256": "a3c3705a41dc3663b4b6ce41db0863b4ca88c88211bacfaa770a833598f05d1b"
+      },
+      {
+        "name": "gcode-bench.after-default.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "gcode-bench.after.json",
+        "sha256": "00e60135aa523d4dbfe009f4b7503bbba2c9fcbe41491a80dfff370210e8199d"
+      },
+      {
+        "name": "gcode-bench.after.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "gcode-bench.before-count-guard-default.json",
+        "sha256": "1e21b69a41b0887e6d644969f6560cd3ff023d5aa0fb6daec989124511ffb3b8"
+      },
+      {
+        "name": "gcode-bench.before-count-guard-default.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "gcode-bench.before.json",
+        "sha256": "e37573592d5ca13d9bfc0ae3ee3adb78974c77f27c4b3338da3714d379b986a8"
+      },
+      {
+        "name": "gcode-bench.before.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "gcode-bench.final-restricted.json",
+        "sha256": "e99cd8c18b5c5c18986eb03682ada586540e360cd8b2dec742729d087c4fda67"
+      },
+      {
+        "name": "gcode-bench.final-restricted.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "gcode-bench.ts",
+        "sha256": "70f27aa470e3c5c8e1704a05942bb9e4fb7739051f073ad4d2b8adb5d9977c22"
+      },
+      {
+        "name": "gcode-store-oracle.ts",
+        "sha256": "0ac420be806fd3ecc4fbeec21d3f77efd6c298b80a24352f371d844cb3d30d24"
+      },
+      {
+        "name": "gcode-test-0.json",
+        "sha256": "7f6e6cd559edd330bb8ae242ebf4ee95e97192379ca6901edea473fc5ab28da7"
+      },
+      {
+        "name": "gcode-test.log",
+        "sha256": "8b603524844eb8a5ecdd0c8883548c19dfe89900368474d2235eedd82b83d713"
+      },
+      {
+        "name": "gcode-test.ts",
+        "sha256": "5673e25d86b7048ece864b3a03dab697f181fc2bd0efc9f86d0337c61fd42d1d"
+      },
+      {
+        "name": "job-bench-0.json",
+        "sha256": "04e3d4a7bc76fa882e4f9915125c8d6ee6209e204657d03fa6996fb9a940c283"
+      },
+      {
+        "name": "job-bench.after-default.json",
+        "sha256": "d37448f9915b75a4a379c6e036f3e3cc4f11b015c5f557894ab6644d0ed46b77"
+      },
+      {
+        "name": "job-bench.after-default.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "job-bench.after.json",
+        "sha256": "14d533ae542a703b7d504efd80f0d59fa7e1f7cc1e457c709d81af4e4162f655"
+      },
+      {
+        "name": "job-bench.after.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "job-bench.before-count-guard-default.json",
+        "sha256": "a6b3889fd5b31bb9f14fa4b64663a926352867c42144a224faf3af58aae2097d"
+      },
+      {
+        "name": "job-bench.before-count-guard-default.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "job-bench.before.json",
+        "sha256": "d080eac188ccf98dddd7cf4a9bb892ec1c983dccd91d76b3bc0ddb3b2281e443"
+      },
+      {
+        "name": "job-bench.before.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "job-bench.final-restricted.json",
+        "sha256": "32fff35b9836de0bca1ac3c5e98dd8e763838200b94afd0183de77102f580c4d"
+      },
+      {
+        "name": "job-bench.final-restricted.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "job-bench.ts",
+        "sha256": "79fa5122e99d44d160c1f52d5d92162be57dcaab40b8a1e0f9e33dca24901584"
+      },
+      {
+        "name": "job-state-oracle.ts",
+        "sha256": "8e6194e488e07263798a85a215ad8a30131545e40f71d43501a7e5f5d3b4dc1c"
+      },
+      {
+        "name": "job-test-0.json",
+        "sha256": "e4c5ff23e2e70dc39164ba59cafe0fb446377a94a9a1f18c81b4e011b1fee933"
+      },
+      {
+        "name": "job-test-1.json",
+        "sha256": "1bb7c9d2bff95b2465a0aed2618702e474756a1c5bf305a489f6f7c4c4200f35"
+      },
+      {
+        "name": "job-test.log",
+        "sha256": "d4a63bcb6080abcaca1670e727b608a6d2247e7c8308e4d93e9f3300f339fa1e"
+      },
+      {
+        "name": "job-test.ts",
+        "sha256": "37dc67a1993d22b4c7f062b2a3a42ea9527a3b690eb8e5fa0f52e8c0cb1bf75f"
+      },
+      {
+        "name": "original-child-denied.log",
+        "sha256": "f246c17b9fa26387a8d7704351735d2694af175e3c74108853d3daec71cb3bd7"
+      },
+      {
+        "name": "original-child-denied.status",
+        "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+      },
+      {
+        "name": "sources.json",
+        "sha256": "f9e5b9a7fff5cb31522a90058c2e16ce0c55b58615173fbf95f520f8ef65f04f"
+      },
+      {
+        "name": "typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "compiled/host/test/helpers/moonraker-state-reference.js",
+        "sha256": "f4acedfba2ed62c6d356c5b5d7585bd851b86932c14c4f74f12086e175e9eb9b"
+      },
+      {
+        "name": "compiled/host/test/gcode-store.test.js",
+        "sha256": "a488964819db851e2c14459bd258215dc46b2e45e45a2bad656e59766d91a90d"
+      },
+      {
+        "name": "compiled/host/test/job-state.test.js",
+        "sha256": "39846113fb5d1817e48d130e9ad1b7c158e4bb81e225b6bf79e1f4fd7532b72b"
+      },
+      {
+        "name": "compiled/host/test/moonraker-state-reference.test.js",
+        "sha256": "bcc2169ffc308caa35f8df7c68b996041c3ac11750c8381896aae03d5414af28"
+      },
+      {
+        "name": "compiled/host/src/moonraker/gcode-store.js",
+        "sha256": "b99b22dc4b171f14c687891aab6c1cc58a810b6132b4a7ddaa049436959a6b23"
+      },
+      {
+        "name": "compiled/host/src/moonraker/job-state.js",
+        "sha256": "05b45452074315c9629a18d391b9c9dc3e580ca68a6960d5f56188fc7d550ec2"
+      }
+    ]
+  },
+  "retainedFailures": [
+    "Original child-process permission denial is a deliberate distinguishing probe, not a product failure.",
+    "First isolated compiler configuration could not resolve Node types (TS2688). Existing pinned @types path was made explicit; first error and final successful compile retained."
+  ],
+  "remaining": [
+    "Exact-head full CI, normal PR and post-merge validation.",
+    "Other daily tests/benchmarks still execute Python; all 177 tracked klippy Python and default entry remain.",
+    "Complete same-bundle real clients, actual target board/Cycnumbris 500 configuration and performance, G3/motion precision, full Moonraker and normal master release."
+  ],
+  "timedRegions": {
+    "host/bench/gcode-store.ts": {
+      "sha256": "5636976782acf4b2ca828aa21a38c4c8ade0654a206cad79259c74196f9a0a6e",
+      "scope": "Original count, warmups, samples, measured code and assertions are byte identical. Only reference access after all timing changes."
+    },
+    "host/bench/job-state.ts": {
+      "sha256": "6fc8c0d0a6e98b6a588c25fc463e5f44b1d3a5463ae7169342bc90d5d17acc99",
+      "scope": "Original count, warmups, samples, measured code and assertions are byte identical. Only reference access after all timing changes."
+    }
+  }
+}
