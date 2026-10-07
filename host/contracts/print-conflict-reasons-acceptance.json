@@ -422,8 +422,6 @@
     "klippyPythonFilesRemaining": 177,
     "pythonDefaultChanged": false,
     "fullGoalComplete": false
-<<<<<<< HEAD
-=======
   },
   "normalDevelopIntegration": {
     "date": "2026-10-07",
@@ -780,6 +778,5 @@
     "newExactHeadCi": "pending",
     "normalIntegration": "pending",
     "scope": "Full same-package clients, original mixed failures, G3, physical current-series, all177 klippy Python files and default switch remain open"
->>>>>>> 2af0b5fd0d009cf710c667649ceef7d6a233e30f
   }
 }
