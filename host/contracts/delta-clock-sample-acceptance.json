@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "scope": "Diagnostic-only sampling at unchanged ClockSync.accept operands; not a motion fix, target acceptance or resolved G3.",
+  "base": "d3794c074887111f6fb86ef7dd0470c19d26895e",
+  "remoteOriginal": {
+    "hostRun": 37610971112,
+    "hostJob": 112757863947,
+    "firmwareRun": 37610971113,
+    "firmwareJob": 112757863798,
+    "ordinary": {
+      "tests": 4135,
+      "pass": 4134,
+      "fail": 1,
+      "durationMs": 608550.979682
+    },
+    "protocol": "skipped",
+    "sanitizer": "skipped",
+    "linuxMCU": "skipped",
+    "firmware": "success",
+    "failedCase": "Delta BLTouch each=false, stuck=false",
+    "httpStatus": 503,
+    "trigger": {
+      "member": 1,
+      "tick": 7642584,
+      "eventTime": 165.480164484,
+      "actualClocks": [
+        7652255,
+        7651853
+      ],
+      "mappedPrimary": 7700236,
+      "observedPrimary": 7657252,
+      "mappedAfterObservation": 42984
+    },
+    "auxiliaryEstimate": {
+      "observedRevisions": [
+        9,
+        36
+      ],
+      "sampleTime": 158.95937171716434,
+      "origin": "1076892",
+      "clockOffset": 56292.37257839811,
+      "frequency": 991491.5849968485,
+      "unchangedAcrossThoseRevisions": true
+    },
+    "scopedDiagnostic": {
+      "path": "host/contracts/delta-bltouch-postmerge-clock-failure.txt",
+      "sha256": "043a0ebbd49238f139c8cdfb6be67c27d10d7ce62eebac29d8456d7b44c477c4"
+    },
+    "cause": "Unresolved: prior log lacks per-reply sent/receive timestamps and acceptance results; unchanged estimate does not distinguish ambiguous retransmission from outlier filtering.",
+    "cleanupMotionFault": "Native file motion stopped is cleanup evidence; not established initiating fault."
+  },
+  "capture": {
+    "testOnlyPrototypeWrapper": true,
+    "productionObservers": false,
+    "originalAcceptCallsPerSample": 1,
+    "unchangedOperandsAndReturnedValue": true,
+    "warmupRetention": 8,
+    "recentRetentionPerPhysicalEstimator": 32,
+    "fields": [
+      "initial nominal frequency/uptime/send time",
+      "raw clock32/sentTime/receiveTime",
+      "warmup flag",
+      "revision",
+      "before/after estimate",
+      "release or null"
+    ],
+    "replay": "All retained warmup and recent replies replay identically in the deterministic complete capture. A truncated recent ring alone cannot replay discarded middle samples.",
+    "failedRemoteRawSamples": "Not available; newly added capture cannot recover earlier omitted samples."
+  },
+  "local": {
+    "node": "v26.10.0",
+    "tests": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-clock-samples-source-20261007.log",
+      "sha256": "634f9c5a7f5cc59e4749638844192754269c431aa22a988626cefcf8ae079fdf",
+      "pass": 13,
+      "fail": 0,
+      "durationMs": 24969.254059
+    },
+    "typecheck": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-clock-samples-types-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exitCode": 0
+    },
+    "nativeBuild": "Reused unchanged accepted C addon outputs; no fresh native build claim.",
+    "compiledProduct": "Not run: this candidate changes tests and evidence only.",
+    "performance": "No production hot-path change; no performance or precision improvement claim. Test observer overhead is not production acceptance.",
+    "remoteCandidateCI": "Pending exact submitted head"
+  },
+  "production": [
+    {
+      "path": "host/src/timing/clock-sync.ts",
+      "sha256": "296aef1e98374d42e8324f3789be490db336a42fdf6837499e3f11b0cbc3a562",
+      "unchangedFromBase": true
+    },
+    {
+      "path": "host/src/timing/clock-runtime.ts",
+      "sha256": "6a724837eb8b3f3be32628eebb150e0b7665c45c4a069e952d94db24931671d5",
+      "unchangedFromBase": true
+    },
+    {
+      "path": "host/src/timing/secondary-sync.ts",
+      "sha256": "80f333fa80fda220576049820f2b5ff46ac487c0ee4f3911fe500db1189e0a54",
+      "unchangedFromBase": true
+    },
+    {
+      "path": "host/src/timing/print-clock-timeline.ts",
+      "sha256": "64112b59a3df09af7147f1a87cd5e95164f2e988444e3cf755031656b2cccc22",
+      "unchangedFromBase": true
+    },
+    {
+      "path": "host/src/homing/position-offsets.ts",
+      "sha256": "cb9b14a55d504b6a6e5aaf683d4430f2314f2f77ee86e626f420c1e25adddbbf",
+      "unchangedFromBase": true
+    },
+    {
+      "path": "host/src/protocol/clock-transport.ts",
+      "sha256": "7c3bb39b4ea4aec4899736e53dd5f7e08b538a3372c5eab45d9284255da8d60e",
+      "unchangedFromBase": true
+    }
+  ],
+  "remaining": [
+    "Original remote cause unresolved",
+    "No blind rerun to erase original failure",
+    "Original mapped-clock rejection, firmware limits, deadlines and precision unchanged",
+    "Full same-bundle clients and target board acceptance incomplete",
+    "Real motion requires G3"
+  ]
+}
