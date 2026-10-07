@@ -15,6 +15,7 @@ const journal = await PrintJournal.open({ path: join(root, 'prints.db'), deviceI
 const options = {
   database, journal,
   automaticTransition: process.env.ANYRAID_BENCH_AUTOMATIC_QUEUE === 'on',
+  confirmClearance: process.env.ANYRAID_BENCH_QUEUE_CONFIRMATION === 'on',
   captureAuthority: (context: RpcContext, lifetime: AbortSignal) => ({ ...context, signal: lifetime }),
   activePrint: () => undefined,
   async resolveFile(filename: string) { return filename.replace('.gcode', ''); },
@@ -56,6 +57,7 @@ try {
   const result = {
     runtime: process.version,
     automaticTransition: options.automaticTransition,
+    confirmClearance: options.confirmClearance,
     scope: 'Durable queue catalogue and concurrent status reads on this desktop filesystem; no target-board, compiled-product or motion-performance claim',
     filesystem: (await statfs(root)).type,
     jobs: 128, durableMutations: writes.length,

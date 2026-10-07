@@ -1,0 +1,86 @@
+2026-10-07T12:04:24.9000785Z ℹ tests 4167
+2026-10-07T12:04:24.9000991Z ℹ suites 0
+2026-10-07T12:04:24.9001163Z ℹ pass 4166
+2026-10-07T12:04:24.9001329Z ℹ fail 1
+2026-10-07T12:04:24.9001514Z ℹ cancelled 0
+2026-10-07T12:04:24.9001690Z ℹ skipped 0
+2026-10-07T12:04:24.9001855Z ℹ todo 0
+2026-10-07T12:04:24.9002059Z ℹ duration_ms 586926.175136
+2026-10-07T12:04:24.9007286Z
+2026-10-07T12:04:24.9007494Z ✖ failing tests:
+2026-10-07T12:04:24.9007661Z
+2026-10-07T12:04:24.9007959Z test at test/product-client-gateway-compiled.test.ts:14:1
+2026-10-07T12:04:24.9008908Z ✖ protected client gateway and installed assets run from independent compiled product with unchanged protocol assertions (10432.641803ms)
+2026-10-07T12:04:24.9009584Z   AssertionError [ERR_ASSERTION]: The input did not match the regular expression /pass 8\b/. Input:
+2026-10-07T12:04:24.9009949Z
+2026-10-07T12:04:24.9010118Z   'TAP version 13\n' +
+2026-10-07T12:04:24.9010550Z     '# Subtest: installed client resources preserve exact bytes, separate login shell, and exclude outside assets\n' +
+2026-10-07T12:04:24.9011214Z     'ok 1 - installed client resources preserve exact bytes, separate login shell, and exclude outside assets\n' +
+2026-10-07T12:04:24.9011614Z     '  ---\n' +
+2026-10-07T12:04:24.9011814Z     '  duration_ms: 58.347032\n' +
+2026-10-07T12:04:24.9012122Z     "  type: 'test'\n" +
+2026-10-07T12:04:24.9012324Z     '  ...\n' +
+2026-10-07T12:04:24.9012665Z     '# Subtest: gateway accepts only an explicit origin and fixed private native listener\n' +
+2026-10-07T12:04:24.9013200Z     'ok 2 - gateway accepts only an explicit origin and fixed private native listener\n' +
+2026-10-07T12:04:24.9013554Z     '  ---\n' +
+2026-10-07T12:04:24.9013752Z     '  duration_ms: 4.710134\n' +
+2026-10-07T12:04:24.9014001Z     "  type: 'test'\n" +
+2026-10-07T12:04:24.9014194Z     '  ...\n' +
+2026-10-07T12:04:24.9014655Z     '# Subtest: unchanged client HTTP and websocket use native per-user identity; cookie never exposes JWT or grants anonymous access\n' +
+2026-10-07T12:04:24.9015402Z     'ok 3 - unchanged client HTTP and websocket use native per-user identity; cookie never exposes JWT or grants anonymous access\n' +
+2026-10-07T12:04:24.9015868Z     '  ---\n' +
+2026-10-07T12:04:24.9016063Z     '  duration_ms: 245.275395\n' +
+2026-10-07T12:04:24.9016295Z     "  type: 'test'\n" +
+2026-10-07T12:04:24.9016480Z     '  ...\n' +
+2026-10-07T12:04:24.9016863Z     '# Subtest: foreign origins, spoofed hosts and duplicated session cookies reject before native effects\n' +
+2026-10-07T12:04:24.9017541Z     'ok 4 - foreign origins, spoofed hosts and duplicated session cookies reject before native effects\n' +
+2026-10-07T12:04:24.9018299Z     '  ---\n' +
+2026-10-07T12:04:24.9018981Z     '  duration_ms: 109.253961\n' +
+2026-10-07T12:04:24.9019377Z     "  type: 'test'\n" +
+2026-10-07T12:04:24.9019729Z     '  ...\n' +
+2026-10-07T12:04:24.9020300Z     '# Subtest: native revocation and gateway restart cannot preserve or transfer a browser identity\n' +
+2026-10-07T12:04:24.9021258Z     'ok 5 - native revocation and gateway restart cannot preserve or transfer a browser identity\n' +
+2026-10-07T12:04:24.9022159Z     '  ---\n' +
+2026-10-07T12:04:24.9022667Z     '  duration_ms: 122.27177\n' +
+2026-10-07T12:04:24.9023024Z     "  type: 'test'\n" +
+2026-10-07T12:04:24.9023315Z     '  ...\n' +
+2026-10-07T12:04:24.9024026Z     '# Subtest: native refresh precedes admission; original mutation is forwarded exactly once with large payload intact\n' +
+2026-10-07T12:04:24.9025133Z     'ok 6 - native refresh precedes admission; original mutation is forwarded exactly once with large payload intact\n' +
+2026-10-07T12:04:24.9025801Z     '  ---\n' +
+2026-10-07T12:04:24.9026101Z     '  duration_ms: 100.834904\n' +
+2026-10-07T12:04:24.9026431Z     "  type: 'test'\n" +
+2026-10-07T12:04:24.9026710Z     '  ...\n' +
+2026-10-07T12:04:24.9027385Z     '# Subtest: session capacity, malformed login and native outages fail closed without creating additional sessions\n' +
+2026-10-07T12:04:24.9028618Z     'ok 7 - session capacity, malformed login and native outages fail closed without creating additional sessions\n' +
+2026-10-07T12:04:24.9029281Z     '  ---\n' +
+2026-10-07T12:04:24.9029580Z     '  duration_ms: 143.954225\n' +
+2026-10-07T12:04:24.9029907Z     "  type: 'test'\n" +
+2026-10-07T12:04:24.9030188Z     '  ...\n' +
+2026-10-07T12:04:24.9030751Z     '# Subtest: gateway close during listener startup joins startup and leaves no live listener\n' +
+2026-10-07T12:04:24.9031621Z     'ok 8 - gateway close during listener startup joins startup and leaves no live listener\n' +
+2026-10-07T12:04:24.9032198Z     '  ---\n' +
+2026-10-07T12:04:24.9032494Z     '  duration_ms: 2.422583\n' +
+2026-10-07T12:04:24.9032813Z     "  type: 'test'\n" +
+2026-10-07T12:04:24.9033073Z     '  ...\n' +
+2026-10-07T12:04:24.9033723Z     '# Subtest: queue operation page uses the same native identity, login redirect and revoked-cookie boundary\n' +
+2026-10-07T12:04:24.9034522Z     'ok 9 - queue operation page uses the same native identity, login redirect and revoked-cookie boundary\n' +
+2026-10-07T12:04:24.9034891Z     '  ---\n' +
+2026-10-07T12:04:24.9035087Z     '  duration_ms: 139.896292\n' +
+2026-10-07T12:04:24.9035305Z     "  type: 'test'\n" +
+2026-10-07T12:04:24.9035483Z     '  ...\n' +
+2026-10-07T12:04:24.9035636Z     '1..9\n' +
+2026-10-07T12:04:24.9035798Z     '# tests 9\n' +
+2026-10-07T12:04:24.9035971Z     '# suites 0\n' +
+2026-10-07T12:04:24.9036145Z     '# pass 9\n' +
+2026-10-07T12:04:24.9036316Z     '# fail 0\n' +
+2026-10-07T12:04:24.9036489Z     '# cancelled 0\n' +
+2026-10-07T12:04:24.9036671Z     '# skipped 0\n' +
+2026-10-07T12:04:24.9036850Z     '# todo 0\n' +
+2026-10-07T12:04:24.9037102Z     '# duration_ms 1148.894574\n'
+2026-10-07T12:04:24.9037319Z
+2026-10-07T12:04:24.9037895Z       at TestContext.<anonymous> (file:///home/runner/work/ANYRAID-KLIPPER/ANYRAID-KLIPPER/host/test/product-client-gateway-compiled.test.ts:24:169)
+2026-10-07T12:04:24.9038960Z       at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+2026-10-07T12:04:24.9039410Z       at async Test.run (node:internal/test_runner/test:1409:7)
+2026-10-07T12:04:24.9039844Z       at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+2026-10-07T12:04:24.9040220Z     generatedMessage: true,
+2026-10-07T12:04:24.9040426Z     code: 'ERR_ASSERTION',
