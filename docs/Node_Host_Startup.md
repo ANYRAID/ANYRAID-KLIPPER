@@ -2990,3 +2990,57 @@ WebSocket 单帧 1 MiB、全局发送缓冲 8 MiB，有界请求与流式回压�
 原始失败及数值见[接入验收](../host/contracts/protected-client-gateway-acceptance.json)。
 完整同包 Fluidd／Mainsail、进程崩溃恢复、目标板、G3 和全面 Python
 退役仍待完成。
+
+### 一次性按层暂停候选
+
+原生设备代际提供鉴权 `GET/POST/DELETE /printer/print/layer_pause`，
+JSON-RPC 对应 `printer.print.get_layer_pause`、`post_layer_pause`、
+`delete_layer_pause`。这是运行态意图，不支持旧宏或任意 G-code 写入。
+GET 返回当前请求、打印 `print_state_token`、意图 `state_token`、层信息、
+目标、到期时间与回执。POST 示例（时间替换为当前未来时间）：
+
+```json
+{"version":1,"request_id":"当前打印请求","print_state_token":"GET 返回的打印令牌","state_token":"GET 返回的意图令牌","layer":"next","expires_at":1791363600000}
+```
+
+打印须正在执行且已知当前／总层数；`layer` 也可为大于当前层且不超过
+总层数的安全整数。到期时间须是未来 24 小时内的 Unix 毫秒。两种令牌
+同时比较，接纳即更换意图令牌；旧请求返回 409，不自动重发或覆盖新意图。
+DELETE 只传上述 version、请求身份和两种令牌，撤销等待中的意图，不恢复
+已经暂停的打印。GET 允许重新核对状态；失败回执不泄漏设备内部异常。
+
+仅文件流已成功接受且自身带 `CURRENT_LAYER` 的 `SET_PRINT_STATS_INFO`
+可触发；控制台层信息及文件仅总层数更新均不触发。跳层时在首次达到
+或超过目标的层信息之后、下一条文件命令之前阻止准入。前缀释放调度权后
+请求同一 `PrintController.pause()`，其 ACK、停车路径、温控、原期限和
+安全停止继续由既有所有者执行。文件泵不等待控制器暂停，以免失败清理
+反过来等待文件泵。此前已接受的运动仍按原停车策略处理，本入口不承诺
+切片器元数据与实际物理层完全一致。
+
+实际暂停继续通过原打印状态查询／订阅观察，必须显式恢复。取消、手动
+状态变化、到期、设备退役和进程重启均使等待意图失效；不持久化或自动重放。
+原完整混合负载的基线／候选各一场已通过；另有带层元数据的补充场景
+验证鉴权层暂停、显式恢复、后续原暂停／超时取消及代际拒绝。均为独立
+编译 JavaScript 产品与 PTY MCU 模型，仍需实际客户端与 Cycnumbris 500
+目标验证，G3 不变。指纹、全部指标及首版夹具顺序失败见
+[层暂停验收](../host/contracts/print-layer-pause-acceptance.json)。
+
+补充输入仅在 `ANYRAID_BENCH_LAYER_PAUSE=on` 启用，限定完整 namespace／
+原生授权／API 负载场景；未启用时逐字使用原运动程序。启用后增加 11 条
+切片层元数据和 1 秒等待，去除后必须严格还原原 1000 条运动程序。层暂停
+放在第二个既有作业，首作业的文件覆盖 printing 断言保持原样。复验须
+提供上述契约的固定包、manifest 与实际依赖摘要，再在 host 下执行：
+
+```bash
+ANYRAID_BENCH_CORS_ORIGIN=https://fluidd.example.com \
+ANYRAID_BENCH_MACHINE_CONTROL=on ANYRAID_BENCH_AUTOMATIC_QUEUE=on \
+ANYRAID_BENCH_LAYER_PAUSE=on \
+node --test --test-concurrency=1 \
+  --test-name-pattern='^namespace=true nativeAuthorization=true apiLoad=true load=false spi=false ' \
+  acceptance/product-compiled-journey.test.ts
+```
+
+`ANYRAID_ACCEPTANCE_BUNDLE`、`ANYRAID_ACCEPTANCE_MANIFEST_SHA256` 和
+`ANYRAID_ACCEPTANCE_DEPENDENCIES_SHA256` 须绑定同一固定产物。原 180 秒
+用例、90 秒子进程、停止／精度及负载预算均保持；补充输入不作为原
+未改输入的性能配对样本，也不证明完整页面或物理层边界。

@@ -64,6 +64,32 @@ test('authorized HTTP pressure tuning completes while a paused native file retai
   assert.deepEqual(owner.printer.linear.port.position(),[2.56,0,0,0]);assert.deepEqual(owner.printer.print.gcode.pressureAdvance!.pressureAdvance,{advance:.1,smoothTime:.08});
  }finally{await owner?.close();await f.dispose();}
 });
+test('authorized layer pause uses the native file controller, parking and explicit resume',{timeout:15000},async()=>{
+ const f=await fixture(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>();let owner:Awaited<ReturnType<typeof startProductService>>|undefined;
+ try{
+  const path=join(f.dir,'layer-pause.gcode');await writeFile(path,'SET_PRINT_STATS_INFO TOTAL_LAYER=2 CURRENT_LAYER=0\nTEST_LAYER_GATE\nG1 X0.125 F60\nSET_PRINT_STATS_INFO CURRENT_LAYER=1\nG1 X0.25 F60\nSET_PRINT_STATS_INFO CURRENT_LAYER=2\nG1 X0.375 F60\n');
+  f.options.print.startupHoming={mode:'require_homed',axes:[0]};f.options.print.open=async()=>GCodeFileReader.adopt(await open(path,'r'));
+  owner=await startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);owner.printer.linear.kinematics.markHomed([0]);
+  // Test-only admission latch before the first file move; actual native pause,
+  // parking, ACK, resume and completion remain owned by the product controller.
+  owner.printer.print.gcode.dispatch.register('TEST_LAYER_GATE',async()=>{entered.resolve();await release.promise;});
+  const base=`http://127.0.0.1:${owner.address.port}`,headers={'x-api-key':'test','content-type':'application/json'},controller=owner.printer.controller;
+  const get=async()=>{const response=await fetch(base+'/printer/print/layer_pause',{headers});assert.equal(response.status,200);return (await response.json() as any).result;};
+  await controller.start({version:1,requestId:'native-layer-job',fileId:'file',nozzle:0,bed:0});await entered.promise;
+  const state=await get();assert.equal(state.available,true);assert.equal(state.current_layer,0);assert.equal(state.total_layer,2);
+  const intention={version:1,request_id:state.request_id,print_state_token:state.print_state_token,state_token:state.state_token,layer:'next',expires_at:Date.now()+60000};
+  const post=async(authorized:boolean)=>{const response=await fetch(base+'/printer/print/layer_pause',{method:'POST',headers:authorized?headers:{'content-type':'application/json'},body:JSON.stringify(intention)});await response.arrayBuffer();return response.status;};
+  assert.equal(await post(false),401);assert.equal((await get()).armed,false);assert.equal(await post(true),200);assert.equal(await post(true),409);
+  release.resolve();const pauseDeadline=performance.now()+5000;while(String(controller.state)!=='paused'){assert.equal(controller.failure,undefined);assert(performance.now()<pauseDeadline,'native layer pause missed its test deadline');await delay(2);}
+  const paused=await get();assert.equal(paused.outcome,'paused');assert.equal(paused.current_layer,1);assert.equal(paused.armed,false);
+  // Parking preserves the admitted file endpoint. pausePosition is the brake
+  // point to which resume must return; source position is the parked position.
+  assert.deepEqual(owner.printer.linear.port.position(),[.125,0,0,0]);assert.deepEqual(owner.printer.initial.generation.source.status.position,[0,0,0,0]);assert.equal(owner.printer.initial.generation.source.status.paused,true);assert.equal(await f.journal.active()!=null,true);
+  const resumed=await fetch(base+'/printer/print/resume',{method:'POST',headers,body:JSON.stringify({request_id:state.request_id,state_token:controller.stateToken})});assert.equal(resumed.status,200,await resumed.text());
+  const finishDeadline=performance.now()+5000;while(String(controller.state)!=='completed'){assert.equal(controller.failure,undefined);assert(performance.now()<finishDeadline,'native layer resume missed its test deadline');await delay(2);}
+  assert.deepEqual(owner.printer.linear.port.position(),[.375,0,0,0]);assert.equal((await get()).current_layer,2);assert.equal(await f.journal.active(),null);
+ }finally{release.resolve();await owner?.close();await f.dispose();}
+});
 test('configuration-driven product service opens real UARTs and owns the complete shutdown',async()=>{
  const f=await fixture(),transport=await productTransports(f.reader);let owner:Awaited<ReturnType<typeof startConfiguredProductService>>|undefined;
  try{

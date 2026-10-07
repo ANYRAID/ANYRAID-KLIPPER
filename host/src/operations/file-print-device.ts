@@ -1,7 +1,7 @@
 import type {PrintDevice,StartPrint} from './print.ts';
 import {GCodeDispatch} from '../gcode/dispatch.ts';
 import {GCodeFileReader} from '../gcode/file-reader.ts';
-import {GCodeFileExecution} from '../gcode/file-execution.ts';
+import {GCodeFileExecution,type FileAdmissionPause} from '../gcode/file-execution.ts';
 export interface FilePrintMotion {
  prepare(request:Readonly<StartPrint>,signal:AbortSignal):Promise<void>;
  start(signal:AbortSignal):Promise<void>;
@@ -21,6 +21,12 @@ export class FilePrintDevice implements PrintDevice {
  #motion:FilePrintMotion;#dispatch:GCodeDispatch;#open:(fileId:string,signal:AbortSignal)=>Promise<GCodeFileReader>;
  #job:Readonly<StartPrint>|undefined;#execution:GCodeFileExecution|undefined;#epoch=0;
  #stopping:Promise<void>|undefined;#fault:unknown;#started=false;#prepared=false;
+ #admission:FileAdmissionPause|undefined;
+ /** Bind once while idle; the generation owns and retires this policy. */
+ bindAdmissionPause(policy:FileAdmissionPause):()=>void{
+  if(this.#admission||this.#job||this.#execution||this.#stopping||this.#fault||!policy||['continue','accepted','blocked'].some(key=>typeof policy[key as keyof FileAdmissionPause]!=='function'))throw new Error('File admission pause owner unavailable');
+  this.#admission=policy;return ()=>{if(this.#admission===policy)this.#admission=undefined;};
+ }
  #faultListeners=new Set<(cause:unknown)=>void>();#eofListeners=new Set<(requestId:string)=>void>();
  constructor(motion:FilePrintMotion,dispatch:GCodeDispatch,open:(fileId:string,signal:AbortSignal)=>Promise<GCodeFileReader>){
   for(const name of ['prepare','start','pause','resume','finish','stop'] as const)if(typeof motion?.[name]!=='function')throw new TypeError('Incomplete file motion adapter');
@@ -48,7 +54,7 @@ export class FilePrintDevice implements PrintDevice {
   this.#guard(signal);if(this.#job)throw new Error('File print is already prepared');
   const job=Object.freeze({...request}),epoch=this.#epoch;this.#job=job;this.#execution=undefined;this.#started=false;this.#prepared=false;
   const reader=await this.#open(job.fileId,signal);
-  try{this.#guard(signal,epoch);this.#execution=new GCodeFileExecution(reader,this.#dispatch);}
+  try{this.#guard(signal,epoch);this.#execution=new GCodeFileExecution(reader,this.#dispatch,this.#admission);}
   catch(error){try{await reader.close();}catch(closeError){throw new AggregateError([error,closeError],'File acquisition cleanup failed',{cause:error});}throw error;}
   await this.#motion.prepare(job,signal);this.#guard(signal,epoch);this.#prepared=true;
  }
