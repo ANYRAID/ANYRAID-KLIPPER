@@ -1,4 +1,6 @@
 import {registerNativeDualCarriage} from '../moonraker/native-dual-carriage.ts';
+import {registerNativeLayerPause} from '../moonraker/native-layer-pause.ts';
+import {PrintLayerPause} from '../operations/print-layer-pause.ts';
 import {registerNativeAdaptiveMesh} from '../moonraker/native-adaptive-mesh.ts';
 import {registerNativeBedMeshSelection} from '../moonraker/native-bed-mesh-selection.ts';
 import {planProbeGrid,buildProbeGridMesh} from '../homing/probe-grid.ts';
@@ -121,6 +123,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
  let closeZTilt:(()=>Promise<void>)|undefined;
  let closeZAdjustment:(()=>Promise<void>)|undefined;
  let closeObjectCancellation:(()=>void)|undefined;
+ let closeLayerPause:(()=>void)|undefined;
  let closeZOffset:(()=>Promise<void>)|undefined;
  let closeZEndstop:(()=>Promise<void>)|undefined;
  let closeManualProbe:(()=>Promise<void>)|undefined;
@@ -137,6 +140,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   closeIdleSettings?.();
   closeTemperatureFans?.();
   closeObjectCancellation?.();
+  closeLayerPause?.();
   const driverCurrentClosed=closeDriverCurrent?.(),endstopPhaseClosed=closeEndstopPhase?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
   const jobs:Promise<void>[]=[];if(apiRetired)jobs.push(apiRetired);if(closeCarriage)jobs.push(closeCarriage());if(closeAdaptiveMesh)jobs.push(closeAdaptiveMesh());if(closeMeshSelection)jobs.push(closeMeshSelection());if(closeManualMesh)jobs.push(closeManualMesh());if(closeManualDelta)jobs.push(closeManualDelta());if(closeDeltaCalibration)jobs.push(closeDeltaCalibration());if(closeBedScrews)jobs.push(closeBedScrews());if(closeScrews)jobs.push(closeScrews());if(closeManualScrews)jobs.push(closeManualScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);try{jobs.push(printer.close());}catch(error){jobs.push(Promise.reject(error));}
@@ -156,6 +160,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   if(quad){const z=printer.initial.emitters.filter(e=>e.mode==='z');if(z.length!==quad.motorIds.length||z.some(e=>!quad.motorIds.includes(e.id))||!printer.hardware.plan.homing.some(h=>h.section==='probe'||h.section==='bltouch'))throw new Error('Configured Quad gantry hardware ownership differs');}
   const ownedServer={...processDefaults,productPrint:printer.controller,productPressure:printer.print.gcode.pressureAdvance,maintenanceGate:printer.maintenanceGate,nativeHost,nativeObjects:productObjects(printer,nativeHost,serverOptions.nativeUploads?id=>serverOptions.nativeUploads!.filename(id):undefined,!!zTilt,!!quad,screws?()=>screwsStatus.status:undefined)};
   const configureRoutes=()=>{const target=server!;
+  closeLayerPause=registerNativeLayerPause(target.endpoints,new PrintLayerPause(printer.controller,printer.print.file,printer.print.gcode.layers));
   closeGcodeHelp=target.endpoints.register({endpoint:'/printer/gcode/help',methods:['GET']},()=>printer.print.gcode.dispatch.commandHelp());
   closeGcodeOutput=printer.print.gcode.dispatch.observeOutput(response=>target.recordNativeGcodeResponse(response));
   signal.throwIfAborted();printer.group.assertActive();

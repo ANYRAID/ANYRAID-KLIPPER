@@ -83,11 +83,11 @@ export class GCodeDispatch {
    * The owner must retain the script and drain admitted motion before parking.
    * onCheckpoint brackets the awaited motion hook, not ordinary handlers;
    * an interrupted hook continues owning dispatch until it actually settles. */
-  executePrefix(script:string,shouldContinue:()=>boolean,onCheckpoint?:(active:boolean)=>void):Promise<number> {
-    if(typeof shouldContinue!=='function'||onCheckpoint!==undefined&&typeof onCheckpoint!=='function')return Promise.reject(new TypeError('Invalid prefix admission callbacks'));
-    return this.#enqueue(script,{boundary:'checkpoint'},shouldContinue,onCheckpoint);
+  executePrefix(script:string,shouldContinue:()=>boolean,onCheckpoint?:(active:boolean)=>void,onCommand?:(command:string)=>void):Promise<number> {
+    if(typeof shouldContinue!=='function'||onCheckpoint!==undefined&&typeof onCheckpoint!=='function'||onCommand!==undefined&&typeof onCommand!=='function')return Promise.reject(new TypeError('Invalid prefix admission callbacks'));
+    return this.#enqueue(script,{boundary:'checkpoint'},shouldContinue,onCheckpoint,onCommand);
   }
-  #enqueue(script:string,options:{acknowledge?:boolean;boundary?:'drain'|'checkpoint'},shouldContinue?:()=>boolean,onCheckpoint?:(active:boolean)=>void):Promise<number> {
+  #enqueue(script:string,options:{acknowledge?:boolean;boundary?:'drain'|'checkpoint'},shouldContinue?:()=>boolean,onCheckpoint?:(active:boolean)=>void,onCommand?:(command:string)=>void):Promise<number> {
     if(script.length>1048576||this.#pending>=64)return Promise.reject(new GCodeError('G-code admission limit'));
     const lines=script.split('\n').map(line=>line.endsWith('\r')?line.slice(0,-1):line);
     if(lines.length>16384)return Promise.reject(new GCodeError('G-code line count limit'));
@@ -95,11 +95,11 @@ export class GCodeDispatch {
     const generation=this.#generation;
     const job=this.#tail.then(()=>{
       if(generation!==this.#generation)throw new GCodeError('Script invalidated by shutdown');
-      return this.#run(lines,options.acknowledge??false,options.boundary??'drain',shouldContinue,onCheckpoint);
+      return this.#run(lines,options.acknowledge??false,options.boundary??'drain',shouldContinue,onCheckpoint,onCommand);
     });
     this.#tail=job.then(()=>{},()=>{}).finally(()=>{this.#pending--;});return job;
   }
-  async #run(lines:string[],needAck:boolean,boundary:'drain'|'checkpoint',shouldContinue?:()=>boolean,onCheckpoint?:(active:boolean)=>void):Promise<number> {
+  async #run(lines:string[],needAck:boolean,boundary:'drain'|'checkpoint',shouldContinue?:()=>boolean,onCheckpoint?:(active:boolean)=>void,onCommand?:(command:string)=>void):Promise<number> {
     const controller=new AbortController();this.#active=controller;
     try {
       let count=0,completed=0;
@@ -112,7 +112,7 @@ export class GCodeDispatch {
           await new Promise<void>(resolve=>setImmediate(resolve));
           controller.signal.throwIfAborted();if(shouldContinue&&!shouldContinue())return completed;
         }
-        let acknowledged=false;
+        let acknowledged=false,acceptedCommand:string|undefined;
         const ack=(message?:string):boolean=>{
           if(!needAck||acknowledged)return false;
           acknowledged=true;this.#output(message?'ok '+message:'ok');return true;
@@ -143,6 +143,7 @@ export class GCodeDispatch {
               }
               try{if(registration.checkpoint)onCheckpoint?.(true);const result=registration.handler(context);if(result)await result;}finally{if(registration.checkpoint)onCheckpoint?.(false);}
               controller.signal.throwIfAborted();
+              acceptedCommand=parsed.command;
             } else if(parsed.command){
               if(this.#hooks.unknownCommand==='shutdown'){const reason=`Unsupported command: ${parsed.command}`;this.emergencyStop(reason);throw new GCodeError(reason);}
               context.respondInfo(`Unknown command:"${parsed.command}"`);
@@ -155,7 +156,7 @@ export class GCodeDispatch {
           this.#output('!! '+message.split('\n')[0].trim());this.#hooks.commandError?.();
           if(!needAck||controller.signal.aborted)throw error;
         }
-        ack();completed++;
+        ack();completed++;if(acceptedCommand!==undefined)onCommand?.(acceptedCommand);
       }
       controller.signal.throwIfAborted();if(shouldContinue&&!shouldContinue())return completed;
       try{onCheckpoint?.(true);if(boundary==='checkpoint'&&this.#hooks.checkpoint)await this.#hooks.checkpoint(controller.signal);else await this.#hooks.drain?.(controller.signal);controller.signal.throwIfAborted();}

@@ -1,5 +1,8 @@
 import {GCodeDispatch} from './dispatch.ts';
 import {GCodeFileReader,type GCodeFileBatch} from './file-reader.ts';
+/** Trusted product policy. accepted runs inside file dispatch ownership;
+ * blocked runs only after that prefix releases ownership. Neither may await. */
+export interface FileAdmissionPause {continue():boolean;accepted(command:string):void;blocked():void;}
 /** Single-owner file admission. EOF means commands consumed, never motion drained.
  * Dispatcher shutdown must be wired to the independent device safety path. */
 export class GCodeFileExecution {
@@ -9,7 +12,8 @@ export class GCodeFileExecution {
  #stop:Promise<void>|undefined;#paused=false;#wake:ReturnType<typeof Promise.withResolvers<void>>|undefined;
  #checkpoint=false;#checkpointHeld=false;
  #fault:unknown;#errors:unknown[]=[];#fenced=false;
- constructor(reader:GCodeFileReader,dispatch:GCodeDispatch){if(reader.status.closed||reader.status.pending||reader.status.eof||reader.status.fault||reader.status.position!==0||reader.status.readOffset!==0)throw new Error('File reader must be fresh with no outstanding batch');this.#reader=reader;this.#dispatch=dispatch;}
+ readonly #admission:FileAdmissionPause|undefined;
+ constructor(reader:GCodeFileReader,dispatch:GCodeDispatch,admission?:FileAdmissionPause){if(reader.status.closed||reader.status.pending||reader.status.eof||reader.status.fault||reader.status.position!==0||reader.status.readOffset!==0)throw new Error('File reader must be fresh with no outstanding batch');if(admission&&['continue','accepted','blocked'].some(key=>typeof admission[key as keyof FileAdmissionPause]!=='function'))throw new TypeError('Invalid file admission pause');this.#reader=reader;this.#dispatch=dispatch;this.#admission=admission;}
  get status(){return {...this.#reader.status,phase:this.#phase,checkpointHeld:this.#checkpointHeld&&this.#checkpoint,fault:this.#fault,cleanupErrors:[...this.#errors]};}
  /** File admission progress, not physical completion or a restart checkpoint.
   * Only whole successfully dispatched batches advance the byte position. */
@@ -33,12 +37,13 @@ export class GCodeFileExecution {
     let eof=false;
     this.#inflight=(async()=>{
      if(!batch){batch=await this.#reader.next(this.#abort.signal);this.#abort.signal.throwIfAborted();if(!batch){eof=true;return;}offset=0;}
-     const completed=await this.#dispatch.executePrefix(offset?batch.script.split('\n').slice(offset).join('\n'):batch.script,()=>!this.#paused,active=>{this.#checkpoint=active;});
+     const completed=await this.#dispatch.executePrefix(offset?batch.script.split('\n').slice(offset).join('\n'):batch.script,()=>!this.#paused&&(this.#admission?.continue()??true),active=>{this.#checkpoint=active;},this.#admission?command=>this.#admission!.accepted(command):undefined);
      this.#abort.signal.throwIfAborted();offset+=completed;
      if(offset===batch.lines){this.#reader.commit(batch);batch=null;}
     })();
     try{await this.#inflight;}finally{this.#inflight=undefined;}
     if(eof)break;
+    this.#abort.signal.throwIfAborted();this.#admission?.blocked();
     // Do not starve timers or external cancellation when commands resolve immediately.
     await new Promise<void>(resolve=>setImmediate(resolve));
    }
