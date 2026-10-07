@@ -1,0 +1,517 @@
+{
+  "date": "2026-10-07",
+  "status": "Local candidate, exact new head CI and normal PR integration pending",
+  "initialDevelop": "1079998b4a1359efe3ce74d3db342859704b956a",
+  "fixCommit": "cf52cfe7",
+  "composedDevelop": "5965d388dc39831f41559fdc282c9a51d7bfd349",
+  "composedSource": "f649e84b7d2484ab66ef4fdf880cfc35c4f87358",
+  "runtime": {
+    "change": "Only successful publication of a usable clock estimate renews the existing motion authorization deadline, including warmup.",
+    "periodSeconds": 0.9839,
+    "leaseSeconds": 4.9195,
+    "demandMaximumHz": 20,
+    "unchanged": "ClockSync math, outlier rejection, eight warmup queries, timestamps, sampling cadence, query deadlines, strict trigger/step protections, MCU/native C and dependencies."
+  },
+  "productionFingerprints": {
+    "host/src/timing/clock-runtime.ts": "850d4613e9a47052fbcc5a59ee6c472f125bb0733d71149edcd10a7b56097026",
+    "host/src/timing/clock-sync.ts": "296aef1e98374d42e8324f3789be490db336a42fdf6837499e3f11b0cbc3a562",
+    "host/src/timing/secondary-sync.ts": "80f333fa80fda220576049820f2b5ff46ac487c0ee4f3911fe500db1189e0a54",
+    "host/src/protocol/serial-session.ts": "6422390a8b0d1c1598ecdeb1ceaa2b23ece409a99b8a4e1bde079900445befc9",
+    "host/src/operations/native-file-motion.ts": "3956081dc42b04caec69068bb801dfae32e4665e0f18f810efd64814955d1a5c",
+    "host/bench/clock-runtime.ts": "48a259d6d807258bc812f2095337fd14e4b9e0b3f94614b94de0307fcc16ac9c",
+    "klippy/clocksync.py": "79fdf3556dd6afe14e10963699bf6c73e56eb6cad765e9566a90b408781ee37e",
+    "host/test/helpers/clock-scheduler.ts": "318493d197ebf08a885157c2b85dd768f510feb469d05dd4610303a020072776",
+    "host/acceptance/product-compiled-journey.test.ts": "d2de03884cd6581292ad600809e3a4cfebfcb3090d94678266b2bfa0adcf12eb",
+    "host/test/clock-runtime.test.ts": "ae41b87e88e53ed9828397b3d6641310641ed856e06bb20e2de5e93576c46e30"
+  },
+  "archive": {
+    "path": "host/contracts/clock-usable-lease-evidence.json.gz",
+    "compressedSha256": "ba55d6d5ce7c1ab0a84073d1a91c58afa0c5c63f566a0ab3e37c7e45d247dcae",
+    "rawSha256": "d5250bc6ccde7ad17164a7dbf260b54e6964f5ea7dc485e7e18b2cc8cd888811",
+    "compressedBytes": 219345,
+    "rawBytes": 1257166,
+    "entries": [
+      {
+        "name": "anyraid-clock-usable-lease-before-tests-20261007.log",
+        "originalSha256": "aa9ac8be3d69b3e1fb348cbba48c96c5e5fb07bea7d2f1edf365cdbc01d1f15e",
+        "storedSha256": "aa9ac8be3d69b3e1fb348cbba48c96c5e5fb07bea7d2f1edf365cdbc01d1f15e",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-warmup-before-20261007.log",
+        "originalSha256": "a2ffe54a4a25feafe629e33f71472cc40eda825397f696fecf320ef06cc9c9ff",
+        "storedSha256": "a2ffe54a4a25feafe629e33f71472cc40eda825397f696fecf320ef06cc9c9ff",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-source-20261007.log",
+        "originalSha256": "f26d58256b8911beabd925ccf65ef5d5d8094f312622313b9f32280d0db87c26",
+        "storedSha256": "f26d58256b8911beabd925ccf65ef5d5d8094f312622313b9f32280d0db87c26",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-compiled-20261007.log",
+        "originalSha256": "8b7267fbb6196fe3ace10f08b019df75e2c8547ad498fa90877eceb54c69c5b3",
+        "storedSha256": "8b7267fbb6196fe3ace10f08b019df75e2c8547ad498fa90877eceb54c69c5b3",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-final-types-20261007.log",
+        "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-bundle-20261007.stderr",
+        "originalSha256": "004540c5deced44006f06e34676cbabe809d0d25dfba2ebe84524f4b91c646bf",
+        "storedSha256": "004540c5deced44006f06e34676cbabe809d0d25dfba2ebe84524f4b91c646bf",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-bundle-rebuilt-20261007.json",
+        "originalSha256": "7e113c735389c5103321993454e98ff3949513b8a273ca743d7f61d6d9dc3dd8",
+        "storedSha256": "7e113c735389c5103321993454e98ff3949513b8a273ca743d7f61d6d9dc3dd8",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-build-clock-lease-bundle-20261007.mjs",
+        "originalSha256": "b3471506ae02c221e95cdad887f8e7c8bc76eaa61ee4d567ba45be0d6405d2e3",
+        "storedSha256": "b3471506ae02c221e95cdad887f8e7c8bc76eaa61ee4d567ba45be0d6405d2e3",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-prepare-lease-benchmark-20261007.mjs",
+        "originalSha256": "9cba969b27c60f24d52e1e119d73db71882decd93797043608fcb0f43657fb94",
+        "storedSha256": "9cba969b27c60f24d52e1e119d73db71882decd93797043608fcb0f43657fb94",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-prepare-compiled-lease-tests-20261007.mjs",
+        "originalSha256": "61ec837338b61874795ec4382032eafdd3f0d34c5416bba79fff10cb0ad427cf",
+        "storedSha256": "61ec837338b61874795ec4382032eafdd3f0d34c5416bba79fff10cb0ad427cf",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-drivers/clock-runtime.mjs",
+        "originalSha256": "b36bed5ac25d6efd3a0164d2cb9fd692681ab713f883c53e0a920b676f430ca6",
+        "storedSha256": "b36bed5ac25d6efd3a0164d2cb9fd692681ab713f883c53e0a920b676f430ca6",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-drivers/fake-clock.mjs",
+        "originalSha256": "ae2be4cbb4d9293c92ec3605d3929f061e21f8f7273861cb62c910d53488e2c8",
+        "storedSha256": "ae2be4cbb4d9293c92ec3605d3929f061e21f8f7273861cb62c910d53488e2c8",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-drivers/clock-runtime-B.test.mjs",
+        "originalSha256": "3a3d325f77766f5683985a9fa8099e7f1abfad6810e27bea75fc9237a39beb4a",
+        "storedSha256": "3a3d325f77766f5683985a9fa8099e7f1abfad6810e27bea75fc9237a39beb4a",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-bench-A-20261007.json",
+        "originalSha256": "85a71a6294114f045be7f1de13199a9952bc8c46ef9c6a1ddefe799e2f2339bc",
+        "storedSha256": "85a71a6294114f045be7f1de13199a9952bc8c46ef9c6a1ddefe799e2f2339bc",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-bench-A-20261007.python-reference.json",
+        "originalSha256": "7af31e5a660d86cbd53dd3ed827649ffe03977cc4bca7e0e9af83f4e7b5a18ce",
+        "storedSha256": "7af31e5a660d86cbd53dd3ed827649ffe03977cc4bca7e0e9af83f4e7b5a18ce",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-mixed-A-20261007.log",
+        "originalSha256": "21e2c78dbc224cd70ddc32d3ad4f19edc0ce00493b8ca4ee51dae7d418f7b829",
+        "storedSha256": "a2b1bfbbeefb32f56a709eb90735702871d560fdf5a828266b6b73fb23c1784d",
+        "redactedFixtureStrings": 1
+      },
+      {
+        "name": "anyraid-clock-usable-lease-bench-B-20261007.json",
+        "originalSha256": "68e535aa1352726f40ab1670df13189e45380f0c1de0233faacdedb67ff8d677",
+        "storedSha256": "68e535aa1352726f40ab1670df13189e45380f0c1de0233faacdedb67ff8d677",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-bench-B-20261007.python-reference.json",
+        "originalSha256": "7af31e5a660d86cbd53dd3ed827649ffe03977cc4bca7e0e9af83f4e7b5a18ce",
+        "storedSha256": "7af31e5a660d86cbd53dd3ed827649ffe03977cc4bca7e0e9af83f4e7b5a18ce",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-mixed-B-20261007.log",
+        "originalSha256": "25da7cf5aff25139fbc90983d5ded2074f23d40057e302991b53f8dd334c16e0",
+        "storedSha256": "fef9c7a6a1f6e9a012df97c8ba98559d03b4ba1e79f385c45963e7cd8ec046a1",
+        "redactedFixtureStrings": 1
+      },
+      {
+        "name": "anyraid-prepare-lease-wire-20261007.mjs",
+        "originalSha256": "4164829b379b49c16cb49e0653574b90fc926f7ac54b97de3c020fc15d7c8c07",
+        "storedSha256": "4164829b379b49c16cb49e0653574b90fc926f7ac54b97de3c020fc15d7c8c07",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-wire-20261007.test.ts",
+        "originalSha256": "f6441b08b811dee9561659ee99e1ef9575ba1a07da4374f4d5508851c62fe101",
+        "storedSha256": "f6441b08b811dee9561659ee99e1ef9575ba1a07da4374f4d5508851c62fe101",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-wire-20261007.log",
+        "originalSha256": "1f5d721a85840083f1180cbeb83c2fc39fc65553ddc7622aa31a29ae92dba641",
+        "storedSha256": "1f5d721a85840083f1180cbeb83c2fc39fc65553ddc7622aa31a29ae92dba641",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-composition-source-20261007.log",
+        "originalSha256": "f9dcf1949a09ba00ac7d7864625d596adf89e500db3695f70901450e503bf669",
+        "storedSha256": "f9dcf1949a09ba00ac7d7864625d596adf89e500db3695f70901450e503bf669",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-composition-barrier-20261007.log",
+        "originalSha256": "a1b3e5c17ea7de4175f55d2fd18414b6929403f83f5d04404bcb9b95001c11ad",
+        "storedSha256": "a1b3e5c17ea7de4175f55d2fd18414b6929403f83f5d04404bcb9b95001c11ad",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-composition-types-20261007.log",
+        "originalSha256": "5f1afde36bd03eb2e07c925ac97e2b0f9bebac897d79641f5815ecd007dce202",
+        "storedSha256": "5f1afde36bd03eb2e07c925ac97e2b0f9bebac897d79641f5815ecd007dce202",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-composition-types-corrected-20261007.log",
+        "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-composition-whitespace-20261007.log",
+        "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-build-clock-lease-composition-20261007.mjs",
+        "originalSha256": "5f01a16bd957962511d1ad80eb21cc410351b00bb82c9092dd427d68296d3221",
+        "storedSha256": "5f01a16bd957962511d1ad80eb21cc410351b00bb82c9092dd427d68296d3221",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-composition-bundle-20261007.json",
+        "originalSha256": "2cad2ece7779a3bc48c05a03d9a761462ff79ae7a3c5c737ea5ff3352cf73a4c",
+        "storedSha256": "2cad2ece7779a3bc48c05a03d9a761462ff79ae7a3c5c737ea5ff3352cf73a4c",
+        "redactedFixtureStrings": 0
+      },
+      {
+        "name": "anyraid-clock-usable-lease-composition-mixed-20261007.log",
+        "originalSha256": "ded805a08bf12fc3f9c0e39a3bb33f5452d2f92a2fd587f5fbc000c2305cc28a",
+        "storedSha256": "61e94b87bde73e758e603d44d172f60654e0e56d505dcd52a8c253631e3b2b38",
+        "redactedFixtureStrings": 1
+      },
+      {
+        "name": "anyraid-clock-usable-lease-composition-gateway-20261007.log",
+        "originalSha256": "59a7e52beb246121cc99c11400d7bac099d28749f7711283d4d7b298e0cbe2e5",
+        "storedSha256": "59a7e52beb246121cc99c11400d7bac099d28749f7711283d4d7b298e0cbe2e5",
+        "redactedFixtureStrings": 0
+      }
+    ],
+    "redaction": "Original log hashes retained separately; stored hashes describe archived content. Only fixture credential/token strings are removed, never timings or numerical/assertion data."
+  },
+  "tests": {
+    "beforeChange": {
+      "firstThreeNewCases": "1 pass / 2 fail on old source; false active lease retained",
+      "fourthWarmupCase": "1 fail on old compiled A; missing expected expiry"
+    },
+    "afterChange": {
+      "initialSource": "48/48 original combination plus first three additions; fourth added later",
+      "compiledRuntime": "15/15 includes all four additions and original native motion/queue checks, no TypeScript loading",
+      "composedSource": "107/107 clock/secondary/queue/panel/gateway plus separate actual mcu-clock-barrier 10/10; 117 cases, overlapping earlier checks not summed",
+      "compiledGateway": "Original independent compiled gateway parent 1/1 with 9/9 child checks; no TypeScript or program PATH",
+      "typecheck": "Full original TypeScript 7 scope passed with project typescript/bin/tsc; wrong native-preview path MODULE_NOT_FOUND first attempt archived",
+      "sourceWhitespace": "Required scripts/check_whitespace.sh passed",
+      "compositionPathNote": "First source command listed nonexistent clock-calibration-barrier paths; Node matched only actual files and 107 tests. Actual mcu-clock-barrier files subsequently ran separately 10/10, never credited to nonexistent paths."
+    },
+    "scope": "Software MCU and mock scheduler only; independent compiled coverage overlaps source coverage."
+  },
+  "bundles": {
+    "isolated": {
+      "A": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-layer-pause-product-bundle",
+        "manifestSha256": "5a4d0152aae8ef4f18eba4b09523d9c6d3f07d8eadb56ebbe8f2510a02d48b99",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      },
+      "B": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-usable-lease-product-bundle",
+        "manifestSha256": "6efbebe93b0ca05929bbb5b2db5c703d5a6310af5a4540c10bca05fba6536b52",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      },
+      "changed": [
+        "host/src/timing/clock-runtime.js"
+      ],
+      "removed": [],
+      "native": "Reused unchanged accepted native outputs; no fresh C rebuild."
+    },
+    "composed": {
+      "A": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-product-bundle",
+        "manifestSha256": "ac658380edbb248db6ea72af04a88a00c163f14ff7e7c26817a5b869acd98f5d",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      },
+      "B": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-usable-lease-composed-product-bundle",
+        "manifestSha256": "106e3b7b208f3b8b82cfaa1ca40185a44f64f4dd6e046512a59931a9cdd38c08",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      },
+      "changed": [
+        "host/src/timing/clock-runtime.js"
+      ],
+      "removed": [],
+      "native": "Reused unchanged accepted C outputs; no fresh C rebuild."
+    },
+    "buildFailure": "First sandboxed builder failed spawnSync EPERM, retained. Authorized builder passed. Unchanged accepted C outputs reused, no fresh C rebuild."
+  },
+  "performance": {
+    "order": "Isolated A then B, sequential, one pair",
+    "clock": [
+      {
+        "id": "A",
+        "node": "v26.10.0",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "steadyQueries": 5000,
+        "estimatesCompared": 5008,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9,
+        "callbackMedianMs": 0.00506999999998925,
+        "callbackP95Ms": 0.007849999999990587,
+        "callbackMaxMs": 0.47991700000000037
+      },
+      {
+        "id": "B",
+        "node": "v26.10.0",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "steadyQueries": 5000,
+        "estimatesCompared": 5008,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9,
+        "callbackMedianMs": 0.005089999999995598,
+        "callbackP95Ms": 0.008209999999991169,
+        "callbackMaxMs": 2.029217999999986
+      }
+    ],
+    "clockInput": "Original fixed 5000-query fake scheduler benchmark, 5008 estimates, unchanged live Python reference and all original numerical assertions. Both raw timing arrays and actually executed Python output retained; transient sample-input file was removed by original finally, not represented as retained. No production Python dependency introduced; existing benchmark Python still pending retirement.",
+    "clockInterpretation": "B median and P95 close but maximum increased to 2.029218 ms vs 0.479917 ms. No preset timing gate in original benchmark; single pair not a speed claim or target-board budget.",
+    "mixed": {
+      "A": {
+        "statusRequests": 42379,
+        "statusP99Ms": 4.336567999998806,
+        "minimumStepLeadMs": 86.729,
+        "wireSteps": 7856,
+        "fileGroups": 16,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.992703,
+              "maxMs": 20.496383
+            }
+          },
+          {
+            "loop": {
+              "p99Ms": 1.932287,
+              "maxMs": 13.107199
+            }
+          }
+        ],
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2431,
+          "queryP99Ms": 7.523722000001726,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        },
+        "durationMs": 74721.507172
+      },
+      "B": {
+        "statusRequests": 38806,
+        "statusP99Ms": 6.420014999999694,
+        "minimumStepLeadMs": 88.744,
+        "wireSteps": 7508,
+        "fileGroups": 16,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.564095,
+              "maxMs": 18.513919
+            }
+          },
+          {
+            "loop": {
+              "p99Ms": 1.940479,
+              "maxMs": 12.279807
+            }
+          }
+        ],
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2243,
+          "queryP99Ms": 8.82539800000086,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        },
+        "durationMs": 70073.902523
+      },
+      "composedB": {
+        "statusRequests": 42734,
+        "statusP99Ms": 3.8818899999996574,
+        "minimumStepLeadMs": 82.475,
+        "wireSteps": 7958,
+        "fileGroups": 16,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.976319,
+              "maxMs": 19.546111
+            }
+          },
+          {
+            "loop": {
+              "p99Ms": 1.994751,
+              "maxMs": 15.351807
+            }
+          }
+        ],
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2454,
+          "queryP99Ms": 3.994211000001087,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        },
+        "durationMs": 75246.266963
+      }
+    },
+    "originalMixedConditions": "Original namespace=true nativeAuthorization=true apiLoad=true case; fixed independent bundle trio; no ANYRAID_BENCH_* switches; original 1000 moves, double software MCU/two generations, 16 file groups, 64 durable queue writes, 90 s child / 180 s case and all original motion precision/fault/recovery/timing assertions unchanged.",
+    "mixedInterpretation": "Isolated B status P99 6.420015 ms vs A 4.336568 ms, retained as increase. New composed B is a separate integration check, not paired acceleration evidence. Original budgets passed, target board/hardware excluded."
+  },
+  "wire": {
+    "originalOperationPassed": false,
+    "exitCode": 1,
+    "caughtError": {
+      "name": "Error",
+      "message": "Native file motion stopped"
+    },
+    "preCloseStops": [
+      1,
+      1
+    ],
+    "injectedWireDelays": [
+      {
+        "name": "get_uptime",
+        "requestedMs": 4,
+        "actualMs": 4.084163999999987,
+        "beforeClock": 1111488,
+        "afterClock": 1115578
+      },
+      {
+        "name": "get_clock",
+        "requestedMs": 20,
+        "actualMs": 21.90542000000005,
+        "beforeClock": 1165910,
+        "afterClock": 1187831
+      },
+      {
+        "name": "get_clock",
+        "requestedMs": 20,
+        "actualMs": 20.073036000000002,
+        "beforeClock": 1240503,
+        "afterClock": 1260582
+      }
+    ],
+    "failureMonotonic": 868826.156837496,
+    "captures": [
+      {
+        "id": "mcu",
+        "count": 28,
+        "unknownSendTimes": 0,
+        "rejectedRegular": 1,
+        "lastUsableReceiveTime": 868826.141118739,
+        "lastObservedReceiveTime": 868826.141118739,
+        "failureSecondsAfterUsable": 0.01571875694207847
+      },
+      {
+        "id": "aux",
+        "count": 38,
+        "unknownSendTimes": 0,
+        "rejectedRegular": 30,
+        "lastUsableReceiveTime": 868821.224127541,
+        "lastObservedReceiveTime": 868826.111786607,
+        "failureSecondsAfterUsable": 4.932709955028258
+      }
+    ],
+    "scope": "Both MCU stop callbacks observed before service.close. Aux failure is 4.932709955 s after last usable sample (lease 4.9195 s), consistent with expiry. Initiating ClockRuntime fault not directly captured; caught/cleanup Native file motion stopped is not root-cause proof. Warmup bias, availability, original remote cause and G3 remain unresolved."
+  },
+  "acceptedDevelopIntegration": {
+    "PR35": {
+      "head": "ea873c8f08a42deca564857cae6c6ba19faf7201",
+      "hostRun": 37620228668,
+      "firmwareRun": 37620228829,
+      "headChecks": "all success",
+      "merged": "0ca86d6ea81ea6ed5775483e79d311d59d3ebce4",
+      "postMerge": {
+        "hostRun": 37625660691,
+        "firmwareRun": 37625660632,
+        "status": "in_progress when observed"
+      }
+    },
+    "PR36": {
+      "head": "ccf6ffea90bec68ebfd7996feffe870340342ec9",
+      "hostRun": 37621538740,
+      "firmwareRun": 37621538827,
+      "headChecks": "all success",
+      "merged": "5965d388dc39831f41559fdc282c9a51d7bfd349",
+      "postMerge": {
+        "hostRun": 37625892823,
+        "firmwareRun": 37625892846,
+        "status": "in_progress when observed"
+      }
+    },
+    "postMergeChecks": "In progress; exact merged SHA must have own checks. Historical failure retained."
+  },
+  "notClosed": [
+    "Warmup bias and clock estimator recovery",
+    "PR32 original intermittent remote failure",
+    "G3 and real motion/target-board precision and performance",
+    "Complete same-bundle actual Fluidd/Mainsail acceptance",
+    "All Moonraker contracts/old macro scenarios",
+    "177 tracked klippy Python files, default Python printing entry, full build/install/maintenance Python retirement",
+    "Master release and guarded install/rollback; other machine adaptation last"
+  ],
+  "node": {
+    "version": "v26.10.0",
+    "sha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da"
+  },
+  "compiledRuntimeSha256": "322f9049b2740684497f621ac2c9844485bc2b889335caf7879180755290739b"
+}

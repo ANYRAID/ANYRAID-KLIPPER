@@ -1,6 +1,6 @@
 {
   "date": "2026-10-07",
-  "status": "Local candidate; exact head full CI and normal PR integration pending",
+  "status": "Local latest-develop combination accepted; original PR head CI in progress, combination CI and normal integration pending",
   "develop": "5965d388dc39831f41559fdc282c9a51d7bfd349",
   "change": "Retire live Python/CFFI, Git and C compiler processes from four original clock benchmarks covering five profiles. Frozen independently executed original reference inputs/outputs remain exact; no production algorithm or dependencies change.",
   "node": {
@@ -91,10 +91,10 @@
   },
   "archive": {
     "path": "host/contracts/clock-benchmark-retirement-evidence.json.gz",
-    "compressedSha256": "9e4ba7a98a5d12867e7d98c748882a34eb7cad044ebd05a79a651bf25765d32b",
-    "rawSha256": "42edf86fe0604fc8a5c09cafaebea61c223ee8ab6f6c85c1d5bc5fd783d44794",
-    "rawBytes": 1265546,
-    "compressedBytes": 141760,
+    "compressedSha256": "84544ccbe14ea153884a282738e2193a59133bb2a83195e5bee92cb225bb8f37",
+    "rawSha256": "3b39e3c52521053c94dde484a4f22d17bb578baf7e159930600540c0c4631ffc",
+    "rawBytes": 1561003,
+    "compressedBytes": 183669,
     "entries": [
       {
         "name": "after-default.json",
@@ -391,6 +391,26 @@
       {
         "name": "receipt-generation-sandbox-failure.json",
         "sha256": "71cb78ef48f2584ba381a6365fab5140db73eacf0b8f2c237fc62e276b46c88b"
+      },
+      {
+        "name": "integration/tests-20261007.log",
+        "sha256": "c71dfa838c4524ce99269d1985873aaf0c1f7fd36f0abff044bafff586dc7fc6"
+      },
+      {
+        "name": "integration/typecheck-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "integration/runtime-20261007.json",
+        "sha256": "fc09fb32adb297219b5d20bbd9f1f0a99ef02e5256a875a5b1dccb7e200fb9ae"
+      },
+      {
+        "name": "integration/runtime-20261007.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "integration/whitespace-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       }
     ]
   },
@@ -676,9 +696,39 @@
     "Receipt production fingerprint check first failed spawnSync git EPERM despite inner status 0; structured original diagnostic is archived. Authorized read-only object check succeeded."
   ],
   "integration": {
-    "PR35": "0ca86d6e head and postmerge host 37625660691/firmware 37625660632 all success",
-    "PR36": "5965d388 head and postmerge host 37625892823 / firmware 37625892846 all success verified",
-    "PR37": "25e96ea9 firmware 37627050631 success; host 37627050528 sanitizer in progress when last observed; frozen head unchanged"
+    "base": "bcd65b2319b7d9d40499f80dddaf9ad96e77f3a9",
+    "originalRetirementHead": "46c17c51462cc5eab2d30003e0940c4bfe144891",
+    "method": "Normal merge, preserve both documentation changes; inherited production ClockRuntime lease fix from PR 37. Original sourceFingerprints above remain scoped to captured 5965d388 baseline.",
+    "clockRuntimeSha256": "850d4613e9a47052fbcc5a59ee6c472f125bb0733d71149edcd10a7b56097026",
+    "tests": {
+      "passed": 42,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "ClockRuntime including four lease cases, ClockSync, secondary sync, six frozen-reference integrity cases. Do not sum with overlapping previous coverage."
+    },
+    "typecheck": true,
+    "requiredWhitespace": true,
+    "clockRuntimeBenchmark": {
+      "steadyQueries": 5000,
+      "estimatesCompared": 5008,
+      "maxClockError": 0,
+      "maxFrequencyError": 1.1641532182693481e-9,
+      "callbackMedianMs": 0.005200000000002092,
+      "callbackP95Ms": 0.011579999999980828,
+      "callbackMaxMs": 2.7597590000000025,
+      "restriction": "PATH=/no-programs PYTHON=/no-python Node --permission --allow-fs-read=*; no ChildProcess grant",
+      "scope": "Original workload and precision assertions after normal merge; single observation, not paired evidence of improvement."
+    },
+    "originalHeadCI": {
+      "host": 37631220306,
+      "firmware": 37631220608,
+      "status": "In progress; not claimed successful"
+    },
+    "leasePostMergeCI": {
+      "host": 37632028028,
+      "firmware": 37632028467,
+      "status": "In progress; not claimed successful"
+    }
   },
   "notClosed": [
     "G3, original intermittent numerical/motion failure and clock warmup bias/recovery",
