@@ -422,6 +422,25 @@ export class PublishedPrintFiles {
  },true,signal);}
  resolvePath(path:string,signal:AbortSignal):Promise<string>{return this.#run(async()=>{publishedPath(path);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');const id=this.#paths.get(path);if(!id)throw Object.assign(new Error('Published file path not found'),{code:'ENOENT'});return id;},true,signal);}
  hasDirectory(path:string,signal:AbortSignal):Promise<boolean>{return this.#run(async()=>{publishedPath(path);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');return this.#directories.has(path);},true,signal);}
+ /** Upload parents share one durable directory authority. Existing timestamps
+  * and ownership remain intact; a later file failure can leave empty parents. */
+ ensureUploadParents(path:string,signal:AbortSignal,authorizedParents?:readonly string[]):Promise<readonly PublishedDirectoryChange[]>{const authorized=authorizedParents&&new Set(authorizedParents);return this.#run(async()=>{
+  publishedPath(path);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');
+  if(this.#paths.has(path)||this.#directories.has(path))throw Object.assign(new Error('Upload path is occupied'),{code:'EEXIST'});
+  const next=new Map(this.#directories),changes:PublishedDirectoryChange[]=[],modified=Date.now()/1000,parts=path.split('/');let parent='';
+  for(const part of parts.slice(0,-1)){
+   parent+=(parent?'/':'')+part;
+   if(this.#paths.has(parent)||this.#publishingPaths.has(parent))throw Object.assign(new Error('Upload parent is a file'),{code:'EEXIST'});
+   if(next.has(parent))continue;
+   if(authorized&&!authorized.has(parent))throw new PublishedFileChangedError('Upload parents changed during authorization');
+   if(next.size>=1024)throw new Error('Published directory limit exceeded');
+   next.set(parent,modified);changes.push(Object.freeze({action:'create_dir',path:parent,modified}));
+  }
+  if(!changes.length)return Object.freeze(changes);
+  await this.#commitDirectories(next,signal);
+  for(const event of changes)for(const observer of this.#directoryObservers)try{observer(event);}catch{this.#observerFailures++;}
+  return Object.freeze(changes);
+ },true,signal);}
  /** Display only; cached naming does not authorize opening or printing bytes. */
  filename(id:string):string{this.#id(id);const file=this.#records.get(id)?.record;return file?visibleFilePath(file):id+'.gcode';}
  #moveTarget(source:string,destination:string):string{
