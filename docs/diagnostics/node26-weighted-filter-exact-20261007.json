@@ -1,0 +1,157 @@
+{
+  "date": "2026-10-07",
+  "base": "74a4304fd8a56363fbd0e0f673531e958888da1c",
+  "node": "v26.10.0",
+  "nodeSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+  "sourceHashes": {
+    "host/scripts/diagnostics/weighted-filter-oracle.ts": "ccfbf189a7e446817f71405817e469f952697fa6838d6a12e7d78eab769f6ae8",
+    "host/scripts/inspect-captured-weighted-filter.ts": "c7b8cb1042ae8fc7a596349b0105593bf6be949169a251eac61f21fa2e7b469a",
+    "host/test/weighted-filter-oracle.test.ts": "6140c7edaf7acecf317499ca9d3e21eee1e74ad2b41df151ac53ebaba5e408eb"
+  },
+  "capture": {
+    "compressedSha256": "a29c9f0d79eccbbb75989ae54b7a301c619ef6b7e2c842610549ac4727123869",
+    "rawSha256": "4fd344604a2dfa98bc2c4cfad80515c0df10ea4658565827e3e0619264908fb6"
+  },
+  "question": "Can the saved jitless weighted4 discrepancy at position 4897 be explained by normal rounding over the archived same-invocation operands?",
+  "method": "BigInt exact dyadic arithmetic and independent quotient/remainder ties-to-even rounding; captured inputs only",
+  "observations": [
+    {
+      "index": 4896,
+      "halfWindow": 83,
+      "saved": 26.273490838986433,
+      "savedBits": "403a46037ee133cc",
+      "ideal": 26.273490838986433,
+      "idealBits": "403a46037ee133cc",
+      "stepwise": 26.273490838986433,
+      "compensated": 26.273490838986433,
+      "ulpDistanceFromIdeal": "0",
+      "differenceFromIdeal": 0,
+      "differenceFromCompensated": 0,
+      "high": 110391838131.47278,
+      "low": 0.0000014081597328186035,
+      "weight": 2.3800211395787823e-10,
+      "tapLedgerSha256": "ef66302023ff2be468e742eeb5f1bcd20a4f1deee8043832f72eeadf5a2c6436"
+    },
+    {
+      "index": 4897,
+      "halfWindow": 83,
+      "saved": 26.28547759826604,
+      "savedBits": "403a49150f544b14",
+      "ideal": 26.285477597482263,
+      "idealBits": "403a49150f50ed4e",
+      "stepwise": 26.28547759748226,
+      "compensated": 26.28547759748226,
+      "ulpDistanceFromIdeal": "220614",
+      "differenceFromIdeal": 7.837783755348937e-10,
+      "differenceFromCompensated": 7.837819282485725e-10,
+      "high": 110442202215.62521,
+      "low": -0.000009333249181509018,
+      "weight": 2.3800211395787823e-10,
+      "tapLedgerSha256": "925aaf47bea09394f798430b4da52175ddcc35344f9802f16495b478dbc84d9f"
+    },
+    {
+      "index": 4898,
+      "halfWindow": 83,
+      "saved": 26.297465058378425,
+      "savedBits": "403a4c26ab897025",
+      "ideal": 26.297465058378428,
+      "idealBits": "403a4c26ab897026",
+      "stepwise": 26.297465058378425,
+      "compensated": 26.297465058378425,
+      "ulpDistanceFromIdeal": "-1",
+      "differenceFromIdeal": -3.552713678800501e-15,
+      "differenceFromCompensated": 0,
+      "high": 110492569251.01337,
+      "low": -0.0000419076532125473,
+      "weight": 2.3800211395787823e-10,
+      "tapLedgerSha256": "1a0069fb351e3159d41481b712a60c2ddb36aaa025df1b0cc8c51d104ae08b51"
+    }
+  ],
+  "sourceReplay": {
+    "elapsedMs": 157.528702,
+    "sha256": "39663c93e35f24a00e707353913276d4150a156436c43bdc798341bd33511fd9"
+  },
+  "compiledReplay": {
+    "elapsedMs": 139.99967099999998,
+    "sha256": "c0ebbcdb26dd56883c5e5ce8d5c1b31774749add55920bf0dfb06d7be6be365e",
+    "typescriptLoaded": false,
+    "python": false,
+    "thirdPartyRuntimeDependencies": 0,
+    "observationsIdenticalToSource": true
+  },
+  "tests": {
+    "source": 5,
+    "compiled": 5,
+    "overlapping": true,
+    "addCounts": false,
+    "fullProjectTypes": "exit0",
+    "compile": "exit0"
+  },
+  "retainedFailures": [
+    {
+      "log": "anyraid-captured-filter-exact-20261007.log",
+      "kind": "Temporary prototype tested a -0 round trip through mathematical integer zero; zero sign is lost by that representation. Final helper documents exact zero as +0 and separately verifies signed nonzero underflow."
+    },
+    {
+      "log": "anyraid-weighted-oracle-tests-20261007.log",
+      "kind": "Initial test syntax omitted required parentheses around unary minus and exponentiation; corrected before actual scenarios."
+    },
+    {
+      "log": "anyraid-weighted-oracle-fixed-tests-20261007.log",
+      "kind": "Ordinary sandbox showed one file wrapper; not counted as five executed scenarios. Escalated source and emitted-JavaScript execution confirmed all five."
+    }
+  ],
+  "logHashes": {
+    "anyraid-captured-filter-exact-20261007.log": "0346b9a77a218068337b96d5ad841c558d5d7d4f133542146538e46c262f6173",
+    "anyraid-captured-filter-exact-normal-20261007.log": "01e66a18101858b535b1b8816501a3327c0cf7fa72206a17e1db0301fb0b6767",
+    "anyraid-weighted-oracle-tests-20261007.log": "fdbaaf8fb733129e308f21a271c0dd0456d2271c86d863d5bf3ec7784435b927",
+    "anyraid-weighted-oracle-fixed-tests-20261007.log": "ccdf2d35ce8ba85d12f4cc6c5fc60a7875f5265cc4cd9201aba7bbcd94cd0963",
+    "anyraid-weighted-oracle-owned-tests-20261007.log": "895b2bfc74d1e17e098009fab91e3ebba4e562cf8a22959be5f94304daa70e9b",
+    "anyraid-weighted-oracle-compiled-tests-20261007.log": "746d10a88a2b61f892f62e77a7f43b0490982557ce76df55d62ad5c684d2a898",
+    "anyraid-weighted-oracle-final-source-tests-20261007.log": "21211b1834911c9edc533a9e54a0e649f51a176e7977187bd908444aac258a42",
+    "anyraid-weighted-oracle-final-types-20261007.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "anyraid-weighted-oracle-final-compile-20261007.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "anyraid-weighted-oracle-whitespace-20261007.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "remoteJitlessAlreadyCompleted": {
+    "run": 37516736093,
+    "matrixJobs": 10,
+    "matrixAllSuccessful": true,
+    "jitlessCompiled": [
+      {
+        "job": 112451464525,
+        "version": "26.10.0",
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37516736093/job/112451464525",
+        "status": "completed/success",
+        "logSha256": "2109c37e9c1d73fc19a455ff72e527c469f0f0220e4ee9f62619c6183d043ed1",
+        "terminalLines": [
+          "2026-10-06T19:21:17.2358015Z {\"directory\":\"/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-sS7vaV\",\"runs\":50,\"failures\":0}"
+        ]
+      },
+      {
+        "job": 112451464768,
+        "version": "26.9.0",
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37516736093/job/112451464768",
+        "status": "completed/success",
+        "logSha256": "2a17383c5a4225347e06cc58bd1c5a94fd6ebc1c40c8e9d6cdaf2e332711c918",
+        "terminalLines": [
+          "2026-10-06T19:22:57.0680326Z {\"directory\":\"/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-IPJKqj\",\"runs\":50,\"failures\":0}"
+        ]
+      }
+    ],
+    "scope": "Original 50 fresh processes per version completed with zero observed failures. Revalidated stored logs and terminal jobs; no rerun. Finite success does not close historical faults."
+  },
+  "finding": "Saved output differs from correctly rounded exact weighted arithmetic by 220614 ULP; its two neighbors differ by 0 and -1 ULP. Production-style compensation agrees with a model of rounded products, exact summation and rounded weight. Normal rounding of the archived operands does not explain this stored discrepancy.",
+  "remaining": "No per-tap operand/accumulator values from the failed invocation were retained. Saved nominal inputs cannot rule out transient changes while filtering. Runtime, memory and hardware causes remain unproven; the distinct equal-operands/nonzero-difference failure is not explained by this result.",
+  "acceptance": {
+    "diagnosticReplayOnly": true,
+    "productionMathChanged": false,
+    "productionIsolationProven": false,
+    "G3Closed": false,
+    "targetPerformance": false,
+    "physicalMotionAuthorized": false,
+    "pythonRetired": false,
+    "completeGoal": false
+  },
+  "next": "Capture per-tap operand, weighted product, high/low accumulation and final weight/result from the same failing full invocation under the original profile and bounds. A diagnostic-only ledger must pass injected-error detection and preserve the first failure; successful repeats cannot close G3."
+}
