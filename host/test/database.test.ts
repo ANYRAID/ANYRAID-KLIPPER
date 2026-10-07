@@ -1,9 +1,10 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,symlink} from 'node:fs/promises';
+import {mkdtemp,rm,symlink,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {DatabaseSync} from 'node:sqlite';
+import {databaseReference,databaseInteropSnapshot} from './helpers/database-reference.ts';
 import {DatabaseStore} from '../src/moonraker/database.ts';
 import {encodeDatabaseRecord,decodeDatabaseRecord} from '../src/moonraker/database-record.ts';
 import {ApiError,type Json} from '../src/moonraker/rpc.ts';
@@ -31,13 +32,13 @@ test('database rejects symlink files and malformed pre-existing schemas',()=>dir
  await symlink(file,join(dir,'link.sqlite'));await assert.rejects(DatabaseStore.open({path:join(dir,'link.sqlite')}),/regular file/);
 }));
 test('namespace transactions and persisted record interoperability match pinned Python methods',()=>directory(async dir=>{
- const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');
+
  const operations:Json[][]=[['get','ui','missing'],['insert','ui','root',5],['insert','ui','root.a.b',1],['insert','ui',['literal.dot'],{x:[1,'中文',null],temperature:2.675}],['get','ui'],['insert','ui','root.a.c',null],['get','ui','root.a'],['insert','ui','root',null],['get','ui','root'],['delete','ui','root.a.b'],['delete','ui','root.a.c'],['get','ui','root'],['delete','ui','root'],['get','ui','root']];
- const pyPath=join(dir,'python.sqlite'),result=spawnSync('/usr/bin/python3',['-c',databaseOracle()],{input:JSON.stringify({path:pyPath,operations}),encoding:'utf8'});assert.equal(result.status,0,result.stderr);
+ const pyPath=join(dir,'python.sqlite'),result=databaseReference<Json[]>('transactions',JSON.stringify({operations}));await writeFile(pyPath,databaseInteropSnapshot(),{flag:'wx',mode:0o600});
  const owner=await DatabaseStore.open({path:join(dir,'node.sqlite')}),actual:Json[]=[];
- try{for(const [method,namespace,key,value] of operations){try{const result=method==='insert'?await owner.insert(namespace as string,key as string,value):method==='delete'?await owner.delete(namespace as string,key as string):await owner.get(namespace as string,key as string|undefined);actual.push({value:result});}catch(error){assert.ok(error instanceof ApiError);actual.push({error:error.status});}}assert.deepEqual(actual,JSON.parse(result.stdout));}finally{await owner.close();}
+ try{for(const [method,namespace,key,value] of operations){try{const result=method==='insert'?await owner.insert(namespace as string,key as string,value):method==='delete'?await owner.delete(namespace as string,key as string):await owner.get(namespace as string,key as string|undefined);actual.push({value:result});}catch(error){assert.ok(error instanceof ApiError);actual.push({error:error.status});}}assert.deepEqual(actual,result);}finally{await owner.close();}
  const imported=await DatabaseStore.open({path:pyPath});try{assert.deepEqual(await imported.get('ui',['literal.dot']),{x:[1,'中文',null],temperature:2.675});await imported.insert('ui','from_node',{ok:true});}finally{await imported.close();}
- const verify=spawnSync('/usr/bin/python3',['-c',databaseOracle().slice(0,databaseOracle().indexOf('def main():'))+"\nconn=sqlite3.connect(sys.argv[1],detect_types=sqlite3.PARSE_DECLTYPES)\nprint(json.dumps(conn.execute(\"SELECT value FROM namespace_store WHERE key='from_node'\").fetchone()[0]))",pyPath],{encoding:'utf8'});assert.equal(verify.status,0,verify.stderr);assert.deepEqual(JSON.parse(verify.stdout),{ok:true});
+ const verify=new DatabaseSync(pyPath,{readOnly:true});try{const raw=verify.prepare("SELECT value FROM namespace_store WHERE namespace='ui' AND key='from_node'").get()!.value as Uint8Array;assert.deepEqual(JSON.parse(Buffer.from(raw).toString()),databaseReference('record-read',''));}finally{verify.close();}
 }));
 test('configured database REST and RPC authenticate and transfer durable owner lifetime',()=>directory(async dir=>{
  const {writeFile}=await import('node:fs/promises'),{ConfiguredMoonraker}=await import('../src/moonraker/configured-server.ts');const file=join(dir,'moonraker.conf');await writeFile(file,'[server]\nhost=127.0.0.1\nport=0');
@@ -77,11 +78,11 @@ test('concurrent server construction cannot take ownership of one database twice
  try{assert.equal(result.filter(r=>r.status==='fulfilled').length,1);assert.equal(result.filter(r=>r.status==='rejected').length,1);}finally{for(const r of result)if(r.status==='fulfilled')await r.value.close();await database.close();}
 }));
 test('database updates and literal-key batches match pinned Python including null and sequential rename collisions',()=>directory(async dir=>{
- const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');
+
  const operations:Json[][]=[['insertBatch','ui',{a:{x:1,sub:{old:1}},b:2,'literal.dot':null}],['update','ui','a',{y:2}],['update','ui','a.sub',{added:2}],['get','ui','a'],['update','ui','a.x',null],['update','ui','b',null],['getBatch','ui',['a','b','literal.dot','missing','a']],['moveBatch','ui',['a','b'],['b','a']],['getBatch','ui',['a','b']],['insertBatch','ui',{c:3,d:4}],['moveBatch','ui',['c','d'],['c.new']],['getBatch','ui',['c','d','c.new']],['deleteBatch','ui',['a','a','missing','literal.dot']],['getBatch','ui',[]],['getBatch','ui',['a','literal.dot','c.new','d']]];
- const expected=spawnSync('/usr/bin/python3',['-c',databaseOracle()],{input:JSON.stringify({operations}),encoding:'utf8'});assert.equal(expected.status,0,expected.stderr);
+ const expected=databaseReference<Json[]>('updates-batches',JSON.stringify({operations}));
  const store=await DatabaseStore.open({path:join(dir,'db.sqlite')}),actual:Json[]=[];
- try{for(const [method,namespace,...args] of operations){const methods={insertBatch:()=>store.insertBatch(namespace as string,args[0] as Record<string,Json>),update:()=>store.update(namespace as string,args[0] as string,args[1]),get:()=>store.get(namespace as string,args[0] as string),getBatch:()=>store.getBatch(namespace as string,args[0] as string[]),moveBatch:()=>store.moveBatch(namespace as string,args[0] as string[],args[1] as string[]),deleteBatch:()=>store.deleteBatch(namespace as string,args[0] as string[])};actual.push({value:await methods[method as keyof typeof methods]()});}assert.deepEqual(actual,JSON.parse(expected.stdout));}finally{await store.close();}
+ try{for(const [method,namespace,...args] of operations){const methods={insertBatch:()=>store.insertBatch(namespace as string,args[0] as Record<string,Json>),update:()=>store.update(namespace as string,args[0] as string,args[1]),get:()=>store.get(namespace as string,args[0] as string),getBatch:()=>store.getBatch(namespace as string,args[0] as string[]),moveBatch:()=>store.moveBatch(namespace as string,args[0] as string[],args[1] as string[]),deleteBatch:()=>store.deleteBatch(namespace as string,args[0] as string[])};actual.push({value:await methods[method as keyof typeof methods]()});}assert.deepEqual(actual,expected);}finally{await store.close();}
 }));
 test('invalid updates and oversized batch entries roll back all prior modifications',()=>directory(async dir=>{
  const store=await DatabaseStore.open({path:join(dir,'db.sqlite'),maxRecordBytes:128,maxReplyBytes:100});
@@ -165,11 +166,11 @@ test('a client cancellation after restore admission still requests restart after
 }));
 
 test('empty namespace lifetime matches pinned provider methods and API delete remains distinct',()=>directory(async dir=>{
- const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');
+
  const operations:Json[][]=[['get','empty'],['registerNamespace','empty'],['get','empty'],['namespaceLength','empty'],['insert','empty','x',1],['dropEmptyNamespace','empty'],['get','empty'],['delete','empty','x'],['get','empty'],['dropEmptyNamespace','empty'],['get','empty'],['insertBatch','batch',{}],['get','batch'],['insert','null','x',null],['get','null'],['clearNamespace','absent'],['get','absent'],['insertBatch','batch',{a:1,b:2}],['namespaceLength','batch'],['clearNamespace','batch'],['get','batch'],['namespaceLength','batch'],['dropEmptyNamespace','batch'],['get','batch']];
- const expected=spawnSync('/usr/bin/python3',['-c',databaseOracle()],{input:JSON.stringify({operations}),encoding:'utf8'});assert.equal(expected.status,0,expected.stderr);
+ const expected=databaseReference<Json[]>('namespace-lifecycle',JSON.stringify({operations}));
  const store=await DatabaseStore.open({path:join(dir,'db.sqlite')}),actual:Json[]=[];
- try{for(const [method,namespace,...args] of operations){try{let result:Json;switch(method){case 'registerNamespace':result=await store.registerNamespace(namespace as string);break;case 'namespaceLength':result=await store.namespaceLength(namespace as string);break;case 'clearNamespace':result=await store.clearNamespace(namespace as string);break;case 'dropEmptyNamespace':result=await store.dropEmptyNamespace(namespace as string);break;case 'insert':result=await store.insert(namespace as string,args[0] as string,args[1]);break;case 'insertBatch':result=await store.insertBatch(namespace as string,args[0] as Record<string,Json>);break;case 'delete':result=await store.delete(namespace as string,args[0] as string);break;default:result=await store.get(namespace as string);}actual.push({value:result});}catch(error){assert.ok(error instanceof ApiError);actual.push({error:error.status});}}assert.deepEqual(actual,JSON.parse(expected.stdout));
+ try{for(const [method,namespace,...args] of operations){try{let result:Json;switch(method){case 'registerNamespace':result=await store.registerNamespace(namespace as string);break;case 'namespaceLength':result=await store.namespaceLength(namespace as string);break;case 'clearNamespace':result=await store.clearNamespace(namespace as string);break;case 'dropEmptyNamespace':result=await store.dropEmptyNamespace(namespace as string);break;case 'insert':result=await store.insert(namespace as string,args[0] as string,args[1]);break;case 'insertBatch':result=await store.insertBatch(namespace as string,args[0] as Record<string,Json>);break;case 'delete':result=await store.delete(namespace as string,args[0] as string);break;default:result=await store.get(namespace as string);}actual.push({value:result});}catch(error){assert.ok(error instanceof ApiError);actual.push({error:error.status});}}assert.deepEqual(actual,expected);
   await store.insert('api','last',1);await store.api('DELETE','api','last');await assert.rejects(store.get('api'),e=>e instanceof ApiError&&e.status===404);
  }finally{await store.close();}
 }));
@@ -181,13 +182,13 @@ test('namespace budget rejects new names before writes, failed writes leave no p
 }));
 
 test('atomic namespace replacement matches pinned Python for structured records and preserves literal keys',()=>directory(async dir=>{
- const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');
+
  const operations:Json[][]=[['registerNamespace','ui'],['insertBatch','ui',{old:{x:1},keep:{old:true}}],['syncNamespace','ui',{keep:{new:true},'literal.dot':[1,2.675,null]}],['get','ui'],['namespaceLength','ui'],['syncNamespace','ui',{}],['get','ui']];
- const expected=spawnSync('/usr/bin/python3',['-c',databaseOracle()],{input:JSON.stringify({operations}),encoding:'utf8'});assert.equal(expected.status,0,expected.stderr);const store=await DatabaseStore.open({path:join(dir,'db.sqlite')}),actual:Json[]=[];
- try{for(const [method,namespace,value] of operations){let result:Json;switch(method){case 'registerNamespace':result=await store.registerNamespace(namespace as string);break;case 'insertBatch':result=await store.insertBatch(namespace as string,value as Record<string,Json>);break;case 'syncNamespace':result=await store.syncNamespace(namespace as string,value as Record<string,Json>);break;case 'namespaceLength':result=await store.namespaceLength(namespace as string);break;default:result=await store.get(namespace as string);}actual.push({value:result});}assert.deepEqual(actual,JSON.parse(expected.stdout));}finally{await store.close();}
+ const expected=databaseReference<Json[]>('namespace-replacement',JSON.stringify({operations}));const store=await DatabaseStore.open({path:join(dir,'db.sqlite')}),actual:Json[]=[];
+ try{for(const [method,namespace,value] of operations){let result:Json;switch(method){case 'registerNamespace':result=await store.registerNamespace(namespace as string);break;case 'insertBatch':result=await store.insertBatch(namespace as string,value as Record<string,Json>);break;case 'syncNamespace':result=await store.syncNamespace(namespace as string,value as Record<string,Json>);break;case 'namespaceLength':result=await store.namespaceLength(namespace as string);break;default:result=await store.get(namespace as string);}actual.push({value:result});}assert.deepEqual(actual,expected);}finally{await store.close();}
 }));
 test('namespace sync fixes upstream scalar encoding and retains precise values across reopening',()=>directory(async dir=>{
- const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');const result=spawnSync('/usr/bin/python3',['-c',databaseOracle()],{input:JSON.stringify({operations:[['registerNamespace','ui'],['syncNamespace','ui',{scalar:1}],['get','ui']]}),encoding:'utf8'});assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(result.stdout),[{value:null},{value:null},{error:500}]);
+ const result=databaseReference('scalar-sync-bug',JSON.stringify({operations:[['registerNamespace','ui'],['syncNamespace','ui',{scalar:1}],['get','ui']]}));assert.deepEqual(result,[{value:null},{value:null},{error:500}]);
  const path=join(dir,'db.sqlite'),values={zero:-0,large:1e20,tiny:1e-200,safe:Number.MAX_SAFE_INTEGER,temperature:2.675,flag:true,empty:null,text:'中文',nested:{zero:-0,large:1e20}};let store=await DatabaseStore.open({path});try{await store.registerNamespace('ui');await store.syncNamespace('ui',values);assert.deepEqual(await store.get('ui'),values);await store.close();store=await DatabaseStore.open({path});assert.deepEqual(await store.get('ui'),values);}finally{await store.close();}
 }));
 test('late replacement failure rolls back deletion and every inserted chunk; queue order and input ownership remain intact',()=>directory(async dir=>{
@@ -209,23 +210,9 @@ test('fast result construction never treats special keys as prototype operations
 }));
 
 test('local namespace registration matches pinned component policies and rejects duplicate owners',()=>directory(async dir=>{
- const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');const operations:[string,string,boolean?][]=[['register','\u{10000}',false],['register','\ue000',false],['register','ui',false],['register','hidden',true],['unregister','ui'],['register','ui',true],['unregister','missing'],['unregister','hidden']];
- const base=databaseOracle().slice(0,databaseOracle().indexOf('def main():')),program=base+String.raw`
-component=next(n for n in source.body if isinstance(n,ast.ClassDef) and n.name=='MoonrakerDatabase')
-body=[n for n in component.body if isinstance(n,ast.FunctionDef) and n.name in {'register_local_namespace','unregister_local_namespace'}]
-exec('from __future__ import annotations\nclass Component:\n'+textwrap.indent(ast.unparse(ast.Module(body=body,type_ignores=[])),'    '))
-NamespaceWrapper=lambda *args: None
-provider,conn=create();owner=Component();owner.server=Server();owner.registered_namespaces={'database','moonraker'};owner.protected_namespaces={'moonraker'};owner.forbidden_namespaces={'database'};owner.db_provider=provider
-owner.insert_item=lambda ns,key,value: provider.insert_item(conn,ns,key,value)
-results=[]
-for op in json.load(sys.stdin):
- if op[0]=='register': owner.register_local_namespace(op[1],op[2])
- else: owner.unregister_local_namespace(op[1])
- results.append({'visible':sorted(provider._namespaces-owner.forbidden_namespaces),'protected':provider.get_item(conn,'database','protected_namespaces',None),'forbidden':provider.get_item(conn,'database','forbidden_namespaces',None)})
-print(json.dumps(results));conn.close()
-`;
- const expected=spawnSync('/usr/bin/python3',['-c',program],{input:JSON.stringify(operations),encoding:'utf8'});assert.equal(expected.status,0,expected.stderr);
- const store=await DatabaseStore.open({path:join(dir,'db.sqlite')}),actual:Json[]=[];try{for(const [op,namespace,forbidden] of operations){if(op==='register')await store.registerLocalNamespace(namespace,{forbidden});else await store.unregisterLocalNamespace(namespace);const fallback=async(key:string)=>{try{return await store.get('database',key);}catch(error){if(error instanceof ApiError&&error.status===404)return null;throw error;}};actual.push({visible:(await store.list() as {namespaces:Json}).namespaces,protected:await fallback('protected_namespaces'),forbidden:await fallback('forbidden_namespaces')});}assert.deepEqual(actual,JSON.parse(expected.stdout));await assert.rejects(store.registerLocalNamespace('ui'),e=>e instanceof ApiError&&e.status===409);for(const namespace of ['database','moonraker'])await assert.rejects(store.unregisterLocalNamespace(namespace),e=>e instanceof ApiError&&e.status===403);}finally{await store.close();}
+ const operations:[string,string,boolean?][]=[['register','\u{10000}',false],['register','\ue000',false],['register','ui',false],['register','hidden',true],['unregister','ui'],['register','ui',true],['unregister','missing'],['unregister','hidden']];
+ const expected=databaseReference<Json[]>('registration-policies',JSON.stringify(operations));
+ const store=await DatabaseStore.open({path:join(dir,'db.sqlite')}),actual:Json[]=[];try{for(const [op,namespace,forbidden] of operations){if(op==='register')await store.registerLocalNamespace(namespace,{forbidden});else await store.unregisterLocalNamespace(namespace);const fallback=async(key:string)=>{try{return await store.get('database',key);}catch(error){if(error instanceof ApiError&&error.status===404)return null;throw error;}};actual.push({visible:(await store.list() as {namespaces:Json}).namespaces,protected:await fallback('protected_namespaces'),forbidden:await fallback('forbidden_namespaces')});}assert.deepEqual(actual,expected);await assert.rejects(store.registerLocalNamespace('ui'),e=>e instanceof ApiError&&e.status===409);for(const namespace of ['database','moonraker'])await assert.rejects(store.unregisterLocalNamespace(namespace),e=>e instanceof ApiError&&e.status===403);}finally{await store.close();}
 }));
 test('namespace wrappers preserve literal versus parsed keys, internal writes, public permissions and reopened policies',()=>directory(async dir=>{
  const path=join(dir,'db.sqlite');let store=await DatabaseStore.open({path});try{const ui=await store.registerLocalNamespace('ui');await ui.insert('a.b',{x:1});assert.deepEqual(await ui.get('a.b'),{x:1});assert.equal(await ui.get('missing'),null);assert.equal(await ui.get('missing','fallback'),'fallback');await ui.updateChild('a.b',{y:2});assert.deepEqual(await ui.get('a.b'),{x:1,y:2});assert.deepEqual(await store.api('GET','ui',['a.b']),{namespace:'ui',key:['a.b'],value:{x:1,y:2}});await assert.rejects(store.api('POST','ui','other',2),e=>e instanceof ApiError&&e.status===403);
@@ -243,12 +230,12 @@ test('failed registration leaves no owner and failed multi-policy removal rolls 
 }));
 
 test('namespace keys values items and nested existence match pinned provider queries',()=>directory(async dir=>{
- const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');
+
  const operations:Json[][]=[['namespaceKeys','missing'],['namespaceValues','missing'],['namespaceItems','missing'],['namespaceContains','missing','x'],['insertBatch','ui',{z:null,a:{nested:{zero:0,flag:false}},'literal.dot':[1,2.675],constructor:'value'}],['namespaceKeys','ui'],['namespaceValues','ui'],['namespaceItems','ui'],['namespaceContains','ui','a.nested.zero'],['namespaceContains','ui','a.nested.flag'],['namespaceContains','ui','a.absent'],['namespaceContains','ui','z'],['namespaceContains','ui','z.child']];
- const expected=spawnSync('/usr/bin/python3',['-c',databaseOracle()],{input:JSON.stringify({operations}),encoding:'utf8'});assert.equal(expected.status,0,expected.stderr);const store=await DatabaseStore.open({path:join(dir,'db.sqlite')}),actual:Json[]=[];try{for(const [method,namespace,key] of operations){let value:Json;switch(method){case 'insertBatch':value=await store.insertBatch(namespace as string,key as Record<string,Json>);break;case 'namespaceKeys':value=await store.namespaceKeys(namespace as string);break;case 'namespaceValues':value=await store.namespaceValues(namespace as string);break;case 'namespaceItems':value=await store.namespaceItems(namespace as string);break;default:value=await store.namespaceContains(namespace as string,key as string);}actual.push({value});}assert.deepEqual(actual,JSON.parse(expected.stdout));}finally{await store.close();}
+ const expected=databaseReference<Json[]>('enumeration',JSON.stringify({operations}));const store=await DatabaseStore.open({path:join(dir,'db.sqlite')}),actual:Json[]=[];try{for(const [method,namespace,key] of operations){let value:Json;switch(method){case 'insertBatch':value=await store.insertBatch(namespace as string,key as Record<string,Json>);break;case 'namespaceKeys':value=await store.namespaceKeys(namespace as string);break;case 'namespaceValues':value=await store.namespaceValues(namespace as string);break;case 'namespaceItems':value=await store.namespaceItems(namespace as string);break;default:value=await store.namespaceContains(namespace as string,key as string);}actual.push({value});}assert.deepEqual(actual,expected);}finally{await store.close();}
 }));
 test('literal-root existence fixes pinned list binding bug and wrapper pop respects missing defaults only',()=>directory(async dir=>{
- const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');const expected=spawnSync('/usr/bin/python3',['-c',databaseOracle()],{input:JSON.stringify({operations:[['insertBatch','ui',{'a.b':null}],['namespaceContains','ui',['a.b']]]}),encoding:'utf8'});assert.equal(expected.status,0,expected.stderr);assert.deepEqual(JSON.parse(expected.stdout),[{value:null},{value:false}]);
+ const expected=databaseReference('literal-existence-bug',JSON.stringify({operations:[['insertBatch','ui',{'a.b':null}],['namespaceContains','ui',['a.b']]]}));assert.deepEqual(expected,[{value:null},{value:false}]);
  const store=await DatabaseStore.open({path:join(dir,'db.sqlite'),maxReplyBytes:128,maxRecordBytes:1024});try{const owner=await store.registerLocalNamespace('ui');await owner.update({'a.b':null});assert.equal(await owner.contains('a.b'),true);assert.equal(await store.namespaceContains('ui','a.b'),false);assert.deepEqual(await owner.keys(),['a.b']);assert.deepEqual(await owner.values(),[null]);assert.deepEqual(await owner.items(),[['a.b',null]]);assert.equal(await owner.pop('a.b','fallback'),null);assert.equal(await owner.contains('a.b'),false);assert.equal(await owner.pop('missing','fallback'),'fallback');await assert.rejects(owner.pop('missing'),e=>e instanceof ApiError&&e.status===404);
   await owner.insert('large','x'.repeat(256));await assert.rejects(owner.pop('large','fallback'),e=>e instanceof ApiError&&e.status===413);assert.equal(await owner.contains('large'),true);await assert.rejects(owner.values(),e=>e instanceof ApiError&&e.status===413);await assert.rejects(owner.items(),e=>e instanceof ApiError&&e.status===413);assert.deepEqual(await owner.keys(),['large']);
  }finally{await store.close();}

@@ -28,6 +28,37 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 实现清单见 [配置节校验器](../host/src/config/native-printer-sections.ts)，
 验证结果见 [配置预检验收](../host/contracts/native-printer-sections-acceptance.json)。
 
+## 数据库本机验证与历史参考
+
+在 Node.js 26 环境安装 `host` 依赖并构建原生插件后，从 `host` 目录执行：
+
+```sh
+node --test --test-concurrency=1 test/database.test.ts test/database-reference.test.ts
+node bench/database.ts
+node bench/database-registration.ts
+node bench/database-namespace-read.ts
+node bench/database-sql.ts
+node bench/database-table.ts
+node bench/database-backup.ts
+node bench/database-restore.ts
+```
+
+这些测试和七项基准本身不再运行 Python。数据库测试保留原断言，以整体
+SHA-256 和上游源码指纹保护独立封存的九份原 Python 参考；实际原 SQLite
+图像用于读取互操作验证，Node 写入后由原始 SQLite 只读查询独立核对。
+记录结构或参考输入变化须重新核验，不能从待测 Node 实现生成预期值。
+重新封存须在隔离检出中恢复参考的 `sourceBase`，复跑原测试和原基准，
+审核原程序／输入／输出及 SQLite 指纹，再更新封存数据和整体摘要。
+
+基准的 `nodeSamplesMs` 是当前测量，部分数组沿用统计排序，并非按执行
+顺序排列；`historicalPythonReference` 明确保存历史 Python 时间、环境及
+范围。兼容的旧 `python*` 统计字段也只来自历史参考。合法的未封存参数
+仍运行 Node，历史参考和对应统计为 null；不能将 null 解释为零耗时。
+可用 `DATABASE_BENCH_ROOT` 指定测试磁盘，耗时须结合实际文件系统、
+负载和耐久操作范围判断，不能直接当作目标板打印速度。其余测试仍有
+Python 依赖，不能据此移除全局 CI 的 Python 配置。当前证据见
+[数据库退役验收](../host/contracts/database-reference-retirement-acceptance.json)。
+
 ## 客户端断连与受控恢复
 
 ### 原生作业队列候选

@@ -1,0 +1,466 @@
+{
+  "version": 1,
+  "capturedAt": "2026-10-07T09:57:25.876Z",
+  "upstreamCommit": "1cfb0c41e468645951a371621f06d32777b6107c",
+  "upstreamSourceSha256": "c6de4ad5b946e687154aafd9f982d49b877b67eaaea9d3c4902e6db557c5702a",
+  "sourceBase": "74a4304fd8a56363fbd0e0f673531e958888da1c",
+  "node": "v26.10.0",
+  "originalSourceHashes": {
+    "test/database.test.ts": "c7bf8ace298a2bce51594fa57824eb7ab3a195a2b1f0e577d70d290c5d2a5673",
+    "test/helpers/database-oracle.ts": "cb2287eb535273b5f95985f4622f27341f3357fdb60391e2bdccdc6c4052abbe",
+    "bench/database.ts": "9cc1dc208c897ed7b10fcc96fc0a472a2dd211363cad154b87126594ebbbdb35",
+    "bench/database-registration.ts": "1ee67e422f8d07712e8ab8ef9b9565979f0bb728ea147e7ff0e39a820fe25d12",
+    "bench/database-namespace-read.ts": "3bff0fd9a3dca0df1bb0a9f3b2d7ccf90c0f6df4edd70167a2fc360b8a5b5b9d",
+    "bench/database-sql.ts": "b37e87ac87d459d147f40c082b6dfd15fe7c40d4dad1cf65e0c64305e99fc4d7",
+    "bench/database-table.ts": "5a2ab6f79c98f329b6bfc7c985264a088e56a110147a391248cb4d1267494cf1",
+    "bench/database-backup.ts": "92dae45968a3eb5d43daed0f4cc79c411138edcd9697c46ef7a2525e7be7d94b",
+    "bench/database-restore.ts": "ba3b354154f5bd1d4cdbc6ba18b1c14dfe67f7c43e5649e78599e02dfe11e955"
+  },
+  "captureHookSha256": "38ae69d5987eda02eb9c2ec704ffe5376a78ad2b3a631cb5667c6b7074d2b630",
+  "captures": [
+    {
+      "name": "transactions",
+      "programSha256": "031c138f7982c1eff390be2507563df6ce41315c8c2187513d1fb3d96ae1ed6d",
+      "input": "{\"operations\":[[\"get\",\"ui\",\"missing\"],[\"insert\",\"ui\",\"root\",5],[\"insert\",\"ui\",\"root.a.b\",1],[\"insert\",\"ui\",[\"literal.dot\"],{\"x\":[1,\"中文\",null],\"temperature\":2.675}],[\"get\",\"ui\"],[\"insert\",\"ui\",\"root.a.c\",null],[\"get\",\"ui\",\"root.a\"],[\"insert\",\"ui\",\"root\",null],[\"get\",\"ui\",\"root\"],[\"delete\",\"ui\",\"root.a.b\"],[\"delete\",\"ui\",\"root.a.c\"],[\"get\",\"ui\",\"root\"],[\"delete\",\"ui\",\"root\"],[\"get\",\"ui\",\"root\"]]}",
+      "inputSha256": "72aa1204b5304c14e39f0edb268258d58e556637873f1400e2968aac7a96ad87",
+      "output": "[{\"error\": 404}, {\"value\": null}, {\"value\": null}, {\"value\": null}, {\"value\": {\"literal.dot\": {\"x\": [1, \"\\u4e2d\\u6587\", null], \"temperature\": 2.675}, \"root\": {\"a\": {\"b\": 1}}}}, {\"value\": null}, {\"value\": {\"b\": 1, \"c\": null}}, {\"value\": null}, {\"value\": {\"a\": {\"b\": 1, \"c\": null}}}, {\"value\": 1}, {\"value\": null}, {\"value\": {\"a\": {}}}, {\"value\": {\"a\": {}}}, {\"error\": 404}]\n",
+      "outputSha256": "f140717e91b56959aa2646753d68bd19de07fe996cffca9dbb3201432c8ac630"
+    },
+    {
+      "name": "record-read",
+      "programSha256": "4e112778addba3bd464a34b4bf3ba5a0780d13ae8d100dbae0e2117e0a953658",
+      "input": "",
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output": "{\"ok\": true}\n",
+      "outputSha256": "55f66c2c5aeb275ff5b1ae26b321d5c0b8ceda8c034b19c2643e046d024919f3"
+    },
+    {
+      "name": "updates-batches",
+      "programSha256": "031c138f7982c1eff390be2507563df6ce41315c8c2187513d1fb3d96ae1ed6d",
+      "input": "{\"operations\":[[\"insertBatch\",\"ui\",{\"a\":{\"x\":1,\"sub\":{\"old\":1}},\"b\":2,\"literal.dot\":null}],[\"update\",\"ui\",\"a\",{\"y\":2}],[\"update\",\"ui\",\"a.sub\",{\"added\":2}],[\"get\",\"ui\",\"a\"],[\"update\",\"ui\",\"a.x\",null],[\"update\",\"ui\",\"b\",null],[\"getBatch\",\"ui\",[\"a\",\"b\",\"literal.dot\",\"missing\",\"a\"]],[\"moveBatch\",\"ui\",[\"a\",\"b\"],[\"b\",\"a\"]],[\"getBatch\",\"ui\",[\"a\",\"b\"]],[\"insertBatch\",\"ui\",{\"c\":3,\"d\":4}],[\"moveBatch\",\"ui\",[\"c\",\"d\"],[\"c.new\"]],[\"getBatch\",\"ui\",[\"c\",\"d\",\"c.new\"]],[\"deleteBatch\",\"ui\",[\"a\",\"a\",\"missing\",\"literal.dot\"]],[\"getBatch\",\"ui\",[]],[\"getBatch\",\"ui\",[\"a\",\"literal.dot\",\"c.new\",\"d\"]]]}",
+      "inputSha256": "f97207919e1a7dce7a89a761089a024000630733720c1628856fa23dbb598719",
+      "output": "[{\"value\": null}, {\"value\": null}, {\"value\": null}, {\"value\": {\"x\": 1, \"sub\": {\"old\": 1, \"added\": 2}, \"y\": 2}}, {\"value\": null}, {\"value\": null}, {\"value\": {\"a\": {\"x\": null, \"sub\": {\"old\": 1, \"added\": 2}, \"y\": 2}, \"b\": 2, \"literal.dot\": null}}, {\"value\": null}, {\"value\": {\"a\": {\"x\": null, \"sub\": {\"old\": 1, \"added\": 2}, \"y\": 2}}}, {\"value\": null}, {\"value\": null}, {\"value\": {\"c.new\": 3, \"d\": 4}}, {\"value\": {\"a\": {\"x\": null, \"sub\": {\"old\": 1, \"added\": 2}, \"y\": 2}, \"literal.dot\": null}}, {\"value\": {}}, {\"value\": {\"c.new\": 3, \"d\": 4}}]\n",
+      "outputSha256": "9ff5674b841efb8cea623df2ef1f6f24f2dc5ef2a08d9b1296929f7b2e39407e"
+    },
+    {
+      "name": "namespace-lifecycle",
+      "programSha256": "031c138f7982c1eff390be2507563df6ce41315c8c2187513d1fb3d96ae1ed6d",
+      "input": "{\"operations\":[[\"get\",\"empty\"],[\"registerNamespace\",\"empty\"],[\"get\",\"empty\"],[\"namespaceLength\",\"empty\"],[\"insert\",\"empty\",\"x\",1],[\"dropEmptyNamespace\",\"empty\"],[\"get\",\"empty\"],[\"delete\",\"empty\",\"x\"],[\"get\",\"empty\"],[\"dropEmptyNamespace\",\"empty\"],[\"get\",\"empty\"],[\"insertBatch\",\"batch\",{}],[\"get\",\"batch\"],[\"insert\",\"null\",\"x\",null],[\"get\",\"null\"],[\"clearNamespace\",\"absent\"],[\"get\",\"absent\"],[\"insertBatch\",\"batch\",{\"a\":1,\"b\":2}],[\"namespaceLength\",\"batch\"],[\"clearNamespace\",\"batch\"],[\"get\",\"batch\"],[\"namespaceLength\",\"batch\"],[\"dropEmptyNamespace\",\"batch\"],[\"get\",\"batch\"]]}",
+      "inputSha256": "8c9bf238d9bbc81eb03eb7b28706a715e43811d583019fb9192236d99d4b13e3",
+      "output": "[{\"error\": 404}, {\"value\": null}, {\"value\": {}}, {\"value\": 0}, {\"value\": null}, {\"value\": null}, {\"value\": {\"x\": 1}}, {\"value\": 1}, {\"value\": {}}, {\"value\": null}, {\"error\": 404}, {\"value\": null}, {\"value\": {}}, {\"value\": null}, {\"error\": 404}, {\"value\": null}, {\"error\": 404}, {\"value\": null}, {\"value\": 2}, {\"value\": null}, {\"value\": {}}, {\"value\": 0}, {\"value\": null}, {\"error\": 404}]\n",
+      "outputSha256": "3de0ea2b3ba37052cbb5ec9511463b7cf5f3f0b77945cd30cf79b14a51e407aa"
+    },
+    {
+      "name": "namespace-replacement",
+      "programSha256": "031c138f7982c1eff390be2507563df6ce41315c8c2187513d1fb3d96ae1ed6d",
+      "input": "{\"operations\":[[\"registerNamespace\",\"ui\"],[\"insertBatch\",\"ui\",{\"old\":{\"x\":1},\"keep\":{\"old\":true}}],[\"syncNamespace\",\"ui\",{\"keep\":{\"new\":true},\"literal.dot\":[1,2.675,null]}],[\"get\",\"ui\"],[\"namespaceLength\",\"ui\"],[\"syncNamespace\",\"ui\",{}],[\"get\",\"ui\"]]}",
+      "inputSha256": "00128b549ed8e3202fe3701abeb81bcd107ddd2d1950910714edb7a1deb1fa98",
+      "output": "[{\"value\": null}, {\"value\": null}, {\"value\": null}, {\"value\": {\"keep\": {\"new\": true}, \"literal.dot\": [1, 2.675, null]}}, {\"value\": 2}, {\"value\": null}, {\"value\": {}}]\n",
+      "outputSha256": "0ca63d9e22742a3b68c68978362ce404a6cd7cbd464a21ecc87afc0263420830"
+    },
+    {
+      "name": "scalar-sync-bug",
+      "programSha256": "031c138f7982c1eff390be2507563df6ce41315c8c2187513d1fb3d96ae1ed6d",
+      "input": "{\"operations\":[[\"registerNamespace\",\"ui\"],[\"syncNamespace\",\"ui\",{\"scalar\":1}],[\"get\",\"ui\"]]}",
+      "inputSha256": "2156e7b81332f71e2eb015110c30fe1d7c4c8d43ba4fdd30df489142b79ccea1",
+      "output": "[{\"value\": null}, {\"value\": null}, {\"error\": 500}]\n",
+      "outputSha256": "44c1593d5e5e9769b776ff757c6059d518003bc6d7877972dcfd140fece54576"
+    },
+    {
+      "name": "registration-policies",
+      "programSha256": "ab4aa6bfdcd92cc06632b9e654653e5318f7d9dda9de329a58e027869609c8ba",
+      "input": "[[\"register\",\"𐀀\",false],[\"register\",\"\ue000\",false],[\"register\",\"ui\",false],[\"register\",\"hidden\",true],[\"unregister\",\"ui\"],[\"register\",\"ui\",true],[\"unregister\",\"missing\"],[\"unregister\",\"hidden\"]]",
+      "inputSha256": "81ba88a0c3afdfb820c62f3765d61edbc2f4f26b7c6d21cad5743941ebe03b05",
+      "output": "[{\"visible\": [\"\\ud800\\udc00\"], \"protected\": [\"moonraker\", \"\\ud800\\udc00\"], \"forbidden\": null}, {\"visible\": [\"\\ue000\", \"\\ud800\\udc00\"], \"protected\": [\"moonraker\", \"\\ue000\", \"\\ud800\\udc00\"], \"forbidden\": null}, {\"visible\": [\"ui\", \"\\ue000\", \"\\ud800\\udc00\"], \"protected\": [\"moonraker\", \"ui\", \"\\ue000\", \"\\ud800\\udc00\"], \"forbidden\": null}, {\"visible\": [\"ui\", \"\\ue000\", \"\\ud800\\udc00\"], \"protected\": [\"moonraker\", \"ui\", \"\\ue000\", \"\\ud800\\udc00\"], \"forbidden\": [\"database\", \"hidden\"]}, {\"visible\": [\"ui\", \"\\ue000\", \"\\ud800\\udc00\"], \"protected\": [\"moonraker\", \"\\ue000\", \"\\ud800\\udc00\"], \"forbidden\": [\"database\", \"hidden\"]}, {\"visible\": [\"\\ue000\", \"\\ud800\\udc00\"], \"protected\": [\"moonraker\", \"\\ue000\", \"\\ud800\\udc00\"], \"forbidden\": [\"database\", \"hidden\", \"ui\"]}, {\"visible\": [\"\\ue000\", \"\\ud800\\udc00\"], \"protected\": [\"moonraker\", \"\\ue000\", \"\\ud800\\udc00\"], \"forbidden\": [\"database\", \"hidden\", \"ui\"]}, {\"visible\": [\"hidden\", \"\\ue000\", \"\\ud800\\udc00\"], \"protected\": [\"moonraker\", \"\\ue000\", \"\\ud800\\udc00\"], \"forbidden\": [\"database\", \"ui\"]}]\n",
+      "outputSha256": "db4bdad63a455ed82c61923538cd5a746189c7b537905f91c94acde0832688dc"
+    },
+    {
+      "name": "enumeration",
+      "programSha256": "031c138f7982c1eff390be2507563df6ce41315c8c2187513d1fb3d96ae1ed6d",
+      "input": "{\"operations\":[[\"namespaceKeys\",\"missing\"],[\"namespaceValues\",\"missing\"],[\"namespaceItems\",\"missing\"],[\"namespaceContains\",\"missing\",\"x\"],[\"insertBatch\",\"ui\",{\"z\":null,\"a\":{\"nested\":{\"zero\":0,\"flag\":false}},\"literal.dot\":[1,2.675],\"constructor\":\"value\"}],[\"namespaceKeys\",\"ui\"],[\"namespaceValues\",\"ui\"],[\"namespaceItems\",\"ui\"],[\"namespaceContains\",\"ui\",\"a.nested.zero\"],[\"namespaceContains\",\"ui\",\"a.nested.flag\"],[\"namespaceContains\",\"ui\",\"a.absent\"],[\"namespaceContains\",\"ui\",\"z\"],[\"namespaceContains\",\"ui\",\"z.child\"]]}",
+      "inputSha256": "c3333f172a11477e5e633e0662cf9cd2a1dd1f58294a363f9de9de27c75a2785",
+      "output": "[{\"value\": []}, {\"value\": []}, {\"value\": []}, {\"value\": false}, {\"value\": null}, {\"value\": [\"a\", \"constructor\", \"literal.dot\", \"z\"]}, {\"value\": [{\"nested\": {\"zero\": 0, \"flag\": false}}, \"value\", [1, 2.675], null]}, {\"value\": [[\"a\", {\"nested\": {\"zero\": 0, \"flag\": false}}], [\"constructor\", \"value\"], [\"literal.dot\", [1, 2.675]], [\"z\", null]]}, {\"value\": true}, {\"value\": true}, {\"value\": false}, {\"value\": true}, {\"value\": false}]\n",
+      "outputSha256": "654679fa3afb4584b790f928ed1b563c1075f3a85100d28d79ea439c760b6b35"
+    },
+    {
+      "name": "literal-existence-bug",
+      "programSha256": "031c138f7982c1eff390be2507563df6ce41315c8c2187513d1fb3d96ae1ed6d",
+      "input": "{\"operations\":[[\"insertBatch\",\"ui\",{\"a.b\":null}],[\"namespaceContains\",\"ui\",[\"a.b\"]]]}",
+      "inputSha256": "7544603225428e406597b5f739b835dd2f363a13fc37033b20d1d198e1ce5b19",
+      "output": "[{\"value\": null}, {\"value\": false}]\n",
+      "outputSha256": "daef7f9d05e0fef7a36ebfaf34c3612aac37e7859390ab0eb160c7a2a6673a40"
+    }
+  ],
+  "sqlite": {
+    "rawBytes": 12288,
+    "rawSha256": "d51c9a21170975bde05a56306462bc2ed59ef4a3e3d8f7b68ae3233bc4d1c3ca",
+    "gzipSha256": "0dc4a6f45497b176e03c5e994dfc6a44ff8961e52eaad00fa00f496d20de82a9",
+    "gzipBase64": "H4sIAAAAAAAAA+3YsUoDQRAG4NkzaFBkNY3YLaeFkhBQUUEUjHKFeEYTT1BEwmpWOLzkksueREUklW/gO6Sw19cJok8QsJSIGDwELUQL/6+bGWbY3W52O2e7WoljPyhJLWZoiBijZSGIKE5EPdTFiCgWib8Sp/R5dZA/k8ETxBP8/hs9AAAAAAAAAL+gMc76RpJJ1rjS8tBTZVlStYo8UoWa9oNoaKzmrYxjCSezYlsiUhQT7wnhWLuOyG46Irtj26kTdRbJnEovVCJQR35Q7Ga38msbmfyeWLf2urM63ZOTS0bvSC7JyC0XVb1W9VytCjLU/mtciJykMBVJ9Lzt9zTIn4jxJvEmb/71ywMAAAAAAAD8e4tGbHjsMHQ7i34gvXTR1xdm3VzYn0qZD3e3jzfXZqocet5BytSqVFGB1GGgzIXp9Nz87CURjX46tp+3ifEW8RZv//qdAAAAAAAAAOCHJGLDY+zDv4FBRANv1Rd7L3BMADAAAA=="
+  },
+  "benchmarks": [
+    {
+      "name": "database",
+      "workload": "{\"value\":{\"temperature\":210.125,\"name\":\"中文\",\"payload\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"},\"batchSize\":0,\"namespaceLifecycle\":false,\"namespaceSync\":false}",
+      "workloadSha256": "c0ac20723826ea63aa46bc198d84e1e27c5724f2f59731f6b929ed5c67548ed0",
+      "programSha256": "53c7ca13f9ce3fb89cd4a4e688085b53ec8f9d3c6aae5d09cdae2caf29e22d32",
+      "output": "[1182.1640300331637, 1160.6747339246795, 1086.3912439672276, 1145.5444949679077, 1183.8256600312889, 1026.658880058676, 1182.0319240214303]\n",
+      "outputSha256": "3fd280a7404a888a214a0b2af32206fa755b29394295ddd8226b95335559fc07",
+      "capturedAt": "2026-10-07T09:58:05.304Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "filesystemMagic": 61267,
+        "filesystem": "ext-family",
+        "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+        "batchSize": 0,
+        "namespaceLifecycle": false,
+        "namespaceSync": false,
+        "writes": 200,
+        "reads": 200,
+        "nodeWorker": {
+          "medianMs": 1136.2592840000007,
+          "p95Ms": 1169.8397289999998
+        },
+        "pythonProviderThread": {
+          "medianMs": 1160.6747339246795,
+          "p95Ms": 1183.8256600312889
+        },
+        "nodeEventLoopMaxMs": 2.353151,
+        "scope": "File-backed SQLite WAL + synchronous FULL on both sides; Node includes Worker round trips and bounded admission, Python uses original provider thread and Future dispatch; host filesystem only, not power-loss or target-board acceptance"
+      },
+      "originalLogSha256": "e50b4179cb37653db961ece089ee2b79e70089811b3db1aa72cb30a2f6bb7bdc"
+    },
+    {
+      "name": "database",
+      "workload": "{\"value\":{\"temperature\":210.125,\"name\":\"中文\",\"payload\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"},\"batchSize\":20,\"namespaceLifecycle\":false,\"namespaceSync\":false}",
+      "workloadSha256": "18dcacd51bc5fc81e9fee9a6a74b62677ecae30e1a9346bfbf1425fcdcae3f4f",
+      "programSha256": "53c7ca13f9ce3fb89cd4a4e688085b53ec8f9d3c6aae5d09cdae2caf29e22d32",
+      "output": "[64.59025701042265, 66.21782900765538, 66.04742701165378, 64.8797710891813, 62.21444404218346, 38.07304298970848, 54.35860704164952]\n",
+      "outputSha256": "bf1c2a1839a26ef392a09edbb6a6acafff3d8d2b045760abd2b187a3f716a7e3",
+      "capturedAt": "2026-10-07T09:58:07.779Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "filesystemMagic": 61267,
+        "filesystem": "ext-family",
+        "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+        "batchSize": 20,
+        "namespaceLifecycle": false,
+        "namespaceSync": false,
+        "writes": 200,
+        "reads": 200,
+        "nodeWorker": {
+          "medianMs": 65.80114400000002,
+          "p95Ms": 69.94435999999996
+        },
+        "pythonProviderThread": {
+          "medianMs": 64.59025701042265,
+          "p95Ms": 66.21782900765538
+        },
+        "nodeEventLoopMaxMs": 1.923071,
+        "scope": "File-backed SQLite WAL + synchronous FULL on both sides; Node includes Worker round trips and bounded admission, Python uses original provider thread and Future dispatch; host filesystem only, not power-loss or target-board acceptance"
+      },
+      "originalLogSha256": "c9fcb5ce9c08b1ef601f1249d289c50291f5f71c175c975ec183c66abeb0fa61"
+    },
+    {
+      "name": "database",
+      "workload": "{\"value\":{\"temperature\":210.125,\"name\":\"中文\",\"payload\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"},\"batchSize\":0,\"namespaceLifecycle\":false,\"namespaceSync\":true}",
+      "workloadSha256": "b8a3249061ad205960202a937192b25bb7b99b62cccaf0f629a1b43b81d18968",
+      "programSha256": "53c7ca13f9ce3fb89cd4a4e688085b53ec8f9d3c6aae5d09cdae2caf29e22d32",
+      "output": "[186.59043195657432, 180.4177570156753, 179.0225780569017, 179.0698479162529, 178.53515094611794, 176.58015398774296, 186.2574570113793]\n",
+      "outputSha256": "90235a8fd27a0d93213fc54e40c29f20cdb127b2461d7860eb890161bac9865a",
+      "capturedAt": "2026-10-07T09:58:12.423Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "filesystemMagic": 61267,
+        "filesystem": "ext-family",
+        "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+        "batchSize": 0,
+        "namespaceLifecycle": false,
+        "namespaceSync": true,
+        "cycles": 20,
+        "recordsPerCycle": 200,
+        "nodeWorker": {
+          "medianMs": 188.13695400000006,
+          "p95Ms": 198.8906609999999
+        },
+        "pythonProviderThread": {
+          "medianMs": 179.0698479162529,
+          "p95Ms": 186.59043195657432
+        },
+        "nodeEventLoopMaxMs": 3.278847,
+        "scope": "File-backed SQLite WAL + synchronous FULL on both sides; Node includes Worker round trips and bounded admission, Python uses original provider thread and Future dispatch; host filesystem only, not power-loss or target-board acceptance"
+      },
+      "originalLogSha256": "7d5bf49165398877638ea1c13339a7ab8bf7ba1a4b616f106ad83b60d33e54f2"
+    },
+    {
+      "name": "database",
+      "workload": "{\"value\":{\"temperature\":210.125,\"name\":\"中文\",\"payload\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"},\"batchSize\":0,\"namespaceLifecycle\":true,\"namespaceSync\":false}",
+      "workloadSha256": "8e28a6df5bc6c21c1d131aad181943ac90765fb32fc415960dc10a2d8e9e8e30",
+      "programSha256": "53c7ca13f9ce3fb89cd4a4e688085b53ec8f9d3c6aae5d09cdae2caf29e22d32",
+      "output": "[289.54764490481466, 305.9778300812468, 285.5451590148732, 247.93220404535532, 285.41783697437495, 290.24150397162884, 283.64416293334216]\n",
+      "outputSha256": "f80a66aee557284133e2d6b3730119f7fe786b5083d02507592ac3c525c5d710",
+      "capturedAt": "2026-10-07T09:58:18.728Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "filesystemMagic": 61267,
+        "filesystem": "ext-family",
+        "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+        "batchSize": 0,
+        "namespaceLifecycle": true,
+        "namespaceSync": false,
+        "cycles": 20,
+        "recordsPerCycle": 200,
+        "nodeWorker": {
+          "medianMs": 277.05136300000004,
+          "p95Ms": 293.3155469999997
+        },
+        "pythonProviderThread": {
+          "medianMs": 285.5451590148732,
+          "p95Ms": 305.9778300812468
+        },
+        "nodeEventLoopMaxMs": 3.092479,
+        "scope": "File-backed SQLite WAL + synchronous FULL on both sides; Node includes Worker round trips and bounded admission, Python uses original provider thread and Future dispatch; host filesystem only, not power-loss or target-board acceptance"
+      },
+      "originalLogSha256": "9ff2eefc656a34c010606ffb75d309b548a81d615e889c67a53016cf579c0cbf"
+    },
+    {
+      "name": "database-registration",
+      "workload": "{\"registrations\":100,\"unregistrations\":100}",
+      "workloadSha256": "5b1c7f4b32819f22b546e10931ec8dcedf44b6be21e49abf16d7b673ec6b449e",
+      "programSha256": "95bd59aed19c01d1f4dbb2a465cfc16aa8eea5d5c1c59804f9f74638340ddd55",
+      "output": "[1149.9481140635908, 1161.8555770255625, 1018.8160539837554, 1146.2067810352892, 1125.2798930509016, 1046.5900829294696, 1147.6033478975296]\n",
+      "outputSha256": "e8a02bbebf7f46b9fa44cde107a7a61ed1c36e7f590e1ccaa593a7c1e853b331",
+      "capturedAt": "2026-10-07T09:58:40.024Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "filesystemMagic": 61267,
+        "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+        "registrations": 100,
+        "unregistrations": 100,
+        "nodeWorker": {
+          "medianMs": 1137.1092910000007,
+          "p95Ms": 1184.5222870000002
+        },
+        "pythonSynchronousInitialization": {
+          "medianMs": 1146.2067810352892,
+          "p95Ms": 1161.8555770255625
+        },
+        "eventLoopMaxMs": 2.006015,
+        "scope": "WAL/FULL; Node includes Worker dispatch and wrapper construction, pinned Python methods use synchronous provider initialization with stub wrapper; not equivalent runtime-thread scheduling or hardware acceptance"
+      },
+      "originalLogSha256": "f3d368a75777c3ecbf6740777cedc9ea7ef23d9ba91fc519e6eaef247174724c"
+    },
+    {
+      "name": "database-namespace-read",
+      "workload": "{\"value\":{\"temperature\":210.125,\"payload\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"},\"changing\":false}",
+      "workloadSha256": "221091069a0164e385915716e5e980d406c75f35d7f12105c7a9160b423050aa",
+      "programSha256": "bc8a2d39c5517dab4e34ec73fd026d311ee9d59d7bb92516067a4f5417a54490",
+      "output": "[78.00656999461353, 77.21248897723854, 77.08925707265735, 77.36564090009779, 77.77916605118662, 77.1131570218131, 77.52481289207935]\n",
+      "outputSha256": "88386a4749b0d537384200871ae939a5a0d69cdb5936a03b63552bdfaf204a86",
+      "capturedAt": "2026-10-07T09:58:42.554Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "filesystemMagic": 61267,
+        "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+        "records": 200,
+        "cycles": 50,
+        "changing": false,
+        "maxReadCacheBytes": 8388608,
+        "nodeWorker": {
+          "medianMs": 35.488576999999964,
+          "p95Ms": 41.36319800000001
+        },
+        "pythonProviderThread": {
+          "medianMs": 77.36564090009779,
+          "p95Ms": 78.00656999461353
+        },
+        "eventLoopMaxMs": 5.509119,
+        "scope": "Each cycle keys/values/items/contains with result verification; setup excluded, bounded Node Worker versus original Python provider thread; host file-backed SQLite, not target-board acceptance"
+      },
+      "originalLogSha256": "436649b18dc4c5eeb6b13fbd515636ca3b99b2c8ac6ba622d55d4e0116ba2c71"
+    },
+    {
+      "name": "database-namespace-read",
+      "workload": "{\"value\":{\"temperature\":210.125,\"payload\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"},\"changing\":true}",
+      "workloadSha256": "395b3e2e88bc05bbe2af29ae96e405dd3e73b4f5c81092481825b2101720ec91",
+      "programSha256": "bc8a2d39c5517dab4e34ec73fd026d311ee9d59d7bb92516067a4f5417a54490",
+      "output": "[358.3864029496908, 339.2705110600218, 323.49190406966954, 366.9085499132052, 384.19957703445107, 376.9178770016879, 367.01914097648114]\n",
+      "outputSha256": "cb9b32299a3873bc9012fa2d193d5bbcc9d33e061b1c8da417383f556b128044",
+      "capturedAt": "2026-10-07T09:58:51.062Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "filesystemMagic": 61267,
+        "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+        "records": 200,
+        "cycles": 50,
+        "changing": true,
+        "maxReadCacheBytes": 8388608,
+        "nodeWorker": {
+          "medianMs": 419.2767289999997,
+          "p95Ms": 438.29410899999993
+        },
+        "pythonProviderThread": {
+          "medianMs": 366.9085499132052,
+          "p95Ms": 384.19957703445107
+        },
+        "eventLoopMaxMs": 2.310143,
+        "scope": "Each cycle keys/values/items/contains with result verification; setup excluded, bounded Node Worker versus original Python provider thread; host file-backed SQLite, not target-board acceptance"
+      },
+      "originalLogSha256": "4b65b4eef59e0aef7d61a3a03e5c1543f60b43219fd8e3b5ee4a74fc3554c5ab"
+    },
+    {
+      "name": "database-sql",
+      "workload": "{\"many\":false}",
+      "workloadSha256": "a7c9c8da29b629017eaae9c431433808b2dfe5df05edcb5a511cf0938f6fd21f",
+      "programSha256": "17fcb9abda72db5facbcacd3cdd1b55eb8d32c1c95b0b4a0c21d45f80060503a",
+      "output": "[115.89066800661385, 111.7529709590599, 100.2826850162819, 60.3353570913896, 113.91655099578202]\n",
+      "outputSha256": "4b7d32bca96642e432d95a922b398045fb2b08643e017bccc727ee7bcc96eb1d",
+      "capturedAt": "2026-10-07T09:58:53.798Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "many": false,
+        "filesystemMagic": 61267,
+        "nodeWorker": {
+          "medianMs": 134.69225699999993,
+          "p95Ms": 139.04314599999998
+        },
+        "pythonThread": {
+          "medianMs": 111.7529709590599,
+          "p95Ms": 115.89066800661385
+        },
+        "eventLoopMaxMs": 2.119679,
+        "scope": "20 transactions of 100 upserts and 100-row read, WAL/FULL. Python pinned SQL methods grouped into one thread call, omitting individual cursor/future round trips and write acknowledgements; optimistic baseline, not full server or hardware."
+      },
+      "originalLogSha256": "22064086eceb379e569ffa27b3b8f110681b68166c12a56707a219faac9df8bb"
+    },
+    {
+      "name": "database-sql",
+      "workload": "{\"many\":true}",
+      "workloadSha256": "2996c853573177842b270ad9dd00f6dc5c4a33e1e371f889603f6e33b10c64e6",
+      "programSha256": "17fcb9abda72db5facbcacd3cdd1b55eb8d32c1c95b0b4a0c21d45f80060503a",
+      "output": "[115.39142194669694, 118.42396296560764, 135.31236397102475, 113.69027791079134, 115.33826997037977]\n",
+      "outputSha256": "b5b4db3a898330c6041f98be025f75307297fe69417c47569d0a3ad7117abc66",
+      "capturedAt": "2026-10-07T09:58:56.514Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "many": true,
+        "filesystemMagic": 61267,
+        "nodeWorker": {
+          "medianMs": 121.54289599999993,
+          "p95Ms": 124.16849200000001
+        },
+        "pythonThread": {
+          "medianMs": 115.39142194669694,
+          "p95Ms": 135.31236397102475
+        },
+        "eventLoopMaxMs": 1.919999,
+        "scope": "20 transactions of 100 upserts and 100-row read, WAL/FULL. Python pinned SQL methods grouped into one thread call, omitting individual cursor/future round trips and write acknowledgements; optimistic baseline, not full server or hardware."
+      },
+      "originalLogSha256": "fbebd54d9803fde510235a99d237f9f7b5fc30ccf6ffb72bb336cd15b49e6375"
+    },
+    {
+      "name": "database-table",
+      "workload": "{\"tables\":50}",
+      "workloadSha256": "42babe32b602427b0eb95e9d82f4d4d38331f7e6bb7f106fe47bd5cfbf9c0b92",
+      "programSha256": "b3fe178c33c82d3b3a4b65f56a27f3a59bb5ad65ffb0d60f9829c4a60a27c49f",
+      "output": "[1375.4504229873419, 1420.2697479631752, 1421.0137058980763, 1447.0530409598723, 1419.2821000469849]\n",
+      "outputSha256": "159df73989047a0945edec794754d8ba69bf898705ac8a6015481b56dad37a0a",
+      "capturedAt": "2026-10-07T09:59:12.083Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "filesystemMagic": 61267,
+        "tables": 50,
+        "nodeWorker": {
+          "medianMs": 623.1132190000003,
+          "p95Ms": 643.932065
+        },
+        "pythonProvider": {
+          "medianMs": 1420.2697479631752,
+          "p95Ms": 1447.0530409598723
+        },
+        "eventLoopMaxMs": 2.111487,
+        "scope": "50 creates plus 50 upgrades, WAL/FULL; open/close and row assertions excluded. Node uses one atomic transaction and worker round trips, Python original registration commits creation/migration/metadata separately. Not equal durability work or hardware timing."
+      },
+      "originalLogSha256": "5e21a28ca8e6875c775b3190b145926007dab4a1fd80b3c0bd63b2cd706826b3"
+    },
+    {
+      "name": "database-backup",
+      "workload": "{\"records\":1000,\"payloadBytes\":1024}",
+      "workloadSha256": "6a80cb0b5421536d7e62638f16b27cd619d47545db423bf5a701ca95e4aaf9b3",
+      "programSha256": "d377ec26fce6c88d0a16b9c26d0126896f3ec6f5782d217951a2171b047eefa1",
+      "output": "[19.199492991901934, 18.832247937098145, 18.946019001305103, 19.005430047400296, 19.190742052160203, 19.410706008784473, 18.829977954737842]\n",
+      "outputSha256": "32e221e80719ce52b6dc0b7c9ce36bbf5f1ad90c151ea34ebbd9b2b195209cf1",
+      "capturedAt": "2026-10-07T09:59:13.049Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "filesystemMagic": 61267,
+        "filesystem": "ext-family",
+        "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+        "records": 1000,
+        "snapshotBytes": 1409024,
+        "nodeBackup": {
+          "medianMs": 43.80820999999992,
+          "p95Ms": 54.816749999999985
+        },
+        "pythonBackupThread": {
+          "medianMs": 19.005430047400296,
+          "p95Ms": 19.410706008784473
+        },
+        "nodeEventLoopMaxMs": 1.060863,
+        "scope": "Same WAL source and original Python provider thread. Node also stages, fsyncs and atomically publishes replacement; filesystem and process checks, not hardware power-loss acceptance"
+      },
+      "originalLogSha256": "5e2387968e97725860ceee5c9409738361a96fdc5dd8dbe31ce23100dbcca324"
+    },
+    {
+      "name": "database-restore",
+      "workload": "{\"records\":1000,\"payloadBytes\":1024}",
+      "workloadSha256": "6a80cb0b5421536d7e62638f16b27cd619d47545db423bf5a701ca95e4aaf9b3",
+      "programSha256": "d15147c418005260c06dcc1a01d19b96243f5e5881648bca93f4ef3b2bfe60ed",
+      "output": "[17.587191076017916, 17.689162050373852, 22.978984052315354, 17.554799909703434, 17.666031955741346, 17.070604022592306, 17.45389902498573]\n",
+      "outputSha256": "1b45edb37f2ba9d96e8795697e56bfa645f4a588f246b8771d6b001460039b3f",
+      "capturedAt": "2026-10-07T09:59:15.227Z",
+      "filesystemMagic": 61267,
+      "originalNodeResult": {
+        "node": "v26.10.0",
+        "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+        "filesystemMagic": 61267,
+        "filesystem": "ext-family",
+        "records": 1000,
+        "snapshotBytes": 1409024,
+        "nodeRestore": {
+          "medianMs": 12.151756999999975,
+          "p95Ms": 22.24632399999996
+        },
+        "pythonRestoreThread": {
+          "medianMs": 17.587191076017916,
+          "p95Ms": 22.978984052315354
+        },
+        "nodeEventLoopMaxMs": 1.283071,
+        "scope": "Same snapshot, actual worker/thread restore. Node additionally checks integrity/schema/size and fences old operations. Excludes service restart latency and hardware power-loss acceptance"
+      },
+      "originalLogSha256": "d3769a54881e1939e5604c6fc1f7829b84692d681cf2919fa18c3aecfaf44354"
+    }
+  ],
+  "scope": "Original pinned Python method outputs and original SQLite bytes. Benchmark samples are historical measurements on the recorded host filesystem; they are never current paired measurements or target-board acceptance.",
+  "pythonRuntime": {
+    "version": "3.12.13",
+    "sqlite": "3.46.1",
+    "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+  },
+  "system": {
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "kernel": "6.18.36-amd64-desktop-rolling",
+    "platform": "linux",
+    "arch": "x64"
+  }
+}
