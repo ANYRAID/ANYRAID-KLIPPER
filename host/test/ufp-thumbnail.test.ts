@@ -10,6 +10,12 @@ const {ThumbnailProcessor}=retained?await import(pathToFileURL(join(retained.pat
 const signal=()=>new AbortController().signal;
 const png=(width=64,height=32)=>sharp({create:{width,height,channels:4,background:{r:12,g:34,b:56,alpha:0.5}}}).png().toBuffer();
 
+test('Cura external PNG uses Lanczos while inline cubic and original bytes remain unchanged',async()=>{
+ const raw=Buffer.alloc(96*64*3);for(let i=0;i<raw.length;i++)raw[i]=(i*43+(i>>>4)*17)&255;
+ const input=await sharp(raw,{raw:{width:96,height:64,channels:3}}).png().toBuffer(),processor=await ThumbnailProcessor.open();
+ try{const images=await processor.prepareUfpPng(input,signal()),expected=await sharp(raw,{raw:{width:96,height:64,channels:3}}).resize(32,21,{fit:'fill',kernel:'lanczos3',withoutEnlargement:true}).png().toBuffer();assert.equal(images[0].width,32);assert.equal(images[0].height,21);assert.deepEqual(images[0].bytes,expected);assert.deepEqual(images[1].bytes,input);const cubic=await processor.preparePng(input,signal());assert.notDeepEqual(images[0].bytes,cubic[0].bytes);assert.deepEqual(cubic[1].bytes,input);}finally{await processor.close();}
+});
+
 test('archive PNG preserves exact bytes and matches inline decoded miniature output',async()=>{
  const bytes=await png(),base64=bytes.toString('base64');
  const inline=await prepareThumbnailImages(`; thumbnail begin 64x32 ${base64.length}\n; ${base64}\n; thumbnail end\n`,signal());

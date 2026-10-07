@@ -3,7 +3,7 @@ import {fork,type ChildProcess} from 'node:child_process';
 import {ApiError} from './rpc.ts';
 import type {ThumbnailImage} from './thumbnail-images.ts';
 export interface ThumbnailProcessorOptions {maxPending?:number;maxQueuedBytes?:number;timeoutMs?:number;startupTimeoutMs?:number;}
-interface Request {id:number;kind:'blocks'|'png';data:string|Buffer;bytes:number;finish:(error:unknown,images?:ThumbnailImage[])=>void;dispose:()=>void;}
+interface Request {id:number;kind:'blocks'|'png'|'ufp-png';data:string|Buffer;bytes:number;finish:(error:unknown,images?:ThumbnailImage[])=>void;dispose:()=>void;}
 /** Serial image processing in a separate process, including its native thread pools.
  * Active cancellation/timeout fences the instance and kills the child; no auto-restart. */
 export class ThumbnailProcessor {
@@ -44,13 +44,20 @@ export class ThumbnailProcessor {
  }
  /** UFP PNG input is decoded in the same isolated owner; never rewrite G-code. */
  preparePng(data:Buffer,signal:AbortSignal):Promise<ThumbnailImage[]>{
+  return this.#enqueuePng('png',data,signal);
+ }
+ /** Cura's external preview uses Lanczos; embedded block behavior is unchanged. */
+ prepareUfpPng(data:Buffer,signal:AbortSignal):Promise<ThumbnailImage[]>{
+  return this.#enqueuePng('ufp-png',data,signal);
+ }
+ #enqueuePng(kind:'png'|'ufp-png',data:Buffer,signal:AbortSignal):Promise<ThumbnailImage[]>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Thumbnail processor is closed'));
   if(signal.aborted)return Promise.reject(signal.reason);
   if(!Buffer.isBuffer(data))return Promise.reject(new TypeError('Invalid thumbnail PNG input'));
   if(data.length>4*1024**2)return Promise.reject(new ApiError(413,'Thumbnail PNG limit exceeded'));
-  return this.#enqueue('png',data,data.length,signal);
+  return this.#enqueue(kind,data,data.length,signal);
  }
- #enqueue(kind:'blocks'|'png',data:string|Buffer,bytes:number,signal:AbortSignal):Promise<ThumbnailImage[]>{
+ #enqueue(kind:'blocks'|'png'|'ufp-png',data:string|Buffer,bytes:number,signal:AbortSignal):Promise<ThumbnailImage[]>{
   if(this.#requests.size>=this.#options.maxPending||this.#bytes+bytes>this.#options.maxQueuedBytes||this.#next===Number.MAX_SAFE_INTEGER)return Promise.reject(new ApiError(503,'Thumbnail process queue is full'));
   const id=++this.#next,result=Promise.withResolvers<ThumbnailImage[]>();let settled=false;
   const finish=(error:unknown,images?:ThumbnailImage[])=>{if(settled)return;settled=true;if(error!==undefined)result.reject(error);else if(signal.aborted)result.reject(signal.reason);else result.resolve(images!);};

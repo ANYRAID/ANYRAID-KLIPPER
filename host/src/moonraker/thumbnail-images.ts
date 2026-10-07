@@ -24,19 +24,19 @@ function miniatureSize(width:number,height:number):[number,number]{
  const round=(value:number,key:(n:number)=>number)=>{const floor=Math.floor(value),ceil=Math.ceil(value);return Math.max(key(floor)<=key(ceil)?floor:ceil,1);};
  return aspect<=1?[round(32*aspect,n=>Math.abs(aspect-n/32)),32]:[32,round(32/aspect,n=>n===0?0:Math.abs(aspect-32/n))];
 }
-async function prepareMiniature(pixels:Pixels,signal:AbortSignal):Promise<ThumbnailImage>{
+async function prepareMiniature(pixels:Pixels,signal:AbortSignal,kernel:'cubic'|'lanczos3'='cubic'):Promise<ThumbnailImage>{
  const [width,height]=miniatureSize(pixels.width,pixels.height);
- const bytes=await sharp(pixels.data,{raw:{width:pixels.width,height:pixels.height,channels:pixels.channels}}).resize(width,height,{fit:'fill',kernel:'cubic',withoutEnlargement:true}).png().toBuffer();signal.throwIfAborted();
+ const bytes=await sharp(pixels.data,{raw:{width:pixels.width,height:pixels.height,channels:pixels.channels}}).resize(width,height,{fit:'fill',kernel,withoutEnlargement:true}).png().toBuffer();signal.throwIfAborted();
  return {width,height,format:'png',bytes,miniature:true};
 }
 /** Separate archive PNG; original bytes remain unchanged after full decode. */
-export async function preparePngThumbnailImages(input:Buffer,signal:AbortSignal):Promise<ThumbnailImage[]>{
+export async function preparePngThumbnailImages(input:Buffer,signal:AbortSignal,kernel:'cubic'|'lanczos3'='cubic'):Promise<ThumbnailImage[]>{
  signal.throwIfAborted();if(!Buffer.isBuffer(input))throw new TypeError('Invalid thumbnail PNG input');
  if(input.length>4*1024**2)throw new RangeError('Thumbnail PNG limit exceeded');
  const bytes=Buffer.from(input),pixels=await decodeRaster(bytes,'png',signal);
  const original:ThumbnailImage={width:pixels.width,height:pixels.height,format:'png',bytes,miniature:false};
  if(pixels.width===32&&pixels.height===32)return [original];
- const miniature=await prepareMiniature(pixels,signal);
+ const miniature=await prepareMiniature(pixels,signal,kernel);
  if(bytes.length+miniature.bytes.length>8*1024**2)throw new RangeError('Thumbnail output limit exceeded');
  return [miniature,original];
 }
