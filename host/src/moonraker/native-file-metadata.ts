@@ -16,6 +16,7 @@ export class NativeFileMetadata {
  readonly #files:PublishedPrintFiles;readonly #budget:PrintSnapshotBudget;
  readonly #cache=new FileMetadataStore({maxRecords:128,maxBytes:8*1024**2,maxRecordBytes:256*1024});
  readonly #keys=new Map<string,string>();readonly #pending=new Set<Promise<unknown>>();readonly #stop=new AbortController();
+ readonly #tasks=new Map<Promise<unknown>,string>();readonly #rescans=new Map<string,Promise<unknown>>();
  readonly #bundles=new Map<string,{filename:string;key:string;images:(ThumbnailImage&{sha256:string})[];bytes:number}>();
  readonly #fileBundles=new Map<string,string>();readonly #downloads:ThumbnailDownloads;
  #imageBytes=0;#processor:Promise<ThumbnailProcessor>|undefined;
@@ -44,17 +45,29 @@ export class NativeFileMetadata {
  }
  async thumbnails(filename:string,signal:AbortSignal):Promise<Json[]>{await this.metadata(filename,signal);signal.throwIfAborted();return this.#cache.thumbnails(filename);}
  metadata(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
-  if(this.#stop.signal.aborted)return Promise.reject(new ApiError(503,'Native metadata closed'));
-  try{nativeFilename(filename);}catch(error){return Promise.reject(error);}
-  if(this.#pending.size>=2)return Promise.reject(new ApiError(503,'Native metadata queue full'));
-  const combined=AbortSignal.any([signal,this.#stop.signal]);const task=this.#extract(filename,combined);this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+  return this.#request(filename,signal,false);
  }
- async #extract(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
+ rescan(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
+  return this.#request(filename,signal,true);
+ }
+ #request(filename:string,signal:AbortSignal,force:boolean):Promise<Record<string,Json>>{
+  if(this.#stop.signal.aborted)return Promise.reject(new ApiError(503,'Native metadata closed'));
+  try{nativeFilename(filename);signal.throwIfAborted();}catch(error){return Promise.reject(error);}
+  if(this.#pending.size>=2)return Promise.reject(new ApiError(503,'Native metadata queue full'));
+  const combined=AbortSignal.any([signal,this.#stop.signal]);
+  // A forced scan follows earlier readers; later readers cannot reuse their old URLs.
+  const predecessors=force?[...this.#tasks].filter(([,name])=>name===filename).map(([task])=>task):this.#rescans.has(filename)?[this.#rescans.get(filename)!]:[];
+  const task=predecessors.length?Promise.allSettled(predecessors).then(()=>this.#extract(filename,combined,force)):this.#extract(filename,combined,force);
+  this.#pending.add(task);this.#tasks.set(task,filename);if(force)this.#rescans.set(filename,task);
+  return task.finally(()=>{this.#pending.delete(task);this.#tasks.delete(task);if(this.#rescans.get(filename)===task)this.#rescans.delete(filename);});
+ }
+ async #extract(filename:string,signal:AbortSignal,force:boolean):Promise<Record<string,Json>>{
   signal.throwIfAborted();
   try{
    const id=await this.#files.resolvePath(filename,signal);
    const initial=await this.#files.describe(id,signal),key=identity(initial.file,initial.modified),cached=this.peek(filename,initial.file,initial.modified);
-   if(cached){this.#keys.delete(filename);this.#keys.set(filename,key);return this.#cache.metadata(filename);}
+   if(!force&&cached){this.#keys.delete(filename);this.#keys.set(filename,key);return this.#cache.metadata(filename);}
+   if(force)this.#drop(filename);
    const worker=await(this.#worker??=MetadataExtractor.open({maxPending:2,maxFileBytes:this.#files.status.maxFileBytes}));signal.throwIfAborted();
    const result=await extractPublishedMetadata(this.#files,this.#budget,worker,id,signal);
    if(result.fields.sha256!==initial.file.sha256||result.fields.name!==initial.file.name||result.fields.modified!==initial.modified)throw new ApiError(409,'Native metadata source changed');
@@ -63,7 +76,7 @@ export class NativeFileMetadata {
    if(result.thumbnailData){const processor=await(this.#processor??=ThumbnailProcessor.open({maxPending:2,maxQueuedBytes:4*1024**2}));signal.throwIfAborted();images=await processor.prepare(result.thumbnailData,signal);signal.throwIfAborted();}
    const current=await this.#files.describeSource(id,signal);if(identity(current.file,current.modified)!==key||!samePublishedSource(result.source,current.source))throw new ApiError(409,'Native metadata source changed');
    // Concurrent cold readers must share the already published preview URLs.
-   if(this.peek(filename,current.file,current.modified))return this.#cache.metadata(filename);
+   if(!force&&this.peek(filename,current.file,current.modified))return this.#cache.metadata(filename);
    const bundleId='thumb-'+randomUUID(),prepared=images.map(image=>({...image,sha256:createHash('sha256').update(image.bytes).digest('hex')})),imageBytes=prepared.reduce((total,image)=>total+image.bytes.length,0);
    const thumbnails=prepared.map((image,index)=>({width:image.width,height:image.height,size:image.bytes.length,relative_path:'.thumbs/'+bundleId+'/'+index+'.'+image.format}));
    const fields={...result.fields,file_id:id,sha256:initial.file.sha256,name:initial.file.name,thumbnails};

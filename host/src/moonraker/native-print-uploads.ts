@@ -353,6 +353,11 @@ export class NativePrintUploads {
   if(typeof params.filename!=='string'||Object.keys(params).some(key=>key!=='filename'))return Promise.reject(new ApiError(400,'Expected filename'));
   return this.#metadata.metadata(params.filename,signal);
  }
+ rescan(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Record<string,Json>>{
+  if(this.#closed)return Promise.reject(new ApiError(503,'Native metadata closed'));
+  if(typeof params.filename!=='string'||Object.keys(params).some(key=>key!=='filename'))return Promise.reject(new ApiError(400,'Expected filename'));
+  return this.#metadata.rescan(params.filename,signal);
+ }
  directory(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{const task=this.#directory(params,signal);this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));}
  mutateDirectory(params:Readonly<Record<string,Json>>,verb:'POST'|'DELETE',context:RpcContext):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native files closed'));
@@ -439,7 +444,7 @@ export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativeP
     if(verb!=='GET')return reads.mutateDirectory(params,verb as 'POST'|'DELETE',context);
     return typeof params.path==='string'&&/^\/?config(?:\/|$)/.test(params.path)&&options.configFiles?options.configFiles.directory(params,context.signal):reads.directory(params,context.signal);
    }));
-   if(options.metadata!==false){release.push(registry.register({endpoint:'/server/files/metadata',methods:['GET']},(params,_verb,context)=>reads.metadata(params,context.signal)));release.push(registry.register({endpoint:'/server/files/thumbnails',methods:['GET']},(params,_verb,context)=>reads.thumbnails(params,context.signal)));}
+   if(options.metadata!==false){release.push(registry.register({endpoint:'/server/files/metadata',methods:['GET']},(params,_verb,context)=>reads.metadata(params,context.signal)));release.push(registry.register({endpoint:'/server/files/thumbnails',methods:['GET']},(params,_verb,context)=>reads.thumbnails(params,context.signal)));release.push(registry.register({endpoint:'/server/files/metascan',methods:['POST']},(params,_verb,context)=>reads.rescan(params,context.signal)));}
   }
   if(options.deleteRoute!==false)release.push(registry.register({endpoint:'/server/files/delete_file',methods:['DELETE']},(params,_verb,context)=>uploads.remove(params,context)));
   return ()=>{for(const remove of release.reverse())remove();};

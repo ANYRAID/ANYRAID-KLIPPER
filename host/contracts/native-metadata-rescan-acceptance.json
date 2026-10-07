@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base": "11a90a6e5e1c3710c37440bcf38479c08917d6ce",
+  "status": "原生强制重扫软件候选；不是完整 Moonraker、UFP 磁盘导入、目标板或 Python 退役完成。",
+  "contract": "https://moonraker.readthedocs.io/en/latest/external_api/file_manager/",
+  "product": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-rescan-final-product-bundle",
+    "manifestSha256": "b32fb781b7d1486cdec72044e2e2dfb4506f55fa6ea0cd0fc163a92ef77630c6",
+    "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+  },
+  "productionDifferenceFromBase": [
+    "host/src/moonraker/configured-server.js",
+    "host/src/moonraker/native-file-metadata.js",
+    "host/src/moonraker/native-persistent-metadata.js",
+    "host/src/moonraker/native-print-uploads.js"
+  ],
+  "native": "沿用已验收 C；没有重新构建或真实 MCU 验收声明。",
+  "validation": {
+    "source": 107,
+    "compiledOverlap": 10,
+    "mixed": 1,
+    "typecheck": true,
+    "whitespace": true,
+    "scope": "计数重叠，不相加；真实 HTTP/WebSocket、持久恢复、取消、并发及代际归属。"
+  },
+  "failures": [
+    {
+      "file": "anyraid-rescan-typecheck-first.log",
+      "cause": "测试误写不存在的 snapshots.active；修正为 reservations。"
+    },
+    {
+      "file": "anyraid-rescan-tests-first.log",
+      "cause": "三项配额字段断言误写；另发现持久撤销后归属索引陈旧，已立即刷新。"
+    },
+    {
+      "file": "anyraid-rescan-npm-ci.log",
+      "cause": "首个离线缓存缺少锁定的 sharp 0.35.4；改用已有 UFP 缓存，锁定依赖未改变。"
+    },
+    {
+      "file": "anyraid-rescan-inspect.log",
+      "cause": "比对脚本误用旧上传包基线；改为最新 develop 的已封存父包。"
+    },
+    {
+      "file": "anyraid-rescan-compiled.log",
+      "cause": "验证驱动假设旧 sharp 安装入口；改为 createRequire.resolve。"
+    },
+    {
+      "file": "anyraid-rescan-bench.log",
+      "cause": "32像素图片只有一张预览，基准修正为至少一张并取末张；未修改生产算法。"
+    },
+    {
+      "file": "anyraid-rescan-mixed.log",
+      "cause": "第一次混合0/1；第二代 metascan 绑定已退役设备并返回503。加入既有进程文件路由集合，最终新独立包1/1，不覆盖首次失败。"
+    }
+  ],
+  "performance": {
+    "abba": {
+      "identities": {
+        "baseline": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-created-parents-product-bundle",
+          "manifestSha256": "d3f458d7b17091b153ad562ebb8c304359889c5454ebad1b467b12bfbfc34197",
+          "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+        },
+        "candidate": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-rescan-product-bundle",
+          "manifestSha256": "ef3879c2daccfa6acb50b3f30033f5be7b5effdf32f0c5b64bb75eab73235b87",
+          "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+        }
+      },
+      "input": {
+        "bytes": 262144,
+        "sha256": "37df4e05bf1011f0f7adfcd7699722531c1f992dfeae31b081079f275d090a07",
+        "pngBytes": 137,
+        "pngSha256": "890e0aee5cd2bba33fded8391344effdf58e88a4302122a1b2b094e142b116ea"
+      },
+      "summary": {
+        "baseline": {
+          "cache": {
+            "count": 1024,
+            "medianMs": 0.08894099999997707,
+            "p95Ms": 0.13375200000007226,
+            "p99Ms": 0.2129330000000209
+          },
+          "cold": {
+            "count": 32,
+            "medianMs": 204.42288499999995,
+            "p95Ms": 284.3567359999979,
+            "p99Ms": 292.1406330000009
+          }
+        },
+        "candidate": {
+          "cache": {
+            "count": 1024,
+            "medianMs": 0.09366199999931268,
+            "p95Ms": 0.11706199999935052,
+            "p99Ms": 0.20214300000043295
+          },
+          "cold": {
+            "count": 32,
+            "medianMs": 201.49683100000038,
+            "p95Ms": 212.55367900000056,
+            "p99Ms": 223.0960780000005
+          },
+          "rescan": {
+            "count": 32,
+            "medianMs": 242.0994520000022,
+            "p95Ms": 269.49009800000204,
+            "p99Ms": 270.8160090000001
+          }
+        }
+      },
+      "rounds": [
+        {
+          "round": 0,
+          "name": "baseline",
+          "loopP99Ms": 1.625087,
+          "loopMaxMs": 2.785279
+        },
+        {
+          "round": 1,
+          "name": "candidate",
+          "loopP99Ms": 1.645567,
+          "loopMaxMs": 3.614719
+        },
+        {
+          "round": 2,
+          "name": "candidate",
+          "loopP99Ms": 1.592319,
+          "loopMaxMs": 2.053119
+        },
+        {
+          "round": 3,
+          "name": "baseline",
+          "loopP99Ms": 1.644543,
+          "loopMaxMs": 3.444735
+        }
+      ],
+      "reuse": "最终包只新增 configured-server.js 路由归属修复。ABBA所加载的文件、元数据、图片及依赖指纹未变，复用其原范围，未声称在最终包重跑。"
+    },
+    "mixed": {
+      "rescan": {
+        "operations": 16,
+        "medianMs": 259.91411399999924,
+        "p95Ms": 505.30425999999716,
+        "duringPrintGenerations": [
+          1,
+          2
+        ],
+        "oldUrlsRevoked": true,
+        "originalModelBytesPreserved": true
+      },
+      "statusRequests": 44637,
+      "statusP99Ms": 4.320719999996072,
+      "minimumStepLeadMs": 82.143,
+      "uploads": 16,
+      "uploadP95Ms": 242.88921600000322,
+      "queue": {
+        "groups": 16,
+        "printingGenerations": [
+          1,
+          2
+        ],
+        "queries": 2558,
+        "queryP99Ms": 7.770327999998699,
+        "durableMutations": 64,
+        "actualStartRequestPrefix": "queue-",
+        "journalCompleted": true,
+        "authorizedNotifications": true,
+        "noAutomaticReplay": true
+      }
+    },
+    "interpretation": "额外16次重扫均通过，状态和发送期限满足原模拟门槛；重扫P95和上传尾延迟完整保留。尚无目标板预算，不能宣称实机无退化或打印精度通过。"
+  },
+  "remaining": [
+    "自身CI、PR集成及合并后检查",
+    "同包Fluidd和Mainsail完整实页",
+    "原始磁盘UFP导入和恢复",
+    "UFP原大图片取消故障的原请求触发",
+    "Cycnumbris 500配置、安装、目标性能、G3和全部Python退役"
+  ],
+  "evidence": {
+    "path": "native-metadata-rescan-evidence.json.gz",
+    "entries": 51,
+    "bytes": 561427,
+    "sha256": "0ccc765d9bc928136f1484c37b262af42208ed799f460c0c164c228d56aedb1b",
+    "secrets": 0
+  }
+}

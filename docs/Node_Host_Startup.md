@@ -2967,6 +2967,28 @@ node host/acceptance/client-probe.ts /absolute/path/to/mainsail 18334 --trusted-
 使用凭据模式，Fluidd 的登录验收入口不变。
 
 
+## 原生文件元数据强制重扫候选
+
+已启用原生文件元数据路由的装配新增 `POST /server/files/metascan?filename=part.gcode`
+和 JSON-RPC `server.files.metascan`，参数只接受相对于 `gcodes` 的 `filename`。
+成功结果与 `server.files.metadata` 相同；每次成功都重新解析固定文件身份，
+不会沿用缓存或旧持久快照。契约依据[上游文件 API](https://moonraker.readthedocs.io/en/latest/external_api/file_manager/)。
+HTTP GET 返回 405，错误参数返回 400，缺失源文件返回 404。
+请求沿用现有 REST／RPC 授权；权限拒绝不会开始扫描。
+
+持久装配复用同一元数据事务、版本、图片和恢复所有者，有界串行执行。
+内存装配仍保留两个请求的容量：重扫等待此前同文件读取，后续读取等待
+重扫结果，超出容量返回 503。取消或关闭不自动重试；扫描开始前取消
+保留原缓存，扫描已开始则旧预览可能失效，后续查询按原恢复／重建流程
+取得有效结果。源文件删除或身份变化不能提交陈旧元数据。
+
+强制重扫成功后，旧缩略图地址及已取得的读取句柄失效；持久重启恢复
+新地址。该接口只扫描原生发布命名空间，尚未提供外部磁盘 UFP 导入。
+旧附件 `MetadataFiles` 与原生进程文件所有者互斥，不能混装两个文件所有者。
+源码、独立编译包、取消／竞争和性能证据见
+[重扫验收](../host/contracts/native-metadata-rescan-acceptance.json)。
+桌面模拟结果不代表 Cycnumbris 500 目标板性能、真实运动或 G3 通过。
+
 ## 元数据 Worker 的关闭确认候选
 
 扫描超时立即拒绝请求、取消全部已准入工作并封闭实例，原扫描期限不变。
