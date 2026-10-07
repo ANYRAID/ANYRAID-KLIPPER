@@ -1863,3 +1863,25 @@ Mainsail 上轮实页登录／文件选择后观察会话中断，原15分钟测
 #22 的完整历史与29项网关组合见 `print-conflict-reasons-acceptance.json.gatewayAcceptedDevelopIntegration`；#28 的68项数据库／网关组合与备份冷路径成本见 `database-discovery-acceptance.json.gatewayAcceptedDevelopIntegration`。旧准入失败、原 #20 混合失败、本地编译器 SIGSEGV、完整客户端和 G3 继续保留。
 
 当前组合的源码、检查日志和生产指纹见原候选契约 `currentNormalComposition`。生产源码／构建入口／依赖相对 41ea 固定包的构建源未改变，已有测量只按原范围引用。Mainsail 官方下载函数使用新窗口；浏览器原页事件超时尚不能区分传输与捕获。共享 Playwright 观察方案已准备，新的隔离夹具启动被自动审批拒绝，等待本次明确授权；不延长或重启已结束的原场次。完整客户端、全部 Python 退役及 G3 仍待完成。
+
+### AHT 首停观测（准备证据）
+
+#47 原头 `eb97d274` 的主机 37683411689 普通测试 4214／4215，
+AHT 加热 PA4 在关闭阶段出现 AbortError；同头固件 37683411719
+成功。本机原两项通过不关闭首次 CI。#46 组合头 `18ddb0af` 的
+固件 37686092259 已成功，主机 37686092213 普通测试已通过，
+sanitizer 后续链仍待终态，不借用原头结果合并。
+
+AHT 原用例新增失败时的有界首停证据：保留采样阶段、MCU 首原因、
+两个时钟状态、CLOCK_MONOTONIC_RAW 时间与末 32 条所选命令。
+观测不消费错误；清理失败聚合保留原测试错误。受控停止证明原始
+MCU 原因可与 Node 原生定时器的 AbortError 分开记录，两个输出
+仍确认停止、没有迟到样本或热输出。首次诊断错误调用停止后的
+`group.session()`，已在启动时借用只读时钟状态修正，失败保留。
+
+41 项受影响源码、4 项重叠编译测试驱动、类型和空白通过；编译驱动
+借用锁定测试依赖及原 C，不代表新独立产品或实机验收。原生产代码、
+运动／采样／时钟／加热保护期限及原 AHT 断言不变。详见
+[AHT 首停证据](../host/contracts/aht-stop-boundary-acceptance.json)。
+本批是定位缺少首次原因的准备证据；更新后自身完整 CI 待验，原 CI
+触发条件、同包客户端、目标性能预算、G3 和全部 Python 退役仍开放。
