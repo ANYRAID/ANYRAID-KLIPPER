@@ -1,0 +1,711 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "scope": "安全依赖组合后的独立软件检查点；首次大图失败未关闭，候选不发布",
+  "node": "v26.10.0",
+  "nodeBinarySha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+  "sourceParent": "379d6fef",
+  "securityParent": "bf52ead88ae4c337c0dcdf1aaedfdcaccf22a91d",
+  "product": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-native-product-bundle",
+    "manifestSha256": "788cfc37a6c0da9951c2b2cc50b6d6f61eba68d2fad23ee2a3b5430e277304ed",
+    "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+  },
+  "cBuild": "复用未变、既有验收 C；无本轮 C 重建",
+  "validation": {
+    "sourceTests": 270,
+    "compiledOverlap": 70,
+    "typecheck": true,
+    "whitespace": true,
+    "mixed": [
+      {
+        "name": "original",
+        "pass": 1,
+        "fail": 0,
+        "originalMovements": 1000,
+        "childDeadlineMs": 90000,
+        "testDeadlineMs": 180000,
+        "statusRequests": 42368,
+        "statusP99Ms": 3.31555699999808,
+        "minimumStepLeadMs": 88.085,
+        "wireSteps": 8283,
+        "uploads": 16,
+        "uploadP95Ms": 55.12232000000222,
+        "metadataP95Ms": 312.71672899999976,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.971199,
+              "maxMs": 18.415615
+            },
+            "cpu": {
+              "user": 12928649,
+              "system": 2322460
+            },
+            "rss": 351948800
+          },
+          {
+            "loop": {
+              "p99Ms": 1.949695,
+              "maxMs": 12.443647
+            },
+            "cpu": {
+              "user": 8322952,
+              "system": 1832431
+            },
+            "rss": 409198592
+          }
+        ],
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2420,
+          "queryP99Ms": 6.220728999999665,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        }
+      },
+      {
+        "name": "supplement",
+        "pass": 1,
+        "fail": 0,
+        "originalMovements": 1000,
+        "childDeadlineMs": 90000,
+        "testDeadlineMs": 180000,
+        "statusRequests": 43569,
+        "statusP99Ms": 4.093567000003532,
+        "minimumStepLeadMs": 88.515,
+        "wireSteps": 7994,
+        "uploads": 16,
+        "uploadP95Ms": 75.69872899999973,
+        "metadataP95Ms": 335.40605499999947,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.004991,
+              "maxMs": 18.235391
+            },
+            "cpu": {
+              "user": 13467539,
+              "system": 2466465
+            },
+            "rss": 363225088
+          },
+          {
+            "loop": {
+              "p99Ms": 1.969151,
+              "maxMs": 13.688831
+            },
+            "cpu": {
+              "user": 8748191,
+              "system": 1763167
+            },
+            "rss": 293117952
+          }
+        ],
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2497,
+          "queryP99Ms": 4.155876999997417,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        },
+        "input": {
+          "originalProgramRetainedExactly": true,
+          "originalMovements": 1000,
+          "modelSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+          "archiveSha256": "4c1ee7ea690e1233db7e83997c5443c04875dc50ac0c7d0dad077201071af60d",
+          "loadModelSha256": "c3ee34051ee5e3e246d155ca24b04f35213682937159faedac846ff358dcdc90",
+          "loadModelBytes": 262144,
+          "externalPngSha256": "6c2161a7ecc97d14f824c9b6337c84441f8a46f9317cfc2ac642c4765be23f84",
+          "compiledBundle": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-native-product-bundle",
+            "manifestSha256": "788cfc37a6c0da9951c2b2cc50b6d6f61eba68d2fad23ee2a3b5430e277304ed",
+            "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+          }
+        }
+      },
+      {
+        "name": "large-observed",
+        "pass": 1,
+        "fail": 0,
+        "originalMovements": 1000,
+        "childDeadlineMs": 90000,
+        "testDeadlineMs": 180000,
+        "statusRequests": 43188,
+        "statusP99Ms": 4.226943000001484,
+        "minimumStepLeadMs": 82.32,
+        "wireSteps": 7858,
+        "uploads": 16,
+        "uploadP95Ms": 281.1908079999994,
+        "metadataP95Ms": 337.1671069999993,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.987583,
+              "maxMs": 18.137087
+            },
+            "cpu": {
+              "user": 13113832,
+              "system": 2691303
+            },
+            "rss": 351055872
+          },
+          {
+            "loop": {
+              "p99Ms": 1.983487,
+              "maxMs": 12.304383
+            },
+            "cpu": {
+              "user": 11951199,
+              "system": 2049918
+            },
+            "rss": 305664000
+          }
+        ],
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2485,
+          "queryP99Ms": 4.550687000002654,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        },
+        "input": {
+          "originalProgramRetainedExactly": true,
+          "originalMovements": 1000,
+          "modelSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+          "archiveSha256": "e19d305ab3591c1a2f1121d524cafac267b89aa414ae6942c7ea2397892737df",
+          "loadModelSha256": "c3ee34051ee5e3e246d155ca24b04f35213682937159faedac846ff358dcdc90",
+          "loadModelBytes": 262144,
+          "externalPngSha256": "ab9b202bc50c1ad0d29f4423b667074ec78f59554e1624d6dc9bdb241f967b67",
+          "externalPngBytes": 1182337,
+          "largeUfpImage": true,
+          "compiledBundle": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-native-product-bundle",
+            "manifestSha256": "788cfc37a6c0da9951c2b2cc50b6d6f61eba68d2fad23ee2a3b5430e277304ed",
+            "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+          }
+        }
+      }
+    ]
+  },
+  "performance": {
+    "capacity": [
+      {
+        "name": "root",
+        "results": [
+          {
+            "upload": {
+              "samples": 32,
+              "medianMs": 28.720320999999785,
+              "p95Ms": 42.274887000000035,
+              "p99Ms": 46.562766999999894
+            },
+            "remove": {
+              "samples": 32,
+              "medianMs": 14.132243000000017,
+              "p95Ms": 16.63122199999998,
+              "p99Ms": 21.296945999999934
+            },
+            "directory": {
+              "samples": 256,
+              "medianMs": 0.4412649999999303,
+              "p95Ms": 0.9677810000002864,
+              "p99Ms": 2.5489890000001196
+            }
+          },
+          {
+            "upload": {
+              "samples": 32,
+              "medianMs": 29.09828600000003,
+              "p95Ms": 43.44725100000005,
+              "p99Ms": 50.08964700000024
+            },
+            "remove": {
+              "samples": 32,
+              "medianMs": 14.145893000000115,
+              "p95Ms": 20.82029999999986,
+              "p99Ms": 21.275154999999813
+            },
+            "directory": {
+              "samples": 256,
+              "medianMs": 0.4431250000000091,
+              "p95Ms": 0.7552789999999732,
+              "p99Ms": 2.313086999999996
+            }
+          }
+        ],
+        "loop": {
+          "p99Ms": 1.939455,
+          "maxMs": 5.246975
+        },
+        "identities": [
+          {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-parents-product-bundle",
+            "manifestSha256": "cd2f0a8b0755a6b7b5b45e86f701985f9d3b299075447dc55978ca41f7dea052"
+          },
+          {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-native-product-bundle",
+            "manifestSha256": "788cfc37a6c0da9951c2b2cc50b6d6f61eba68d2fad23ee2a3b5430e277304ed"
+          }
+        ],
+        "order": [
+          0,
+          1,
+          1,
+          0,
+          1,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "name": "existing",
+        "results": [
+          {
+            "upload": {
+              "samples": 32,
+              "medianMs": 29.525810999999976,
+              "p95Ms": 45.3057630000003,
+              "p99Ms": 63.224289000000226
+            },
+            "remove": {
+              "samples": 32,
+              "medianMs": 15.283596000000216,
+              "p95Ms": 23.349408999999923,
+              "p99Ms": 36.769724
+            },
+            "directory": {
+              "samples": 256,
+              "medianMs": 0.5018559999998615,
+              "p95Ms": 2.9702140000000554,
+              "p99Ms": 8.699960000000033
+            }
+          },
+          {
+            "upload": {
+              "samples": 32,
+              "medianMs": 32.59709600000042,
+              "p95Ms": 49.703463000000056,
+              "p99Ms": 52.807288999999855
+            },
+            "remove": {
+              "samples": 32,
+              "medianMs": 14.677909,
+              "p95Ms": 21.35499600000003,
+              "p99Ms": 23.693683000000192
+            },
+            "directory": {
+              "samples": 256,
+              "medianMs": 0.4903749999998581,
+              "p95Ms": 2.2944760000000315,
+              "p99Ms": 4.93621700000017
+            }
+          }
+        ],
+        "loop": {
+          "p99Ms": 3.184639,
+          "maxMs": 8.146943
+        },
+        "identities": [
+          {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-parents-product-bundle",
+            "manifestSha256": "cd2f0a8b0755a6b7b5b45e86f701985f9d3b299075447dc55978ca41f7dea052"
+          },
+          {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-native-product-bundle",
+            "manifestSha256": "788cfc37a6c0da9951c2b2cc50b6d6f61eba68d2fad23ee2a3b5430e277304ed"
+          }
+        ],
+        "order": [
+          0,
+          1,
+          1,
+          0,
+          1,
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    "ufpUpload": {
+      "modelBytes": 262144,
+      "modelSha256": "b7aaa6bbc42ff604b255b467ecb1e18a347612326fd1d6da573a1e6a76e11bd3",
+      "archiveBytes": 1183303,
+      "archiveSha256": "d9e24f2864b5d4fd229d6c21fc292c3e845a477c9071305ccb15fb0e069b4dff",
+      "pngBytes": 1182337,
+      "pngSha256": "ab9b202bc50c1ad0d29f4423b667074ec78f59554e1624d6dc9bdb241f967b67",
+      "order": [
+        0,
+        1,
+        1,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "warmups": [
+        {
+          "channel": "inline",
+          "uploadMs": 67.955334,
+          "metadataMs": 195.59465799999998,
+          "cachedMs": [
+            1.9693929999999682,
+            1.135733000000073,
+            1.0750419999999394,
+            1.1228929999999764,
+            0.953371000000061,
+            1.078663000000006,
+            1.4136359999999968,
+            0.8736799999999221
+          ]
+        },
+        {
+          "channel": "ufp",
+          "uploadMs": 119.58577100000002,
+          "metadataMs": 153.49467200000004,
+          "cachedMs": [
+            1.0709019999999327,
+            0.7235379999999623,
+            0.7259390000001531,
+            0.7065079999999853,
+            0.7470590000000357,
+            0.6949280000001181,
+            1.5235170000000835,
+            0.6640079999999671
+          ]
+        },
+        {
+          "channel": "inline",
+          "uploadMs": 41.20675500000016,
+          "metadataMs": 185.32525899999996,
+          "cachedMs": [
+            1.0007319999999709,
+            0.6311169999999038,
+            0.655277999999953,
+            0.6304569999999785,
+            0.6114869999998973,
+            0.6070569999999407,
+            0.6133969999998499,
+            0.6178370000000086
+          ]
+        },
+        {
+          "channel": "ufp",
+          "uploadMs": 52.68033799999989,
+          "metadataMs": 146.37981000000013,
+          "cachedMs": [
+            1.5559379999999692,
+            0.7642289999998866,
+            0.6436069999999745,
+            0.6334380000000692,
+            0.5975169999999252,
+            0.6191770000000361,
+            0.6632779999999912,
+            0.6596869999998489
+          ]
+        },
+        {
+          "channel": "inline",
+          "uploadMs": 48.067895000000135,
+          "metadataMs": 191.65797199999997,
+          "cachedMs": [
+            1.0435320000001411,
+            0.661916999999903,
+            0.5927169999999933,
+            0.68759799999998,
+            0.6885980000001837,
+            2.6747909999999138,
+            0.8407699999997931,
+            0.6492170000001352
+          ]
+        },
+        {
+          "channel": "ufp",
+          "uploadMs": 57.320802000000185,
+          "metadataMs": 152.3301779999997,
+          "cachedMs": [
+            3.5871109999998225,
+            3.7791940000001887,
+            0.8349789999997483,
+            0.6083770000000186,
+            0.580087000000276,
+            0.5709769999998571,
+            0.5687760000000708,
+            0.58615699999973
+          ]
+        }
+      ],
+      "results": [
+        {
+          "channel": "inline",
+          "upload": {
+            "medianMs": 41.32793899999888,
+            "p95Ms": 47.39921900000081
+          },
+          "metadata": {
+            "medianMs": 186.6715350000004,
+            "p95Ms": 214.4789950000013
+          },
+          "cached": {
+            "medianMs": 0.45789499999955297,
+            "p95Ms": 0.96641099999988
+          }
+        },
+        {
+          "channel": "ufp",
+          "upload": {
+            "medianMs": 59.50515800000176,
+            "p95Ms": 74.81271399999969
+          },
+          "metadata": {
+            "medianMs": 160.25736799999868,
+            "p95Ms": 171.26649799999996
+          },
+          "cached": {
+            "medianMs": 0.49568600000020524,
+            "p95Ms": 2.219916000000012
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "channel": "inline",
+          "loopP99Ms": 1.970175,
+          "loopMaxMs": 3.387391,
+          "readP95Ms": 0.15236199999981181
+        },
+        {
+          "channel": "ufp",
+          "loopP99Ms": 1.915903,
+          "loopMaxMs": 4.007935,
+          "readP95Ms": 0.1447119999993447
+        },
+        {
+          "channel": "ufp",
+          "loopP99Ms": 1.848319,
+          "loopMaxMs": 2.684927,
+          "readP95Ms": 0.12941099999989092
+        },
+        {
+          "channel": "inline",
+          "loopP99Ms": 1.936383,
+          "loopMaxMs": 2.885631,
+          "readP95Ms": 0.10704099999929895
+        },
+        {
+          "channel": "ufp",
+          "loopP99Ms": 1.987583,
+          "loopMaxMs": 3.289087,
+          "readP95Ms": 0.10864199999923585
+        },
+        {
+          "channel": "inline",
+          "loopP99Ms": 1.911807,
+          "loopMaxMs": 2.500607,
+          "readP95Ms": 0.0974709999973129
+        },
+        {
+          "channel": "inline",
+          "loopP99Ms": 1.942527,
+          "loopMaxMs": 2.623487,
+          "readP95Ms": 0.1001620000024559
+        },
+        {
+          "channel": "ufp",
+          "loopP99Ms": 1.906687,
+          "loopMaxMs": 2.799615,
+          "readP95Ms": 0.10646099999939906
+        }
+      ]
+    },
+    "limits": "桌面受控测量，不证明零退化、目标预算或物理打印。保留已有父目录约10%和缓存尾延迟上升。"
+  },
+  "largeGate": {
+    "closed": false,
+    "first": {
+      "pass": 0,
+      "fail": 1,
+      "error": "父端 Undici ReadableStream is already closed",
+      "firstRequestObserved": false
+    },
+    "observed": {
+      "pass": 1,
+      "fail": 0,
+      "firstFaultCaptured": false,
+      "closesPreviousFailure": false
+    },
+    "isolatedEarly409": {
+      "formdata": "通过，未复现",
+      "buffer": "通过，未复现"
+    },
+    "inference": "捆绑源码定位到 body 异步迭代生产器，但没有首次请求现场，不能确定服务端或客户端根因"
+  },
+  "sourceFiles": [
+    {
+      "name": "host/src/storage/published-files.ts",
+      "size": 93543,
+      "sha256": "d624508dac9cd8e223586c6bb47d9992139256e19d3077fc8e471c20a3aac49f"
+    },
+    {
+      "name": "host/src/storage/published-receipt.ts",
+      "size": 2015,
+      "sha256": "e305881f4b420b6c9f84724a3c23db8df3b629a760a5e7b79973b423957dec7c"
+    },
+    {
+      "name": "host/src/storage/namespace-copy.ts",
+      "size": 9319,
+      "sha256": "1d9a0f4cff086f4c7d109076d94f66d73f6a1dafebfb4b3d5738ada99a2b0bda"
+    },
+    {
+      "name": "host/src/storage/namespace-delete.ts",
+      "size": 6432,
+      "sha256": "5129e27890efbf9622f2af7c54fdbc539a0a3a38d837989ebb11becd944468b3"
+    },
+    {
+      "name": "host/src/storage/namespace-move.ts",
+      "size": 8467,
+      "sha256": "b29184e2e46bf9dfbc27fbf8017ee26324634aa804f4e1aa80e4657bfae0f928"
+    },
+    {
+      "name": "host/src/storage/namespace-replace.ts",
+      "size": 5456,
+      "sha256": "8edd0870fd4bd489f6b3cc2f37be7c432276f654603d1380232a02a70ef20e8d"
+    },
+    {
+      "name": "host/src/moonraker/metadata-extractor.ts",
+      "size": 7880,
+      "sha256": "5ff4aa86ef328bc867c2cc2151873443c448980aaa12ec8b68d938be1181fb18"
+    },
+    {
+      "name": "host/src/moonraker/metadata-scan.ts",
+      "size": 3741,
+      "sha256": "9c36a55e75a83ae050da1070e30f84aca5768bc277412ae5948fe8c5ae3dc7fe"
+    },
+    {
+      "name": "host/src/moonraker/native-file-metadata.ts",
+      "size": 9506,
+      "sha256": "37b2720b72658beb3070f8132a74051a0eebceaa1ad1075688de01fba170acb9"
+    },
+    {
+      "name": "host/src/moonraker/native-metadata-source.ts",
+      "size": 2463,
+      "sha256": "9f264f6ad8e30cafc5c96d14bcacd0fbf9b0acbf52e21b2ed6fd737a3edf3725"
+    },
+    {
+      "name": "host/src/moonraker/native-persistent-metadata.ts",
+      "size": 12999,
+      "sha256": "d7145a74fb8b50a799aab62d72f47c246d7700a7692eced30edd61e6c1341226"
+    },
+    {
+      "name": "host/src/moonraker/native-print-uploads.ts",
+      "size": 53282,
+      "sha256": "68f5bded110c83e0e9ec8fbf548816d31edc7c076690f8d8e5a48c9f60b24b3b"
+    },
+    {
+      "name": "host/src/moonraker/thumbnail-images.ts",
+      "size": 5778,
+      "sha256": "e722ed6dfc2fc28a20edfdc55b8ccafdc9895834ab9a45a02a27c77fbcafd456"
+    },
+    {
+      "name": "host/src/moonraker/thumbnail-process.ts",
+      "size": 8054,
+      "sha256": "7e5f204999d32a8eb111a9f82a9ceb8d394cc7dcb39bb821d1d8c27002cea5f4"
+    },
+    {
+      "name": "host/src/moonraker/thumbnail-process-child.ts",
+      "size": 1321,
+      "sha256": "64320fef26f0fcae87351a9cd985cbfa14c6e563a4f9b024f6e8c954a77b2df2"
+    },
+    {
+      "name": "host/src/moonraker/ufp-archive.ts",
+      "size": 8242,
+      "sha256": "510ddf8589e84f155af362119afdd0d13e205fccf0a2a87f8a08fbf140a23be9"
+    },
+    {
+      "name": "host/test/published-preview.test.ts",
+      "size": 16272,
+      "sha256": "6bfde5c3e5040f07b4639a97b1df8767bfbfbb9a4009060fad844cdb2bb5b206"
+    },
+    {
+      "name": "host/test/native-ufp-upload.test.ts",
+      "size": 13609,
+      "sha256": "70bd547e68f0c4e5918b51167d84338358c469aad60a71e7846d7e65f15d5971"
+    },
+    {
+      "name": "host/test/ufp-thumbnail.test.ts",
+      "size": 6336,
+      "sha256": "4470617184ffce848ad3f34de5511a46c9f98246927e8dbdb095e65535553b88"
+    },
+    {
+      "name": "host/test/helpers/ufp-fixture.ts",
+      "size": 1517,
+      "sha256": "dac3a505ae3068fb458eb04069b24d9cd09ecfa6b4cb3d1ea079f7deb77719d4"
+    },
+    {
+      "name": "host/acceptance/product-compiled-journey.test.ts",
+      "size": 193735,
+      "sha256": "61c826988a19ae6e22e62a2c4e04028a7723665e2575455d16738aab36e820cf"
+    },
+    {
+      "name": "host/bench/ufp-upload.ts",
+      "size": 7567,
+      "sha256": "b4a65a664130d5a2f26c23bf29b10404ed86f305254493918d0e0e2bf3ab493d"
+    },
+    {
+      "name": "host/bench/native-file-mutation-capacity.ts",
+      "size": 7699,
+      "sha256": "6996faf041e8460b552e3798a890841df99c694eb2a314dc1947a61cd101f516"
+    },
+    {
+      "name": "host/package.json",
+      "size": 19995,
+      "sha256": "45fa3d5fee89b6a1984a3ffe097731145960d131663ec45eecb61d8739201e7f"
+    },
+    {
+      "name": "host/package-lock.json",
+      "size": 69143,
+      "sha256": "f3cf393547e61fc9ca09d33246faa789c483009de2c518c541db47ddb6fdfec8"
+    }
+  ],
+  "evidence": {
+    "path": "native-ufp-bundle-evidence.json.gz",
+    "size": 575764,
+    "sha256": "765ee90a7a934d822bddc05853a8ba33aaffd5bd91705f64591f32f1338f5ced",
+    "entries": 70,
+    "credentialShapes": 0
+  },
+  "rollback": "旧程序不支持新 PNG 引用；降级必须恢复升级前一致的文件／元数据／作业状态副本，不原位删除图片字段",
+  "pending": [
+    "首次大图异常判别和门槛闭合",
+    "原始磁盘 UFP 元数据",
+    "最新 develop 组合和精确候选 CI、正常集成",
+    "完整同包 Fluidd/Mainsail",
+    "Cycnumbris 500 目标板预算、G3 和真实验收",
+    "177 个 klippy Python 及其余 Python 全部退役",
+    "主线 PR、部署和回滚验收"
+  ]
+}

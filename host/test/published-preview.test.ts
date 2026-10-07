@@ -1,14 +1,17 @@
-import test from 'node:test';
+import test,{after} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,readFile,open,rm,readdir,stat,chmod,unlink,readlink,utimes,rename,type FileHandle} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import sharp from 'sharp';
-import {PublishedPrintFiles,PublishedDeleteCommitError} from '../src/storage/published-files.ts';
-import {validateReplacementIntent,replacementNamespaceHash} from '../src/storage/namespace-replace.ts';
-import {validateCopyIntent} from '../src/storage/namespace-copy.ts';
-import {validateMoveIntent} from '../src/storage/namespace-move.ts';
+import {pathToFileURL} from 'node:url';
+import {externalAcceptanceBundle,assertAcceptanceBundleUnchanged} from './helpers/acceptance-bundle.ts';
+const retained=await externalAcceptanceBundle();if(retained)after(()=>assertAcceptanceBundleUnchanged(retained));
+const {PublishedPrintFiles,PublishedDeleteCommitError}=retained?await import(pathToFileURL(join(retained.path,'host/src/storage/published-files.js')).href) as typeof import('../src/storage/published-files.ts'):await import('../src/storage/published-files.ts');
+const {validateReplacementIntent,replacementNamespaceHash}=retained?await import(pathToFileURL(join(retained.path,'host/src/storage/namespace-replace.js')).href) as typeof import('../src/storage/namespace-replace.ts'):await import('../src/storage/namespace-replace.ts');
+const {validateCopyIntent}=retained?await import(pathToFileURL(join(retained.path,'host/src/storage/namespace-copy.js')).href) as typeof import('../src/storage/namespace-copy.ts'):await import('../src/storage/namespace-copy.ts');
+const {validateMoveIntent}=retained?await import(pathToFileURL(join(retained.path,'host/src/storage/namespace-move.js')).href) as typeof import('../src/storage/namespace-move.ts'):await import('../src/storage/namespace-move.ts');
 const signal=()=>new AbortController().signal;
 const sha=(bytes:Buffer)=>createHash('sha256').update(bytes).digest('hex');
 async function fixture(options:Parameters<typeof PublishedPrintFiles.open>[1]={}){
