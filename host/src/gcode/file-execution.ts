@@ -2,7 +2,7 @@ import {GCodeDispatch} from './dispatch.ts';
 import {GCodeFileReader,type GCodeFileBatch} from './file-reader.ts';
 /** Trusted product policy. accepted runs inside file dispatch ownership;
  * blocked runs only after that prefix releases ownership. Neither may await. */
-export interface FileAdmissionPause {continue():boolean;accepted(command:string):void;blocked():void;}
+export interface FileAdmissionPause {continue():boolean;accepted(command:string,params:Readonly<Record<string,string>>):void;blocked():void;}
 /** Single-owner file admission. EOF means commands consumed, never motion drained.
  * Dispatcher shutdown must be wired to the independent device safety path. */
 export class GCodeFileExecution {
@@ -37,7 +37,7 @@ export class GCodeFileExecution {
     let eof=false;
     this.#inflight=(async()=>{
      if(!batch){batch=await this.#reader.next(this.#abort.signal);this.#abort.signal.throwIfAborted();if(!batch){eof=true;return;}offset=0;}
-     const completed=await this.#dispatch.executePrefix(offset?batch.script.split('\n').slice(offset).join('\n'):batch.script,()=>!this.#paused&&(this.#admission?.continue()??true),active=>{this.#checkpoint=active;},this.#admission?command=>this.#admission!.accepted(command):undefined);
+     const completed=await this.#dispatch.executePrefix(offset?batch.script.split('\n').slice(offset).join('\n'):batch.script,()=>!this.#paused&&(this.#admission?.continue()??true),active=>{this.#checkpoint=active;},this.#admission?(command,params)=>this.#admission!.accepted(command,params):undefined);
      this.#abort.signal.throwIfAborted();offset+=completed;
      if(offset===batch.lines){this.#reader.commit(batch);batch=null;}
     })();

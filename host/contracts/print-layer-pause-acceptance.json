@@ -1,0 +1,439 @@
+{
+  "date": "2026-10-07",
+  "node": "v26.10.0",
+  "nodeBinarySha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+  "developBase": {
+    "pr": 29,
+    "head": "8cce0834b1c3c3da31d10904e93256136bdf5212",
+    "merge": "74a4304fd8a56363fbd0e0f673531e958888da1c",
+    "preciseHeadChecks": "all required host and firmware checks successful",
+    "postMerge": {
+      "hostRun": 37593907577,
+      "host": "ordinary and protocol success; sanitizer pending at sealing",
+      "firmwareRun": 37593907633,
+      "firmware": "success"
+    }
+  },
+  "sourceHashes": {
+    "host/src/gcode/dispatch.ts": "31b10e8d3613ce3e9ae81a42de17485dab09d87e7316da7b0af6d0c419dc7d80",
+    "host/src/gcode/file-execution.ts": "12e40c584ebc2d48c1824c5d6dac938b45e600857e59a6c5f37ebf1cbb9dbab5",
+    "host/src/operations/file-print-device.ts": "ac8da70f19333ac4751dce9234a14b854cc6854ad012ac5369b53fd8964ba425",
+    "host/src/operations/print-layer-pause.ts": "ddc946fd2d4ded020a52e07c40ed5be6c046dda3118acc2ad37e80c1a614e194",
+    "host/src/moonraker/native-layer-pause.ts": "90fda952ba7265edceb7d3a0e6f7aec2d1d7895d918f1e40ae82625a22113237",
+    "host/src/runtime/product-service.ts": "0adf1f4893215227b366539711d43ea3ed7d3b0639c0b7700ba6c48e6586516d",
+    "host/test/print-layer-pause.test.ts": "53b9d063935515cba7cc1da5d92f8536a75f314ae11ebed1387c3e194191ab74",
+    "host/test/print-layer-pause-compiled.test.ts": "55f1ed78fedaaa7b5fa83851fa4a53b3cff325a95947c6c48f830608eb1f2f57",
+    "host/test/product-service.test.ts": "0d4a397efe6996e71e172739f361cb396cbb20fef759612a082b26334f87c197",
+    "host/bench/print-layer-pause.ts": "3ae59c416a6770bebe59bce4e6ca758f9d0c2e70f4a85a3c1990f2b5716a452b"
+  },
+  "implementation": {
+    "endpoint": "/printer/print/layer_pause",
+    "transports": "Existing authorized REST and JSON-RPC endpoint registry",
+    "owner": "One volatile intention bound to existing file device, layer metadata and PrintController within the product generation",
+    "trigger": "Only a successfully accepted file SET_PRINT_STATS_INFO whose own parameters include CURRENT_LAYER and whose updated layer reaches or exceeds the target. Console metadata and total-only file metadata cannot trigger it.",
+    "pause": "Original controller, parking, stop and deadlines; no file-pump/controller self-wait",
+    "resume": "Explicit original print resume only",
+    "tokens": "Both current print token and consumed intention token with same request identity; stale retry is rejected",
+    "expiry": "Explicit future Unix milliseconds, at most 24 hours; no persistence, restart replay or auto resume",
+    "cancel": "Original safe stop waits outstanding pause ACK and reasserts stop; late ACK cannot publish a resumable job",
+    "precision": "Motion mathematics, native algorithms, coordinates, original deadlines and tolerances unchanged"
+  },
+  "validation": {
+    "sourceScenarios": 11,
+    "compiled": {
+      "parentTests": 1,
+      "reusedChildScenarios": 11,
+      "sourceAssertionsReplayed": true,
+      "independentDependencies": true,
+      "noTypeScriptLoading": true,
+      "softwareMotionAcknowledgements": true,
+      "scope": "Overlaps the eleven source cases; never add to an independent assertion total."
+    },
+    "composition": {
+      "pass": 112,
+      "fail": 0,
+      "durationMs": 23511.916094,
+      "files": [
+        "print-layer-pause.test.ts",
+        "print-layer-pause-compiled.test.ts",
+        "gcode-dispatch.test.ts",
+        "gcode-file-execution.test.ts",
+        "file-print-device.test.ts",
+        "print-layer-info.test.ts",
+        "product-service.test.ts",
+        "configured-native-maintenance.test.ts",
+        "print-preparation-pause.test.ts",
+        "native-file-start-accounting.test.ts",
+        "product-print-api.test.ts"
+      ],
+      "scope": "112-case final production-source composition, including eleven compiled child scenarios as overlap; before the additional native service test was added."
+    },
+    "typecheck": {
+      "exit": 0
+    },
+    "sourceWhitespace": {
+      "exit": 0
+    },
+    "retainedHistory": [
+      {
+        "stage": "Initial typecheck",
+        "result": "Private field typeof syntax failed; replaced with explicit Outcome alias before validation."
+      },
+      {
+        "stage": "Ordinary sandbox source test",
+        "result": "Reported one test file only; not counted as seven executed source scenarios."
+      },
+      {
+        "stage": "First composed test without local native build",
+        "result": "Three test files failed to load missing sealed-file.node; retained original log. Required native build completed before the same composition passed 79 cases."
+      },
+      {
+        "stage": "First synchronized final composition",
+        "result": "108 cases passed with seven source scenarios and their compiled replay. Expanded cancellation, late ACK, manual pause, jumped-layer, missing-metadata and retirement coverage then produced final 112 cases; production outcome and availability were corrected."
+      },
+      {
+        "stage": "Merge documentation extraction",
+        "result": "Sandbox execFileSync git show rejected EPERM; no mutation preceded failure. Shell snapshots and pure filesystem merge preserved incoming documentation and the new section."
+      },
+      {
+        "stage": "Real console command followed by total-only file metadata",
+        "result": "Original implementation failed strict [0,1] expected versus [0] actual: paused prematurely. Final observer carries accepted parameters and requires the file command itself to report CURRENT_LAYER. Same regression and compiled replay pass without changing metadata or motion mathematics."
+      },
+      {
+        "stage": "Additional native service fixture coordinate assertions",
+        "result": "Initial fixture incorrectly expected the file logical endpoint, then the retained brake point, to equal the parked destination. Both failures retained. After source review, assertions separately check admitted modal endpoint X=0.125, actual acknowledged parked source X=0, and final resumed endpoint X=0.375. Production behavior, precision and deadlines unchanged."
+      }
+    ],
+    "cases": [
+      "Next layer within same batch holds first following move; explicit resume executes suffix once",
+      "Real queued console SET_PRINT_STATS_INFO and subsequent total-only file metadata cannot fire the intention; file CURRENT_LAYER must reach target.",
+      "Tail metadata pauses before EOF completion",
+      "Pause failure joins and closes file pump through original safe stop",
+      "Cancellation invalidates armed intention without future file moves",
+      "Authorization, malformed parameters, compare-and-set, consumed token and retirement rejection",
+      "Expiry does not stop, resume or recreate print",
+      "Jumped metadata pauses at first reported layer at or beyond target",
+      "Manual pause/resume invalidates prior intention even for same request",
+      "Late pause ACK after cancel cannot publish resumable job and stop is reasserted",
+      "Unknown slicer metadata is unavailable; registry retirement fences late authorization"
+    ],
+    "nativeService": {
+      "pass": 1,
+      "fail": 0,
+      "durationMs": 2658.26334,
+      "scope": "Separate additional case: actual original product HTTP authorization, same durable controller and original native parking/resume in the software MCU model. Test-only file admission latch precedes real native moves; strict modal endpoint, acknowledged parked source position and final endpoint assertions. No complete mixed load, frontend or physical printer."
+    }
+  },
+  "performance": {
+    "node": "v26.10.0",
+    "inputSha256": "e6300e10c7cc88c502aaf26247141753735975c92f9bdb0a12418e67bf1ef7f6",
+    "moves": 10000,
+    "metadataCommands": 100,
+    "warmups": 3,
+    "samples": 11,
+    "alternatingOrder": true,
+    "outputsExact": true,
+    "baseline": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate/host",
+      "medianMs": 14.734932000000015,
+      "p95Ms": 16.00311800000003
+    },
+    "candidate": {
+      "medianMs": 14.844514000000004,
+      "p95Ms": 15.802067000000022
+    },
+    "pairedMedianRatio": 1.0036980913979698,
+    "timings": {
+      "baseline": [
+        15.351660999999979,
+        16.00311800000003,
+        15.017485999999963,
+        14.760201999999992,
+        14.86977300000001,
+        14.689550999999994,
+        14.734932000000015,
+        14.537499000000025,
+        14.515858999999978,
+        14.584599000000026,
+        14.536319000000049
+      ],
+      "candidate": [
+        15.802067000000022,
+        15.346140000000048,
+        15.045256000000052,
+        14.844514000000004,
+        14.88010300000002,
+        14.719910999999968,
+        14.74605200000002,
+        14.59125999999992,
+        14.97093499999994,
+        14.771612000000005,
+        14.697870999999964
+      ],
+      "ratios": [
+        1.0293392356696807,
+        0.9589468752276913,
+        1.0018491776852723,
+        1.0057121169479937,
+        1.0006946978948508,
+        1.0020667752200167,
+        1.0007546692444869,
+        1.0036980913979698,
+        1.03135026318456,
+        1.0128226357131915,
+        1.0111136801551972
+      ]
+    },
+    "limits": {
+      "medianRatio": 1.1,
+      "p95Ratio": 1.15,
+      "slackMs": 2
+    },
+    "sourceHashes": {
+      "gcode/dispatch.ts": {
+        "baseline": "b042aa219979f9da56f0a88ac15db1af2f0f28a1584a3e4514eb260660ab47c0",
+        "candidate": "31b10e8d3613ce3e9ae81a42de17485dab09d87e7316da7b0af6d0c419dc7d80"
+      },
+      "gcode/file-execution.ts": {
+        "baseline": "81b13c7c031e60a755e7b89110ce1497e2fc0ca36e959ad78782b9e5b90432da",
+        "candidate": "12e40c584ebc2d48c1824c5d6dac938b45e600857e59a6c5f37ebf1cbb9dbab5"
+      },
+      "gcode/file-reader.ts": {
+        "baseline": "210e8ee22590ba5b8723c4cd2a4a9a7193bf3f75eecde20c0705e487adc5c6e7",
+        "candidate": "210e8ee22590ba5b8723c4cd2a4a9a7193bf3f75eecde20c0705e487adc5c6e7"
+      },
+      "gcode/print-layer-info.ts": {
+        "baseline": "d83661f1323e462b3a510388fc55297bdac20f7df04223e476a80d8a612bcc65",
+        "candidate": "d83661f1323e462b3a510388fc55297bdac20f7df04223e476a80d8a612bcc65"
+      },
+      "operations/file-print-device.ts": {
+        "baseline": "1857ccb26774185ffb0da40ddbae96ba74d4c867ea842a9cbaac201e8f978ed0",
+        "candidate": "ac8da70f19333ac4751dce9234a14b854cc6854ad012ac5369b53fd8964ba425"
+      },
+      "operations/print.ts": {
+        "baseline": "38210fca4b19f566da75a0aa1755a4e4dcfd1ecfdfebd0f1409261f8b6733db1",
+        "candidate": "38210fca4b19f566da75a0aa1755a4e4dcfd1ecfdfebd0f1409261f8b6733db1"
+      }
+    },
+    "scope": "Same 10000-command software file pump with and without the unarmed production layer policy; includes reader, parser, dispatch and controller completion. No UART, thermal hardware, target board or mixed API load; does not close the print-speed or G3 gate.",
+    "passedPresetSoftwareThreshold": true,
+    "interpretation": "All raw pairs and preset ratio-plus-2ms thresholds retained. Desktop variability and the added policy cost are reported without treating this as target-board print-speed acceptance.",
+    "firstRunBeforeLateAckOutcomeCorrection": {
+      "node": "v26.10.0",
+      "inputSha256": "e6300e10c7cc88c502aaf26247141753735975c92f9bdb0a12418e67bf1ef7f6",
+      "moves": 10000,
+      "metadataCommands": 100,
+      "warmups": 3,
+      "samples": 11,
+      "alternatingOrder": true,
+      "outputsExact": true,
+      "baseline": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate/host",
+        "medianMs": 14.303494999999998,
+        "p95Ms": 15.023537000000033
+      },
+      "candidate": {
+        "medianMs": 14.544939,
+        "p95Ms": 15.877980000000036
+      },
+      "pairedMedianRatio": 1.0146145712970909,
+      "timings": {
+        "baseline": [
+          15.023537000000033,
+          14.93600600000002,
+          14.962945999999988,
+          14.219413999999972,
+          14.463067999999964,
+          14.303494999999998,
+          14.309726000000012,
+          14.220944000000031,
+          14.297775999999999,
+          14.278504999999996,
+          14.205914000000007
+        ],
+        "candidate": [
+          15.877980000000036,
+          14.80524399999996,
+          15.170799999999986,
+          14.566880000000026,
+          14.531879000000004,
+          14.36831699999999,
+          14.334345999999982,
+          14.428776999999968,
+          14.544939,
+          14.986516000000051,
+          14.48173799999995
+        ],
+        "ratios": [
+          1.0568736243668853,
+          0.9912451829491725,
+          1.0138912484212665,
+          1.024436028095114,
+          1.0047577042436666,
+          1.0045318993714467,
+          1.0017205081355136,
+          1.0146145712970909,
+          1.0172868143968685,
+          1.049585793470679,
+          1.0194161389404401
+        ]
+      },
+      "limits": {
+        "medianRatio": 1.1,
+        "p95Ratio": 1.15,
+        "slackMs": 2
+      },
+      "sourceHashes": {
+        "gcode/dispatch.ts": {
+          "baseline": "b042aa219979f9da56f0a88ac15db1af2f0f28a1584a3e4514eb260660ab47c0",
+          "candidate": "c98a44b35537528faa192564b16939b1dea2ade83b387b1672f232ef1531c89d"
+        },
+        "gcode/file-execution.ts": {
+          "baseline": "81b13c7c031e60a755e7b89110ce1497e2fc0ca36e959ad78782b9e5b90432da",
+          "candidate": "2a4db6fa16bc7f17e8272bdb559cfee1e1d5122e12f31d6b0b1849013bfb2369"
+        },
+        "gcode/file-reader.ts": {
+          "baseline": "210e8ee22590ba5b8723c4cd2a4a9a7193bf3f75eecde20c0705e487adc5c6e7",
+          "candidate": "210e8ee22590ba5b8723c4cd2a4a9a7193bf3f75eecde20c0705e487adc5c6e7"
+        },
+        "gcode/print-layer-info.ts": {
+          "baseline": "d83661f1323e462b3a510388fc55297bdac20f7df04223e476a80d8a612bcc65",
+          "candidate": "d83661f1323e462b3a510388fc55297bdac20f7df04223e476a80d8a612bcc65"
+        },
+        "operations/file-print-device.ts": {
+          "baseline": "1857ccb26774185ffb0da40ddbae96ba74d4c867ea842a9cbaac201e8f978ed0",
+          "candidate": "ac8da70f19333ac4751dce9234a14b854cc6854ad012ac5369b53fd8964ba425"
+        },
+        "operations/print.ts": {
+          "baseline": "38210fca4b19f566da75a0aa1755a4e4dcfd1ecfdfebd0f1409261f8b6733db1",
+          "candidate": "38210fca4b19f566da75a0aa1755a4e4dcfd1ecfdfebd0f1409261f8b6733db1"
+        }
+      },
+      "scope": "Same 10000-command software file pump with and without the unarmed production layer policy; includes reader, parser, dispatch and controller completion. No UART, thermal hardware, target board or mixed API load; does not close the print-speed or G3 gate."
+    },
+    "noRepeatedRunToSeekGreen": true,
+    "runBeforeFileCurrentCorrection": {
+      "node": "v26.10.0",
+      "inputSha256": "e6300e10c7cc88c502aaf26247141753735975c92f9bdb0a12418e67bf1ef7f6",
+      "moves": 10000,
+      "metadataCommands": 100,
+      "warmups": 3,
+      "samples": 11,
+      "alternatingOrder": true,
+      "outputsExact": true,
+      "baseline": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate/host",
+        "medianMs": 16.252642000000037,
+        "p95Ms": 30.010388000000034
+      },
+      "candidate": {
+        "medianMs": 18.51824399999998,
+        "p95Ms": 35.219772000000034
+      },
+      "pairedMedianRatio": 1.0275906247741695,
+      "timings": {
+        "baseline": [
+          30.010388000000034,
+          23.905530999999996,
+          18.803428000000054,
+          22.253717999999935,
+          15.755954999999972,
+          15.2777880000001,
+          14.792560999999978,
+          16.252642000000037,
+          16.01186800000005,
+          16.878619999999955,
+          14.16626199999996
+        ],
+        "candidate": [
+          24.42343900000003,
+          35.219772000000034,
+          16.40522400000009,
+          25.44764299999997,
+          26.38411599999995,
+          15.302858000000015,
+          15.200696999999991,
+          15.17396599999995,
+          18.51824399999998,
+          18.78522799999996,
+          13.963569000000007
+        ],
+        "ratios": [
+          0.8138328301520128,
+          1.4732896750965305,
+          0.8724592132881325,
+          1.1435232081218987,
+          1.6745488293156459,
+          1.0016409443565988,
+          1.0275906247741695,
+          0.9336307290839185,
+          1.1565323920981565,
+          1.1129599457775583,
+          0.9856918501154395
+        ]
+      },
+      "limits": {
+        "medianRatio": 1.1,
+        "p95Ratio": 1.15,
+        "slackMs": 2
+      },
+      "sourceHashes": {
+        "gcode/dispatch.ts": {
+          "baseline": "b042aa219979f9da56f0a88ac15db1af2f0f28a1584a3e4514eb260660ab47c0",
+          "candidate": "c98a44b35537528faa192564b16939b1dea2ade83b387b1672f232ef1531c89d"
+        },
+        "gcode/file-execution.ts": {
+          "baseline": "81b13c7c031e60a755e7b89110ce1497e2fc0ca36e959ad78782b9e5b90432da",
+          "candidate": "2a4db6fa16bc7f17e8272bdb559cfee1e1d5122e12f31d6b0b1849013bfb2369"
+        },
+        "gcode/file-reader.ts": {
+          "baseline": "210e8ee22590ba5b8723c4cd2a4a9a7193bf3f75eecde20c0705e487adc5c6e7",
+          "candidate": "210e8ee22590ba5b8723c4cd2a4a9a7193bf3f75eecde20c0705e487adc5c6e7"
+        },
+        "gcode/print-layer-info.ts": {
+          "baseline": "d83661f1323e462b3a510388fc55297bdac20f7df04223e476a80d8a612bcc65",
+          "candidate": "d83661f1323e462b3a510388fc55297bdac20f7df04223e476a80d8a612bcc65"
+        },
+        "operations/file-print-device.ts": {
+          "baseline": "1857ccb26774185ffb0da40ddbae96ba74d4c867ea842a9cbaac201e8f978ed0",
+          "candidate": "ac8da70f19333ac4751dce9234a14b854cc6854ad012ac5369b53fd8964ba425"
+        },
+        "operations/print.ts": {
+          "baseline": "38210fca4b19f566da75a0aa1755a4e4dcfd1ecfdfebd0f1409261f8b6733db1",
+          "candidate": "38210fca4b19f566da75a0aa1755a4e4dcfd1ecfdfebd0f1409261f8b6733db1"
+        }
+      },
+      "scope": "Same 10000-command software file pump with and without the unarmed production layer policy; includes reader, parser, dispatch and controller completion. No UART, thermal hardware, target board or mixed API load; does not close the print-speed or G3 gate."
+    }
+  },
+  "logHashes": {
+    "anyraid-layer-pause-file-current-composition-20261007.log": "dd38189ff83933396346eb095661287ef214e3af5654bb4fe70afdacae3963f1",
+    "anyraid-layer-pause-file-current-types-20261007.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "anyraid-layer-pause-file-current-whitespace-20261007.log": "65e0a568237e7d6f634c7675aad471fffeab8b89569214b26931b37f1285c67a",
+    "anyraid-layer-pause-file-current-performance-20261007.log": "fb71f65c93c47a90e035e8b4dc1178603e7aeb9c70841503141ac2f006a7beba",
+    "anyraid-layer-pause-late-ack-composition-20261007.log": "8026ee0832f4f35b701b94573489c7ff749443a998a1b21834305c8228efaad6",
+    "anyraid-layer-pause-final-performance-20261007.log": "f72772fd44a327e30007964628f912a49c6b6b2b0fb79a7d4221b3955467a96a",
+    "anyraid-layer-pause-console-total-regression-before-20261007.log": "49d4f41d12804ca076915565a30cf968207f4dd0c5621f5d2653eddfea656b25",
+    "anyraid-layer-pause-native-service-20261007.log": "5bdbc48db5db9cea2d2d7c4b234ebd9c8f0898da6353f483e463f722a54482ba",
+    "anyraid-layer-pause-native-composition-20261007.log": "bc82efeaa31b69d64bab6ab4c3a831059b356ab71ae9c291541457b497c5504c",
+    "anyraid-layer-pause-native-position-after-20261007.log": "46f844f0524318915ae5ba427020cb56756bb8801b8a4e9539e6530abeb0d8dc",
+    "anyraid-layer-pause-composition-20261007.log": "bae71567be88361efd6a87fb798aaf11db5eb8430d318cc0875e9930ea7eb0a6",
+    "anyraid-layer-pause-build-native-20261007.log": "a702474039fe408eb9bb07a3fe381a3fcf08c108c923f78bb3cd2923410958fd",
+    "anyraid-layer-pause-composition-built-20261007.log": "1611498b8ab2f28cc540fcf01bb29cd751c05a326bdfec6045e6a1ffb712b14d",
+    "anyraid-layer-pause-final-composition-20261007.log": "d0ce9ebcaee91dfca393f97f7e49b35b78bf857791ecaebe36bae63caced64e8",
+    "anyraid-layer-pause-performance-20261007.log": "03361495384d0deddf3b258ef5e0ebd0b8613a5749ea15f30ec67fcc188046b4"
+  },
+  "acceptance": {
+    "localSoftwareCandidate": true,
+    "remoteCurrentHeadChecks": false,
+    "developIntegration": false,
+    "completeNativeMixedLoad": false,
+    "completeClientPath": false,
+    "targetBoardSpeed": false,
+    "physicalLayerBoundary": false,
+    "G3Closed": false,
+    "PythonRetired": false,
+    "completeGoal": false
+  },
+  "next": "Precise-head original CI and normal review; complete original native mixed-control and actual client acceptance with this feature before promoting the software candidate. Target-board/series and G3 remain separate required gates."
+}

@@ -25,7 +25,7 @@ export class PrintLayerPause implements FileAdmissionPause {
  }
  get status(){
   this.#validate();const controller=this.#controller,layers=this.#layers.status;
-  return {state_token:this.#token,print_state_token:controller.stateToken,request_id:controller.currentRequest?.requestId??null,current_layer:layers.current_layer,total_layer:layers.total_layer,armed:!!this.#plan,target_layer:this.#plan?.target??null,expires_at:this.#plan?.expiresAt??null,pause_pending:this.#pending,outcome:this.#outcome,persisted:false,available:!this.#closed&&!this.#pending&&controller.state==='printing'&&this.#layers.requestId===controller.currentRequest?.requestId&&!controller.safeStopPending};
+  return {state_token:this.#token,print_state_token:controller.stateToken,request_id:controller.currentRequest?.requestId??null,current_layer:layers.current_layer,total_layer:layers.total_layer,armed:!!this.#plan,target_layer:this.#plan?.target??null,expires_at:this.#plan?.expiresAt??null,pause_pending:this.#pending,outcome:this.#outcome,persisted:false,available:!this.#closed&&!this.#pending&&controller.state==='printing'&&this.#layers.requestId===controller.currentRequest?.requestId&&layers.current_layer!==null&&layers.total_layer!==null&&!controller.safeStopPending};
  }
  arm(requestId:string,printToken:string,token:string,target:'next'|number,expiresAt:number):void{
   const state=this.status;
@@ -45,8 +45,8 @@ export class PrintLayerPause implements FileAdmissionPause {
   this.#clear('cleared');
  }
  continue():boolean{return !this.#due&&!this.#pending;}
- accepted(command:string):void{
-  if(command!=='SET_PRINT_STATS_INFO'||!this.#plan)return;
+ accepted(command:string,params:Readonly<Record<string,string>>):void{
+  if(command!=='SET_PRINT_STATS_INFO'||!this.#plan||!Object.hasOwn(params,'CURRENT_LAYER'))return;
   this.#validate();const plan=this.#plan,current=this.#layers.status.current_layer;
   if(plan&&current!==null&&current>=plan.target)this.#due=true;
  }
@@ -57,7 +57,8 @@ export class PrintLayerPause implements FileAdmissionPause {
   // in the file pump: pause failure's safe stop must be able to join that pump.
   this.#clear('pause_requested');this.#pending=true;
   const paused=this.#controller.pause();
-  void paused.then(()=>{if(!this.#closed){this.#outcome='paused';this.#token=randomUUID();}},()=>{if(!this.#closed){this.#outcome='failed';this.#token=randomUUID();}}).finally(()=>{this.#pending=false;});
+  const outcome=(success:boolean)=>{if(!this.#closed){this.#outcome=success&&this.#controller.state==='paused'?'paused':this.#controller.state==='failed'?'failed':'invalidated';this.#token=randomUUID();}};
+  void paused.then(()=>outcome(true),()=>outcome(false)).finally(()=>{this.#pending=false;});
  }
  close():void{if(this.#closed)return;this.#closed=true;this.#clear('invalidated');this.#off();}
 }
