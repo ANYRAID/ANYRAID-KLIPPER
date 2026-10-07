@@ -1,0 +1,533 @@
+{
+  "schema": 1,
+  "status": "candidate-not-integrated",
+  "date": "2026-10-07",
+  "base": "73d4abe4bb7e64afb5d49aa37d0b5016c4fe9982",
+  "runtime": {
+    "version": "Node.js 26.10.0",
+    "sha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da"
+  },
+  "scope": "Opt-in native job queue operator surface-clearance confirmation through the existing ProductPrintApi, PrintController and PrintJournal. HTTP/RPC software path, not full M3, physical surface sensing or actual client acceptance.",
+  "sources": {
+    "host/src/moonraker/native-job-queue.ts": "0665d799372b47a78ae8f411f8964f63612ae4437e491e5d995d7aa9a41a1ee5",
+    "host/src/moonraker/configured-server.ts": "25080943f3286fd8f36de5ff386ccbb9ebbbf6f43acef823a5ad1c503eae276e",
+    "host/test/native-job-queue.test.ts": "ca7fe745176aee2a3ff0b8e6f433a1158eed91ec38250356af9314988b792e96",
+    "host/test/native-configured-job-queue.test.ts": "2d284c0fd2fc7187fe8f54bfe8e65c78acc1226e5cc959e2b1f6bd4ed2db170e",
+    "host/test/native-automatic-job-queue.test.ts": "db958850325a54d21b9a0d4648fe057629f85a664d3e33935dc4973ebaad8b31",
+    "host/bench/native-job-queue.ts": "e7d35b1e68bf1ac0d60d93b7755a67f7ef64dde2dab2c37547e8fbfbca63106b",
+    "host/acceptance/product-compiled-journey.test.ts": "d2de03884cd6581292ad600809e3a4cfebfcb3090d94678266b2bfa0adcf12eb"
+  },
+  "policy": {
+    "default": "none",
+    "optIn": "job_transition_policy=operator_confirmation",
+    "legacyMapping": "Only standalone case-insensitive PAUSE; never execute G-Code",
+    "unsupported": [
+      "load_on_startup=true",
+      "compound or other transition G-Code"
+    ],
+    "timeoutSeconds": {
+      "default": 300,
+      "min": 0.001,
+      "max": 900,
+      "clock": "performance.now monotonic; wall-clock expires_at is display only"
+    },
+    "confirmation": "Volatile 128-bit token plus catalogue revision, head job/file, initiating principal and live generation. First queued admission also requires confirmation. Old captured grant and current request both reauthorize; no privilege restoration from durable username.",
+    "revocation": [
+      "pause",
+      "committed catalogue mutation",
+      "immutable file replacement prevents admission",
+      "deadline",
+      "initiating grant revocation prevents admission",
+      "device generation retirement",
+      "queue close",
+      "process restart"
+    ],
+    "expiryReplay": "No automatic retry. Request a fresh confirmation explicitly.",
+    "notifications": "Original authorized queue-change notification prompts clients to query status.transition; no new notification channel"
+  },
+  "validation": {
+    "source": {
+      "tests": 52,
+      "passed": 52,
+      "failed": 0,
+      "durationMs": 24318.777029,
+      "log": {
+        "filename": "anyraid-queue-clearance-source-sealed-20261007.log",
+        "sha256": "f9162989a456e62e0fd3df6e70992949ff3537addcc88f133efb83091d17d819"
+      }
+    },
+    "compiledHttp": {
+      "tests": 25,
+      "passed": 25,
+      "failed": 0,
+      "durationMs": 14098.189595,
+      "coverageOverlapsSource": true,
+      "log": {
+        "filename": "anyraid-queue-clearance-compiled-20261007.log",
+        "sha256": "6981e3c14a73c42e8d4d615e668fbeb2ce9cda4a2a2af38fc356c26260e57bfa"
+      }
+    },
+    "types": {
+      "status": "passed",
+      "log": {
+        "filename": "anyraid-queue-clearance-types-sealed-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "selfReview": "Confirmed no-token busy-to-idle bypass is rejected, late authorization cannot confirm a changed queue head, concurrent confirmation reserves at most one journal request, reopening never persists or replays a token. Original automatic tests retained.",
+    "requiredRemoteCi": "Pending this exact task head; no old-head success substituted",
+    "whitespace": {
+      "status": "passed",
+      "scope": "Exact repository-required scripts/check_whitespace.sh plus changed acceptance driver and new receipt; git diff --check passed.",
+      "logs": [
+        {
+          "filename": "anyraid-queue-clearance-whitespace-required-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "filename": "anyraid-queue-clearance-whitespace-extra-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  },
+  "bundle": {
+    "candidateManifestSha256": "a866845ac88327c3010fa99510218a93205f06f74a45b1da6f180069ffd1b4f1",
+    "baselineManifestSha256": "5a4d0152aae8ef4f18eba4b09523d9c6d3f07d8eadb56ebbe8f2510a02d48b99",
+    "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb",
+    "build": "Independent emitted-JS product tree and physical production-only dependency copy. Native artifacts reused from accepted source-identical C build; no fresh native rebuild claim. Original bundles unmodified.",
+    "log": {
+      "filename": "anyraid-queue-clearance-product-build-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "mixedPrint": {
+    "order": "A then B, no overlapping benchmark processes",
+    "runs": {
+      "A": {
+        "passed": 1,
+        "failed": 0,
+        "durationMs": 70511.255398,
+        "configuration": {
+          "automatic_transition": true,
+          "operator_confirmation": false
+        },
+        "metrics": {
+          "bundleManifestSha256": "5a4d0152aae8ef4f18eba4b09523d9c6d3f07d8eadb56ebbe8f2510a02d48b99",
+          "statusRequests": 39354,
+          "statusP99Ms": 5.9665639999984705,
+          "minimumStepLeadMs": 82.719,
+          "wireCommands": 230,
+          "wireSteps": 7856,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.986559,
+                "maxMs": 18.251775
+              },
+              "cpu": {
+                "user": 12687218,
+                "system": 2388783
+              },
+              "rss": 353222656
+            },
+            {
+              "loop": {
+                "p99Ms": 2.486271,
+                "maxMs": 22.872063
+              },
+              "cpu": {
+                "user": 7729148,
+                "system": 1791769
+              },
+              "rss": 410849280
+            }
+          ],
+          "completedStatistics": {
+            "total_duration": 11.267427938,
+            "print_duration": 5.371953334000001,
+            "filament_used": 1
+          }
+        },
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2266,
+          "queryP99Ms": 8.632401999999274,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        },
+        "confirmation": null,
+        "log": {
+          "filename": "anyraid-queue-clearance-mixed-A-native-20261007.log",
+          "sha256": "d8aa580c21e72e07b94fc62db20f4db5531e72ef65f76f4a0815976a60e727e5"
+        }
+      },
+      "B": {
+        "passed": 1,
+        "failed": 0,
+        "durationMs": 70990.288549,
+        "configuration": {
+          "automatic_transition": true,
+          "operator_confirmation": true
+        },
+        "metrics": {
+          "bundleManifestSha256": "a866845ac88327c3010fa99510218a93205f06f74a45b1da6f180069ffd1b4f1",
+          "statusRequests": 40081,
+          "statusP99Ms": 4.012195999999676,
+          "minimumStepLeadMs": 88.732,
+          "wireCommands": 232,
+          "wireSteps": 7492,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.999871,
+                "maxMs": 19.005439
+              },
+              "cpu": {
+                "user": 12561895,
+                "system": 2286475
+              },
+              "rss": 357130240
+            },
+            {
+              "loop": {
+                "p99Ms": 1.974271,
+                "maxMs": 12.926975
+              },
+              "cpu": {
+                "user": 7755182,
+                "system": 1721611
+              },
+              "rss": 373317632
+            }
+          ],
+          "completedStatistics": {
+            "total_duration": 10.480397894999998,
+            "print_duration": 4.887063723000001,
+            "filament_used": 1
+          }
+        },
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2301,
+          "queryP99Ms": 3.513508999996702,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        },
+        "confirmation": {
+          "noMotionBeforeConfirmation": true,
+          "oneAdmission": true,
+          "oldTokenRejected": true,
+          "originalProgramSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318"
+        },
+        "log": {
+          "filename": "anyraid-queue-clearance-mixed-B-20261007.log",
+          "sha256": "bce16096a88d7b7d880c73d52413e718712c3331015e90ee85b3bccbad7cd699"
+        }
+      }
+    },
+    "inputs": "Same original 1000 movement commands, all 16 mixed-load groups across two software MCU generations, 64 durable queue mutations, original stop/recovery and ADC failure assertions retained. B adds only opt-in config and one explicit queue confirmation.",
+    "originalProgramSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+    "hashEvidence": "Observed in B confirmation diagnostic; A uses the identical driver movement expression and input flags, with only the queue policy flag absent. No A log hash observation claimed.",
+    "deadlinesUnchangedMs": {
+      "case": 180000,
+      "child": 90000
+    },
+    "precisionAndBudgets": "Original numerical tolerances, lead time and event-loop/status budgets unchanged.",
+    "interpretation": "Both original complete cases passed. One sequential pair does not prove statistical acceleration or target-board printing speed."
+  },
+  "highFrequencyQueue": {
+    "runs": {
+      "A": {
+        "runtime": "v26.10.0",
+        "automaticTransition": true,
+        "confirmClearance": false,
+        "scope": "Actual emitted JS queue and workers in a fixed product bundle on this desktop filesystem; no target-board or physical-motion-performance claim",
+        "filesystem": 61267,
+        "jobs": 128,
+        "durableMutations": 64,
+        "fullCatalogueReadMs": {
+          "count": 10000,
+          "median": 0.0016999999999995907,
+          "p95": 0.0019099999999809825,
+          "p99": 0.004250999999982241,
+          "max": 0.10861200000002214
+        },
+        "concurrentReadMs": {
+          "count": 1643392,
+          "median": 0.00009000000000014552,
+          "p95": 0.001170999999999367,
+          "p99": 0.0017799999999965621,
+          "max": 0.2051529999999957
+        },
+        "mutationMs": {
+          "count": 64,
+          "median": 8.767543000000046,
+          "p95": 10.40906700000005,
+          "p99": 12.858380999999895,
+          "max": 12.858380999999895
+        },
+        "eventLoopMs": {
+          "p99": 3.782655,
+          "max": 5.103615
+        },
+        "budgetsMs": {
+          "queryP99": 50,
+          "eventLoopP99": 50,
+          "eventLoopMax": 100
+        },
+        "reopenCatalogueVerified": true,
+        "raw": {
+          "filename": "anyraid-queue-clearance-bench-A-20261007.json",
+          "sha256": "05f0e08be31ed05507123015039ea724109d031aea574e34af976abbeb36df37",
+          "allSamplesRetained": true,
+          "counts": {
+            "fullCatalogueReadMs": 10000,
+            "concurrentReadMs": 1643392,
+            "mutationMs": 64
+          }
+        }
+      },
+      "B": {
+        "runtime": "v26.10.0",
+        "automaticTransition": true,
+        "confirmClearance": false,
+        "scope": "Actual emitted JS queue and workers in a fixed product bundle on this desktop filesystem; no target-board or physical-motion-performance claim",
+        "filesystem": 61267,
+        "jobs": 128,
+        "durableMutations": 64,
+        "fullCatalogueReadMs": {
+          "count": 10000,
+          "median": 0.001720000000005939,
+          "p95": 0.0018799999999998818,
+          "p99": 0.002949999999998454,
+          "max": 0.08931100000000924
+        },
+        "concurrentReadMs": {
+          "count": 1310464,
+          "median": 0.00009999999997489795,
+          "p95": 0.0011899999999513966,
+          "p99": 0.001840000000015607,
+          "max": 0.1403619999999819
+        },
+        "mutationMs": {
+          "count": 64,
+          "median": 8.011703000000011,
+          "p95": 10.737562000000025,
+          "p99": 17.191092000000026,
+          "max": 17.191092000000026
+        },
+        "eventLoopMs": {
+          "p99": 4.091903,
+          "max": 5.464063
+        },
+        "budgetsMs": {
+          "queryP99": 50,
+          "eventLoopP99": 50,
+          "eventLoopMax": 100
+        },
+        "reopenCatalogueVerified": true,
+        "raw": {
+          "filename": "anyraid-queue-clearance-bench-B-20261007.json",
+          "sha256": "879bfd50c8eb311c4567bc19bdd102f444de7b98d8f2c09b679850b26ee4ebc8",
+          "allSamplesRetained": true,
+          "counts": {
+            "fullCatalogueReadMs": 10000,
+            "concurrentReadMs": 1310464,
+            "mutationMs": 64
+          }
+        }
+      },
+      "B-confirm": {
+        "runtime": "v26.10.0",
+        "automaticTransition": true,
+        "confirmClearance": true,
+        "scope": "Actual emitted JS queue and workers in a fixed product bundle on this desktop filesystem; no target-board or physical-motion-performance claim",
+        "filesystem": 61267,
+        "jobs": 128,
+        "durableMutations": 64,
+        "fullCatalogueReadMs": {
+          "count": 10000,
+          "median": 0.0017100000000027649,
+          "p95": 0.0019200000000125783,
+          "p99": 0.002829999999988786,
+          "max": 0.09755099999998151
+        },
+        "concurrentReadMs": {
+          "count": 1304320,
+          "median": 0.00012000000003808964,
+          "p95": 0.0012600000000020373,
+          "p99": 0.0019399999999905049,
+          "max": 0.2101630000000796
+        },
+        "mutationMs": {
+          "count": 64,
+          "median": 8.93602599999997,
+          "p95": 11.168137999999999,
+          "p99": 12.381025000000022,
+          "max": 12.381025000000022
+        },
+        "eventLoopMs": {
+          "p99": 3.538943,
+          "max": 5.427199
+        },
+        "budgetsMs": {
+          "queryP99": 50,
+          "eventLoopP99": 50,
+          "eventLoopMax": 100
+        },
+        "reopenCatalogueVerified": true,
+        "raw": {
+          "filename": "anyraid-queue-clearance-bench-B-confirm-20261007.json",
+          "sha256": "d3447e924363435fd9c4974872dcb8ab930cad62d7f3aaf5f427613721152aef",
+          "allSamplesRetained": true,
+          "counts": {
+            "fullCatalogueReadMs": 10000,
+            "concurrentReadMs": 1304320,
+            "mutationMs": 64
+          }
+        }
+      }
+    },
+    "driver": "Node stripTypeScriptTypes used only to prepare a JS benchmark driver. Three runtime owner imports replaced with actual compiled bundle URLs, scope label adjusted and all timing samples appended after measured loops. Production owners and Workers load emitted JS; no Python or TypeScript product startup.",
+    "drivers": {
+      "A": "58eae8abda31450d9f997446e6b0a05899856e771afcbfe67512e9a0152d6239",
+      "B": "12051342c55acfb0fb17dc3ea033f033779ee1cc97cac4919682fe6a7323f7d1"
+    },
+    "unchangedWorkload": "128 catalogue entries, 2000 warmup reads, 10000 full catalogue reads, 32 remove/add rounds =64 durable mutations, concurrent 128-read batches, unchanged 50/50/100 ms query/loop P99/max budgets, reopen catalogue assertion.",
+    "interpretation": "All original absolute software gates pass. Enabled concurrent query P99 0.00194 ms versus baseline 0.00178 ms. B with policy off mutation P99 17.19 ms versus A 12.86 ms; retained, no mutation-ratio gate existed and no claim of speedup. These desktop observations do not close target-board G3 or throughput acceptance."
+  },
+  "retainedFailures": [
+    {
+      "run": "source-initial",
+      "result": "42/43",
+      "cause": "New retired-generation negative expectation was 503; real stale-token rejection is 409 with zero admission. Production unchanged; corrected only new assertion.",
+      "log": {
+        "filename": "anyraid-queue-clearance-source-initial-20261007.log",
+        "sha256": "d8c308926e03fb9b911c981900407d7b2013338a7a6b74d520b1f3c4b6aded12"
+      }
+    },
+    {
+      "run": "source-final",
+      "result": "51/52; typecheck failed",
+      "cause": "New replacement fixture used an invalid publication argument. Replaced with real prepareUploadReplacement/replaceUpload path; production unchanged.",
+      "logs": [
+        {
+          "filename": "anyraid-queue-clearance-source-final-20261007.log",
+          "sha256": "d95e42038399d26cd636dade439f155c03b8ce7f30f5066892f4b5bac6f18aab"
+        },
+        {
+          "filename": "anyraid-queue-clearance-types-final-20261007.log",
+          "sha256": "468febacf18b4cde00c129bcb6fb61bcd4f46de9b1ec4a6dd1b726f56a7e29fd"
+        }
+      ]
+    },
+    {
+      "run": "mixed-A and mixed-A-valid",
+      "result": "Module wrapper failed before case startup",
+      "cause": "Own test driver initially lacked serialqueue.node. First command also contained a mistyped dependency digest, never reached bundle verification. Corrected environment and copied unchanged accepted native driver artifacts; neither failure is a successful print case.",
+      "logs": [
+        {
+          "filename": "anyraid-queue-clearance-mixed-A-20261007.log",
+          "sha256": "559037a97c30563255b22686bae9ed54432547d341de72a2310e3544822a8180"
+        },
+        {
+          "filename": "anyraid-queue-clearance-mixed-A-valid-20261007.log",
+          "sha256": "d50f992594c3747e1412480b577cdcb580150c0cf56b5cb4a627fadac91888b2"
+        }
+      ]
+    },
+    {
+      "run": "whitespace-all",
+      "result": "Incorrect extra scope rejected binary diagnostics",
+      "cause": "An ad-hoc all-tracked-file invocation included gz/png binaries. Required source selector is scripts/check_whitespace.sh and was not changed. Exact required selector and added changed text files passed.",
+      "log": {
+        "filename": "anyraid-queue-clearance-whitespace-all-20261007.log",
+        "sha256": "7dbd56652b16bfae09ca4659c3e3080a27f9af49d298a0d220ec9a74655da665"
+      }
+    }
+  ],
+  "integrationBaseline": {
+    "pr": 30,
+    "merge": "73d4abe4bb7e64afb5d49aa37d0b5016c4fe9982",
+    "postMergeHost": {
+      "run": 37604561024,
+      "job": 112736774946,
+      "status": "all-required-success"
+    },
+    "postMergeFirmware": {
+      "run": 37604560944,
+      "status": "success"
+    }
+  },
+  "incomplete": [
+    "This task exact-head CI and normal PR integration",
+    "Actual same-package Fluidd and protected Mainsail confirmation UI and full journeys",
+    "Other legacy macro transition purposes and automatic startup loading",
+    "Complete Moonraker",
+    "Cycnumbris 500 target board, real config/MCU/stops, installer/update/rollback",
+    "Unresolved G3 precision anomaly",
+    "Default Python entry and full Python retirement",
+    "Other machines last"
+  ],
+  "evidence": {
+    "source-initial": {
+      "filename": "anyraid-queue-clearance-source-initial-20261007.log",
+      "sha256": "d8c308926e03fb9b911c981900407d7b2013338a7a6b74d520b1f3c4b6aded12"
+    },
+    "source-final": {
+      "filename": "anyraid-queue-clearance-source-final-20261007.log",
+      "sha256": "d95e42038399d26cd636dade439f155c03b8ce7f30f5066892f4b5bac6f18aab"
+    },
+    "types-final": {
+      "filename": "anyraid-queue-clearance-types-final-20261007.log",
+      "sha256": "468febacf18b4cde00c129bcb6fb61bcd4f46de9b1ec4a6dd1b726f56a7e29fd"
+    },
+    "source-sealed": {
+      "filename": "anyraid-queue-clearance-source-sealed-20261007.log",
+      "sha256": "f9162989a456e62e0fd3df6e70992949ff3537addcc88f133efb83091d17d819"
+    },
+    "types-sealed": {
+      "filename": "anyraid-queue-clearance-types-sealed-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "compiled": {
+      "filename": "anyraid-queue-clearance-compiled-20261007.log",
+      "sha256": "6981e3c14a73c42e8d4d615e668fbeb2ce9cda4a2a2af38fc356c26260e57bfa"
+    },
+    "product-build": {
+      "filename": "anyraid-queue-clearance-product-build-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "mixed-A": {
+      "filename": "anyraid-queue-clearance-mixed-A-20261007.log",
+      "sha256": "559037a97c30563255b22686bae9ed54432547d341de72a2310e3544822a8180"
+    },
+    "mixed-A-valid": {
+      "filename": "anyraid-queue-clearance-mixed-A-valid-20261007.log",
+      "sha256": "d50f992594c3747e1412480b577cdcb580150c0cf56b5cb4a627fadac91888b2"
+    },
+    "mixed-A-native": {
+      "filename": "anyraid-queue-clearance-mixed-A-native-20261007.log",
+      "sha256": "d8aa580c21e72e07b94fc62db20f4db5531e72ef65f76f4a0815976a60e727e5"
+    },
+    "mixed-B": {
+      "filename": "anyraid-queue-clearance-mixed-B-20261007.log",
+      "sha256": "bce16096a88d7b7d880c73d52413e718712c3331015e90ee85b3bccbad7cd699"
+    }
+  }
+}

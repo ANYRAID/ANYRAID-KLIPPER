@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {ClockSync} from 'file:///home/dek02/.cache/codex/tmp/anyraid-queue-panel-product-bundle/host/src/timing/clock-sync.js';
+import {SecondarySync} from 'file:///home/dek02/.cache/codex/tmp/anyraid-queue-panel-product-bundle/host/src/timing/secondary-sync.js';
+import {PrintClockTimeline} from 'file:///home/dek02/.cache/codex/tmp/anyraid-queue-panel-product-bundle/host/src/timing/print-clock-timeline.js';
+import {CalibrationCadence} from 'file:///home/dek02/.cache/codex/tmp/anyraid-queue-panel-product-bundle/host/src/timing/calibration-cadence.js';
+import {homingPositionOffsets} from 'file:///home/dek02/.cache/codex/tmp/anyraid-queue-panel-product-bundle/host/src/homing/position-offsets.js';
+import {StepHistory} from 'file:///home/dek02/.cache/codex/tmp/anyraid-queue-panel-product-bundle/host/src/motion/step-history.js';
+
+// Independent physical truth: two separate ideal 1 MHz counters, same epoch.
+// Explicit causal query intervals; delay is firmware processing before reading
+// clock, then 1 ms to receive. No recorded remote timestamp is manufactured.
+const frequency=1e6,truth=system=>Math.round((system-9)*frequency);
+const sha=data=>createHash('sha256').update(data).digest('hex');
+function run(name,delayed,queryPeriod,publicationPeriod){
+ const main=new ClockSync(frequency,BigInt(truth(10.001)),10);
+ const aux=new ClockSync(frequency,BigInt(truth(10+(delayed?.004:.001))),10);
+ const samples=[];
+ function accept(sync,id,sent,delay,warmup){
+  const sample={clock32:truth(sent+delay),sentTime:sent,receiveTime:sent+delay+.001};
+  const before=sync.estimate,release=sync.accept(sample,warmup);
+  samples.push({id,sample,warmup,revision:sync.revision,before,after:sync.estimate,accepted:release!==null,release});
+ }
+ for(let i=1;i<=8;i++){const sent=10+i*.05;accept(main,'mcu',sent,.001,true);accept(aux,'aux',sent,delayed&&i<=2?.020:.001,true);}
+ const initialAux=aux.estimate,start=10.405,model=new SecondarySync(main,aux,start),timeline=new PrintClockTimeline(model.mapping);
+ const cadence=publicationPeriod===1?new CalibrationCadence():{next:0,run(now,attempt){if(now<this.next)return;const accepted=attempt();this.next=now+(accepted?publicationPeriod:.25);return accepted;}};
+ // ClockRuntime issues its ninth query immediately when entering active.
+ // Deliver that reply at sent+2ms, then keep the requested cadence.
+ let nextQuery=start,calibrations=0,maxMappedErrorTicks=0;
+ const checkpoints=[];
+ for(let tick=0;tick<=800;tick++){
+  const now=start+tick*.025;
+  while(nextQuery+.002<=now){accept(main,'mcu',nextQuery,.001,false);accept(aux,'aux',nextQuery,.001,false);nextQuery+=queryPeriod;}
+  const physicalPrintTime=truth(now)/frequency;
+  cadence.run(now,()=>{const time=physicalPrintTime+.2,proposal=model.propose(time,now),plan=model.planPeripheral(proposal,timeline,time,time+.01);if(!plan)return false;model.applyPeripheral(proposal,timeline,plan.tick);calibrations++;return true;});
+  const hit=BigInt(truth(now)),printTime=timeline.printTimeAtClock(hit),mapped=BigInt(Math.floor(printTime*frequency+.5));
+  const error=Number(mapped-hit);maxMappedErrorTicks=Math.max(maxMappedErrorTicks,Math.abs(error));
+  if([0,120,240,360,440,800].includes(tick)){
+   const histories=[new StepHistory(0n,0n),new StepHistory(0n,0n)];for(const history of histories)history.append({history:new BigInt64Array(),position:0n},100000000n);
+   const stopped={hitClock:hit,reasons:[2,1],positions:[0,1].map(member=>({member,oid:0,raw:0,position:0n,observedClock:hit+4000n}))};
+   let admission;try{homingPositionOffsets(stopped,histories.map((history,member)=>({member,oid:0,history})),[mapped,hit]);admission='accepted';}catch(error){admission=String(error);}
+   checkpoints.push({secondsAfterStart:tick*.025,trueTick:hit,mappedTick:mapped,errorTicks:error,auxEstimatorFrequency:aux.estimate.frequency,auxEstimatorFrozen:JSON.stringify(aux.estimate,(_,v)=>typeof v==='bigint'?String(v):v)===JSON.stringify(initialAux,(_,v)=>typeof v==='bigint'?String(v):v),admission});
+  }
+ }
+ const regular=samples.filter(s=>s.id==='aux'&&!s.warmup),rejected=regular.filter(s=>!s.accepted),firstRecovered=regular.find(s=>s.accepted);
+ return {name,delayed,queryPeriod,publicationPeriod,initialAux,calibrations,maxMappedErrorTicks,regularAuxSamples:regular.length,rejectedAuxSamples:rejected.length,unknownSendTimeSamples:regular.filter(s=>s.sample.sentTime===0).length,firstAcceptedAfterWarmup:firstRecovered?.sample.sentTime-10.4,checkpoints,samples};
+}
+const runs=[run('healthy-original-cadence',false,.9839,1),run('delayed-original-cadence',true,.9839,1),run('delayed-20Hz-publication-only',true,.9839,.05),run('delayed-20Hz-query-only',true,.05,1)];
+const result={schema:2,scope:'Synthetic causal delayed-warmup discriminator using unchanged emitted production owners. Not original remote samples, target-clock tolerances, actual transport/MCU execution, production fix or resolved G3.',driverSha256:sha(readFileSync(import.meta.filename)),bundleManifestSha256:sha(readFileSync('/home/dek02/.cache/codex/tmp/anyraid-queue-panel-product-bundle/build-info.json')),physicalOracle:'Two independent ideal 1 MHz counters: tick=round((systemTime-9)*1000000).',stopObservation:'Synthetic 4000 tick readback delay; existing stopped-clock rejection unchanged.',retainedFailedAssumption:{driverSha256:sha(readFileSync('/home/dek02/.cache/codex/tmp/anyraid-clock-outlier-discriminator-v1-20261007.mjs')),logSha256:sha(readFileSync('/home/dek02/.cache/codex/tmp/anyraid-clock-outlier-discriminator-20261007.log')),assumption:'20 Hz query and publication would both remain frozen. Actual assertion failed: the 20 Hz schedule had no rejected samples. v1 also omitted the immediate ninth query in ClockRuntime; v2 corrects scheduling and splits interventions.'},decision:'Compare interventions separately. Require actual per-reply raw evidence before identifying the remote initiating cause; do not change cadence, mapped-clock gate or precision to obtain green.',runs};
+const output='/home/dek02/.cache/codex/tmp/anyraid-clock-outlier-discriminator-20261007.json';writeFileSync(output,JSON.stringify(result,(_,v)=>typeof v==='bigint'?String(v):v,2)+'\n');
+console.log(JSON.stringify({output,runs:runs.map(({samples,...r})=>r)},(_,v)=>typeof v==='bigint'?String(v):v));
+assert(runs[0].checkpoints.every(p=>p.admission==='accepted'));assert(runs[0].maxMappedErrorTicks<20);
+for(const r of runs)assert.equal(r.unknownSendTimeSamples,0);

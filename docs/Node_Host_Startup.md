@@ -95,10 +95,33 @@ HTTP 返回后任务可继续，但凭据失效、暂停、取消、失败、设
 关闭会停止续打。不确定准入回执核对原日志后暂停，不自动重试设备动作。
 恢复始终暂停，须重新显式启动；队列暂停仍不取消当前打印。
 
-`load_on_startup=true` 和非空 `job_transition_gcode` 仍明确拒绝，待受控
-产品操作 provider 完成，不执行任意旧宏。启动自动加载、旧过渡宏转换、
-同包客户端、目标板负载和正常集成仍待验，不能据此关闭完整 M3 或默认
-Python 退役门槛。验收范围见[队列契约](../host/contracts/native-job-queue-acceptance.json)。
+需要逐份清台确认时，在同一 `[job_queue]` 设置
+`job_transition_policy=operator_confirmation`，并使用进程授权所有者。
+默认策略为 `none`，不改变原手动／自动队列行为。旧配置中单独的
+`job_transition_gcode=PAUSE`（大小写不限）映射到相同确认流程，不执行
+G-Code；复合命令、其他宏和 `load_on_startup=true` 仍拒绝。
+
+设备空闲时，无令牌 `POST /server/job_queue/start` 只生成确认，不启动
+首份作业。启用自动续打时，当前打印的持久完成事件也只生成下一份确认。
+`status.transition` 为 `null` 或包含 `phase=awaiting_confirmation`、
+`state_token`、`job_id`、`filename`、`completed_request_id` 和 `expires_at`
+的对象；客户端展示待清台的文件，由操作者清台后显式提交
+`POST /server/job_queue/start {"transition_token":"上述 state_token"}`。
+此受控操作需要客户端接入，不能把现有客户端的普通“启动队列”按钮
+解释为已确认。策略关闭时不增加 `transition` 状态字段。
+
+确认只在当前进程内有效，默认 300 秒；
+`job_transition_confirmation_timeout` 以秒配置，允许 0.001–900。
+执行期限使用单调时钟，`expires_at` 仅供显示。确认时同时复核原授权、
+当前登录、设备代际、目录版本和队首文件身份；操作者必须与生成确认时
+相同。暂停、已提交的队列变化、设备退役、到期、关闭及重启均撤销确认，
+原凭据失效不能用新登录延续。失效后刷新状态并重新显式请求确认，
+不能自动重试或重放设备动作。该确认不替代真实机器准备和打印授权。
+
+启动自动加载、其余旧过渡宏转换、同包实际客户端、目标板负载和正常
+集成仍待验，不能据此关闭完整 M3 或默认 Python 退役门槛。软件范围见
+[清台确认验收](../host/contracts/native-queue-clearance-acceptance.json)和
+[原队列契约](../host/contracts/native-job-queue-acceptance.json)。
 
 ### 原生设备退役边界
 
@@ -3075,3 +3098,30 @@ node --test --test-concurrency=1 \
 `ANYRAID_ACCEPTANCE_DEPENDENCIES_SHA256` 须绑定同一固定产物。原 180 秒
 用例、90 秒子进程、停止／精度及负载预算均保持；补充输入不作为原
 未改输入的性能配对样本，也不证明完整页面或物理层边界。
+
+## 受保护的清台确认页面候选
+
+官方客户端接入的控制台新增“打印队列”入口 `/_client/queue`，与
+`/_client/control` 共用原生账号、网关会话、同源策略和退出流程。
+页面使用原生队列状态，显示完整文件名；逐份确认仍需管理员在
+`[job_queue]` 启用 `job_transition_policy=operator_confirmation`。
+页面不创建账号、替换权限、执行过渡 G-code 或赋予设备就绪权限。
+
+用户先请求确认，核对下一份文件、取走成品及残留材料，再勾选清台并
+点击“确认并开始下一份”。页面始终显式发送
+`POST /server/job_queue/start {"request_confirmation":true}` 请求确认，
+该参数只能是 `true`，不能与 `transition_token` 同时提交。策略未启用、
+设备忙或不支持该参数的旧服务直接拒绝，避免页面读取状态后服务重启
+关闭策略时，无参数请求退化为直接打印。确认时只发送当前一次性令牌，
+后端继续校验当前文件身份、账号权限、设备代际和单调期限。
+
+页面每秒读取一次，隐藏时暂停读取，不并发轮询。队列头／令牌变化、
+回到页面、网络错误和提交均清除勾选；晚到响应不能恢复旧确认。
+提交结果不确定时保留提示，用户须在控制台确认状态，页面不自动重试。
+“停止后续排队”只暂停队列，当前打印沿用原状态。文件名使用文本节点，
+页面使用动态 CSP nonce 和 `no-store`，不写入浏览器本地持久凭据。
+
+源码回归与编译脚本检查只覆盖请求、状态和所有者边界，不等于实际
+浏览器交互验收。静态 `data:` 预览被浏览器协议策略拒绝，未绕过；完整
+客户端夹具仍沿用现有待答授权。原默认入口、实机打印、目标板及 G3
+未关闭。候选尚未发布，不据独立测试或桌面性能宣称消费级交付完成。

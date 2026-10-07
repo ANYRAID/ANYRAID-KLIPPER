@@ -4,19 +4,24 @@ import {inspect} from 'node:util';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {productMachineFixture} from './helpers/product-machine.ts';
-import {simulateDeltaWire} from './helpers/delta-wire-simulation.ts';
-import {deltaClockDiagnostic} from './helpers/delta-clock-diagnostic.ts';
-import {captureClockSamples} from './helpers/clock-sample-diagnostic.ts';
-import {ConfigurationSource} from '../src/moonraker/config-source.ts';
-import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
-import {PrintJournal} from '../src/operations/print-journal.ts';
-import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
-import {startConfiguredDeltaProductService} from '../src/runtime/product-service.ts';
-import {serialClock} from '../src/protocol/serial-queue.ts';
+import {productMachineFixture} from "file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/test/helpers/product-machine.ts";
+import {simulateDeltaWire} from "file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/test/helpers/delta-wire-simulation.ts";
+import {deltaClockDiagnostic} from "file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/test/helpers/delta-clock-diagnostic.ts";
+import {captureClockSamples} from "file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/test/helpers/clock-sample-diagnostic.ts";
+import {ConfigurationSource} from "file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/moonraker/config-source.ts";
+import {ConfigurationReader} from "file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/moonraker/config-reader.ts";
+import {PrintJournal} from "file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/operations/print-journal.ts";
+import {MaintenanceGate} from "file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/operations/maintenance-gate.ts";
+import {startConfiguredDeltaProductService} from "file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/runtime/product-service.ts";
+import {serialClock} from "file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/protocol/serial-queue.ts";
 for(const {stow,stuck} of [{stow:true,stuck:false},{stow:false,stuck:false},{stow:true,stuck:true}])test('Delta BLTouch owns deployment, multi-MCU sampling and stow; each='+stow+', stuck='+stuck,async t=>{
  const samples=captureClockSamples(t.mock);
  const dir=await mkdtemp(join(tmpdir(),'delta-bltouch-')),f=await productMachineFixture(dir,true),simulation=simulateDeltaWire(f.transport,{bltouch:true,stuckProbe:stuck,clockDiagnostic:true}),signal=new AbortController().signal;
+ const delays:number[]=[4,20,20],injected:{name:string;requestedMs:number;actualMs:number;beforeClock:number;afterClock:number}[]=[],waiter=new Int32Array(new SharedArrayBuffer(4));let uptimeSeen=false,clockSeen=0;
+ const unobserve=f.transport.firmware[1].observeCommands(cmd=>{
+  const milliseconds=cmd.name==='get_uptime'&&!uptimeSeen?(uptimeSeen=true,delays[0]):cmd.name==='get_clock'&&clockSeen++<2?delays[clockSeen]:0;
+  if(!milliseconds)return;const before=performance.now(),beforeClock=f.transport.firmware[1].currentClock();Atomics.wait(waiter,0,0,milliseconds);injected.push({name:cmd.name,requestedMs:milliseconds,actualMs:performance.now()-before,beforeClock,afterClock:f.transport.firmware[1].currentClock()});
+ });
  const journal=await PrintJournal.open({path:f.config.journalPath,deviceId:'printer'});let service:Awaited<ReturnType<typeof startConfiguredDeltaProductService>>|undefined;
  try{
   const raw=structuredClone(f.transport.reader.source.original);raw.bltouch={sensor_pin:'^aux:PA13',control_pin:'PA14',z_offset:'.123456789',samples:'2',sample_retract_dist:'.2',samples_tolerance:'10',pin_move_time:'.3',stow_on_each_sample:String(stow)};
@@ -47,5 +52,9 @@ for(const {stow,stuck} of [{stow:true,stuck:false},{stow:false,stuck:false},{sto
    if(process.env.BLTOUCH_CLOCK_DIAGNOSTIC==='1'){t.diagnostic(inspect(clockDiagnostic(),{depth:8,maxArrayLength:100}));t.diagnostic('rawClockSamples='+JSON.stringify(samples.snapshot(clocks),(_,value)=>typeof value==='bigint'?String(value):value));}
   },signal);
   if(stuck)await assert.rejects(probing,/Native motion stopped/);else await probing;
- }finally{await service?.close();simulation.close();await journal.close();await f.close();await rm(dir,{recursive:true,force:true});}
+ }catch(error){
+  t.diagnostic('wireDelayFailure='+JSON.stringify({name:(error as Error).name,message:(error as Error).message}));
+  if(service){const bindings=['mcu','aux'].map(id=>({id,sync:service!.printer.group.session(id).clock.sync}));t.diagnostic('rawClockSamplesOnFailure='+JSON.stringify(samples.snapshot(bindings),(_,value)=>typeof value==='bigint'?String(value):value));}
+  throw error;
+ }finally{unobserve();t.diagnostic('injectedWireDelays='+JSON.stringify(injected));await service?.close();simulation.close();await journal.close();await f.close();await rm(dir,{recursive:true,force:true});}
 });

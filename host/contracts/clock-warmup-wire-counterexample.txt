@@ -1,0 +1,1146 @@
+✖ Delta BLTouch owns deployment, multi-MCU sampling and stow; each=false, stuck=false (6826.032078ms)
+ℹ {
+  motionFault: Error: Native file motion stopped
+      at Object.stop (file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/operations/native-file-motion.ts:35:105)
+      at file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/operations/file-print-device.ts:86:116
+      at FilePrintDevice.stop (file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/operations/file-print-device.ts:86:138)
+      at file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/operations/thermal-print-device.ts:81:39
+      at ThermalPrintDevice.stop (file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/operations/thermal-print-device.ts:81:92)
+      at file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/operations/thermal-print-device.ts:20:82
+      at AsyncPrinterHeaters.shutdown (file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/thermal/async-heaters.ts:154:100)
+      at file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/runtime/configured-hardware.ts:99:56
+      at close (file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/runtime/configured-hardware.ts:99:511)
+      at file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/runtime/configured-hardware.ts:108:43,
+  hardwareFault: 'Invalid mapped trigger clock: member=0, oid=0, mapped=7847450, observed=7780754',
+  probeHits: 1,
+  device: {
+    phase: 'failed',
+    deployed: true,
+    sampleActive: false,
+    nextSensorTest: 306.5665051539516,
+    commands: {
+      nextCommandTime: 7.579139501701293,
+      actionEndTime: 7.579139501701293,
+      busy: false,
+      failed: true
+    }
+  },
+  clocks: {
+    wire: [
+      {
+        kind: 'uptime-query',
+        member: 0,
+        oid: undefined,
+        trigger: undefined,
+        eventTime: 866528.644165463,
+        actualClocks: [ 1106799, 1106331 ]
+      },
+      {
+        kind: 'uptime-query',
+        member: 1,
+        oid: undefined,
+        trigger: undefined,
+        eventTime: 866528.646034334,
+        actualClocks: [ 1108645, 1108177 ]
+      },
+      {
+        kind: 'endstop-arm',
+        member: 1,
+        oid: 4,
+        trigger: 2219630,
+        eventTime: 866529.673221927,
+        actualClocks: [ 2135834, 2135365 ]
+      },
+      {
+        kind: 'endstop-arm',
+        member: 0,
+        oid: 7,
+        trigger: 2629283,
+        eventTime: 866530.073088633,
+        actualClocks: [ 2535700, 2535231 ],
+        mapping: {
+          primary: 'mcu',
+          trigger: 2629283,
+          printTime: 2.629283,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 10,
+              estimate: {
+                sampleTime: 866528.7563505038,
+                origin: 1106805n,
+                clockOffset: 112349.85567315991,
+                frequency: 1000025.3709902285
+              },
+              estimatedClock: 2536028n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 2109194n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: 2629283n
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 9,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 2523201n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3100253n,
+                calibration: { offset: -0.020150105768119042, frequency: 986789.75 }
+              },
+              synchronizer: {
+                offset: -0.020150105768119042,
+                frequency: 986789.75,
+                syncTime: 5.557960124906653
+              },
+              mappedTrigger: 2614433n
+            }
+          ]
+        }
+      },
+      {
+        kind: 'endstop-arm',
+        member: 0,
+        oid: 5,
+        trigger: 2629283,
+        eventTime: 866530.073392273,
+        actualClocks: [ 2536002, 2535536 ],
+        mapping: {
+          primary: 'mcu',
+          trigger: 2629283,
+          printTime: 2.629283,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 10,
+              estimate: {
+                sampleTime: 866528.7563505038,
+                origin: 1106805n,
+                clockOffset: 112349.85567315991,
+                frequency: 1000025.3709902285
+              },
+              estimatedClock: 2536235n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 2109194n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: 2629283n
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 9,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 2523406n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3100253n,
+                calibration: { offset: -0.020150105768119042, frequency: 986789.75 }
+              },
+              synchronizer: {
+                offset: -0.020150105768119042,
+                frequency: 986789.75,
+                syncTime: 5.557960124906653
+              },
+              mappedTrigger: 2614433n
+            }
+          ]
+        }
+      },
+      {
+        kind: 'endstop-arm',
+        member: 1,
+        oid: 2,
+        trigger: 2614433,
+        eventTime: 866530.074662364,
+        actualClocks: [ 2537274, 2536805 ],
+        mapping: {
+          primary: 'aux',
+          trigger: 2614433,
+          printTime: 2.629282562133022,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 10,
+              estimate: {
+                sampleTime: 866528.7563505038,
+                origin: 1106805n,
+                clockOffset: 112349.85567315991,
+                frequency: 1000025.3709902285
+              },
+              estimatedClock: 2537504n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 2109194n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: 2629283n
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 9,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 2524659n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3100253n,
+                calibration: { offset: -0.020150105768119042, frequency: 986789.75 }
+              },
+              synchronizer: {
+                offset: -0.020150105768119042,
+                frequency: 986789.75,
+                syncTime: 5.557960124906653
+              },
+              mappedTrigger: 2614433n
+            }
+          ]
+        }
+      },
+      {
+        kind: 'uptime-query',
+        member: 0,
+        oid: undefined,
+        trigger: undefined,
+        eventTime: 866530.238330956,
+        actualClocks: [ 2700942, 2700473 ],
+        mapping: {
+          primary: 'mcu',
+          trigger: undefined,
+          printTime: undefined,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 10,
+              estimate: {
+                sampleTime: 866528.7563505038,
+                origin: 1106805n,
+                clockOffset: 112349.85567315991,
+                frequency: 1000025.3709902285
+              },
+              estimatedClock: 2701178n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 2828925n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: undefined
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 10,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 2686265n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3100253n,
+                calibration: { offset: -0.020150105768119042, frequency: 986789.75 }
+              },
+              synchronizer: {
+                offset: -0.020150105768119042,
+                frequency: 986789.75,
+                syncTime: 5.557960124906653
+              },
+              mappedTrigger: undefined
+            }
+          ]
+        }
+      },
+      {
+        kind: 'uptime-query',
+        member: 0,
+        oid: undefined,
+        trigger: undefined,
+        eventTime: 866530.239769977,
+        actualClocks: [ 2702380, 2701911 ],
+        mapping: {
+          primary: 'mcu',
+          trigger: undefined,
+          printTime: undefined,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 10,
+              estimate: {
+                sampleTime: 866528.7563505038,
+                origin: 1106805n,
+                clockOffset: 112349.85567315991,
+                frequency: 1000025.3709902285
+              },
+              estimatedClock: 2702614n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 2828925n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: undefined
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 10,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 2687683n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3100253n,
+                calibration: { offset: -0.020150105768119042, frequency: 986789.75 }
+              },
+              synchronizer: {
+                offset: -0.020150105768119042,
+                frequency: 986789.75,
+                syncTime: 5.557960124906653
+              },
+              mappedTrigger: undefined
+            }
+          ]
+        }
+      },
+      {
+        kind: 'uptime-query',
+        member: 1,
+        oid: undefined,
+        trigger: undefined,
+        eventTime: 866530.239841387,
+        actualClocks: [ 2702451, 2701982 ],
+        mapping: {
+          primary: 'aux',
+          trigger: undefined,
+          printTime: undefined,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 10,
+              estimate: {
+                sampleTime: 866528.7563505038,
+                origin: 1106805n,
+                clockOffset: 112349.85567315991,
+                frequency: 1000025.3709902285
+              },
+              estimatedClock: 2702685n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 2828925n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: undefined
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 10,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 2687753n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3100253n,
+                calibration: { offset: -0.020150105768119042, frequency: 986789.75 }
+              },
+              synchronizer: {
+                offset: -0.020150105768119042,
+                frequency: 986789.75,
+                syncTime: 5.557960124906653
+              },
+              mappedTrigger: undefined
+            }
+          ]
+        }
+      },
+      {
+        kind: 'endstop-arm',
+        member: 1,
+        oid: 2,
+        trigger: 3244562,
+        eventTime: 866530.712233705,
+        actualClocks: [ 3174846, 3174377 ],
+        mapping: {
+          primary: 'aux',
+          trigger: 3244562,
+          printTime: 3.2678471601134937,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 11,
+              estimate: {
+                sampleTime: 866528.8172384906,
+                origin: 1106805n,
+                clockOffset: 173232.02715072123,
+                frequency: 999952.2904338654
+              },
+              estimatedClock: 3174954n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3019043n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: 3267847n
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 17,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 3154198n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3100253n,
+                calibration: { offset: -0.020150105768119042, frequency: 986789.75 }
+              },
+              synchronizer: {
+                offset: -0.020150105768119042,
+                frequency: 986789.75,
+                syncTime: 5.557960124906653
+              },
+              mappedTrigger: 3244562n
+            }
+          ]
+        }
+      },
+      {
+        kind: 'endstop-arm',
+        member: 0,
+        oid: 7,
+        trigger: 3267847,
+        eventTime: 866530.713469236,
+        actualClocks: [ 3176079, 3175610 ],
+        mapping: {
+          primary: 'mcu',
+          trigger: 3267847,
+          printTime: 3.267847,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 11,
+              estimate: {
+                sampleTime: 866528.8172384906,
+                origin: 1106805n,
+                clockOffset: 173232.02715072123,
+                frequency: 999952.2904338654
+              },
+              estimatedClock: 3176179n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3019043n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: 3267847n
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 17,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 3155408n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3100253n,
+                calibration: { offset: -0.020150105768119042, frequency: 986789.75 }
+              },
+              synchronizer: {
+                offset: -0.020150105768119042,
+                frequency: 986789.75,
+                syncTime: 5.557960124906653
+              },
+              mappedTrigger: 3244562n
+            }
+          ]
+        }
+      },
+      {
+        kind: 'endstop-arm',
+        member: 0,
+        oid: 5,
+        trigger: 3267847,
+        eventTime: 866530.714674186,
+        actualClocks: [ 3177284, 3176815 ],
+        mapping: {
+          primary: 'mcu',
+          trigger: 3267847,
+          printTime: 3.267847,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 11,
+              estimate: {
+                sampleTime: 866528.8172384906,
+                origin: 1106805n,
+                clockOffset: 173232.02715072123,
+                frequency: 999952.2904338654
+              },
+              estimatedClock: 3177384n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3019043n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: 3267847n
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 17,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 3156597n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3100253n,
+                calibration: { offset: -0.020150105768119042, frequency: 986789.75 }
+              },
+              synchronizer: {
+                offset: -0.020150105768119042,
+                frequency: 986789.75,
+                syncTime: 5.557960124906653
+              },
+              mappedTrigger: 3244562n
+            }
+          ]
+        }
+      },
+      {
+        kind: 'uptime-query',
+        member: 0,
+        oid: undefined,
+        trigger: undefined,
+        eventTime: 866530.842813443,
+        actualClocks: [ 3305423, 3304954 ],
+        mapping: {
+          primary: 'mcu',
+          trigger: undefined,
+          printTime: undefined,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 11,
+              estimate: {
+                sampleTime: 866528.8172384906,
+                origin: 1106805n,
+                clockOffset: 173232.02715072123,
+                frequency: 999952.2904338654
+              },
+              estimatedClock: 3305520n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3316312n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: undefined
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 17,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 3283124n,
+              timeline: {
+                segments: 2,
+                fromClock: 0n,
+                latestClock: 3244563n,
+                reservedThrough: 3292434n,
+                calibration: { offset: -0.016861367689216422, frequency: 987777.75 }
+              },
+              synchronizer: {
+                offset: -0.016861367689216422,
+                frequency: 987777.75,
+                syncTime: 7.267847109444139
+              },
+              mappedTrigger: undefined
+            }
+          ]
+        }
+      },
+      {
+        kind: 'uptime-query',
+        member: 1,
+        oid: undefined,
+        trigger: undefined,
+        eventTime: 866530.842847943,
+        actualClocks: [ 3305457, 3304988 ],
+        mapping: {
+          primary: 'aux',
+          trigger: undefined,
+          printTime: undefined,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 11,
+              estimate: {
+                sampleTime: 866528.8172384906,
+                origin: 1106805n,
+                clockOffset: 173232.02715072123,
+                frequency: 999952.2904338654
+              },
+              estimatedClock: 3305550n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3316312n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: undefined
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 17,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 3283154n,
+              timeline: {
+                segments: 2,
+                fromClock: 0n,
+                latestClock: 3244563n,
+                reservedThrough: 3292434n,
+                calibration: { offset: -0.016861367689216422, frequency: 987777.75 }
+              },
+              synchronizer: {
+                offset: -0.016861367689216422,
+                frequency: 987777.75,
+                syncTime: 7.267847109444139
+              },
+              mappedTrigger: undefined
+            }
+          ]
+        }
+      },
+      {
+        kind: 'uptime-query',
+        member: 0,
+        oid: undefined,
+        trigger: undefined,
+        eventTime: 866530.843226523,
+        actualClocks: [ 3305836, 3305367 ],
+        mapping: {
+          primary: 'mcu',
+          trigger: undefined,
+          printTime: undefined,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 11,
+              estimate: {
+                sampleTime: 866528.8172384906,
+                origin: 1106805n,
+                clockOffset: 173232.02715072123,
+                frequency: 999952.2904338654
+              },
+              estimatedClock: 3305929n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 3316312n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: undefined
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 17,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 3283528n,
+              timeline: {
+                segments: 2,
+                fromClock: 0n,
+                latestClock: 3244563n,
+                reservedThrough: 3292434n,
+                calibration: { offset: -0.016861367689216422, frequency: 987777.75 }
+              },
+              synchronizer: {
+                offset: -0.016861367689216422,
+                frequency: 987777.75,
+                syncTime: 7.267847109444139
+              },
+              mappedTrigger: undefined
+            }
+          ]
+        }
+      },
+      {
+        kind: 'endstop-arm',
+        member: 1,
+        oid: 4,
+        trigger: 7001214,
+        eventTime: 866534.514211812,
+        actualClocks: [ 6976822, 6976353 ],
+        mapping: {
+          primary: 'aux',
+          trigger: 7001214,
+          printTime: 7.072057324911986,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 34,
+              estimate: {
+                sampleTime: 866530.9231916121,
+                origin: 1106805n,
+                clockOffset: 2279385.6499915393,
+                frequency: 1000087.5456692597
+              },
+              estimatedClock: 6977528n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 7066528n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: 7072057n
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 38,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 6908224n,
+              timeline: {
+                segments: 4,
+                fromClock: 0n,
+                latestClock: 5636271n,
+                reservedThrough: 6448501n,
+                calibration: { offset: -0.019097335219795397, frequency: 987316.5 }
+              },
+              synchronizer: {
+                offset: -0.019097335219795397,
+                frequency: 987316.5,
+                syncTime: 9.689579
+              },
+              mappedTrigger: 7001214n
+            }
+          ]
+        }
+      },
+      {
+        kind: 'endstop-arm',
+        member: 1,
+        oid: 4,
+        trigger: 7716778,
+        eventTime: 866535.242960223,
+        actualClocks: [ 7705570, 7705102 ],
+        mapping: {
+          primary: 'aux',
+          trigger: 7716778,
+          printTime: 7.796813773325438,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 35,
+              estimate: {
+                sampleTime: 866531.0574227546,
+                origin: 1106805n,
+                clockOffset: 2413605.161658488,
+                frequency: 1000068.1423199984
+              },
+              estimatedClock: 7706236n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 7459140n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: 7796814n
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 39,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 7627782n,
+              timeline: {
+                segments: 4,
+                fromClock: 0n,
+                latestClock: 5636271n,
+                reservedThrough: 6448501n,
+                calibration: { offset: -0.019097335219795397, frequency: 987316.5 }
+              },
+              synchronizer: {
+                offset: -0.019097335219795397,
+                frequency: 987316.5,
+                syncTime: 9.689579
+              },
+              mappedTrigger: 7716778n
+            }
+          ]
+        }
+      },
+      {
+        kind: 'probe-trigger',
+        member: 1,
+        oid: 4,
+        trigger: 7766778,
+        eventTime: 866535.313859555,
+        actualClocks: [ 7776471, 7776003 ],
+        mapping: {
+          primary: 'aux',
+          trigger: 7766778,
+          printTime: 7.84745022297708,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 35,
+              estimate: {
+                sampleTime: 866531.0574227546,
+                origin: 1106805n,
+                clockOffset: 2413605.161658488,
+                frequency: 1000068.1423199984
+              },
+              estimatedClock: 7777142n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 7895064n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: 7847450n
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 39,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 7697789n,
+              timeline: {
+                segments: 5,
+                fromClock: 0n,
+                latestClock: 7716779n,
+                reservedThrough: 7813793n,
+                calibration: { offset: -0.0181910218288861, frequency: 987431 }
+              },
+              synchronizer: {
+                offset: -0.0181910218288861,
+                frequency: 987431,
+                syncTime: 11.79681407717937
+              },
+              mappedTrigger: 7766778n
+            }
+          ]
+        }
+      },
+      {
+        kind: 'uptime-query',
+        member: 0,
+        oid: undefined,
+        trigger: undefined,
+        eventTime: 866535.318133787,
+        actualClocks: [ 7780743, 7780275 ],
+        mapping: {
+          primary: 'mcu',
+          trigger: undefined,
+          printTime: undefined,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 35,
+              estimate: {
+                sampleTime: 866531.0574227546,
+                origin: 1106805n,
+                clockOffset: 2413605.161658488,
+                frequency: 1000068.1423199984
+              },
+              estimatedClock: 7781413n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 7895064n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: undefined
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 39,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 7702007n,
+              timeline: {
+                segments: 5,
+                fromClock: 0n,
+                latestClock: 7716779n,
+                reservedThrough: 7813793n,
+                calibration: { offset: -0.0181910218288861, frequency: 987431 }
+              },
+              synchronizer: {
+                offset: -0.0181910218288861,
+                frequency: 987431,
+                syncTime: 11.79681407717937
+              },
+              mappedTrigger: undefined
+            }
+          ]
+        }
+      },
+      {
+        kind: 'uptime-query',
+        member: 1,
+        oid: undefined,
+        trigger: undefined,
+        eventTime: 866535.318158307,
+        actualClocks: [ 7780768, 7780299 ],
+        mapping: {
+          primary: 'aux',
+          trigger: undefined,
+          printTime: undefined,
+          members: [
+            {
+              mcu: 'mcu',
+              physicalMember: 0,
+              revision: 35,
+              estimate: {
+                sampleTime: 866531.0574227546,
+                origin: 1106805n,
+                clockOffset: 2413605.161658488,
+                frequency: 1000068.1423199984
+              },
+              estimatedClock: 7781436n,
+              timeline: {
+                segments: 1,
+                fromClock: 0n,
+                latestClock: 0n,
+                reservedThrough: 7895064n,
+                calibration: { offset: 0, frequency: 1000000 }
+              },
+              synchronizer: undefined,
+              mappedTrigger: undefined
+            },
+            {
+              mcu: 'aux',
+              physicalMember: 1,
+              revision: 39,
+              estimate: {
+                sampleTime: 866528.7101811084,
+                origin: 1112275n,
+                clockOffset: 65104.90863939388,
+                frequency: 987389.8182983671
+              },
+              estimatedClock: 7702030n,
+              timeline: {
+                segments: 5,
+                fromClock: 0n,
+                latestClock: 7716779n,
+                reservedThrough: 7813793n,
+                calibration: { offset: -0.0181910218288861, frequency: 987431 }
+              },
+              synchronizer: {
+                offset: -0.0181910218288861,
+                frequency: 987431,
+                syncTime: 11.79681407717937
+              },
+              mappedTrigger: undefined
+            }
+          ]
+        }
+      }
+    ],
+    estimates: [
+      {
+        id: 'mcu',
+        actual: 7791326,
+        predicted: '7791767',
+        revision: 36,
+        estimate: {
+          sampleTime: 866531.0574227546,
+          origin: 1106805n,
+          clockOffset: 2413605.161658488,
+          frequency: 1000068.1423199984
+        }
+      },
+      {
+        id: 'aux',
+        actual: 7790863,
+        predicted: '7712229',
+        revision: 40,
+        estimate: {
+          sampleTime: 866528.7101811084,
+          origin: 1112275n,
+          clockOffset: 65104.90863939388,
+          frequency: 987389.8182983671
+        }
+      }
+    ]
+  }
+}
+ℹ rawClockSamples=[{"id":"mcu","initial":{"frequency":1000000,"uptimeClock":"1106805","sentTime":866528.644002103},"count":35,"warmup":[{"sample":{"clock32":1157270,"sentTime":866528.694614495,"receiveTime":866528.694695485},"warmup":true,"revision":1,"before":{"sampleTime":866528.644002103,"origin":"1106805","clockOffset":0,"frequency":1000000},"after":{"sampleTime":866528.6457296778,"origin":"1106805","clockOffset":1682.1666666666667,"frequency":997087.8274168044},"release":{"frequency":997087.8274168044,"sampleTime":866528.6466891828,"clock":"1105536"}},{"sample":{"clock32":1208736,"sentTime":866528.746097258,"receiveTime":866528.746142728},"warmup":true,"revision":2,"before":{"sampleTime":866528.6457296778,"origin":"1106805","clockOffset":1682.1666666666667,"frequency":997087.8274168044},"after":{"sampleTime":866528.6490588537,"origin":"1106805","clockOffset":5023.794444444445,"frequency":998152.5443215872},"release":{"frequency":998152.5443215872,"sampleTime":866528.6500361187,"clock":"1108926"}},{"sample":{"clock32":1259749,"sentTime":866528.79710598,"receiveTime":866528.79715607},"warmup":true,"revision":3,"before":{"sampleTime":866528.6490588537,"origin":"1106805","clockOffset":5023.794444444445,"frequency":998152.5443215872},"after":{"sampleTime":866528.6539945158,"origin":"1106805","clockOffset":9954.467962962965,"frequency":998691.0988076825},"release":{"frequency":998691.0988076825,"sampleTime":866528.6549717807,"clock":"1113905"}},{"sample":{"clock32":1310928,"sentTime":866528.848292543,"receiveTime":866528.848337393},"warmup":true,"revision":4,"before":{"sampleTime":866528.6539945158,"origin":"1106805","clockOffset":9954.467962962965,"frequency":998691.0988076825},"after":{"sampleTime":866528.6604715644,"origin":"1106805","clockOffset":16426.752364197535,"frequency":998971.8113545396},"release":{"frequency":998971.8113545396,"sampleTime":866528.6614491395,"clock":"1120425"}},{"sample":{"clock32":1362308,"sentTime":866528.898602755,"receiveTime":866528.899715486},"warmup":true,"revision":5,"before":{"sampleTime":866528.6604715644,"origin":"1106805","clockOffset":16426.752364197535,"frequency":998971.8113545396},"after":{"sampleTime":866528.6684100183,"origin":"1106805","clockOffset":24395.960618724283,"frequency":1001195.2742207235},"release":{"frequency":1001195.2742207235,"sampleTime":866528.6693875933,"clock":"1128370"}},{"sample":{"clock32":1412584,"sentTime":866528.949953748,"receiveTime":866528.949990988},"warmup":true,"revision":6,"before":{"sampleTime":866528.6684100183,"origin":"1106805","clockOffset":24395.960618724283,"frequency":1001195.2742207235},"after":{"sampleTime":866528.6777917517,"origin":"1106805","clockOffset":33775.395264766805,"frequency":1000464.2641378383},"release":{"frequency":1000464.2641378383,"sampleTime":866528.6787731318,"clock":"1137783"}},{"sample":{"clock32":1462978,"sentTime":866529.00026476,"receiveTime":866529.00038465},"warmup":true,"revision":7,"before":{"sampleTime":866528.6777917517,"origin":"1106805","clockOffset":33775.395264766805,"frequency":1000464.2641378383},"after":{"sampleTime":866528.6885414727,"origin":"1106805","clockOffset":44521.98208927458,"frequency":1000200.0345588884},"release":{"frequency":1000200.0345588884,"sampleTime":866528.6895228528,"clock":"1148574"}},{"sample":{"clock32":1513057,"sentTime":866529.050425942,"receiveTime":866529.050463452},"warmup":true,"revision":8,"before":{"sampleTime":866528.6885414727,"origin":"1106805","clockOffset":44521.98208927458,"frequency":1000200.0345588884},"after":{"sampleTime":866528.7006049091,"origin":"1106805","clockOffset":56579.649352965425,"frequency":999987.7901290944},"release":{"frequency":999987.7901290944,"sampleTime":866528.7015862891,"clock":"1160675"}}],"recent":[{"sample":{"clock32":1514610,"sentTime":866529.050882162,"receiveTime":866529.052018683},"warmup":false,"revision":9,"before":{"sampleTime":866528.7006049091,"origin":"1106805","clockOffset":56579.649352965425,"frequency":999987.7901290944},"after":{"sampleTime":866528.712281438,"origin":"1106805","clockOffset":68287.16104119991,"frequency":1000608.0983453736},"release":{"frequency":1000608.0983453736,"sampleTime":866528.7132628182,"clock":"1172381"}},{"sample":{"clock32":2496973,"sentTime":866530.034334786,"receiveTime":866530.034378466},"warmup":false,"revision":10,"before":{"sampleTime":866528.712281438,"origin":"1106805","clockOffset":68287.16104119991,"frequency":1000608.0983453736},"after":{"sampleTime":866528.7563505038,"origin":"1106805","clockOffset":112349.85567315991,"frequency":1000025.3709902285},"release":{"frequency":1000025.3709902285,"sampleTime":866528.7573318838,"clock":"1216435"}},{"sample":{"clock32":3045620,"sentTime":866530.582971488,"receiveTime":866530.583020538},"warmup":false,"revision":11,"before":{"sampleTime":866528.7563505038,"origin":"1106805","clockOffset":112349.85567315991,"frequency":1000025.3709902285},"after":{"sampleTime":866528.8172384906,"origin":"1106805","clockOffset":173232.02715072123,"frequency":999952.2904338654},"release":{"frequency":999952.2904338654,"sampleTime":866528.8182198706,"clock":"1277361"}},{"sample":{"clock32":3480286,"sentTime":866531.01762194,"receiveTime":866531.01769153},"warmup":false,"revision":12,"before":{"sampleTime":866528.8172384906,"origin":"1106805","clockOffset":173232.02715072123,"frequency":999952.2904338654},"after":{"sampleTime":866528.8905852262,"origin":"1106805","clockOffset":246573.65957903053,"frequency":999941.8867874659},"release":{"frequency":999941.8867874659,"sampleTime":866528.8915666062,"clock":"1350747"}},{"sample":{"clock32":3537399,"sentTime":866531.074771415,"receiveTime":866531.074802525},"warmup":false,"revision":13,"before":{"sampleTime":866528.8905852262,"origin":"1106805","clockOffset":246573.65957903053,"frequency":999941.8867874659},"after":{"sampleTime":866528.963388988,"origin":"1106805","clockOffset":319374.33759306284,"frequency":999933.2839288049},"release":{"frequency":999933.2839288049,"sampleTime":866528.9643734331,"clock":"1423592"}},{"sample":{"clock32":3762500,"sentTime":866531.299849604,"receiveTime":866531.299899964},"warmup":false,"revision":14,"before":{"sampleTime":866528.963388988,"origin":"1106805","clockOffset":319374.33759306284,"frequency":999933.2839288049},"after":{"sampleTime":866529.0412715271,"origin":"1106805","clockOffset":397251.6930066274,"frequency":999933.3283176848},"release":{"frequency":999933.3283176848,"sampleTime":866529.0422559722,"clock":"1501513"}},{"sample":{"clock32":3812590,"sentTime":866531.349954226,"receiveTime":866531.349989326},"warmup":false,"revision":15,"before":{"sampleTime":866529.0412715271,"origin":"1106805","clockOffset":397251.6930066274,"frequency":999933.3283176848},"after":{"sampleTime":866529.1182281356,"origin":"1106805","clockOffset":474202.8032397398,"frequency":999932.279304971},"release":{"frequency":999932.279304971,"sampleTime":866529.1192125806,"clock":"1578507"}},{"sample":{"clock32":4037482,"sentTime":866531.574834936,"receiveTime":866531.574885776},"warmup":false,"revision":16,"before":{"sampleTime":866529.1182281356,"origin":"1106805","clockOffset":474202.8032397398,"frequency":999932.279304971},"after":{"sampleTime":866529.2001155475,"origin":"1106805","clockOffset":556085.2764650818,"frequency":999933.7961869809},"release":{"frequency":999933.7961869809,"sampleTime":866529.2010999925,"clock":"1660431"}},{"sample":{"clock32":4089015,"sentTime":866531.625332508,"receiveTime":866531.626426358},"warmup":false,"revision":17,"before":{"sampleTime":866529.2001155475,"origin":"1106805","clockOffset":556085.2764650818,"frequency":999933.7961869809},"after":{"sampleTime":866529.2809566313,"origin":"1106805","clockOffset":636956.1005829124,"frequency":1000008.0535355302},"release":{"frequency":1000008.0535355302,"sampleTime":866529.2819410764,"clock":"1741278"}},{"sample":{"clock32":4312217,"sentTime":866531.848509436,"receiveTime":866531.849624347},"warmup":false,"revision":18,"before":{"sampleTime":866529.2809566313,"origin":"1106805","clockOffset":636956.1005829124,"frequency":1000008.0535355302},"after":{"sampleTime":866529.3665422434,"origin":"1106805","clockOffset":722571.2972301487,"frequency":1000063.9348807975},"release":{"frequency":1000063.9348807975,"sampleTime":866529.3675266884,"clock":"1826890"}},{"sample":{"clock32":4362691,"sentTime":866531.898913758,"receiveTime":866531.900099749},"warmup":false,"revision":19,"before":{"sampleTime":866529.3665422434,"origin":"1106805","clockOffset":722571.2972301487,"frequency":1000063.9348807975},"after":{"sampleTime":866529.4509551458,"origin":"1106805","clockOffset":807015.1206558105,"frequency":1000107.1079698827},"release":{"frequency":1000107.1079698827,"sampleTime":866529.4519395907,"clock":"1911341"}},{"sample":{"clock32":4464379,"sentTime":866532.000670833,"receiveTime":866532.001786834},"warmup":false,"revision":20,"before":{"sampleTime":866529.4509551458,"origin":"1106805","clockOffset":807015.1206558105,"frequency":1000107.1079698827},"after":{"sampleTime":866529.5359461871,"origin":"1106805","clockOffset":892033.7499672835,"frequency":1000135.4325427078},"release":{"frequency":1000135.4325427078,"sampleTime":866529.5369306322,"clock":"1996383"}},{"sample":{"clock32":4586513,"sentTime":866532.122697447,"receiveTime":866532.123926208},"warmup":false,"revision":21,"before":{"sampleTime":866529.5359461871,"origin":"1106805","clockOffset":892033.7499672835,"frequency":1000135.4325427078},"after":{"sampleTime":866529.6221717477,"origin":"1106805","clockOffset":978289.5583017074,"frequency":1000161.6599181046},"release":{"frequency":1000161.6599181046,"sampleTime":866529.6231561927,"clock":"2082662"}},{"sample":{"clock32":4810664,"sentTime":866532.348018697,"receiveTime":866532.348071657},"warmup":false,"revision":22,"before":{"sampleTime":866529.6221717477,"origin":"1106805","clockOffset":978289.5583017074,"frequency":1000161.6599181046},"after":{"sampleTime":866529.7130338312,"origin":"1106805","clockOffset":1069141.8730249838,"frequency":1000128.6260705794},"release":{"frequency":1000128.6260705794,"sampleTime":866529.7140182762,"clock":"2173523"}},{"sample":{"clock32":4885961,"sentTime":866532.42330604,"receiveTime":866532.42337362},"warmup":false,"revision":23,"before":{"sampleTime":866529.7130338312,"origin":"1106805","clockOffset":1069141.8730249838,"frequency":1000128.6260705794},"after":{"sampleTime":866529.8033767566,"origin":"1106805","clockOffset":1159475.6772574843,"frequency":1000103.0239128628},"release":{"frequency":1000103.0239128628,"sampleTime":866529.8043612017,"clock":"2263874"}},{"sample":{"clock32":5111326,"sentTime":866532.647613699,"receiveTime":866532.648735879},"warmup":false,"revision":24,"before":{"sampleTime":866529.8033767566,"origin":"1106805","clockOffset":1159475.6772574843,"frequency":1000103.0239128628},"after":{"sampleTime":866529.8981851733,"origin":"1106805","clockOffset":1254310.5213489016,"frequency":1000122.8319760235},"release":{"frequency":1000122.8319760235,"sampleTime":866529.8991696183,"clock":"2358734"}},{"sample":{"clock32":5162191,"sentTime":866532.698474991,"receiveTime":866532.699601042},"warmup":false,"revision":25,"before":{"sampleTime":866529.8981851733,"origin":"1106805","clockOffset":1254310.5213489016,"frequency":1000122.8319760235},"after":{"sampleTime":866529.9915286857,"origin":"1106805","clockOffset":1347679.7039706048,"frequency":1000138.2862680361},"release":{"frequency":1000138.2862680361,"sampleTime":866529.9925131307,"clock":"2452132"}},{"sample":{"clock32":5386874,"sentTime":866532.924221581,"receiveTime":866532.924281291},"warmup":false,"revision":26,"before":{"sampleTime":866529.9915286857,"origin":"1106805","clockOffset":1347679.7039706048,"frequency":1000138.2862680361},"after":{"sampleTime":866530.089285634,"origin":"1106805","clockOffset":1445426.0138382514,"frequency":1000112.7542932947},"release":{"frequency":1000112.7542932947,"sampleTime":866530.090270079,"clock":"2549885"}},{"sample":{"clock32":5447164,"sentTime":866532.983462657,"receiveTime":866532.984570667},"warmup":false,"revision":27,"before":{"sampleTime":866530.089285634,"origin":"1106805","clockOffset":1445426.0138382514,"frequency":1000112.7542932947},"after":{"sampleTime":866530.1857587199,"origin":"1106805","clockOffset":1541923.780043643,"frequency":1000126.2431875161},"release":{"frequency":1000126.2431875161,"sampleTime":866530.1867431649,"clock":"2646411"}},{"sample":{"clock32":5661859,"sentTime":866533.199205662,"receiveTime":866533.199268752},"warmup":false,"revision":28,"before":{"sampleTime":866530.1857587199,"origin":"1106805","clockOffset":1541923.780043643,"frequency":1000126.2431875161},"after":{"sampleTime":866530.2862074699,"origin":"1106805","clockOffset":1642361.4540421881,"frequency":1000103.6271000224},"release":{"frequency":1000103.6271000224,"sampleTime":866530.2871919149,"clock":"2746856"}},{"sample":{"clock32":5738026,"sentTime":866533.274266625,"receiveTime":866533.275441166},"warmup":false,"revision":29,"before":{"sampleTime":866530.2862074699,"origin":"1106805","clockOffset":1642361.4540421881,"frequency":1000103.6271000224},"after":{"sampleTime":866530.3858099601,"origin":"1106805","clockOffset":1741990.1055741152,"frequency":1000117.7236412386},"release":{"frequency":1000117.7236412386,"sampleTime":866530.3867944052,"clock":"2846509"}},{"sample":{"clock32":5961673,"sentTime":866533.499011384,"receiveTime":866533.499084084},"warmup":false,"revision":30,"before":{"sampleTime":866530.3858099601,"origin":"1106805","clockOffset":1741990.1055741152,"frequency":1000117.7236412386},"after":{"sampleTime":866530.4895838595,"origin":"1106805","clockOffset":1845752.7020549779,"frequency":1000097.2061646543},"release":{"frequency":1000097.2061646543,"sampleTime":866530.4905683044,"clock":"2950278"}},{"sample":{"clock32":6012014,"sentTime":866533.549364576,"receiveTime":866533.549429386},"warmup":false,"revision":31,"before":{"sampleTime":866530.4895838595,"origin":"1106805","clockOffset":1845752.7020549779,"frequency":1000097.2061646543},"after":{"sampleTime":866530.5915770684,"origin":"1106805","clockOffset":1947734.5786531453,"frequency":1000079.9244878453},"release":{"frequency":1000079.9244878453,"sampleTime":866530.5925615135,"clock":"3052272"}},{"sample":{"clock32":6428926,"sentTime":866533.96629676,"receiveTime":866533.96633112},"warmup":false,"revision":32,"before":{"sampleTime":866530.5915770684,"origin":"1106805","clockOffset":1947734.5786531453,"frequency":1000079.9244878453},"after":{"sampleTime":866530.7040682433,"origin":"1106805","clockOffset":2060214.1260313739,"frequency":1000062.5987895784},"release":{"frequency":1000062.5987895784,"sampleTime":866530.7050526884,"clock":"3164765"}},{"sample":{"clock32":6484060,"sentTime":866534.020365934,"receiveTime":866534.021466235},"warmup":false,"revision":33,"before":{"sampleTime":866530.7040682433,"origin":"1106805","clockOffset":2060214.1260313739,"frequency":1000062.5987895784},"after":{"sampleTime":866530.8146120182,"origin":"1106805","clockOffset":2170782.1551636616,"frequency":1000076.1287595724},"release":{"frequency":1000076.1287595724,"sampleTime":866530.8155964633,"clock":"3275353"}},{"sample":{"clock32":6535692,"sentTime":866534.071984277,"receiveTime":866534.073100787},"warmup":false,"revision":34,"before":{"sampleTime":866530.8146120182,"origin":"1106805","clockOffset":2170782.1551636616,"frequency":1000076.1287595724},"after":{"sampleTime":866530.9231916121,"origin":"1106805","clockOffset":2279385.6499915393,"frequency":1000087.5456692597},"release":{"frequency":1000087.5456692597,"sampleTime":866530.9241760571,"clock":"3383980"}},{"sample":{"clock32":7412776,"sentTime":866534.950110334,"receiveTime":866534.950178254},"warmup":false,"revision":35,"before":{"sampleTime":866530.9231916121,"origin":"1106805","clockOffset":2279385.6499915393,"frequency":1000087.5456692597},"after":{"sampleTime":866531.0574227546,"origin":"1106805","clockOffset":2413605.161658488,"frequency":1000068.1423199984},"release":{"frequency":1000068.1423199984,"sampleTime":866531.0584071997,"clock":"3518204"}}]},{"id":"aux","initial":{"frequency":1000000,"uptimeClock":"1112275","sentTime":866528.644925803},"count":39,"warmup":[{"sample":{"clock32":1183045,"sentTime":866528.700750378,"receiveTime":866528.720950367},"warmup":true,"revision":1,"before":{"sampleTime":866528.644925803,"origin":"1112275","clockOffset":0,"frequency":1000000},"after":{"sampleTime":866528.6568866167,"origin":"1112275","clockOffset":2359,"frequency":1267721.2496777468},"release":{"frequency":1267721.2496777468,"sampleTime":866528.6477866222,"clock":"1111634"}},{"sample":{"clock32":1253508,"sentTime":866528.771244499,"receiveTime":866528.791396918},"warmup":true,"revision":2,"before":{"sampleTime":866528.6568866167,"origin":"1112275","clockOffset":2359,"frequency":1267721.2496777468},"after":{"sampleTime":866528.6610114274,"origin":"1112275","clockOffset":6988.133333333333,"frequency":1140561.7678885737},"release":{"frequency":1140561.7678885737,"sampleTime":866528.651935218,"clock":"1116263"}},{"sample":{"clock32":1303701,"sentTime":866528.84152308,"receiveTime":866528.84158399},"warmup":true,"revision":3,"before":{"sampleTime":866528.6610114274,"origin":"1112275","clockOffset":6988.133333333333,"frequency":1140561.7678885737},"after":{"sampleTime":866528.6573186016,"origin":"1112275","clockOffset":13136.062222222223,"frequency":1024754.1941251003},"release":{"frequency":1024754.1941251003,"sampleTime":866528.6582881467,"clock":"1122411"}},{"sample":{"clock32":1353989,"sentTime":866528.891774382,"receiveTime":866528.891885252},"warmup":true,"revision":4,"before":{"sampleTime":866528.6573186016,"origin":"1112275","clockOffset":13136.062222222223,"frequency":1024754.1941251003},"after":{"sampleTime":866528.6651348094,"origin":"1112275","clockOffset":20755.326814814816,"frequency":999178.3090278895},"release":{"frequency":999178.3090278895,"sampleTime":866528.6661043545,"clock":"1130030"}},{"sample":{"clock32":1404252,"sentTime":866528.942058514,"receiveTime":866528.942142174},"warmup":true,"revision":5,"before":{"sampleTime":866528.6651348094,"origin":"1112275","clockOffset":20755.326814814816,"frequency":999178.3090278895},"after":{"sampleTime":866528.6743666148,"origin":"1112275","clockOffset":29796.04925432099,"frequency":990732.1951371805},"release":{"frequency":990732.1951371805,"sampleTime":866528.6753361599,"clock":"1139071"}},{"sample":{"clock32":1455713,"sentTime":866528.992534707,"receiveTime":866528.993600037},"warmup":true,"revision":6,"before":{"sampleTime":866528.6743666148,"origin":"1112275","clockOffset":29796.04925432099,"frequency":990732.1951371805},"after":{"sampleTime":866528.6849732331,"origin":"1112275","clockOffset":40250.780945843624,"frequency":988877.086105016},"release":{"frequency":988877.086105016,"sampleTime":866528.6859427781,"clock":"1149451"}},{"sample":{"clock32":1505854,"sentTime":866529.043672929,"receiveTime":866529.043737669},"warmup":true,"revision":7,"before":{"sampleTime":866528.6849732331,"origin":"1112275","clockOffset":40250.780945843624,"frequency":988877.086105016},"after":{"sampleTime":866528.6969309049,"origin":"1112275","clockOffset":52028.388247648836,"frequency":987595.6907107317},"release":{"frequency":987595.6907107317,"sampleTime":866528.6979004499,"clock":"1161186"}},{"sample":{"clock32":1556599,"sentTime":866529.094406561,"receiveTime":866529.094487202},"warmup":true,"revision":8,"before":{"sampleTime":866528.6969309049,"origin":"1112275","clockOffset":52028.388247648836,"frequency":987595.6907107317},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":{"frequency":987389.8182983671,"sampleTime":866528.7111506535,"clock":"1174312"}}],"recent":[{"sample":{"clock32":1574162,"sentTime":866529.094689702,"receiveTime":866529.112055339},"warmup":false,"revision":9,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":2540882,"sentTime":866530.077690205,"receiveTime":866530.078752396},"warmup":false,"revision":10,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":2712119,"sentTime":866530.249853971,"receiveTime":866530.249989251},"warmup":false,"revision":11,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":2763223,"sentTime":866530.301029854,"receiveTime":866530.301094354},"warmup":false,"revision":12,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":2823533,"sentTime":866530.36132463,"receiveTime":866530.36140443},"warmup":false,"revision":13,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":2873596,"sentTime":866530.411368882,"receiveTime":866530.411465752},"warmup":false,"revision":14,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":2923800,"sentTime":866530.461603945,"receiveTime":866530.461669175},"warmup":false,"revision":15,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":2975400,"sentTime":866530.513177967,"receiveTime":866530.513271687},"warmup":false,"revision":16,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":3034647,"sentTime":866530.572451593,"receiveTime":866530.572518503},"warmup":false,"revision":17,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":3511844,"sentTime":866531.049669324,"receiveTime":866531.049717894},"warmup":false,"revision":18,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":3762050,"sentTime":866531.299868184,"receiveTime":866531.299919204},"warmup":false,"revision":19,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":4037041,"sentTime":866531.574843066,"receiveTime":866531.574908366},"warmup":false,"revision":20,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":4311776,"sentTime":866531.848527086,"receiveTime":866531.849643897},"warmup":false,"revision":21,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":4506336,"sentTime":866532.044157773,"receiveTime":866532.044214803},"warmup":false,"revision":22,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":4584820,"sentTime":866532.122654177,"receiveTime":866532.122703697},"warmup":false,"revision":23,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":4810223,"sentTime":866532.348028887,"receiveTime":866532.348092707},"warmup":false,"revision":24,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":5110883,"sentTime":866532.647623479,"receiveTime":866532.648753919},"warmup":false,"revision":25,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":5386434,"sentTime":866532.924235171,"receiveTime":866532.924306591},"warmup":false,"revision":26,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":5488642,"sentTime":866533.026449816,"receiveTime":866533.026523296},"warmup":false,"revision":27,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":5661424,"sentTime":866533.199214342,"receiveTime":866533.199295452},"warmup":false,"revision":28,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":5961252,"sentTime":866533.499024204,"receiveTime":866533.499124104},"warmup":false,"revision":29,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":6039324,"sentTime":866533.576946459,"receiveTime":866533.577201759},"warmup":false,"revision":30,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":6089477,"sentTime":866533.627309231,"receiveTime":866533.627363371},"warmup":false,"revision":31,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":6139531,"sentTime":866533.677369933,"receiveTime":866533.677408323},"warmup":false,"revision":32,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":6200337,"sentTime":866533.73817859,"receiveTime":866533.73820782},"warmup":false,"revision":33,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":6259953,"sentTime":866533.797744836,"receiveTime":866533.797824436},"warmup":false,"revision":34,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":6311119,"sentTime":866533.848952159,"receiveTime":866533.848990879},"warmup":false,"revision":35,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":6362236,"sentTime":866533.900069501,"receiveTime":866533.900106921},"warmup":false,"revision":36,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":6421668,"sentTime":866533.959478297,"receiveTime":866533.959544437},"warmup":false,"revision":37,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":6472339,"sentTime":866534.01010827,"receiveTime":866534.01022726},"warmup":false,"revision":38,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null},{"sample":{"clock32":7454686,"sentTime":866534.992497513,"receiveTime":866534.992559653},"warmup":false,"revision":39,"before":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"after":{"sampleTime":866528.7101811084,"origin":"1112275","clockOffset":65104.90863939388,"frequency":987389.8182983671},"release":null}]}]
+ℹ wireDelayFailure={"name":"AssertionError","message":"{\"error\":{\"code\":503,\"message\":\"Probe failed; reinitialize before further motion\"}}\n\n503 !== 200\n"}
+ℹ injectedWireDelays=[{"name":"get_uptime","requestedMs":4,"actualMs":4.0816690000000335,"beforeClock":1108185,"afterClock":1112272},{"name":"get_clock","requestedMs":20,"actualMs":20.107857999999965,"beforeClock":1162924,"afterClock":1183037},{"name":"get_clock","requestedMs":20,"actualMs":20.067106999999965,"beforeClock":1233435,"afterClock":1253505}]
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7357.942632
+
+✖ failing tests:
+
+test at ../../anyraid-clock-wire-discriminator-20261007.test.ts:17:101
+✖ Delta BLTouch owns deployment, multi-MCU sampling and stow; each=false, stuck=false (6826.032078ms)
+  Error: MCU group is not ready
+      at MCUGroup.assertActive (file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/runtime/mcu-group.ts:72:34)
+      at MCUGroup.session (file:///home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence/host/src/runtime/mcu-group.ts:76:40)
+      at file:///home/dek02/.cache/codex/tmp/anyraid-clock-wire-discriminator-20261007.test.ts:57:85
+      at Array.map (<anonymous>)
+      at TestContext.<anonymous> (file:///home/dek02/.cache/codex/tmp/anyraid-clock-wire-discriminator-20261007.test.ts:57:44)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    [cause]: 'Invalid mapped trigger clock: member=0, oid=0, mapped=7847450, observed=7780754'
+  }

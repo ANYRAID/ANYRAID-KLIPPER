@@ -51,7 +51,7 @@ export class ClockRuntime {
    if(!Number.isInteger(uptime.high)||uptime.high<0||uptime.high>0xffffffff||!Number.isInteger(uptime.clock32)||uptime.clock32<0||uptime.clock32>0xffffffff||uptime.sentTime===0)throw new Error('Invalid uptime response');
    this.#sync=new ClockSync(this.#frequency,(BigInt(uptime.high)<<32n)|BigInt(uptime.clock32),uptime.sentTime);
    let learned=0;
-   for(let i=0;i<8;i++){await this.#wait(.05);const time=this.#now(),sample=await this.#query(s=>this.#transport.queryClock(s),5);this.#abort.signal.throwIfAborted();this.#validate(sample,time);const estimate=this.sync.accept(sample,true);if(estimate){this.#transport.setClockEstimate(estimate);learned++;}this.#expires=sample.receiveTime+STALE;}
+   for(let i=0;i<8;i++){await this.#wait(.05);const time=this.#now(),sample=await this.#query(s=>this.#transport.queryClock(s),5);this.#abort.signal.throwIfAborted();this.#validate(sample,time);const estimate=this.sync.accept(sample,true);if(estimate){this.#transport.setClockEstimate(estimate);learned++;this.#expires=sample.receiveTime+STALE;}}
    if(!learned)throw new Error('No usable clock warmup samples');
    this.#state='active';this.#tick();if(this.status.state!=='active')throw this.#fault;
   }catch(error){try{await this.#end(error,true);}catch{/* Retained in status. */}throw error;}
@@ -68,7 +68,9 @@ export class ClockRuntime {
   this.#inFlight=true;this.sync.querySent();const requested=this.#now();this.#lastRequest=requested;
   void this.#query(s=>this.#transport.queryClock(s),Math.min(5,this.#expires-requested)).then(sample=>{
    this.#abort.signal.throwIfAborted();const now=this.#validate(sample,requested);if(now>=this.#expires)throw new Error('Late clock response cannot renew expired motion authorization');
-   const estimate=this.sync.accept(sample);if(estimate)this.#transport.setClockEstimate(estimate);this.#expires=sample.receiveTime+STALE;
+   // A reply can advance raw MCU time while its estimator sample is unusable.
+   // Only a published usable estimate renews the existing motion clock lease.
+   const estimate=this.sync.accept(sample);if(estimate){this.#transport.setClockEstimate(estimate);this.#expires=sample.receiveTime+STALE;}
   }).catch(error=>{if(this.#state==='active')this.#fail(error);}).finally(()=>{this.#inFlight=false;});
  }
  #tick():void{
