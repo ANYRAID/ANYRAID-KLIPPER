@@ -26,7 +26,7 @@ test('file-backed startup binds settings, metadata, authorization and actual Web
   await rm(path);const url=`http://127.0.0.1:${address.port}`;assert.equal((await fetch(url+'/server/config')).status,401);
   let body:any=await (await fetch(url+'/server/config',{headers:{'x-api-key':'test'}})).json();assert.deepEqual(body.result.config,{server:{host:'127.0.0.1',port:0,max_websocket_connections:1},consumer:{speed:120.5}});assert.equal(body.result.orig.consumer.speed,'120.5');
   ws=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{'x-api-key':'test'}});await once(ws,'open');const extra=new WebSocket(url.replace('http:','ws:')+'/websocket');await assert.rejects(once(extra,'open'),/503/);extra.terminate();
-  body=await (await fetch(url+'/server/info',{headers:{'x-api-key':'test'}})).json();assert.equal(body.result.websocket_count,1);assert.equal(body.result.klippy_state,'disconnected');assert(!body.result.components.includes('history'),'unregistered history cannot be advertised');
+  body=await (await fetch(url+'/server/info',{headers:{'x-api-key':'test'}})).json();assert.equal(body.result.websocket_count,1);assert.equal(body.result.klippy_state,'disconnected');assert(!body.result.components.includes('history'),'unregistered history cannot be advertised');assert(!body.result.components.includes('database'),'unregistered database cannot be advertised');
   service.setInformation({...info(),connected:true,state:'shutdown'});body=await (await fetch(url+'/server/info',{headers:{'x-api-key':'test'}})).json();assert.equal(body.result.klippy_state,'shutdown');
  }finally{ws?.terminate();await service.close();}
  assert.equal(service.rpc.has('server.config'),false);assert.equal(service.rpc.has('server.websocket.id'),false);await service.close();await assert.rejects(service.start(),/stopping/);
@@ -55,6 +55,24 @@ test('invalid configured Klippy path fails load before network startup',()=>fixt
 test('server seals component table registration before exposing its listener',()=>fixture('[server]\nhost=127.0.0.1\nport=0',async path=>{
  const {DatabaseStore}=await import('../src/moonraker/database.ts'),store=await DatabaseStore.open({path:join(path,'..','tables.sqlite')}),service=await ConfiguredMoonraker.load(path,{authorize,information:info(),database:store});
  try{await store.registerTable({name:'component_table',prototype:'component_table (id INTEGER PRIMARY KEY)',version:1});await service.start();await assert.rejects(store.registerTable({name:'late_table',prototype:'late_table (id INT)',version:1}),e=>e instanceof ApiError&&e.status===409);await store.insert('ui','still_writable',true);assert.equal(await store.get('ui','still_writable'),true);}finally{await service.close();}
+}));
+test('database discovery initializes authenticated backup listing and survives information replacement',()=>fixture('[server]\nhost=127.0.0.1\nport=0',async path=>{
+ const {DatabaseStore}=await import('../src/moonraker/database.ts'),store=await DatabaseStore.open({path:join(path,'..','discovery.sqlite'),backupDirectory:join(path,'..','backups')});
+ await store.insert('fluidd','uiSettings',{general:{instanceName:'C500 backup baseline'}});await store.backup('client-backup.db');
+ const service=await ConfiguredMoonraker.load(path,{authorize,information:info(),database:store});let ws:WebSocket|undefined;
+ try{
+  const address=await service.start(),url=`http://127.0.0.1:${address.port}`,headers={'x-api-key':'test'};
+  assert.equal((await fetch(url+'/server/database/list')).status,401);
+  ws=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers});await once(ws,'open');
+  for(const state of ['disconnected','ready','shutdown'] as const){
+   service.setInformation({...info(),connected:state!=='disconnected',state});
+   const discovered:any=await(await fetch(url+'/server/info',{headers})).json();assert.equal(discovered.result.components.filter((name:string)=>name==='database').length,1);
+   // Fluidd initializes its backup store only for an advertised component.
+   const response=once(ws,'message',{signal:AbortSignal.timeout(4000)});ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'server.database.list'}));
+   const listed=JSON.parse((await response)[0].toString());assert.equal(listed.id,1);assert.deepEqual(listed.result.backups,['client-backup.db']);assert(listed.result.namespaces.includes('fluidd'));assert(!listed.result.namespaces.includes('database'));
+  }
+ }finally{ws?.terminate();await service.close();}
+ assert.equal(store.status.closed,true);assert.equal(service.rpc.has('server.database.list'),false);
 }));
 test('owned sensors sample after listening, publish changes and close with the server',()=>fixture('[server]\nhost=127.0.0.1\nport=0',async path=>{
  const {SensorStore}=await import('../src/moonraker/sensors.ts');const sensors=new SensorStore();sensors.register({id:'room',type:'MQTT',capacity:2});sensors.update('room',{t:{value:22.5}});

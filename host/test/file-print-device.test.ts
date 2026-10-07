@@ -43,6 +43,16 @@ test('public file progress clears for a pending replacement and on cancellation 
   await device.stop();assert.deepEqual(device.objectStatus,{progress:0,is_active:false,file_position:0,file_size:0});
  }finally{await device.stop();await f.close();}
 });
+test('prepared pause retains the sealed file and thermal owner without executing a G-code prefix',async()=>{
+ const seen:string[]=[],entered=Promise.withResolvers<void>(),ack=Promise.withResolvers<void>();const f=await fixture('G1 X1\nG1 X2\n',c=>{seen.push(c.params.X);});
+ const prepare=f.motion.prepare;f.motion.prepare=async(r,s)=>{await prepare(r,s);entered.resolve();await ack.promise;s.throwIfAborted();};
+ try{
+  const starting=f.controller.start(request);await entered.promise;const pause=f.controller.pause();ack.resolve();await Promise.all([starting,pause]);
+  assert.equal(f.controller.state,'paused');assert.equal(f.controller.pausedBeforeFile,true);assert.equal(f.device.objectStatus.file_position,0);assert.equal(f.device.objectStatus.is_active,false);assert.deepEqual(seen,[]);assert.deepEqual(f.events,['prepare']);
+  await f.controller.resume();await until(()=>f.events.includes('drain'));assert.deepEqual(seen,['1','2']);assert.equal(f.events.filter(e=>e==='prepare').length,1);assert.equal(f.events.filter(e=>e==='start').length,1);assert.equal(f.events.includes('resume'),false);
+  f.finish.resolve();await until(()=>f.resets[1].length===2);for(const resets of f.resets)resets[1].resolve();await until(()=>f.controller.state==='completed');
+ }finally{ack.resolve();await f.close();}
+});
 test('empty file EOF cannot bypass startup persistence boundary or lose completion event',async()=>{
  const f=await fixture('');try{await f.controller.start(request);await until(()=>f.events.includes('drain'));assert.equal(f.device.objectStatus.progress,0);assert.equal(f.device.objectStatus.file_size,0);assert.equal(f.controller.state,'finishing');f.finish.resolve();await until(()=>f.resets[1].length===2);for(const resets of f.resets)resets[1].resolve();await until(()=>f.controller.state==='completed');}finally{await f.close();}
 });

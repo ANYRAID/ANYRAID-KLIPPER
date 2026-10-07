@@ -1,0 +1,736 @@
+{
+  "date": "2026-10-07",
+  "baselineHead": "207fc578d66d29d49b530057255f14b8bd01adfd",
+  "source": {
+    "host/src/moonraker/configured-server.ts": "b418d510dbbe7d48d6fa69f9f8ad9b77db2356fc06cbf41182184f8d76ea5d54",
+    "host/test/configured-server.test.ts": "a0466b8ffee72a7846db33304dc93df7a0044da21dceb6751946139a0581a960",
+    "host/test/api-key-authorization-compiled.test.ts": "be98c27426d7c4b4610154019532b810515334106ed6bfe6319c45e708ff29b8",
+    "host/src/moonraker/database-backup-files.ts": "535d24d301caa3efb599a7040a6655186fd704ddf72bc871fa546aea2ed12b12",
+    "host/test/database.test.ts": "c7bf8ace298a2bce51594fa57824eb7ab3a195a2b1f0e577d70d290c5d2a5673"
+  },
+  "problem": {
+    "actualClient": "Fluidd1.37.6",
+    "originalBundleManifest": "e70d6ee506f0b22c0ef3f1c806d229fb8c5f5edb4372779ec2db67f6d204ac9d",
+    "observed": {
+      "scope": "Read-only independently authorized local fixture observer",
+      "status": 200,
+      "body": {
+        "result": {
+          "klippy_connected": true,
+          "klippy_state": "ready",
+          "components": [
+            "authorization",
+            "webcam",
+            "proc_stats",
+            "history"
+          ],
+          "failed_components": [],
+          "registered_directories": [
+            "gcodes",
+            "config"
+          ],
+          "warnings": [],
+          "moonraker_version": "compiled-client-fixture",
+          "missing_klippy_requirements": [],
+          "api_version": [
+            1,
+            5,
+            0
+          ],
+          "api_version_string": "1.5.0",
+          "websocket_count": 1,
+          "host_type": "node",
+          "native_host": {
+            "version": 1,
+            "ready": true,
+            "group_state": "ready",
+            "hardware_state": "ready",
+            "print_state": "idle",
+            "homed_axes": "",
+            "closing": false,
+            "admission_closed": false,
+            "maintenance": false,
+            "mcus": [
+              {
+                "id": "mcu",
+                "state": "ready"
+              },
+              {
+                "id": "aux",
+                "state": "ready"
+              }
+            ]
+          }
+        }
+      },
+      "snapshot": {
+        "filename": "20261007-054347.db",
+        "bytes": 20480,
+        "sha256": "5fc2ee03596e9bf6bdd14135e8db885ef9c8c70c83e1fc64e7b929a4a29b5a5f"
+      }
+    },
+    "backupRpcSent": true,
+    "backupApiList": [
+      "20261007-054347.db"
+    ],
+    "actualDomStillEmpty": true,
+    "why": "Client initializes database/getBackups only if server.info components declares database. Existing owned component registered endpoints but omitted declaration.",
+    "configurationBoundary": "Previous no-backupDirectory fixture failure retained separately. This new actual observation explicitly supplied backupDirectory and restore owner; declaration still absent."
+  },
+  "implementation": {
+    "owner": "ConfiguredMoonraker.setInformation",
+    "change": "Include actual owned database in immutable component declaration; retain deduplication and lifecycle replacements.",
+    "unchanged": [
+      "maintenance gate",
+      "authorization policy",
+      "restart ownership",
+      "motion and print dispatch",
+      "native C sources and precision budgets",
+      "active database record algorithms and schema"
+    ]
+  },
+  "validation": {
+    "before": {
+      "firstAttempt": "Missing task native dependency; not product assertion",
+      "builtOriginal": "1 fail: advertised database count0 expected1"
+    },
+    "source": {
+      "pass": 60,
+      "fail": 0,
+      "durationMs": 17667.080209,
+      "deadlineMs": 60000,
+      "scope": "Node wrapper executes existing pinned Python oracle in database.test; this is not complete test Python retirement."
+    },
+    "compiled": {
+      "pass": 1,
+      "fail": 0,
+      "durationMs": 7141.497332,
+      "independentProductionDependencies": true,
+      "path": "/no-programs",
+      "tsLoading": false,
+      "diagnostics": [
+        {
+          "compiled": true,
+          "oneShotAndLoginPolicy": true,
+          "oneShotStatusMaxMs": 2.42378999999994,
+          "jwtLifecycle": true,
+          "websocketSurvivesTokenExpiry": true,
+          "logoutEventAfterResponse": true,
+          "websocketStatusP99Ms": 0.17566200000010213,
+          "jwtStatusP99Ms": 0.47523599999999533,
+          "unauthorizedRejected": true,
+          "rotationRevokesOldKey": true,
+          "statusRequests": 200,
+          "statusP99Ms": 2.1957579999999552,
+          "scope": "Sequential local HTTP and WebSocket requests; no physical MCU or concurrent printing"
+        },
+        {
+          "compiled": true,
+          "configurationOwned": true,
+          "policyApplied": true,
+          "persistentIdentityAfterRestart": true,
+          "statusRequests": 200,
+          "statusP99Ms": 1.926924999999983,
+          "scope": "Sequential local HTTP on independent compiled configured service; no printing or target hardware"
+        }
+      ],
+      "existingStatusP99BudgetMs": 50
+    },
+    "typecheck": {
+      "exit": 0
+    },
+    "actualFixedPage": "Bounded maintenance path passed on final package; explicit limitations retained",
+    "requiredExactHeadCi": "pending",
+    "normalIntegration": "pending",
+    "finalSource": {
+      "pass": 61,
+      "fail": 0,
+      "durationMs": 17214.196895
+    }
+  },
+  "artifacts": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-before-20261007.log",
+      "sha256": "2cab1c7cc6edb41788631fb55c505cbd1135239d7801f9dccfbcd05bbb713ac9"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-before-built-20261007.log",
+      "sha256": "c05f7853ceb6ae70764b54fca10ed328ed49c7349f3772867dfc27cba95e05c8"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-after-20261007.log",
+      "sha256": "ab617858c8788424ab07e6f20d010e45a9bc555e76566a27e377e3f4739b22ce"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-compiled-20261007.log",
+      "sha256": "779e939529ba1e8addf85835a17be4e6e02c4fbc57920ad08a15e11aa039f954"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-before-observer-20261007.json",
+      "sha256": "bad82c1abececcbc0b617af93b7654f08f2b1227f9666f0453f26d957f07d858"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-snapshot-before-20261007.log",
+      "sha256": "538cb2121e041063d69546e62a27bd6044668c3e79c4458465f3122a56bbf4ce"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-final-source-20261007.log",
+      "sha256": "e0f37535972651dd3dab9770c6913d74556e4716384aacebd04b835cb17e8b08"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-final-compiled-20261007.log",
+      "sha256": "8b51c0264f9abbc951ad94d171f0584ebc080e807eea95c92d06a3c6ebaf8329"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-snapshot-benchmark-20261007.json",
+      "sha256": "ba4b179a800ffcdebbb63b6740b26a938b9534c4c207f8b5c4310a6ea67a7474"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-after-actual-page-20261007.log",
+      "sha256": "6216e67c8752fb36f3756145ea042ac2753a67557281d0b04d850da42a76bdfc"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-after-native-page-20261007.log",
+      "sha256": "e0fbb392e751ec60aa59ca51235812035eb2cdd0991f00b9770c67337533b294"
+    }
+  ],
+  "scope": "Desktop local source and independent compiled service. Original actual official-client discrepancy retained. Not full same-bundle clients, target performance, physical motion, G3 or Python retirement closure.",
+  "intermediatePage": {
+    "manifestSha256": "8634fea7e5e9d8b317830549ab77959e6100849f83203b41117200416d1421d2",
+    "sourceHead": "5de421ac",
+    "scope": "Actual discovery fixed and explicit UI restore returned baseline value after owned process restart. Additional WAL snapshot sidecars retained as a new finding, so not final maintenance acceptance.",
+    "beforeRestore": {
+      "status": 200,
+      "body": {
+        "result": {
+          "namespace": "fluidd",
+          "key": "uiSettings.general.instanceName",
+          "value": "C500 数据库恢复后改值"
+        }
+      }
+    },
+    "afterRestore": {
+      "status": 200,
+      "body": {
+        "result": {
+          "namespace": "fluidd",
+          "key": "uiSettings.general.instanceName",
+          "value": "C500 数据库恢复基准"
+        }
+      }
+    },
+    "backupListAfterRestore": {
+      "status": 200,
+      "body": {
+        "result": {
+          "namespaces": [
+            "fluidd",
+            "webcams"
+          ],
+          "backups": [
+            "20261007-055025.db",
+            "20261007-055025.db-shm",
+            "20261007-055025.db-wal"
+          ]
+        }
+      }
+    },
+    "printer": {
+      "status": 200,
+      "body": {
+        "result": {
+          "eventtime": 814691.973431996,
+          "status": {
+            "print_stats": {
+              "filename": "",
+              "print_duration": 0,
+              "total_duration": 0,
+              "filament_used": 0,
+              "state": "standby",
+              "message": "",
+              "info": {
+                "total_layer": null,
+                "current_layer": null
+              }
+            },
+            "native_host": {
+              "version": 1,
+              "ready": true,
+              "group_state": "ready",
+              "hardware_state": "ready",
+              "print_state": "idle",
+              "homed_axes": "",
+              "closing": false,
+              "admission_closed": false,
+              "maintenance": false,
+              "mcus": [
+                {
+                  "id": "mcu",
+                  "state": "ready"
+                },
+                {
+                  "id": "aux",
+                  "state": "ready"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "fluiddSettingsDownload": {
+      "filename": "backup-fluidd-v1.37.6-C500 数据库恢复基准.json",
+      "failure": null
+    }
+  },
+  "snapshotFix": {
+    "reason": "Actual restore left .db-wal and .db-shm, which directory enumeration advertised as backups.",
+    "change": "After online backup finishes, convert only private temporary snapshot to DELETE journal mode, close and sync before atomic publication. Active WAL mode, durability, maintenance exclusion and restart ownership unchanged.",
+    "before": "Strict standalone snapshot regression failed wal !== delete.",
+    "source": {
+      "pass": 61,
+      "fail": 0,
+      "durationMs": 17214.196895
+    },
+    "compiled": {
+      "pass": 1,
+      "fail": 0,
+      "durationMs": 7165.398311,
+      "diagnostics": [
+        {
+          "compiled": true,
+          "oneShotAndLoginPolicy": true,
+          "oneShotStatusMaxMs": 2.3192889999999124,
+          "jwtLifecycle": true,
+          "websocketSurvivesTokenExpiry": true,
+          "logoutEventAfterResponse": true,
+          "websocketStatusP99Ms": 0.1823419999999487,
+          "jwtStatusP99Ms": 2.3736800000000358,
+          "unauthorizedRejected": true,
+          "rotationRevokesOldKey": true,
+          "statusRequests": 200,
+          "statusP99Ms": 1.6446300000000065,
+          "scope": "Sequential local HTTP and WebSocket requests; no physical MCU or concurrent printing"
+        },
+        {
+          "compiled": true,
+          "configurationOwned": true,
+          "policyApplied": true,
+          "persistentIdentityAfterRestart": true,
+          "statusRequests": 200,
+          "statusP99Ms": 1.7554920000000038,
+          "scope": "Sequential local HTTP on independent compiled configured service; no printing or target hardware"
+        }
+      ],
+      "originalStatusP99BudgetMs": 50
+    },
+    "benchmark": {
+      "node": "v26.10.0",
+      "baselineHead": "207fc578d66d29d49b530057255f14b8bd01adfd",
+      "baselineSourceSha256": "faa450921a19bf160b532f74b0dc3114beec024c81de48e2e689f499d591a5cf",
+      "candidateSourceSha256": "535d24d301caa3efb599a7040a6655186fd704ddf72bc871fa546aea2ed12b12",
+      "payload": {
+        "records": 1000,
+        "bytes": 1055781,
+        "sha256": "6e82c2cf31bcab2c82cfa9ae08314fd4e6730dd231fab57be4a0bb4ba4ea41fb"
+      },
+      "warmups": 5,
+      "pairedSamples": 11,
+      "backupsPerBatch": 10,
+      "samples": {
+        "baseline": [
+          281.1186010000001,
+          279.81839500000024,
+          249.17137400000047,
+          275.6331829999999,
+          272.43657299999995,
+          302.69478100000015,
+          283.7090939999998,
+          272.4459339999994,
+          267.0522460000011,
+          278.63112,
+          272.0923389999989
+        ],
+        "candidate": [
+          485.81333099999983,
+          441.1785149999996,
+          454.87037599999985,
+          448.85145099999954,
+          440.50130699999954,
+          437.35124799999903,
+          521.7643689999986,
+          465.47146799999973,
+          464.2076820000002,
+          446.11578700000064,
+          473.9675330000009
+        ]
+      },
+      "summary": {
+        "baseline": {
+          "medianMs": 275.6331829999999,
+          "p95Ms": 302.69478100000015
+        },
+        "candidate": {
+          "medianMs": 454.87037599999985,
+          "p95Ms": 521.7643689999986
+        }
+      },
+      "scope": "Alternating paired same committed ~1MiB input; exact published backup operation including fsync and directory sync. Worker queue/admission overhead excluded. Maintenance is already forbidden while printing or paused, so this is not concurrent printing/target throughput evidence."
+    },
+    "additionalCostAcknowledged": true,
+    "whyPrintingNotMeasuredHere": "Maintenance remains rejected while preparing, printing or paused; no per-move path modified.",
+    "legacySnapshotCompatibilityClaim": false,
+    "references": [
+      "https://www.sqlite.org/wal.html",
+      "https://www.sqlite.org/pragma.html#pragma_journal_mode",
+      "https://moonraker.readthedocs.io/en/latest/external_api/database/"
+    ]
+  },
+  "finalPage": {
+    "date": "2026-10-07",
+    "scope": "Actual Fluidd1.37.6 maintenance only on compiled protected client and pinned package with independent production dependencies. Two simulated PTY MCUs; no physical movement or physical device path.",
+    "sourceHead": "599288a6",
+    "identity": {
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-client-bundle",
+        "manifestSha256": "41ea309562f785b2c77647e508bf748072b3d487bd9dddda2fa4242bcdd6dc4d",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      },
+      "installed": {
+        "durationMs": 839.257218,
+        "dependencies": 15
+      }
+    },
+    "profile": {
+      "date": "2026-10-07",
+      "scope": "Final fixed compiled package; same explicitly configured temporary backup directory and complete process-restart owner. Original 15 minute deadline retained.",
+      "sourceHead": "2c107ca0",
+      "helper": {
+        "originalSha256": "bc2886d1bdb8b2081ff6fde9bfe77b2307e1a36680ae322e0931bd5f336a8316",
+        "preparedSha256": "b6c1bf96974841208d91e367c4e0b6fc1840872dcfe744bdaa4c865ab46f85c2"
+      },
+      "nativeSha256": "8b90d4b3aa4a8f212dd811a93ff3b029ead21b8941e9c11ea06fa4e6507206fc",
+      "driverSha256": "6979df174725bb8bf0bfcdcf4acfb66364ea11ee9f7eac267f33282599d3e3c2",
+      "fixture": "database-backups under own transient directory; process restores terminate owned child then reopen same app/storage only after full cleanup"
+    },
+    "operations": {
+      "settingsBaseline": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 数据库恢复基准"
+          }
+        }
+      },
+      "settingsDownload": {
+        "filename": "backup-fluidd-v1.37.6-C500 数据库恢复基准.json",
+        "failure": null
+      },
+      "backupCreation": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespaces": [
+              "fluidd",
+              "webcams"
+            ],
+            "backups": [
+              "20261007-060246.db"
+            ]
+          }
+        }
+      },
+      "changedBeforeDatabaseRestore": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 数据库恢复后改值"
+          }
+        }
+      },
+      "databaseRestore": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 数据库恢复基准"
+          }
+        }
+      },
+      "backupListAfterRestore": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespaces": [
+              "fluidd",
+              "webcams"
+            ],
+            "backups": [
+              "20261007-060246.db"
+            ]
+          }
+        }
+      },
+      "compact": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 数据库恢复基准"
+          }
+        }
+      },
+      "changedBeforeSettingsRestore": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 设置恢复前改值"
+          }
+        }
+      },
+      "settingsRestoreChooser": {
+        "elapsedMs": 67.15444300000672
+      },
+      "settingsRestored": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 数据库恢复基准"
+          }
+        }
+      },
+      "backupDelete": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespaces": [
+              "fluidd",
+              "webcams"
+            ],
+            "backups": []
+          }
+        }
+      },
+      "printer": {
+        "status": 200,
+        "body": {
+          "result": {
+            "eventtime": 815462.303255259,
+            "status": {
+              "print_stats": {
+                "filename": "",
+                "print_duration": 0,
+                "total_duration": 0,
+                "filament_used": 0,
+                "state": "standby",
+                "message": "",
+                "info": {
+                  "total_layer": null,
+                  "current_layer": null
+                }
+              },
+              "toolhead": {
+                "estimated_print_time": 252.968523,
+                "homed_axes": "",
+                "axis_minimum": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "axis_maximum": [
+                  200,
+                  200,
+                  200,
+                  0
+                ],
+                "position": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "extruder": "extruder",
+                "max_velocity": 100,
+                "max_accel": 1000,
+                "square_corner_velocity": 5,
+                "minimum_cruise_ratio": 0.5
+              }
+            }
+          }
+        }
+      },
+      "history": {
+        "status": 200,
+        "body": {
+          "result": {
+            "count": 0,
+            "jobs": []
+          }
+        }
+      },
+      "logoutCookies": [],
+      "logoutLoginPage": true
+    },
+    "snapshot": {
+      "before": [
+        {
+          "name": "20261007-060246.db",
+          "bytes": 20480,
+          "mode": "600",
+          "sha256": "344b829c68b06fd42de54fd2c7b7f506a9a185681c36841cadb10f42b9b26bf6"
+        }
+      ],
+      "after": [
+        {
+          "name": "20261007-060246.db",
+          "bytes": 20480,
+          "mode": "600",
+          "sha256": "344b829c68b06fd42de54fd2c7b7f506a9a185681c36841cadb10f42b9b26bf6"
+        }
+      ],
+      "unchanged": true,
+      "sidecars": 0
+    },
+    "process": {
+      "restarted": 2,
+      "parent": 3049886,
+      "gateway": 3050112,
+      "driverExit": 0,
+      "parentExit": 0,
+      "gatewayExit": 0,
+      "fixtureRemoved": true,
+      "bundleUnchangedOnFinalClose": true
+    },
+    "limitations": [
+      "This final package combines candidates not all integrated into develop; full CI is still required for the database PR.",
+      "No target-board throughput, G3, real motion, physical printer, complete client suite or full Python retirement acceptance.",
+      "Legacy WAL snapshots are outside the standalone-new-snapshot claim.",
+      "Logout observer id51 was issued before the DELETE response completed and returned200; retain race explicitly, do not claim post-logout API401 for this run. Cookie removal and login page were observed afterward.",
+      "Source wrapper database tests still include their existing Python oracle; compiled product evidence is separate."
+    ],
+    "toolErrors": [
+      {
+        "id": 8,
+        "ok": false,
+        "error": "Error: locator.press: key: expected string, got undefined"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-actual-page-20261007.log",
+        "sha256": "3f184a3c174089c0a29ff5c55436b0bf4698ae93a1ae999ad09b6298f96004aa"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-native-page-20261007.log",
+        "sha256": "8d611bf2576c2114f08cb0fc2add1f233ab949a6ccba894ec7f876397670de14"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-cli-page-20261007.log",
+        "sha256": "faea5bd40a2ce4749c1365af49da1859a00cde5bebed5c557c4a05754c84236d"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-backup-before-restore-20261007.json",
+        "sha256": "91506c2c45b983a3d194a8c73f4fb02efef900d7b0f538da3c101adc347286fd"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-backup-after-restore-20261007.json",
+        "sha256": "91506c2c45b983a3d194a8c73f4fb02efef900d7b0f538da3c101adc347286fd"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-client-identity-20261007.json",
+        "sha256": "0a8f75e1d95f624c049dcf824bab66d4adf5723534d24235e498dc10293a1c77"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-fluidd-settings-20261007.json",
+        "sha256": "fd3bcdd252625bd766c286fa4f8bc1286efd15740526dfae02681b3fcd308b52"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-backup-visible-20261007.png",
+        "sha256": "824c4e75e4d83c3c24356969b57c9eefdff4855d190fc8d5913fb9181afc89ee"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-restored-20261007.png",
+        "sha256": "9fcb90b620afc50635a66185b5b2d950ede9b0911b8328b68998f727b92259c4"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-deleted-20261007.png",
+        "sha256": "58b5d1a2bf06f8cae54844ff9a7932c7b6b67da6e56ea37ad67d13cf2cddbcb9"
+      }
+    ]
+  },
+  "integrationBaselineHead": "8dd55f9fde3d570542787173c32a66012bb08d51",
+  "gatewayAcceptedDevelopIntegration": {
+    "date": "2026-10-07",
+    "baselineHead": "a863dc23e3266c3b1e74bba1d53964ee9dd39162",
+    "acceptedGateway": {
+      "pr": 23,
+      "head": "e67ccb8ab5993fa2e178d2126c129acbdaab0c88",
+      "host": 37540786185,
+      "firmware": 37540786109,
+      "allRequiredSteps": "success",
+      "merge": "a863dc23e3266c3b1e74bba1d53964ee9dd39162",
+      "postMerge": {
+        "host": 37585785093,
+        "firmware": 37585785193,
+        "status": "in_progress"
+      }
+    },
+    "previousExactHead": {
+      "head": "5c06a628804cd253c1a5c863b4b27cd08fc698b0",
+      "host": 37538547037,
+      "firmware": 37538546990,
+      "status": "completed",
+      "conclusion": "success",
+      "allRequiredSteps": "success"
+    },
+    "conflicts": [
+      "CHANGELOG.md",
+      "docs/Node_Host_Delivery_Plan.md"
+    ],
+    "resolution": "Preserve both histories; label prior plan rows historical and add verified current state",
+    "validation": {
+      "pass": 68,
+      "fail": 0,
+      "durationMs": 38116.567119,
+      "typecheck": "success",
+      "sourceWhitespace": "success",
+      "logs": [
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-database-gateway-sync-20261007.log",
+          "sha256": "4efbf20564117ff9877f783b4d1ddee55954492977e3692561c93cf5668c1b59"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-database-discovery-gateway-sync-typecheck-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-database-discovery-gateway-sync-whitespace-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "compiled": "Original independent compiled gateway 8 protocol/resource assertions with TS disabled; overlap with source is not added"
+    },
+    "performance": {
+      "productionSourceUnchanged": true,
+      "fingerprints": {
+        "host/src/moonraker/configured-server.ts": "b418d510dbbe7d48d6fa69f9f8ad9b77db2356fc06cbf41182184f8d76ea5d54",
+        "host/src/moonraker/database-backup-files.ts": "535d24d301caa3efb599a7040a6655186fd704ddf72bc871fa546aea2ed12b12"
+      },
+      "evidenceReuse": "Prior paired benchmarks retained only for their original source/environment/scope; no new speed or target-board claim"
+    },
+    "newExactHeadCi": "pending",
+    "normalIntegration": "pending",
+    "scope": "Full same-package clients, original mixed failures, G3, physical current-series, all177 klippy Python files and default switch remain open"
+  }
+}

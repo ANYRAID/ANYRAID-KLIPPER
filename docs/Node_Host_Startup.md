@@ -146,6 +146,21 @@ stops、lifecycle、output、authorizePrintFile 和 release；不能再返回 se
 进程 release 再释放其他依赖，只有未移交／未关闭的组件才需自行关闭。
 release 应幂等，关闭错误不得丢弃。
 
+进程装配提供已打开的 `DatabaseStore` 时，服务信息自动声明 `database`
+组件，使 Fluidd 等客户端初始化实际备份列表；设备状态替换不会丢失该
+声明。未装配数据库时不额外声明。备份目录仍须由装配者显式设置
+`DatabaseStore.open({path, backupDirectory})`，使用独立绝对路径，不能
+覆盖活动数据库及其日志；未配置目录的备份请求返回 503。
+新建备份仅在私有暂存快照上切换为 DELETE 日志模式，关闭后才 fsync、
+原子发布及同步目录。活动数据库仍沿用 WAL；新快照只读恢复不产生
+被误列为备份的 WAL／SHM 文件。旧快照行为不能沿用本轮新建快照结论。
+数据库恢复只在 `server.onDatabaseRestore` 提供完整服务重启所有者时
+注册。恢复响应完成后，该所有者须关闭旧服务及全部数据库依赖，再重新
+打开数据库和组件；只重建设备不足以恢复。备份、压缩及恢复沿用实际
+空闲状态与同一维护门禁，打印或暂停期间拒绝。该声明修复的源码与独立
+编译验证通过，实际客户端及正常集成边界见
+[数据库发现验收](../host/contracts/database-discovery-acceptance.json)。
+
 工厂声明 `serverLifetime: 'process'`，主机循环以相同服务器绑定新设备，
 保持 HTTP/WebSocket、身份、温度历史和文件锁。包装工厂须同时转发这个
 属性、bootstrap、resetFirmware、close 及调用的 signal／reload context；遗漏 bootstrap
@@ -1136,6 +1151,28 @@ JSON-RPC 方法为 `printer.objects.query`，参数示例：
   暂映射 printing，具体过渡状态继续读取 native_host.print_state。
   interrupted/failed 映射 error，消息使用固定公开文本，不暴露内部异常。
 
+### 准备阶段暂停
+
+标准 `/printer/print/pause` 和带当前 request_id／state_token 的原生控制
+可在 preparing 阶段登记暂停；权限、状态代际检查沿用原产品入口。
+`/printer/print/status` 的 `pause_pending` 表示请求仍等待准备确认，
+此时 `print_stats.state` 继续为 printing，不能显示为已停止。准备动作
+仍按原 startMs 完成归零／加热和确认，不并行调用文件暂停或重放准备。
+若请求已越过文件启动检查点，等待该启动确认后进入原文件暂停流程。
+
+在执行文件前保持的作业状态为 paused，`paused_before_file=true`，
+文件进度仍为零。原封存文件、热控与日志所有者保持占用，日志仍为
+reserved，未写 started；所有普通活动文件保护继续生效。显式 resume
+重新检查当前授权、状态代际和产品联锁，按原 resumeMs 启动同一文件，
+写入一次 started；不重放准备，也不建立另一打印状态机。准备期的
+总时长和已接收挤出统计不因登记暂停而重置。
+
+请求断连只停止等待回执，已受理的保持仍生效；恢复需要新的显式授权。
+取消、故障和设备退役均沿用原停止所有者、截止时间及迟到动作清理。
+此保持不代表无热量／无准备运动，不能用来代替急停。进程重启仍由
+权威日志恢复为 interrupted，不自动恢复或重放文件。当前证据属于
+模拟 MCU 软件验收；真实机型与 G3 门禁独立保留。
+
 原生文件支持 `SET_PRINT_STATS_INFO TOTAL_LAYER=100 CURRENT_LAYER=1`。
 层数只作元数据，不触发移动、宏或生命周期操作；命令仍受现有 G-code
 就绪与串行准入控制。值为非负安全整数，CURRENT_LAYER 超过总层数时
@@ -1471,6 +1508,16 @@ pause/resume/cancel 接受空参数；对应 WebSocket JSON-RPC 方法相同。
 清理门槛才能开始下一任务；failed/interrupted 仍要求显式恢复。
 暂停、恢复、取消保持原控制器的状态及物理停止约束。
 
+原生控制器因共享维护所有者拒绝操作时，候选在原 HTTP／WebSocket
+409 错误及原通用消息中补充 `data.reason`。`maintenance_active` 表示
+原准入检查时维护正在占用，`admission_closed` 表示原准入已关闭，
+`activity_capacity` 表示原 65,536 项活动上限，`producer_busy` 是其他
+维护所有者冲突。原因来自实际错误实例，不按消息字符串、客户端字段
+或事后状态猜测；不输出底层异常文本或堆栈。身份、授权、400／410／499
+及其他 409 沿用原响应。仅该原因字段不能证明整个请求未产生设备效果，
+仍须查询请求／设备状态；不能自动重试或重放动作。被初始维护准入拒绝
+的开始请求不创建预约，维护结束后必须由用户显式提交新的请求。
+
 策略与二次授权最多同时保留 4 项，每次准入等待最多 30 秒；断开后尚未
 结束的外部策略继续计入容量，但迟到返回不能产生设备操作。已经持久准入
 的打印不会因为 HTTP 客户端断开自动取消。标准协议没有客户端幂等键，
@@ -1510,7 +1557,12 @@ startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 er
 可见路径；空闲或重置后为空，完成及故障状态保留当前作业名。
 未装配该所有者时不猜测自定义文件命名。`pause_resume.is_paused` 在暂停
 确认后为 true，恢复确认前仍为 true；仅发起暂停时不能声称已暂停。
-当前未提供实际累计打印时间或耗材统计，不能从文件进度推算这些字段。
+原生线性产品的 `filament_used` 来自已接受运动的有符号 G-code 挤出量，
+不是编码器测量。`print_duration` 从首次净正挤出开始，排除已确认暂停
+和恢复准备；`total_duration` 包含准备与暂停。文件流首次启动和停车
+返回后的恢复均在运动生命周期确认后、文件命令准入前启用统计，避免
+等待外层启动回执时漏计文件前缀。失败、取消与完成冻结终态统计；
+缺少可恢复记录时保留未知值，不从文件进度推算。
 
 ### 原生 G-code 目录与上传
 
@@ -2840,51 +2892,6 @@ node host/acceptance/client-probe.ts /absolute/path/to/mainsail 18334 --trusted-
 默认探针仍
 使用凭据模式，Fluidd 的登录验收入口不变。
 
-### 受保护的官方 Mainsail 接入候选
-
-固定官方 Mainsail 2.19.0 的连接初始化不提交本项目的原生用户凭据。
-可选的 `product-client` 入口提供产品登录页，复用原生 Moonraker 用户及
-JWT 授权，不新增打印、文件、历史或运动所有者。默认入口仍为 Python。
-登录成功后打开 `/_client/control`，其 iframe 在 `/` 加载原版 Mainsail；
-官方导航路径返回相同的安装版 index，避免子路径出现空白页面。
-登录、退出、API 和控制台导航始终访问网络；官方 Service Worker 原字节
-由边界包装器加载，不能以缓存前端页面替代会话或 API 响应。
-
-编译包包含 `scripts/product-client.js`。它作为独立的受监督进程运行，
-只监听 127.0.0.1，并要求显式固定的私有原生 Moonraker 回环监听地址：
-
-```sh
-node /installed/product/scripts/product-client.js \
-  --origin https://printer.example.com \
-  --upstream http://127.0.0.1:7125 \
-  --assets /installed/mainsail-2.19.0 --port 8080
-```
-
-外部 HTTPS 由现有 TLS 代理提供，保留准确的 Host；代理应将该站点的
-全部 HTTP／WebSocket 路径转发至此入口，并支持 Upgrade。原生监听器
-保持私有、启用本项目原生用户授权；禁止把打印文件／配置可写目录用作
-`--assets`。前端资源须来自受信安装目录。本候选未自动安装 systemd、
-TLS 或权限规则，不构成生产安装验收。仅本机开发可以显式使用
-`--origin http://127.0.0.1:8080 --loopback-http`；公网 HTTP 会被拒绝。
-
-浏览器只持有随机、HttpOnly、SameSite=Strict 的会话句柄；HTTPS 使用
-Secure Cookie。用户 JWT／刷新凭据只驻留网关内存，会话最多 24 小时，
-请求不能用自身身份头覆盖会话身份。原生授权决定账号、权限及操作准入；
-网关不重试修改请求或重放作业。网关重启会要求重新登录，不自动恢复
-打印。退出先调用原生注销，再清除本地会话和连接；原生注销失败时仍
-清除本地句柄，但不会声称服务器凭据已经撤销。关闭网关不注销其他
-客户端。默认上限为 128 会话、50 个 WebSocket、256 个活动请求；
-WebSocket 单帧 1 MiB、全局发送缓冲 8 MiB，有界请求与流式回压保留。
-
-独立 JavaScript 包验证命令为
-`node --test host/test/product-client-gateway-compiled.test.ts`；
-必要网络对照为 `node host/bench/product-client-gateway.ts`。每份样本保持
-原网络基准的 200 REST、200 HTTP JSON-RPC、500 WebSocket 及 16 并发
-320 次负载，3 次预热、至少 11 份保留样本。桌面同进程对照有可测 HTTP
-代理开销；不能解释成目标板、TLS、混合打印或零退化通过。受保护页面、
-原始失败及数值见[接入验收](../host/contracts/protected-client-gateway-acceptance.json)。
-完整同包 Fluidd／Mainsail、进程崩溃恢复、目标板、G3 和全面 Python
-退役仍待完成。
 
 ## 元数据 Worker 的关闭确认候选
 
@@ -2937,3 +2944,49 @@ Mainsail 2.19.0 文件选择、显式启动、单作业完成和历史，预览�
 32×32。该页面包包含尚未集成的候选，不能转记为 develop 或实机
 通过；完整客户端、目标性能和 G3 仍待验。详细边界保留于
 [组合上传验收契约](../host/contracts/upload-print-intent-acceptance.json)。
+
+### 受保护的官方 Mainsail 接入候选
+
+固定官方 Mainsail 2.19.0 的连接初始化不提交本项目的原生用户凭据。
+可选的 `product-client` 入口提供产品登录页，复用原生 Moonraker 用户及
+JWT 授权，不新增打印、文件、历史或运动所有者。默认入口仍为 Python。
+登录成功后打开 `/_client/control`，其 iframe 在 `/` 加载原版 Mainsail；
+官方导航路径返回相同的安装版 index，避免子路径出现空白页面。
+登录、退出、API 和控制台导航始终访问网络；官方 Service Worker 原字节
+由边界包装器加载，不能以缓存前端页面替代会话或 API 响应。
+
+编译包包含 `scripts/product-client.js`。它作为独立的受监督进程运行，
+只监听 127.0.0.1，并要求显式固定的私有原生 Moonraker 回环监听地址：
+
+```sh
+node /installed/product/scripts/product-client.js \
+  --origin https://printer.example.com \
+  --upstream http://127.0.0.1:7125 \
+  --assets /installed/mainsail-2.19.0 --port 8080
+```
+
+外部 HTTPS 由现有 TLS 代理提供，保留准确的 Host；代理应将该站点的
+全部 HTTP／WebSocket 路径转发至此入口，并支持 Upgrade。原生监听器
+保持私有、启用本项目原生用户授权；禁止把打印文件／配置可写目录用作
+`--assets`。前端资源须来自受信安装目录。本候选未自动安装 systemd、
+TLS 或权限规则，不构成生产安装验收。仅本机开发可以显式使用
+`--origin http://127.0.0.1:8080 --loopback-http`；公网 HTTP 会被拒绝。
+
+浏览器只持有随机、HttpOnly、SameSite=Strict 的会话句柄；HTTPS 使用
+Secure Cookie。用户 JWT／刷新凭据只驻留网关内存，会话最多 24 小时，
+请求不能用自身身份头覆盖会话身份。原生授权决定账号、权限及操作准入；
+网关不重试修改请求或重放作业。网关重启会要求重新登录，不自动恢复
+打印。退出先调用原生注销，再清除本地会话和连接；原生注销失败时仍
+清除本地句柄，但不会声称服务器凭据已经撤销。关闭网关不注销其他
+客户端。默认上限为 128 会话、50 个 WebSocket、256 个活动请求；
+WebSocket 单帧 1 MiB、全局发送缓冲 8 MiB，有界请求与流式回压保留。
+
+独立 JavaScript 包验证命令为
+`node --test host/test/product-client-gateway-compiled.test.ts`；
+必要网络对照为 `node host/bench/product-client-gateway.ts`。每份样本保持
+原网络基准的 200 REST、200 HTTP JSON-RPC、500 WebSocket 及 16 并发
+320 次负载，3 次预热、至少 11 份保留样本。桌面同进程对照有可测 HTTP
+代理开销；不能解释成目标板、TLS、混合打印或零退化通过。受保护页面、
+原始失败及数值见[接入验收](../host/contracts/protected-client-gateway-acceptance.json)。
+完整同包 Fluidd／Mainsail、进程崩溃恢复、目标板、G3 和全面 Python
+退役仍待完成。
