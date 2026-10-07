@@ -6,7 +6,7 @@
     "node": ">=26.9 <27"
   },
   "scripts": {
-    "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts && node scripts/build-serialqueue.ts && node scripts/build-unix-peer.ts && node scripts/build-sealed-file.ts && node scripts/build-can-query.ts && node scripts/build-ar100-flash.ts && node scripts/build-ar100-flash.ts --testing && node scripts/build-fatfs.ts",
+    "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts && node scripts/build-serialqueue.ts && node scripts/build-unix-peer.ts && node scripts/build-sealed-file.ts && node scripts/build-file-events.ts && node scripts/build-can-query.ts && node scripts/build-ar100-flash.ts && node scripts/build-ar100-flash.ts --testing && node scripts/build-fatfs.ts",
     "test:can-vcan": "node scripts/test-can-vcan.ts",
     "test:native-sanitized": "node scripts/test-native-sanitized.ts",
     "pretest": "npm run build:native",

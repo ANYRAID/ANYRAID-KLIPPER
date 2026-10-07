@@ -223,10 +223,11 @@ export class NativePrintUploads {
  /** Descriptor ingress for the process-owned disk importer. It must supply
   * the current local-write authorization; no network endpoint or synthetic user
   * is created here. The source is borrowed and never closed or deleted. */
- importUfp(source:FileHandle,filename:string,context:RpcContext):Promise<Json>{
-  return this.#admitUpload(context,this.#deviceFiles,(signal,deviceGate,printOwner)=>this.#importUfp(source,filename,context,signal,deviceGate,printOwner));
+ importUfp(source:FileHandle,filename:string,context:RpcContext,claimId?:string):Promise<Json>{
+  if(claimId!==undefined&&!validId(claimId))return Promise.reject(new ApiError(400,'Invalid disk import claim ID'));
+  return this.#admitUpload(context,this.#deviceFiles,(signal,deviceGate,printOwner)=>this.#importUfp(source,filename,context,signal,deviceGate,printOwner,claimId));
  }
- async #importUfp(source:FileHandle,path:string,context:RpcContext,signal:AbortSignal,deviceGate:MaintenanceGate|undefined,printOwner:Pick<PrintController,'beginFileMutation'>|undefined):Promise<Json>{
+ async #importUfp(source:FileHandle,path:string,context:RpcContext,signal:AbortSignal,deviceGate:MaintenanceGate|undefined,printOwner:Pick<PrintController,'beginFileMutation'>|undefined,claimId?:string):Promise<Json>{
   signal.throwIfAborted();path=nativeFilename(path);if(!/\.ufp$/i.test(path))throw new ApiError(400,'Expected a UFP ingress path');
   let release:()=>void;try{release=this.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks disk imports');}
   let releaseDevice:(()=>void)|undefined;try{if(deviceGate&&deviceGate!==this.#gate)releaseDevice=deviceGate.activity();}catch{release();throw new ApiError(409,'Maintenance blocks disk imports');}
@@ -235,7 +236,7 @@ export class NativePrintUploads {
    await this.#authorize(context,{},signal);const before=await source.stat({bigint:true});signal.throwIfAborted();
    if(!before.isFile()||before.size<1n||before.size>BigInt(this.#max))throw new ApiError(413,'Disk archive type or size limit exceeded');
    const digest=createHash('sha256'),buffer=Buffer.allocUnsafe(65536);let at=0;while(at<Number(before.size)){signal.throwIfAborted();const {bytesRead}=await source.read(buffer,0,Math.min(buffer.length,Number(before.size)-at),at);if(!bytesRead)throw new ApiError(409,'Disk archive changed');digest.update(buffer.subarray(0,bytesRead));at+=bytesRead;}
-   const id=randomUUID(),visibleDirectory=path.includes('/')?path.slice(0,path.lastIndexOf('/')):'',filename=path.slice(path.lastIndexOf('/')+1);
+   const id=claimId??randomUUID(),visibleDirectory=path.includes('/')?path.slice(0,path.lastIndexOf('/')):'',filename=path.slice(path.lastIndexOf('/')+1);
    await this.#authorize(context,{root:'gcodes',filename,path,file_id:id,size:Number(before.size),sha256:digest.digest('hex')},signal);
    directory=await mkdtemp(join(this.#root,'anyraid-import-'));model=await open(join(directory,'model'),'wx+',0o600);
    const extracted=await extractUfpArchive(source,model,signal,{maxArchiveBytes:this.#max,maxModelBytes:this.#max});signal.throwIfAborted();
@@ -243,6 +244,14 @@ export class NativePrintUploads {
    const name=filename.replace(/\.ufp$/i,'.gcode'),visible=path.replace(/\.ufp$/i,'.gcode');
    await this.#authorize(context,{root:'gcodes',filename:name,path:visible,file_id:id,size:extracted.model.size,sha256:extracted.model.sha256},signal);
    const unchanged=async()=>{const after=await source.stat({bigint:true});signal.throwIfAborted();if(['dev','ino','size','mtimeNs','ctimeNs'].some(key=>before[key as keyof typeof before]!==after[key as keyof typeof after]))throw new ApiError(409,'Disk archive changed during authorization or conversion');};await unchanged();
+   if(claimId!==undefined){
+    const existing=await this.#files.inspect(id).catch(error=>{if((error as NodeJS.ErrnoException)?.code!=='ENOENT')throw error;return undefined;});
+    if(existing){
+     const thumbnail=extracted.thumbnail,expected={version:1 as const,id,name,path:visible,sha256:extracted.model.sha256,size:extracted.model.size,...thumbnail?{preview:{sha256:thumbnail.sha256,size:thumbnail.bytes.length}}:{}};
+     let recovered;try{recovered=await this.#files.verifyReceipt(expected,signal);}catch(error){if(error instanceof PublishedFileChangedError)throw new ApiError(409,'Disk import claim already has a different publication');throw error;}
+     await unchanged();return {item:{path:visible,root:'gcodes',modified:recovered.modified,size:recovered.file.size,permissions:this.canRemove?'rw':'r'},action:'create_file',file:recovered.file as unknown as Json,print_started:false,print_queued:false};
+    }
+   }
    const committed=await this.#publishStaged(model,preview,id,name,visibleDirectory,visible,context,signal,printOwner,unchanged);releaseFile=committed.releaseFile;return committed.receipt;
   }catch(error){primary=error;throw error;}
   finally{

@@ -2992,6 +2992,14 @@ HTTP GET 返回 405，错误参数返回 400，缺失源文件返回 404。
 或自动打印。此方法尚未由实际外部目录监听调用，原包认领、清理和
 重启恢复仍待接入，不能将内部摘要仓库当作磁盘投递目录使用。范围与
 本机性能对照见[描述符导入记录](../host/contracts/ufp-descriptor-import-acceptance.json)。
+目录事件桥 `FileEvents` 已提供 Linux 关闭写入、移动及队列溢出边界，
+借用目录描述符并显式等待关闭。它尚未装配进外部磁盘导入服务，不会
+自行监听用户目录。构建包含 `file-events.node`，原生 sanitizer 覆盖
+该组件；不能用普通 `fs.watch` 静默时间冒充关闭写入。
+内部调用可传固定认领 ID 重放已完成的导入；此时重新授权并逐字节
+验证模型及预览摘要，返回原回执且不自动打印。固定 ID 不提供持久
+日志或原包清理；实际磁盘投递配置与完整重启恢复仍未交付。回归及
+本机开销范围见[事件与重放记录](../host/contracts/file-events-claim-acceptance.json)。
 旧附件 `MetadataFiles` 与原生进程文件所有者互斥，不能混装两个文件所有者。
 源码、独立编译包、取消／竞争和性能证据见
 [重扫验收](../host/contracts/native-metadata-rescan-acceptance.json)。

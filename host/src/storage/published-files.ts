@@ -595,6 +595,13 @@ export class PublishedPrintFiles {
  },true,signal);}
  diskUsage(signal:AbortSignal):Promise<{total:number;used:number;free:number}>{return this.#run(async()=>{signal.throwIfAborted();const fs=await statfs(this.#path('.'),{bigint:true});signal.throwIfAborted();const result={total:Number(fs.blocks*fs.bsize),used:Number((fs.blocks-fs.bfree)*fs.bsize),free:Number(fs.bavail*fs.bsize)};if(Object.values(result).some(value=>!Number.isSafeInteger(value)||value<0))throw new Error('Disk usage exceeds exact JSON integer range');return result;},false,signal);}
  inspect(id:string):Promise<PublishedPrintFile>{return this.#run(async()=>{this.#id(id);return this.#record(id);});}
+ /** Recovery must verify the whole durable pair under its existing store
+  * barrier before treating an old receipt as a completed publication. */
+ verifyReceipt(expected:PublishedPrintFile,signal:AbortSignal):Promise<{file:PublishedPrintFile;modified:number}>{return this.#run(async()=>{
+  this.#id(expected.id);signal.throwIfAborted();const stored=this.#records.get(expected.id),file=await this.#record(expected.id);
+  if(!stored||!samePublishedFile(file,stored.record)||!samePublishedFile(file,expected))throw new PublishedFileChangedError('Recovered publication identity changed');
+  await this.#verifyExisting(file,signal);signal.throwIfAborted();return {file,modified:stored.modified};
+ },true,signal);}
  /** Bounded binary acquisition for non-G-code owners. The returned Buffer is an
   * independent verified snapshot; it never enters the text G-code reader. */
  readBytes(id:string,signal:AbortSignal,maxBytes=8*1024**2):Promise<{record:PublishedPrintFile;bytes:Buffer}>{return this.#run(async()=>{

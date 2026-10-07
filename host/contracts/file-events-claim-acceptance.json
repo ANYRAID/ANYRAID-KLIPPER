@@ -1,0 +1,200 @@
+{
+  "version": 1,
+  "sourceBase": "8a1c1dc6",
+  "node": "v26.10.0",
+  "nodeExecutableSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+  "scope": "Preparatory increment on the descriptor import task. Not integrated disk ingress or full product delivery.",
+  "dependenciesChanged": false,
+  "nativeBridge": {
+    "kernel": "Linux inotify",
+    "maxReadBytes": 65536,
+    "maxDirectories": 1024,
+    "borrowedDirectoryDescriptors": true,
+    "closeJoinsNativeRetirement": true,
+    "preservesAsyncContext": true,
+    "invalidUtf8AndOverflowFailClosed": true,
+    "leadingBomPreserved": true
+  },
+  "claimReplay": {
+    "id": "Internal optional fixed claim ID; no HTTP or synthetic principal",
+    "authorization": "Archive and model independently authorized again",
+    "verification": "Path, name, model SHA-256/size and preview SHA-256/size compared inside existing publication barrier; both complete blobs rehashed",
+    "reopenedStoreAndOwnerVerified": true,
+    "startsPrinting": false,
+    "persistentClaimJournal": false,
+    "originalArchiveCleanup": false
+  },
+  "build": {
+    "freshCOnlyNativeProduct": "passed",
+    "includes": "file-events.node",
+    "normalAndSanitizedBuildIntegrated": true,
+    "fullProductBundleAndOwnCI": "not run"
+  },
+  "validation": {
+    "sourceCombinedBeforeFinalControls": {
+      "passed": 51,
+      "tests": 51
+    },
+    "sourceDescriptorWithReopen": {
+      "passed": 12,
+      "tests": 12
+    },
+    "sourceCorrection": {
+      "passed": 15,
+      "tests": 15
+    },
+    "finalSourceDecoder": {
+      "passed": 8,
+      "tests": 8
+    },
+    "compiledFirst": {
+      "passed": 19,
+      "tests": 20,
+      "fault": "New Worker test dynamic URL retained .ts; fixed for compiled JS"
+    },
+    "compiledBroadened": {
+      "passed": 129,
+      "tests": 131,
+      "fault": "Two existing recovery child scripts retained .ts dynamic URLs; fixed without weakening assertions"
+    },
+    "compiledCorrection": {
+      "passed": 27,
+      "tests": 27
+    },
+    "finalCompiledDecoder": {
+      "passed": 8,
+      "tests": 8
+    },
+    "ubsan": {
+      "passed": 8,
+      "tests": 8
+    },
+    "asan": {
+      "passed": 8,
+      "tests": 8,
+      "leakAccounting": false
+    },
+    "overlappingCountsMustNotBeAdded": true,
+    "typecheck": "passed",
+    "whitespace": "passed"
+  },
+  "retainedFailures": [
+    "First native build rejected three misleading indentation warnings; statements separated, -Werror retained",
+    "First native callback used undefined receiver; events and close callback undelivered; corrected receiver and added explicit async context",
+    "First isolated fresh product compiler unavailable in sandbox; passed unchanged with authorized compiler execution",
+    "Combined sandbox HTTP chain had listen EPERM; retained partial log and explicit stop exit 130, no complete-chain success",
+    "Compiled dynamic import failures retained before correction"
+  ],
+  "performance": {
+    "order": [
+      "disabled",
+      "enabled",
+      "enabled",
+      "disabled"
+    ],
+    "scope": "Local ABBA disk event overhead with 8 concurrent small writes per batch, actual close-write callbacks and identical file operations. No printer, target board, import conversion or motion precision acceptance.",
+    "warmupsPerPhase": 256,
+    "samplesPerPhase": 16384,
+    "concurrentWrites": 8,
+    "groups": [
+      {
+        "enabled": false,
+        "writes": 32768,
+        "batches": 4096,
+        "medianMs": 0.1585320000003776,
+        "p95Ms": 0.2610430000000008,
+        "p99Ms": 0.8132999999999981,
+        "maxMs": 2.4905390000000125
+      },
+      {
+        "enabled": true,
+        "writes": 32768,
+        "batches": 4096,
+        "medianMs": 0.18102299999998195,
+        "p95Ms": 0.29034299999989344,
+        "p99Ms": 0.9778109999999742,
+        "maxMs": 2.4257880000000114
+      }
+    ],
+    "phases": [
+      {
+        "enabled": false,
+        "samples": 16384,
+        "batch": 8,
+        "warmups": 256,
+        "elapsedMs": 392.879169,
+        "batchMedianMs": 0.16717199999999366,
+        "batchP95Ms": 0.29039299999999457,
+        "batchP99Ms": 0.7371279999999842,
+        "loopP99Ms": 1.980415,
+        "loopMaxMs": 3.063807,
+        "events": 0,
+        "closeWrites": 0
+      },
+      {
+        "enabled": true,
+        "samples": 16384,
+        "batch": 8,
+        "warmups": 256,
+        "elapsedMs": 413.19990500000006,
+        "batchMedianMs": 0.17868200000009438,
+        "batchP95Ms": 0.2653330000000551,
+        "batchP99Ms": 0.9006399999998393,
+        "loopP99Ms": 1.661951,
+        "loopMaxMs": 2.529279,
+        "events": 66560,
+        "closeWrites": 16640
+      },
+      {
+        "enabled": true,
+        "samples": 16384,
+        "batch": 8,
+        "warmups": 256,
+        "elapsedMs": 437.2793449999999,
+        "batchMedianMs": 0.18391300000007504,
+        "batchP95Ms": 0.3178640000000996,
+        "batchP99Ms": 1.0811530000000857,
+        "loopP99Ms": 1.982463,
+        "loopMaxMs": 2.144255,
+        "events": 66560,
+        "closeWrites": 16640
+      },
+      {
+        "enabled": false,
+        "samples": 16384,
+        "batch": 8,
+        "warmups": 256,
+        "elapsedMs": 353.973657,
+        "batchMedianMs": 0.15057200000001103,
+        "batchP95Ms": 0.22576299999991534,
+        "batchP99Ms": 0.8392800000001444,
+        "loopP99Ms": 2.010111,
+        "loopMaxMs": 3.045375,
+        "events": 0,
+        "closeWrites": 0
+      }
+    ],
+    "allBatchSamplesArchived": true,
+    "eventOverheadObserved": true,
+    "printingMixedLoad": "not run",
+    "targetBoard": "not run",
+    "precisionGate": "not run",
+    "earlierReports": "Pilot and initial overhead measurements retained; decoder reuse also preserves leading BOM; no claim of established speedup"
+  },
+  "archive": {
+    "file": "file-events-claim-evidence.json.gz",
+    "entries": 64,
+    "bytes": 330260,
+    "sha256": "03285434c8090ec4bf2700dff086e4d123dca2c24a821e294016c2c24e15de71",
+    "decodedAgainstEveryOriginal": true
+  },
+  "unclosed": [
+    "Actual external inbox and runtime authorization owner integration",
+    "Persistent claim journal, loss handling, cleanup and full restart import recovery",
+    "Original printing mixed load and compiled full product acceptance",
+    "Own PR CI and normal integration",
+    "Historical UFP, grid, AHT and Delta first causes",
+    "Full same-bundle client acceptance, G3, target board",
+    "All Python retirement and full Moonraker"
+  ]
+}

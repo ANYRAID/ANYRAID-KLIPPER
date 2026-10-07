@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,open,rm,readdir,type FileHandle} from 'node:fs/promises';
+import {mkdtemp,writeFile,open,rm,readdir,chmod,type FileHandle} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
@@ -62,4 +62,31 @@ test('descriptor import close drains held image validation and keeps the origina
  const f=await fixture(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>(),prepare=ThumbnailProcessor.prototype.prepareUfpPng;let closed=false;
  t.mock.method(ThumbnailProcessor.prototype,'prepareUfpPng',async function(this:Awaited<ReturnType<typeof ThumbnailProcessor.open>>,bytes:Buffer,input:AbortSignal){entered.resolve();await release.promise;return prepare.call(this,bytes,input);});
  try{const source=await f.source(packed(await image())),importing=f.uploads.importUfp(source.fd,'held/part.ufp',context()),rejected=assert.rejects(importing,error=>error instanceof ApiError&&error.status===503);await entered.promise;const closing=f.uploads.close().then(()=>{closed=true;});await new Promise<void>(resolve=>setImmediate(resolve));assert.equal(closed,false);release.resolve();await rejected;await closing;assert.equal(f.files.status.publishedFiles,0);assert.equal(await f.files.hasDirectory('held',signal()),false);assert((await source.fd.stat()).size>0);await f.clean();}finally{release.resolve();t.mock.restoreAll();await f.close();}
+});
+test('stable claim replay verifies the durable pair without replacing its identity or starting a print',async()=>{
+ const f=await fixture();try{
+  const source=await f.source(packed(await image())),first=await f.uploads.importUfp(source.fd,'recovered/part.ufp',context(),'disk-claim-1') as any;
+  const replay=await f.uploads.importUfp(source.fd,'recovered/part.ufp',context(),'disk-claim-1') as any;
+  assert.deepEqual(replay,first);assert.equal(f.files.status.publishedFiles,1);assert.equal(f.uploads.status.published,1);assert.equal(f.starts,0);
+  const different=await f.source(packed());await assert.rejects(f.uploads.importUfp(different.fd,'recovered/part.ufp',context(),'disk-claim-1'),error=>error instanceof ApiError&&error.status===409);
+  await assert.rejects(f.uploads.importUfp(source.fd,'other.ufp',context(),'disk-claim-1'),error=>error instanceof ApiError&&error.status===409);
+  await assert.rejects(f.uploads.importUfp(source.fd,'recovered/part.ufp',context(()=>{throw new ApiError(403,'Denied replay');}),'disk-claim-1'),error=>error instanceof ApiError&&error.status===403);
+  await assert.rejects(f.uploads.importUfp(source.fd,'part.ufp',context(),'../foreign'),error=>error instanceof ApiError&&error.status===400);assert.equal(f.files.status.publishedFiles,1);await f.clean();
+ }finally{await f.close();}
+});
+for(const blob of ['model','preview'])test(`claim replay rejects a same-sized corrupted ${blob} instead of trusting its receipt`,async()=>{
+ const f=await fixture();try{
+  const source=await f.source(packed(await image())),first=await f.uploads.importUfp(source.fd,'part.ufp',context(),'disk-corrupt-'+blob) as any,identity=blob==='model'?first.file:first.file.preview,path=join(f.root,identity.sha256+(blob==='model'?'.gcode':'.png'));
+  await chmod(path,0o600);await writeFile(path,Buffer.alloc(identity.size,42));
+  await assert.rejects(f.uploads.importUfp(source.fd,'part.ufp',context(),'disk-corrupt-'+blob),/digest mismatch/);assert.equal(f.files.status.publishedFiles,1);assert.equal(f.starts,0);await f.clean();
+ }finally{await f.close();}
+});
+test('stable claim recovers after both the process upload owner and file store reopen',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'ufp-claim-reopen-')),root=join(dir,'files'),metadataRoot=join(dir,'metadata'),path=join(dir,'original.ufp');await writeFile(path,packed(await image()));const source=await open(path,'r');
+ let files:PublishedPrintFiles|undefined,uploads:NativePrintUploads|undefined;const results:any[]=[];
+ try{for(let generation=0;generation<2;generation++){
+  files=await PublishedPrintFiles.open(root);uploads=await NativePrintUploads.open(files,new MaintenanceGate(),{stagingRoot:dir,metadataRoot});
+  results.push(await uploads.importUfp(source,'restored/part.ufp',context(),'disk-restart-identity'));assert.equal(files.status.publishedFiles,1);assert.equal(uploads.status.published,generation===0?1:0);
+  assert.deepEqual((await files.readBytes('disk-restart-identity',signal())).bytes,model);await uploads.drain();uploads=undefined;await files.close();files=undefined;
+ }assert.deepEqual(results[1].file,results[0].file);assert.equal(results[1].item.modified,results[0].item.modified);assert.equal(results[1].print_started,false);assert.equal((await source.stat()).size,(await open(path,'r').then(async fd=>{try{return (await fd.stat()).size;}finally{await fd.close();}})));}finally{await uploads?.drain();await files?.close();await source.close();await rm(dir,{recursive:true,force:true});}
 });
