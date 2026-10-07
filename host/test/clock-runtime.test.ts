@@ -68,3 +68,33 @@ test('frequent demand refresh remains rate limited and does not change the sampl
  const f=fixture(),r=new ClockRuntime(1e6,f.transport,f.clock),start=r.start();await f.clock.advance(.41);await start;await settle();const before=f.queries,old=r.sync.lastClock;
  for(let i=0;i<100;i++){r.requestSample();await f.clock.advance(.001);}assert.ok(f.queries-before<=2);assert.ok(r.sync.lastClock>old);r.assertActive();await r.stop();assert.equal(f.clock.pending,0);
 });
+test('known-time rejected responses cannot renew the motion clock lease',async()=>{
+ const f=fixture(),runtime=new ClockRuntime(1e6,f.transport,f.clock),start=runtime.start();await f.clock.advance(.41);await start;await settle();
+ const usable=f.estimates,original=f.transport.queryClock,initial=runtime.sync.lastClock;
+ f.transport.queryClock=async signal=>{const sample=await original(signal);return {...sample,clock32:(sample.clock32+250000)>>>0};};
+ await f.clock.advance(4);runtime.assertActive();assert.equal(f.estimates,usable);assert(runtime.sync.lastClock>initial);
+ await f.clock.advance(1.1);assert.equal(runtime.status.state,'failed');assert.equal(f.stops,1);assert.equal(runtime.sync.active,false);assert.equal(f.clock.pending,0);
+ assert.throws(()=>runtime.assertActive());await runtime.stop();assert.equal(f.stops,1);
+});
+test('unknown departure replies advance raw clock but cannot renew the motion clock lease',async()=>{
+ const f=fixture(),runtime=new ClockRuntime(1e6,f.transport,f.clock),start=runtime.start();await f.clock.advance(.41);await start;await settle();
+ const usable=f.estimates,original=f.transport.queryClock,initial=runtime.sync.lastClock;
+ f.transport.queryClock=async signal=>({...await original(signal),sentTime:0});
+ await f.clock.advance(4);runtime.assertActive();assert.equal(f.estimates,usable);assert(runtime.sync.lastClock>initial);
+ await f.clock.advance(1.1);assert.equal(runtime.status.state,'failed');assert.equal(f.stops,1);assert.equal(runtime.sync.active,false);assert.equal(f.clock.pending,0);
+});
+test('an isolated rejected response preserves the lease and a usable response renews it before expiry',async()=>{
+ const f=fixture(),runtime=new ClockRuntime(1e6,f.transport,f.clock),start=runtime.start();await f.clock.advance(.41);await start;await settle();
+ const usable=f.estimates,original=f.transport.queryClock;let rejected=0;
+ f.transport.queryClock=async signal=>{const sample=await original(signal);return ++rejected===1?{...sample,sentTime:0}:sample;};
+ await f.clock.advance(1);runtime.assertActive();assert.equal(f.estimates,usable);
+ await f.clock.advance(5);runtime.assertActive();assert(f.estimates>usable);assert.equal(f.stops,0);
+ await runtime.stop();assert.equal(f.stops,1);assert.equal(f.clock.pending,0);
+});
+test('unusable trailing warmup replies cannot move the usable estimate deadline',async()=>{
+ const f=fixture(),original=f.transport.queryClock;let requests=0;
+ f.transport.queryClock=async signal=>{const sample=await original(signal);return ++requests===1?sample:{...sample,sentTime:0};};
+ const runtime=new ClockRuntime(1e6,f.transport,f.clock),start=runtime.start();await f.clock.advance(.41);await start;await settle();assert.equal(f.estimates,1);
+ await f.clock.advance(4.4);runtime.assertActive();assert.equal(f.stops,0);
+ await f.clock.advance(.2);assert.throws(()=>runtime.assertActive(),/expired/);await settle();assert.equal(f.stops,1);assert.equal(runtime.sync.active,false);assert.equal(f.clock.pending,0);
+});
