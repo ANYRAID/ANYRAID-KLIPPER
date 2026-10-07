@@ -54,16 +54,19 @@ async function fixture(queueOptions = '') {
     nativePrinterIdentity: { configFile: join(root, 'printer.cfg'), softwareVersion: 'queue-test' },
   });
   const { port } = await server.start(), base = `http://127.0.0.1:${port}`; key = server.authorization!.localApiKey();
-  const call = async (path: string, method = 'GET', body?: object, token?: string) => {
+  const request = async (path: string, method = 'GET', body?: object, token?: string) => {
     const response = await fetch(base + path, { method, headers: { 'content-type': 'application/json', ...token ? { authorization: 'Bearer ' + token } : { 'x-api-key': key } }, ...body ? { body: JSON.stringify(body) } : {} });
-    const value = await response.json() as any; assert.equal(response.status, 200, JSON.stringify(value)); return value.result;
+    const value = await response.json() as any; return { response, value };
+  };
+  const call = async (path: string, method = 'GET', body?: object, token?: string) => {
+    const { response, value } = await request(path, method, body, token); assert.equal(response.status, 200, JSON.stringify(value)); return value.result;
   };
   const status = () => call('/server/job_queue/status');
   const until = async (predicate: () => boolean | Promise<boolean>) => {
     const deadline = performance.now() + 5000;
     while (!await predicate()) { assert(performance.now() < deadline, 'Automatic queue did not reach the required state'); await delay(5); }
   };
-  return { root, base, server, database, journal, controller, starts, call, status, until, files, processFiles,
+  return { root, base, server, database, journal, controller, starts, request, call, status, until, files, processFiles,
     async rejectedStart(params: object, expectedStatus: number, token?: string) {
       const response = await fetch(base + '/server/job_queue/start', { method: 'POST', headers: { 'content-type': 'application/json', ...token ? { authorization: 'Bearer ' + token } : { 'x-api-key': key } }, body: JSON.stringify(params) });
       const value = await response.json(); assert.equal(response.status, expectedStatus, JSON.stringify(value));
@@ -193,17 +196,77 @@ test('a file replaced after clearance cannot be printed through its old immutabl
   } finally { await f.close(); }
 });
 
-test('queue clearance uses a monotonic deadline and needs a fresh challenge after expiry', async () => {
-  const f = await fixture(clearancePolicy + 'job_transition_confirmation_timeout=0.1\n');
+test('queue clearance uses a monotonic deadline and needs a fresh challenge after expiry', async t => {
+  const realNow = performance.now.bind(performance); let offset = 0;
+  t.mock.method(performance, 'now', () => realNow() + offset);
+  // Use the production default; expiry is a monotonic-clock boundary, not a
+  // requirement that durable print preparation finish inside 100 wall ms.
+  const f = await fixture(clearancePolicy);
   try {
     await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode'] });
-    const before = await f.call('/server/job_queue/start', 'POST'); await delay(150);
-    assert.equal((await f.status()).transition, null); await f.rejectedStart({ transition_token: before.transition.state_token }, 409);
+    const before = await f.call('/server/job_queue/start', 'POST'); offset += 300001;
+    // The timer has not fired. The original monotonic guard must reject the
+    // stale token itself; disarming then removes its status and authority.
+    await f.rejectedStart({ transition_token: before.transition.state_token }, 410);
+    assert.equal((await f.status()).transition, null); assert.equal(f.starts.length, 0);
+    assert.equal((await f.journal.historyList({ limit: 10 })).length, 0);
     const fresh = await f.call('/server/job_queue/start', 'POST'); assert.equal(f.starts.length, 0);
     assert.notEqual(fresh.transition.state_token, before.transition.state_token);
     await f.call('/server/job_queue/start', 'POST', { transition_token: fresh.transition.state_token });
     await f.until(() => f.controller.state === 'printing'); assert.equal(f.starts.length, 1);
   } finally { await f.close(); }
+});
+
+test('queue clearance timer invalidates an unconfirmed token without a print side effect', async t => {
+  const f = await fixture(clearancePolicy + 'job_transition_confirmation_timeout=0.1\n');
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode'] });
+    const pending = await f.call('/server/job_queue/start', 'POST');
+    t.mock.timers.tick(100);
+    assert.equal((await f.status()).transition, null);
+    await f.rejectedStart({ transition_token: pending.transition.state_token }, 409);
+    assert.equal(f.starts.length, 0); assert.equal(f.controller.currentRequest, undefined);
+    assert.equal((await f.journal.historyList({ limit: 10 })).length, 0);
+    const fresh = await f.call('/server/job_queue/start', 'POST');
+    assert.notEqual(fresh.transition.state_token, pending.transition.state_token); assert.equal(f.starts.length, 0);
+  } finally { t.mock.timers.reset(); await f.close(); }
+});
+
+test('confirmation response expiry before journal acknowledgement preserves one request without automatic replay', { timeout: 10000 }, async t => {
+  const entered = Promise.withResolvers<void>(), release = Promise.withResolvers<void>();
+  const f = await fixture(clearancePolicy), originalReserve = f.journal.reserve.bind(f.journal);
+  t.mock.method(f.journal, 'reserve', async (input: Parameters<typeof f.journal.reserve>[0]) => {
+    const reservation = await originalReserve(input); entered.resolve(); await release.promise; return reservation;
+  });
+  const deadline = new AbortController(), durations: number[] = [], originalTimeout = AbortSignal.timeout.bind(AbortSignal);
+  // Trigger the timeout after durable reservation but before acknowledgement.
+  // The separate timer test checks its configured duration; this test checks
+  // cancellation ownership.
+  t.mock.method(AbortSignal, 'timeout', (duration: number) => {
+    // Preserve the independent 30 s machine-policy deadline. Only the default
+    // 300 s queue-confirmation response deadline is under manual control.
+    if (duration <= 30000) return originalTimeout(duration);
+    durations.push(duration); return deadline.signal;
+  });
+  let pending: ReturnType<typeof f.request> | undefined;
+  try {
+    await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode'] });
+    const challenge = await f.call('/server/job_queue/start', 'POST');
+    pending = f.request('/server/job_queue/start', 'POST', { transition_token: challenge.transition.state_token });
+    await Promise.race([entered.promise, pending.then(reply => { throw new Error('Confirmation replied before the reservation acknowledgement: ' + reply.response.status); })]);
+    const requestId = f.controller.currentRequest!.requestId; assert.equal(f.starts.length, 0);
+    assert.equal(durations.length, 1); assert(durations[0] > 0 && durations[0] <= 300000);
+    deadline.abort(new DOMException('Controlled confirmation timeout', 'TimeoutError'));
+    const reply = await pending; assert.equal(reply.response.status, 499); assert.deepEqual(reply.value, { error: { code: 499, message: 'Print response cancelled; query request state' } });
+    assert.equal((await f.journal.historyList({ limit: 10 })).length, 1); assert.equal(f.controller.currentRequest!.requestId, requestId);
+    release.resolve(); await f.until(() => f.controller.state === 'printing'); assert.equal(f.starts.length, 1);
+    assert.equal(f.controller.currentRequest!.requestId, requestId); assert.equal((await f.status()).queued_jobs.length, 0);
+    await f.rejectedStart({ transition_token: challenge.transition.state_token }, 409);
+    assert.equal(f.starts.length, 1); await f.controller.complete(requestId);
+    await f.until(async () => (await f.status()).queue_state === 'paused');
+    assert.equal(f.starts.length, 1); assert.equal((await f.journal.historyList({ limit: 10 })).length, 1);
+  } finally { release.resolve(); await pending; await f.close(); }
 });
 
 test('rotated key cannot take over an old clearance grant and a new explicit challenge is required', async () => {
