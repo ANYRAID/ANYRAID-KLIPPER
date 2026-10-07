@@ -9,8 +9,8 @@ import {verifyProductBundle} from '../src/runtime/product-service-unit.ts';
 
 // Both variants execute installed production JS. Driver setup, hashing and
 // FormData construction are outside timing. Run after print-load acceptance.
-const [baselineInput,candidateInput,mode]=process.argv.slice(2);
-if(!baselineInput||!candidateInput||mode!==undefined&&mode!=='--process-owned'||process.argv.length>5)throw new Error('Expected baseline and candidate compiled bundles [--process-owned]');
+const [baselineInput,candidateInput,mode,workload]=process.argv.slice(2);
+if(!baselineInput||!candidateInput||mode!==undefined&&mode!=='--process-owned'||workload!==undefined&&!['--existing-parent','--upload-parents'].includes(workload)||process.argv.length>6)throw new Error('Expected baseline and candidate compiled bundles [--process-owned [--existing-parent|--upload-parents]]');
 const bundles=await Promise.all([baselineInput,candidateInput].map(p=>verifyProductBundle(resolve(p))));
 const benchRoot=resolve(process.env.FILE_MUTATION_BENCH_ROOT??'host/build/file-mutation-bench');
 await mkdir(benchRoot,{recursive:true});const root=await mkdtemp(join(benchRoot,'paired-'));
@@ -25,6 +25,7 @@ try{
   ]);
   const dir=join(root,String(index));await mkdir(dir);
   const gate=new MaintenanceGate(),files=await PublishedPrintFiles.open(join(dir,'files'));
+  if(workload==='--existing-parent')await files.mutateDirectory('parts',false,new AbortController().signal);
   const processFiles=mode?new NativePrintUploads(files,new MaintenanceGate(),{stagingRoot:root}):undefined,generation=new AbortController();
   const uploads=new NativePrintUploads(files,gate,{stagingRoot:root},processFiles),rpc=new JsonRpcDispatcher(),endpoints=new EndpointRegistry(rpc);
   const controller=new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:120},{},{maintenanceGate:gate});
@@ -34,13 +35,14 @@ try{
   const address=await network.listen();owner.url='http://127.0.0.1:'+address.port;
  }
  async function sample(index:number,record:boolean){
-  const owner=owners[index],id='paired-'+owner.sequence++,form=new FormData();form.append('file',new Blob([data]),id+'.gcode');form.append('file_id',id);form.append('path','');
-  const start=performance.now(),uploaded=await fetch(owner.url+'/server/files/upload',{method:'POST',body:form});assert.equal(uploaded.status,200,await uploaded.clone().text());const upload=(await uploaded.json() as any).result;const uploadMs=performance.now()-start;
+  const owner=owners[index],id='paired-'+owner.sequence++,path=workload==='--upload-parents'?id+'/nested/leaf':workload==='--existing-parent'?'parts':'',form=new FormData();form.append('file',new Blob([data]),id+'.gcode');form.append('file_id',id);form.append('path',path);
+  const start=performance.now();if(workload==='--upload-parents'&&index===0){let parent='';for(const part of path.split('/')){parent+=(parent?'/':'')+part;const created=await fetch(owner.url+'/server/files/directory',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:'gcodes/'+parent})});assert.equal(created.status,200,await created.clone().text());await created.arrayBuffer();}}
+  const uploaded=await fetch(owner.url+'/server/files/upload',{method:'POST',body:form});assert.equal(uploaded.status,200,await uploaded.clone().text());const upload=(await uploaded.json() as any).result;const uploadMs=performance.now()-start;
   assert.equal(upload.file.sha256,sha256);assert.equal(upload.file.size,data.length);
   for(let query=0;query<8;query++){
-   const began=performance.now(),response=await fetch(owner.url+'/server/files/directory?extended=true');assert.equal(response.status,200);const directory=(await response.json() as any).result;const elapsed=performance.now()-began;assert.equal(directory.files.length,1);assert.equal(directory.files[0].file_id,id);if(record)samples[index].directory.push(elapsed);
+   const began=performance.now(),response=await fetch(owner.url+'/server/files/directory?extended=true&path='+encodeURIComponent('gcodes'+(path?'/'+path:'')));assert.equal(response.status,200);const directory=(await response.json() as any).result;const elapsed=performance.now()-began;assert.equal(directory.files.length,1);assert.equal(directory.files[0].file_id,id);if(record)samples[index].directory.push(elapsed);
   }
-  const before=performance.now(),removed=await fetch(owner.url+'/server/files/gcodes/'+id+'.gcode',{method:'DELETE'});assert.equal(removed.status,200,await removed.clone().text());assert.equal((await removed.json() as any).result.action,'delete_file');const removeMs=performance.now()-before;
+  const before=performance.now(),removed=await fetch(owner.url+'/server/files/gcodes/'+(path?path+'/':'')+id+'.gcode',{method:'DELETE'});assert.equal(removed.status,200,await removed.clone().text());assert.equal((await removed.json() as any).result.action,'delete_file');const removeMs=performance.now()-before;
   assert.equal(owner.uploads.status.pending,0);if(owner.processFiles){assert.equal(owner.processFiles.status.pending,0);assert.equal(owner.processFiles.status.mutations,0);}assert.equal(owner.controller.state,'idle');if(record){samples[index].upload.push(uploadMs);samples[index].remove.push(removeMs);}
  }
  for(let warm=0;warm<3;warm++)for(const index of [0,1])await sample(index,false);
@@ -51,7 +53,7 @@ try{
  const identities=await Promise.all(bundles.map(async path=>({path,manifestSha256:createHash('sha256').update(await readFile(join(path,'build-info.json'))).digest('hex')})));
  for(const bundle of bundles)await verifyProductBundle(bundle);
  const loop={p99Ms:delay.percentile(99)/1e6,maxMs:delay.max/1e6};assert(loop.p99Ms<50);assert(loop.maxMs<100);
- console.log(JSON.stringify({node:process.version,ownership:mode?'process-store-device-upload':'device-store',filesystemMagic:statfsSync(root).type,inputBytes:data.length,inputSha256:sha256,warmups:3,order,identities,results,medianCandidateBaselineRatios:Object.fromEntries((['upload','remove','directory'] as const).map(key=>[key,results[1][key].medianMs/results[0][key].medianMs])),loop,scope:'Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof.'},null,2));
+ console.log(JSON.stringify({node:process.version,ownership:mode?'process-store-device-upload':'device-store',workload:workload??'root',missingParents:workload==='--upload-parents'?'Baseline: three explicit directory HTTP calls plus upload; candidate: one automatic parent upload. Whole successful user journey is timed.':undefined,filesystemMagic:statfsSync(root).type,inputBytes:data.length,inputSha256:sha256,warmups:3,order,identities,results,rawSamplesMs:samples,medianCandidateBaselineRatios:Object.fromEntries((['upload','remove','directory'] as const).map(key=>[key,results[1][key].medianMs/results[0][key].medianMs])),loop,scope:'Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof.'},null,2));
 }finally{
  delay.disable();for(const owner of owners){owner.generation.abort();await owner.network.close();await owner.controller.retire();await owner.uploads.close();await owner.processFiles?.close();await owner.files.close();}await rm(root,{recursive:true,force:true});
 }
