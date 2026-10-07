@@ -20,7 +20,7 @@ try{
   try{for(let run=0;run<9;run++)for(const mode of (run%2?['http','direct']:['direct','http']) as ('direct'|'http')[]){
    const id=`${mode}-${run}`,form=new FormData();form.append('file',new Blob([data]),'bench.gcode');form.append('file_id',id);
    const delay=monitorEventLoopDelay({resolution:1});delay.enable();await new Promise(r=>setTimeout(r,5));delay.reset();const start=performance.now();
-   const record=mode==='direct'?await files.publish(id,'bench.gcode',source,signal):await (async()=>{const response=await fetch(url,{method:'POST',body:form});assert.equal(response.status,200);return (await response.json()).result.file;})();
+   const record=mode==='direct'?await files.publish(id,'bench.gcode',source,signal):await (async()=>{const response=await fetch(url,{method:'POST',body:form});assert.equal(response.status,201);return (await response.json()).result.file;})();
    const elapsed=performance.now()-start;delay.disable();if(run>=2){times[mode].push(elapsed);delays[mode].push(delay.max/1e6);}
    assert.equal(record.sha256,sha256);assert.equal(record.size,size);assert.deepEqual(await readFile(join(dir,'files',sha256+'.gcode')),data);await files.remove(id,signal);
   }}finally{await source.close();}

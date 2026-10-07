@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "base": "c29125cce77235c36ca3913ff8afd333c34503c7",
+  "previousCandidate": "d66c406455392caa6a1f1d66abf8ce63925703e7",
+  "scope": "正常组合已集成的 #45 队列测试修复；相对前候选生产、依赖、C 和 CI 不变",
+  "ownPreviousCi": {
+    "host": 37658993145,
+    "firmware": 37658993218,
+    "conclusion": "success"
+  },
+  "baseIntegratedCi": {
+    "host": 37667271108,
+    "firmware": 37667271105,
+    "conclusion": "success"
+  },
+  "validation": {
+    "source": 121,
+    "compiledOverlap": 29,
+    "typecheck": true,
+    "whitespace": true,
+    "product": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-created-parents-product-bundle",
+      "manifestSha256": "d3f458d7b17091b153ad562ebb8c304359889c5454ebad1b467b12bfbfc34197",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "sourcePaths": [
+      "host/test/native-automatic-job-queue.test.ts",
+      "host/test/native-print-uploads.test.ts",
+      "host/test/native-job-queue.test.ts",
+      "host/test/product-print-api.test.ts",
+      "host/src/moonraker/server.ts",
+      "host/src/moonraker/native-print-uploads.ts",
+      "host/src/moonraker/native-job-queue.ts",
+      "host/src/moonraker/product-print-api.ts",
+      "host/src/storage/published-files.ts"
+    ]
+  },
+  "performanceReuse": {
+    "contract": "upload-created-acceptance.json",
+    "section": "composition",
+    "condition": "生产及依赖指纹不变，复用原完整 1000 运动双 MCU 两代混合打印与三项 32 样本 ABBA，不声称重跑、提升或本轮 C 重建"
+  },
+  "evidence": {
+    "path": "upload-created-clearance-evidence.json.gz",
+    "size": 178626,
+    "sha256": "e4f54ab1ba054f2d39b7333e1bdc34fd90f064b208c396e49897eb69531652b4",
+    "entries": 14,
+    "credentialShapes": 0
+  },
+  "pending": [
+    "新组合头自身完整 CI",
+    "正常合并与合并后规定检查",
+    "安全依赖 #44 最新组合",
+    "完整同包客户端、目标板与 G3",
+    "完整 UFP、全部 Python 退役及主线发布"
+  ]
+}

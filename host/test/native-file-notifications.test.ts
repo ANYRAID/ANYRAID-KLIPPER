@@ -26,10 +26,10 @@ test('durable file events have per-file authorization and ordered delivery; held
   const {port}=await service.start(),base=`http://127.0.0.1:${port}`;
   for(const [i,role] of ['allowed','denied','slow'].entries()){const socket=new WebSocket(base.replace('http:','ws:')+'/websocket',{headers:{'x-role':role}});socket.on('message',data=>{const event=JSON.parse(data.toString());if(event.method==='notify_filelist_changed')events[i].push(event);});sockets.push(socket);await once(socket,'open');}
   const upload=async(id:string)=>{const form=new FormData();form.append('file',new Blob(['G1 X1\n']),'模型.gcode');form.append('file_id',id);return fetch(base+'/server/files/upload',{method:'POST',body:form});};
-  assert.equal((await upload('visible')).status,200);await until(()=>events[0].length===1);
+  assert.equal((await upload('visible')).status,201);await until(()=>events[0].length===1);
   const created=events[0][0].params[0],listing=(await (await fetch(base+'/server/files/list')).json()).result[0];assert.equal(created.action,'create_file');assert.equal(created.item.modified,listing.modified);assert.equal(created.item.size,6);assert.equal(created.item.permissions,'rw');assert.equal(created.item.name,'模型.gcode');assert.equal(created.item.sha256,listing.sha256);
   assert.equal((await upload('visible')).status,409);assert.equal(service.fileNotifications.received,1,'Failed upload cannot announce creation');
-  assert.equal((await upload('secret')).status,200);assert.equal((await fetch(base+'/server/files/gcodes/visible.gcode',{method:'DELETE'})).status,200);
+  assert.equal((await upload('secret')).status,201);assert.equal((await fetch(base+'/server/files/gcodes/visible.gcode',{method:'DELETE'})).status,200);
   await until(()=>events[0].length===2&&service!.fileNotifications.overflow>0);assert.deepEqual(events[0].map(e=>e.params[0].action),['create_file','delete_file']);const removed=events[0][1].params[0];assert.equal(removed.item.size,0);assert.equal(removed.item.modified,0);assert.equal(removed.item.permissions,'');assert.equal(removed.item.sha256,created.item.sha256);assert.equal(events[1].length,0);assert.equal(events[2].length,0);assert(service.fileNotifications.denied>=3);
   assert.equal((await fetch(base+'/server/files/gcodes/visible.gcode',{method:'DELETE'})).status,404);assert.equal(service.fileNotifications.received,3);
   await controller.start({version:1,requestId:'job',fileId:'secret',nozzle:0,bed:0});await controller.fault(new Error('test stop'));assert.equal(stops,1);assert.equal(controller.state,'failed');
