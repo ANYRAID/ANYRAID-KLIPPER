@@ -24,6 +24,11 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 实现尚未完成硬件验收。
 原生文件通知的候选修复已补齐提交与预览失效顺序，并用实际 Fluidd
 重命名、复制及非空目录删除复验，见[预览通知验收](host/contracts/native-file-preview-notification-acceptance.json)。
+官方 Mainsail 的受保护接入候选提供原生账号登录与独立浏览器入口，
+实际页面上传、下载、打印和受控恢复证据见
+[接入验收](host/contracts/protected-client-gateway-acceptance.json)，
+装配命令与权限边界见[启动说明](docs/Node_Host_Startup.md#受保护的官方-mainsail-接入候选)。
+完整同包客户端、目标板和 G3 门槛仍未关闭。
 面向用户的未发布变化见 [版本变化](CHANGELOG.md)。
 
 交付按同包软件闭环、Cycnumbris 500 受控试验、完整退役与发布三个
