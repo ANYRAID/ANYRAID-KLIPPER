@@ -76,3 +76,28 @@ test('closing UFP owner drains held image preparation without publishing or repl
  t.mock.method(ThumbnailProcessor.prototype,'prepareUfpPng',async function(this:Awaited<ReturnType<typeof ThumbnailProcessor.open>>,bytes:Buffer,input:AbortSignal){entered.resolve();await release.promise;return prepare.call(this,bytes,input);});
  try{const posting=f.post(packed(model,await png()),'part.ufp',{path:'held/new'});await entered.promise;const closing=f.uploads.close().then(()=>{settled=true;});await new Promise<void>(resolve=>setImmediate(resolve));assert.equal(settled,false);assert.equal(f.files.status.publishedFiles,0);release.resolve();const response=await posting;assert.equal(response.status,503);await response.arrayBuffer();await closing;assert.equal(await f.files.hasDirectory('held',signal()),false);assert.equal(f.files.status.publishedFiles,0);assert.equal(f.starts,0);assert.equal((await readdir(f.dir)).filter(name=>name.startsWith('anyraid-upload-')).length,0);}finally{release.resolve();t.mock.restoreAll();await f.close();}
 });
+for(const persistent of [false,true])test(`UFP forced rescan retires preview URLs while preserving the published model and PNG (persistent=${persistent})`,async()=>{
+ const image=await png(),f=await fixture({persistent});try{
+  const response=await f.post(packed(model,image),'part.ufp');assert.equal(response.status,201);const created=(await response.json()).result;
+  const before=await preview(f,'part.gcode'),rescan=await fetch(f.url+'/server/files/metascan?filename=part.gcode',{method:'POST'});assert.equal(rescan.status,200);
+  const fields=(await rescan.json()).result,after=await preview(f,'part.gcode');assert.deepEqual(after.fields,fields);assert.notEqual(after.path,before.path);assert.deepEqual(after.bytes,image);
+  assert.deepEqual({...after.fields,thumbnails:[]},{...before.fields,thumbnails:[]});assert.equal((await fetch(f.url+before.path)).status,404);
+  assert.deepEqual((await f.files.describe(created.file.id,signal())).file,created.file);assert.deepEqual((await f.files.readBytes(created.file.id,signal())).bytes,model);assert.deepEqual((await f.files.readPreview(created.file.id,signal()))!.bytes,image);
+  await f.restart();const recovered=await preview(f,'part.gcode');assert.deepEqual(recovered.bytes,image);assert.equal((await fetch(f.url+before.path)).status,404);
+  if(persistent){assert.deepEqual(recovered.fields,after.fields);assert.equal(recovered.path,after.path);assert('scans' in f.uploads.status.metadata);assert.equal(f.uploads.status.metadata.scans,0);}
+  const removed=await fetch(f.url+'/server/files/gcodes/part.gcode',{method:'DELETE'});assert.equal(removed.status,200);await removed.arrayBuffer();assert.equal((await fetch(f.url+recovered.path)).status,404);
+  await f.restart();assert.equal((await fetch(f.url+'/server/files/metadata?filename=part.gcode')).status,404);assert.equal(f.files.status.publishedFiles,0);assert.equal(f.starts,0);
+ }finally{await f.close();}
+});
+for(const persistent of [false,true])test(`cancelled UFP rescan drains image work and the next reader recovers the exact published pair (persistent=${persistent})`,async t=>{
+ const image=await png(),f=await fixture({persistent}),cancelled=new AbortController(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>(),prepare=ThumbnailProcessor.prototype.prepareUfpPng;let held=false;
+ try{
+  const response=await f.post(packed(model,image),'part.ufp');assert.equal(response.status,201);const created=(await response.json()).result,before=await preview(f,'part.gcode');
+  t.mock.method(ThumbnailProcessor.prototype,'prepareUfpPng',async function(this:Awaited<ReturnType<typeof ThumbnailProcessor.open>>,bytes:Buffer,input:AbortSignal){if(!held){held=true;entered.resolve();await release.promise;}return prepare.call(this,bytes,input);});
+  const scanning=f.uploads.rescan({filename:'part.gcode'},cancelled.signal),rejected=assert.rejects(scanning,error=>{const cause=persistent&&error instanceof Error?error.cause:error;return cause instanceof ApiError&&cause.status===499;});await entered.promise;
+  const queued=f.uploads.metadata({filename:'part.gcode'},signal());cancelled.abort(new ApiError(499,'Cancelled UFP rescan'));release.resolve();await rejected;await queued;
+  const after=await preview(f,'part.gcode');assert.notEqual(after.path,before.path);assert.deepEqual(after.bytes,image);assert.equal((await fetch(f.url+before.path)).status,404);
+  assert.deepEqual((await f.files.readBytes(created.file.id,signal())).bytes,model);assert.deepEqual((await f.files.readPreview(created.file.id,signal()))!.bytes,image);assert.equal(f.starts,0);
+  await f.restart();const recovered=await preview(f,'part.gcode');assert.deepEqual(recovered.bytes,image);if(persistent)assert.deepEqual(recovered.fields,after.fields);
+ }finally{release.resolve();t.mock.restoreAll();await f.close();}
+});
