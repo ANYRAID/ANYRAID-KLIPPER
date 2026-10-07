@@ -239,5 +239,309 @@
     "Automatic upload parent creation and UFP",
     "Cycnumbris 500 board/config and target performance",
     "Complete Python retirement, default switch and master release"
-  ]
+  ],
+  "composition": {
+    "date": "2026-10-08",
+    "baseCommit": "e729df8f31e102a0bf7d3b6e377a761e13a188c4",
+    "priorCandidate": "de768a4a108ec3e90f9a8ad680dc5d741f10c9d2",
+    "priorOwnCi": {
+      "host": {
+        "run": 37654560813,
+        "job": 112906257450,
+        "conclusion": "success"
+      },
+      "firmware": {
+        "run": 37654560773,
+        "job": 112906255872,
+        "conclusion": "success"
+      }
+    },
+    "scope": "正常组合已集成 #43；冲突保留两套场景，调整新父目录成功上传的 201 预期并额外验证 Location 与拒绝时无 Location。没有新增运动算法或依赖变化。",
+    "product": {
+      "A": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-usable-lease-composed-product-bundle",
+        "manifestSha256": "106e3b7b208f3b8b82cfaa1ca40185a44f64f4dd6e046512a59931a9cdd38c08",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      },
+      "B": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-created-parents-product-bundle",
+        "manifestSha256": "d3f458d7b17091b153ad562ebb8c304359889c5454ebad1b467b12bfbfc34197",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      },
+      "changed": [
+        "host/src/moonraker/native-print-uploads.js",
+        "host/src/moonraker/server.js",
+        "host/src/storage/published-files.js"
+      ],
+      "removed": [],
+      "native": "复用未变化的已验收 C 产物，没有重新构建 C。"
+    },
+    "source": {
+      "pass": 83,
+      "fail": 0,
+      "typecheck": true,
+      "whitespace": true
+    },
+    "mixed": {
+      "pass": 1,
+      "fail": 0,
+      "originalMoves": 1000,
+      "watchdogMs": 90000,
+      "testTimeoutMs": 180000,
+      "noBenchmarkSwitches": true,
+      "statusRequests": 42712,
+      "statusP99Ms": 4.475674000001163,
+      "minimumStepLeadMs": 81.657,
+      "wireSteps": 7468,
+      "uploads": 16,
+      "uploadP95Ms": 237.3392070000009,
+      "directoryRequests": 8923,
+      "directoryP99Ms": 40.64532199999667,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.006015,
+            "maxMs": 18.808831
+          },
+          "cpu": {
+            "user": 13428299,
+            "system": 2464054
+          },
+          "rss": 352276480
+        },
+        {
+          "loop": {
+            "p99Ms": 2.075647,
+            "maxMs": 16.523263
+          },
+          "cpu": {
+            "user": 8424658,
+            "system": 1816386
+          },
+          "rss": 329183232
+        }
+      ],
+      "queue": {
+        "groups": 16,
+        "printingGenerations": [
+          1,
+          2
+        ],
+        "queries": 2455,
+        "queryP99Ms": 4.6781959999998435,
+        "durableMutations": 64,
+        "actualStartRequestPrefix": "queue-",
+        "journalCompleted": true,
+        "authorizedNotifications": true,
+        "noAutomaticReplay": true
+      }
+    },
+    "performance": {
+      "cases": [
+        {
+          "path": "root",
+          "workload": "root",
+          "warmups": 3,
+          "order": [
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1
+          ],
+          "loop": {
+            "p99Ms": 1.817599,
+            "maxMs": 3.223551
+          },
+          "results": [
+            {
+              "upload": {
+                "samples": 32,
+                "medianMs": 28.69262100000003,
+                "p95Ms": 51.8785069999999,
+                "p99Ms": 52.702225
+              },
+              "remove": {
+                "samples": 32,
+                "medianMs": 13.917761000000155,
+                "p95Ms": 18.03017299999999,
+                "p99Ms": 22.75893099999996
+              },
+              "directory": {
+                "samples": 256,
+                "medianMs": 0.4357549999999719,
+                "p95Ms": 0.662176000000045,
+                "p99Ms": 1.0357810000000427
+              }
+            },
+            {
+              "upload": {
+                "samples": 32,
+                "medianMs": 28.67115100000001,
+                "p95Ms": 37.36876899999993,
+                "p99Ms": 51.71791499999995
+              },
+              "remove": {
+                "samples": 32,
+                "medianMs": 13.782650000000103,
+                "p95Ms": 23.616950000000088,
+                "p99Ms": 27.82764199999997
+              },
+              "directory": {
+                "samples": 256,
+                "medianMs": 0.43679400000019086,
+                "p95Ms": 0.6571460000000116,
+                "p99Ms": 1.933998999999858
+              }
+            }
+          ],
+          "scope": "Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof."
+        },
+        {
+          "path": "existing",
+          "workload": "--existing-parent",
+          "warmups": 3,
+          "order": [
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1
+          ],
+          "loop": {
+            "p99Ms": 1.859583,
+            "maxMs": 3.198975
+          },
+          "results": [
+            {
+              "upload": {
+                "samples": 32,
+                "medianMs": 25.566389999999956,
+                "p95Ms": 30.435989000000063,
+                "p99Ms": 56.387662999999975
+              },
+              "remove": {
+                "samples": 32,
+                "medianMs": 12.313925000000154,
+                "p95Ms": 14.736520000000041,
+                "p99Ms": 15.021502000000055
+              },
+              "directory": {
+                "samples": 256,
+                "medianMs": 0.4398949999999786,
+                "p95Ms": 0.6964470000000347,
+                "p99Ms": 1.4033540000000357
+              }
+            },
+            {
+              "upload": {
+                "samples": 32,
+                "medianMs": 25.55218000000002,
+                "p95Ms": 45.46434199999999,
+                "p99Ms": 57.339383
+              },
+              "remove": {
+                "samples": 32,
+                "medianMs": 12.260545000000093,
+                "p95Ms": 15.239614999999958,
+                "p99Ms": 22.35673799999995
+              },
+              "directory": {
+                "samples": 256,
+                "medianMs": 0.439345000000003,
+                "p95Ms": 0.6583059999998113,
+                "p99Ms": 1.5194149999999809
+              }
+            }
+          ],
+          "scope": "Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof."
+        },
+        {
+          "path": "new",
+          "workload": "--upload-parents",
+          "warmups": 3,
+          "order": [
+            0,
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            1
+          ],
+          "loop": {
+            "p99Ms": 1.852415,
+            "maxMs": 3.209215
+          },
+          "results": [
+            {
+              "upload": {
+                "samples": 32,
+                "medianMs": 69.46262699999988,
+                "p95Ms": 75.66683999999998,
+                "p99Ms": 83.00372500000003
+              },
+              "remove": {
+                "samples": 32,
+                "medianMs": 13.525916999999936,
+                "p95Ms": 14.367066000000023,
+                "p99Ms": 15.063073000000031
+              },
+              "directory": {
+                "samples": 256,
+                "medianMs": 0.43208499999991545,
+                "p95Ms": 0.6725570000000971,
+                "p99Ms": 0.8425189999998111
+              }
+            },
+            {
+              "upload": {
+                "samples": 32,
+                "medianMs": 41.014678,
+                "p95Ms": 43.23684999999978,
+                "p99Ms": 66.37778600000001
+              },
+              "remove": {
+                "samples": 32,
+                "medianMs": 13.682139000000006,
+                "p95Ms": 16.71812,
+                "p99Ms": 20.436058000000003
+              },
+              "directory": {
+                "samples": 256,
+                "medianMs": 0.46491500000001906,
+                "p95Ms": 0.7811479999998028,
+                "p99Ms": 1.70369699999992
+              }
+            }
+          ],
+          "scope": "Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof.",
+          "missingParents": "Baseline: three explicit directory HTTP calls plus upload; candidate: one automatic parent upload. Whole successful user journey is timed."
+        }
+      ],
+      "scope": "每包每项 32 次上传／删除、256 次目录查询，均为真实编译产品及进程文件所有者。新增父目录基线包含三次显式目录请求，不把完整操作改善解释为单次上传提速。",
+      "tail": "根目录 P95 51.879→37.369 ms；已有父目录 P95 30.436→45.464 ms，上升约49%；新目录完整操作 P95 75.667→43.237 ms。保留尾延迟波动，不宣称零退化或目标板通过。"
+    },
+    "preliminaryFailure": "首轮组合类型检查 TS1005：两套新增测试共享冲突结尾，拼接时遗漏前一测试的闭合；修复并保留首轮日志，非生产源码故障。",
+    "evidence": {
+      "file": "upload-created-parents-evidence.json.gz",
+      "sha256": "734d4bfb0f599cd5c05114989f0ec4f6c9c79ede37c8f0fc78b6c4da1d00e41d",
+      "bytes": 220334,
+      "entries": 19,
+      "decodedBytes": 621096,
+      "credentialShapes": 0
+    },
+    "unrun": [
+      "当前组合头自身完整 CI、正常合并和合并后检查",
+      "完整 Fluidd/Mainsail 同包实际页面、目标板预算与G3",
+      "完整UFP及全部Python退役；#44安全补丁仍是独立未集成候选"
+    ]
+  }
 }

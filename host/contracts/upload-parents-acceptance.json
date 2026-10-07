@@ -1,0 +1,403 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "baselineCommit": "7a7c5bd943c0d3b04f30b83b90f2df6f4985bc7b",
+  "scope": "Gcodes multipart path creates missing ancestors using existing directory durability, quotas and per-directory authorization. Config write scope unchanged.",
+  "upstream": {
+    "documentation": "https://moonraker.readthedocs.io/en/latest/external_api/file_manager/#file-upload",
+    "contract": "Optional path creates missing subfolders; filename-only directory syntax and config behavior are not expanded by this candidate.",
+    "executedPython": false
+  },
+  "source": {
+    "productionFingerprints": {
+      "host/src/moonraker/native-print-uploads.ts": "e5184b19462141761f1826b5c5ec62e3924e85773f9ae46e1d19e25d01bbc03d",
+      "host/src/storage/published-files.ts": "ecaad0de9909edf1ae71de5728c4cfdc9ebb0e70db7a8edee5c650a1752d9963"
+    },
+    "motionMathChanged": false,
+    "nativeChanged": false,
+    "dependenciesChanged": false,
+    "ciMatrixChanged": false
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-parents-product-bundle",
+    "manifestSha256": "cd2f0a8b0755a6b7b5b45e86f701985f9d3b299075447dc55978ca41f7dea052",
+    "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+  },
+  "native": "Reused unchanged accepted native outputs; no fresh C rebuild.",
+  "checks": {
+    "distinctPassingSourceScenarios": 94,
+    "sourceRuns": [
+      {
+        "log": "source-complete.log",
+        "pass": 93,
+        "fail": 0
+      },
+      {
+        "log": "namespace-last.log",
+        "pass": 11,
+        "fail": 0,
+        "overlap": 10
+      }
+    ],
+    "compiled": {
+      "pass": 14,
+      "fail": 0,
+      "coverageOverlap": true,
+      "PATH": "/no-programs",
+      "PYTHON": "/no-python",
+      "noTypeScriptLoading": true,
+      "productionSource": "Test imports point to complete retained product, including metadata Worker."
+    },
+    "counterexample": {
+      "log": "baseline.log",
+      "pass": 0,
+      "fail": 1,
+      "oldStatus": 404,
+      "candidateStatus": 200,
+      "note": "Successful upload 201/Location remains independent PR42 until normal integration."
+    },
+    "fullTypecheck": true,
+    "requiredWhitespace": true,
+    "firstFailures": [
+      "First and second test drivers failed from missing test export, missing slicer header, wrong receipt shape and mock cleanup; hanging owned processes terminated, original logs retained.",
+      "An overly broad mock restore replacement accidentally broke two original directory sync fixtures; corrected without changing their assertions. Broad first source attempt timed out at 120 seconds.",
+      "First compilation caught the accidental nested mock property. Two partial compiled runs passed 11/12; metadata Worker was absent. Final tests reuse complete product and pass 14/14.",
+      "First performance ran alongside source validation against the superseded pre-race package. Retained separately; final fixed package benchmarks run sequentially after full mixed acceptance."
+    ]
+  },
+  "mixed": {
+    "pass": 1,
+    "fail": 0,
+    "originalMoves": 1000,
+    "watchdogMs": 90000,
+    "testTimeoutMs": 180000,
+    "noBenchmarkSwitches": true,
+    "statusRequests": 42592,
+    "statusP99Ms": 4.035842000001139,
+    "directoryRequests": 8865,
+    "directoryP99Ms": 43.32717899999989,
+    "minimumStepLeadMs": 78.496,
+    "wireSteps": 7896,
+    "uploads": 16,
+    "uploadP95Ms": 230.37633099999948,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.998847,
+          "maxMs": 20.021247
+        },
+        "cpu": {
+          "user": 12789489,
+          "system": 2390326
+        },
+        "rss": 363208704
+      },
+      {
+        "loop": {
+          "p99Ms": 1.988607,
+          "maxMs": 14.467071
+        },
+        "cpu": {
+          "user": 8764183,
+          "system": 1888074
+        },
+        "rss": 383090688
+      }
+    ],
+    "queue": {
+      "groups": 16,
+      "printingGenerations": [
+        1,
+        2
+      ],
+      "queries": 2446,
+      "queryP99Ms": 6.185309999999845,
+      "durableMutations": 64,
+      "actualStartRequestPrefix": "queue-",
+      "journalCompleted": true,
+      "authorizedNotifications": true,
+      "noAutomaticReplay": true
+    }
+  },
+  "performance": [
+    {
+      "workload": "root",
+      "node": "v26.10.0",
+      "ownership": "process-store-device-upload",
+      "filesystemMagic": 61267,
+      "inputBytes": 65536,
+      "inputSha256": "55493bca59f2bb54d0fa82eb48fc4c61af5b9a8882a8900a30bd8efa2396b523",
+      "warmups": 3,
+      "order": [
+        0,
+        1,
+        1,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "identities": [
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-usable-lease-composed-product-bundle",
+          "manifestSha256": "106e3b7b208f3b8b82cfaa1ca40185a44f64f4dd6e046512a59931a9cdd38c08"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-parents-product-bundle",
+          "manifestSha256": "cd2f0a8b0755a6b7b5b45e86f701985f9d3b299075447dc55978ca41f7dea052"
+        }
+      ],
+      "results": [
+        {
+          "upload": {
+            "samples": 32,
+            "medianMs": 28.384186,
+            "p95Ms": 30.31365100000005,
+            "p99Ms": 32.69465200000002
+          },
+          "remove": {
+            "samples": 32,
+            "medianMs": 13.580124999999953,
+            "p95Ms": 14.904982000000018,
+            "p99Ms": 15.936464999999998
+          },
+          "directory": {
+            "samples": 256,
+            "medianMs": 0.43182500000011714,
+            "p95Ms": 0.721979000000033,
+            "p99Ms": 1.8724039999999604
+          }
+        },
+        {
+          "upload": {
+            "samples": 32,
+            "medianMs": 29.598860999999943,
+            "p95Ms": 43.84509500000013,
+            "p99Ms": 52.819191000000046
+          },
+          "remove": {
+            "samples": 32,
+            "medianMs": 14.455855999999812,
+            "p95Ms": 17.910651000000144,
+            "p99Ms": 22.067095000000336
+          },
+          "directory": {
+            "samples": 256,
+            "medianMs": 0.45166599999993196,
+            "p95Ms": 1.3338770000000295,
+            "p99Ms": 2.7704560000001948
+          }
+        }
+      ],
+      "medianCandidateBaselineRatios": {
+        "upload": 1.042794075546149,
+        "remove": 1.0644862252740577,
+        "directory": 1.0459468534702934
+      },
+      "loop": {
+        "p99Ms": 1.935359,
+        "maxMs": 2.824191
+      },
+      "scope": "Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof."
+    },
+    {
+      "workload": "--existing-parent",
+      "node": "v26.10.0",
+      "ownership": "process-store-device-upload",
+      "filesystemMagic": 61267,
+      "inputBytes": 65536,
+      "inputSha256": "55493bca59f2bb54d0fa82eb48fc4c61af5b9a8882a8900a30bd8efa2396b523",
+      "warmups": 3,
+      "order": [
+        0,
+        1,
+        1,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "identities": [
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-usable-lease-composed-product-bundle",
+          "manifestSha256": "106e3b7b208f3b8b82cfaa1ca40185a44f64f4dd6e046512a59931a9cdd38c08"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-parents-product-bundle",
+          "manifestSha256": "cd2f0a8b0755a6b7b5b45e86f701985f9d3b299075447dc55978ca41f7dea052"
+        }
+      ],
+      "results": [
+        {
+          "upload": {
+            "samples": 32,
+            "medianMs": 28.489626999999928,
+            "p95Ms": 42.53348900000003,
+            "p99Ms": 46.573759999999766
+          },
+          "remove": {
+            "samples": 32,
+            "medianMs": 13.653495999999905,
+            "p95Ms": 15.222416000000067,
+            "p99Ms": 22.926915999999892
+          },
+          "directory": {
+            "samples": 256,
+            "medianMs": 0.43263600000000224,
+            "p95Ms": 0.6773990000000367,
+            "p99Ms": 0.9807129999999233
+          }
+        },
+        {
+          "upload": {
+            "samples": 32,
+            "medianMs": 28.461827000000085,
+            "p95Ms": 37.806666999999834,
+            "p99Ms": 66.28369400000008
+          },
+          "remove": {
+            "samples": 32,
+            "medianMs": 13.793858,
+            "p95Ms": 14.486967000000277,
+            "p99Ms": 14.923342000000048
+          },
+          "directory": {
+            "samples": 256,
+            "medianMs": 0.4374649999999747,
+            "p95Ms": 0.6887590000001182,
+            "p99Ms": 1.9828549999999723
+          }
+        }
+      ],
+      "medianCandidateBaselineRatios": {
+        "upload": 0.9990242062488273,
+        "remove": 1.010280297441776,
+        "directory": 1.0111618080787832
+      },
+      "loop": {
+        "p99Ms": 1.836031,
+        "maxMs": 3.397631
+      },
+      "scope": "Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof."
+    },
+    {
+      "workload": "--upload-parents",
+      "node": "v26.10.0",
+      "ownership": "process-store-device-upload",
+      "missingParents": "Baseline: three explicit directory HTTP calls plus upload; candidate: one automatic parent upload. Whole successful user journey is timed.",
+      "filesystemMagic": 61267,
+      "inputBytes": 65536,
+      "inputSha256": "55493bca59f2bb54d0fa82eb48fc4c61af5b9a8882a8900a30bd8efa2396b523",
+      "warmups": 3,
+      "order": [
+        0,
+        1,
+        1,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "identities": [
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-usable-lease-composed-product-bundle",
+          "manifestSha256": "106e3b7b208f3b8b82cfaa1ca40185a44f64f4dd6e046512a59931a9cdd38c08"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-parents-product-bundle",
+          "manifestSha256": "cd2f0a8b0755a6b7b5b45e86f701985f9d3b299075447dc55978ca41f7dea052"
+        }
+      ],
+      "results": [
+        {
+          "upload": {
+            "samples": 32,
+            "medianMs": 63.68575099999998,
+            "p95Ms": 77.05554399999983,
+            "p99Ms": 81.37818900000002
+          },
+          "remove": {
+            "samples": 32,
+            "medianMs": 12.381510000000162,
+            "p95Ms": 14.666848999999957,
+            "p99Ms": 20.015357999999992
+          },
+          "directory": {
+            "samples": 256,
+            "medianMs": 0.41108500000018466,
+            "p95Ms": 0.6607380000000376,
+            "p99Ms": 0.8934520000002522
+          }
+        },
+        {
+          "upload": {
+            "samples": 32,
+            "medianMs": 37.26006000000007,
+            "p95Ms": 57.72257399999944,
+            "p99Ms": 71.17642800000021
+          },
+          "remove": {
+            "samples": 32,
+            "medianMs": 12.29885800000011,
+            "p95Ms": 13.684456000000182,
+            "p99Ms": 26.376999999999953
+          },
+          "directory": {
+            "samples": 256,
+            "medianMs": 0.4590049999999337,
+            "p95Ms": 0.6851189999997587,
+            "p99Ms": 1.6971619999999348
+          }
+        }
+      ],
+      "medianCandidateBaselineRatios": {
+        "upload": 0.5850611701195151,
+        "remove": 0.9933245621899064,
+        "directory": 1.1165695659041988
+      },
+      "loop": {
+        "p99Ms": 1.840127,
+        "maxMs": 3.037183
+      },
+      "scope": "Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof."
+    }
+  ],
+  "performanceLimit": "Finite desktop measurements, not zero regression or target board proof. Root median +4.3 percent and root upload P95 30.31 to 43.85 ms; existing-parent median 28.49 to 28.46 ms. New-parent journey compares baseline three explicit directory calls plus upload with candidate one upload, 63.69 to 37.26 ms. No claim of an apples-to-apples single upload speedup. Original print/loop budgets preserved.",
+  "durabilityBoundary": "Parents and file are separate durable transactions. Later file failure can leave empty parents; no success file receipt or automatic replay. Quota and sync failures, reopen, cancellation and deleted-parent permission race are covered.",
+  "integration": {
+    "pr40": {
+      "head": "175bc59d12f73b72c1de8f9f5ffb9b4cf31dcd08",
+      "hostRun": 37645735527,
+      "firmwareRun": 37645735292,
+      "ownChecks": "success",
+      "merge": "7a7c5bd943c0d3b04f30b83b90f2df6f4985bc7b",
+      "postHostRun": 37651552169,
+      "postFirmwareRun": 37651552071,
+      "post": "Host in progress, firmware success at snapshot."
+    },
+    "pr42": {
+      "head": "0369e34f1593990f2db1b4c84ff51188177071c1",
+      "hostRun": 37649602745,
+      "state": "In progress at snapshot; not integrated."
+    }
+  },
+  "evidence": {
+    "file": "upload-parents-evidence.json.gz",
+    "sha256": "c43b93596f3fbaf7f7f868019a419c3af9f87891d15f0e397060371825dadd80",
+    "entries": 49,
+    "uncompressedBytes": 3863431,
+    "verifiedEveryEntry": true
+  },
+  "open": [
+    "Current candidate exact-head CI and normal PR integration",
+    "Successful upload 201/Location PR42 combination",
+    "Full same-bundle Fluidd/Mainsail UI acceptance",
+    "Original intermittent motion failures and G3",
+    "Config remaining behavior and UFP",
+    "Cycnumbris 500 target board/config, performance and real printer validation",
+    "177 klippy Python retirement, default service and master release"
+  ]
+}
