@@ -75,7 +75,21 @@
       }
     },
     "selfReview": "Confirmed no-token busy-to-idle bypass is rejected, late authorization cannot confirm a changed queue head, concurrent confirmation reserves at most one journal request, reopening never persists or replays a token. Original automatic tests retained.",
-    "requiredRemoteCi": "Pending this exact task head; no old-head success substituted"
+    "requiredRemoteCi": "Pending this exact task head; no old-head success substituted",
+    "whitespace": {
+      "status": "passed",
+      "scope": "Exact repository-required scripts/check_whitespace.sh plus changed acceptance driver and new receipt; git diff --check passed.",
+      "logs": [
+        {
+          "filename": "anyraid-queue-clearance-whitespace-required-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "filename": "anyraid-queue-clearance-whitespace-extra-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
   },
   "bundle": {
     "candidateManifestSha256": "a866845ac88327c3010fa99510218a93205f06f74a45b1da6f180069ffd1b4f1",
@@ -436,6 +450,15 @@
           "sha256": "d50f992594c3747e1412480b577cdcb580150c0cf56b5cb4a627fadac91888b2"
         }
       ]
+    },
+    {
+      "run": "whitespace-all",
+      "result": "Incorrect extra scope rejected binary diagnostics",
+      "cause": "An ad-hoc all-tracked-file invocation included gz/png binaries. Required source selector is scripts/check_whitespace.sh and was not changed. Exact required selector and added changed text files passed.",
+      "log": {
+        "filename": "anyraid-queue-clearance-whitespace-all-20261007.log",
+        "sha256": "7dbd56652b16bfae09ca4659c3e3080a27f9af49d298a0d220ec9a74655da665"
+      }
     }
   ],
   "integrationBaseline": {
