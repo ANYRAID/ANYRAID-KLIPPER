@@ -3019,4 +3019,28 @@ DELETE 只传上述 version、请求身份和两种令牌，撤销等待中的�
 
 实际暂停继续通过原打印状态查询／订阅观察，必须显式恢复。取消、手动
 状态变化、到期、设备退役和进程重启均使等待意图失效；不持久化或自动重放。
-本候选仍需同包混合负载、实际客户端与 Cycnumbris 500 目标验证，G3 不变。
+原完整混合负载的基线／候选各一场已通过；另有带层元数据的补充场景
+验证鉴权层暂停、显式恢复、后续原暂停／超时取消及代际拒绝。均为独立
+编译 JavaScript 产品与 PTY MCU 模型，仍需实际客户端与 Cycnumbris 500
+目标验证，G3 不变。指纹、全部指标及首版夹具顺序失败见
+[层暂停验收](../host/contracts/print-layer-pause-acceptance.json)。
+
+补充输入仅在 `ANYRAID_BENCH_LAYER_PAUSE=on` 启用，限定完整 namespace／
+原生授权／API 负载场景；未启用时逐字使用原运动程序。启用后增加 11 条
+切片层元数据和 1 秒等待，去除后必须严格还原原 1000 条运动程序。层暂停
+放在第二个既有作业，首作业的文件覆盖 printing 断言保持原样。复验须
+提供上述契约的固定包、manifest 与实际依赖摘要，再在 host 下执行：
+
+```bash
+ANYRAID_BENCH_CORS_ORIGIN=https://fluidd.example.com \
+ANYRAID_BENCH_MACHINE_CONTROL=on ANYRAID_BENCH_AUTOMATIC_QUEUE=on \
+ANYRAID_BENCH_LAYER_PAUSE=on \
+node --test --test-concurrency=1 \
+  --test-name-pattern='^namespace=true nativeAuthorization=true apiLoad=true load=false spi=false ' \
+  acceptance/product-compiled-journey.test.ts
+```
+
+`ANYRAID_ACCEPTANCE_BUNDLE`、`ANYRAID_ACCEPTANCE_MANIFEST_SHA256` 和
+`ANYRAID_ACCEPTANCE_DEPENDENCIES_SHA256` 须绑定同一固定产物。原 180 秒
+用例、90 秒子进程、停止／精度及负载预算均保持；补充输入不作为原
+未改输入的性能配对样本，也不证明完整页面或物理层边界。

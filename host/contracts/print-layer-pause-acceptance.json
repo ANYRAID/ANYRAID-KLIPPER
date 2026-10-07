@@ -11,7 +11,17 @@
       "hostRun": 37593907577,
       "host": "ordinary and protocol success; sanitizer pending at sealing",
       "firmwareRun": 37593907633,
-      "firmware": "success"
+      "firmware": "success",
+      "terminalVerification": {
+        "verifiedAt": "2026-10-07T09:22:02.032Z",
+        "hostRun": 37593907577,
+        "hostJob": 112701735501,
+        "host": "completed/success including ordinary, protocol, sanitizer and Linux MCU",
+        "firmwareRun": 37593907633,
+        "firmwareJob": 112701735896,
+        "firmware": "completed/success",
+        "historicalPendingRecordRetained": true
+      }
     }
   },
   "sourceHashes": {
@@ -421,13 +431,20 @@
     "anyraid-layer-pause-build-native-20261007.log": "a702474039fe408eb9bb07a3fe381a3fcf08c108c923f78bb3cd2923410958fd",
     "anyraid-layer-pause-composition-built-20261007.log": "1611498b8ab2f28cc540fcf01bb29cd751c05a326bdfec6045e6a1ffb712b14d",
     "anyraid-layer-pause-final-composition-20261007.log": "d0ce9ebcaee91dfca393f97f7e49b35b78bf857791ecaebe36bae63caced64e8",
-    "anyraid-layer-pause-performance-20261007.log": "03361495384d0deddf3b258ef5e0ebd0b8613a5749ea15f30ec67fcc188046b4"
+    "anyraid-layer-pause-performance-20261007.log": "03361495384d0deddf3b258ef5e0ebd0b8613a5749ea15f30ec67fcc188046b4",
+    "anyraid-layer-pause-original-mixed-baseline-20261007.log": "57310e4d9aee5301feb209a2556b9bf231ed6882ef977d2487b477aa9393bd77",
+    "anyraid-layer-pause-original-mixed-candidate-20261007.log": "c3a8278082948452a241a410dbb9504b02d1f8ed5a7f574f088ec28fc1f9ecff",
+    "anyraid-layer-pause-armed-mixed-order-20261007.log": "699a07724ce503bae147ef04b5c2bd0fde80ab941e17d9f5f8730e2e3704fc71",
+    "anyraid-layer-pause-armed-mixed-20261007.log": "88cf48445a610031fa409072a8329be78990112a2cf7ce498ffec79b7b4edad6",
+    "anyraid-layer-pause-product-build-20261007.log": "723c6f95d56d623448a46aeb2f2c1a0f5ddd09cfd462551aebe25a490b0bc50d",
+    "anyraid-layer-pause-mixed-order-final-types-20261007.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "anyraid-layer-pause-mixed-final-whitespace-20261007.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
   "acceptance": {
     "localSoftwareCandidate": true,
     "remoteCurrentHeadChecks": false,
     "developIntegration": false,
-    "completeNativeMixedLoad": false,
+    "completeNativeMixedLoad": true,
     "completeClientPath": false,
     "targetBoardSpeed": false,
     "physicalLayerBoundary": false,
@@ -435,5 +452,704 @@
     "PythonRetired": false,
     "completeGoal": false
   },
-  "next": "Precise-head original CI and normal review; complete original native mixed-control and actual client acceptance with this feature before promoting the software candidate. Target-board/series and G3 remain separate required gates."
+  "next": "Final supplementary-test/evidence commit requires its own original CI and normal PR review/integration. Production bundle unchanged from 71a7e28a. Actual complete same-bundle clients, target board/series, physical layer boundary, G3 and Python retirement remain required.",
+  "originalCompiledMixed": {
+    "bundle": {
+      "sourceHead": "71a7e28a4aa40b70b5b96dd3ddf2bf8bb2b3419f",
+      "node": "v26.10.0",
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-layer-pause-product-bundle",
+        "manifestSha256": "5a4d0152aae8ef4f18eba4b09523d9c6d3f07d8eadb56ebbe8f2510a02d48b99",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      },
+      "installed": {
+        "durationMs": 829.611211,
+        "dependencies": 15
+      }
+    },
+    "originalHarnessSourceHead": "71a7e28a4aa40b70b5b96dd3ddf2bf8bb2b3419f",
+    "originalHarnessSha256": "7ada9ec56e657a1357a7376b06ea60be7fc48423f818fd8acad685104b888770",
+    "originalInputSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+    "baselineBundle": {
+      "manifestSha256": "41ea309562f785b2c77647e508bf748072b3d487bd9dddda2fa4242bcdd6dc4d",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "flags": {
+      "corsOrigin": "https://fluidd.example.com",
+      "machineControl": true,
+      "automaticQueue": true,
+      "motionReport": true,
+      "objectPriming": false,
+      "objectCancellation": "early"
+    },
+    "caseDeadlineMs": 180000,
+    "childDeadlineMs": 90000,
+    "originalAssertionsAndPrecisionRetained": true,
+    "sequence": "one A then one B; no unchanged retries",
+    "baseline": {
+      "log": "anyraid-layer-pause-original-mixed-baseline-20261007.log",
+      "sha256": "57310e4d9aee5301feb209a2556b9bf231ed6882ef977d2487b477aa9393bd77",
+      "passed": true,
+      "caseDurationMs": 65840.043883,
+      "metrics": {
+        "namespace": true,
+        "automaticQueue": true,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9888.285807
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9968.92514
+            },
+            "durationMs": 80.64476300000024
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-b3bf245d-05a7-48ff-aefd-74169e50deb9",
+              "fileId": "authorized-file",
+              "atMs": 43899.30594
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-b3bf245d-05a7-48ff-aefd-74169e50deb9",
+              "fileId": "authorized-file",
+              "atMs": 43974.902451
+            },
+            "durationMs": 75.59707100000378
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 1879,
+        "configListP99Ms": 9.745001000002958,
+        "configDownloads": 1879,
+        "configDownloadP99Ms": 10.026024000006146,
+        "liveMotionSamples": 5772,
+        "liveExtrusionSamples": 1453,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 10.737468121,
+          "print_duration": 4.985793458,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "41ea309562f785b2c77647e508bf748072b3d487bd9dddda2fa4242bcdd6dc4d",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 9087,
+        "phaseP99Ms": 6.170122999999876,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 280,
+            "writes": 43
+          },
+          {
+            "statusReads": 208,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1851,
+        "historyP99Ms": 54.50212900000042,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 179.17787299999327,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 256.6213490000009,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 350.55704799999876,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 355.74371200000314,
+        "movesDuringPrint": 3,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 419.7598370000014,
+        "directoryMovesDuringPrint": 3,
+        "moveRequests": 16,
+        "moveP95Ms": 322.05081800000335,
+        "deleteRequests": 16,
+        "deleteP95Ms": 453.864548000005,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 199.29576799999995,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 95.53149199999461,
+        "metadataRequests": 16,
+        "metadataP95Ms": 319.5687900000048,
+        "downloads": 16,
+        "downloadP95Ms": 46.80344999999943,
+        "wireCommands": 227,
+        "wireSteps": 7410,
+        "minimumStepLeadMs": 86.46,
+        "directoryRequests": 7570,
+        "directoryP99Ms": 40.428260999993654,
+        "statusRequests": 36360,
+        "uploads": 16,
+        "statusP99Ms": 5.069238000003679,
+        "uploadP95Ms": 60.78435399999944,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.017279,
+              "maxMs": 19.185663
+            },
+            "cpu": {
+              "user": 13067543,
+              "system": 2182813
+            },
+            "rss": 365391872
+          },
+          {
+            "loop": {
+              "p99Ms": 1.978367,
+              "maxMs": 12.378111
+            },
+            "cpu": {
+              "user": 8105340,
+              "system": 1758303
+            },
+            "rss": 398479360
+          }
+        ],
+        "fileMoveOwnershipScope": "First group of each generation retained here; all 16 observations remain in hash-bound raw log"
+      }
+    },
+    "candidate": {
+      "log": "anyraid-layer-pause-original-mixed-candidate-20261007.log",
+      "sha256": "c3a8278082948452a241a410dbb9504b02d1f8ed5a7f574f088ec28fc1f9ecff",
+      "passed": true,
+      "caseDurationMs": 70999.427117,
+      "metrics": {
+        "namespace": true,
+        "automaticQueue": true,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9827.415484
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9908.260886
+            },
+            "durationMs": 80.84881200000018
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-b7a3fb1b-df3f-4764-80d5-fb0ec3a34e57",
+              "fileId": "authorized-file",
+              "atMs": 48680.642641
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-b7a3fb1b-df3f-4764-80d5-fb0ec3a34e57",
+              "fileId": "authorized-file",
+              "atMs": 48903.452952
+            },
+            "durationMs": 222.81044100000145
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 2052,
+        "configListP99Ms": 9.413941000006162,
+        "configDownloads": 2052,
+        "configDownloadP99Ms": 9.77117200000066,
+        "liveMotionSamples": 6048,
+        "liveExtrusionSamples": 1413,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 11.045353154,
+          "print_duration": 5.130231557999999,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "5a4d0152aae8ef4f18eba4b09523d9c6d3f07d8eadb56ebbe8f2510a02d48b99",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 9942,
+        "phaseP99Ms": 5.324553999998898,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 312,
+            "writes": 43
+          },
+          {
+            "statusReads": 216,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 2061,
+        "historyP99Ms": 59.68986099999893,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 179.92701400000078,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 249.688771000001,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 342.70222799999465,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 150.21959600000264,
+        "movesDuringPrint": 3,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 421.88041800000065,
+        "directoryMovesDuringPrint": 3,
+        "moveRequests": 16,
+        "moveP95Ms": 240.54789299999902,
+        "deleteRequests": 16,
+        "deleteP95Ms": 181.59148800000185,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 203.1867160000038,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 98.81381699999474,
+        "metadataRequests": 16,
+        "metadataP95Ms": 267.43123399999604,
+        "downloads": 16,
+        "downloadP95Ms": 51.45498399999633,
+        "wireCommands": 227,
+        "wireSteps": 7786,
+        "minimumStepLeadMs": 87.168,
+        "directoryRequests": 8384,
+        "directoryP99Ms": 39.07681800000137,
+        "statusRequests": 39770,
+        "uploads": 16,
+        "statusP99Ms": 5.466984999999113,
+        "uploadP95Ms": 61.73830300000009,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.001919,
+              "maxMs": 19.169279
+            },
+            "cpu": {
+              "user": 14045605,
+              "system": 2382449
+            },
+            "rss": 343195648
+          },
+          {
+            "loop": {
+              "p99Ms": 1.995775,
+              "maxMs": 15.761407
+            },
+            "cpu": {
+              "user": 8997288,
+              "system": 1765647
+            },
+            "rss": 396001280
+          }
+        ],
+        "fileMoveOwnershipScope": "First group of each generation retained here; all 16 observations remain in hash-bound raw log"
+      }
+    },
+    "scope": "Original full two-MCU-model/two-generation mixed case. One pair establishes passage of original software budgets only; no statistical speed claim, physical board, complete page acceptance or G3 closure."
+  },
+  "armedCompiledMixed": {
+    "harness": "host/acceptance/product-compiled-journey.test.ts",
+    "harnessSha256": "5aef8afc3e6d6b2b30d9a233cc421bae7553037b537dc0851678ee3e0ad9dd13",
+    "flag": "ANYRAID_BENCH_LAYER_PAUSE=on",
+    "input": {
+      "originalSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+      "sha256": "e7c32c27f85f4ce22e801712822866de1f0bdb211d229a86f6cb83daaad902d9",
+      "originalProgramRetainedExactly": true,
+      "originalMovements": 1000,
+      "layerMetadataCommands": 11,
+      "dwellMs": 1000,
+      "originalCaseDeadlineMs": 180000,
+      "originalChildDeadlineMs": 90000,
+      "compiledBundle": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-layer-pause-product-bundle",
+        "manifestSha256": "5a4d0152aae8ef4f18eba4b09523d9c6d3f07d8eadb56ebbe8f2510a02d48b99",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      }
+    },
+    "sequence": "Extra authenticated layer pause/explicit resume occurs in the original second cancel job, before the original manual pause and idle-timeout cancellation. First-job source-copy/replacement/file-move printing assertions remain unchanged; original mixed tasks continue.",
+    "retainedFailure": {
+      "log": "anyraid-layer-pause-armed-mixed-20261007.log",
+      "sha256": "88cf48445a610031fa409072a8329be78990112a2cf7ce498ffec79b7b4edad6",
+      "caseDurationMs": 10262.576766,
+      "passed": false,
+      "stage": "First move overwrite must complete during printing",
+      "layerComponent": {
+        "requestId": "complete",
+        "target": 1,
+        "acceptedFileCurrentLayer": 1,
+        "unauthorizedRejected": true,
+        "consumedTokenRejected": true,
+        "parked": true,
+        "pausedFilePosition": 0,
+        "filamentUsedBeforeFirstFileMove": 0,
+        "noAutomaticResume": true,
+        "explicitResume": true,
+        "originalMixedLoadContinues": true
+      },
+      "interpretation": "The supplementary first-job layer pause overlapped first-group overwrite checks that require printing. This supports fixture-order interference; it does not independently establish a production defect or close old PR20 failures. Changed sequencing before one fresh run; no weakened assertion or deadline."
+    },
+    "accepted": {
+      "log": "anyraid-layer-pause-armed-mixed-order-20261007.log",
+      "sha256": "699a07724ce503bae147ef04b5c2bd0fde80ab941e17d9f5f8730e2e3704fc71",
+      "passed": true,
+      "tests": 1,
+      "caseDurationMs": 73707.210689,
+      "metrics": {
+        "namespace": true,
+        "automaticQueue": true,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 11062.941388
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 11334.457037
+            },
+            "durationMs": 271.5200789999999
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-b12c3e8d-149f-49cd-87c2-2005839a2449",
+              "fileId": "authorized-file",
+              "atMs": 51256.802953
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-b12c3e8d-149f-49cd-87c2-2005839a2449",
+              "fileId": "authorized-file",
+              "atMs": 51509.72192
+            },
+            "durationMs": 252.91947699999582
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 2111,
+        "configListP99Ms": 9.856080999998085,
+        "configDownloads": 2111,
+        "configDownloadP99Ms": 12.409788999997545,
+        "liveMotionSamples": 4928,
+        "liveExtrusionSamples": 1426,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 11.389859657,
+          "print_duration": 4.448959976999999,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "5a4d0152aae8ef4f18eba4b09523d9c6d3f07d8eadb56ebbe8f2510a02d48b99",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 10265,
+        "phaseP99Ms": 7.802367000000231,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 336,
+            "writes": 43
+          },
+          {
+            "statusReads": 216,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 2130,
+        "historyP99Ms": 54.500213000006624,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 177.04630500000349,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 240.6693779999987,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 339.7608779999973,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 147.4246009999988,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 517.7598670000007,
+        "directoryMovesDuringPrint": 4,
+        "moveRequests": 16,
+        "moveP95Ms": 269.5167170000004,
+        "deleteRequests": 16,
+        "deleteP95Ms": 147.8094459999993,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 199.71959799999604,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 95.09495600000082,
+        "metadataRequests": 16,
+        "metadataP95Ms": 361.4043750000001,
+        "downloads": 16,
+        "downloadP95Ms": 53.223400000002584,
+        "wireCommands": 238,
+        "wireSteps": 6463,
+        "minimumStepLeadMs": 80.144,
+        "directoryRequests": 8628,
+        "directoryP99Ms": 38.83809800000017,
+        "statusRequests": 41043,
+        "uploads": 16,
+        "statusP99Ms": 7.801868000000468,
+        "uploadP95Ms": 231.46074000000044,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.299903,
+              "maxMs": 18.563071
+            },
+            "cpu": {
+              "user": 15167998,
+              "system": 2713707
+            },
+            "rss": 363999232
+          },
+          {
+            "loop": {
+              "p99Ms": 2.006015,
+              "maxMs": 12.697599
+            },
+            "cpu": {
+              "user": 8562551,
+              "system": 1873977
+            },
+            "rss": 409276416
+          }
+        ],
+        "fileMoveOwnershipScope": "First group of each generation retained here; all 16 observations remain in hash-bound raw log"
+      },
+      "layerPause": {
+        "requestId": "cancel",
+        "target": 1,
+        "acceptedFileCurrentLayer": 1,
+        "unauthorizedRejected": true,
+        "consumedTokenRejected": true,
+        "parked": true,
+        "pausedFilePosition": 0,
+        "filamentUsedBeforeFirstFileMove": 0,
+        "noAutomaticResume": true,
+        "explicitResume": true,
+        "originalMixedLoadContinues": true
+      },
+      "retirement": {
+        "oldIntentionRejected": true,
+        "newOwner": true,
+        "noReplay": true,
+        "sameProcess": true
+      }
+    },
+    "scope": "Additional metadata and 1000ms dwell; strict stripping reproduces the exact original 1000-movement program. This is a supplementary input, separately reported from the unmodified A/B pair. Original 180s/90s deadlines, precision, load and assertions remain. PTY models and synthetic system actions; no client UI or target board."
+  },
+  "supersededPreparationPr": {
+    "pr": 20,
+    "head": "9359d0a1f2f0a7e8e88a1e09a30d4f2034d9385f",
+    "state": "closed, not merged",
+    "replacementPr": 29,
+    "acceptedDevelop": "74a4304fd8a56363fbd0e0f673531e958888da1c",
+    "reviewComment": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/20#issuecomment-6034895910",
+    "controllerSourceIdentical": true,
+    "apiDifferences": "Later maintenance reason, common published-file start and controller ownership increments; preparation pause paths retained",
+    "oldCI": "All required checks successful on 9359d0a",
+    "oldMixedFailures": "Retained, root causes unresolved; closing duplicate PR does not close them",
+    "branchDeleted": false
+  }
 }
