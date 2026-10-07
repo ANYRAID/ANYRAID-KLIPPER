@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "scope": "Test-only first observed stop, source thermal causes, MCU causes and bounded input timing. Preparation, not original CI root-cause repair.",
+  "sourceBase": "11a90a6e5e1c3710c37440bcf38479c08917d6ce",
+  "node": "v26.10.0",
+  "nodeExecutableSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+  "productionChanged": false,
+  "dependenciesChanged": false,
+  "original": {
+    "pr": 47,
+    "head": "6474b72f80e143bd4d20a9aaa0d948bdd6a0a461",
+    "run": 37688384738,
+    "job": 113021990236,
+    "tests": 4217,
+    "passed": 4216,
+    "failed": 1,
+    "test": "HTTP grid calibration measures, activates, saves and reloads; circular=true",
+    "httpStatus": 503,
+    "lastPortFault": "Native file motion stopped",
+    "firstCauseMissing": true,
+    "closed": false
+  },
+  "controlled": {
+    "originalCIFaultCaptured": false,
+    "portCleanupCause": "Native file motion stopped",
+    "retainedThermalAndGroupCause": "Controlled grid thermal source stop",
+    "physicalStopCallbacks": [
+      1,
+      1
+    ],
+    "target": 0,
+    "outputStopConfirmed": true,
+    "queueStepCount": 0
+  },
+  "validation": {
+    "affectedSource": {
+      "tests": 57,
+      "passed": 57,
+      "phase": "Before final input fields and cleanup"
+    },
+    "finalSource": {
+      "tests": 3,
+      "passed": 3
+    },
+    "compiledDriver": {
+      "tests": 3,
+      "passed": 3,
+      "overlappingSource": true,
+      "independentProduct": false,
+      "borrowedDevelopmentDependencies": true,
+      "acceptedProductCReused": true,
+      "ptyShimRecompiled": true
+    },
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "countsMustNotBeAdded": true
+  },
+  "preparationFailures": [
+    "Incorrect lastReadTime field corrected to existing lastTime",
+    "Missing existing qoijs declaration in restricted compiler inputs",
+    "Missing PTY C fixture in emitted driver",
+    "Dynamic Worker module omitted by transitive-only compiler inputs"
+  ],
+  "archive": {
+    "file": "grid-first-stop-evidence.json.gz",
+    "entries": 33,
+    "bytes": 72077,
+    "sha256": "c3e7deb16ecd70f00b4abda4b46e1019b970fac47d5ee4d581ab9cab95a486c7"
+  },
+  "unclosed": [
+    "Original circular grid stop trigger",
+    "Original AHT stop cause",
+    "Full PR CI and integration",
+    "Full same-bundle real clients",
+    "G3 and target hardware",
+    "Complete Moonraker and Python retirement"
+  ]
+}
