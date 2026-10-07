@@ -120,6 +120,24 @@ FormData Request.body，会在 Node.js 26.10.0 的 undici:6906
 终态失败并完成规定集成，再接入原生磁盘导入的所有者及恢复。
 同包实页、原 UFP 首次故障、目标预算及 G3 门槛继续开放。
 
+固件 CI 的网络准备新增有界失败候选：`ci-install.sh` 为 APT 设置两次
+重试、HTTP／HTTPS 连接与读取各 30 秒超时，更新使用 `--error-on=any`，
+安装使用非交互确认；`Prepare tests` 整步限 20 分钟。源、软件包、签名
+校验、固件矩阵及后续 Python 对照暂时沿用，不将失败索引当成准备成功。
+参数依据 [APT 更新手册](https://manpages.ubuntu.com/manpages/jammy/man8/apt-get.8.html)、
+[重试配置](https://manpages.ubuntu.com/manpages/jammy/man5/apt.conf.5.html) 和
+[HTTP 超时](https://manpages.ubuntu.com/manpages/jammy/man1/apt-transport-http.1.html)。
+该候选未改主机／MCU 源码，不需要打印性能重测；完整规定 CI 仍必需。
+
+本机 Node.js 26.10.0 下三项受控子进程验证了更新失败、安装失败立即
+停止及成功准备继续工具链；另用独立状态／缓存／日志目录和拒绝连接的
+本地地址运行真实 APT 2.8：默认更新将瞬时失败作为警告退出 0，严格更新
+退出 100，两项均约 3 秒。没有安装本机软件、修改系统源或启动新服务。
+这只证明失败传播与参数行为，不替代 Ubuntu 22.04 完整 CI，也不证明
+网络已恢复。#44 `dde3aa8c` 固件 37677416687 仍在途，页面观测显示
+APT Azure 源反复下载失败；保留原作业，不以观察超时取消或重跑。
+以下记录按各自既有源码范围保留，不引用旧头成功放行当前候选。
+
 当前核验：#45 头 `46a7b3f4` 自身全部规定检查通过，自审后正常
 合入 develop `c29125cc`；合并后主机 37667271108 与固件
 37667271105 全部成功。此前 #43 合并后 4196／4197 的失败仍保留
