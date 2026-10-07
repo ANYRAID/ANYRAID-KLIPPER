@@ -5268,5 +5268,193 @@
       "pr23Status": "in_progress at evidence seal",
       "remaining": "22,27,28 current heads await full CI; combined fixed package is not accepted develop"
     }
+  },
+  "mainsailFinalPackagePageR2": {
+    "date": "2026-10-07",
+    "sourceHead": "a42226091f42ba08595e90b297af1feda474f734",
+    "runtime": "v26.10.0",
+    "scope": "Partial official Mainsail 2.19.0 page acceptance on the same composed compiled package. Two PTY MCU models only; no physical printer or accepted-develop package claim.",
+    "bundle": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-client-bundle",
+      "manifestSha256": "41ea309562f785b2c77647e508bf748072b3d487bd9dddda2fa4242bcdd6dc4d",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb",
+      "afterCleanupVerifiedUnchanged": true
+    },
+    "harness": {
+      "originalDeadlineMs": 900000,
+      "deadlineExtended": false,
+      "parentPid": 3143038,
+      "gatewayPid": 3143242,
+      "nativeOrigin": "http://127.0.0.1:18472",
+      "gatewayOrigin": "http://127.0.0.1:18473",
+      "unusedTestProxy": "http://127.0.0.1:18474",
+      "forceLogins": true,
+      "trustedLoopback": false,
+      "fixtureRemoved": true,
+      "parentAndGatewayExitCodes": [
+        0,
+        0
+      ],
+      "ownedPortsAndChildProcessesAbsent": true
+    },
+    "page": {
+      "login": true,
+      "actualFileChooser": true,
+      "upload": {
+        "name": "同包Mainsail 50%.gcode",
+        "bytes": 20123,
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "thumbnail": {
+          "complete": true,
+          "naturalWidth": 32,
+          "naturalHeight": 32
+        },
+        "seededClientSampleCounted": false
+      },
+      "rename": {
+        "name": "同包Mainsail 重命名50%.gcode",
+        "confirmedToast": true
+      },
+      "duplicate": {
+        "name": "同包Mainsail 复制50%.gcode",
+        "visibleDistinctRows": true
+      },
+      "observedNativeFileRecords": [
+        {
+          "id": "6e0b6cde-74d9-4cb0-b1ed-98bdf901e3fb",
+          "name": "同包Mainsail 重命名50%.gcode",
+          "size": 20123,
+          "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8"
+        },
+        {
+          "id": "840eb92e-ef1e-4ce1-9b91-955699d7c038",
+          "name": "同包Mainsail 复制50%.gcode",
+          "size": 20123,
+          "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8"
+        }
+      ],
+      "print": {
+        "actualUploadedFile": true,
+        "explicitConfirmation": true,
+        "complete": true,
+        "filamentMm": 1,
+        "printTimeSeconds": 10,
+        "totalTimeSeconds": 14,
+        "historyJobs": 1,
+        "position": [
+          10,
+          0,
+          0
+        ]
+      },
+      "logout": {
+        "actualLoginPage": true,
+        "postLogout401Verified": false,
+        "cookieEmptyVerified": false
+      },
+      "fullProcessRestart": {
+        "ownedParentSignal": "SIGUSR1",
+        "processReady": 2,
+        "reauthenticated": true,
+        "retainedHistoryJobs": 1,
+        "retainedFilesAndThumbnails": true,
+        "firmwareGenerationsNotCountedAsPhysical": true
+      },
+      "configuration": {
+        "openedPrinterCfg": true,
+        "content": "[include parts/machine.cfg]\n",
+        "saved": false
+      }
+    },
+    "failures": [
+      {
+        "operation": "download",
+        "firstEventTimeoutMs": 9984,
+        "secondEventTimeoutMs": 9997,
+        "secondCondition": "User explicitly allowed localhost downloads before second attempt",
+        "downloadedFileOrHashVerified": false,
+        "rootCauseConfirmed": false
+      },
+      {
+        "operation": "row context click",
+        "result": "No node found; filename cell context menu succeeded",
+        "productFailureProven": false
+      },
+      {
+        "operation": "print button locator",
+        "result": "Exact Print found no matches; fresh DOM showed lower-case print, corrected selector admitted one actual print"
+      },
+      {
+        "operation": "independent SQLite read",
+        "result": "ERR_SQLITE_ERROR database is locked",
+        "artifactCreated": false,
+        "historyEvidence": "Official history page before and after full process restart; independent SQL rows not claimed"
+      }
+    ],
+    "remaining": [
+      "download byte/hash proof",
+      "pause/refresh/relogin/explicit resume/cancel on this final package",
+      "queue and configuration save/recovery on final Mainsail",
+      "system controls and firmware restart",
+      "accepted-develop composition and complete dual-client acceptance",
+      "target board performance and physical G3"
+    ],
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-final-mainsail-native-page-r2-20261007.log",
+        "sha256": "05b854df5e654018efdd699b5e0a3013edd6b9ba66341e77dd690303f4159447"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-final-mainsail-cli-page-r2-20261007.log",
+        "sha256": "97e3bbdf9a55fc652c7828cb49409087bb681060b609d2b34f71c7c1799c4c08"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-mainsail-r2-uploaded-dom-20261007.txt",
+        "sha256": "fca038f9697643b0cb784597e83089b0ffb36a3e9b50fc8baa8ca031a416c56c"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-mainsail-r2-uploaded-20261007.png",
+        "sha256": "9468d0441120b6d7d260062a180522c2428dff32db40f5fcc5a18e1bbf0879ca"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-mainsail-r2-print-complete-dom-20261007.txt",
+        "sha256": "6f05e66cb9923a3a4a92c455dc34c6c7641d7b8172546b368681da4ed6cf6f56"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-mainsail-r2-print-complete-20261007.png",
+        "sha256": "dae98848651d5f34bfa7b97d9be18661f4697f205b3e5a5bf034658c7f472a6b"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-mainsail-r2-history-dom-20261007.txt",
+        "sha256": "d7c3ee42d0bafa6e21f3373a65c88a2a4c805d8b06aec92f9e869276c02a0df9"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-mainsail-r2-restarted-history-dom-20261007.txt",
+        "sha256": "d7c3ee42d0bafa6e21f3373a65c88a2a4c805d8b06aec92f9e869276c02a0df9"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-mainsail-r2-restarted-history-20261007.png",
+        "sha256": "8abd43694920c4f6eac8fd9b62d03a58c79c3ba2abf6a0b4d8687057df1ec8ef"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-mainsail-r2-restarted-files-dom-20261007.txt",
+        "sha256": "329d2dddfabd145c79602d379646e2478196bebb7bf0b162008e6b7841ad2f4b"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-mainsail-r2-config-read-dom-20261007.txt",
+        "sha256": "1351e624177465c84eecec9ab8bc164c9d33829164b87e9ccbd6cc1c26406d77"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-mainsail-r2-browser-errors-20261007.json",
+        "sha256": "1d1c84cfb1f1e2aa8383a817f16dcedf2ec7d904e498509021a53ce39b965dc7"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-final-mainsail-native-probe-20261007.mts",
+        "sha256": "ad57896211cdf7506a1bd469830929d197e0fd393ae20ef2458bcd263411140b"
+      }
+    ],
+    "fullClientAcceptance": false,
+    "g3Closed": false,
+    "performanceRegressionClaim": false
   }
 }
