@@ -33,7 +33,7 @@ async function fixture(){
  const address=await service.start(),base=`http://127.0.0.1:${address.port}`,key=service.authorization!.localApiKey();
  const created=await (await fetch(base+'/access/user',{method:'POST',headers:{'x-api-key':key,'content-type':'application/json'},body:JSON.stringify({username:'operator',password:'test-only-password'})})).json() as any;
  const headers={authorization:'Bearer '+created.result.token};
- const uploaded=new FormData();uploaded.append('file',new Blob(['G1 X1\n']),'part.gcode');uploaded.append('file_id','job');assert.equal((await fetch(base+'/server/files/upload',{method:'POST',headers,body:uploaded})).status,200);
+ const uploaded=new FormData();uploaded.append('file',new Blob(['G1 X1\n']),'part.gcode');uploaded.append('file_id','job');assert.equal((await fetch(base+'/server/files/upload',{method:'POST',headers,body:uploaded})).status,201);
  async function retire(g:typeof first,outcome:'stopped'|'failed'='stopped'){await service!.retireNativePrinter();g.released=true;await g.journal.close();service!.confirmNativeRetirement(outcome);}
  return {root,config,db,files,service,first,base,key,headers,generation,retire,async close(){await service!.close();for(const g of generations){await g.binding.uploads?.close();await g.journal.close();}await files.close();await db.close();await rm(root,{recursive:true,force:true});}};
 }
@@ -57,7 +57,7 @@ test('attachment preserves JWT, socket and process stores; replaces uploads, sub
   assert.equal((await fetch(f.base+'/server/database/compact',{method:'POST',headers:f.headers})).status,409);
   assert.equal((await fetch(f.base+'/printer/print/cancel',{method:'POST',headers:f.headers})).status,200);
   assert.equal((await fetch(f.base+'/server/files/gcodes/job.gcode',{headers:f.headers})).status,200);assert.equal((await fetch(f.base+'/server/files/list',{headers:f.headers})).status,200);
-  const upload=new FormData();upload.append('file',new Blob(['G1 X2\n']),'fresh.gcode');upload.append('file_id','fresh');assert.equal((await fetch(f.base+'/server/files/upload',{method:'POST',headers:f.headers,body:upload})).status,200);assert.equal(next.binding.uploads!.status.published,1);assert.equal(f.first.binding.uploads!.status.published,1);
+  const upload=new FormData();upload.append('file',new Blob(['G1 X2\n']),'fresh.gcode');upload.append('file_id','fresh');assert.equal((await fetch(f.base+'/server/files/upload',{method:'POST',headers:f.headers,body:upload})).status,201);assert.equal(next.binding.uploads!.status.published,1);assert.equal(f.first.binding.uploads!.status.published,1);
   const history=(await (await fetch(f.base+'/server/history/list',{headers:f.headers})).json() as any).result;assert.equal(history.count,1);
   await f.retire(next);const third=await f.generation();await f.service.attachNativePrinter(third.binding);const preserved=(await (await fetch(f.base+'/server/history/list',{headers:f.headers})).json() as any).result;assert.equal(preserved.jobs[0].job_id,history.jobs[0].job_id);assert.equal(preserved.jobs[0].status,'cancelled');assert.equal(third.starts,0);assert.equal(f.service.nativeSubscriptionStatus?.clients,0);
  }finally{socket?.terminate();await f.close();}

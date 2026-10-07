@@ -1,0 +1,243 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "scope": "Moonraker successful multipart HTTP 201 and absolute Location; publication/print ownership unchanged.",
+  "baselineCommit": "f34bfb5e68a1d00ca1745aa062d2d776a90a80fb",
+  "upstream": {
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "url": "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/application.py#L1035",
+    "fullSourceSha256": "def768fef23065ce807a2a34de7f23b62f25f077407757b7b765f463798b0188",
+    "range": [
+      1035,
+      1055
+    ],
+    "documentation": "https://moonraker.readthedocs.io/en/latest/external_api/file_manager/#file-upload",
+    "executedPython": false
+  },
+  "source": {
+    "serverSha256": "1a8f3a646e05c5333ae3a8941724335697019d0f22668f12665254d87a6f2241",
+    "changedProductionModules": [
+      "host/src/moonraker/server.ts"
+    ],
+    "motionMathChanged": false,
+    "dependenciesChanged": false,
+    "ciMatrixChanged": false
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-created-product-bundle",
+    "manifestSha256": "636b6fc11a76213fb8b7ead9a11c54d5d0f7efc342e752588eea32f4e1d113e2",
+    "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+  },
+  "native": "Reused unchanged accepted native outputs; no fresh C rebuild.",
+  "checks": {
+    "distinctPassingSourceScenarios": 169,
+    "sourceRuns": [
+      {
+        "log": "source.log",
+        "pass": 99,
+        "fail": 0
+      },
+      {
+        "log": "product-source.log",
+        "pass": 54,
+        "fail": 2,
+        "note": "Four stale success expectations in two upload-helper scenarios; failures retained."
+      },
+      {
+        "log": "cors-source.log",
+        "pass": 28,
+        "fail": 0,
+        "note": "Contains overlap and added CORS/authorization assertions."
+      },
+      {
+        "log": "process-supplement-first.log",
+        "pass": 1,
+        "fail": 1,
+        "note": "One further 200 expectation after replacement; retained."
+      },
+      {
+        "log": "process-supplement.log",
+        "pass": 2,
+        "fail": 0
+      }
+    ],
+    "compiled": {
+      "pass": 6,
+      "fail": 0,
+      "noTypeScriptLoading": true,
+      "PATH": "/no-programs",
+      "PYTHON": "/no-python",
+      "coverageOverlap": true
+    },
+    "baselineCounterexample": {
+      "pass": 0,
+      "fail": 6,
+      "expectedStatus": 201,
+      "actualStatus": 200
+    },
+    "firstHostFixtureFailure": "Fetch rewrote the supplied Host; final fixture uses an actual node:http wire request.",
+    "firstCompileFailure": "Missing existing qoijs declaration from the temporary compile include; final config includes existing declaration files.",
+    "fullTypecheck": true,
+    "requiredWhitespace": true
+  },
+  "performance": {
+    "ownership": "process-store-device-upload",
+    "inputBytes": 65536,
+    "inputSha256": "55493bca59f2bb54d0fa82eb48fc4c61af5b9a8882a8900a30bd8efa2396b523",
+    "warmups": 3,
+    "order": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1
+    ],
+    "oldStatus": 200,
+    "newStatus": 201,
+    "results": [
+      {
+        "upload": {
+          "samples": 32,
+          "medianMs": 29.229915000000346,
+          "p95Ms": 47.861430999999925,
+          "p99Ms": 48.936445000000276
+        },
+        "remove": {
+          "samples": 32,
+          "medianMs": 14.06835000000001,
+          "p95Ms": 16.981476000000384,
+          "p99Ms": 17.6013939999998
+        },
+        "directory": {
+          "samples": 256,
+          "medianMs": 0.43885499999987587,
+          "p95Ms": 0.7385790000000725,
+          "p99Ms": 2.1642459999999346
+        }
+      },
+      {
+        "upload": {
+          "samples": 32,
+          "medianMs": 28.717677999999978,
+          "p95Ms": 29.578609000000142,
+          "p99Ms": 30.252097999999933
+        },
+        "remove": {
+          "samples": 32,
+          "medianMs": 13.886627999999746,
+          "p95Ms": 14.905351000000337,
+          "p99Ms": 15.816461999999774
+        },
+        "directory": {
+          "samples": 256,
+          "medianMs": 0.4344659999999294,
+          "p95Ms": 0.6572280000000319,
+          "p99Ms": 0.9599809999999707
+        }
+      }
+    ],
+    "ratios": {
+      "upload": 0.9824755905037574,
+      "remove": 0.9870829201718564,
+      "directory": 0.9899989746044874
+    },
+    "loop": {
+      "p99Ms": 1.784831,
+      "maxMs": 2.217983
+    },
+    "scope": "Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof."
+  },
+  "mixed": {
+    "pass": 1,
+    "fail": 0,
+    "originalMoves": 1000,
+    "watchdogMs": 90000,
+    "testTimeoutMs": 180000,
+    "noBenchmarkSwitches": true,
+    "namespace": true,
+    "nativeAuthorization": true,
+    "apiLoad": true,
+    "statusRequests": 41516,
+    "statusP99Ms": 3.883336999999301,
+    "directoryRequests": 8661,
+    "directoryP99Ms": 42.7679309999985,
+    "minimumStepLeadMs": 77.726,
+    "wireSteps": 7988,
+    "uploads": 16,
+    "uploadP95Ms": 54.45712300000014,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 2.119679,
+          "maxMs": 19.628031
+        },
+        "cpu": {
+          "user": 13107062,
+          "system": 2550399
+        },
+        "rss": 353615872
+      },
+      {
+        "loop": {
+          "p99Ms": 1.989631,
+          "maxMs": 16.613375
+        },
+        "cpu": {
+          "user": 8364813,
+          "system": 1886239
+        },
+        "rss": 361840640
+      }
+    ],
+    "queue": {
+      "groups": 16,
+      "printingGenerations": [
+        1,
+        2
+      ],
+      "queries": 2385,
+      "queryP99Ms": 6.79215199999453,
+      "durableMutations": 64,
+      "actualStartRequestPrefix": "queue-",
+      "journalCompleted": true,
+      "authorizedNotifications": true,
+      "noAutomaticReplay": true
+    }
+  },
+  "historicalCi": [
+    {
+      "pr": 39,
+      "head": "00ed57fdfa4fec7abe24be558ee656a88ea590d5",
+      "run": 37644517763,
+      "pass": 4181,
+      "tests": 4182,
+      "failed": "Delta BLTouch each=true stuck=false, Native file motion stopped; first inputs unavailable."
+    },
+    {
+      "pr": 41,
+      "head": "6f753d478bdd67de6c8eaf988b21158d3bab9be4",
+      "run": 37644492197,
+      "pass": 4185,
+      "tests": 4186,
+      "failed": "Missing UART reply expected timeout/deadline but MCU clock samples expired; original contract retained."
+    }
+  ],
+  "evidence": {
+    "file": "upload-created-evidence.json.gz",
+    "sha256": "18d268c215e23129e65734be2a117bddefc97eaf77434d1c9a8def15d5197595",
+    "entries": 37,
+    "uncompressedBytes": 2651705,
+    "verifiedEveryEntry": true
+  },
+  "open": [
+    "Exact-head required CI and normal PR integration",
+    "Original intermittent motion failures and G3",
+    "Complete same-bundle Fluidd/Mainsail UI acceptance",
+    "Automatic upload parent creation and UFP",
+    "Cycnumbris 500 board/config and target performance",
+    "Complete Python retirement, default switch and master release"
+  ]
+}
