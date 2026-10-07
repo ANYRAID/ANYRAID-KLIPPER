@@ -516,6 +516,13 @@ resetFirmware 是工厂提供的独立路径，包装工厂不能遗漏或用普
 
 ### 首代设备启动失败与显式恢复
 
+MCU 的八条热身回复使用特殊初始离群规则，不能直接作为设备就绪
+依据。`ClockRuntime.start` 还须等待既有首条普通采样产生可用估计；
+等待期间串口会话保持 warming，不能配置步进或进入 ready。无效回复
+沿原周期重试，不延长最后可用估计的4.9195秒期限；取消、超时与
+到期走原停止／清理流程。一次可用普通回复不保证频率收敛或实际
+运动精度，目标板与G3仍须验收；详见[准入证据](../host/contracts/clock-startup-admission-acceptance.json)。
+
 `runProductHost` 先调用进程工厂 bootstrap，初始化真实进程文件、权威作业
 日志与恢复日志、鉴权和 Moonraker 监听器，再读取 printer.cfg 并创建设备。
 服务未绑定设备时没有 PrintController、运动对象或模拟 MCU，不启动设备
