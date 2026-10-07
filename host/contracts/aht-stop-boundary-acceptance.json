@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base": "11a90a6e5e1c3710c37440bcf38479c08917d6ce",
+  "scope": "AHT 首停观测准备证据；没有修改运行算法或确认原 CI 根因。",
+  "originalCI": {
+    "head": "eb97d2749eef33d8b8af108d2fc44a5fbbb715f2",
+    "merge": "3edf5158a811293477b70a1e774c383227d25b1f",
+    "run": 37683411689,
+    "job": 113004965188,
+    "pass": 4214,
+    "fail": 1,
+    "firstCauseCaptured": false
+  },
+  "validation": {
+    "source": 41,
+    "compiledDriverOverlap": 4,
+    "baseline": 2,
+    "typecheck": true,
+    "whitespace": true,
+    "scope": "计数重叠不相加。编译驱动借用锁定测试依赖和原 C，不声明新独立产品包或实机验收。"
+  },
+  "controlled": [
+    {
+      "pin": "PA4",
+      "error": {
+        "name": "AbortError",
+        "code": "ABORT_ERR",
+        "cause": "Configured hardware stopped"
+      },
+      "firstStop": {
+        "stage": "controlled-target-sample",
+        "elapsedMs": 214.68751493375748,
+        "cause": {
+          "name": "Error",
+          "message": "Controlled MCU stop during AHT sample",
+          "cause": null
+        },
+        "commands": [
+          {
+            "mcu": "aux",
+            "name": "get_clock",
+            "elapsedMs": 1.3386509381234646
+          },
+          {
+            "mcu": "mcu",
+            "name": "get_clock",
+            "elapsedMs": 1.3710010098293424
+          },
+          {
+            "mcu": "aux",
+            "name": "i2c_transfer",
+            "elapsedMs": 2.914731972850859
+          },
+          {
+            "mcu": "aux",
+            "name": "i2c_transfer",
+            "elapsedMs": 103.59911597333848
+          },
+          {
+            "mcu": "aux",
+            "name": "i2c_transfer",
+            "elapsedMs": 214.1234549926594
+          }
+        ]
+      },
+      "group": {
+        "state": "stopped",
+        "fault": {
+          "name": "Error",
+          "message": "Controlled MCU stop during AHT sample",
+          "cause": null
+        },
+        "stopError": null
+      },
+      "clocks": [
+        {
+          "mcu": "mcu",
+          "state": "stopped",
+          "fault": null,
+          "stopError": null,
+          "inFlight": false,
+          "active": false
+        },
+        {
+          "mcu": "aux",
+          "state": "stopped",
+          "fault": null,
+          "stopError": null,
+          "inFlight": false,
+          "active": false
+        }
+      ],
+      "originalCIFaultCaptured": false
+    },
+    {
+      "pin": "aux:PA4",
+      "error": {
+        "name": "AbortError",
+        "code": "ABORT_ERR",
+        "cause": "Configured hardware stopped"
+      },
+      "firstStop": {
+        "stage": "controlled-target-sample",
+        "elapsedMs": 213.85808405466378,
+        "cause": {
+          "name": "Error",
+          "message": "Controlled MCU stop during AHT sample",
+          "cause": null
+        },
+        "commands": [
+          {
+            "mcu": "aux",
+            "name": "get_clock",
+            "elapsedMs": 0.9601300116628408
+          },
+          {
+            "mcu": "mcu",
+            "name": "get_clock",
+            "elapsedMs": 0.9809100301936269
+          },
+          {
+            "mcu": "aux",
+            "name": "i2c_transfer",
+            "elapsedMs": 2.2627810249105096
+          },
+          {
+            "mcu": "aux",
+            "name": "i2c_transfer",
+            "elapsedMs": 102.72432502824813
+          },
+          {
+            "mcu": "aux",
+            "name": "i2c_transfer",
+            "elapsedMs": 213.2349939784035
+          }
+        ]
+      },
+      "group": {
+        "state": "stopped",
+        "fault": {
+          "name": "Error",
+          "message": "Controlled MCU stop during AHT sample",
+          "cause": null
+        },
+        "stopError": null
+      },
+      "clocks": [
+        {
+          "mcu": "mcu",
+          "state": "stopped",
+          "fault": null,
+          "stopError": null,
+          "inFlight": false,
+          "active": false
+        },
+        {
+          "mcu": "aux",
+          "state": "stopped",
+          "fault": null,
+          "stopError": null,
+          "inFlight": false,
+          "active": false
+        }
+      ],
+      "originalCIFaultCaptured": false
+    }
+  ],
+  "unchanged": {
+    "production": true,
+    "dependencies": true,
+    "priorRescanProduct": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-rescan-final-product-bundle",
+      "manifestSha256": "b32fb781b7d1486cdec72044e2e2dfb4506f55fa6ea0cd0fc163a92ef77630c6",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "native": "借用已验收 C，未重新构建。",
+    "performance": "本批只改变测试观测与受控用例；先前生产及性能证据按原指纹和原范围保留，没有重跑或新增预算通过声明。",
+    "limits": [
+      "原AHT采样及36秒保护",
+      "原4300毫秒PWM续期和所有旧断言",
+      "时钟陈旧截止、运动精度及真实停止门槛"
+    ]
+  },
+  "failures": [
+    {
+      "file": "anyraid-aht-stop-control-first.log",
+      "cause": "诊断在停止后调用已封锁的 group.session；改为创建时借用的只读时钟状态，不放宽设备准入。"
+    },
+    {
+      "file": "anyraid-aht-stop-driver-build-first.log",
+      "cause": "临时配置无法定位Node类型，补明确typeRoots并使用新的编译驱动目录。"
+    }
+  ],
+  "pending": [
+    "新头完整CI与正常集成",
+    "原AHT首次CI触发条件及真实首次原因",
+    "同包客户端、目标预算、Cycnumbris 500配置与实机验收",
+    "G3和全部Python退役"
+  ],
+  "evidence": {
+    "path": "aht-stop-boundary-evidence.json.gz",
+    "entries": 31,
+    "bytes": 159586,
+    "sha256": "33c8a4ba1b64917142f7210b95d54f24d05d843724442f30afe430266b75a276",
+    "secrets": 0
+  },
+  "node": {
+    "version": "v26.10.0",
+    "sha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da"
+  }
+}
