@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "sourceBase": "53ea9db9",
+  "developVerified": "d8d41e0ee56c37f6e7236c0de3b7223df38333a6",
+  "state": "Draft: mixed printing gate failed; not integrated or released",
+  "node": "v26.10.0",
+  "nodeExecutableSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+  "scope": "Explicit process-owned Linux UFP inbox through existing PublishedPrintFiles and NativePrintUploads. No automatic printing or motion-math change.",
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-disk-ledger-fixed-product-bundle",
+    "manifestSha256": "2cd9660290bcdb75f1b6f53b2ba4be0f5b3fe180eb2e17fa1d7e8d4295610ad2",
+    "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+  },
+  "native": {
+    "file-events.node": {
+      "sha256": "0c0c6bf4d8702b37514da7c0a3b524682c666830fcafabac50d249c18cdd802c",
+      "bytes": 26456,
+      "regular": true,
+      "symlink": false
+    },
+    "file-write-lease": {
+      "sha256": "38fe07785a44103e1ef1a69412d6a8a93822df3e2373c702f6f1b92522de7355",
+      "bytes": 16912,
+      "regular": true,
+      "symlink": false
+    }
+  },
+  "dependencyChanges": false,
+  "ownership": {
+    "serviceUidAndPrivateDirectories": true,
+    "canonicalSeparationFromFileAndMetadataStores": true,
+    "localPolicyExplicit": true,
+    "independentReadLeaseHelper": true,
+    "readLeaseDeadlineMs": 30000,
+    "noQuietTimeFallback": true,
+    "sourceDescriptorBorrowed": true,
+    "identityBoundBeforeAndAfterClaim": true,
+    "replaySameClaimId": true,
+    "fullModelAndPngVerifiedBeforeCleanup": true,
+    "cleanupReauthorizesCurrentPolicy": true,
+    "selfContainedDecisionSurvivesPartialCleanup": true,
+    "signalBreakWait": "SIGIO blocked outside ppoll; atomically unblocked during wait",
+    "cleanupAttemptsAllOwnedDescriptorsAndPreservesPrimary": true
+  },
+  "capacity": {
+    "pendingBatch": 256,
+    "maxDirectories": 1024,
+    "maxScanEntries": 16384,
+    "defaultClaims": 32,
+    "defaultClaimBytes": 268435456,
+    "configurationMaxClaims": 128,
+    "configurationMaxClaimBytes": 1073741824,
+    "maxArchiveBytes": 67108864
+  },
+  "validation": {
+    "initialAsan": {
+      "pass": 15,
+      "total": 21,
+      "failure": "Lease helper timeout with repeated pre-main ASAN DEADLYSIGNAL; two test fixtures could leak source FD when acquisition failed"
+    },
+    "startupWitness": {
+      "pie": {
+        "pass": 24,
+        "total": 32,
+        "failedBeforeMain": 8
+      },
+      "nonpie": {
+        "pass": 32,
+        "total": 32
+      },
+      "change": "Only Linux ASAN standalone helper linked -fno-pie -no-pie; address,undefined and fail-fast retained; production layout unchanged",
+      "deeperAddressLayoutMechanism": "not proven"
+    },
+    "sanitizedCorrected": {
+      "ubsan": {
+        "pass": 22,
+        "total": 22
+      },
+      "asan": {
+        "pass": 22,
+        "total": 22,
+        "processWideLeakAccounting": false
+      },
+      "laterAddedCorruptPreviewControl": {
+        "ubsan": {
+          "pass": 1,
+          "total": 1
+        },
+        "asan": {
+          "pass": 1,
+          "total": 1
+        }
+      }
+    },
+    "sourceProcessFactory": {
+      "pass": 1,
+      "total": 1,
+      "isolatedSoftwareDevices": 2,
+      "sameProcessFiles": true
+    },
+    "compiled": {
+      "pass": 136,
+      "total": 136,
+      "actualProductClasses": true,
+      "independentlyInstalledProductionDependencies": true,
+      "sourceJsFilesCompared": 635,
+      "tsLoadingDisabled": true
+    },
+    "actualSigkill": [
+      "claimed",
+      "decided"
+    ],
+    "firstSandboxProductAttempt": "EPERM for test Unix socket; actual authorized isolated test subsequently passed",
+    "firstSanitizedBuiltAttempt": "Incorrect path to nonexistent sealed-file sanitizer; built private matching addons then ran corrected chain",
+    "type": "passed",
+    "whitespace": {
+      "required": "passed",
+      "explicitNativeAcceptanceAndJson": "passed",
+      "diffCheck": "passed"
+    }
+  },
+  "printing": {
+    "first": {
+      "pass": 0,
+      "total": 1,
+      "log": "logs/anyraid-disk-ledger-fixed-mixed.log",
+      "firstObservedFault": "Undici ERR_INVALID_STATE with upload request identity and aborted signal; earlier workload cause missing",
+      "newHarnessIssue": "Original inbox path missing could mean claimed, not published"
+    },
+    "corrected": {
+      "pass": 0,
+      "total": 1,
+      "log": "logs/anyraid-disk-ledger-boundary-mixed.log",
+      "productUnchanged": true,
+      "harnessChange": "Wait for visible metadata plus empty claim ledger; record first workload error before cancelling peers",
+      "firstFailure": "Recursive cleanup must complete during each printing generation: actual completed, expected printing",
+      "generation": 1
+    },
+    "originalBudgetsRetained": {
+      "harnessMs": 90000,
+      "outerMs": 180000,
+      "originalMovements": 1000,
+      "softwareMcus": 2,
+      "plannedDeviceGenerations": 2,
+      "stepLeadLoopStopAndPrecisionAssertions": true
+    },
+    "additionalLoad": "8 real inbox imports per generation plus original large-UFP HTTP workload and metadata rescan",
+    "nonRegression": "not accepted",
+    "historicalLargeUploadFailure": "still open; new observations do not prove its first cause"
+  },
+  "quietAbba": {
+    "order": [
+      "A1",
+      "B1",
+      "B2",
+      "A2"
+    ],
+    "input": {
+      "path": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+      "archiveBytes": 1348823,
+      "archiveSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+      "modelBytes": 262144,
+      "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+      "pngBytes": 1347830,
+      "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590"
+    },
+    "descriptor": {
+      "n": 32,
+      "medianMs": 64.52420600000005,
+      "p95Ms": 72.990092,
+      "loopP99Ms": [
+        1.889279,
+        1.882111
+      ]
+    },
+    "disk": {
+      "n": 32,
+      "medianMs": 123.71775400000001,
+      "p95Ms": 132.202632,
+      "loopP99Ms": [
+        2.025471,
+        1.986559
+      ]
+    },
+    "firstWarmupRetained": true,
+    "rawSamples": "logs/anyraid-disk-ledger-perf-unique-abba.json",
+    "scope": "Sequential desktop end-to-end: input write, publication, full pair verification, raw input cleanup; disk adds discovery, read lease and durable claim ledger. No printing in this quiet phase.",
+    "increaseMedianPercent": 91.73851438016906,
+    "increaseP95Percent": 81.12407914213888,
+    "notTargetBoardOrPrintingAcceptance": true,
+    "phaseDiagnostic": "logs/anyraid-disk-ledger-perf-phases.json",
+    "initialBenchmarkFailure": "Repeated filename required absent print owner for replacement; corrected measurement uses unique input paths for both arms, retained failed attempt"
+  },
+  "next": "Locate and improve background disk/foreground file transaction competition without weakening crash durability, original load, precision or deadlines; then validate changed candidate.",
+  "open": [
+    "Own exact-head CI and normal develop integration",
+    "Consumer quarantine/retry controls and full client same-bundle acceptance",
+    "Arbitrary legacy MetadataFiles raw UFP namespace parity",
+    "Cycnumbris 500 target filesystem/CPU/printing and motion precision",
+    "G3 BigInt ULP mismatch 220614 at index4897",
+    "177 klippy Python files and default Python entry retirement",
+    "Normal master PR and authorized release"
+  ],
+  "evidence": {
+    "path": "native-ufp-disk-ledger-acceptance.evidence.json.gz",
+    "bytes": 232225,
+    "sha256": "205eecff243c99b923920fcbbb0e5aec3da73d11813a2ca2002eb35349485a6e",
+    "entries": 49
+  }
+}

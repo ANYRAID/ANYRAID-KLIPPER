@@ -65,6 +65,7 @@ export class NativePrintUploads {
  async rootInfo(signal:AbortSignal):Promise<Json>{return {name:'gcodes',path:await this.#files.directoryPath(signal),permissions:'rw'};}
  filename(fileId:string):string{if(!validId(fileId))throw new ApiError(400,'Invalid native file ID');return this.#files.filename(fileId);}
  usesGate(gate:MaintenanceGate):boolean{return gate===this.#gate;}
+ usesFiles(files:PublishedPrintFiles):boolean{return files===this.#files;}
  acceptsController(controller:PrintController):boolean{return controller instanceof PrintController&&controller.usesMaintenanceGate(this.#gate)&&(!this.#print||this.#print===controller);}
  bindPrintController(controller:PrintController,api?:ProductPrintApi):void{if(!this.acceptsController(controller)||api&&(!(api instanceof ProductPrintApi)||!api.usesController(controller)))throw new Error('Invalid native file print owner');this.#print=controller;this.#printApi=api;}
  bindOfflineFileMutations(owner:NativeOfflineFileMutations):void{
