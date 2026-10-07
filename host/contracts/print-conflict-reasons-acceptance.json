@@ -422,5 +422,364 @@
     "klippyPythonFilesRemaining": 177,
     "pythonDefaultChanged": false,
     "fullGoalComplete": false
+<<<<<<< HEAD
+=======
+  },
+  "normalDevelopIntegration": {
+    "date": "2026-10-07",
+    "oldHead": "95bc8761fd0d52b721d28a79503e47fb26936809",
+    "base": "6ff1a391f4a1b4ba9cc8360a0a326da6a7fd695e",
+    "originalExactHeadCi": {
+      "host": {
+        "runId": 37511175648,
+        "jobId": 112432402905,
+        "status": "completed",
+        "conclusion": "success",
+        "ordinary": "success",
+        "protocol": "success",
+        "sanitizer": "success",
+        "linuxMcu": "success"
+      },
+      "firmware": {
+        "runId": 37511175570,
+        "jobId": 112432407017,
+        "status": "completed",
+        "conclusion": "success"
+      }
+    },
+    "conflictResolution": "Keep both appended evidence sections; current execution table records newly verified state. Normal merge without overwrite or force push.",
+    "validation": {
+      "tests": 31,
+      "failed": 0,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-reasons-develop6ff-regressions-20261007.log",
+        "sha256": "b7729cc12f6282a02b30a0068aedaf0f162b9123f033dd4fa5b84f8dcba6aab3"
+      },
+      "types": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons-6ff-typecheck-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "whitespace": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons-6ff-whitespace-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fullCi": "new exact head required; not yet passed"
+    },
+    "preservedSources": [
+      {
+        "path": "host/src/operations/maintenance-gate.ts",
+        "sha256": "f7df9634dc7f2a87fd1971786d933aed1907c99bde26955c33e947761e8bb9c3"
+      },
+      {
+        "path": "host/src/moonraker/product-print-api.ts",
+        "sha256": "b59e5f9221db8591591e10b33bf4527201df11acf9fa5dcf549abc93625e22e3"
+      },
+      {
+        "path": "host/test/product-print-conflict-reasons.test.ts",
+        "sha256": "78dadf01e132e1d9b24301a5c377d6b37f514c5f5f3fd522de8be246bb7f0919"
+      },
+      {
+        "path": "host/bench/maintenance-gate.ts",
+        "sha256": "942e442bd86d644535f65db85764536cd3998708284e210d70e99913a10ee715"
+      },
+      {
+        "path": "host/bench/product-print-api.ts",
+        "sha256": "edc56320e03c36c2cd72b3e9b7559637503811266ca7b273c6b55fe1033b1c74"
+      }
+    ],
+    "performance": "Original reasons implementation, original benchmark source/load unchanged; retain original scoped paired measurements. Develop preview integration has separate PR21 original mixed performance evidence. No new statistical/target performance claim.",
+    "boundary": "No PR20 preparation-pause source absorbed; old843 package remains prior version; new exact head full CI and normal merge still required."
+  },
+  "currentHeadSanitizerFailure": {
+    "date": "2026-10-07",
+    "head": "5755b1d8a687bdfa2b701e2e875409e01c9c3170",
+    "workflow": 37516737798,
+    "job": 112451468715,
+    "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37516737798",
+    "ordinaryTests": "success",
+    "protocol": "success",
+    "sanitizer": "failure",
+    "linuxMcu": "skipped",
+    "test": "configured quad gantry HTTP calibration owns probe, motor adjustment and duplicate receipts",
+    "source": "host/test/product-service.test.ts:244",
+    "expectedHttp": 200,
+    "actualHttp": 409,
+    "message": "Probe requires an idle homed printer",
+    "fileTests": {
+      "pass": 18,
+      "fail": 1,
+      "durationMs": 24896.947859
+    },
+    "sanitizedCommand": {
+      "deadlineMs": 60000,
+      "elapsedMs": 24971.131984000094,
+      "status": 1,
+      "signal": null
+    },
+    "logExcerpt": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-pr22-current-sanitizer-failure-20261007.log",
+      "sha256": "ada8abd0b957c20cb2ba41270bca6538d2a9c7c26d47efede592d9b0a6e5f8a7"
+    },
+    "rootCause": "尚未定位。实际断言为准入拒绝，不能直接归因于本批原因分类，也不是已证实的 sanitizer 内存错误。",
+    "decision": "保持草稿，不合并、不重启原检查、不放宽运动/准入/精度/期限。下一次单次只读观测区分控制器、硬件、homed 和端口状态；不改变原请求或重试求通过。",
+    "originalMixedFailuresAndG3Closed": false,
+    "phase": "AddressSanitizer; original seven --address addons, confirmed from workflow logs",
+    "localBoundedObservation": {
+      "originalSourceSha256": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc",
+      "firstHarnessLaunch": {
+        "outcome": "ERR_MODULE_NOT_FOUND for ./helpers/configured-printer.ts in temporary copy; no original product tests executed",
+        "artifact": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr22-asan-admission-observation-20261007.log",
+          "sha256": "dd79feefb9ff687465baf61fc53fa71f2e88df8556856f8885dc51d2c9797a2b"
+        }
+      },
+      "correctedLaunch": {
+        "scope": "Absolute parent imports fixed; reuse the seven unchanged ASAN builds; one complete original file, unchanged 19 tests, inputs, requests, callbacks and assertions; read-only original getter observation only",
+        "tests": 19,
+        "pass": 19,
+        "fail": 0,
+        "durationMs": 26788.538242,
+        "elapsedMs": 26834.179380999998,
+        "deadlineMs": 60000,
+        "status": 0,
+        "signal": null,
+        "artifact": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr22-asan-admission-observation-import-fixed-20261007.log",
+          "sha256": "44d8876e6d24190b48144093c09174ccca0857ce52685dd1a349026fed10b26e"
+        },
+        "quadAdmissionObservation": {
+          "before": {
+            "elapsedMs": 20072.814641,
+            "controller": "idle",
+            "pendingDeviceActions": 0,
+            "safeStopPending": false,
+            "hardware": "ready",
+            "homed": "xyz",
+            "busy": false,
+            "phase": "idle",
+            "pendingMoves": 0,
+            "failed": false
+          },
+          "after": {
+            "elapsedMs": 22135.487492,
+            "controller": "idle",
+            "pendingDeviceActions": 0,
+            "safeStopPending": false,
+            "hardware": "ready",
+            "homed": "xyz",
+            "busy": false,
+            "phase": "idle",
+            "pendingMoves": 0,
+            "failed": false
+          },
+          "status": 200,
+          "receipt": {
+            "result": {
+              "state_token": "df9af10e-8295-46ab-8a0a-0c81123f43ec",
+              "state": "ready",
+              "available": true,
+              "result": {
+                "passes": 1,
+                "samples": [
+                  [
+                    50,
+                    0,
+                    0.775
+                  ],
+                  [
+                    50,
+                    0.01,
+                    0.775
+                  ],
+                  [
+                    50.01,
+                    0.01,
+                    0.775
+                  ],
+                  [
+                    50.01,
+                    0,
+                    0.775
+                  ]
+                ],
+                "measured_range": 0,
+                "tolerance_satisfied": true,
+                "adjustments": [
+                  {
+                    "id": "z",
+                    "adjustment": 0
+                  },
+                  {
+                    "id": "z1",
+                    "adjustment": 0
+                  },
+                  {
+                    "id": "z2",
+                    "adjustment": 0
+                  },
+                  {
+                    "id": "z3",
+                    "adjustment": 0
+                  }
+                ],
+                "final_z": 1,
+                "persisted": false
+              }
+            }
+          },
+          "observedCalls": 4,
+          "observations": [
+            {
+              "elapsedMs": 20074.006276,
+              "controller": "idle",
+              "pendingDeviceActions": 0,
+              "safeStopPending": false,
+              "hardware": "ready",
+              "homed": "xyz",
+              "busy": false,
+              "phase": "idle",
+              "pendingMoves": 0,
+              "failed": false
+            },
+            {
+              "elapsedMs": 20074.018806,
+              "controller": "idle",
+              "pendingDeviceActions": 0,
+              "safeStopPending": false,
+              "hardware": "ready",
+              "homed": "xyz",
+              "busy": false,
+              "phase": "idle",
+              "pendingMoves": 0,
+              "failed": false
+            },
+            {
+              "elapsedMs": 22134.845454,
+              "controller": "idle",
+              "pendingDeviceActions": 0,
+              "safeStopPending": false,
+              "hardware": "ready",
+              "homed": "xyz",
+              "busy": false,
+              "phase": "idle",
+              "pendingMoves": 0,
+              "failed": false
+            },
+            {
+              "elapsedMs": 22134.857664,
+              "controller": "idle",
+              "pendingDeviceActions": 0,
+              "safeStopPending": false,
+              "hardware": "ready",
+              "homed": "xyz",
+              "busy": false,
+              "phase": "idle",
+              "pendingMoves": 0,
+              "failed": false
+            }
+          ],
+          "originalRequestCount": 1,
+          "readOnlyGetter": true,
+          "sourceSha256": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc"
+        }
+      },
+      "decision": "Original remote refusal not reproduced. No root-cause closure, no retry to find green, no admission bypass, and no CI rerun. Preserve original remote failure and freeze current head while original firmware job remains running."
+    }
+  },
+  "latestAcceptedBaseline": {
+    "head": "8dd55f9fde3d570542787173c32a66012bb08d51",
+    "normalMerge": true,
+    "productionConflicts": 0,
+    "local": {
+      "pass": 108,
+      "fail": 0,
+      "durationMs": 23615.337128,
+      "typecheck": "success",
+      "sourceWhitespace": "success",
+      "originalInputsDeadlinesAndPrecision": true
+    },
+    "scope": "Stable MaintenanceBusyError reason in shared call path only; original65k limit, authorization, stop, token and durable admission retained. Added accepted upload path and accepted calibration test barrier inherited from develop. Old failure and finite observation retained; new head full CI still pending.",
+    "source": {
+      "host/src/moonraker/product-print-api.ts": "cfd8e296cb099c1e469093967a59fbaa15ad9da7154f5147393002b5143c0f83",
+      "host/src/operations/maintenance-gate.ts": "f7df9634dc7f2a87fd1971786d933aed1907c99bde26955c33e947761e8bb9c3"
+    },
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-reasons-merged-native-build-20261007.log",
+        "sha256": "120d19bb93a4f02ca626339e5f927b73602121973a6ddde7fc729fb1edd1aa97"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-reasons-merged-source-20261007.log",
+        "sha256": "35820cf70196a1cb6af15f08ea0e4312872c4ada1732174876a72142d97be529"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-reasons-merged-typecheck-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "gatewayAcceptedDevelopIntegration": {
+    "date": "2026-10-07",
+    "baselineHead": "a863dc23e3266c3b1e74bba1d53964ee9dd39162",
+    "acceptedGateway": {
+      "pr": 23,
+      "head": "e67ccb8ab5993fa2e178d2126c129acbdaab0c88",
+      "host": 37540786185,
+      "firmware": 37540786109,
+      "allRequiredSteps": "success",
+      "merge": "a863dc23e3266c3b1e74bba1d53964ee9dd39162",
+      "postMerge": {
+        "host": 37585785093,
+        "firmware": 37585785193,
+        "status": "in_progress"
+      }
+    },
+    "previousExactHead": {
+      "head": "001a9ed09061a55592fe122a5f19bdf87a5a9418",
+      "host": 37539085518,
+      "firmware": 37539085558,
+      "status": "completed",
+      "conclusion": "success",
+      "allRequiredSteps": "success"
+    },
+    "conflicts": [
+      "CHANGELOG.md",
+      "docs/Node_Host_Delivery_Plan.md"
+    ],
+    "resolution": "Preserve both histories; label prior plan rows historical and add verified current state",
+    "validation": {
+      "pass": 29,
+      "fail": 0,
+      "durationMs": 10039.30303,
+      "typecheck": "success",
+      "sourceWhitespace": "success",
+      "logs": [
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-reasons-gateway-sync-20261007.log",
+          "sha256": "0e5be78adf466fe4da9632013bd9196361d18f3c3031124537f7d574871bd9b7"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons-gateway-sync-typecheck-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons-gateway-sync-whitespace-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "compiled": "Original independent compiled gateway 8 protocol/resource assertions with TS disabled; overlap with source is not added"
+    },
+    "performance": {
+      "productionSourceUnchanged": true,
+      "fingerprints": {
+        "host/src/moonraker/product-print-api.ts": "cfd8e296cb099c1e469093967a59fbaa15ad9da7154f5147393002b5143c0f83",
+        "host/src/operations/maintenance-gate.ts": "f7df9634dc7f2a87fd1971786d933aed1907c99bde26955c33e947761e8bb9c3"
+      },
+      "evidenceReuse": "Prior paired benchmarks retained only for their original source/environment/scope; no new speed or target-board claim"
+    },
+    "newExactHeadCi": "pending",
+    "normalIntegration": "pending",
+    "scope": "Full same-package clients, original mixed failures, G3, physical current-series, all177 klippy Python files and default switch remain open"
+>>>>>>> 2af0b5fd0d009cf710c667649ceef7d6a233e30f
   }
 }
