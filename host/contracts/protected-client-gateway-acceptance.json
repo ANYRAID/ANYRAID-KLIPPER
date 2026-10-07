@@ -1,0 +1,768 @@
+{
+  "schema": 1,
+  "date": "2026-10-07",
+  "status": "本机受保护官方 Mainsail 用户路径候选；尚未正常集成或发布",
+  "baseDevelop": "6ff1a391f4a1b4ba9cc8360a0a326da6a7fd695e",
+  "node": {
+    "version": "v26.10.0",
+    "sha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da"
+  },
+  "sources": {
+    "host/src/runtime/product-client-gateway.ts": "57f6dfad3ef54cd6f2faec49a2360b80fa36292155b483f09a7890e4ab6ad602",
+    "host/src/runtime/product-client-assets.ts": "f74de19917ce25bca8b5564cd1db74a8c0bdd08907469b771259602434e1fad3",
+    "scripts/product-client.ts": "83575e97c395cc1eb207b3e82359a34e03a9ff99aa6070fdb34710b277c873d4",
+    "host/scripts/build-product-host.ts": "446830181fa89106a5a847ec64d6ab4f1b1da037e7f2c8cf39ad1c38f856a9a2",
+    "host/tsconfig.product-host.json": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e",
+    "host/test/product-client-gateway.test.ts": "12fe2bd9e0b60905693df50e2e60ad24a1df7ebdebcda315c65c5c8ce1e5b762",
+    "host/test/product-client-assets.test.ts": "02068256cfbeaf78fc88f78b9f7aba082f446ebab7486f61d3e9904857db25a9",
+    "host/test/product-client-gateway-compiled.test.ts": "199552b059d1ea9637380c74250dcf351476c1302e0c33fa2e874bde5d9151ed",
+    "host/bench/product-client-gateway.ts": "7ff176547eaeac1610483417f97b57a79940dc5667a078a2550eb45b75fe8fb3"
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-router-bundle",
+    "manifestSha256": "9a1216e4c21df6ca7d9ad88610ab2773310fcb4d813699d57f70289a02b73c8e",
+    "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+  },
+  "frontend": {
+    "name": "Mainsail",
+    "version": "2.19.0",
+    "sourceCommit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
+    "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
+    "files": 193,
+    "installedInventorySha256": "94427bf25c47bc445cdc4c354800741acaa99e1741546b1c708935548be5f691",
+    "indexSha256": "67901d36d7cd98b20e4daf40469f23f0aec75063fada5cecfdc19c21b0f7bab8",
+    "officialWorkerSha256": "26d62fd40bb2ee5dbbeeff42c52560c21608da65b8a4353d1647ad574d068d64",
+    "behavior": "官方 index/JS/CSS/worker 原字节保持；产品网关包装根 worker 网络边界，登录壳在 /_client/control，官方 iframe 位于 /。"
+  },
+  "authorization": {
+    "forceLogins": true,
+    "trustedLoopback": false,
+    "sharedApiIdentity": false,
+    "opaqueHttpOnlySameSiteStrictCookie": true,
+    "loopbackHttpExplicit": true,
+    "httpsSecureCookieImplemented": true,
+    "httpsTlsActualAcceptance": false,
+    "nativeAccountAuthority": true
+  },
+  "checks": {
+    "sourceRegressions": {
+      "passed": 18,
+      "scope": "7 网关、1 静态资源、3 本地 JWT、3 授权策略、4 身份；与后续重叠不相加"
+    },
+    "currentSourceAndPinnedCompiled": {
+      "parentPassed": 9,
+      "compiledChildPassed": 8,
+      "durationMs": 1915.600721,
+      "exitCode": 0,
+      "childTypeScriptDisabled": true,
+      "childPath": "/no-programs",
+      "independentProductionDependencies": 14
+    },
+    "types": {
+      "exitCode": 0
+    },
+    "whitespace": {
+      "exitCode": 0
+    },
+    "shutdown": {
+      "browser": 0,
+      "gateway": 0,
+      "nativeFixture": 0,
+      "bundleExitIdentityVerified": true
+    }
+  },
+  "actualPage": {
+    "browser": "153.0.8010.36",
+    "playwright": "1.62.1",
+    "transport": "当前固定编译产品 CLI 与原生产品子进程；双 PTY 模拟 MCU 仅父进程，原十五分钟期限",
+    "nativeProcessGenerations": 1,
+    "deviceGenerations": 2,
+    "firmwareReadyCounts": [
+      {
+        "resets": [
+          0,
+          0
+        ],
+        "configurations": [
+          1,
+          1
+        ]
+      },
+      {
+        "resets": [
+          1,
+          1
+        ],
+        "configurations": [
+          2,
+          2
+        ]
+      }
+    ],
+    "verified": [
+      "初始错误密码得到真实 401 和中文提示；该项修复前包记录，非当前包独立页面重跑",
+      "未登录 /_client/control 303 到登录页；实际原生账号登录，官方初始化 identify 不含凭据参数，网关代理同一用户 JWT",
+      "完整 Dashboard；桌面和手机产品登录布局实际查看",
+      "实际 chooser 上传中文及百分号文件；POST 200，元数据及 32×32 缩略图浏览器实际解码",
+      "页面 Download 保存文件，20123 字节，SHA-256 与输入相同",
+      "页面显式 Print：短文件 Complete，1 mm 挤出，10 秒打印，历史 completed",
+      "第二份长文件实际 chooser 上传并显式打印；观察 Printing 后按钮暂停，页面 Paused，刷新重新订阅后仍 Paused",
+      "退出 DELETE 200、Cookie 空；已激活根 Service Worker 下 API GET 401 和控制台 GET 303，登录页为真实网络页面",
+      "再次登录恢复既有 Paused；显式恢复后 Printing，显式再次暂停后取消；历史 cancelled，设备 Shutdown 未隐藏",
+      "原生 host/status busy=false 后页面显式 Firmware Restart；第二代 Standby，耐久回执 succeeded、busy=false，固件计数如上",
+      "恢复后显式打印同一页面上传的短文件至 Complete，最终历史 3 项（2 completed、1 cancelled），不重放作业"
+    ],
+    "uploads": [
+      {
+        "filename": "整合验收 50%.gcode",
+        "bytes": 20123,
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "chooserMs": 39.84173300000111,
+        "downloadSha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8"
+      },
+      {
+        "filename": "控制验收 50%.gcode",
+        "bytes": 19123,
+        "sha256": "9a646413042182038bedf6746e8f6a8d074029bebaf7b4c338164fdaac8473c2",
+        "chooserMs": 47.74361799999315
+      }
+    ],
+    "apiSeededClientSampleExcluded": true,
+    "screenshots": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-login-desktop-20261007.png",
+        "sha256": "778aca70af12649cdc54e1d8318f75a286f5abd5871290074365e592da4a671b"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-login-mobile-20261007.png",
+        "sha256": "67e177467855f59d2a1fccd9ba3cc70d37c0c22e7514c01d061bac9eadb14e3e"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-mainsail-ready-20261007.png",
+        "sha256": "1204232827312b2784492438d4d5cd9186c325ae35b91ebb7009e9927728ac6f"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-router-dashboard-20261007.png",
+        "sha256": "eefd8cddf50bb5bb4ef8e76caf3059643674286cec84443096cf993e038e0c39"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-router-history-final-20261007.png",
+        "sha256": "28a3319bd0ee8d6a3be347cd0c06c7a51d4f7be0d3bf412d0eaa2e94b1bceea4"
+      }
+    ]
+  },
+  "performance": {
+    "node": "v26.10.0",
+    "perSample": {
+      "rest": 200,
+      "http": 200,
+      "websocket": 500,
+      "concurrent": 320,
+      "concurrency": 16
+    },
+    "warmups": 3,
+    "samples": 11,
+    "results": [
+      {
+        "target": "native-jwt",
+        "samples": {
+          "rest": {
+            "rawMs": [
+              36.20390099999997,
+              36.83359900000005,
+              38.24730199999999,
+              35.372102999999925,
+              35.20242099999996,
+              35.34218200000009,
+              37.57979599999999,
+              37.17792200000008,
+              34.523573999999826,
+              34.64694500000019,
+              34.587085000000116
+            ],
+            "count": 11,
+            "medianMs": 35.372102999999925,
+            "p95Ms": 38.24730199999999,
+            "p99Ms": 38.24730199999999,
+            "maxMs": 38.24730199999999
+          },
+          "http": {
+            "rawMs": [
+              31.99804800000004,
+              30.864486000000056,
+              33.27672200000006,
+              30.78028500000005,
+              39.27189300000009,
+              31.809136999999964,
+              30.53345400000012,
+              30.168049999999994,
+              29.98048800000015,
+              30.04174899999998,
+              31.718705999999884
+            ],
+            "count": 11,
+            "medianMs": 30.864486000000056,
+            "p95Ms": 39.27189300000009,
+            "p99Ms": 39.27189300000009,
+            "maxMs": 39.27189300000009
+          },
+          "websocket": {
+            "rawMs": [
+              27.232299000000012,
+              30.51173300000005,
+              30.612253999999893,
+              27.61222399999997,
+              26.967787000000044,
+              25.829745000000003,
+              25.685703000000103,
+              23.89690500000006,
+              24.52449200000001,
+              24.479871000000003,
+              22.671492999999828
+            ],
+            "count": 11,
+            "medianMs": 25.829745000000003,
+            "p95Ms": 30.612253999999893,
+            "p99Ms": 30.612253999999893,
+            "maxMs": 30.612253999999893
+          },
+          "concurrent": {
+            "rawMs": [
+              7.985672000000022,
+              9.865282000000207,
+              12.3151170000001,
+              8.070312999999942,
+              8.035682999999835,
+              7.995932000000039,
+              7.886001000000078,
+              9.031343000000106,
+              7.179844000000003,
+              6.932941000000028,
+              6.663107999999966
+            ],
+            "count": 11,
+            "medianMs": 7.995932000000039,
+            "p95Ms": 12.3151170000001,
+            "p99Ms": 12.3151170000001,
+            "maxMs": 12.3151170000001
+          }
+        },
+        "requests": {
+          "rest": {
+            "count": 2200,
+            "medianMs": 0.1725020000000086,
+            "p95Ms": 0.19273200000020552,
+            "p99Ms": 0.22126200000002427,
+            "maxMs": 2.41633499999989
+          },
+          "http": {
+            "count": 2200,
+            "medianMs": 0.1496309999999994,
+            "p95Ms": 0.1737719999998717,
+            "p99Ms": 0.227692000000161,
+            "maxMs": 3.88550999999984
+          },
+          "websocket": {
+            "count": 5500,
+            "medianMs": 0.04997000000003027,
+            "p95Ms": 0.06351100000006227,
+            "p99Ms": 0.0816300000000183,
+            "maxMs": 2.1307819999999538
+          },
+          "concurrent": {
+            "count": 220,
+            "medianMs": 0.388054000000011,
+            "p95Ms": 0.5310759999999846,
+            "p99Ms": 0.7570180000000164,
+            "maxMs": 2.949669999999969
+          }
+        },
+        "eventLoop": {
+          "p99Ms": 1.480703,
+          "maxMs": 4.767743
+        },
+        "cpu": {
+          "user": 1655120,
+          "system": 239282
+        },
+        "rss": 220815360
+      },
+      {
+        "target": "protected-gateway",
+        "samples": {
+          "rest": {
+            "rawMs": [
+              80.19859300000007,
+              79.93786099999988,
+              76.553406,
+              77.48472600000014,
+              77.38434599999982,
+              75.61289699999998,
+              76.82911000000013,
+              78.03252199999997,
+              77.47496599999977,
+              77.70381799999996,
+              77.12952200000018
+            ],
+            "count": 11,
+            "medianMs": 77.47496599999977,
+            "p95Ms": 80.19859300000007,
+            "p99Ms": 80.19859300000007,
+            "maxMs": 80.19859300000007
+          },
+          "http": {
+            "rawMs": [
+              77.55226700000003,
+              75.9399599999997,
+              75.27745300000015,
+              75.4861050000004,
+              74.98498000000018,
+              75.31104400000004,
+              75.82443899999998,
+              73.85804899999948,
+              76.25152300000082,
+              75.83464000000004,
+              75.35727499999939
+            ],
+            "count": 11,
+            "medianMs": 75.4861050000004,
+            "p95Ms": 77.55226700000003,
+            "p99Ms": 77.55226700000003,
+            "maxMs": 77.55226700000003
+          },
+          "websocket": {
+            "rawMs": [
+              38.786777999999686,
+              38.51003499999979,
+              36.03794999999991,
+              33.0640199999998,
+              32.051258999999845,
+              33.29274200000009,
+              31.743395999999848,
+              31.745766000000003,
+              33.382172999999966,
+              31.749165999999605,
+              31.478833000000122
+            ],
+            "count": 11,
+            "medianMs": 33.0640199999998,
+            "p95Ms": 38.786777999999686,
+            "p99Ms": 38.786777999999686,
+            "maxMs": 38.786777999999686
+          },
+          "concurrent": {
+            "rawMs": [
+              11.649199999999837,
+              13.286167000000205,
+              9.623829000000114,
+              9.401206000000002,
+              11.013052999999672,
+              9.708648999999696,
+              9.39036599999963,
+              26.46628200000032,
+              9.891131999999743,
+              9.71429999999964,
+              9.161493999999948
+            ],
+            "count": 11,
+            "medianMs": 9.71429999999964,
+            "p95Ms": 26.46628200000032,
+            "p99Ms": 26.46628200000032,
+            "maxMs": 26.46628200000032
+          }
+        },
+        "requests": {
+          "rest": {
+            "count": 2200,
+            "medianMs": 0.3773040000005494,
+            "p95Ms": 0.4093840000000455,
+            "p99Ms": 0.5338059999999132,
+            "maxMs": 2.533346000000165
+          },
+          "http": {
+            "count": 2200,
+            "medianMs": 0.36558400000012625,
+            "p95Ms": 0.39832400000068446,
+            "p99Ms": 0.4748550000003888,
+            "maxMs": 2.7531990000002224
+          },
+          "websocket": {
+            "count": 5500,
+            "medianMs": 0.06309000000055676,
+            "p95Ms": 0.07897100000036517,
+            "p99Ms": 0.0947809999997844,
+            "maxMs": 1.7546179999999367
+          },
+          "concurrent": {
+            "count": 220,
+            "medianMs": 0.4727250000000822,
+            "p95Ms": 0.6889780000001338,
+            "p99Ms": 1.8458379999997305,
+            "maxMs": 12.846832000000177
+          }
+        },
+        "eventLoop": {
+          "p99Ms": 1.605631,
+          "maxMs": 12.443647
+        },
+        "cpu": {
+          "user": 3018994,
+          "system": 386902
+        },
+        "rss": 273952768
+      }
+    ],
+    "scope": "Sequential one-pair desktop comparison, same native account and handlers; actual HTTP/WS and bounded relay. Native server/gateway/client share this Node process with SQLite worker; production separate-process, mixed printing, TLS, target-board and statistical speed/zero-regression claims excluded. Original protocol benchmark has no timing pass threshold.",
+    "sourceSha256": "7ff176547eaeac1610483417f97b57a79940dc5667a078a2550eb45b75fe8fb3",
+    "binding": "源码必要网络对照在修复前执行；后续生产差异仅静态路由及非 API HTML 401 重定向条件，HTTP/WS 代理和原负载未改。测量不是当前编译包混合打印性能验收。"
+  },
+  "preservedFailures": [
+    {
+      "manifestSha256": "93d97a594ed9ce80d81f3017b1cc0db2caa272b3317b5f07ba9609c5873e3fd3",
+      "kind": "真实页面路由",
+      "observed": "原 /client/ 挂载官方根路由，导航加载但 main 空；修复为独立控制台壳与官方根路由，不宣称旧包页面通过"
+    },
+    {
+      "kind": "验收父进程",
+      "observed": "初始临时导入 ws 无法解析，产品未启动；仅改绝对父进程依赖路径"
+    },
+    {
+      "kind": "CLI 验收配置",
+      "observed": "首次错误猜测上游端口，无登录或设备动作；正常关闭后用当前实际监听值"
+    },
+    {
+      "kind": "页面工具",
+      "observed": "同名 cell strict violation；真实 DOM 后选 filename cell/row。Download 点击已关闭菜单超时，原驱动未捕获待下载 Promise 导致退出 1；保留日志，仅补驱动 catch，在同一包重建浏览器上下文继续；不扩大 10 秒期限或重试产品失败"
+    }
+  ],
+  "exclusions": [
+    "未包括 PR #19 CORS、#20 准备阶段暂停及 #22 冲突原因；这份包与此前 Fluidd 组合包不同",
+    "完整同包 Fluidd/Mainsail、当前新头完整远程 CI、正常集成和生产部署",
+    "准备阶段暂停、普通 RESTART、进程崩溃／重启、配置恢复、队列和系统维护全路径",
+    "HTTPS/TLS、目标板混合负载及物理运动／精度，G3 unresolved",
+    "177 个 klippy Python 文件与默认 Python 入口仍保留；完整退役和其他机型未完成"
+  ],
+  "rawEvidence": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-source-regressions-20261007.log",
+      "sha256": "1b1b38c1c02e51ac54c732c38dbde520b35bed2b1a167d994a16ef3e774626e4"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-original-network-load-20261007.log",
+      "sha256": "ac3147e2694fd7d1db348a1af38e69a6506b72d57833be1bbc6349ea38467250"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-router-build-20261007.log",
+      "sha256": "f7268557de0688fd5b5817dd46d5d48a025ff92f561bd6443d3207383e245f07"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-router-current-tests-20261007.log",
+      "sha256": "0ddc546ed21745d1cb16435e8b09eeda8c42099dfcca7bcda968a10393a0d337"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-router-types-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-router-whitespace-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-router-native-page-20261007.log",
+      "sha256": "5341feda0170cfffcc21286c18c3a2eba79249b33401bdaa33a3c7538c0270d6"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-router-cli-page-20261007.log",
+      "sha256": "868e963314fa6c6b07175b99b7c392b31aeb6d26dacdfaa561353ebafbef4eb3"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-router-actual-page-20261007.log",
+      "sha256": "6b89b1dd4d13ef60d356ae29908e4df0078c03da054768771939c9af3f188a5e"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-router-actual-page-driver-corrected-20261007.log",
+      "sha256": "d2aa9f396fa2cb7bb88cf81a58c7f2bdfed79ed1754b3fa2e50202dd28742c60"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-native-page-probe-20261007.log",
+      "sha256": "b015436c3e4a69a293c7b05ab6d605fa8c03f6c111cb748632af89dd9d3fcd45"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-cli-page-20261007.log",
+      "sha256": "bb145d54747bec867042e5f9475a81ea2d0d3b76f7dcc2d0fefaf8d013829590"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-native-page-probe-import-corrected-20261007.log",
+      "sha256": "16b4c8904df2810277712db636491412bbbbb4addaad12cc5a8ff89dd9bb0930"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-actual-page-interactive-20261007.log",
+      "sha256": "563318606adf808b5fa4efd2e59a416534db52bd894757bf3f7ca506299abbf7"
+    }
+  ],
+  "commandClockPositionDiscrimination": {
+    "date": "2026-10-07",
+    "sourceHead": "5f92b95a127b2be62245b981b0e7530fe37d835e",
+    "scope": "Deterministic firmware-handler discrimination only; reuse actual stepper.c/trsync.c with existing GPIO and timer stubs. Not a fresh motion run or physical accuracy acceptance.",
+    "capturedInput": {
+      "source": "/home/dek02/.cache/codex/tmp/anyraid-pr23-delta-receive-counter-classification-20261007.json",
+      "firstPulse": 2601027,
+      "interval": 2500,
+      "count": 20,
+      "stopClock": 2504434,
+      "baseClockDerivedFromFirstPulse": 2598527,
+      "initialPosition": -24
+    },
+    "runs": [
+      {
+        "sanitizer": "undefined",
+        "exit": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-ubsan-20261007.log",
+          "sha256": "e7319363378175727a56ecc3b3561ee0436578eea2025582dcd1bc3f9ea2ac04"
+        },
+        "result": {
+          "capturedFutureBefore": -24,
+          "capturedFutureAfterStop": -24,
+          "partialNegativeAdd": -26,
+          "wrapAfterStop": -27,
+          "receiveOnlyWrong": -44
+        }
+      },
+      {
+        "sanitizer": "address,undefined",
+        "exit": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-asan-20261007.log",
+          "sha256": "e7319363378175727a56ecc3b3561ee0436578eea2025582dcd1bc3f9ea2ac04"
+        },
+        "result": {
+          "capturedFutureBefore": -24,
+          "capturedFutureAfterStop": -24,
+          "partialNegativeAdd": -26,
+          "wrapAfterStop": -27,
+          "receiveOnlyWrong": -44
+        }
+      }
+    ],
+    "conclusion": "A queued20-pulse command accepted before stop but scheduled after stop leaves actual C position at-24; receive-only accounting would yield-44. Scheduled partial negative-add and32bit wrap cases retain only executed pulses. This establishes a fixture receive-counter confound; it does not close all remote failures or validate host motion precision.",
+    "next": "Implement bounded commanded-clock test counting and compare against this independent C reference; preserve original motion inputs and1e-10 assertions. Never equalize tower counts or alter runtime math.",
+    "productionSourcesChanged": false,
+    "g3Closed": false,
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-20261007.c",
+        "sha256": "9a06e2b9d6a174d44e690790dc5159eb7c7a0e80a916447ee11d8fb322901f91"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-20261007.mjs",
+        "sha256": "92002f0f6ba7070ccf7723eebc5a9c2b8a952af3a9bfebb0a589d36e9dcfb4f0"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/src/stepper.c",
+        "sha256": "09326367a812d02b4499a75351abcdd412075330b6c282c340a2c5003ca840c5"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/src/trsync.c",
+        "sha256": "5280841586c84b6c6498208d629edfa02a50e11da1ea5bd5d90b616c97dc4b41"
+      }
+    ]
+  },
+  "executedCounterFixtureCorrection": {
+    "date": "2026-10-07",
+    "baseSource": "3dd0ab74",
+    "scope": "Test fixture correction only; independent actual C pulse comparison is separate from synthetic stop inputs. No physical precision acceptance.",
+    "sources": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/delta-probe.test.ts",
+        "sha256": "d495ef7dc305867ffc1b311a42b1c59f7ccc99ee49a01af0f4d3afcbbdf4f0a6",
+        "repositoryPath": "host/test/delta-probe.test.ts"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/helpers/stepper-executed-counter.ts",
+        "sha256": "0562456c848cf8dee4d2b5d154a1864c314f80c49e25714bcf8ca5953182541a",
+        "repositoryPath": "host/test/helpers/stepper-executed-counter.ts"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/stepper-executed-counter.test.ts",
+        "sha256": "2d2231c457887af2243d33061423798880be025e3168aeb615faedf9afb08f2a",
+        "repositoryPath": "host/test/stepper-executed-counter.test.ts"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/helpers/stepper-stop-firmware/scheduled-position.c",
+        "sha256": "75c3d0d92aec1a6c981c7a88461be0d20e24b95cbc8c6df553b836e010abeff6",
+        "repositoryPath": "host/test/helpers/stepper-stop-firmware/scheduled-position.c"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/helpers/stepper-stop-firmware/test.c",
+        "sha256": "d692a0a0b32b7b47ddb63de1bc09614b0219f2329d36a64b2dc3bf1ff6b380b5",
+        "repositoryPath": "host/test/helpers/stepper-stop-firmware/test.c"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/helpers/stepper-stop-fence.ts",
+        "sha256": "a598f4918acfb29a3c41b74904fa7fe13a95d290fac72cf200b4ada60b52653c",
+        "repositoryPath": "host/test/helpers/stepper-stop-fence.ts"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/src/stepper.c",
+        "sha256": "09326367a812d02b4499a75351abcdd412075330b6c282c340a2c5003ca840c5",
+        "repositoryPath": "src/stepper.c"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/src/trsync.c",
+        "sha256": "5280841586c84b6c6498208d629edfa02a50e11da1ea5bd5d90b616c97dc4b41",
+        "repositoryPath": "src/trsync.c"
+      }
+    ],
+    "failedAttempts": [
+      {
+        "reason": "Observer attached after startup reset; clock adoption missing",
+        "passed": 5,
+        "failed": 1,
+        "exitCode": 1,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-executed-counter-source-20261007.log",
+          "sha256": "90952bc2426ba4abab008c3a1ba933a7ce5c7afb6ecb06dc4af3615a4c08c882"
+        }
+      },
+      {
+        "reason": "Existing explicit halt position injected before another MCU consumed stop; one-pulse residual remained",
+        "passed": 5,
+        "failed": 1,
+        "exitCode": 1,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-executed-counter-adopted-source-20261007.log",
+          "sha256": "adaff03d5e5e42b36b14ab3dc5ee6ac19e4ef8c0fd115d4238360c397581044c"
+        }
+      }
+    ],
+    "final": {
+      "passed": 7,
+      "failed": 0,
+      "exitCode": 0,
+      "durationMs": 31750.931657,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-executed-counter-stop-boundary-source-20261007.log",
+        "sha256": "6e40fb98c6b527f7e146d886e64c320ab4a94c6d2fbbad07143912d1f3431645"
+      },
+      "types": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-executed-counter-stop-boundary-typecheck-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "nativeBuild": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-executed-counter-native-build-20261007.log",
+          "sha256": "c98d8efc2b1e191d5341191ce73c6875e5b7b0e5b59393bf066c1301213339db"
+        }
+      }
+    },
+    "independentReference": {
+      "handlers": "Actual src/stepper.c and src/trsync.c; existing GPIO/timer stubs",
+      "sanitizers": [
+        "undefined",
+        "address,undefined"
+      ],
+      "noSyntheticHaltOracle": true,
+      "capturedFuture": -24,
+      "receiveOnlyWrong": -44,
+      "partialNegativeAdd": -26,
+      "wrapAfterStop": -27,
+      "compilerDeadlineMs": 60000,
+      "runDeadlineMs": 10000
+    },
+    "integration": {
+      "counter": "Bounded ideal commanded-clock integer prefix accounting; future pulses cleared by each MCU own one-shot stop. Startup accepted resets adopted only with zero prior queue_step.",
+      "syntheticHalt": "Original -20*hits+16*(hits-1) and atArm-20 inputs unchanged. Each input is now delivered once only after its own MCU consumes stop; different -7/-11 inputs independently exercise ownership.",
+      "terminalPosition": [
+        25,
+        -30.00000000000003,
+        9.700000000000045,
+        0
+      ],
+      "calibrationFinalError": 8.48025924344022e-19,
+      "originalTolerance": 1e-10,
+      "originalPoliciesAndDeadlinesPreserved": true
+    },
+    "productionSourceChange": false,
+    "performance": "Only test helper and tests change here; production gateway and motion fingerprints unchanged from base. Prior gateway measurements remain historical at original source scope; no target-board claim.",
+    "oldHeadCi": "5f92b95a ordinary test4057/4059 failed; this local correction does not replace current-head full CI. Metadata lifecycle failure separately fixed by accepted PR24; latest develop integration required.",
+    "fullNewHeadCi": "Not started at this seal",
+    "physicalAcceptance": false,
+    "g3Closed": false
+  },
+  "latestDevelopFixtureIntegration": {
+    "date": "2026-10-07",
+    "sourceHead": "65be2694ba62406f8738b5d8d23276e958b7ff51",
+    "develop": "8dd55f9fde3d570542787173c32a66012bb08d51",
+    "merge": "Normal task-branch merge; documentation conflicts retained both scope/history blocks. Nonconflicting outdated setup descriptions updated from accepted develop.",
+    "initialDependencyFailure": {
+      "reason": "Previous development dependency link did not contain accepted re2-wasm; independent npm ci --ignore-scripts and standard native build then prepared task tree",
+      "passed": 29,
+      "failed": 7,
+      "exitCode": 1,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-counter-gateway-source-20261007.log",
+        "sha256": "d742f2f51306f2846eee573f1e96165c6778e26d7ab73af4c915671b17104958"
+      },
+      "types": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-counter-typecheck-20261007.log",
+        "sha256": "da67896bc95081fd11b07e142335f020dac86430f9a1b05cbf64f80121b69432"
+      }
+    },
+    "prepared": {
+      "passed": 119,
+      "failed": 0,
+      "exitCode": 0,
+      "durationMs": 32051.427363,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-prepared-counter-gateway-source-20261007.log",
+        "sha256": "43169d4ebf3f692b491cc103818dce22da9de244b9f9806e85ccdeb4b50c3cf3"
+      },
+      "independentCompiledChildren": {
+        "gatewayAndAssets": 8,
+        "cors": 2,
+        "noTypeScript": true,
+        "path": "/no-programs",
+        "scope": "Same protocol assertions; overlaps source checks, not added to unique count"
+      },
+      "types": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-prepared-typecheck-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "dependencies": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-dependency-install-20261007.log",
+          "sha256": "449e059500e8bd0e09074bc380dc02f4b6f44d9415c5104dd4e06defb32453a5"
+        }
+      },
+      "nativeBuild": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-native-build-20261007.log",
+          "sha256": "c98d8efc2b1e191d5341191ce73c6875e5b7b0e5b59393bf066c1301213339db"
+        }
+      }
+    },
+    "whitespaceAndDiffCheck": {
+      "exitCode": 0
+    },
+    "productionDeltaFromDevelop": [
+      "host/src/runtime/product-client-gateway.ts",
+      "host/src/runtime/product-client-assets.ts"
+    ],
+    "gatewayAndAssetsUnchangedFromOriginalHead": true,
+    "performance": "Original gateway performance and original fixed-page package remain historical at their own scope. Current independent compiled protocol does not transfer old mixed-client/target-board evidence.",
+    "newHeadRemoteCi": "Required after final push; previous head4057/4059 remains failed and is not counted as passed",
+    "g3Closed": false,
+    "defaultEntryStillPython": true,
+    "trackedPython": 177
+  }
+}

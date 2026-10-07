@@ -669,5 +669,68 @@
       }
     ]
   },
-  "integrationBaselineHead": "8dd55f9fde3d570542787173c32a66012bb08d51"
+  "integrationBaselineHead": "8dd55f9fde3d570542787173c32a66012bb08d51",
+  "gatewayAcceptedDevelopIntegration": {
+    "date": "2026-10-07",
+    "baselineHead": "a863dc23e3266c3b1e74bba1d53964ee9dd39162",
+    "acceptedGateway": {
+      "pr": 23,
+      "head": "e67ccb8ab5993fa2e178d2126c129acbdaab0c88",
+      "host": 37540786185,
+      "firmware": 37540786109,
+      "allRequiredSteps": "success",
+      "merge": "a863dc23e3266c3b1e74bba1d53964ee9dd39162",
+      "postMerge": {
+        "host": 37585785093,
+        "firmware": 37585785193,
+        "status": "in_progress"
+      }
+    },
+    "previousExactHead": {
+      "head": "5c06a628804cd253c1a5c863b4b27cd08fc698b0",
+      "host": 37538547037,
+      "firmware": 37538546990,
+      "status": "completed",
+      "conclusion": "success",
+      "allRequiredSteps": "success"
+    },
+    "conflicts": [
+      "CHANGELOG.md",
+      "docs/Node_Host_Delivery_Plan.md"
+    ],
+    "resolution": "Preserve both histories; label prior plan rows historical and add verified current state",
+    "validation": {
+      "pass": 68,
+      "fail": 0,
+      "durationMs": 38116.567119,
+      "typecheck": "success",
+      "sourceWhitespace": "success",
+      "logs": [
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-database-gateway-sync-20261007.log",
+          "sha256": "4efbf20564117ff9877f783b4d1ddee55954492977e3692561c93cf5668c1b59"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-database-discovery-gateway-sync-typecheck-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-database-discovery-gateway-sync-whitespace-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "compiled": "Original independent compiled gateway 8 protocol/resource assertions with TS disabled; overlap with source is not added"
+    },
+    "performance": {
+      "productionSourceUnchanged": true,
+      "fingerprints": {
+        "host/src/moonraker/configured-server.ts": "b418d510dbbe7d48d6fa69f9f8ad9b77db2356fc06cbf41182184f8d76ea5d54",
+        "host/src/moonraker/database-backup-files.ts": "535d24d301caa3efb599a7040a6655186fd704ddf72bc871fa546aea2ed12b12"
+      },
+      "evidenceReuse": "Prior paired benchmarks retained only for their original source/environment/scope; no new speed or target-board claim"
+    },
+    "newExactHeadCi": "pending",
+    "normalIntegration": "pending",
+    "scope": "Full same-package clients, original mixed failures, G3, physical current-series, all177 klippy Python files and default switch remain open"
+  }
 }
