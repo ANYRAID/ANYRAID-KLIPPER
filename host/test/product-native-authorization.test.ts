@@ -57,7 +57,7 @@ test('native product owns login and authenticated printer state across service r
        const issued=await request('/access/oneshot_token',{authorization:'Bearer '+token});assert.equal(issued.status,200);
        const form=()=>{const body=new FormData();body.append('file',new Blob(['G1 X1 F600\n']),'client.gcode');body.append('path','');body.append('root','gcodes');return body;};
        const urlWithToken=url+'/server/files/upload?token='+issued.body.result;
-       const uploaded=await fetch(urlWithToken,{method:'POST',body:form()});assert.equal(uploaded.status,200);const receipt=(await uploaded.json() as any).result;
+       const uploaded=await fetch(urlWithToken,{method:'POST',headers:{origin},body:form()});assert.equal(uploaded.status,201);assert.equal(uploaded.headers.get('location'),url+'/server/files/gcodes/client.gcode');assert.equal(uploaded.headers.get('access-control-allow-origin'),origin);assert(uploaded.headers.get('access-control-expose-headers')!.split(',').map(h=>h.trim().toLowerCase()).includes('location'));const receipt=(await uploaded.json() as any).result;
        assert.equal(receipt.action,'create_file');assert.equal(receipt.item.root,'gcodes');assert.equal(receipt.item.path,'client.gcode');assert.equal(receipt.file.path,'client.gcode');assert.equal(receipt.item.size,11);assert(receipt.item.modified>0);publishedId=receipt.file.id;assert(publishedId);assert.notEqual(publishedId,'client');
        const replay=await fetch(urlWithToken,{method:'POST',body:form()});assert.equal(replay.status,401);await replay.arrayBuffer();
       }

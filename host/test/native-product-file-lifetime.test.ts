@@ -23,7 +23,7 @@ test('product host keeps one process file lock through reinitialization and rele
  const addresses:string[]=[];const running=runProductHost(factory,abort.signal,address=>{const url=`http://127.0.0.1:${address.port}`;addresses.push(url);ready.resolve(url);},control);void running.catch(ready.reject);
  try{
   const first=await ready.promise,form=new FormData();form.append('file',new Blob(['G1 X1\n']),'persist.gcode');form.append('file_id','retained');
-  const uploaded=await fetch(first+'/server/files/upload',{method:'POST',body:form});assert.equal(uploaded.status,200);assert.equal((await uploaded.json() as any).result.file.id,'retained');
+  const uploaded=await fetch(first+'/server/files/upload',{method:'POST',body:form});assert.equal(uploaded.status,201);assert.equal((await uploaded.json() as any).result.file.id,'retained');
   await assert.rejects(native(abort.signal),/not retired/);assert.equal(processClosed,0);
   const begin=performance.now();await control.reinitialize();t.diagnostic(JSON.stringify({simulatedReinitializeMs:performance.now()-begin}));
   assert.equal(addresses.length,2);assert.equal(processClosed,0);assert(profiles[0].product.maintenanceGate.status.closed);assert(fixtures[0].transport.stops.every(n=>n===1));

@@ -140,7 +140,7 @@ export class MoonrakerNetwork {
   const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&path==='/server/files/upload',isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
-  if(request.headers.origin&&(this.#origins.has(request.headers.origin)||this.#options.cors?.matches(request.headers.origin))){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges');}
+  if(request.headers.origin&&(this.#origins.has(request.headers.origin)||this.#options.cors?.matches(request.headers.origin))){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges, Location');}
   if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, X-Access-Token, If-None-Match, Range, If-Range'});response.end();return;}
   if(!allowed.some(v=>v===request.method)){this.#error(response,405,'Method Not Allowed');return;}
   if(isRPC&&!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
@@ -157,6 +157,14 @@ export class MoonrakerNetwork {
      if(!result||typeof result!=='object'||Array.isArray(result))throw new ApiError(500,'Invalid upload receipt');
      // Multipart clients consume top-level item/action; result remains a native
      // compatibility alias for previously issued SDKs and receipts.
+     const item=result.item;
+     if(item&&typeof item==='object'&&!Array.isArray(item)&&typeof item.root==='string'&&typeof item.path==='string'){
+      const address=request.socket.localAddress??'127.0.0.1',host=request.headers.host??`${address.includes(':')?'['+address+']':address}:${request.socket.localPort}`;
+      const encoded=item.path.split('/').map(part=>encodeURIComponent(part).replace(/[!'()*]/g,char=>'%'+char.charCodeAt(0).toString(16).toUpperCase())).join('/');
+      // This listener is HTTP. Forwarded headers never select its origin.
+      response.setHeader('location',`http://${host}/server/files/${item.root}/${encoded}`);
+     }
+     response.statusCode=201;
      response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({...result,result}));return;
     }
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;

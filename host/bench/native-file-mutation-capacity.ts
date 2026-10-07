@@ -37,7 +37,8 @@ try{
  async function sample(index:number,record:boolean){
   const owner=owners[index],id='paired-'+owner.sequence++,path=workload==='--upload-parents'?id+'/nested/leaf':workload==='--existing-parent'?'parts':'',form=new FormData();form.append('file',new Blob([data]),id+'.gcode');form.append('file_id',id);form.append('path',path);
   const start=performance.now();if(workload==='--upload-parents'&&index===0){let parent='';for(const part of path.split('/')){parent+=(parent?'/':'')+part;const created=await fetch(owner.url+'/server/files/directory',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:'gcodes/'+parent})});assert.equal(created.status,200,await created.clone().text());await created.arrayBuffer();}}
-  const uploaded=await fetch(owner.url+'/server/files/upload',{method:'POST',body:form});assert.equal(uploaded.status,200,await uploaded.clone().text());const upload=(await uploaded.json() as any).result;const uploadMs=performance.now()-start;
+  const uploaded=await fetch(owner.url+'/server/files/upload',{method:'POST',body:form});assert.equal(uploaded.status,index===0?200:201,await uploaded.clone().text());const upload=(await uploaded.json() as any).result;const uploadMs=performance.now()-start;
+  assert.equal(uploaded.headers.get('location'),index===0?null:owner.url+'/server/files/gcodes/'+(path?path+'/':'')+id+'.gcode');
   assert.equal(upload.file.sha256,sha256);assert.equal(upload.file.size,data.length);
   for(let query=0;query<8;query++){
    const began=performance.now(),response=await fetch(owner.url+'/server/files/directory?extended=true&path='+encodeURIComponent('gcodes'+(path?'/'+path:'')));assert.equal(response.status,200);const directory=(await response.json() as any).result;const elapsed=performance.now()-began;assert.equal(directory.files.length,1);assert.equal(directory.files[0].file_id,id);if(record)samples[index].directory.push(elapsed);
@@ -48,7 +49,7 @@ try{
  for(let warm=0;warm<3;warm++)for(const index of [0,1])await sample(index,false);
  delay.enable();await new Promise(resolve=>setTimeout(resolve,5));delay.reset();
  const order=[0,1,1,0,1,0,0,1];for(const index of order)for(let run=0;run<8;run++)await sample(index,true);
- delay.disable();const stats=(values:number[])=>{const sorted=[...values].sort((a,b)=>a-b);return {samples:sorted.length,medianMs:sorted[Math.floor(sorted.length*.5)],p95Ms:sorted[Math.floor(sorted.length*.95)],p99Ms:sorted[Math.floor(sorted.length*.99)]};};
+ delay.disable();const stats=(values:number[])=>{const sorted=[...values].sort((a,b)=>a-b);return {samples:sorted.length,medianMs:sorted[Math.floor(sorted.length*.5)],p95Ms:sorted[Math.floor(sorted.length*.95)],p99Ms:sorted[Math.floor(sorted.length*.99)],samplesMs:values};};
  const results=samples.map(s=>({upload:stats(s.upload),remove:stats(s.remove),directory:stats(s.directory)}));
  const identities=await Promise.all(bundles.map(async path=>({path,manifestSha256:createHash('sha256').update(await readFile(join(path,'build-info.json'))).digest('hex')})));
  for(const bundle of bundles)await verifyProductBundle(bundle);

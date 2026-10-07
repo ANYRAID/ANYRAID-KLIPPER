@@ -1671,8 +1671,16 @@ API。沿用既有机器温度策略和 30 秒准入期限，重新授权 `print
 普通上传省略该字段或提交空、`false`、`0` 时仍不启动。
 丢失回执时应查询文件、当前打印状态与历史，不重发带打印标志的上传；
 当前设备就绪时可用 `/printer/print/status?request_id=...` 核对耐久记录，
-准入前拒绝可能没有该记录。现有 HTTP 200 和 result 别名保持；官方 201
-及 Location 回执差额仍未收口，不据本批声称全部文件契约兼容。
+准入前拒绝可能没有该记录。成功发布现返回 HTTP 201 和 `Location`，
+顶层字段及旧 `result` 别名保持。Location 使用当前 HTTP 监听器的请求
+Host 和逐段 URI 编码的回执路径，适用于 gcodes／config、显式旧 ID 地址、
+中文、空格和字面百分号；不带令牌／查询，不由转发头选择协议或主机。
+既有获准跨域来源可读取该头；来源、鉴权及 OPTIONS 准入未扩大。
+已发布但打印准入失败仍为 201，可读取文件和 `print_error`；发布前失败
+保留原错误状态，不提供成功 Location。客户端应按 2xx 判断上传成功，
+不能继续硬编码 200。源码、独立 JS、同包混合打印与同盘性能见
+[标准上传回执验收](../host/contracts/upload-created-acceptance.json)。
+自动创建父目录、UFP、完整页面及目标板验收仍待完成。
 行为断言、固定字节输入与性能原样本见[上传启动验收](../host/contracts/upload-print-intent-acceptance.json)。
 原版只读工作树可由 `ANYRAID_UPLOAD_BASELINE` 指定，用 Node.js 26 执行
 `node host/bench/upload-print-intent.ts`；基准先核对三个原模块摘要，保留
