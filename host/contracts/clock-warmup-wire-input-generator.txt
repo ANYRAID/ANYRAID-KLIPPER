@@ -1,0 +1,23 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+const root='/home/dek02/.cache/codex/tmp/anyraid-delta-clock-sample-evidence';
+const original=await readFile(root+'/host/test/delta-bltouch.test.ts','utf8');
+let source=original.replace(/from '(\.\/helpers\/[^']+|\.\.\/src\/[^']+)'/g,(_,p)=>'from '+JSON.stringify(pathToFileURL(new URL(p,pathToFileURL(root+'/host/test/delta-bltouch.test.ts')).pathname).href));
+const marker=' const journal=await PrintJournal.open';
+if(!source.includes(marker))throw new Error('fixture marker absent');
+source=source.replace(marker,` const delays:number[]=[4,20,20],injected:{name:string;requestedMs:number;actualMs:number;beforeClock:number;afterClock:number}[]=[],waiter=new Int32Array(new SharedArrayBuffer(4));let uptimeSeen=false,clockSeen=0;
+ const unobserve=f.transport.firmware[1].observeCommands(cmd=>{
+  const milliseconds=cmd.name==='get_uptime'&&!uptimeSeen?(uptimeSeen=true,delays[0]):cmd.name==='get_clock'&&clockSeen++<2?delays[clockSeen]:0;
+  if(!milliseconds)return;const before=performance.now(),beforeClock=f.transport.firmware[1].currentClock();Atomics.wait(waiter,0,0,milliseconds);injected.push({name:cmd.name,requestedMs:milliseconds,actualMs:performance.now()-before,beforeClock,afterClock:f.transport.firmware[1].currentClock()});
+ });
+`+marker);
+const end=' }finally{await service?.close();';
+if(!source.includes(end))throw new Error('cleanup marker absent');
+source=source.replace(end,` }catch(error){
+  t.diagnostic('wireDelayFailure='+JSON.stringify({name:(error as Error).name,message:(error as Error).message}));
+  if(service){const bindings=['mcu','aux'].map(id=>({id,sync:service!.printer.group.session(id).clock.sync}));t.diagnostic('rawClockSamplesOnFailure='+JSON.stringify(samples.snapshot(bindings),(_,value)=>typeof value==='bigint'?String(value):value));}
+  throw error;
+ }finally{unobserve();t.diagnostic('injectedWireDelays='+JSON.stringify(injected));await service?.close();`);
+const path='/home/dek02/.cache/codex/tmp/anyraid-clock-wire-discriminator-20261007.test.ts';await writeFile(path,source);
+console.log(JSON.stringify({originalSourceSha256:createHash('sha256').update(original).digest('hex'),driverSha256:createHash('sha256').update(source).digest('hex'),path,changes:'Absolute original imports; aux first uptime 4ms and first two clock commands 20ms before model clock read; failure-only raw capture and cleanup. Original modes/assertions/production operands unchanged.'}));
