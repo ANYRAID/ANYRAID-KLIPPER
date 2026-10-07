@@ -1,0 +1,1992 @@
+{
+  "schema": 1,
+  "scope": "One bounded Node 26 source product serial-model case with original assertions and unchanged production clock/motion owners. Controlled fault is a counterexample, not original remote root-cause proof or physical hardware acceptance.",
+  "hypothesis": "Delayed aux uptime and first two warmup clock reads can bias estimator then cause positive-residual rejection with known native send times and unsafe historical trigger mapping.",
+  "driverSha256": "744d6eed17949cf7f19a480dc4de8302e2799584fa44f05bddb1a9204e0c9a4f",
+  "log": {
+    "path": "host/contracts/clock-warmup-wire-counterexample.txt",
+    "sha256": "4c54ac9f3215f341d41bfaccd0d3cdbabdc25695b99724b9b71f1d4b81c8d548"
+  },
+  "exitCode": 1,
+  "originalOutcome": {
+    "httpStatus": 503,
+    "mapped": 7847450,
+    "observed": 7780754,
+    "lateTicks": 66696,
+    "originalGuardRejected": true,
+    "nominalLateMs": 66.696
+  },
+  "instrumentationFailure": "Extra catch attempted MCUGroup.session after teardown and replaced the final AssertionError with MCU group is not ready. Original HTTP 503 assertion, initiating mapped-clock fault and complete raw capture precede this failure; no rerun or claim of clean failure harness.",
+  "injected": [
+    {
+      "name": "get_uptime",
+      "requestedMs": 4,
+      "actualMs": 4.0816690000000335,
+      "beforeClock": 1108185,
+      "afterClock": 1112272
+    },
+    {
+      "name": "get_clock",
+      "requestedMs": 20,
+      "actualMs": 20.107857999999965,
+      "beforeClock": 1162924,
+      "afterClock": 1183037
+    },
+    {
+      "name": "get_clock",
+      "requestedMs": 20,
+      "actualMs": 20.067106999999965,
+      "beforeClock": 1233435,
+      "afterClock": 1253505
+    }
+  ],
+  "replay": [
+    {
+      "id": "mcu",
+      "count": 35,
+      "warmup": 8,
+      "regular": 27,
+      "rejected": 0,
+      "unknownSentTime": 0,
+      "afterImmediateNinthFrequency": 1000608.0983453736,
+      "finalFrequency": 1000068.1423199984,
+      "frozenFromNinth": false,
+      "allRawInputsAndResultsExactlyReplayed": true
+    },
+    {
+      "id": "aux",
+      "count": 39,
+      "warmup": 8,
+      "regular": 31,
+      "rejected": 31,
+      "unknownSentTime": 0,
+      "firstRejectedRevision": 9,
+      "lastRejectedRevision": 39,
+      "afterImmediateNinthFrequency": 987389.8182983671,
+      "finalFrequency": 987389.8182983671,
+      "frozenFromNinth": true,
+      "allRawInputsAndResultsExactlyReplayed": true
+    }
+  ],
+  "captures": [
+    {
+      "id": "mcu",
+      "initial": {
+        "frequency": 1000000,
+        "uptimeClock": "1106805",
+        "sentTime": 866528.644002103
+      },
+      "count": 35,
+      "warmup": [
+        {
+          "sample": {
+            "clock32": 1157270,
+            "sentTime": 866528.694614495,
+            "receiveTime": 866528.694695485
+          },
+          "warmup": true,
+          "revision": 1,
+          "before": {
+            "sampleTime": 866528.644002103,
+            "origin": "1106805",
+            "clockOffset": 0,
+            "frequency": 1000000
+          },
+          "after": {
+            "sampleTime": 866528.6457296778,
+            "origin": "1106805",
+            "clockOffset": 1682.1666666666667,
+            "frequency": 997087.8274168044
+          },
+          "release": {
+            "frequency": 997087.8274168044,
+            "sampleTime": 866528.6466891828,
+            "clock": "1105536"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1208736,
+            "sentTime": 866528.746097258,
+            "receiveTime": 866528.746142728
+          },
+          "warmup": true,
+          "revision": 2,
+          "before": {
+            "sampleTime": 866528.6457296778,
+            "origin": "1106805",
+            "clockOffset": 1682.1666666666667,
+            "frequency": 997087.8274168044
+          },
+          "after": {
+            "sampleTime": 866528.6490588537,
+            "origin": "1106805",
+            "clockOffset": 5023.794444444445,
+            "frequency": 998152.5443215872
+          },
+          "release": {
+            "frequency": 998152.5443215872,
+            "sampleTime": 866528.6500361187,
+            "clock": "1108926"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1259749,
+            "sentTime": 866528.79710598,
+            "receiveTime": 866528.79715607
+          },
+          "warmup": true,
+          "revision": 3,
+          "before": {
+            "sampleTime": 866528.6490588537,
+            "origin": "1106805",
+            "clockOffset": 5023.794444444445,
+            "frequency": 998152.5443215872
+          },
+          "after": {
+            "sampleTime": 866528.6539945158,
+            "origin": "1106805",
+            "clockOffset": 9954.467962962965,
+            "frequency": 998691.0988076825
+          },
+          "release": {
+            "frequency": 998691.0988076825,
+            "sampleTime": 866528.6549717807,
+            "clock": "1113905"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1310928,
+            "sentTime": 866528.848292543,
+            "receiveTime": 866528.848337393
+          },
+          "warmup": true,
+          "revision": 4,
+          "before": {
+            "sampleTime": 866528.6539945158,
+            "origin": "1106805",
+            "clockOffset": 9954.467962962965,
+            "frequency": 998691.0988076825
+          },
+          "after": {
+            "sampleTime": 866528.6604715644,
+            "origin": "1106805",
+            "clockOffset": 16426.752364197535,
+            "frequency": 998971.8113545396
+          },
+          "release": {
+            "frequency": 998971.8113545396,
+            "sampleTime": 866528.6614491395,
+            "clock": "1120425"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1362308,
+            "sentTime": 866528.898602755,
+            "receiveTime": 866528.899715486
+          },
+          "warmup": true,
+          "revision": 5,
+          "before": {
+            "sampleTime": 866528.6604715644,
+            "origin": "1106805",
+            "clockOffset": 16426.752364197535,
+            "frequency": 998971.8113545396
+          },
+          "after": {
+            "sampleTime": 866528.6684100183,
+            "origin": "1106805",
+            "clockOffset": 24395.960618724283,
+            "frequency": 1001195.2742207235
+          },
+          "release": {
+            "frequency": 1001195.2742207235,
+            "sampleTime": 866528.6693875933,
+            "clock": "1128370"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1412584,
+            "sentTime": 866528.949953748,
+            "receiveTime": 866528.949990988
+          },
+          "warmup": true,
+          "revision": 6,
+          "before": {
+            "sampleTime": 866528.6684100183,
+            "origin": "1106805",
+            "clockOffset": 24395.960618724283,
+            "frequency": 1001195.2742207235
+          },
+          "after": {
+            "sampleTime": 866528.6777917517,
+            "origin": "1106805",
+            "clockOffset": 33775.395264766805,
+            "frequency": 1000464.2641378383
+          },
+          "release": {
+            "frequency": 1000464.2641378383,
+            "sampleTime": 866528.6787731318,
+            "clock": "1137783"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1462978,
+            "sentTime": 866529.00026476,
+            "receiveTime": 866529.00038465
+          },
+          "warmup": true,
+          "revision": 7,
+          "before": {
+            "sampleTime": 866528.6777917517,
+            "origin": "1106805",
+            "clockOffset": 33775.395264766805,
+            "frequency": 1000464.2641378383
+          },
+          "after": {
+            "sampleTime": 866528.6885414727,
+            "origin": "1106805",
+            "clockOffset": 44521.98208927458,
+            "frequency": 1000200.0345588884
+          },
+          "release": {
+            "frequency": 1000200.0345588884,
+            "sampleTime": 866528.6895228528,
+            "clock": "1148574"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1513057,
+            "sentTime": 866529.050425942,
+            "receiveTime": 866529.050463452
+          },
+          "warmup": true,
+          "revision": 8,
+          "before": {
+            "sampleTime": 866528.6885414727,
+            "origin": "1106805",
+            "clockOffset": 44521.98208927458,
+            "frequency": 1000200.0345588884
+          },
+          "after": {
+            "sampleTime": 866528.7006049091,
+            "origin": "1106805",
+            "clockOffset": 56579.649352965425,
+            "frequency": 999987.7901290944
+          },
+          "release": {
+            "frequency": 999987.7901290944,
+            "sampleTime": 866528.7015862891,
+            "clock": "1160675"
+          }
+        }
+      ],
+      "recent": [
+        {
+          "sample": {
+            "clock32": 1514610,
+            "sentTime": 866529.050882162,
+            "receiveTime": 866529.052018683
+          },
+          "warmup": false,
+          "revision": 9,
+          "before": {
+            "sampleTime": 866528.7006049091,
+            "origin": "1106805",
+            "clockOffset": 56579.649352965425,
+            "frequency": 999987.7901290944
+          },
+          "after": {
+            "sampleTime": 866528.712281438,
+            "origin": "1106805",
+            "clockOffset": 68287.16104119991,
+            "frequency": 1000608.0983453736
+          },
+          "release": {
+            "frequency": 1000608.0983453736,
+            "sampleTime": 866528.7132628182,
+            "clock": "1172381"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 2496973,
+            "sentTime": 866530.034334786,
+            "receiveTime": 866530.034378466
+          },
+          "warmup": false,
+          "revision": 10,
+          "before": {
+            "sampleTime": 866528.712281438,
+            "origin": "1106805",
+            "clockOffset": 68287.16104119991,
+            "frequency": 1000608.0983453736
+          },
+          "after": {
+            "sampleTime": 866528.7563505038,
+            "origin": "1106805",
+            "clockOffset": 112349.85567315991,
+            "frequency": 1000025.3709902285
+          },
+          "release": {
+            "frequency": 1000025.3709902285,
+            "sampleTime": 866528.7573318838,
+            "clock": "1216435"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 3045620,
+            "sentTime": 866530.582971488,
+            "receiveTime": 866530.583020538
+          },
+          "warmup": false,
+          "revision": 11,
+          "before": {
+            "sampleTime": 866528.7563505038,
+            "origin": "1106805",
+            "clockOffset": 112349.85567315991,
+            "frequency": 1000025.3709902285
+          },
+          "after": {
+            "sampleTime": 866528.8172384906,
+            "origin": "1106805",
+            "clockOffset": 173232.02715072123,
+            "frequency": 999952.2904338654
+          },
+          "release": {
+            "frequency": 999952.2904338654,
+            "sampleTime": 866528.8182198706,
+            "clock": "1277361"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 3480286,
+            "sentTime": 866531.01762194,
+            "receiveTime": 866531.01769153
+          },
+          "warmup": false,
+          "revision": 12,
+          "before": {
+            "sampleTime": 866528.8172384906,
+            "origin": "1106805",
+            "clockOffset": 173232.02715072123,
+            "frequency": 999952.2904338654
+          },
+          "after": {
+            "sampleTime": 866528.8905852262,
+            "origin": "1106805",
+            "clockOffset": 246573.65957903053,
+            "frequency": 999941.8867874659
+          },
+          "release": {
+            "frequency": 999941.8867874659,
+            "sampleTime": 866528.8915666062,
+            "clock": "1350747"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 3537399,
+            "sentTime": 866531.074771415,
+            "receiveTime": 866531.074802525
+          },
+          "warmup": false,
+          "revision": 13,
+          "before": {
+            "sampleTime": 866528.8905852262,
+            "origin": "1106805",
+            "clockOffset": 246573.65957903053,
+            "frequency": 999941.8867874659
+          },
+          "after": {
+            "sampleTime": 866528.963388988,
+            "origin": "1106805",
+            "clockOffset": 319374.33759306284,
+            "frequency": 999933.2839288049
+          },
+          "release": {
+            "frequency": 999933.2839288049,
+            "sampleTime": 866528.9643734331,
+            "clock": "1423592"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 3762500,
+            "sentTime": 866531.299849604,
+            "receiveTime": 866531.299899964
+          },
+          "warmup": false,
+          "revision": 14,
+          "before": {
+            "sampleTime": 866528.963388988,
+            "origin": "1106805",
+            "clockOffset": 319374.33759306284,
+            "frequency": 999933.2839288049
+          },
+          "after": {
+            "sampleTime": 866529.0412715271,
+            "origin": "1106805",
+            "clockOffset": 397251.6930066274,
+            "frequency": 999933.3283176848
+          },
+          "release": {
+            "frequency": 999933.3283176848,
+            "sampleTime": 866529.0422559722,
+            "clock": "1501513"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 3812590,
+            "sentTime": 866531.349954226,
+            "receiveTime": 866531.349989326
+          },
+          "warmup": false,
+          "revision": 15,
+          "before": {
+            "sampleTime": 866529.0412715271,
+            "origin": "1106805",
+            "clockOffset": 397251.6930066274,
+            "frequency": 999933.3283176848
+          },
+          "after": {
+            "sampleTime": 866529.1182281356,
+            "origin": "1106805",
+            "clockOffset": 474202.8032397398,
+            "frequency": 999932.279304971
+          },
+          "release": {
+            "frequency": 999932.279304971,
+            "sampleTime": 866529.1192125806,
+            "clock": "1578507"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 4037482,
+            "sentTime": 866531.574834936,
+            "receiveTime": 866531.574885776
+          },
+          "warmup": false,
+          "revision": 16,
+          "before": {
+            "sampleTime": 866529.1182281356,
+            "origin": "1106805",
+            "clockOffset": 474202.8032397398,
+            "frequency": 999932.279304971
+          },
+          "after": {
+            "sampleTime": 866529.2001155475,
+            "origin": "1106805",
+            "clockOffset": 556085.2764650818,
+            "frequency": 999933.7961869809
+          },
+          "release": {
+            "frequency": 999933.7961869809,
+            "sampleTime": 866529.2010999925,
+            "clock": "1660431"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 4089015,
+            "sentTime": 866531.625332508,
+            "receiveTime": 866531.626426358
+          },
+          "warmup": false,
+          "revision": 17,
+          "before": {
+            "sampleTime": 866529.2001155475,
+            "origin": "1106805",
+            "clockOffset": 556085.2764650818,
+            "frequency": 999933.7961869809
+          },
+          "after": {
+            "sampleTime": 866529.2809566313,
+            "origin": "1106805",
+            "clockOffset": 636956.1005829124,
+            "frequency": 1000008.0535355302
+          },
+          "release": {
+            "frequency": 1000008.0535355302,
+            "sampleTime": 866529.2819410764,
+            "clock": "1741278"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 4312217,
+            "sentTime": 866531.848509436,
+            "receiveTime": 866531.849624347
+          },
+          "warmup": false,
+          "revision": 18,
+          "before": {
+            "sampleTime": 866529.2809566313,
+            "origin": "1106805",
+            "clockOffset": 636956.1005829124,
+            "frequency": 1000008.0535355302
+          },
+          "after": {
+            "sampleTime": 866529.3665422434,
+            "origin": "1106805",
+            "clockOffset": 722571.2972301487,
+            "frequency": 1000063.9348807975
+          },
+          "release": {
+            "frequency": 1000063.9348807975,
+            "sampleTime": 866529.3675266884,
+            "clock": "1826890"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 4362691,
+            "sentTime": 866531.898913758,
+            "receiveTime": 866531.900099749
+          },
+          "warmup": false,
+          "revision": 19,
+          "before": {
+            "sampleTime": 866529.3665422434,
+            "origin": "1106805",
+            "clockOffset": 722571.2972301487,
+            "frequency": 1000063.9348807975
+          },
+          "after": {
+            "sampleTime": 866529.4509551458,
+            "origin": "1106805",
+            "clockOffset": 807015.1206558105,
+            "frequency": 1000107.1079698827
+          },
+          "release": {
+            "frequency": 1000107.1079698827,
+            "sampleTime": 866529.4519395907,
+            "clock": "1911341"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 4464379,
+            "sentTime": 866532.000670833,
+            "receiveTime": 866532.001786834
+          },
+          "warmup": false,
+          "revision": 20,
+          "before": {
+            "sampleTime": 866529.4509551458,
+            "origin": "1106805",
+            "clockOffset": 807015.1206558105,
+            "frequency": 1000107.1079698827
+          },
+          "after": {
+            "sampleTime": 866529.5359461871,
+            "origin": "1106805",
+            "clockOffset": 892033.7499672835,
+            "frequency": 1000135.4325427078
+          },
+          "release": {
+            "frequency": 1000135.4325427078,
+            "sampleTime": 866529.5369306322,
+            "clock": "1996383"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 4586513,
+            "sentTime": 866532.122697447,
+            "receiveTime": 866532.123926208
+          },
+          "warmup": false,
+          "revision": 21,
+          "before": {
+            "sampleTime": 866529.5359461871,
+            "origin": "1106805",
+            "clockOffset": 892033.7499672835,
+            "frequency": 1000135.4325427078
+          },
+          "after": {
+            "sampleTime": 866529.6221717477,
+            "origin": "1106805",
+            "clockOffset": 978289.5583017074,
+            "frequency": 1000161.6599181046
+          },
+          "release": {
+            "frequency": 1000161.6599181046,
+            "sampleTime": 866529.6231561927,
+            "clock": "2082662"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 4810664,
+            "sentTime": 866532.348018697,
+            "receiveTime": 866532.348071657
+          },
+          "warmup": false,
+          "revision": 22,
+          "before": {
+            "sampleTime": 866529.6221717477,
+            "origin": "1106805",
+            "clockOffset": 978289.5583017074,
+            "frequency": 1000161.6599181046
+          },
+          "after": {
+            "sampleTime": 866529.7130338312,
+            "origin": "1106805",
+            "clockOffset": 1069141.8730249838,
+            "frequency": 1000128.6260705794
+          },
+          "release": {
+            "frequency": 1000128.6260705794,
+            "sampleTime": 866529.7140182762,
+            "clock": "2173523"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 4885961,
+            "sentTime": 866532.42330604,
+            "receiveTime": 866532.42337362
+          },
+          "warmup": false,
+          "revision": 23,
+          "before": {
+            "sampleTime": 866529.7130338312,
+            "origin": "1106805",
+            "clockOffset": 1069141.8730249838,
+            "frequency": 1000128.6260705794
+          },
+          "after": {
+            "sampleTime": 866529.8033767566,
+            "origin": "1106805",
+            "clockOffset": 1159475.6772574843,
+            "frequency": 1000103.0239128628
+          },
+          "release": {
+            "frequency": 1000103.0239128628,
+            "sampleTime": 866529.8043612017,
+            "clock": "2263874"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 5111326,
+            "sentTime": 866532.647613699,
+            "receiveTime": 866532.648735879
+          },
+          "warmup": false,
+          "revision": 24,
+          "before": {
+            "sampleTime": 866529.8033767566,
+            "origin": "1106805",
+            "clockOffset": 1159475.6772574843,
+            "frequency": 1000103.0239128628
+          },
+          "after": {
+            "sampleTime": 866529.8981851733,
+            "origin": "1106805",
+            "clockOffset": 1254310.5213489016,
+            "frequency": 1000122.8319760235
+          },
+          "release": {
+            "frequency": 1000122.8319760235,
+            "sampleTime": 866529.8991696183,
+            "clock": "2358734"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 5162191,
+            "sentTime": 866532.698474991,
+            "receiveTime": 866532.699601042
+          },
+          "warmup": false,
+          "revision": 25,
+          "before": {
+            "sampleTime": 866529.8981851733,
+            "origin": "1106805",
+            "clockOffset": 1254310.5213489016,
+            "frequency": 1000122.8319760235
+          },
+          "after": {
+            "sampleTime": 866529.9915286857,
+            "origin": "1106805",
+            "clockOffset": 1347679.7039706048,
+            "frequency": 1000138.2862680361
+          },
+          "release": {
+            "frequency": 1000138.2862680361,
+            "sampleTime": 866529.9925131307,
+            "clock": "2452132"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 5386874,
+            "sentTime": 866532.924221581,
+            "receiveTime": 866532.924281291
+          },
+          "warmup": false,
+          "revision": 26,
+          "before": {
+            "sampleTime": 866529.9915286857,
+            "origin": "1106805",
+            "clockOffset": 1347679.7039706048,
+            "frequency": 1000138.2862680361
+          },
+          "after": {
+            "sampleTime": 866530.089285634,
+            "origin": "1106805",
+            "clockOffset": 1445426.0138382514,
+            "frequency": 1000112.7542932947
+          },
+          "release": {
+            "frequency": 1000112.7542932947,
+            "sampleTime": 866530.090270079,
+            "clock": "2549885"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 5447164,
+            "sentTime": 866532.983462657,
+            "receiveTime": 866532.984570667
+          },
+          "warmup": false,
+          "revision": 27,
+          "before": {
+            "sampleTime": 866530.089285634,
+            "origin": "1106805",
+            "clockOffset": 1445426.0138382514,
+            "frequency": 1000112.7542932947
+          },
+          "after": {
+            "sampleTime": 866530.1857587199,
+            "origin": "1106805",
+            "clockOffset": 1541923.780043643,
+            "frequency": 1000126.2431875161
+          },
+          "release": {
+            "frequency": 1000126.2431875161,
+            "sampleTime": 866530.1867431649,
+            "clock": "2646411"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 5661859,
+            "sentTime": 866533.199205662,
+            "receiveTime": 866533.199268752
+          },
+          "warmup": false,
+          "revision": 28,
+          "before": {
+            "sampleTime": 866530.1857587199,
+            "origin": "1106805",
+            "clockOffset": 1541923.780043643,
+            "frequency": 1000126.2431875161
+          },
+          "after": {
+            "sampleTime": 866530.2862074699,
+            "origin": "1106805",
+            "clockOffset": 1642361.4540421881,
+            "frequency": 1000103.6271000224
+          },
+          "release": {
+            "frequency": 1000103.6271000224,
+            "sampleTime": 866530.2871919149,
+            "clock": "2746856"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 5738026,
+            "sentTime": 866533.274266625,
+            "receiveTime": 866533.275441166
+          },
+          "warmup": false,
+          "revision": 29,
+          "before": {
+            "sampleTime": 866530.2862074699,
+            "origin": "1106805",
+            "clockOffset": 1642361.4540421881,
+            "frequency": 1000103.6271000224
+          },
+          "after": {
+            "sampleTime": 866530.3858099601,
+            "origin": "1106805",
+            "clockOffset": 1741990.1055741152,
+            "frequency": 1000117.7236412386
+          },
+          "release": {
+            "frequency": 1000117.7236412386,
+            "sampleTime": 866530.3867944052,
+            "clock": "2846509"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 5961673,
+            "sentTime": 866533.499011384,
+            "receiveTime": 866533.499084084
+          },
+          "warmup": false,
+          "revision": 30,
+          "before": {
+            "sampleTime": 866530.3858099601,
+            "origin": "1106805",
+            "clockOffset": 1741990.1055741152,
+            "frequency": 1000117.7236412386
+          },
+          "after": {
+            "sampleTime": 866530.4895838595,
+            "origin": "1106805",
+            "clockOffset": 1845752.7020549779,
+            "frequency": 1000097.2061646543
+          },
+          "release": {
+            "frequency": 1000097.2061646543,
+            "sampleTime": 866530.4905683044,
+            "clock": "2950278"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 6012014,
+            "sentTime": 866533.549364576,
+            "receiveTime": 866533.549429386
+          },
+          "warmup": false,
+          "revision": 31,
+          "before": {
+            "sampleTime": 866530.4895838595,
+            "origin": "1106805",
+            "clockOffset": 1845752.7020549779,
+            "frequency": 1000097.2061646543
+          },
+          "after": {
+            "sampleTime": 866530.5915770684,
+            "origin": "1106805",
+            "clockOffset": 1947734.5786531453,
+            "frequency": 1000079.9244878453
+          },
+          "release": {
+            "frequency": 1000079.9244878453,
+            "sampleTime": 866530.5925615135,
+            "clock": "3052272"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 6428926,
+            "sentTime": 866533.96629676,
+            "receiveTime": 866533.96633112
+          },
+          "warmup": false,
+          "revision": 32,
+          "before": {
+            "sampleTime": 866530.5915770684,
+            "origin": "1106805",
+            "clockOffset": 1947734.5786531453,
+            "frequency": 1000079.9244878453
+          },
+          "after": {
+            "sampleTime": 866530.7040682433,
+            "origin": "1106805",
+            "clockOffset": 2060214.1260313739,
+            "frequency": 1000062.5987895784
+          },
+          "release": {
+            "frequency": 1000062.5987895784,
+            "sampleTime": 866530.7050526884,
+            "clock": "3164765"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 6484060,
+            "sentTime": 866534.020365934,
+            "receiveTime": 866534.021466235
+          },
+          "warmup": false,
+          "revision": 33,
+          "before": {
+            "sampleTime": 866530.7040682433,
+            "origin": "1106805",
+            "clockOffset": 2060214.1260313739,
+            "frequency": 1000062.5987895784
+          },
+          "after": {
+            "sampleTime": 866530.8146120182,
+            "origin": "1106805",
+            "clockOffset": 2170782.1551636616,
+            "frequency": 1000076.1287595724
+          },
+          "release": {
+            "frequency": 1000076.1287595724,
+            "sampleTime": 866530.8155964633,
+            "clock": "3275353"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 6535692,
+            "sentTime": 866534.071984277,
+            "receiveTime": 866534.073100787
+          },
+          "warmup": false,
+          "revision": 34,
+          "before": {
+            "sampleTime": 866530.8146120182,
+            "origin": "1106805",
+            "clockOffset": 2170782.1551636616,
+            "frequency": 1000076.1287595724
+          },
+          "after": {
+            "sampleTime": 866530.9231916121,
+            "origin": "1106805",
+            "clockOffset": 2279385.6499915393,
+            "frequency": 1000087.5456692597
+          },
+          "release": {
+            "frequency": 1000087.5456692597,
+            "sampleTime": 866530.9241760571,
+            "clock": "3383980"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 7412776,
+            "sentTime": 866534.950110334,
+            "receiveTime": 866534.950178254
+          },
+          "warmup": false,
+          "revision": 35,
+          "before": {
+            "sampleTime": 866530.9231916121,
+            "origin": "1106805",
+            "clockOffset": 2279385.6499915393,
+            "frequency": 1000087.5456692597
+          },
+          "after": {
+            "sampleTime": 866531.0574227546,
+            "origin": "1106805",
+            "clockOffset": 2413605.161658488,
+            "frequency": 1000068.1423199984
+          },
+          "release": {
+            "frequency": 1000068.1423199984,
+            "sampleTime": 866531.0584071997,
+            "clock": "3518204"
+          }
+        }
+      ]
+    },
+    {
+      "id": "aux",
+      "initial": {
+        "frequency": 1000000,
+        "uptimeClock": "1112275",
+        "sentTime": 866528.644925803
+      },
+      "count": 39,
+      "warmup": [
+        {
+          "sample": {
+            "clock32": 1183045,
+            "sentTime": 866528.700750378,
+            "receiveTime": 866528.720950367
+          },
+          "warmup": true,
+          "revision": 1,
+          "before": {
+            "sampleTime": 866528.644925803,
+            "origin": "1112275",
+            "clockOffset": 0,
+            "frequency": 1000000
+          },
+          "after": {
+            "sampleTime": 866528.6568866167,
+            "origin": "1112275",
+            "clockOffset": 2359,
+            "frequency": 1267721.2496777468
+          },
+          "release": {
+            "frequency": 1267721.2496777468,
+            "sampleTime": 866528.6477866222,
+            "clock": "1111634"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1253508,
+            "sentTime": 866528.771244499,
+            "receiveTime": 866528.791396918
+          },
+          "warmup": true,
+          "revision": 2,
+          "before": {
+            "sampleTime": 866528.6568866167,
+            "origin": "1112275",
+            "clockOffset": 2359,
+            "frequency": 1267721.2496777468
+          },
+          "after": {
+            "sampleTime": 866528.6610114274,
+            "origin": "1112275",
+            "clockOffset": 6988.133333333333,
+            "frequency": 1140561.7678885737
+          },
+          "release": {
+            "frequency": 1140561.7678885737,
+            "sampleTime": 866528.651935218,
+            "clock": "1116263"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1303701,
+            "sentTime": 866528.84152308,
+            "receiveTime": 866528.84158399
+          },
+          "warmup": true,
+          "revision": 3,
+          "before": {
+            "sampleTime": 866528.6610114274,
+            "origin": "1112275",
+            "clockOffset": 6988.133333333333,
+            "frequency": 1140561.7678885737
+          },
+          "after": {
+            "sampleTime": 866528.6573186016,
+            "origin": "1112275",
+            "clockOffset": 13136.062222222223,
+            "frequency": 1024754.1941251003
+          },
+          "release": {
+            "frequency": 1024754.1941251003,
+            "sampleTime": 866528.6582881467,
+            "clock": "1122411"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1353989,
+            "sentTime": 866528.891774382,
+            "receiveTime": 866528.891885252
+          },
+          "warmup": true,
+          "revision": 4,
+          "before": {
+            "sampleTime": 866528.6573186016,
+            "origin": "1112275",
+            "clockOffset": 13136.062222222223,
+            "frequency": 1024754.1941251003
+          },
+          "after": {
+            "sampleTime": 866528.6651348094,
+            "origin": "1112275",
+            "clockOffset": 20755.326814814816,
+            "frequency": 999178.3090278895
+          },
+          "release": {
+            "frequency": 999178.3090278895,
+            "sampleTime": 866528.6661043545,
+            "clock": "1130030"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1404252,
+            "sentTime": 866528.942058514,
+            "receiveTime": 866528.942142174
+          },
+          "warmup": true,
+          "revision": 5,
+          "before": {
+            "sampleTime": 866528.6651348094,
+            "origin": "1112275",
+            "clockOffset": 20755.326814814816,
+            "frequency": 999178.3090278895
+          },
+          "after": {
+            "sampleTime": 866528.6743666148,
+            "origin": "1112275",
+            "clockOffset": 29796.04925432099,
+            "frequency": 990732.1951371805
+          },
+          "release": {
+            "frequency": 990732.1951371805,
+            "sampleTime": 866528.6753361599,
+            "clock": "1139071"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1455713,
+            "sentTime": 866528.992534707,
+            "receiveTime": 866528.993600037
+          },
+          "warmup": true,
+          "revision": 6,
+          "before": {
+            "sampleTime": 866528.6743666148,
+            "origin": "1112275",
+            "clockOffset": 29796.04925432099,
+            "frequency": 990732.1951371805
+          },
+          "after": {
+            "sampleTime": 866528.6849732331,
+            "origin": "1112275",
+            "clockOffset": 40250.780945843624,
+            "frequency": 988877.086105016
+          },
+          "release": {
+            "frequency": 988877.086105016,
+            "sampleTime": 866528.6859427781,
+            "clock": "1149451"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1505854,
+            "sentTime": 866529.043672929,
+            "receiveTime": 866529.043737669
+          },
+          "warmup": true,
+          "revision": 7,
+          "before": {
+            "sampleTime": 866528.6849732331,
+            "origin": "1112275",
+            "clockOffset": 40250.780945843624,
+            "frequency": 988877.086105016
+          },
+          "after": {
+            "sampleTime": 866528.6969309049,
+            "origin": "1112275",
+            "clockOffset": 52028.388247648836,
+            "frequency": 987595.6907107317
+          },
+          "release": {
+            "frequency": 987595.6907107317,
+            "sampleTime": 866528.6979004499,
+            "clock": "1161186"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1556599,
+            "sentTime": 866529.094406561,
+            "receiveTime": 866529.094487202
+          },
+          "warmup": true,
+          "revision": 8,
+          "before": {
+            "sampleTime": 866528.6969309049,
+            "origin": "1112275",
+            "clockOffset": 52028.388247648836,
+            "frequency": 987595.6907107317
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": {
+            "frequency": 987389.8182983671,
+            "sampleTime": 866528.7111506535,
+            "clock": "1174312"
+          }
+        }
+      ],
+      "recent": [
+        {
+          "sample": {
+            "clock32": 1574162,
+            "sentTime": 866529.094689702,
+            "receiveTime": 866529.112055339
+          },
+          "warmup": false,
+          "revision": 9,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 2540882,
+            "sentTime": 866530.077690205,
+            "receiveTime": 866530.078752396
+          },
+          "warmup": false,
+          "revision": 10,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 2712119,
+            "sentTime": 866530.249853971,
+            "receiveTime": 866530.249989251
+          },
+          "warmup": false,
+          "revision": 11,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 2763223,
+            "sentTime": 866530.301029854,
+            "receiveTime": 866530.301094354
+          },
+          "warmup": false,
+          "revision": 12,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 2823533,
+            "sentTime": 866530.36132463,
+            "receiveTime": 866530.36140443
+          },
+          "warmup": false,
+          "revision": 13,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 2873596,
+            "sentTime": 866530.411368882,
+            "receiveTime": 866530.411465752
+          },
+          "warmup": false,
+          "revision": 14,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 2923800,
+            "sentTime": 866530.461603945,
+            "receiveTime": 866530.461669175
+          },
+          "warmup": false,
+          "revision": 15,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 2975400,
+            "sentTime": 866530.513177967,
+            "receiveTime": 866530.513271687
+          },
+          "warmup": false,
+          "revision": 16,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 3034647,
+            "sentTime": 866530.572451593,
+            "receiveTime": 866530.572518503
+          },
+          "warmup": false,
+          "revision": 17,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 3511844,
+            "sentTime": 866531.049669324,
+            "receiveTime": 866531.049717894
+          },
+          "warmup": false,
+          "revision": 18,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 3762050,
+            "sentTime": 866531.299868184,
+            "receiveTime": 866531.299919204
+          },
+          "warmup": false,
+          "revision": 19,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 4037041,
+            "sentTime": 866531.574843066,
+            "receiveTime": 866531.574908366
+          },
+          "warmup": false,
+          "revision": 20,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 4311776,
+            "sentTime": 866531.848527086,
+            "receiveTime": 866531.849643897
+          },
+          "warmup": false,
+          "revision": 21,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 4506336,
+            "sentTime": 866532.044157773,
+            "receiveTime": 866532.044214803
+          },
+          "warmup": false,
+          "revision": 22,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 4584820,
+            "sentTime": 866532.122654177,
+            "receiveTime": 866532.122703697
+          },
+          "warmup": false,
+          "revision": 23,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 4810223,
+            "sentTime": 866532.348028887,
+            "receiveTime": 866532.348092707
+          },
+          "warmup": false,
+          "revision": 24,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 5110883,
+            "sentTime": 866532.647623479,
+            "receiveTime": 866532.648753919
+          },
+          "warmup": false,
+          "revision": 25,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 5386434,
+            "sentTime": 866532.924235171,
+            "receiveTime": 866532.924306591
+          },
+          "warmup": false,
+          "revision": 26,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 5488642,
+            "sentTime": 866533.026449816,
+            "receiveTime": 866533.026523296
+          },
+          "warmup": false,
+          "revision": 27,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 5661424,
+            "sentTime": 866533.199214342,
+            "receiveTime": 866533.199295452
+          },
+          "warmup": false,
+          "revision": 28,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 5961252,
+            "sentTime": 866533.499024204,
+            "receiveTime": 866533.499124104
+          },
+          "warmup": false,
+          "revision": 29,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 6039324,
+            "sentTime": 866533.576946459,
+            "receiveTime": 866533.577201759
+          },
+          "warmup": false,
+          "revision": 30,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 6089477,
+            "sentTime": 866533.627309231,
+            "receiveTime": 866533.627363371
+          },
+          "warmup": false,
+          "revision": 31,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 6139531,
+            "sentTime": 866533.677369933,
+            "receiveTime": 866533.677408323
+          },
+          "warmup": false,
+          "revision": 32,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 6200337,
+            "sentTime": 866533.73817859,
+            "receiveTime": 866533.73820782
+          },
+          "warmup": false,
+          "revision": 33,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 6259953,
+            "sentTime": 866533.797744836,
+            "receiveTime": 866533.797824436
+          },
+          "warmup": false,
+          "revision": 34,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 6311119,
+            "sentTime": 866533.848952159,
+            "receiveTime": 866533.848990879
+          },
+          "warmup": false,
+          "revision": 35,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 6362236,
+            "sentTime": 866533.900069501,
+            "receiveTime": 866533.900106921
+          },
+          "warmup": false,
+          "revision": 36,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 6421668,
+            "sentTime": 866533.959478297,
+            "receiveTime": 866533.959544437
+          },
+          "warmup": false,
+          "revision": 37,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 6472339,
+            "sentTime": 866534.01010827,
+            "receiveTime": 866534.01022726
+          },
+          "warmup": false,
+          "revision": 38,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 7454686,
+            "sentTime": 866534.992497513,
+            "receiveTime": 866534.992559653
+          },
+          "warmup": false,
+          "revision": 39,
+          "before": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "after": {
+            "sampleTime": 866528.7101811084,
+            "origin": "1112275",
+            "clockOffset": 65104.90863939388,
+            "frequency": 987389.8182983671
+          },
+          "release": null
+        }
+      ]
+    }
+  ],
+  "decision": "Unknown send time excluded in this controlled capture; estimator is already frozen after warmup eight and rejects every regular aux reply from revision nine despite known native timestamps. Preserve guard; investigate warmup validity and admission before proposing a precision/availability fix. Original remote raw capture still absent.",
+  "base": "1079998b4a1359efe3ce74d3db342859704b956a",
+  "node": {
+    "version": "26.10.0",
+    "sha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da"
+  },
+  "productionFingerprints": {
+    "host/src/timing/clock-sync.ts": "296aef1e98374d42e8324f3789be490db336a42fdf6837499e3f11b0cbc3a562",
+    "host/src/timing/clock-runtime.ts": "6a724837eb8b3f3be32628eebb150e0b7665c45c4a069e952d94db24931671d5",
+    "host/src/timing/secondary-sync.ts": "80f333fa80fda220576049820f2b5ff46ac487c0ee4f3911fe500db1189e0a54",
+    "host/src/timing/print-clock-timeline.ts": "64112b59a3df09af7147f1a87cd5e95164f2e988444e3cf755031656b2cccc22",
+    "host/src/homing/position-offsets.ts": "cb9b14a55d504b6a6e5aaf683d4430f2314f2f77ee86e626f420c1e25adddbbf",
+    "host/src/timing/calibration-cadence.ts": "6f39c13acd4900be39d3096a0b2c1fbbb9f9673f9ab8d9cc83715c5c0c5ccb72"
+  },
+  "driverArtifacts": {
+    "actualInputGenerator": {
+      "path": "host/contracts/clock-warmup-wire-input-generator.txt",
+      "sha256": "3f65d0b6b186591ada88e4837511788270105d213c06529b64e7e15fd25cddd4"
+    },
+    "actualInjectedDriver": {
+      "path": "host/contracts/clock-warmup-wire-driver.txt",
+      "sha256": "744d6eed17949cf7f19a480dc4de8302e2799584fa44f05bddb1a9204e0c9a4f"
+    },
+    "originalSourceSha256": "e84d936539565082c2c0b952753ef23943d7fa9640d858e6d7940592b0c583ac",
+    "changes": "Only aux firmware accepted-command delays before actual model clock read, absolute imports and observation. Original modes/assertions/precision/deadlines and production classes remain unchanged; 60s outer command bound.",
+    "archivalScope": "Text archives preserve exact executed driver/generator bytes and their original absolute fixture imports; they are not portable live rerun commands. Only the raw replay command is portable."
+  },
+  "syntheticModel": {
+    "path": "host/contracts/clock-warmup-model-counterexample.json.gz",
+    "sha256": "51848b4894b563d8d8859b67837fe1a1e57a291bebd1dce717188e94577ce696",
+    "scope": "Independent ideal 1MHz clocks with controlled processing/receive times and unmodified emitted production estimators/timelines; not actual wire, MotionCoordinator or remote capture.",
+    "result": "Increasing publication alone did not recover estimator. Increasing query rate prevented estimator rejection but historical trigger errors at 3s/6s still exceeded the original 4ms synthetic stop guard. Not a fix.",
+    "encoding": "gzip",
+    "rawBytes": 841237,
+    "compressedSha256": "0ab368de61bedf3040dc2d4b407ef27a8ec18a45ee048eb010c913020e07468f",
+    "driver": {
+      "path": "host/contracts/clock-warmup-model-driver.txt",
+      "sha256": "5524a5898bf2092f21d0d839aa73c2faee12149573fa7dd42dc5f0d299a04d72",
+      "scope": "Exact executed v2 driver archive with original absolute emitted-product imports; no portable live repeat claim."
+    }
+  },
+  "safety": "Original mapped-trigger protection rejects; no real hardware motion, retry-to-green, deadline/precision relaxation or production change. Full G3 and remote root remain open.",
+  "nativeOutputs": {
+    "scope": "Source serial-model run reused existing accepted native outputs in frozen PR #34 worktree; hashes read after run. No fresh C build or physical device claim.",
+    "fingerprints": {
+      "ar100-flash.node": "5018b82bbf784653d7a55678ed768e52d5eb3acb8f05702b71ceb8d9627215f9",
+      "can-query.node": "33135adc0307937ed196ce305c4b52003dc617ec5a9c1550c21b8c22e00a760a",
+      "sealed-file.node": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+      "serialqueue.node": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac",
+      "stepcompress.node": "255a84728574d1534bad1796883d9232d56cb5089581676fc47c5cb202a9cb95",
+      "trapq.node": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+      "unix-peer.node": "86d5ed6b37abf734d89fb4eff9b24bcf6636eab408c94df7e9d96f04cb356248"
+    }
+  },
+  "validation": {
+    "fullTypecheck": {
+      "exitCode": 0,
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-warmup-evidence-final-types-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "frozenReplay": {
+      "exitCode": 0,
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-warmup-replay-final-20261007.log",
+      "sha256": "43c419dedfca187ae085d9078d62c420e3b740d1284d8b1c2072ed1ef2b024d3",
+      "rows": 74,
+      "artifactHashesVerified": true
+    },
+    "requiredWhitespaceAndEvidenceFormat": {
+      "exitCode": 0,
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-warmup-evidence-final-whitespace-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "remoteCI": "Not yet submitted; no full CI or root-fix claim."
+  },
+  "integration": {
+    "base": "1079998b4a1359efe3ce74d3db342859704b956a",
+    "clockDiagnosticPR": 34,
+    "postmergeHost": {
+      "run": 37619633375,
+      "job": 112786337107,
+      "status": "in_progress",
+      "types": "success",
+      "ordinary": "success",
+      "protocol": "success",
+      "sanitizer": "in_progress",
+      "linuxMCU": "pending"
+    },
+    "postmergeFirmware": {
+      "run": 37619633358,
+      "job": 112786338792,
+      "conclusion": "success"
+    }
+  }
+}

@@ -29,6 +29,9 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 [接入验收](host/contracts/protected-client-gateway-acceptance.json)，
 装配命令与权限边界见[启动说明](docs/Node_Host_Startup.md#受保护的官方-mainsail-接入候选)。
 完整同包客户端、目标板和 G3 门槛仍未关闭。
+受保护入口新增清台确认页面候选，请求确认在旧服务、策略关闭及设备忙
+时保持拒绝，操作和独立包证据见[队列页面验收](host/contracts/product-queue-panel-acceptance.json)。
+实际页面与当前系列验收仍待完成。
 面向用户的未发布变化见 [版本变化](CHANGELOG.md)。
 
 交付按同包软件闭环、Cycnumbris 500 受控试验、完整退役与发布三个

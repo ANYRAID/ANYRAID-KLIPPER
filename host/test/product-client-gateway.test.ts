@@ -11,6 +11,7 @@ import {DatabaseStore} from '../src/moonraker/database.ts';
 import {ApiKeyAuthorization} from '../src/moonraker/api-key-authorization.ts';
 import {ConfiguredMoonraker} from '../src/moonraker/configured-server.ts';
 import {ProductClientGateway,type ProductClientGatewayOptions} from '../src/runtime/product-client-gateway.ts';
+import {productClientAssets} from '../src/runtime/product-client-assets.ts';
 const origin='http://127.0.0.1:18420';
 const info={connected:false,state:'disconnected' as const,components:[],failedComponents:[],directories:[],warnings:[],version:'gateway-test',missingRequirements:[]};
 async function fixture(run:(f:Awaited<ReturnType<typeof setup>>)=>Promise<void>,options:Partial<ProductClientGatewayOptions>={},clock?:()=>number){
@@ -81,4 +82,18 @@ test('session capacity, malformed login and native outages fail closed without c
 }, {maxSessions:1}));
 test('gateway close during listener startup joins startup and leaves no live listener',async()=>{
  const gateway=new ProductClientGateway({origin,upstream:'http://127.0.0.1:7125',loopbackHttp:true});const listening=gateway.listen(0),closing=gateway.close();await assert.rejects(listening,/cancelled/);await closing;assert.equal(gateway.status.closed,true);assert.equal(gateway.status.listening,false);await delay(0);
+});
+
+test('queue operation page uses the same native identity, login redirect and revoked-cookie boundary',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'queue-panel-assets-'));
+ try{
+  await writeFile(join(root,'index.html'),'<html>unchanged client</html>');const client=await productClientAssets(root);
+  await fixture(async f=>{
+   assert.equal((await f.http('/_client/queue','GET',undefined,undefined,{accept:'text/html'})).code,303);
+   const cookie=await f.login();const page=await f.http('/_client/queue','GET',undefined,cookie,{accept:'text/html'});assert.equal(page.code,200);assert(page.raw.includes('打印台已清空'));assert(!page.raw.includes(f.alice.token));
+   assert.equal((await f.http('/_client/queue','GET',undefined,cookie,{origin:'https://foreign.example'})).code,403);
+   assert.equal((await f.native('/access/logout','POST',{},f.alice.token)).code,200);
+   assert.equal((await f.http('/_client/queue','GET',undefined,cookie,{accept:'text/html'})).code,303);assert.equal((await f.http('/server/job_queue/status','GET',undefined,cookie)).code,401);
+  },{client});
+ }finally{await rm(root,{recursive:true,force:true});}
 });
