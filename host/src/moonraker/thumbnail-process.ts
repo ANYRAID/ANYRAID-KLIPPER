@@ -3,7 +3,7 @@ import {fork,type ChildProcess} from 'node:child_process';
 import {ApiError} from './rpc.ts';
 import type {ThumbnailImage} from './thumbnail-images.ts';
 export interface ThumbnailProcessorOptions {maxPending?:number;maxQueuedBytes?:number;timeoutMs?:number;startupTimeoutMs?:number;}
-interface Request {id:number;data:string;bytes:number;finish:(error:unknown,images?:ThumbnailImage[])=>void;dispose:()=>void;}
+interface Request {id:number;kind:'blocks'|'png';data:string|Buffer;bytes:number;finish:(error:unknown,images?:ThumbnailImage[])=>void;dispose:()=>void;}
 /** Serial image processing in a separate process, including its native thread pools.
  * Active cancellation/timeout fences the instance and kills the child; no auto-restart. */
 export class ThumbnailProcessor {
@@ -40,6 +40,17 @@ export class ThumbnailProcessor {
   if(typeof data!=='string')return Promise.reject(new TypeError('Invalid thumbnail input'));
   if(data.length>2*1024**2)return Promise.reject(new ApiError(413,'Thumbnail text limit exceeded'));
   const bytes=Buffer.byteLength(data);if(bytes>2*1024**2)return Promise.reject(new ApiError(413,'Thumbnail text limit exceeded'));
+  return this.#enqueue('blocks',data,bytes,signal);
+ }
+ /** UFP PNG input is decoded in the same isolated owner; never rewrite G-code. */
+ preparePng(data:Buffer,signal:AbortSignal):Promise<ThumbnailImage[]>{
+  if(this.#closed)return Promise.reject(new ApiError(503,'Thumbnail processor is closed'));
+  if(signal.aborted)return Promise.reject(signal.reason);
+  if(!Buffer.isBuffer(data))return Promise.reject(new TypeError('Invalid thumbnail PNG input'));
+  if(data.length>4*1024**2)return Promise.reject(new ApiError(413,'Thumbnail PNG limit exceeded'));
+  return this.#enqueue('png',data,data.length,signal);
+ }
+ #enqueue(kind:'blocks'|'png',data:string|Buffer,bytes:number,signal:AbortSignal):Promise<ThumbnailImage[]>{
   if(this.#requests.size>=this.#options.maxPending||this.#bytes+bytes>this.#options.maxQueuedBytes||this.#next===Number.MAX_SAFE_INTEGER)return Promise.reject(new ApiError(503,'Thumbnail process queue is full'));
   const id=++this.#next,result=Promise.withResolvers<ThumbnailImage[]>();let settled=false;
   const finish=(error:unknown,images?:ThumbnailImage[])=>{if(settled)return;settled=true;if(error!==undefined)result.reject(error);else if(signal.aborted)result.reject(signal.reason);else result.resolve(images!);};
@@ -47,13 +58,14 @@ export class ThumbnailProcessor {
   const abort=()=>cancel(signal.reason??new ApiError(499,'Thumbnail processing cancelled'));
   const timer=setTimeout(()=>cancel(new ApiError(504,'Thumbnail processing timed out')),this.#options.timeoutMs);
   const dispose=()=>{clearTimeout(timer);signal.removeEventListener('abort',abort);};
-  this.#requests.set(id,{id,data,bytes,finish,dispose});this.#bytes+=bytes;signal.addEventListener('abort',abort,{once:true});this.#dispatch();return result.promise;
+  // Own a snapshot even while queued; callers may reuse their archive buffer.
+  this.#requests.set(id,{id,kind,data:Buffer.isBuffer(data)?Buffer.from(data):data,bytes,finish,dispose});this.#bytes+=bytes;signal.addEventListener('abort',abort,{once:true});this.#dispatch();return result.promise;
  }
  #remove(request:Request):void{this.#requests.delete(request.id);this.#bytes-=request.bytes;request.data='';request.dispose();}
  #dispatch():void{
   if(this.#closed||this.#active!==undefined)return;const request=this.#requests.values().next().value as Request|undefined;if(!request)return;this.#active=request.id;
   // Only one IPC request is in flight; retained budget covers it until acknowledgment.
-  try{this.#child.send({id:request.id,data:request.data},error=>{if(error)this.#fail(error);});request.data='';}catch(error){this.#fail(error);}
+  try{this.#child.send({id:request.id,kind:request.kind,data:request.data},error=>{if(error)this.#fail(error);});request.data='';}catch(error){this.#fail(error);}
  }
  #fail(error:unknown):void{
   if(!this.#closed){this.#closed=true;for(const request of this.#requests.values()){request.finish(error);request.dispose();request.data='';}this.#requests.clear();this.#active=undefined;this.#bytes=0;}

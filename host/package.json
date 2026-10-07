@@ -313,6 +313,7 @@
     "@types/pdfkit": "0.17.6",
     "@types/svg-to-pdfkit": "0.1.4",
     "@types/ws": "8.18.1",
+    "@types/yauzl": "3.4.0",
     "minijinja-js": "2.24.0",
     "mqtt-packet": "9.0.2",
     "typescript": "^7.0.2"
@@ -332,6 +333,7 @@
     "sharp": "0.35.4",
     "svg-to-pdfkit": "0.1.8",
     "ws": "8.21.3",
-    "yaml": "2.9.1"
+    "yaml": "2.9.1",
+    "yauzl": "3.4.0"
   }
 }
