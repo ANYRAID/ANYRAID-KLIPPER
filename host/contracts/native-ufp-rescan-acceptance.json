@@ -1,0 +1,242 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base": "11a90a6e5e1c3710c37440bcf38479c08917d6ce",
+  "parents": {
+    "ufp": "d12cea1f21ea8fa171cf40852070eb8076ad869b",
+    "rescan": "eb97d2749eef33d8b8af108d2fc44a5fbbb715f2"
+  },
+  "scope": "原生 UFP 与强制重扫的隔离组合。Draft，未合入 develop；不是磁盘 UFP 导入或全部 Python 退役。",
+  "product": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-rescan-product-bundle",
+    "manifestSha256": "2cbdbb272bd1e63b805062123bf5e1411e24eb7515620c6d40f93b33ba0f1075",
+    "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+  },
+  "productionDifferenceFromUfp": [
+    "host/src/moonraker/configured-server.js",
+    "host/src/moonraker/native-file-metadata.js",
+    "host/src/moonraker/native-persistent-metadata.js",
+    "host/src/moonraker/native-print-uploads.js"
+  ],
+  "native": "复用已验收 C；未重新构建。",
+  "validation": {
+    "source": 215,
+    "compiledOverlap": 53,
+    "mixed": 1,
+    "typecheck": true,
+    "whitespace": true,
+    "scope": "重叠计数不相加；新测试验证原模型和独立 PNG 配对、取消后重读、旧 URL 撤销、耐久恢复及删除。"
+  },
+  "failures": [
+    {
+      "file": "anyraid-ufp-rescan-types-first.log",
+      "cause": "测试误用不存在的 files.get，改用既有 describe。"
+    },
+    {
+      "file": "anyraid-ufp-rescan-lifecycle-first.log",
+      "cause": "上述两项断言误写；另有持久取消错误封装于 cause，测试修正为既有契约，生产未变。"
+    },
+    {
+      "file": "anyraid-ufp-rescan-compiled.log",
+      "cause": "首次53项中两份旧测试仍加载源码；独立编译驱动纠正入口，compiled-final才表示全部53项实际加载封存模块。"
+    },
+    {
+      "file": "anyraid-pr47-host-failure-excerpt.log",
+      "cause": "依赖PR47的远程主机4214/4215；AHT加热PA4关闭AbortError，原因开放，未覆盖或忽略。"
+    }
+  ],
+  "mixed": {
+    "statusRequests": 45094,
+    "statusP99Ms": 4.809997000003932,
+    "minimumStepLeadMs": 86.863,
+    "uploads": 16,
+    "uploadP95Ms": 86.21323200000916,
+    "rescan": {
+      "operations": 16,
+      "medianMs": 274.79513099999895,
+      "p95Ms": 468.1049070000008,
+      "duringPrintGenerations": [
+        1,
+        2
+      ],
+      "oldUrlsRevoked": true,
+      "originalModelBytesPreserved": true
+    },
+    "queue": {
+      "groups": 16,
+      "printingGenerations": [
+        1,
+        2
+      ],
+      "queries": 2603,
+      "queryP99Ms": 4.92431800000486,
+      "durableMutations": 64,
+      "actualStartRequestPrefix": "queue-",
+      "journalCompleted": true,
+      "authorizedNotifications": true,
+      "noAutomaticReplay": true
+    },
+    "scope": "同一编译安装包，原1000条运动保持不变；双软件 MCU 两代，固定大图 UFP 与额外重扫并发。原运动及停机门槛保留，不构成 G3。"
+  },
+  "performance": {
+    "abba": {
+      "input": {
+        "bytes": 262144,
+        "sha256": "b7aaa6bbc42ff604b255b467ecb1e18a347612326fd1d6da573a1e6a76e11bd3",
+        "pngBytes": 1182337,
+        "pngSha256": "ab9b202bc50c1ad0d29f4423b667074ec78f59554e1624d6dc9bdb241f967b67"
+      },
+      "identities": {
+        "baseline": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-created-product-bundle",
+          "manifestSha256": "6a33f12a265a696778965e17cd1937f24732c8a4ade275b052d0f4b476669f16",
+          "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+        },
+        "candidate": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-rescan-product-bundle",
+          "manifestSha256": "2cbdbb272bd1e63b805062123bf5e1411e24eb7515620c6d40f93b33ba0f1075",
+          "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+        }
+      },
+      "summary": {
+        "baseline": {
+          "cache": {
+            "count": 1024,
+            "medianMs": 0.10218099999997321,
+            "p95Ms": 0.13804099999993014,
+            "p99Ms": 0.21690300000000207
+          },
+          "cold": {
+            "count": 32,
+            "medianMs": 191.3377959999998,
+            "p95Ms": 218.3661579999998,
+            "p99Ms": 219.5535920000002
+          }
+        },
+        "candidate": {
+          "cache": {
+            "count": 1024,
+            "medianMs": 0.08383099999991828,
+            "p95Ms": 0.12125100000048405,
+            "p99Ms": 0.7216090000001714
+          },
+          "cold": {
+            "count": 32,
+            "medianMs": 188.35340400000132,
+            "p95Ms": 215.0998610000006,
+            "p99Ms": 246.94110799999999
+          },
+          "rescan": {
+            "count": 32,
+            "medianMs": 251.47917400000006,
+            "p95Ms": 299.85141400000066,
+            "p99Ms": 304.13975500000015
+          }
+        }
+      },
+      "rounds": [
+        {
+          "round": 0,
+          "name": "baseline",
+          "loopP99Ms": 1.724415,
+          "loopMaxMs": 2.277375
+        },
+        {
+          "round": 1,
+          "name": "candidate",
+          "loopP99Ms": 1.687551,
+          "loopMaxMs": 2.553855
+        },
+        {
+          "round": 2,
+          "name": "candidate",
+          "loopP99Ms": 1.758207,
+          "loopMaxMs": 5.079039
+        },
+        {
+          "round": 3,
+          "name": "baseline",
+          "loopP99Ms": 1.730559,
+          "loopMaxMs": 2.707455
+        }
+      ]
+    },
+    "http": {
+      "input": {
+        "modelBytes": 262144,
+        "modelSha256": "b7aaa6bbc42ff604b255b467ecb1e18a347612326fd1d6da573a1e6a76e11bd3",
+        "pngBytes": 1182337,
+        "pngSha256": "ab9b202bc50c1ad0d29f4423b667074ec78f59554e1624d6dc9bdb241f967b67"
+      },
+      "results": [
+        {
+          "channel": "inline",
+          "upload": {
+            "medianMs": 42.443898000000445,
+            "p95Ms": 49.122018000001844,
+            "count": 32
+          },
+          "metadata": {
+            "medianMs": 183.07430300000124,
+            "p95Ms": 204.2672220000004,
+            "count": 32
+          },
+          "cached": {
+            "p95Ms": 1.1573140000000421,
+            "count": 256
+          },
+          "rescan": {
+            "medianMs": 257.2381070000001,
+            "p95Ms": 285.5139889999991,
+            "count": 32
+          }
+        },
+        {
+          "channel": "ufp",
+          "upload": {
+            "medianMs": 56.371455000000424,
+            "p95Ms": 82.30808600000091,
+            "count": 32
+          },
+          "metadata": {
+            "medianMs": 147.22611200000028,
+            "p95Ms": 171.3136310000009,
+            "count": 32
+          },
+          "cached": {
+            "p95Ms": 2.743862999996054,
+            "count": 256
+          },
+          "rescan": {
+            "medianMs": 227.51235599999927,
+            "p95Ms": 262.57553499999995,
+            "count": 32
+          }
+        }
+      ],
+      "loopP99MaxMs": 1.915903,
+      "loopMaxMs": 4.071423
+    },
+    "interpretation": "缓存P99及冷扫描P99尾延迟回退完整保留。原模拟发送期限满足；没有目标预算，不能认定实机零退化。"
+  },
+  "originalLargeGate": {
+    "closed": false,
+    "cause": "unknown",
+    "evidence": "ufp-stream-first-fault.json"
+  },
+  "pending": [
+    "依赖PR47自身AHT终态失败定位及CI修复",
+    "自身新头完整CI、正常develop集成和合并后验证",
+    "原生所有者的磁盘导入、监控、归档清理及耐久恢复",
+    "同包Fluidd和Mainsail实页完整出口",
+    "原UFP首次大图请求触发",
+    "Cycnumbris 500目标预算、配置、安装、G3及全部Python退役"
+  ],
+  "evidence": {
+    "path": "native-ufp-rescan-evidence.json.gz",
+    "entries": 51,
+    "bytes": 754759,
+    "sha256": "1de3c1fe49fdc56d2414595037876df600ab7ff3113f31d7897bc7d05ab45f61",
+    "secrets": 0
+  }
+}
