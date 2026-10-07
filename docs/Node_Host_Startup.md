@@ -64,10 +64,33 @@ HTTP 返回后任务可继续，但凭据失效、暂停、取消、失败、设
 关闭会停止续打。不确定准入回执核对原日志后暂停，不自动重试设备动作。
 恢复始终暂停，须重新显式启动；队列暂停仍不取消当前打印。
 
-`load_on_startup=true` 和非空 `job_transition_gcode` 仍明确拒绝，待受控
-产品操作 provider 完成，不执行任意旧宏。启动自动加载、旧过渡宏转换、
-同包客户端、目标板负载和正常集成仍待验，不能据此关闭完整 M3 或默认
-Python 退役门槛。验收范围见[队列契约](../host/contracts/native-job-queue-acceptance.json)。
+需要逐份清台确认时，在同一 `[job_queue]` 设置
+`job_transition_policy=operator_confirmation`，并使用进程授权所有者。
+默认策略为 `none`，不改变原手动／自动队列行为。旧配置中单独的
+`job_transition_gcode=PAUSE`（大小写不限）映射到相同确认流程，不执行
+G-Code；复合命令、其他宏和 `load_on_startup=true` 仍拒绝。
+
+设备空闲时，无令牌 `POST /server/job_queue/start` 只生成确认，不启动
+首份作业。启用自动续打时，当前打印的持久完成事件也只生成下一份确认。
+`status.transition` 为 `null` 或包含 `phase=awaiting_confirmation`、
+`state_token`、`job_id`、`filename`、`completed_request_id` 和 `expires_at`
+的对象；客户端展示待清台的文件，由操作者清台后显式提交
+`POST /server/job_queue/start {"transition_token":"上述 state_token"}`。
+此受控操作需要客户端接入，不能把现有客户端的普通“启动队列”按钮
+解释为已确认。策略关闭时不增加 `transition` 状态字段。
+
+确认只在当前进程内有效，默认 300 秒；
+`job_transition_confirmation_timeout` 以秒配置，允许 0.001–900。
+执行期限使用单调时钟，`expires_at` 仅供显示。确认时同时复核原授权、
+当前登录、设备代际、目录版本和队首文件身份；操作者必须与生成确认时
+相同。暂停、已提交的队列变化、设备退役、到期、关闭及重启均撤销确认，
+原凭据失效不能用新登录延续。失效后刷新状态并重新显式请求确认，
+不能自动重试或重放设备动作。该确认不替代真实机器准备和打印授权。
+
+启动自动加载、其余旧过渡宏转换、同包实际客户端、目标板负载和正常
+集成仍待验，不能据此关闭完整 M3 或默认 Python 退役门槛。软件范围见
+[清台确认验收](../host/contracts/native-queue-clearance-acceptance.json)和
+[原队列契约](../host/contracts/native-job-queue-acceptance.json)。
 
 ### 原生设备退役边界
 

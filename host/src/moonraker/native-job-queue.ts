@@ -43,6 +43,10 @@ export interface NativeJobQueueOptions {
   maxJobs?: number;
   automaticTransition?: boolean;
   transitionDelayMs?: number;
+  /** An explicit operator must confirm the immutable queue head before each
+   * admission. No G-code, timer or restart can manufacture this confirmation. */
+  confirmClearance?: boolean;
+  confirmationTimeoutMs?: number;
   /** Trusted owner freezes the initiating principal and revalidates it on each
    * print. Never reconstruct authority from the persisted catalogue username. */
   captureAuthority?(context: RpcContext, lifetime: AbortSignal): RpcContext;
@@ -55,6 +59,12 @@ interface Continuation {
   requestId: string;
   finished?: JournalHistoryEvent;
   removeAbort: () => void;
+}
+interface Clearance {
+  token: string; revision: number; job: QueuedNativeJob;
+  completedRequestId: string | null; expiresAt: number; deadline: number;
+  context: RpcContext; removeAbort: () => void;
+  timer: ReturnType<typeof setTimeout>;
 }
 const namespace = 'native_job_queue';
 const owners = new WeakSet<DatabaseStore>();
@@ -122,6 +132,7 @@ export class NativeJobQueue {
   #releaseHistory: (() => void) | undefined;
   #pauseRequested = false;
   #transitionError: string | null = null;
+  #clearance: Clearance | undefined;
   private constructor(options: NativeJobQueueOptions, owner: DatabaseNamespace, value: Catalogue, maxJobs: number) {
     this.#options = options; this.#namespace = owner; this.#catalogue = value; this.#maxJobs = maxJobs;
   }
@@ -131,6 +142,8 @@ export class NativeJobQueue {
       throw new TypeError('Invalid native job queue owner');
     if (options.automaticTransition !== undefined && typeof options.automaticTransition !== 'boolean' || options.transitionDelayMs !== undefined && (!Number.isFinite(options.transitionDelayMs) || options.transitionDelayMs <= 0 || options.transitionDelayMs > 2147483647)) throw new TypeError('Invalid queue transition policy');
     if (options.automaticTransition && (typeof options.captureAuthority !== 'function' || typeof options.activePrint !== 'function')) throw new TypeError('Automatic queue requires explicit print authority and controller');
+    if (options.confirmClearance !== undefined && typeof options.confirmClearance !== 'boolean' || options.confirmationTimeoutMs !== undefined && (!Number.isFinite(options.confirmationTimeoutMs) || options.confirmationTimeoutMs < 1 || options.confirmationTimeoutMs > 900000)) throw new TypeError('Invalid queue confirmation policy');
+    if (options.confirmClearance && typeof options.captureAuthority !== 'function') throw new TypeError('Queue confirmation requires explicit print authority');
     if (owners.has(options.database)) throw new TypeError('Job queue database already owned');
     owners.add(options.database);
     try {
@@ -151,15 +164,25 @@ export class NativeJobQueue {
     return {
       queued_jobs: this.#catalogue.jobs.map(job => ({ filename: job.filename, job_id: job.job_id, time_added: job.time_added, time_in_queue: Math.max(0, now - job.time_added) })),
       queue_state: this.#state,
+      ...this.#options.confirmClearance ? { transition: this.#clearance ? {
+        version: 1, phase: 'awaiting_confirmation', state_token: this.#clearance.token,
+        job_id: this.#clearance.job.job_id, filename: this.#clearance.job.filename,
+        completed_request_id: this.#clearance.completedRequestId, expires_at: this.#clearance.expiresAt,
+      } : null } : {},
     };
   }
   get diagnostics() {
     return { revision: this.#catalogue.revision, pending: this.#pending, dispatching: !!this.#dispatch, claim: this.#catalogue.claim ? { ...this.#catalogue.claim } : null, storage_failed: this.#storageFailed, closed: this.#closing, automatic: { armed: !!this.#continuation, scheduled: !!this.#transitionTimer, error: this.#transitionError }, notifications: { pending: this.#notificationPending, dropped: this.#notificationDropped, error: this.#notificationError } };
   }
   #disarm(): void {
+    this.#clearConfirmation();
     if (this.#transitionTimer) clearTimeout(this.#transitionTimer);
     this.#transitionTimer = undefined;
     this.#continuation?.removeAbort(); this.#continuation = undefined;
+  }
+  #clearConfirmation(): void {
+    const clearance = this.#clearance; this.#clearance = undefined;
+    if (clearance) { clearTimeout(clearance.timer); clearance.removeAbort(); }
   }
   #arm(context: RpcContext, requestId: string): Continuation {
     context.signal.throwIfAborted(); context.nativeGenerationSignal?.throwIfAborted();
@@ -192,7 +215,8 @@ export class NativeJobQueue {
         try {
           lease.context.signal.throwIfAborted(); lease.context.nativeGenerationSignal?.throwIfAborted();
           if (!this.#options.canStart()) throw new ApiError(409, 'Completed queue device unavailable');
-          await this.#start(lease.context, true);
+          if (this.#options.confirmClearance) await this.#requestConfirmation(lease.context, lease.requestId);
+          else await this.#start(lease.context, true);
         } catch { this.#disarm(); this.#transitionError = 'Automatic print admission failed; explicitly restart the queue'; this.#setState('paused'); }
       })();
       this.#automaticTask = task;
@@ -222,6 +246,7 @@ export class NativeJobQueue {
       throw error;
     }
     this.#catalogue = next;
+    this.#clearConfirmation();
     this.#emit(action);
   }
   #emit(action = 'state_changed'): void {
@@ -305,10 +330,55 @@ export class NativeJobQueue {
     await this.#dispatch; await this.#tail;
     return this.status;
   }
-  async start(context: RpcContext): Promise<Json> {
-    return this.#start(context, false);
+  async start(context: RpcContext, token?: string): Promise<Json> {
+    if (!this.#options.confirmClearance) {
+      if (token !== undefined) throw new ApiError(400, 'Queue confirmation is not configured');
+      return this.#start(context, false);
+    }
+    if (token === undefined) {
+      // Starting while an existing job owns the device only arms its matching
+      // completion. A fresh confirmation is requested after durable completion.
+      if (!this.#options.canStart()) return this.#start(context, false);
+      const authority = this.#options.captureAuthority!(context, this.#lifetime.signal);
+      return this.#requestConfirmation(authority, null);
+    }
+    if (typeof token !== 'string' || !/^[a-f0-9]{32}$/.test(token)) throw new ApiError(400, 'Invalid queue confirmation token');
+    const clearance = this.#clearance;
+    if (!clearance || clearance.token !== token) throw new ApiError(409, 'Queue confirmation changed; refresh status');
+    if (performance.now() >= clearance.deadline) { this.#disarm(); throw new ApiError(410, 'Queue confirmation expired'); }
+    context.signal.throwIfAborted(); clearance.context.signal.throwIfAborted();
+    if (context.nativeGenerationRetiredAtAdmission || context.nativeGenerationSignal !== clearance.context.nativeGenerationSignal) throw new ApiError(503, 'Queue confirmation belongs to another device generation');
+    if (context.user?.username !== clearance.context.user?.username) throw new ApiError(403, 'Queue confirmation belongs to another operator');
+    // A current login cannot silently replace the initiating principal's revoked
+    // grant. A new explicit challenge can be requested with fresh authority.
+    try { await clearance.context.authorize('printer.print.start', { filename: clearance.job.filename, file_id: clearance.job.file_id }); }
+    catch (error) { if (this.#clearance === clearance) { this.#disarm(); this.#transitionError = 'Queue confirmation authority revoked; request a fresh confirmation'; this.#setState('paused'); this.#emit(); } throw error; }
+    await context.authorize('printer.print.start', { filename: clearance.job.filename, file_id: clearance.job.file_id });
+    if (this.#clearance !== clearance || performance.now() >= clearance.deadline) throw new ApiError(409, 'Queue confirmation changed during authorization');
+    return this.#start(context, false, clearance);
   }
-  async #start(context: RpcContext, continuation: boolean): Promise<Json> {
+  async #requestConfirmation(context: RpcContext, completedRequestId: string | null): Promise<Json> {
+    const pause = this.#pause;
+    return this.#serialize(async () => {
+      context.signal.throwIfAborted(); context.nativeGenerationSignal?.throwIfAborted();
+      if (context.nativeGenerationRetiredAtAdmission || !context.nativeGenerationSignal) throw new ApiError(503, 'Queue confirmation requires an attached device generation');
+      if (pause !== this.#pause || !this.#catalogue.jobs.length || !this.#options.canStart()) return this.status;
+      const job = this.#catalogue.jobs[0], signal = AbortSignal.any([context.signal, this.#lifetime.signal]);
+      const identity = await this.#options.resolveFile(job.filename, signal);
+      if (identity !== job.file_id) throw new ApiError(409, 'Queued file has been replaced');
+      await context.authorize('printer.print.start', { filename: job.filename, file_id: job.file_id }); signal.throwIfAborted();
+      if (pause !== this.#pause || !this.#options.canStart()) return this.status;
+      this.#disarm(); this.#transitionError = null;
+      const duration = this.#options.confirmationTimeoutMs ?? 300000;
+      const invalidate = () => { if (this.#clearance === clearance) { this.#clearConfirmation(); this.#transitionError = 'Queue confirmation expired or device authority retired'; this.#setState('paused'); this.#emit(); } };
+      const timer = setTimeout(invalidate, duration); timer.unref();
+      const clearance: Clearance = { token: randomBytes(16).toString('hex'), revision: this.#catalogue.revision, job: { ...job }, completedRequestId,
+        expiresAt: Date.now() + duration, deadline: performance.now() + duration, context, timer, removeAbort: () => signal.removeEventListener('abort', invalidate) };
+      this.#clearance = clearance; signal.addEventListener('abort', invalidate, { once: true });
+      this.#setState('paused'); this.#emit(); return this.status;
+    });
+  }
+  async #start(context: RpcContext, continuation: boolean, clearance?: Clearance): Promise<Json> {
     this.#assertWritable(); context.signal.throwIfAborted();
     if (context.nativeGenerationRetiredAtAdmission) throw new ApiError(503, 'Queue start entered a detached device window');
     if (this.#dispatch) return this.status;
@@ -322,14 +392,16 @@ export class NativeJobQueue {
       this.#disarm(); this.#transitionError = null;
     }
     const pause = this.#pause;
-    const signal = AbortSignal.any([context.signal, this.#lifetime.signal, ...context.nativeGenerationSignal ? [context.nativeGenerationSignal] : []]);
+    const signal = AbortSignal.any([context.signal, this.#lifetime.signal, ...context.nativeGenerationSignal ? [context.nativeGenerationSignal] : [], ...clearance ? [AbortSignal.timeout(Math.max(1, Math.ceil(clearance.deadline - performance.now())))] : []]);
     const dispatch = this.#serialize(async () => {
       signal.throwIfAborted(); if (pause !== this.#pause || !this.#catalogue.jobs.length) return;
+      if (clearance && (clearance.revision !== this.#catalogue.revision || this.#catalogue.jobs[0].job_id !== clearance.job.job_id || this.#catalogue.jobs[0].file_id !== clearance.job.file_id)) throw new ApiError(409, 'Confirmed queue head changed before admission');
       if (!this.#options.canStart()) {
         const active = this.#options.automaticTransition ? this.#options.activePrint!() : undefined;
         if (active && !continuation) { this.#arm(authority, active.requestId); this.#setState('ready'); }
         return;
       }
+      if (this.#options.confirmClearance && !clearance) throw new ApiError(409, 'Queue became idle; request a fresh clearance confirmation');
       if (this.#catalogue.claim) throw new ApiError(503, 'Queue admission awaits journal recovery');
       const job = this.#catalogue.jobs[0]; this.#setState('loading');
       try {
@@ -390,7 +462,7 @@ export function registerNativeJobQueue(registry: EndpointRegistry, queue: Native
       if (typeof params.job_id !== 'string') throw new ApiError(400, 'Missing queue job_id'); return queue.jump(params.job_id, context);
     }));
     releases.push(registry.register({ endpoint: '/server/job_queue/pause', methods: ['POST'] }, params => { allowed(params, []); return queue.pause(); }));
-    releases.push(registry.register({ endpoint: '/server/job_queue/start', methods: ['POST'] }, (params, _verb, context) => { allowed(params, []); return queue.start(context); }));
+    releases.push(registry.register({ endpoint: '/server/job_queue/start', methods: ['POST'] }, (params, _verb, context) => { allowed(params, ['transition_token']); if (params.transition_token !== undefined && typeof params.transition_token !== 'string') throw new ApiError(400, 'Invalid queue confirmation token'); return queue.start(context, params.transition_token); }));
   } catch (error) { for (const undo of releases.reverse()) undo(); throw error; }
   return () => { for (const undo of releases.reverse()) undo(); };
 }

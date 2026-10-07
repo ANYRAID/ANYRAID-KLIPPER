@@ -19,7 +19,7 @@ import { externalAcceptanceBundle, assertSeparateAcceptanceWorkspace, assertAcce
 const retained = await externalAcceptanceBundle();
 if (retained) after(() => assertAcceptanceBundleUnchanged(retained));
 
-async function fixture() {
+async function fixture(queueOptions = '') {
   // A pinned run uses actual emitted production owners and JS worker entries;
   // the TypeScript test is only the driver, never a product startup profile.
   const [serverModule, databaseModule, journalModule, controllerModule, gateModule, uploadsModule, filesModule] = retained ? await Promise.all([
@@ -35,7 +35,7 @@ async function fixture() {
     { PrintController: Controller } = controllerModule, { MaintenanceGate: Gate } = gateModule, { NativePrintUploads: Uploads } = uploadsModule, { PublishedPrintFiles: Files } = filesModule;
   const root = await mkdtemp(join(tmpdir(), 'automatic-native-queue-')), config = join(root, 'moonraker.conf');
   if (retained) await assertSeparateAcceptanceWorkspace(retained, root);
-  await writeFile(config, '[server]\nhost=127.0.0.1\nport=0\n[job_queue]\nautomatic_transition=true\njob_transition_delay=0.15\n');
+  await writeFile(config, '[server]\nhost=127.0.0.1\nport=0\n[job_queue]\nautomatic_transition=true\njob_transition_delay=0.15\n' + queueOptions);
   const database = await Database.open({ path: join(root, 'moonraker.db') });
   const journal = await Journal.open({ path: join(root, 'prints.db'), deviceId: 'queue-printer' });
   const files = await Files.open(join(root, 'files')), gate = new Gate();
@@ -63,7 +63,11 @@ async function fixture() {
     const deadline = performance.now() + 5000;
     while (!await predicate()) { assert(performance.now() < deadline, 'Automatic queue did not reach the required state'); await delay(5); }
   };
-  return { root, base, server, journal, controller, starts, call, status, until,
+  return { root, base, server, database, journal, controller, starts, call, status, until, files, processFiles,
+    async rejectedStart(params: object, expectedStatus: number, token?: string) {
+      const response = await fetch(base + '/server/job_queue/start', { method: 'POST', headers: { 'content-type': 'application/json', ...token ? { authorization: 'Bearer ' + token } : { 'x-api-key': key } }, body: JSON.stringify(params) });
+      const value = await response.json(); assert.equal(response.status, expectedStatus, JSON.stringify(value));
+    },
     async rotate() { key = await call('/access/api_key', 'POST'); },
     async close() { await server.close(); await deviceFiles.drain(); await processFiles.drain(); await files.close(); await journal.close(); await database.close(); await rm(root, { recursive: true, force: true }); },
   };
@@ -89,6 +93,128 @@ test('authorized HTTP automatic queue consumes matching durable completion once 
     const rows = await f.journal.historyList({ limit: 10 });
     assert.equal(rows.filter(row => row.request.requestId.startsWith('queue-') && row.state === 'completed').length, 3);
     assert.equal((await f.status()).queued_jobs.length, 0);
+  } finally { await f.close(); }
+});
+
+const clearancePolicy = 'job_transition_policy=operator_confirmation\n';
+for (const policy of [clearancePolicy, 'job_transition_gcode=PAUSE\n']) test('operator clearance gates every actual queue admission: ' + policy.trim(), async () => {
+  const f = await fixture(policy);
+  try {
+    await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode', 'one.gcode'] });
+    const pending = await f.call('/server/job_queue/start', 'POST');
+    assert.equal(pending.queue_state, 'paused'); assert.equal(pending.transition.completed_request_id, null);
+    assert.equal(pending.transition.job_id, pending.queued_jobs[0].job_id); assert.equal(pending.transition.filename, 'one.gcode');
+    assert.equal(f.starts.length, 0); assert.equal((await f.journal.historyList({ limit: 10 })).length, 0);
+    assert.equal((await fetch(f.base + '/server/job_queue/status')).status, 401);
+    assert.equal(JSON.stringify(await f.database.get('native_job_queue', 'catalogue')).includes('state_token'), false);
+    await f.rejectedStart({ transition_token: '0'.repeat(32) }, 409);
+    await f.call('/server/job_queue/start', 'POST', { transition_token: pending.transition.state_token });
+    await f.until(() => f.controller.state === 'printing'); assert.equal(f.starts.length, 1);
+    await f.rejectedStart({ transition_token: pending.transition.state_token }, 409);
+    const first = f.controller.currentRequest!;
+    await f.controller.complete(first.requestId);
+    await f.until(async () => !!(await f.status()).transition);
+    const next = await f.status(); assert.equal(next.transition.completed_request_id, first.requestId);
+    assert.notEqual(next.transition.state_token, pending.transition.state_token);
+    await delay(180); assert.equal(f.starts.length, 1);
+    await f.call('/server/job_queue/start', 'POST', { transition_token: next.transition.state_token });
+    await f.until(() => f.controller.state === 'printing'); assert.equal(f.starts.length, 2);
+    await f.controller.complete(f.controller.currentRequest!.requestId);
+    await delay(180); assert.equal((await f.status()).transition, null); assert.equal(f.starts.length, 2);
+  } finally { await f.close(); }
+});
+
+for (const mutation of ['add', 'remove', 'jump', 'pause', 'generation'] as const) test('queue clearance token is revoked by ' + mutation, async () => {
+  const f = await fixture(clearancePolicy);
+  try {
+    await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode', 'one.gcode'] });
+    const before = await f.call('/server/job_queue/start', 'POST');
+    if (mutation === 'add') await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode'] });
+    if (mutation === 'remove') await f.call('/server/job_queue/job?job_ids=' + before.queued_jobs[0].job_id, 'DELETE');
+    if (mutation === 'jump') await f.call('/server/job_queue/jump', 'POST', { job_id: before.queued_jobs[1].job_id });
+    if (mutation === 'pause') await f.call('/server/job_queue/pause', 'POST');
+    if (mutation === 'generation') await f.server.retireNativePrinter();
+    assert.equal((await f.status()).transition, null);
+    await f.rejectedStart({ transition_token: before.transition.state_token }, 409);
+    assert.equal(f.starts.length, 0); assert.equal((await f.journal.historyList({ limit: 10 })).length, 0);
+  } finally { await f.close(); }
+});
+
+test('wall clock adjustment cannot manufacture or expire a monotonic queue confirmation', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
+  const f = await fixture(clearancePolicy);
+  try {
+    await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode'] });
+    const pending = await f.call('/server/job_queue/start', 'POST'); t.mock.timers.tick(3600000);
+    await f.call('/server/job_queue/start', 'POST', { transition_token: pending.transition.state_token });
+    await f.until(() => f.controller.state === 'printing'); assert.equal(f.starts.length, 1);
+  } finally { await f.close(); }
+});
+
+test('a file replaced after clearance cannot be printed through its old immutable queue identity', async () => {
+  const f = await fixture(clearancePolicy);
+  try {
+    await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode'] });
+    const pending = await f.call('/server/job_queue/start', 'POST');
+    await writeFile(join(f.root, 'replacement.gcode'), 'G1 X2 F600\n'); const source = await open(join(f.root, 'replacement.gcode'), 'r');
+    try { const signal = new AbortController().signal, plan = await f.files.prepareUploadReplacement('replacement', 'one.gcode', 'one.gcode', signal); await f.files.replaceUpload(plan, source, signal); } finally { await source.close(); }
+    await f.rejectedStart({ transition_token: pending.transition.state_token }, 409);
+    assert.equal(f.starts.length, 0); assert.equal((await f.journal.historyList({ limit: 10 })).length, 0);
+  } finally { await f.close(); }
+});
+
+test('queue clearance uses a monotonic deadline and needs a fresh challenge after expiry', async () => {
+  const f = await fixture(clearancePolicy + 'job_transition_confirmation_timeout=0.1\n');
+  try {
+    await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode'] });
+    const before = await f.call('/server/job_queue/start', 'POST'); await delay(150);
+    assert.equal((await f.status()).transition, null); await f.rejectedStart({ transition_token: before.transition.state_token }, 409);
+    const fresh = await f.call('/server/job_queue/start', 'POST'); assert.equal(f.starts.length, 0);
+    assert.notEqual(fresh.transition.state_token, before.transition.state_token);
+    await f.call('/server/job_queue/start', 'POST', { transition_token: fresh.transition.state_token });
+    await f.until(() => f.controller.state === 'printing'); assert.equal(f.starts.length, 1);
+  } finally { await f.close(); }
+});
+
+test('rotated key cannot take over an old clearance grant and a new explicit challenge is required', async () => {
+  const f = await fixture(clearancePolicy);
+  try {
+    await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode'] });
+    const before = await f.call('/server/job_queue/start', 'POST'); await f.rotate();
+    await f.rejectedStart({ transition_token: before.transition.state_token }, 401);
+    assert.equal((await f.status()).transition, null); assert.equal(f.starts.length, 0);
+    const fresh = await f.call('/server/job_queue/start', 'POST');
+    await f.call('/server/job_queue/start', 'POST', { transition_token: fresh.transition.state_token });
+    await f.until(() => f.controller.state === 'printing'); assert.equal(f.starts.length, 1);
+  } finally { await f.close(); }
+});
+
+test('another authenticated operator cannot confirm the initiating operator clearance', async () => {
+  const f = await fixture(clearancePolicy);
+  try {
+    const alice = (await f.call('/access/user', 'POST', { username: 'alice', password: 'pass' })).token;
+    const bob = (await f.call('/access/user', 'POST', { username: 'bob', password: 'pass' })).token;
+    await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode'] }, alice);
+    const pending = await f.call('/server/job_queue/start', 'POST', undefined, alice);
+    await f.rejectedStart({ transition_token: pending.transition.state_token }, 403, bob); assert.equal(f.starts.length, 0);
+    await f.call('/access/logout', 'POST', undefined, alice);
+    const freshAlice = (await f.call('/access/login', 'POST', { username: 'alice', password: 'pass' })).token;
+    await f.rejectedStart({ transition_token: pending.transition.state_token }, 401, freshAlice);
+    const fresh = await f.call('/server/job_queue/start', 'POST', undefined, freshAlice);
+    await f.call('/server/job_queue/start', 'POST', { transition_token: fresh.transition.state_token }, freshAlice);
+    await f.until(() => f.controller.state === 'printing'); assert.equal(f.starts.length, 1);
+  } finally { await f.close(); }
+});
+
+test('parallel confirmations consume one clearance token and reserve one durable print request', async () => {
+  const f = await fixture(clearancePolicy);
+  try {
+    await f.call('/server/job_queue/job', 'POST', { filenames: ['one.gcode'] });
+    const pending = await f.call('/server/job_queue/start', 'POST');
+    const outcomes = await Promise.allSettled([f.call('/server/job_queue/start', 'POST', { transition_token: pending.transition.state_token }), f.call('/server/job_queue/start', 'POST', { transition_token: pending.transition.state_token })]);
+    assert.equal(outcomes.filter(r => r.status === 'fulfilled').length, 1);
+    await f.until(() => f.controller.state === 'printing'); assert.equal(f.starts.length, 1);
+    assert.equal((await f.journal.historyList({ limit: 10 })).length, 1);
   } finally { await f.close(); }
 });
 
