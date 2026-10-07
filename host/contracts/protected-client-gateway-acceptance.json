@@ -499,5 +499,270 @@
       "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-actual-page-interactive-20261007.log",
       "sha256": "563318606adf808b5fa4efd2e59a416534db52bd894757bf3f7ca506299abbf7"
     }
-  ]
+  ],
+  "commandClockPositionDiscrimination": {
+    "date": "2026-10-07",
+    "sourceHead": "5f92b95a127b2be62245b981b0e7530fe37d835e",
+    "scope": "Deterministic firmware-handler discrimination only; reuse actual stepper.c/trsync.c with existing GPIO and timer stubs. Not a fresh motion run or physical accuracy acceptance.",
+    "capturedInput": {
+      "source": "/home/dek02/.cache/codex/tmp/anyraid-pr23-delta-receive-counter-classification-20261007.json",
+      "firstPulse": 2601027,
+      "interval": 2500,
+      "count": 20,
+      "stopClock": 2504434,
+      "baseClockDerivedFromFirstPulse": 2598527,
+      "initialPosition": -24
+    },
+    "runs": [
+      {
+        "sanitizer": "undefined",
+        "exit": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-ubsan-20261007.log",
+          "sha256": "e7319363378175727a56ecc3b3561ee0436578eea2025582dcd1bc3f9ea2ac04"
+        },
+        "result": {
+          "capturedFutureBefore": -24,
+          "capturedFutureAfterStop": -24,
+          "partialNegativeAdd": -26,
+          "wrapAfterStop": -27,
+          "receiveOnlyWrong": -44
+        }
+      },
+      {
+        "sanitizer": "address,undefined",
+        "exit": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-asan-20261007.log",
+          "sha256": "e7319363378175727a56ecc3b3561ee0436578eea2025582dcd1bc3f9ea2ac04"
+        },
+        "result": {
+          "capturedFutureBefore": -24,
+          "capturedFutureAfterStop": -24,
+          "partialNegativeAdd": -26,
+          "wrapAfterStop": -27,
+          "receiveOnlyWrong": -44
+        }
+      }
+    ],
+    "conclusion": "A queued20-pulse command accepted before stop but scheduled after stop leaves actual C position at-24; receive-only accounting would yield-44. Scheduled partial negative-add and32bit wrap cases retain only executed pulses. This establishes a fixture receive-counter confound; it does not close all remote failures or validate host motion precision.",
+    "next": "Implement bounded commanded-clock test counting and compare against this independent C reference; preserve original motion inputs and1e-10 assertions. Never equalize tower counts or alter runtime math.",
+    "productionSourcesChanged": false,
+    "g3Closed": false,
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-20261007.c",
+        "sha256": "9a06e2b9d6a174d44e690790dc5159eb7c7a0e80a916447ee11d8fb322901f91"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-20261007.mjs",
+        "sha256": "92002f0f6ba7070ccf7723eebc5a9c2b8a952af3a9bfebb0a589d36e9dcfb4f0"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/src/stepper.c",
+        "sha256": "09326367a812d02b4499a75351abcdd412075330b6c282c340a2c5003ca840c5"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/src/trsync.c",
+        "sha256": "5280841586c84b6c6498208d629edfa02a50e11da1ea5bd5d90b616c97dc4b41"
+      }
+    ]
+  },
+  "executedCounterFixtureCorrection": {
+    "date": "2026-10-07",
+    "baseSource": "3dd0ab74",
+    "scope": "Test fixture correction only; independent actual C pulse comparison is separate from synthetic stop inputs. No physical precision acceptance.",
+    "sources": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/delta-probe.test.ts",
+        "sha256": "d495ef7dc305867ffc1b311a42b1c59f7ccc99ee49a01af0f4d3afcbbdf4f0a6",
+        "repositoryPath": "host/test/delta-probe.test.ts"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/helpers/stepper-executed-counter.ts",
+        "sha256": "0562456c848cf8dee4d2b5d154a1864c314f80c49e25714bcf8ca5953182541a",
+        "repositoryPath": "host/test/helpers/stepper-executed-counter.ts"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/stepper-executed-counter.test.ts",
+        "sha256": "2d2231c457887af2243d33061423798880be025e3168aeb615faedf9afb08f2a",
+        "repositoryPath": "host/test/stepper-executed-counter.test.ts"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/helpers/stepper-stop-firmware/scheduled-position.c",
+        "sha256": "75c3d0d92aec1a6c981c7a88461be0d20e24b95cbc8c6df553b836e010abeff6",
+        "repositoryPath": "host/test/helpers/stepper-stop-firmware/scheduled-position.c"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/helpers/stepper-stop-firmware/test.c",
+        "sha256": "d692a0a0b32b7b47ddb63de1bc09614b0219f2329d36a64b2dc3bf1ff6b380b5",
+        "repositoryPath": "host/test/helpers/stepper-stop-firmware/test.c"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/host/test/helpers/stepper-stop-fence.ts",
+        "sha256": "a598f4918acfb29a3c41b74904fa7fe13a95d290fac72cf200b4ada60b52653c",
+        "repositoryPath": "host/test/helpers/stepper-stop-fence.ts"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/src/stepper.c",
+        "sha256": "09326367a812d02b4499a75351abcdd412075330b6c282c340a2c5003ca840c5",
+        "repositoryPath": "src/stepper.c"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/src/trsync.c",
+        "sha256": "5280841586c84b6c6498208d629edfa02a50e11da1ea5bd5d90b616c97dc4b41",
+        "repositoryPath": "src/trsync.c"
+      }
+    ],
+    "failedAttempts": [
+      {
+        "reason": "Observer attached after startup reset; clock adoption missing",
+        "passed": 5,
+        "failed": 1,
+        "exitCode": 1,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-executed-counter-source-20261007.log",
+          "sha256": "90952bc2426ba4abab008c3a1ba933a7ce5c7afb6ecb06dc4af3615a4c08c882"
+        }
+      },
+      {
+        "reason": "Existing explicit halt position injected before another MCU consumed stop; one-pulse residual remained",
+        "passed": 5,
+        "failed": 1,
+        "exitCode": 1,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-executed-counter-adopted-source-20261007.log",
+          "sha256": "adaff03d5e5e42b36b14ab3dc5ee6ac19e4ef8c0fd115d4238360c397581044c"
+        }
+      }
+    ],
+    "final": {
+      "passed": 7,
+      "failed": 0,
+      "exitCode": 0,
+      "durationMs": 31750.931657,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-executed-counter-stop-boundary-source-20261007.log",
+        "sha256": "6e40fb98c6b527f7e146d886e64c320ab4a94c6d2fbbad07143912d1f3431645"
+      },
+      "types": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-executed-counter-stop-boundary-typecheck-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "nativeBuild": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-executed-counter-native-build-20261007.log",
+          "sha256": "c98d8efc2b1e191d5341191ce73c6875e5b7b0e5b59393bf066c1301213339db"
+        }
+      }
+    },
+    "independentReference": {
+      "handlers": "Actual src/stepper.c and src/trsync.c; existing GPIO/timer stubs",
+      "sanitizers": [
+        "undefined",
+        "address,undefined"
+      ],
+      "noSyntheticHaltOracle": true,
+      "capturedFuture": -24,
+      "receiveOnlyWrong": -44,
+      "partialNegativeAdd": -26,
+      "wrapAfterStop": -27,
+      "compilerDeadlineMs": 60000,
+      "runDeadlineMs": 10000
+    },
+    "integration": {
+      "counter": "Bounded ideal commanded-clock integer prefix accounting; future pulses cleared by each MCU own one-shot stop. Startup accepted resets adopted only with zero prior queue_step.",
+      "syntheticHalt": "Original -20*hits+16*(hits-1) and atArm-20 inputs unchanged. Each input is now delivered once only after its own MCU consumes stop; different -7/-11 inputs independently exercise ownership.",
+      "terminalPosition": [
+        25,
+        -30.00000000000003,
+        9.700000000000045,
+        0
+      ],
+      "calibrationFinalError": 8.48025924344022e-19,
+      "originalTolerance": 1e-10,
+      "originalPoliciesAndDeadlinesPreserved": true
+    },
+    "productionSourceChange": false,
+    "performance": "Only test helper and tests change here; production gateway and motion fingerprints unchanged from base. Prior gateway measurements remain historical at original source scope; no target-board claim.",
+    "oldHeadCi": "5f92b95a ordinary test4057/4059 failed; this local correction does not replace current-head full CI. Metadata lifecycle failure separately fixed by accepted PR24; latest develop integration required.",
+    "fullNewHeadCi": "Not started at this seal",
+    "physicalAcceptance": false,
+    "g3Closed": false
+  },
+  "latestDevelopFixtureIntegration": {
+    "date": "2026-10-07",
+    "sourceHead": "65be2694ba62406f8738b5d8d23276e958b7ff51",
+    "develop": "8dd55f9fde3d570542787173c32a66012bb08d51",
+    "merge": "Normal task-branch merge; documentation conflicts retained both scope/history blocks. Nonconflicting outdated setup descriptions updated from accepted develop.",
+    "initialDependencyFailure": {
+      "reason": "Previous development dependency link did not contain accepted re2-wasm; independent npm ci --ignore-scripts and standard native build then prepared task tree",
+      "passed": 29,
+      "failed": 7,
+      "exitCode": 1,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-counter-gateway-source-20261007.log",
+        "sha256": "d742f2f51306f2846eee573f1e96165c6778e26d7ab73af4c915671b17104958"
+      },
+      "types": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-counter-typecheck-20261007.log",
+        "sha256": "da67896bc95081fd11b07e142335f020dac86430f9a1b05cbf64f80121b69432"
+      }
+    },
+    "prepared": {
+      "passed": 119,
+      "failed": 0,
+      "exitCode": 0,
+      "durationMs": 32051.427363,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-prepared-counter-gateway-source-20261007.log",
+        "sha256": "43169d4ebf3f692b491cc103818dce22da9de244b9f9806e85ccdeb4b50c3cf3"
+      },
+      "independentCompiledChildren": {
+        "gatewayAndAssets": 8,
+        "cors": 2,
+        "noTypeScript": true,
+        "path": "/no-programs",
+        "scope": "Same protocol assertions; overlaps source checks, not added to unique count"
+      },
+      "types": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-prepared-typecheck-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "dependencies": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-dependency-install-20261007.log",
+          "sha256": "449e059500e8bd0e09074bc380dc02f4b6f44d9415c5104dd4e06defb32453a5"
+        }
+      },
+      "nativeBuild": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-native-build-20261007.log",
+          "sha256": "c98d8efc2b1e191d5341191ce73c6875e5b7b0e5b59393bf066c1301213339db"
+        }
+      }
+    },
+    "whitespaceAndDiffCheck": {
+      "exitCode": 0
+    },
+    "productionDeltaFromDevelop": [
+      "host/src/runtime/product-client-gateway.ts",
+      "host/src/runtime/product-client-assets.ts"
+    ],
+    "gatewayAndAssetsUnchangedFromOriginalHead": true,
+    "performance": "Original gateway performance and original fixed-page package remain historical at their own scope. Current independent compiled protocol does not transfer old mixed-client/target-board evidence.",
+    "newHeadRemoteCi": "Required after final push; previous head4057/4059 remains failed and is not counted as passed",
+    "g3Closed": false,
+    "defaultEntryStillPython": true,
+    "trackedPython": 177
+  }
 }

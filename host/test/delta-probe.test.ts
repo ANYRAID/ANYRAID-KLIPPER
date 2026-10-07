@@ -17,7 +17,7 @@ import {ConfigurationSource} from '../src/moonraker/config-source.ts';
 import {planDeltaHardware} from '../src/config/delta-printer.ts';
 import {startConfiguredHardware} from '../src/runtime/configured-hardware.ts';
 import {initializeConfiguredMotion} from '../src/runtime/initial-motion.ts';
-import {StepperStopFence} from './helpers/stepper-stop-fence.ts';
+import {StepperExecutedCounter} from './helpers/stepper-executed-counter.ts';
 const benchmark=!!process.env.DELTA_PROBE_BENCH;
 for(const calibration of (benchmark?[false]:[false,true]))for(let run=0;run<(benchmark?4:1);run++)test(`Delta mechanical probe completes two off-center samples with a vertical retract (run=${run}, calibration=${calibration})`,async t=>{
  const f=await initialMotionSetup(false,true,true),timers=new Set<ReturnType<typeof setTimeout>>(),detach:(()=>void)[]=[];let hits=0;
@@ -32,17 +32,22 @@ for(const calibration of (benchmark?[false]:[false,true]))for(let run=0;run<(ben
   }},100);
   try{
    const initial=await initializeConfiguredMotion(hw,{...initialMotionOptions,position:[25,-30,10,0]},f.signal),owner=initial.createDeltaPort(reader,plan),probe=hw.plan.homing.find(h=>h.section==='probe')!;
-   const counts=new Map<string,number>(),stopFences=f.firmware.map(fw=>new StepperStopFence(()=>fw.currentClock()));
+   const counts=new Map<string,number>(),halts=new Map<string,number>(),stopFences:StepperExecutedCounter[]=f.firmware.map((fw,index)=>new StepperExecutedCounter(()=>fw.currentClock(),(oid,count)=>{counts.set(index+':'+oid,count);fw.setStepperPosition(oid,count);},oid=>{const key=index+':'+oid,halt=halts.get(key);if(halt!==undefined){halts.delete(key);stopFences[index].seedPosition(oid,halt);}}));
+   // Observers attach after initialization. Adopt its accepted reset clocks,
+   // only while no startup step batch has been received.
+   for(const [index,fw] of f.firmware.entries()){assert(!fw.motion.some(command=>command.name==='queue_step'));for(const command of fw.outputs.filter(command=>command.name==='reset_step_clock'))stopFences[index].observe({name:command.name,parameters:{oid:Number(command.parameters.oid),clock:Number(command.parameters.clock)}});}
    for(const [index,fw] of f.firmware.entries()){
     detach.push(fw.observeCommands(command=>{
-      const accepted=stopFences[index].observe(command);
-      const p=command.parameters,oid=Number(p.oid),key=index+':'+oid;
-      if(command.name==='queue_step'&&accepted){const count=(counts.get(key)??0)+stopFences[index].direction(oid)*Number(p.count);counts.set(key,count);fw.setStepperPosition(oid,count);}
+      stopFences[index].observe(command);
+      const p=command.parameters,oid=Number(p.oid);
       if(command.name==='trsync_start'&&p.report_ticks===0)fw.setTriggerReason(2,oid);
       if(command.name==='endstop_home'&&Number(p.sample_count)>0&&index===1&&oid===probe.endstop.oid){
+       for(const counter of stopFences)counter.synchronize();
        const atArm=new Map(counts),hit=Number(p.clock)+50000,timer=setTimeout(()=>{timers.delete(timer);hits++;
+        // Preserve the original synthetic halt counts. Publish each only when
+        // its MCU consumes the stop; injection is not a shared physical clock.
+        for(const binding of initial.generation.motion.bindings){if(binding.id==='e')continue;const i=f.group.session('mcu')===initial.generation.members[binding.member].session?0:1,count=calibration?(atArm.get(i+':'+binding.oid)??0)-20:-20*hits+16*(hits-1);halts.set(i+':'+binding.oid,count);}
         stopFences[index].trigger(Number(p.trsync_oid));
-        for(const binding of initial.generation.motion.bindings){if(binding.id==='e')continue;const i=f.group.session('mcu')===initial.generation.members[binding.member].session?0:1,count=calibration?(atArm.get(i+':'+binding.oid)??0)-20:-20*hits+16*(hits-1);counts.set(i+':'+binding.oid,count);f.firmware[i].setStepperPosition(binding.oid,count);}
         fw.setTriggerReason(1,Number(p.trsync_oid));fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(p.rest_ticks)},oid);fw.emit('trsync_state',{oid:Number(p.trsync_oid),can_trigger:0,trigger_reason:1,clock:hit});
        },Math.max(0,(hit-fw.currentClock())/1000+10));timers.add(timer);
       }
@@ -79,7 +84,6 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
   const {session:configurationSession}=await KlipperSaveSession.load(configurationPath);
   const service=await startConfiguredDeltaProductService(transport.reader,transport.policies,{journal,configurationSession,maintenanceGate:new MaintenanceGate(),limits:{maxNozzle:300,maxBed:130}},{configPath:dir+'/moonraker.conf',machine:{enableLeadTime:.001,fanMinimumScheduleTime:.001},print:{output(){},motorCompletion:'hold',startupHoming:{mode:'home',axes:[0,1,2]},parking:{parkXY:[0,0],retract:0,lift:0,travelSpeed:10,liftSpeed:5,retractSpeed:5},lifecycle:{async prepare(){},async start(){},async finishOutputs(){},async stopOutputs(){}},async open(){throw Error('Unexpected print');}},server:{information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize:()=>{}}},f.signal);
   const hw=service.printer.hardware,live={firmware:transport.firmware,group:service.printer.group,stops:transport.stops};
-  const stopFences=live.firmware.map(fw=>new StepperStopFence(()=>fw.currentClock()));
   const converter=new Thermistor(4700,0,{points:[[25,100000],[150,1770],[250,230]]});
   const thermal=setInterval(()=>{for(const fw of live.firmware)for(const entry of fw.outputs.filter(o=>o.name==='query_analog_in'&&Number(o.parameters.rest_ticks)>0)){
    const p=entry.parameters,raw=Math.round(converter.adc(25)*4095*Number(p.sample_count)),next=fw.currentClock()+Number(p.rest_ticks)-Number(p.sample_ticks)*Number(p.sample_count);
@@ -87,22 +91,23 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
   }},100);
   try{
    const initial=service.printer.initial,owner=service.printer.delta,probe=hw.plan.homing.find(h=>h.section==='probe')!;
-   const counts=new Map<string,number>();
+   const counts=new Map<string,number>(),halts=new Map<string,number>(),stopFences:StepperExecutedCounter[]=live.firmware.map((fw,index)=>new StepperExecutedCounter(()=>fw.currentClock(),(oid,count)=>{counts.set(index+':'+oid,count);fw.setStepperPosition(oid,count);},oid=>{const key=index+':'+oid,halt=halts.get(key);if(halt!==undefined){halts.delete(key);stopFences[index].seedPosition(oid,halt);}}));
+   for(const [index,fw] of live.firmware.entries()){assert(!fw.motion.some(command=>command.name==='queue_step'));for(const command of fw.outputs.filter(command=>command.name==='reset_step_clock'))stopFences[index].observe({name:command.name,parameters:{oid:Number(command.parameters.oid),clock:Number(command.parameters.clock)}});}
    for(const [index,fw] of live.firmware.entries()){
     detach.push(fw.observeCommands(command=>{
-      const accepted=stopFences[index].observe(command);
+      stopFences[index].observe(command);
       const p=command.parameters,oid=Number(p.oid),key=index+':'+oid;
       const latest=wireTrace.at(-1);
       if(command.name==='stepper_get_position'&&latest?.actualTriggerClocks&&latest.positions.length<16)latest.positions.push({member:index,oid,position:counts.get(key)??0,clock:fw.currentClock()});
-      if(command.name==='queue_step'&&accepted){const count=(counts.get(key)??0)+stopFences[index].direction(oid)*Number(p.count);counts.set(key,count);fw.setStepperPosition(oid,count);}
       if(command.name==='trsync_start'&&p.report_ticks===0)fw.setTriggerReason(2,oid);
       if(command.name==='endstop_home'&&Number(p.sample_count)>0&&index===1&&oid===probe.endstop.oid){
+       for(const counter of stopFences)counter.synchronize();
        const trace={sample:hits,armClock:Number(p.clock),actualArmClocks:live.firmware.map(f=>f.currentClock()),counts:[...counts.entries()],positions:[]} as typeof wireTrace[number];
        // Bound diagnostic retention; no history replay or remote diagnostic API.
        if(wireTrace.length===32)wireTrace.shift();wireTrace.push(trace);
        const atArm=new Map(counts),hit=Number(p.clock)+50000,timer=setTimeout(()=>{timers.delete(timer);hits++;trace.triggerClock=hit;trace.actualTriggerClocks=live.firmware.map(f=>f.currentClock());
+        for(const binding of initial.generation.motion.bindings){if(binding.id==='e')continue;const i=live.group.session('mcu')===initial.generation.members[binding.member].session?0:1,count=calibrating?(atArm.get(i+':'+binding.oid)??0)-20:-20*hits+16*(hits-1);halts.set(i+':'+binding.oid,count);}
         stopFences[index].trigger(Number(p.trsync_oid));
-        for(const binding of initial.generation.motion.bindings){if(binding.id==='e')continue;const i=live.group.session('mcu')===initial.generation.members[binding.member].session?0:1,count=calibrating?(atArm.get(i+':'+binding.oid)??0)-20:-20*hits+16*(hits-1);counts.set(i+':'+binding.oid,count);live.firmware[i].setStepperPosition(binding.oid,count);}
         fw.setTriggerReason(1,Number(p.trsync_oid));fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(p.rest_ticks)},oid);fw.emit('trsync_state',{oid:Number(p.trsync_oid),can_trigger:0,trigger_reason:1,clock:hit});
        },Math.max(0,(hit-fw.currentClock())/1000+10));timers.add(timer);
       }
@@ -121,7 +126,7 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
    const receipt=(await reply.json() as any).result,result={...receipt.result,bedPosition:receipt.result.bed_position};
    const replay=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body});assert.equal(replay.status,200);assert.deepEqual((await replay.json() as any).result,receipt);assert.equal(hits,2);assert.equal(result.attempts,2);assert.equal(result.samples.length,2);assert.equal(result.retries,0);assert.equal(owner.port.status.failed,false);assert.equal(owner.kinematics.status.homedAxes,'xyz');
    const terminalPosition=owner.port.homingPosition();
-   t.diagnostic('DeltaProbeStopBoundary '+JSON.stringify({terminalPosition,result,hits,wireStopObservations:stopFences.map(fence=>fence.observation),scope:'Receive-count software model; requested clocks and C stop ownership observed, physical execution timing not emulated'}));
+   t.diagnostic('DeltaProbeStopBoundary '+JSON.stringify({terminalPosition,result,hits,wireStopObservations:stopFences.map(fence=>fence.observation),scope:'Ideal commanded-clock pulse count compared to C handlers; physical execution timing not emulated'}));
    if(!(Math.abs(terminalPosition[0]-25)<1e-10&&Math.abs(terminalPosition[1]+30)<1e-10))t.diagnostic('DeltaProbeTerminalMismatch '+JSON.stringify({run,expectedXY:[25,-30],terminalPosition,result,hits,acceptedWireTrace:wireTrace,scope:'Same-invocation software PTY observation; no physical accuracy claim'}));
    assert.deepEqual(result.bedPosition,[result.position[0]-2,result.position[1]+3,result.position[2]-.123456789]);assert.equal(result.position[3],0);assert(Math.abs(terminalPosition[0]-25)<1e-10);assert(Math.abs(terminalPosition[1]+30)<1e-10);assert.deepEqual(live.stops,[0,0]);
    if(!benchmark){
