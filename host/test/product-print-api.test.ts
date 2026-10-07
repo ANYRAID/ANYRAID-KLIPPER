@@ -64,6 +64,22 @@ test('Native close retains failure and allows an explicit cleanup retry',async()
 });
 
 const compatibility:NativePrintCompatibility={async start(filename){assert.equal(filename,'file.gcode');return {fileId:'file',nozzle:200,bed:60};}};
+test('standard preparation pause holds the authorized file before execution and resumes the same journal request',()=>fixture(async(controller,api,journal,calls,release)=>{
+ await api.call('start',{filename:'file.gcode'},context());const request=controller.currentRequest!,token=controller.stateToken;
+ let result:unknown='pending';const pausing=api.call('pause',{},context()).then(value=>{result=value;},error=>{result=error;});
+ await new Promise<void>(r=>setImmediate(r));assert.equal(result,'pending');assert.equal(controller.state,'preparing');assert.notEqual(controller.stateToken,token);
+ release();await pausing;assert.equal(result,'ok');assert.equal(controller.state,'paused');assert.deepEqual(calls,['prepare']);assert.equal((await journal.get(request.requestId))?.state,'reserved');
+ assert.equal(await api.call('resume',{},context()),'ok');assert.equal(controller.currentRequest,request);assert.equal(controller.state,'printing');assert.deepEqual(calls,['prepare','start']);assert.equal((await journal.get(request.requestId))?.state,'started');
+ await api.call('pause',{},context());await api.call('resume',{},context());assert.deepEqual(calls,['prepare','start','pause','resume']);
+},undefined,compatibility));
+test('preparation pause does not grant denied controls and a disconnected receipt cannot release its held file',()=>fixture(async(controller,api,_journal,calls,release)=>{
+ await api.call('start',{filename:'file.gcode'},context());const request=controller.currentRequest!,before=controller.stateToken;
+ await assert.rejects(api.call('pause',{}, {...context(),authorize(){throw Error('pause denied');}}),/pause denied/);assert.equal(controller.stateToken,before);assert.equal(api.status.pause_pending,false);
+ const abort=new AbortController(),pausing=api.call('pause',{},context(abort.signal)),rejected=assert.rejects(pausing,/response cancelled/);await new Promise<void>(r=>setImmediate(r));assert.equal(api.status.pause_pending,true);abort.abort();await rejected;
+ release();await controller.start(request);await new Promise<void>(r=>setImmediate(r));assert.equal(api.status.paused_before_file,true);assert.deepEqual(calls,['prepare']);
+ await assert.rejects(api.call('resume',{request_id:request.requestId,state_token:before},context()),/state changed/);assert.deepEqual(calls,['prepare']);
+ assert.equal(await api.call('resume',{},context()),'ok');assert.deepEqual(calls,['prepare','start']);
+},undefined,compatibility));
 test('standard printing maps to durable typed operations, returns ok and can start after completion',()=>fixture(async(controller,api,journal,calls,release)=>{
  release();const seen:any[]=[];const ctx={...context(),authorize(method:string,value:unknown){seen.push({method,value});}};
  assert.equal(await api.call('start',{filename:'file.gcode'},ctx),'ok');const id=controller.currentRequest!.requestId;assert.match(id,/^compat-/);assert.equal((await journal.get(id))?.request.nozzle,200);

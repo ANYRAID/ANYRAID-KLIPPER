@@ -9,14 +9,16 @@ export interface NativeFileLifecycle {
  subscribeFault?:FilePrintMotion['subscribeFault'];
 }
 /** Bind one native motion owner to both file pause paths and final drain.
- * FilePrintDevice owns dispatch cancellation; ThermalPrintDevice owns heaters. */
-export function bindNativeFileMotion(port:NativeLinearHomingPort,parking:PauseParkingConfig,lifecycle:NativeFileLifecycle,beforeStreamResume?:()=>void,extrusionAxis?:()=>number):FilePrintMotion {
+ * FilePrintDevice owns dispatch cancellation; ThermalPrintDevice owns heaters.
+ * The stream observer runs after startup/return motion acknowledgement, before
+ * file admission resumes; a preparation hold may reach its first start here. */
+export function bindNativeFileMotion(port:NativeLinearHomingPort,parking:PauseParkingConfig,lifecycle:NativeFileLifecycle,beforeFileStream?:()=>void,extrusionAxis?:()=>number):FilePrintMotion {
  for(const name of ['prepare','start','finishOutputs','stopOutputs'] as const)if(typeof lifecycle[name]!=='function')throw new TypeError('Incomplete native file lifecycle');
- const operation=new NativePauseParking(port,parking,beforeStreamResume,extrusionAxis),abort=new AbortController();let stopped:Promise<void>|undefined;
+ const operation=new NativePauseParking(port,parking,beforeFileStream,extrusionAxis),abort=new AbortController();let stopped:Promise<void>|undefined;
  const subscriptions=new Map<(cause:unknown)=>void,()=>void>();
  const run=async(signal:AbortSignal,work:(s:AbortSignal)=>Promise<void>)=>{const s=AbortSignal.any([signal,abort.signal]);s.throwIfAborted();port.assertActive();await work(s);s.throwIfAborted();port.assertActive();};
  return {
-  prepare:(request,s)=>run(s,signal=>lifecycle.prepare(request,signal)),start:s=>run(s,signal=>lifecycle.start(signal)),
+  prepare:(request,s)=>run(s,signal=>lifecycle.prepare(request,signal)),start:s=>run(s,async signal=>{await lifecycle.start(signal);signal.throwIfAborted();port.assertActive();beforeFileStream?.();}),
   pause:s=>run(s,signal=>operation.pause(signal)),pauseCheckpoint:s=>run(s,signal=>operation.pause(signal)),resume:s=>run(s,signal=>operation.resume(signal)),
   finish:(id,s)=>run(s,async signal=>{await port.drain(signal);signal.throwIfAborted();await lifecycle.finishOutputs(id,signal);}),
   subscribeFault(listener){

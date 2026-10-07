@@ -114,6 +114,11 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
     }));
    }
    const url='http://127.0.0.1:'+service.address.port+'/printer/calibration/probe';
+   // This positive fixture drives the port directly and through HTTP. Join
+   // periodic clock maintenance and retain its existing dispatch owner across
+   // setup, token reads and single admissions; never retry a rejected action.
+   await service.printer.print.gcode.dispatch.runExclusive(async signal=>{
+   signal.throwIfAborted();assert.equal(owner.port.status.busy,false);
    const calibrationBefore=await (await fetch('http://127.0.0.1:'+service.address.port+'/printer/calibration/delta')).json() as any;assert.equal(calibrationBefore.result.available,false);
    const before=await (await fetch(url)).json() as any;assert.equal(before.result.available,false);
    await owner.port.forcePosition([25,-30,10,0],f.signal);owner.kinematics.resetPosition('xyz');
@@ -143,19 +148,18 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
     const saveObservation=()=>({motion:owner.port.status,homed:owner.kinematics.status.homedAxes,state:service.printer.controller.state,pending:service.printer.controller.pendingDeviceActions,stopping:service.printer.controller.safeStopPending});
     // Clock maintenance shares dispatch ownership. Join it and retain that
     // owner across admission and HTTP completion; never retry a rejected save.
-    await service.printer.print.gcode.dispatch.runExclusive(async signal=>{
      signal.throwIfAborted();const available=(await (await fetch(calibrationUrl)).json() as any).result;
      assert.equal(available.available,true);assert.equal(available.state_token,result.state_token);
      const beforeSave=saveObservation();assert.equal(beforeSave.motion.busy,false);
      const saved=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body:saveBody});
      if(saved.status!==200)t.diagnostic(inspect({beforeSave,afterSave:saveObservation(),calibration:service.calibrationDiagnostic()},{depth:5,maxArrayLength:32}));
      assert.equal(saved.status,200,await saved.clone().text());
-    },f.signal);
     assert(configurationSession.status.sealedForRestart);assert(service.printer.maintenanceGate.status.closed);assert.deepEqual(owner.kinematics.calibrationGeometry,activeGeometry);
     const restored=await KlipperSaveSession.load(configurationPath);assert.equal(Number(restored.source.original.printer.delta_radius),result.candidate.geometry.radius);
     assert.equal(Object.keys(restored.source.original.delta_calibrate).filter(k=>/^height[0-9]+$/.test(k)).length,7);
     t.diagnostic('DeltaCalibrationApi '+JSON.stringify({wallMs:performance.now()-started,finalError:result.candidate.final_error,hits}));
    }
+   },f.signal);
   }finally{clearInterval(thermal);for(const timer of timers)clearTimeout(timer);for(const off of detach)off();await service.close();await journal.close();await transport.close();await rm(dir,{recursive:true,force:true});}
  }finally{await f.close();}
 });

@@ -108,6 +108,16 @@ test('online backup includes committed WAL records and excludes writes queued be
   const deleting=store.deleteBackup('snapshot.db'),closing=store.close();assert.deepEqual(await deleting,{backup_path:join(backups,'snapshot.db')});await closing;assert.deepEqual(await readdir(backups),[]);
  }finally{await store.close();}
 }));
+test('published backup remains standalone and unchanged through read-only restore',()=>directory(async dir=>{
+ const {readFile,readdir}=await import('node:fs/promises'),path=join(dir,'active.sqlite'),backups=join(dir,'backups'),snapshot=join(backups,'standalone.db'),store=await DatabaseStore.open({path,backupDirectory:backups});
+ try{
+  await store.insert('ui','value','before');await store.backup('standalone.db');const bytes=await readFile(snapshot);
+  const read=new DatabaseSync(snapshot,{readOnly:true});try{assert.equal(read.prepare('PRAGMA journal_mode').get()!.journal_mode,'delete');}finally{read.close();}
+  await store.insert('ui','value','after');await store.restore('standalone.db');assert.equal(store.status.restoreState,'restored');
+  assert.deepEqual(await readFile(snapshot),bytes);assert.deepEqual(await readdir(backups),['standalone.db']);
+ }finally{await store.close();}
+ const reopened=await DatabaseStore.open({path});try{assert.equal(await reopened.get('ui','value'),'before');}finally{await reopened.close();}
+}));
 test('backup paths reject traversal, symlinks and the active database; failure preserves existing backups',()=>directory(async dir=>{
  const {writeFile,readFile}=await import('node:fs/promises'),path=join(dir,'active.sqlite'),store=await DatabaseStore.open({path,backupDirectory:dir});try{
   await writeFile(join(dir,'old.db'),'keep');await symlink('old.db',join(dir,'link.db'));
