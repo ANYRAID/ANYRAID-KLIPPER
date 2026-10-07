@@ -2696,5 +2696,54 @@
     "PR #32 original postmerge clock failure unresolved; independent PR #34 diagnostic in flight",
     "Target board/current-series hardware acceptance and G3 unresolved",
     "Default Python entry and full Python retirement not completed"
-  ]
+  ],
+  "followUp": {
+    "integratedDevelop": "1079998b4a1359efe3ce74d3db342859704b956a",
+    "clockObservationPr": 34,
+    "originalPanelHead": "70f5c52a58664277ce7ae164f6ce467361ce5d8a",
+    "failedHost": {
+      "run": 37617210285,
+      "job": 112778339382,
+      "tests": 4167,
+      "pass": 4166,
+      "fail": 1,
+      "reason": "Compiled gateway child passed all 9 tests, but parent still required historic pass 8. Production behavior/assertions unchanged.",
+      "skipped": [
+        "protocol",
+        "sanitizer",
+        "Linux MCU"
+      ],
+      "scopedLog": {
+        "path": "host/contracts/product-queue-panel-ci-count-failure.txt",
+        "sha256": "1b122b253e6c67632c2f1a9f6394cb6692bdd479440400675ca2762811041bc9"
+      }
+    },
+    "firmware": {
+      "run": 37617210347,
+      "job": 112778339808,
+      "conclusion": "success"
+    },
+    "fix": "Require exact tests 9 / pass 9 and fail, cancelled, skipped 0; include native queue-page identity case. Retain original inner assertions, deadlines and independent dependency boundaries.",
+    "scope": "Test acceptance and normal base synchronization only. Original bundle fingerprints/paired performance retain their original scope. New integrated-head CI pending.",
+    "local": {
+      "node": "26.10.0",
+      "tests": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-ci-followup-tests-20261007.log",
+        "sha256": "1a1a871814bc55cc4b635b3a69c1cbd3a11c4c9ab8f74b8ba1f3408df29353ac",
+        "pass": 3,
+        "fail": 0,
+        "compiledChildPass": 9,
+        "durationMs": 7441.588123
+      },
+      "typecheck": {
+        "exitCode": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "requiredWhitespace": {
+        "exitCode": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "productionOwnersUnchangedFromPanelHead": true
+    }
+  }
 }

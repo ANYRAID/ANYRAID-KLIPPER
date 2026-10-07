@@ -21,8 +21,8 @@ test('protected client gateway and installed assets run from independent compile
    const file=join(root,name+'.mjs');await writeFile(file,js);files.push(file);
   }
   const env:NodeJS.ProcessEnv={...process.env,PATH:'/no-programs',NODE_PATH:'',NODE_OPTIONS:'--no-experimental-strip-types',NODE_DISABLE_COMPILE_CACHE:'1'};delete env.NODE_TEST_CONTEXT;
-  const result=await execute(process.execPath,['--no-experimental-strip-types','--test','--test-reporter=tap',...files],{env,timeout:30000,maxBuffer:2*1024**2});assert.match(result.stdout,/pass 8\b/);assert.match(result.stdout,/fail 0\b/);
+  const result=await execute(process.execPath,['--no-experimental-strip-types','--test','--test-reporter=tap',...files],{env,timeout:30000,maxBuffer:2*1024**2});assert.match(result.stdout,/tests 9\b/);assert.match(result.stdout,/pass 9\b/);assert.match(result.stdout,/fail 0\b/);assert.match(result.stdout,/cancelled 0\b/);assert.match(result.stdout,/skipped 0\b/);
   const help=await execute(process.execPath,['--no-experimental-strip-types',join(app,'scripts/product-client.js'),'--help'],{env,timeout:10000});assert.match(help.stdout,/--upstream/);assert.match(help.stdout,/--assets/);
-  t.diagnostic(JSON.stringify({compiled:true,independentDependencies:true,protocolAndAssetTests:8,noTypeScriptLoading:true,compiledClientCliHelp:true,...retained?{bundle:retained}:{},scope:'Original real local native-account HTTP/WebSocket and installed-resource assertions; actual official client page and physical hardware excluded'}));
+  t.diagnostic(JSON.stringify({compiled:true,independentDependencies:true,protocolAndAssetTests:9,noTypeScriptLoading:true,compiledClientCliHelp:true,...retained?{bundle:retained}:{},scope:'Original real local native-account HTTP/WebSocket and installed-resource assertions plus protected queue-page identity; actual official client page and physical hardware excluded'}));
  }finally{try{if(retained)await assertAcceptanceBundleUnchanged(retained);}finally{await rm(root,{recursive:true,force:true});}}
 });
