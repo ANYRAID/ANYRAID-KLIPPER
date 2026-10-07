@@ -204,6 +204,9 @@ export class NativePrintUploads {
  captureUpload(configFiles?:NativeConfigFiles){const binding=this.#deviceFiles;return (request:IncomingMessage,context:RpcContext)=>this.#receiveOwned(request,context,binding,configFiles);}
  receive(request:IncomingMessage,context:RpcContext):Promise<Json>{return this.#receiveOwned(request,context,this.#deviceFiles);}
  #receiveOwned(request:IncomingMessage,context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined,configFiles?:NativeConfigFiles):Promise<Json>{
+  return this.#admitUpload(context,binding,(signal,deviceGate,printOwner,api)=>this.#receive(request,context,signal,deviceGate,configFiles,printOwner,api));
+ }
+ #admitUpload(context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined,work:(signal:AbortSignal,deviceGate:MaintenanceGate|undefined,printOwner:Pick<PrintController,'beginFileMutation'>|undefined,api:ProductPrintApi|undefined)=>Promise<Json>):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native uploads are closed'));
   if(this.#mutations.size>=this.#capacity)return Promise.reject(new ApiError(429,'Too many uploads'));
   if(binding&&context.nativeGenerationSignal&&context.nativeGenerationSignal!==binding.signal)return Promise.reject(new ApiError(503,'Upload belongs to a retired device'));
@@ -211,11 +214,41 @@ export class NativePrintUploads {
   const signal=AbortSignal.any([context.signal,this.#abort.signal,...binding?[binding.signal,binding.owner.#abort.signal]:[]]);
   const printOwner=binding?binding.owner.#print:this.#print??(this.#offlineAvailable()&&!this.#retiredMutation(context)?{beginFileMutation:(id:string)=>this.#beginFileMutations([id])}:undefined);
   const api=binding?binding.owner.#printApi:this.#printApi;
-  const task=Promise.resolve().then(()=>this.#receive(request,context,signal,binding?binding.owner.#gate:undefined,configFiles,printOwner,api));this.#pending.add(task);this.#mutations.add(task);
+  const task=Promise.resolve().then(()=>work(signal,binding?binding.owner.#gate:undefined,printOwner,api));this.#pending.add(task);this.#mutations.add(task);
   // The store persists, but staging admitted with a device must finish cleanup
   // before that device releases its generation lease. Reads remain process-owned.
   if(binding)binding.owner.#pending.add(task);
   const release=()=>{this.#pending.delete(task);this.#mutations.delete(task);if(binding)binding.owner.#pending.delete(task);};void task.then(release,release);return task;
+ }
+ /** Descriptor ingress for the process-owned disk importer. It must supply
+  * the current local-write authorization; no network endpoint or synthetic user
+  * is created here. The source is borrowed and never closed or deleted. */
+ importUfp(source:FileHandle,filename:string,context:RpcContext):Promise<Json>{
+  return this.#admitUpload(context,this.#deviceFiles,(signal,deviceGate,printOwner)=>this.#importUfp(source,filename,context,signal,deviceGate,printOwner));
+ }
+ async #importUfp(source:FileHandle,path:string,context:RpcContext,signal:AbortSignal,deviceGate:MaintenanceGate|undefined,printOwner:Pick<PrintController,'beginFileMutation'>|undefined):Promise<Json>{
+  signal.throwIfAborted();path=nativeFilename(path);if(!/\.ufp$/i.test(path))throw new ApiError(400,'Expected a UFP ingress path');
+  let release:()=>void;try{release=this.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks disk imports');}
+  let releaseDevice:(()=>void)|undefined;try{if(deviceGate&&deviceGate!==this.#gate)releaseDevice=deviceGate.activity();}catch{release();throw new ApiError(409,'Maintenance blocks disk imports');}
+  let directory:string|undefined,model:FileHandle|undefined,preview:FileHandle|undefined,releaseFile:(()=>void)|undefined,primary:unknown;
+  try{
+   await this.#authorize(context,{},signal);const before=await source.stat({bigint:true});signal.throwIfAborted();
+   if(!before.isFile()||before.size<1n||before.size>BigInt(this.#max))throw new ApiError(413,'Disk archive type or size limit exceeded');
+   const digest=createHash('sha256'),buffer=Buffer.allocUnsafe(65536);let at=0;while(at<Number(before.size)){signal.throwIfAborted();const {bytesRead}=await source.read(buffer,0,Math.min(buffer.length,Number(before.size)-at),at);if(!bytesRead)throw new ApiError(409,'Disk archive changed');digest.update(buffer.subarray(0,bytesRead));at+=bytesRead;}
+   const id=randomUUID(),visibleDirectory=path.includes('/')?path.slice(0,path.lastIndexOf('/')):'',filename=path.slice(path.lastIndexOf('/')+1);
+   await this.#authorize(context,{root:'gcodes',filename,path,file_id:id,size:Number(before.size),sha256:digest.digest('hex')},signal);
+   directory=await mkdtemp(join(this.#root,'anyraid-import-'));model=await open(join(directory,'model'),'wx+',0o600);
+   const extracted=await extractUfpArchive(source,model,signal,{maxArchiveBytes:this.#max,maxModelBytes:this.#max});signal.throwIfAborted();
+   if(extracted.thumbnail){const validator=await(this.#ufpValidator??=ThumbnailProcessor.open({maxPending:2,maxQueuedBytes:4*1024**2}));await validator.prepareUfpPng(extracted.thumbnail.bytes,signal);signal.throwIfAborted();preview=await open(join(directory,'preview'),'wx+',0o600);await preview.writeFile(extracted.thumbnail.bytes);}
+   const name=filename.replace(/\.ufp$/i,'.gcode'),visible=path.replace(/\.ufp$/i,'.gcode');
+   await this.#authorize(context,{root:'gcodes',filename:name,path:visible,file_id:id,size:extracted.model.size,sha256:extracted.model.sha256},signal);
+   const unchanged=async()=>{const after=await source.stat({bigint:true});signal.throwIfAborted();if(['dev','ino','size','mtimeNs','ctimeNs'].some(key=>before[key as keyof typeof before]!==after[key as keyof typeof after]))throw new ApiError(409,'Disk archive changed during authorization or conversion');};await unchanged();
+   const committed=await this.#publishStaged(model,preview,id,name,visibleDirectory,visible,context,signal,printOwner,unchanged);releaseFile=committed.releaseFile;return committed.receipt;
+  }catch(error){primary=error;throw error;}
+  finally{
+   const errors:unknown[]=[];for(const close of [()=>model?.close(),()=>preview?.close(),()=>directory?rm(directory,{recursive:true,force:true}):undefined])try{await close();}catch(error){errors.push(error);}releaseFile?.();releaseDevice?.();release();
+   if(errors.length)throw new AggregateError([...primary===undefined?[]:[primary],...errors],'Disk import staging cleanup failed',{cause:primary});
+  }
  }
  async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate,configFiles?:NativeConfigFiles,printOwner?:Pick<PrintController,'beginFileMutation'>,api?:ProductPrintApi):Promise<Json>{
   signal.throwIfAborted();let release:()=>void;
@@ -275,28 +308,8 @@ export class NativePrintUploads {
     visible=fields.file_id!==undefined&&fields.path===undefined?undefined:nativeFilename((visibleDirectory?visibleDirectory+'/':'')+filename);
     await this.#authorize(context,{root:'gcodes',filename,...visible?{path:visible}:{},file_id:id,size:bytes,sha256},signal);signal.throwIfAborted();
    }
-   let record;try{
-    const replacement=visible?await this.#files.prepareUploadReplacement(id,filename,visible,signal).catch(error=>{if(error.code!=='ENOENT')throw error;return undefined;}):undefined;
-    if(replacement){
-     if(!printOwner)throw new ApiError(503,'Upload replacement requires its current print owner');
-     await this.#authorize(context,{root:'gcodes',path:visible!,file_id:id,target_file_id:replacement.replaced.id,filename:replacement.replaced.name,size:replacement.replaced.size,sha256:replacement.replaced.sha256},signal);
-     try{releaseFile=printOwner.beginFileMutation(replacement.replaced.id);}catch{throw new ApiError(403,'Print or maintenance owns this upload destination');}
-     record=await this.#metadataMutation(()=>this.#files.replaceUpload(replacement,file!,signal,preview),async()=>{await this.#metadata.invalidate(visible!);});
-    }else{
-     if(visibleDirectory&&!await this.#files.hasDirectory(visibleDirectory,signal)){
-      const authorizedParents:string[]=[];let parent='';for(const part of visibleDirectory.split('/')){parent+=(parent?'/':'')+part;if(!await this.#files.hasDirectory(parent,signal)){await this.#authorize(context,{path:'gcodes/'+parent},signal,'server.files.post_directory');authorizedParents.push(parent);}}
-      signal.throwIfAborted();await this.#files.ensureUploadParents(visible!,signal,authorizedParents);
-     }
-     record=await this.#files.publish(id,filename,file,signal,visible,preview);
-    }
-   }catch(error){
-    if(error instanceof PublishedDirectoryCommitError)throw new ApiError(500,'Upload parent directory commit failed',{phase:error.phase,operation:'create_upload_parents'});
-    if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);
-    if(error instanceof PublishedReplacementCommitError){if(error.phase==='before-intent'&&error.cause instanceof PublishedFileChangedError)throw new ApiError(409,error.cause.message);throw new ApiError(500,'Upload replacement commit failed',{phase:error.phase});}
-    if((error as NodeJS.ErrnoException)?.code==='EEXIST')throw new ApiError(409,'File ID or path exists; query its receipt');if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Upload directory not found');throw error;
-   }
-   this.#published++;const published=await this.#files.describe(id,signal);
-   const receipt={item:{path:visibleFilePath(record),root:'gcodes',modified:published.modified,size:record.size,permissions:this.canRemove?'rw':'r'},action:'create_file',file:record as unknown as Json,print_started:false,print_queued:false};
+   const committed=await this.#publishStaged(file,preview,id,filename,visibleDirectory,visible,context,signal,printOwner);
+   const {record,receipt}=committed;releaseFile=committed.releaseFile;
    if(fields.print==='true'){
     // The ordinary upload keeps its original return/finally path. Only this
     // explicit intent retires staging and mutation leases before admission.
@@ -316,6 +329,36 @@ export class NativePrintUploads {
    }
    return receipt;
   }finally{try{await closeStaging();}finally{try{if(directory)await rm(directory,{recursive:true,force:true});}finally{releaseFile?.();releaseDevice?.();release();}}}
+ }
+ async #publishStaged(file:FileHandle,preview:FileHandle|undefined,id:string,filename:string,visibleDirectory:string,visible:string|undefined,context:RpcContext,signal:AbortSignal,printOwner?:Pick<PrintController,'beginFileMutation'>,assertSource?:()=>Promise<void>){
+  let releaseFile:(()=>void)|undefined;try{
+  let record;try{
+    const replacement=visible?await this.#files.prepareUploadReplacement(id,filename,visible,signal).catch(error=>{if(error.code!=='ENOENT')throw error;return undefined;}):undefined;
+    if(replacement){
+     if(!printOwner)throw new ApiError(503,'Upload replacement requires its current print owner');
+     await this.#authorize(context,{root:'gcodes',path:visible!,file_id:id,target_file_id:replacement.replaced.id,filename:replacement.replaced.name,size:replacement.replaced.size,sha256:replacement.replaced.sha256},signal);
+     try{releaseFile=printOwner.beginFileMutation(replacement.replaced.id);}catch{throw new ApiError(403,'Print or maintenance owns this upload destination');}
+     if(assertSource)await assertSource();
+     record=await this.#metadataMutation(()=>this.#files.replaceUpload(replacement,file!,signal,preview),async()=>{await this.#metadata.invalidate(visible!);});
+    }else{
+     if(visibleDirectory&&!await this.#files.hasDirectory(visibleDirectory,signal)){
+      const authorizedParents:string[]=[];let parent='';for(const part of visibleDirectory.split('/')){parent+=(parent?'/':'')+part;if(!await this.#files.hasDirectory(parent,signal)){await this.#authorize(context,{path:'gcodes/'+parent},signal,'server.files.post_directory');authorizedParents.push(parent);}}
+      signal.throwIfAborted();if(assertSource)await assertSource();await this.#files.ensureUploadParents(visible!,signal,authorizedParents);
+     }
+     if(assertSource)await assertSource();
+     record=await this.#files.publish(id,filename,file,signal,visible,preview);
+    }
+   }catch(error){
+    releaseFile?.();releaseFile=undefined;
+    if(error instanceof PublishedDirectoryCommitError)throw new ApiError(500,'Upload parent directory commit failed',{phase:error.phase,operation:'create_upload_parents'});
+    if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);
+    if(error instanceof PublishedReplacementCommitError){if(error.phase==='before-intent'&&error.cause instanceof PublishedFileChangedError)throw new ApiError(409,error.cause.message);throw new ApiError(500,'Upload replacement commit failed',{phase:error.phase});}
+    if((error as NodeJS.ErrnoException)?.code==='EEXIST')throw new ApiError(409,'File ID or path exists; query its receipt');if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Upload directory not found');throw error;
+   }
+   this.#published++;const published=await this.#files.describe(id,signal);
+   const receipt={item:{path:visibleFilePath(record),root:'gcodes',modified:published.modified,size:record.size,permissions:this.canRemove?'rw':'r'},action:'create_file',file:record as unknown as Json,print_started:false,print_queued:false};
+  return {record,receipt,releaseFile};
+  }catch(error){releaseFile?.();throw error;}
  }
  async info(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{
   signal.throwIfAborted();if(this.#closed)throw new ApiError(503,'Native uploads are closed');
