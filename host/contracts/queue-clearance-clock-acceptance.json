@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base": "e729df8f31e102a0bf7d3b6e377a761e13a188c4",
+  "scope": "仅修复测试时间控制与取消所有权验证；自身完整 CI 及合并后验证待完成",
+  "node": "v26.10.0",
+  "failedIntegration": {
+    "run": 37657826927,
+    "job": 112917363618,
+    "tests": 4197,
+    "pass": 4196,
+    "fail": 1,
+    "expected": 200,
+    "actual": 499,
+    "message": "Print response cancelled; query request state",
+    "firstDeadlineEventObserved": false,
+    "requiredLaterSteps": "跳过",
+    "firmwareRun": 37657826778,
+    "firmware": "成功",
+    "inference": "原测试将 100 ms 内耐久准入返回 200 当作功能条件；日志不足以将磁盘或 Worker 延迟认定为唯一根因"
+  },
+  "changed": {
+    "production": false,
+    "dependencies": false,
+    "ci": false,
+    "motion": false,
+    "productionDeadlines": false
+  },
+  "validation": {
+    "source": {
+      "tests": 61,
+      "pass": 61,
+      "fail": 0
+    },
+    "compiled": {
+      "tests": 29,
+      "pass": 29,
+      "fail": 0,
+      "overlapsSource": true,
+      "bundle": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-parents-product-bundle",
+        "manifestSha256": "cd2f0a8b0755a6b7b5b45e86f701985f9d3b299075447dc55978ca41f7dea052",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      }
+    },
+    "typecheck": "通过",
+    "whitespace": "通过",
+    "controlledWindows": [
+      "默认 300 秒期限与单调时钟推进：定时回调前旧确认精确 410、零副作用及同队列新确认成功",
+      "原 100 ms 定时器受控触发：旧确认精确 409、零副作用及新挑战",
+      "真实耐久预留已完成、回执尚未返回：确认等待取消精确 499、请求身份不变、一次启动及零自动重放；独立机器策略 30 秒期限保持原实现"
+    ]
+  },
+  "performanceReuse": {
+    "reference": "upload-parents-acceptance.json",
+    "scope": "同一未变生产产物、依赖与 C 指纹的原完整混合打印及三项 ABBA；本轮未重新构建 C 或运行性能测试"
+  },
+  "preliminaryFailures": [
+    "误链接共享工作区陈旧依赖：缺少 re2-wasm，改为原验收锁定依赖树",
+    "首轮测试中 currentRequest 的空值断言及拦截两种 AbortSignal 期限计数有误",
+    "设备 prepare 窗口已完成准入，收到 200；改为实际耐久预留回执窗口后精确 499 通过"
+  ],
+  "evidence": {
+    "file": "queue-clearance-clock-evidence.json.gz",
+    "sha256": "fd4c7640e00e33a42a05b3cddf1305c2a1a7b3dcdba38c5e4183b25e3f1c88d8",
+    "bytes": 356929,
+    "entries": 19,
+    "decodedBytes": 895631,
+    "credentialShapes": 0
+  },
+  "open": [
+    "当前头自身完整 CI",
+    "正常合并与合并后规定检查",
+    "完整客户端同包验收",
+    "当前系列目标板与配置",
+    "G3",
+    "177 个 klippy Python 文件",
+    "主线发布",
+    "完整 UFP 耐久上传路径"
+  ]
+}
