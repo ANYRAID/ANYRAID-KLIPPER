@@ -1,0 +1,690 @@
+{
+  "date": "2026-10-07",
+  "status": "Local candidate; exact head full CI and normal PR integration pending",
+  "develop": "5965d388dc39831f41559fdc282c9a51d7bfd349",
+  "change": "Retire live Python/CFFI, Git and C compiler processes from four original clock benchmarks covering five profiles. Frozen independently executed original reference inputs/outputs remain exact; no production algorithm or dependencies change.",
+  "node": {
+    "version": "v26.10.0",
+    "sha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da"
+  },
+  "sourceFingerprints": {
+    "host/src/timing/clock-sync.ts": "296aef1e98374d42e8324f3789be490db336a42fdf6837499e3f11b0cbc3a562",
+    "host/src/timing/clock-runtime.ts": "6a724837eb8b3f3be32628eebb150e0b7665c45c4a069e952d94db24931671d5",
+    "host/src/timing/secondary-sync.ts": "80f333fa80fda220576049820f2b5ff46ac487c0ee4f3911fe500db1189e0a54",
+    "host/src/motion/step-compressor.ts": "cfbf043162218f8ea59e9ac743777aef7b36a40c1b6ee95d2491c3991996bd57",
+    "host/native/stepcompress.c": "d6bcdd6e37d031d1d99eecf23eb230ff5a257bea2d5fac8386fa5f85045478b2",
+    "klippy/chelper/stepcompress.c": "1c74d3d532fa73da07eae08294b868ff54171352b31d6721a94af9d69cc24c10",
+    "klippy/chelper/msgblock.c": "6a7c6db524c38408ddf5718b13626cc4c5e5f2fdf85259c2b70f5dc2c34257ef",
+    "klippy/chelper/pyhelper.c": "c943b02089623590544f99c6e3dd3033b2fac4970661ec67232d8f1602cc9b32",
+    "host/test/helpers/clock-scheduler.ts": "318493d197ebf08a885157c2b85dd768f510feb469d05dd4610303a020072776"
+  },
+  "nativeOutputs": {
+    "ar100-flash.node": "5018b82bbf784653d7a55678ed768e52d5eb3acb8f05702b71ceb8d9627215f9",
+    "can-query.node": "33135adc0307937ed196ce305c4b52003dc617ec5a9c1550c21b8c22e00a760a",
+    "sealed-file.node": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+    "serialqueue.node": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac",
+    "stepcompress.node": "255a84728574d1534bad1796883d9232d56cb5089581676fc47c5cb202a9cb95",
+    "trapq.node": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+    "unix-peer.node": "86d5ed6b37abf734d89fb4eff9b24bcf6636eab408c94df7e9d96f04cb356248"
+  },
+  "capsules": {
+    "runtime": {
+      "path": "host/contracts/clock-runtime-python-reference.json.gz",
+      "compressedSha256": "94fdae4b8aaf433c87c780c2ed31eac4feb173a46247554e4f4b98cb39ce457f",
+      "rawSha256": "a649e3e1967fe45b5609250ac6c973932cd6034f5ec3c0ae004c77de8eac630a",
+      "rawBytes": 715822,
+      "compressedBytes": 133122,
+      "version": "Python 3.12.13",
+      "executableSha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d",
+      "inputSha256": "3115a01c1e3067e48b067daba2cc46aef2bb37d141cd5bf3a5178fcc8c5dcfd5",
+      "outputSha256": "7af31e5a660d86cbd53dd3ed827649ffe03977cc4bca7e0e9af83f4e7b5a18ce",
+      "sourceSha256": "79fdf3556dd6afe14e10963699bf6c73e56eb6cad765e9566a90b408781ee37e",
+      "originalBenchmarkSha256": "48a259d6d807258bc812f2095337fd14e4b9e0b3f94614b94de0307fcc16ac9c",
+      "captureDriverSha256": "d0dab5e6c94b4b3b793a2b5a242578474274088d4d1c99a500d533c425693ae2"
+    },
+    "suite": {
+      "path": "host/contracts/clock-benchmark-python-reference.json.gz",
+      "compressedSha256": "84d35cc64f4d16b3637159d2cb88bebe56c80101f0f0f1a3ee4a9bcab5d102b0",
+      "rawSha256": "e3e8d05e319ae87a66df44024ce65d0d9449a87181d986d4c029b6570fffe520",
+      "rawBytes": 4833005,
+      "compressedBytes": 1031703,
+      "captures": [
+        {
+          "name": "clock-sync-periodic",
+          "inputSha256": "42f35009d6958dd7049370fbf009444c15de51a16d44cc0003b65c3d210fa165",
+          "outputSha256": "bce90c6186fde75e23e1fa77d803e0a1582cce561db79d80a5c5198891a7560e",
+          "originalBenchmarkSha256": "a7bec73f7493f2eb3cd785269d78aaf7eb11df083e1d793501d529e053227039",
+          "captureDriverSha256": "63da0e9a46875ff738352bee905632485f0efdc22308a47ba1f5d9726d965147",
+          "referenceSteps": null
+        },
+        {
+          "name": "clock-sync-demand",
+          "inputSha256": "bf8fa5bbee8fc055edf9d64c82cc914e14b4dbee66137daffcce30f1f69417eb",
+          "outputSha256": "a9369c4ef20a96d0272dcaf5c303d8fb007b58fd15b4588239af53232887bac0",
+          "originalBenchmarkSha256": "a7bec73f7493f2eb3cd785269d78aaf7eb11df083e1d793501d529e053227039",
+          "captureDriverSha256": "63da0e9a46875ff738352bee905632485f0efdc22308a47ba1f5d9726d965147",
+          "referenceSteps": null
+        },
+        {
+          "name": "secondary-sync",
+          "inputSha256": "f451d8401057f1af5ce0bd131b4728ebaf82c83feba631cac395867fdfcd041a",
+          "outputSha256": "fa3b9808ff2e13b5a00c464476b70e74b3ccf8539452658c7d6b64f8871e21cd",
+          "originalBenchmarkSha256": "df4954388ab9f434fadd09f9a6d1fc1470b20092c21688e117d45707492485e5",
+          "captureDriverSha256": "7581a4ade45aef662fc21824e1142c98fec3d979ac9295c2e94839f8bf26efb2",
+          "referenceSteps": null
+        },
+        {
+          "name": "clock-calibration",
+          "inputSha256": "7ba7a9bfeb9cc4a490f7c690a237c4901cf6b1a2f2b34f24bfa84286c8742b7d",
+          "outputSha256": "2329b56c9c77dfa869277b9193f835330734ef91290be03cfa58937162faea30",
+          "originalBenchmarkSha256": "27dcf05a5846cfcb58954e0d9590a54c59574a07f12bd9c342eb4d549b0d4a40",
+          "captureDriverSha256": "547a375aefd196b0495ecf05aa8132f487896c14a9f7c146ede1242a4c65e2d4",
+          "referenceSteps": [
+            20000,
+            2000,
+            2000,
+            2000
+          ]
+        }
+      ]
+    }
+  },
+  "archive": {
+    "path": "host/contracts/clock-benchmark-retirement-evidence.json.gz",
+    "compressedSha256": "9e4ba7a98a5d12867e7d98c748882a34eb7cad044ebd05a79a651bf25765d32b",
+    "rawSha256": "42edf86fe0604fc8a5c09cafaebea61c223ee8ab6f6c85c1d5bc5fd783d44794",
+    "rawBytes": 1265546,
+    "compressedBytes": 141760,
+    "entries": [
+      {
+        "name": "after-default.json",
+        "sha256": "63bb5a98b43e27b729fa8b52aa15ed28bf3387abc56c756071d289e7a15acd4f"
+      },
+      {
+        "name": "after-default.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "after-release-combined-tests.log",
+        "sha256": "246e086218efa0df1a9ab378d9741963a5290845ecf22ca06707080b548cefa1"
+      },
+      {
+        "name": "after-release-reference-tests.log",
+        "sha256": "421449844bf0d061ab4d4fa7a6defe7a10ce420886acd54ce6098f7ee7bc16bd"
+      },
+      {
+        "name": "after-release-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "after-release-whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "after.json",
+        "sha256": "c5401d758f069d1c33057caf05e5eefd54fb958ce82ce0be3834722462163038"
+      },
+      {
+        "name": "after.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "before-denied.log",
+        "sha256": "9eb76ec13a710ee437e1d1b15a331c52878f35e5407f1a936127008724acabf2"
+      },
+      {
+        "name": "before.json",
+        "sha256": "44c2f7f42ff002cf7dae239a5ea763f7e2096c73e82647fd71392de55f80e9e9"
+      },
+      {
+        "name": "before.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-benchmark-reference.retained-all.ts",
+        "sha256": "a7074605b4e97c4575e33296c21478816c5eb82f142cd03c96255d62649204a0"
+      },
+      {
+        "name": "clock-calibration.after-default.json",
+        "sha256": "7d839f8f667ab585881844bd7f22de135a72dd7506714453c033e22cea494ba9"
+      },
+      {
+        "name": "clock-calibration.after-default.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-calibration.after-release.json",
+        "sha256": "1524befd0884c074a5bfaba840953d46d61193b0c1eacffbfa7828f5efe87f7e"
+      },
+      {
+        "name": "clock-calibration.after-release.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-calibration.after.json",
+        "sha256": "93e0896677094771397bb4b854b58eb6945d7451d71ce67389d0c6949706645e"
+      },
+      {
+        "name": "clock-calibration.after.stderr",
+        "sha256": "663adab744fe41756b870ebedbe0bb7c5ead4fadf1d402019105ffd5fefae097"
+      },
+      {
+        "name": "clock-calibration.before-cffi.json",
+        "sha256": "f6c50f1660e2dbd7e5fecc3fe458dc19e1dab2e46a74054e97de15928c792d30"
+      },
+      {
+        "name": "clock-calibration.before-cffi.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-calibration.before-corrected.json",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-calibration.before-corrected.stderr",
+        "sha256": "dc8e5d4926ffa26581b002c35a480384efd99b0114dd30c4caf6db7b43ffa0ec"
+      },
+      {
+        "name": "clock-calibration.before.json",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-calibration.before.stderr",
+        "sha256": "b164140f877adfedf63feb063f773c488271b36aa7e11b6e8c990a1005baf641"
+      },
+      {
+        "name": "clock-calibration.capture-preparation-failure.txt",
+        "sha256": "9f59e554a0c207a8dde8e8e6983c8d106a071bfc95c6b36be32273f2372a27b7"
+      },
+      {
+        "name": "clock-calibration.final-restricted.json",
+        "sha256": "104aedca39d7ab4ebfd3d8f3ff275150443f54dfd172fed0f252b4da1e636471"
+      },
+      {
+        "name": "clock-calibration.final-restricted.stderr",
+        "sha256": "17bb672b0da50405e25ceff43eb10f4f2998c48faee11056cf8abc2cba780fb3"
+      },
+      {
+        "name": "clock-calibration.original-capture.ts",
+        "sha256": "547a375aefd196b0495ecf05aa8132f487896c14a9f7c146ede1242a4c65e2d4"
+      },
+      {
+        "name": "clock-calibration.original-stepcompress.c",
+        "sha256": "51a85d50a0e071aa05aa5bbe4de9bb256b6afe96d3643d9d7c5c93ed0a62a6f6"
+      },
+      {
+        "name": "clock-sync-demand.after-default.json",
+        "sha256": "709ce089efb88268a2e0c7efedbc23902bdd0f235a0b63578ca6eae26261970b"
+      },
+      {
+        "name": "clock-sync-demand.after-default.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-sync-demand.after-release.json",
+        "sha256": "78940d4e4d3341f7028005492039304a0403005ef9600e7a1f9131e726ac4e58"
+      },
+      {
+        "name": "clock-sync-demand.after-release.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-sync-demand.after.json",
+        "sha256": "164a3a4e464256fc50af29aef6ee38364cc7185534ebac784a68c68a12831382"
+      },
+      {
+        "name": "clock-sync-demand.after.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-sync-demand.before.json",
+        "sha256": "d50c1451f5c4db8913cce0c3eb640c7ec1e049ca33d0ce582e01df1380913cd5"
+      },
+      {
+        "name": "clock-sync-demand.before.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-sync-demand.final-restricted.json",
+        "sha256": "31172f47bad9e256cb3a886aad1309333c94ae8b422d5104df6dd0e47a721fb5"
+      },
+      {
+        "name": "clock-sync-demand.final-restricted.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-sync-periodic.after-default.json",
+        "sha256": "abe89cd17df1adb0bc7bed870ff82184025017af8c63d9039534ad354dbb6951"
+      },
+      {
+        "name": "clock-sync-periodic.after-default.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-sync-periodic.after-release.json",
+        "sha256": "8082d9cb1553da2e5d4ccf3d8c5bfcaf2edf433c7364b7527b660299fdb5795a"
+      },
+      {
+        "name": "clock-sync-periodic.after-release.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-sync-periodic.after.json",
+        "sha256": "bff16ff6a78ef7db88d2cd59655adf8eae1b9b18bf8ab718ce29d84a015cf9fb"
+      },
+      {
+        "name": "clock-sync-periodic.after.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-sync-periodic.before.json",
+        "sha256": "7af4b1d6bc00c8ada2c1b95ffcb18943806802b01722552127823b66c301da1e"
+      },
+      {
+        "name": "clock-sync-periodic.before.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-sync-periodic.final-restricted.json",
+        "sha256": "992256d4a8b71f5b8a65f5c7c02951bff5506c9410af851295dab3de6f1836ad"
+      },
+      {
+        "name": "clock-sync-periodic.final-restricted.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "clock-sync.original-capture.ts",
+        "sha256": "63da0e9a46875ff738352bee905632485f0efdc22308a47ba1f5d9726d965147"
+      },
+      {
+        "name": "combined-tests.log",
+        "sha256": "98288fab45461bcaf1fd0b08b06ed59cb921252dc881074332a4836fc30afa66"
+      },
+      {
+        "name": "compiled-lease-clock-runtime.json",
+        "sha256": "81d545775cebc9b28b374805e9c4ae8ecb03b0bb7c9ad1b45897a0dffcf80773"
+      },
+      {
+        "name": "compiled-lease-clock-runtime.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "compiled-lease-clock-runtime.ts",
+        "sha256": "dec459eaa69fcbdf93e01750299cb8a8a5484356f6ec4f28ee5c3a3086fa54db"
+      },
+      {
+        "name": "final-combined-tests.log",
+        "sha256": "2fac7976b6ca1979d5391f54e18b3389b546a4b578dccb628cb312ef65fd0a7d"
+      },
+      {
+        "name": "final-reference-tests.log",
+        "sha256": "e39f28e325f17b5fddc80c4cfe5f8a5c4137eb5a01c4a2eb6004b24f93b531d4"
+      },
+      {
+        "name": "final-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "final-whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "original-benchmark-capture.ts",
+        "sha256": "d0dab5e6c94b4b3b793a2b5a242578474274088d4d1c99a500d533c425693ae2"
+      },
+      {
+        "name": "reference-tests.log",
+        "sha256": "7cde3babcc5e82f50e41d158565f0a6aa58041bfd6c07cebfbf6de8db850458a"
+      },
+      {
+        "name": "secondary-sync.after-default.json",
+        "sha256": "a53bfd93fe7222ad0fc770cdc3d44f9b9515bd745bf815e9268de81b1d58eb48"
+      },
+      {
+        "name": "secondary-sync.after-default.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "secondary-sync.after-release.json",
+        "sha256": "c2afbe23098cb4197fe4a7b3b5f866a3b31899e71edaa6ca4e2f6d107eebeec1"
+      },
+      {
+        "name": "secondary-sync.after-release.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "secondary-sync.after.json",
+        "sha256": "18a9b824f8ae9be51deefbe55f1ceb8e90839dcb7af2a5f9cdd834f224415573"
+      },
+      {
+        "name": "secondary-sync.after.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "secondary-sync.before.json",
+        "sha256": "869286f4baa09084c7bcb3b2e177127bdc684e2e703da3f0aa7e83d72c41ba83"
+      },
+      {
+        "name": "secondary-sync.before.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "secondary-sync.final-restricted.json",
+        "sha256": "ab3205aec5f7330b67fb2f08a9c57c5ddd7dbb59a491bf64318edb8114d5a625"
+      },
+      {
+        "name": "secondary-sync.final-restricted.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "secondary-sync.original-capture.ts",
+        "sha256": "7581a4ade45aef662fc21824e1142c98fec3d979ac9295c2e94839f8bf26efb2"
+      },
+      {
+        "name": "typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "receipt-generation-sandbox-failure.json",
+        "sha256": "71cb78ef48f2584ba381a6365fab5140db73eacf0b8f2c237fc62e276b46c88b"
+      }
+    ]
+  },
+  "independentReference": {
+    "runtime": "Actual original 5009 responses including the unknown eighth warmup sample, 5008 Python releases. Output equals both actually executed prior A/B references, rather than regenerating truth with Node.",
+    "sync": "5000 original responses per periodic and demand mode, all release/null, wrapped raw clock, prediction and estimate comparisons retained.",
+    "secondary": "5000 main/local pairs, original zero offset, integer clock, frequency and synchronization-horizon error assertions retained.",
+    "calibration": "Four original C/CFFI fixtures: 20000/2000/2000/2000 steps including direction reversal, 32-bit wrap and 2^40 initial clock. All packet bytes, min/req clocks, flat integer histories and final positions checked. Upstream C 20a22102, original compiler flags and existing CFFI 2.1.1/pycparser 2.23 retained.",
+    "limits": "Frozen inputs only. Changed mode/workload/corrupt or truncated capsules fail; no replacement oracle fabricated. No source Python required to read the capsule. Historical Python times are explicitly named historical; original median bound is retained in clock-sync as a captured desktop check, not a current paired comparison or portable target budget."
+  },
+  "validation": {
+    "originalCaptures": "All five profiles actually passed original independent precision assertions; periodic/demand original live Python median gates passed.",
+    "negativeOldBenchmark": "Old clock runtime capture fails ERR_ACCESS_DENIED ChildProcess with Python=/no-python and no Node child-process grant, original log retained.",
+    "restrictedFinal": "All five final profiles pass with PATH=/no-programs, PYTHON=/no-python and Node --permission --allow-fs-read=*; calibration also CC=/no-compiler and --allow-addons for the existing unchanged C binding. ChildProcess API permission is absent. Native addons are explicitly allowed; this is not an OS syscall sandbox guarantee.",
+    "sourceAudit": "Four benchmark entrypoints contain no child_process/spawn/PYTHON/CFFI compiler calls; unchanged calibrated compression C/binding sources have no fork/execve/system/posix_spawn calls. strace unavailable, so no syscall-trace claim.",
+    "referenceTests": "6/6 final integrity tests under no-child-process Node permissions.",
+    "combined": "38/38 original clocks/secondary/native health plus six reference cases; overlap with earlier 35/38 and six-only runs not added.",
+    "typecheck": "Original full TypeScript 7 scope passed.",
+    "whitespace": "Required source and explicit changed-contract whitespace checks passed, no ERROR output.",
+    "compiledLeaseCombination": {
+      "manifestSha256": "106e3b7b208f3b8b82cfaa1ca40185a44f64f4dd6e046512a59931a9cdd38c08",
+      "compiledClockRuntimeSha256": "322f9049b2740684497f621ac2c9844485bc2b889335caf7879180755290739b",
+      "result": "Final frozen runtime reference with actual #37 emitted ClockRuntime also passes original 5000 queries/5008 numerical results under no-child-process permission. No product rebuild or new C rebuild claimed."
+    }
+  },
+  "performance": {
+    "order": "Original captures before changes; restricted first adapter; original-condition first adapter; release unused capsule retention; final original-condition and restricted checks. Sequential finite observations, not randomized statistical evidence.",
+    "runtime": {
+      "before": {
+        "node": "v26.10.0",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "steadyQueries": 5000,
+        "estimatesCompared": 5008,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9,
+        "callbackMedianMs": 0.005089999999995598,
+        "callbackP95Ms": 0.007440000000002556,
+        "callbackMaxMs": 1.358696000000009,
+        "periodMs": 983.9,
+        "scope": "Original benchmark and assertions with artifact-only capture, source runtime, fake scheduler, no hardware acceptance"
+      },
+      "after": {
+        "node": "v26.10.0",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "steadyQueries": 5000,
+        "estimatesCompared": 5008,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9,
+        "callbackMedianMs": 0.005599999999986949,
+        "callbackP95Ms": 0.007480000000001041,
+        "callbackMaxMs": 0.28867300000000284,
+        "periodMs": 983.9,
+        "reference": {
+          "kind": "frozen independent Python numerical reference",
+          "capturedAt": "2026-10-07",
+          "sha256": "94fdae4b8aaf433c87c780c2ed31eac4feb173a46247554e4f4b98cb39ce457f"
+        },
+        "scope": "Includes fake scheduler and promise draining; no live Python, wire latency or hardware acceptance"
+      },
+      "after-default": {
+        "node": "v26.10.0",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "steadyQueries": 5000,
+        "estimatesCompared": 5008,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9,
+        "callbackMedianMs": 0.0051200000000051205,
+        "callbackP95Ms": 0.007509999999996353,
+        "callbackMaxMs": 0.49598600000000204,
+        "periodMs": 983.9,
+        "reference": {
+          "kind": "frozen independent Python numerical reference",
+          "capturedAt": "2026-10-07",
+          "sha256": "94fdae4b8aaf433c87c780c2ed31eac4feb173a46247554e4f4b98cb39ce457f"
+        },
+        "scope": "Includes fake scheduler and promise draining; no live Python, wire latency or hardware acceptance"
+      },
+      "compiled-lease-clock-runtime": {
+        "node": "v26.10.0",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "steadyQueries": 5000,
+        "estimatesCompared": 5008,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9,
+        "callbackMedianMs": 0.005050999999980377,
+        "callbackP95Ms": 0.007259999999988054,
+        "callbackMaxMs": 0.5116669999999885,
+        "periodMs": 983.9,
+        "reference": {
+          "kind": "frozen independent Python numerical reference",
+          "capturedAt": "2026-10-07",
+          "sha256": "94fdae4b8aaf433c87c780c2ed31eac4feb173a46247554e4f4b98cb39ce457f"
+        },
+        "scope": "Includes fake scheduler and promise draining; no live Python, wire latency or hardware acceptance"
+      }
+    },
+    "profiles": [
+      {
+        "name": "clock-sync-periodic",
+        "before": {
+          "samples": 5000,
+          "accepted": 4617,
+          "maxFrequencyError": 0,
+          "maxClockError": 0,
+          "nodeMedianMs": 0.8198399999999992,
+          "pythonMedianMs": 6.63390289992094,
+          "nodeP95Ms": 1.5001489999999933,
+          "pythonP95Ms": 6.74698397051543
+        },
+        "initialRetainedWholeCapsule": {
+          "samples": 5000,
+          "accepted": 4617,
+          "maxFrequencyError": 0,
+          "maxClockError": 0,
+          "nodeMedianMs": 1.2053259999999995,
+          "historicalPythonMedianMs": 6.63390289992094,
+          "nodeP95Ms": 3.5326050000000038,
+          "historicalPythonP95Ms": 6.74698397051543
+        },
+        "finalReleasedCapsule": {
+          "samples": 5000,
+          "accepted": 4617,
+          "maxFrequencyError": 0,
+          "maxClockError": 0,
+          "nodeMedianMs": 0.8729510000000005,
+          "historicalPythonMedianMs": 6.63390289992094,
+          "nodeP95Ms": 1.4647380000000112,
+          "historicalPythonP95Ms": 6.74698397051543
+        },
+        "finalRestricted": {
+          "samples": 5000,
+          "accepted": 4617,
+          "maxFrequencyError": 0,
+          "maxClockError": 0,
+          "nodeMedianMs": 0.7917600000000107,
+          "historicalPythonMedianMs": 6.63390289992094,
+          "nodeP95Ms": 1.7647719999999936,
+          "historicalPythonP95Ms": 6.74698397051543
+        },
+        "medianChangePercent": 6.478215261514597
+      },
+      {
+        "name": "clock-sync-demand",
+        "before": {
+          "samples": 5000,
+          "accepted": 4617,
+          "maxFrequencyError": 0,
+          "maxClockError": 0,
+          "nodeMedianMs": 0.7870400000000188,
+          "pythonMedianMs": 6.696462980471551,
+          "nodeP95Ms": 1.483618000000007,
+          "pythonP95Ms": 6.862125010229647
+        },
+        "initialRetainedWholeCapsule": {
+          "samples": 5000,
+          "accepted": 4617,
+          "maxFrequencyError": 0,
+          "maxClockError": 0,
+          "nodeMedianMs": 1.1609849999999966,
+          "historicalPythonMedianMs": 6.696462980471551,
+          "nodeP95Ms": 2.9118369999999913,
+          "historicalPythonP95Ms": 6.862125010229647
+        },
+        "finalReleasedCapsule": {
+          "samples": 5000,
+          "accepted": 4617,
+          "maxFrequencyError": 0,
+          "maxClockError": 0,
+          "nodeMedianMs": 0.8320400000000063,
+          "historicalPythonMedianMs": 6.696462980471551,
+          "nodeP95Ms": 1.688512000000003,
+          "historicalPythonP95Ms": 6.862125010229647
+        },
+        "finalRestricted": {
+          "samples": 5000,
+          "accepted": 4617,
+          "maxFrequencyError": 0,
+          "maxClockError": 0,
+          "nodeMedianMs": 0.8002800000000008,
+          "historicalPythonMedianMs": 6.696462980471551,
+          "nodeP95Ms": 1.4663690000000003,
+          "historicalPythonP95Ms": 6.862125010229647
+        },
+        "medianChangePercent": 5.717625533643322
+      },
+      {
+        "name": "secondary-sync",
+        "before": {
+          "samples": 5000,
+          "maxOffsetError": 0,
+          "maxClockError": 0,
+          "maxFrequencyError": 0,
+          "maxSyncTimeError": 0,
+          "nodeMedianMs": 3.859988000000044,
+          "nodeP95Ms": 6.969377000000065,
+          "pythonMedianMs": 21.467017009854317,
+          "pythonP95Ms": 21.71021094545722
+        },
+        "initialRetainedWholeCapsule": {
+          "samples": 5000,
+          "maxOffsetError": 0,
+          "maxClockError": 0,
+          "maxFrequencyError": 0,
+          "maxSyncTimeError": 0,
+          "nodeMedianMs": 3.3965029999999956,
+          "nodeP95Ms": 5.090053999999981,
+          "historicalPythonMedianMs": 21.467017009854317,
+          "historicalPythonP95Ms": 21.71021094545722
+        },
+        "finalReleasedCapsule": {
+          "samples": 5000,
+          "maxOffsetError": 0,
+          "maxClockError": 0,
+          "maxFrequencyError": 0,
+          "maxSyncTimeError": 0,
+          "nodeMedianMs": 3.5856749999999806,
+          "nodeP95Ms": 6.71527500000002,
+          "historicalPythonMedianMs": 21.467017009854317,
+          "historicalPythonP95Ms": 21.71021094545722
+        },
+        "finalRestricted": {
+          "samples": 5000,
+          "maxOffsetError": 0,
+          "maxClockError": 0,
+          "maxFrequencyError": 0,
+          "maxSyncTimeError": 0,
+          "nodeMedianMs": 4.2330340000000035,
+          "nodeP95Ms": 6.555053000000015,
+          "historicalPythonMedianMs": 21.467017009854317,
+          "historicalPythonP95Ms": 21.71021094545722
+        },
+        "medianChangePercent": -7.106576497130568
+      },
+      {
+        "name": "clock-calibration",
+        "before": {
+          "fixtures": 4,
+          "packetAndHistoryExact": true,
+          "steps": 20000,
+          "nodeMedianMs": 1.9819049999999834,
+          "nodeP95Ms": 2.384149999999977,
+          "pythonMedianMs": 12.408795999363065,
+          "pythonP95Ms": 12.603017035871744
+        },
+        "initialRetainedWholeCapsule": {
+          "fixtures": 4,
+          "packetAndHistoryExact": true,
+          "steps": 20000,
+          "nodeMedianMs": 2.119106000000002,
+          "nodeP95Ms": 5.739792999999992,
+          "historicalPythonMedianMs": 12.408795999363065,
+          "historicalPythonP95Ms": 12.603017035871744
+        },
+        "finalReleasedCapsule": {
+          "fixtures": 4,
+          "packetAndHistoryExact": true,
+          "steps": 20000,
+          "nodeMedianMs": 2.012875000000008,
+          "nodeP95Ms": 4.323865000000012,
+          "historicalPythonMedianMs": 12.408795999363065,
+          "historicalPythonP95Ms": 12.603017035871744
+        },
+        "finalRestricted": {
+          "fixtures": 4,
+          "packetAndHistoryExact": true,
+          "steps": 20000,
+          "nodeMedianMs": 2.1087069999999812,
+          "nodeP95Ms": 4.326334000000003,
+          "historicalPythonMedianMs": 12.408795999363065,
+          "historicalPythonP95Ms": 12.603017035871744
+        },
+        "medianChangePercent": 1.5626379670077517
+      }
+    ],
+    "adapterFinding": "Initial helper kept all captured input/output profiles alive across hot loops. Final helper only returns the requested parsed result and releases the temporary decoded capsule. First +47 to +48 percent sampler medians are retained; final periodic +6.48%, demand +5.72%, secondary -7.11%, calibration +1.56%. Consistent with unnecessary fixture retention affecting measurements, not general root-cause proof.",
+    "remainingRegression": "Calibrated compression final P95 remains 4.323865 ms versus old 2.384150 ms; demand P95 rises 1.483618 to 1.688512 ms. All original numerical/timing gates passed; do not claim zero regression or target-board speed. P95 in those original 11-sample benchmarks is index 10, the largest sample.",
+    "scope": "No production source or C/runtime dependency changed. Pure benchmark reference-loading/measurement behavior changed; no hot-path Python replacement or printing speed gain claimed. Existing product evidence remains scoped to its original hashes; no redundant new mixed print run."
+  },
+  "retainedFailures": [
+    "Initial calibrated capture-driver duplicate insertion caused TypeScript parse error before execution; original broken driver/stderr retained.",
+    "Next original calibration launch failed due missing CFFI. Existing documented read-only reference cache used for the actual successful original CFFI run; no install/system change.",
+    "Initial fixture retained-all memory/performance increases and final remaining P95 increases retained.",
+    "Receipt production fingerprint check first failed spawnSync git EPERM despite inner status 0; structured original diagnostic is archived. Authorized read-only object check succeeded."
+  ],
+  "integration": {
+    "PR35": "0ca86d6e head and postmerge host 37625660691/firmware 37625660632 all success",
+    "PR36": "5965d388 head and postmerge host 37625892823 / firmware 37625892846 all success verified",
+    "PR37": "25e96ea9 firmware 37627050631 success; host 37627050528 sanitizer in progress when last observed; frozen head unchanged"
+  },
+  "notClosed": [
+    "G3, original intermittent numerical/motion failure and clock warmup bias/recovery",
+    "Complete same-bundle actual Fluidd/Mainsail acceptance and remaining Moonraker contracts",
+    "Current Cycnumbris 500 board/config/install/rollback and target printing performance/precision",
+    "177 tracked klippy Python files and default Python print entry, all remaining Python tests/build/install/maintenance paths",
+    "Master PR/release; other machines remain last"
+  ]
+}
