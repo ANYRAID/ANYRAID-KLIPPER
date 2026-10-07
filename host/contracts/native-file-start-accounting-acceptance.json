@@ -605,5 +605,112 @@
         "sha256": "4e2290d02f90a88fd1f4df75e7ae9352881e66e189d85fab78d6d7f78b06db5b"
       }
     ]
+  },
+  "gatewayAcceptedDevelopIntegration": {
+    "date": "2026-10-07",
+    "baselineHead": "a863dc23e3266c3b1e74bba1d53964ee9dd39162",
+    "acceptedGateway": {
+      "pr": 23,
+      "head": "e67ccb8ab5993fa2e178d2126c129acbdaab0c88",
+      "host": 37540786185,
+      "firmware": 37540786109,
+      "allRequiredSteps": "success",
+      "merge": "a863dc23e3266c3b1e74bba1d53964ee9dd39162",
+      "postMerge": {
+        "host": 37585785093,
+        "firmware": 37585785193,
+        "status": "in_progress"
+      }
+    },
+    "previousExactHead": {
+      "head": "24ef3df83b4924d054ceb50ab8b49b8e5af5d5c3",
+      "host": 37538609963,
+      "firmware": 37538609873,
+      "status": "completed",
+      "conclusion": "success",
+      "allRequiredSteps": "success"
+    },
+    "conflicts": [
+      "CHANGELOG.md",
+      "docs/Node_Host_Delivery_Plan.md"
+    ],
+    "resolution": "Preserve both histories; label prior plan rows historical and add verified current state",
+    "validation": {
+      "pass": 27,
+      "fail": 0,
+      "durationMs": 47932.426903,
+      "typecheck": "original invocation failed: native TypeScript compiler SIGSEGV; original required check remains unproven",
+      "sourceWhitespace": "success",
+      "logs": [
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-accounting-gateway-owned-sync-20261007.log",
+          "sha256": "3420380b75dfb6e278ee5151c57813b5b1c29d603f9dc36d0d858b3c8b698068"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-accounting-gateway-owned-sync-typecheck-20261007.log",
+          "sha256": "17528b64225180ea86d260601fae978ad0bb04035560bf52b87fdd66d494b323"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-print-resume-accounting-gateway-sync-whitespace-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "compiled": "Original independent compiled gateway 8 protocol/resource assertions with TS disabled; overlap with source is not added"
+    },
+    "performance": {
+      "productionSourceUnchanged": true,
+      "fingerprints": {
+        "host/src/operations/native-file-motion.ts": "3956081dc42b04caec69068bb801dfae32e4665e0f18f810efd64814955d1a5c"
+      },
+      "evidenceReuse": "Prior paired benchmarks retained only for their original source/environment/scope; no new speed or target-board claim"
+    },
+    "newExactHeadCi": "pending",
+    "normalIntegration": "pending",
+    "scope": "Full same-package clients, original mixed failures, G3, physical current-series, all177 klippy Python files and default switch remain open",
+    "fixtureOwnership": {
+      "originalFailure": {
+        "pass": 26,
+        "fail": 1,
+        "operation": "Direct forcePosition before homing/probe admission",
+        "error": "Native motion port busy or paused",
+        "artifact": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-accounting-gateway-sync-20261007.log",
+          "sha256": "e672bb8d6c260350f700f7e0b5b4372feb83558c19b8af298a2024766ea5299d"
+        }
+      },
+      "sourceObservation": "Periodic idle clock maintenance owns the same port through dispatch.runWhenIdle; original failure has no phase snapshot, so exact phase remains inferred",
+      "change": "Positive fixture joins existing dispatch.runExclusive once through setup, token reads, original single probe/calibration/save admissions; remove nested save acquisition",
+      "invariants": "No production motion changes, retries, changed samples, synthetic stop inputs, 1e-10 tolerances or deadlines",
+      "source": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-print-resume-accounting/host/test/delta-probe.test.ts",
+        "sha256": "0e3b021d039590abeff36c09ca7ed8be957aca1322dacf2a1916f46686c5caa7"
+      },
+      "terminalXY": [
+        25,
+        -30.00000000000003
+      ],
+      "calibrationFinalError": 8.48025924344022e-19
+    },
+    "compilerDiscrimination": {
+      "original": {
+        "exit": 2,
+        "signal": "SIGSEGV",
+        "faultAddress": "0x161d465",
+        "artifact": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-accounting-gateway-owned-sync-typecheck-20261007.log",
+          "sha256": "17528b64225180ea86d260601fae978ad0bb04035560bf52b87fdd66d494b323"
+        }
+      },
+      "boundedComparison": {
+        "sameCompilerAndSource": true,
+        "GOMAXPROCS": "1",
+        "exit": 0,
+        "artifact": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-accounting-gateway-owned-compiler-single-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "scope": "All project types examined under changed compiler scheduling, not an original-condition gate or root-cause closure; full remote original typecheck still required"
+    }
   }
 }
