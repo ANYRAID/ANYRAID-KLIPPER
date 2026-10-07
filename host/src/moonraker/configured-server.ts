@@ -374,11 +374,17 @@ export class ConfiguredMoonraker {
   const config=this.reader.section('job_queue');
   const load=config.getBoolean('load_on_startup',{defaultValue:false}),automatic=config.getBoolean('automatic_transition',{defaultValue:false}),transition=config.get('job_transition_gcode',{defaultValue:''}).trim();
   const delay=config.getFloat('job_transition_delay',{defaultValue:0.01,above:0});
-  if(load||transition)throw new ConfigurationError('Native queue startup loading and legacy transition G-Code require an explicit product operation provider');
-  if(automatic&&!this.#authorization)throw new ConfigurationError('Native automatic queue requires the process authorization owner');
+  if(load)throw new ConfigurationError('Native queue startup loading requires an explicit product operation provider');
+  if(transition&&!/^PAUSE$/i.test(transition))throw new ConfigurationError('Native legacy transition G-Code requires an explicit product operation provider; only PAUSE maps to operator confirmation');
+  const policy=config.get('job_transition_policy',{defaultValue:transition?'operator_confirmation':'none'}).trim();
+  if(!['none','operator_confirmation'].includes(policy)||transition&&policy!=='operator_confirmation')throw new ConfigurationError('Invalid native queue transition policy');
+  const confirmationTimeout=config.getFloat('job_transition_confirmation_timeout',{defaultValue:300,above:0});
+  if(confirmationTimeout*1000<1||confirmationTimeout*1000>900000)throw new ConfigurationError('Native queue confirmation timeout must be between 0.001 and 900 seconds');
+  if((automatic||policy==='operator_confirmation')&&!this.#authorization)throw new ConfigurationError('Native automatic queue and operator confirmation require the process authorization owner');
   if(delay*1000>2147483647)throw new ConfigurationError('Native queue transition delay exceeds timer capacity');
   this.#nativeQueue=await NativeJobQueue.open({database:this.#database,journal:this.#nativeProcessHistory,
    automaticTransition:automatic,transitionDelayMs:delay*1000,
+   confirmClearance:policy==='operator_confirmation',confirmationTimeoutMs:confirmationTimeout*1000,
    captureAuthority:(context,lifetime)=>this.#authorization!.capturePrintAuthority(context,lifetime),
    activePrint:()=>{const controller=this.#nativeController,request=controller?.currentRequest;return !this.#stopping&&this.#printApi instanceof ProductPrintApi&&this.#printApi.status.standard_print&&request&&['preparing','printing','pausing','paused','resuming','finishing'].includes(controller.state)?{requestId:request.requestId}:undefined;},
    resolveFile:(filename,signal)=>this.#nativeProcessFiles!.resolveQueuedFile(filename,signal),

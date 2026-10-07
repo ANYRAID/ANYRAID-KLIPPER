@@ -40,6 +40,44 @@ const automatic = {
 };
 const automaticContext = (): RpcContext => ({ ...context(), nativeGenerationSignal: new AbortController().signal });
 
+test('clearance cannot be bypassed when the device becomes idle during queue start', async () => {
+  let checks = 0;
+  const f = await fixture({ ...automatic, confirmClearance: true, activePrint: () => undefined, canStart: () => ++checks > 1 });
+  try {
+    const ctx = automaticContext(); await f.queue.add(['one.gcode'], false, ctx);
+    await assert.rejects(f.queue.start(ctx), statusError(409));
+    assert.equal(f.calls.length, 0); assert.equal((await f.journal.historyList({ limit: 10 })).length, 0);
+  } finally { await f.close(); }
+});
+
+test('late clearance authorization cannot confirm a reordered head', async () => {
+  const f = await fixture({ ...automatic, confirmClearance: true, activePrint: () => undefined });
+  try {
+    let waiting = false, release: (() => void) | undefined, entered: (() => void) | undefined;
+    const enteredPromise = new Promise<void>(resolve => { entered = resolve; });
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const ctx = automaticContext(); ctx.authorize = async () => { if (waiting) { entered!(); await held; } return { username: 'operator' }; };
+    await f.queue.add(['one.gcode', 'two.gcode'], false, ctx);
+    const pending = await f.queue.start(ctx) as { transition: { state_token: string }; queued_jobs: { job_id: string }[] };
+    waiting = true; const confirming = f.queue.start(ctx, pending.transition.state_token); await enteredPromise;
+    await f.queue.jump(pending.queued_jobs[1].job_id, automaticContext()); release!();
+    await assert.rejects(confirming, statusError(409)); assert.equal(f.calls.length, 0);
+    assert.equal((await f.journal.historyList({ limit: 10 })).length, 0);
+  } finally { await f.close(); }
+});
+
+test('owner restart preserves queue members and discards every volatile clearance token', async () => {
+  const f = await fixture({ ...automatic, confirmClearance: true, activePrint: () => undefined });
+  try {
+    const ctx = automaticContext(); await f.queue.add(['one.gcode'], false, ctx);
+    const pending = await f.queue.start(ctx) as { transition: { state_token: string } };
+    const stored = JSON.stringify(await f.database.get('native_job_queue', 'catalogue'));
+    assert.equal(stored.includes(pending.transition.state_token), false); await f.reopen();
+    assert.equal(f.queue.status.transition, null); assert.equal(f.queue.status.queued_jobs.length, 1);
+    await assert.rejects(f.queue.start(ctx, pending.transition.state_token), statusError(409)); assert.equal(f.calls.length, 0);
+  } finally { await f.close(); }
+});
+
 test('automatic owner restart retains remaining jobs but discards every execution grant', async () => {
   const f = await fixture({ ...automatic, activePrint: () => undefined });
   try {

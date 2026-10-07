@@ -1,0 +1,2700 @@
+{
+  "version": 1,
+  "scope": "Protected product queue panel candidate and explicit confirmation-intent fence; not published, rendered browser acceptance or full same-bundle client completion.",
+  "base": "d3794c074887111f6fb86ef7dd0470c19d26895e",
+  "includesClearanceCandidate": "c1de4b855c0f2053366dc431d9cbb341002a06ed",
+  "merge": "Normal no-ff integration of PR #33 into independent panel branch; no reset/cherry-pick/force push.",
+  "product": {
+    "B": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-product-bundle",
+      "manifestSha256": "ac658380edbb248db6ea72af04a88a00c163f14ff7e7c26817a5b869acd98f5d",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "A": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-clearance-product-bundle",
+      "manifestSha256": "a866845ac88327c3010fa99510218a93205f06f74a45b1da6f180069ffd1b4f1",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "changedProductionInventory": [
+      "host/src/moonraker/native-job-queue.js",
+      "host/src/runtime/product-client-assets.js",
+      "host/src/runtime/product-client-gateway.js",
+      "host/src/runtime/product-queue-panel.js"
+    ],
+    "otherInventoriedOwnersUnchanged": true,
+    "native": "Unchanged accepted C addon/executable outputs reused; fresh TS product build, no fresh C rebuild claim.",
+    "dependencies": "Independent physical production dependency copies with original relative bin links; no TS compiler or Python in product."
+  },
+  "contract": {
+    "route": "/_client/queue",
+    "prepareBody": {
+      "request_confirmation": true
+    },
+    "confirmation": "One existing transition_token after explicit checkbox/button; no automatic retry or empty-body fallback.",
+    "rejects": [
+      "policy disabled",
+      "old parameter-unsupported server",
+      "busy device when requesting confirmation",
+      "false/string/number/null intent",
+      "intent combined with token",
+      "old token",
+      "expired or revoked authority"
+    ],
+    "authority": "Same native account, process queue/catalogue/journal, origin/session/CSP and current generation; no raw G-code or bypass.",
+    "display": "HTTP acknowledgement is not physical completion; queue pause is not active-print cancellation."
+  },
+  "validation": {
+    "source": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-combined-source-20261007.log",
+      "sha256": "fe82c4c8cb0b259c91225498dfb01d1b7257cd8acc360a15f278c2baf6da565d",
+      "tests": 72,
+      "pass": 72,
+      "fail": 0,
+      "durationMs": 27273.080608
+    },
+    "typecheck": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-combined-types-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exitCode": 0
+    },
+    "compiledHTTP": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-compiled-http-20261007.log",
+      "sha256": "00f516eef42912462207e572bf6911639113271962bb011355664a727b71dc64",
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "durationMs": 15056.36391
+    },
+    "compiledBrowserScript": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-compiled-browser-script-20261007.log",
+      "sha256": "c31f43712546f9d33c28e0c597d992c2cdcc7f0d44293d5f14209a4c3a3eace7",
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "durationMs": 83.032445,
+      "driver": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-drivers/compiled-panel.test.mjs",
+        "sha256": "aaf27f13d3c9a23191d92a3f5601806757caae2a0829ea5f38ff9051ff7439f4"
+      },
+      "scope": "Actual shipped serialized JS in VM event/transport harness; not browser rendering."
+    },
+    "oldCompiledServerNegative": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-old-server-negative-20261007.log",
+      "sha256": "01d392c2786276b98378c6309f97187e052ce9afe23b9298c9574de557a6e6ff",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "durationMs": 1723.294182
+    },
+    "whitespace": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-whitespace-final-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exitCode": 0
+    }
+  },
+  "performance": {
+    "gateway": {
+      "order": "A then B, no overlapping benchmark processes",
+      "A": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-gateway-A-20261007.json",
+        "sha256": "561073e14d0ec29a808d8c67524507acfea23917c91f319d0280f026cf424855",
+        "fullRaw": {
+          "node": "v26.10.0",
+          "perSample": {
+            "rest": 200,
+            "http": 200,
+            "websocket": 500,
+            "concurrent": 320,
+            "concurrency": 16
+          },
+          "warmups": 3,
+          "samples": 11,
+          "results": [
+            {
+              "target": "native-jwt",
+              "samples": {
+                "rest": {
+                  "rawMs": [
+                    37.205254999999966,
+                    44.10687699999994,
+                    40.41468800000007,
+                    35.962477000000035,
+                    35.94585699999993,
+                    35.94778700000006,
+                    38.40515000000005,
+                    38.041745999999875,
+                    35.275938,
+                    35.53294199999982,
+                    37.28342499999985
+                  ],
+                  "count": 11,
+                  "medianMs": 37.205254999999966,
+                  "p95Ms": 44.10687699999994,
+                  "p99Ms": 44.10687699999994,
+                  "maxMs": 44.10687699999994
+                },
+                "http": {
+                  "rawMs": [
+                    32.45272,
+                    32.10625600000003,
+                    33.8580290000001,
+                    31.745819999999867,
+                    33.07643800000005,
+                    32.87381499999992,
+                    30.815477999999985,
+                    30.588093999999955,
+                    30.368971999999985,
+                    30.393102,
+                    33.044028000000026
+                  ],
+                  "count": 11,
+                  "medianMs": 32.10625600000003,
+                  "p95Ms": 33.8580290000001,
+                  "p99Ms": 33.8580290000001,
+                  "maxMs": 33.8580290000001
+                },
+                "websocket": {
+                  "rawMs": [
+                    28.540736000000038,
+                    27.40613099999996,
+                    33.66837600000008,
+                    28.81837100000007,
+                    26.579029999999875,
+                    27.005706000000146,
+                    25.634106999999858,
+                    24.370869999999968,
+                    25.790698999999904,
+                    26.188284000000067,
+                    23.626030000000128
+                  ],
+                  "count": 11,
+                  "medianMs": 26.579029999999875,
+                  "p95Ms": 33.66837600000008,
+                  "p99Ms": 33.66837600000008,
+                  "maxMs": 33.66837600000008
+                },
+                "concurrent": {
+                  "rawMs": [
+                    8.20770200000004,
+                    10.085187000000019,
+                    12.80910300000005,
+                    8.319762999999966,
+                    7.711424999999963,
+                    7.778645999999981,
+                    7.930137999999943,
+                    8.89961100000005,
+                    6.789252000000033,
+                    6.721831999999949,
+                    6.8246019999999135
+                  ],
+                  "count": 11,
+                  "medianMs": 7.930137999999943,
+                  "p95Ms": 12.80910300000005,
+                  "p99Ms": 12.80910300000005,
+                  "maxMs": 12.80910300000005
+                }
+              },
+              "requests": {
+                "rest": {
+                  "count": 2200,
+                  "medianMs": 0.1746330000000853,
+                  "p95Ms": 0.21364300000004732,
+                  "p99Ms": 0.3460050000001047,
+                  "maxMs": 3.0092110000000503
+                },
+                "http": {
+                  "count": 2200,
+                  "medianMs": 0.1519220000000132,
+                  "p95Ms": 0.17702200000007906,
+                  "p99Ms": 0.22290299999997387,
+                  "maxMs": 2.565465000000131
+                },
+                "websocket": {
+                  "count": 5500,
+                  "medianMs": 0.049929999999903885,
+                  "p95Ms": 0.0679410000000189,
+                  "p99Ms": 0.10188100000004852,
+                  "maxMs": 3.2738839999999527
+                },
+                "concurrent": {
+                  "count": 220,
+                  "medianMs": 0.3848760000000766,
+                  "p95Ms": 0.530516999999918,
+                  "p99Ms": 0.7058689999998933,
+                  "maxMs": 3.1999029999999493
+                }
+              },
+              "eventLoop": {
+                "p99Ms": 1.735679,
+                "maxMs": 3.678207
+              },
+              "cpu": {
+                "user": 1668486,
+                "system": 255312
+              },
+              "rss": 198660096
+            },
+            {
+              "target": "protected-gateway",
+              "samples": {
+                "rest": {
+                  "rawMs": [
+                    80.53920100000005,
+                    79.02627099999972,
+                    78.26314000000002,
+                    76.29674399999976,
+                    77.40860900000007,
+                    76.90739200000007,
+                    75.52598400000034,
+                    79.8255320000003,
+                    76.24188299999969,
+                    74.27191700000003,
+                    75.66596500000014
+                  ],
+                  "count": 11,
+                  "medianMs": 76.90739200000007,
+                  "p95Ms": 80.53920100000005,
+                  "p99Ms": 80.53920100000005,
+                  "maxMs": 80.53920100000005
+                },
+                "http": {
+                  "rawMs": [
+                    76.86900199999991,
+                    75.03052699999989,
+                    75.01059700000042,
+                    74.8827839999999,
+                    74.4157580000001,
+                    73.88012200000003,
+                    74.04947300000003,
+                    73.62377800000058,
+                    72.97251800000049,
+                    73.4603449999995,
+                    72.92003900000054
+                  ],
+                  "count": 11,
+                  "medianMs": 74.04947300000003,
+                  "p95Ms": 76.86900199999991,
+                  "p99Ms": 76.86900199999991,
+                  "maxMs": 76.86900199999991
+                },
+                "websocket": {
+                  "rawMs": [
+                    40.09633300000041,
+                    38.31472900000017,
+                    34.19218299999966,
+                    34.29743499999995,
+                    31.76781099999971,
+                    31.566877000000204,
+                    33.40141300000005,
+                    32.4972200000002,
+                    31.80330099999992,
+                    33.481573999999455,
+                    31.476566000000275
+                  ],
+                  "count": 11,
+                  "medianMs": 33.40141300000005,
+                  "p95Ms": 40.09633300000041,
+                  "p99Ms": 40.09633300000041,
+                  "maxMs": 40.09633300000041
+                },
+                "concurrent": {
+                  "rawMs": [
+                    11.571196999999756,
+                    11.93807199999992,
+                    11.265472999999929,
+                    9.430977999999868,
+                    9.353795999999875,
+                    10.701784999999745,
+                    9.341325999999754,
+                    9.35230700000011,
+                    10.696154999999635,
+                    9.800672000000304,
+                    9.303126000000702
+                  ],
+                  "count": 11,
+                  "medianMs": 9.800672000000304,
+                  "p95Ms": 11.93807199999992,
+                  "p99Ms": 11.93807199999992,
+                  "maxMs": 11.93807199999992
+                }
+              },
+              "requests": {
+                "rest": {
+                  "count": 2200,
+                  "medianMs": 0.37513499999977284,
+                  "p95Ms": 0.4055159999998068,
+                  "p99Ms": 0.5276669999998376,
+                  "maxMs": 3.6895399999998517
+                },
+                "http": {
+                  "count": 2200,
+                  "medianMs": 0.3603650000000016,
+                  "p95Ms": 0.3852649999998903,
+                  "p99Ms": 0.44175600000016857,
+                  "maxMs": 2.1982200000002194
+                },
+                "websocket": {
+                  "count": 5500,
+                  "medianMs": 0.06318099999998594,
+                  "p95Ms": 0.07760099999995873,
+                  "p99Ms": 0.09371199999986857,
+                  "maxMs": 1.7287130000004254
+                },
+                "concurrent": {
+                  "count": 220,
+                  "medianMs": 0.47199600000021746,
+                  "p95Ms": 0.6013889999999265,
+                  "p99Ms": 1.704103000000032,
+                  "maxMs": 1.9167460000003302
+                }
+              },
+              "eventLoop": {
+                "p99Ms": 1.639423,
+                "maxMs": 10.248191
+              },
+              "cpu": {
+                "user": 2954047,
+                "system": 411035
+              },
+              "rss": 225361920
+            }
+          ],
+          "scope": "Sequential one-pair desktop comparison, same native account and handlers; actual HTTP/WS and bounded relay. Native server/gateway/client share this Node process with SQLite worker; production separate-process, mixed printing, TLS, target-board and statistical speed/zero-regression claims excluded. Original protocol benchmark has no timing pass threshold."
+        },
+        "driver": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-drivers/gateway-A.mjs",
+          "sha256": "90f6028b92a01eb0327936715d361b510da12707307138ff7a59727043609b16"
+        }
+      },
+      "B": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-gateway-B-20261007.json",
+        "sha256": "d676f421276b6637231e98d71fa9cba001bb154d27aed4a5bd820fae86869837",
+        "fullRaw": {
+          "node": "v26.10.0",
+          "perSample": {
+            "rest": 200,
+            "http": 200,
+            "websocket": 500,
+            "concurrent": 320,
+            "concurrency": 16
+          },
+          "warmups": 3,
+          "samples": 11,
+          "results": [
+            {
+              "target": "native-jwt",
+              "samples": {
+                "rest": {
+                  "rawMs": [
+                    37.63441999999998,
+                    40.147813999999926,
+                    35.83562500000005,
+                    35.3648589999998,
+                    34.96070299999997,
+                    37.130243000000064,
+                    37.73863099999994,
+                    35.236267,
+                    34.4601160000002,
+                    34.56205799999998,
+                    36.80203800000004
+                  ],
+                  "count": 11,
+                  "medianMs": 35.83562500000005,
+                  "p95Ms": 40.147813999999926,
+                  "p99Ms": 40.147813999999926,
+                  "maxMs": 40.147813999999926
+                },
+                "http": {
+                  "rawMs": [
+                    31.18229299999996,
+                    31.23472300000003,
+                    35.16553699999997,
+                    33.23576000000003,
+                    32.56904200000008,
+                    30.38963100000001,
+                    30.50391300000001,
+                    30.086097999999993,
+                    31.875221999999894,
+                    32.062875000000076,
+                    29.850895000000037
+                  ],
+                  "count": 11,
+                  "medianMs": 31.23472300000003,
+                  "p95Ms": 35.16553699999997,
+                  "p99Ms": 35.16553699999997,
+                  "maxMs": 35.16553699999997
+                },
+                "websocket": {
+                  "rawMs": [
+                    28.279853000000003,
+                    31.010910999999965,
+                    31.306504000000018,
+                    26.462039000000004,
+                    26.08602299999984,
+                    26.425308000000086,
+                    25.587477000000035,
+                    27.69000499999993,
+                    25.817420000000084,
+                    25.522404999999935,
+                    25.675146999999924
+                  ],
+                  "count": 11,
+                  "medianMs": 26.425308000000086,
+                  "p95Ms": 31.306504000000018,
+                  "p99Ms": 31.306504000000018,
+                  "maxMs": 31.306504000000018
+                },
+                "concurrent": {
+                  "rawMs": [
+                    10.278308999999922,
+                    10.495352000000025,
+                    8.117049999999836,
+                    8.095579999999927,
+                    7.640884000000142,
+                    7.634894000000031,
+                    10.23488899999984,
+                    7.7429550000001655,
+                    7.615673000000015,
+                    9.084853000000066,
+                    7.628404000000046
+                  ],
+                  "count": 11,
+                  "medianMs": 8.095579999999927,
+                  "p95Ms": 10.495352000000025,
+                  "p99Ms": 10.495352000000025,
+                  "maxMs": 10.495352000000025
+                }
+              },
+              "requests": {
+                "rest": {
+                  "count": 2200,
+                  "medianMs": 0.1732320000000982,
+                  "p95Ms": 0.19143300000007457,
+                  "p99Ms": 0.26712399999996705,
+                  "maxMs": 3.346315000000004
+                },
+                "http": {
+                  "count": 2200,
+                  "medianMs": 0.15017200000011144,
+                  "p95Ms": 0.17448300000000927,
+                  "p99Ms": 0.19654200000013589,
+                  "maxMs": 2.3505820000000313
+                },
+                "websocket": {
+                  "count": 5500,
+                  "medianMs": 0.05082000000015796,
+                  "p95Ms": 0.06360099999983504,
+                  "p99Ms": 0.08094100000005255,
+                  "maxMs": 2.116147999999839
+                },
+                "concurrent": {
+                  "count": 220,
+                  "medianMs": 0.3892550000000483,
+                  "p95Ms": 0.5113870000000134,
+                  "p99Ms": 1.6319819999999936,
+                  "maxMs": 2.3506909999998697
+                }
+              },
+              "eventLoop": {
+                "p99Ms": 1.820671,
+                "maxMs": 3.446783
+              },
+              "cpu": {
+                "user": 1664592,
+                "system": 251457
+              },
+              "rss": 199856128
+            },
+            {
+              "target": "protected-gateway",
+              "samples": {
+                "rest": {
+                  "rawMs": [
+                    82.80352100000027,
+                    81.56090499999982,
+                    80.38951800000041,
+                    79.98245300000008,
+                    82.15334200000007,
+                    79.66019899999992,
+                    79.37431500000002,
+                    79.66511900000023,
+                    77.61574099999962,
+                    77.31062699999984,
+                    75.85962800000016
+                  ],
+                  "count": 11,
+                  "medianMs": 79.66511900000023,
+                  "p95Ms": 82.80352100000027,
+                  "p99Ms": 82.80352100000027,
+                  "maxMs": 82.80352100000027
+                },
+                "http": {
+                  "rawMs": [
+                    80.54566100000011,
+                    78.47526300000027,
+                    77.71494299999995,
+                    77.96461599999975,
+                    76.25631299999986,
+                    77.09330399999999,
+                    76.93865200000027,
+                    74.42330800000036,
+                    75.5991039999999,
+                    75.5169820000001,
+                    75.47332199999983
+                  ],
+                  "count": 11,
+                  "medianMs": 76.93865200000027,
+                  "p95Ms": 80.54566100000011,
+                  "p99Ms": 80.54566100000011,
+                  "maxMs": 80.54566100000011
+                },
+                "websocket": {
+                  "rawMs": [
+                    39.16567099999975,
+                    39.896079999999984,
+                    38.44210100000009,
+                    39.06582900000012,
+                    36.03322799999978,
+                    33.9382999999998,
+                    33.93227999999999,
+                    35.29015799999979,
+                    33.523033999999825,
+                    33.53506500000003,
+                    34.64602900000045
+                  ],
+                  "count": 11,
+                  "medianMs": 35.29015799999979,
+                  "p95Ms": 39.896079999999984,
+                  "p99Ms": 39.896079999999984,
+                  "maxMs": 39.896079999999984
+                },
+                "concurrent": {
+                  "rawMs": [
+                    11.726498999999876,
+                    11.757129999999961,
+                    11.875841000000037,
+                    13.150439000000006,
+                    9.917585000000145,
+                    9.783772000000226,
+                    11.219252000000324,
+                    9.724111999999877,
+                    9.688611999999921,
+                    12.160514000000148,
+                    9.586750000000393
+                  ],
+                  "count": 11,
+                  "medianMs": 11.219252000000324,
+                  "p95Ms": 13.150439000000006,
+                  "p99Ms": 13.150439000000006,
+                  "maxMs": 13.150439000000006
+                }
+              },
+              "requests": {
+                "rest": {
+                  "count": 2200,
+                  "medianMs": 0.38685499999974127,
+                  "p95Ms": 0.4180959999998777,
+                  "p99Ms": 0.579417999999805,
+                  "maxMs": 2.785048000000188
+                },
+                "http": {
+                  "count": 2200,
+                  "medianMs": 0.3755550000000767,
+                  "p95Ms": 0.4002050000003692,
+                  "p99Ms": 0.4665270000000419,
+                  "maxMs": 1.946306999999706
+                },
+                "websocket": {
+                  "count": 5500,
+                  "medianMs": 0.06747100000029604,
+                  "p95Ms": 0.08229200000005221,
+                  "p99Ms": 0.09545100000013917,
+                  "maxMs": 1.65859300000011
+                },
+                "concurrent": {
+                  "count": 220,
+                  "medianMs": 0.4948469999999361,
+                  "p95Ms": 0.6099079999999049,
+                  "p99Ms": 1.811163999999735,
+                  "maxMs": 2.3584319999999934
+                }
+              },
+              "eventLoop": {
+                "p99Ms": 1.427455,
+                "maxMs": 10.600447
+              },
+              "cpu": {
+                "user": 3080270,
+                "system": 406821
+              },
+              "rss": 215867392
+            }
+          ],
+          "scope": "Sequential one-pair desktop comparison, same native account and handlers; actual HTTP/WS and bounded relay. Native server/gateway/client share this Node process with SQLite worker; production separate-process, mixed printing, TLS, target-board and statistical speed/zero-regression claims excluded. Original protocol benchmark has no timing pass threshold."
+        },
+        "driver": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-drivers/gateway-B.mjs",
+          "sha256": "5310f7e2153d84af72861a32a662e442873af33a0dcc449a3a719cc697cadfbc"
+        }
+      },
+      "limits": "Original gateway benchmark has no timing pass threshold. Raw 11 batch samples retained for REST/RPC/WS/concurrent; per-request summaries retained as original driver.",
+      "interpretation": "Protected gateway batch medians rose approximately 4-14 percent; loop P99 below 2 ms. No zero-regression/statistical acceleration or target printing-speed claim."
+    },
+    "mixed": {
+      "order": "B then A; actual order retained, no overlapping benchmark processes",
+      "A": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-mixed-A-20261007.log",
+        "sha256": "5da1fb32794fd6cd80d1f8029e430df18f72f9c08b8fd0a8915ca62cc55cafc0",
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "durationMs": 70560.157166,
+        "timing": {
+          "statusP99Ms": 3.1135009999998147,
+          "minimumStepLeadMs": 88.801,
+          "phaseP99Ms": 3.1288720000002286,
+          "wireCommands": 234,
+          "wireSteps": 7506,
+          "historyP99Ms": 54.550397999999404,
+          "configListP99Ms": 5.3356910000002244,
+          "configDownloadP99Ms": 7.558060999999725,
+          "completedStatistics": {
+            "total_duration": 10.483668547999999,
+            "print_duration": 4.91502637,
+            "filament_used": 1
+          }
+        },
+        "clearance": {
+          "noMotionBeforeConfirmation": true,
+          "oneAdmission": true,
+          "oldTokenRejected": true,
+          "originalProgramSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318"
+        },
+        "allDiagnostics": [
+          {
+            "retainedBundle": {
+              "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-clearance-product-bundle",
+              "manifestSha256": "a866845ac88327c3010fa99510218a93205f06f74a45b1da6f180069ffd1b4f1",
+              "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+            }
+          },
+          {
+            "earlyObjectCancellation": {
+              "before": {
+                "gcode_move": {
+                  "speed_factor": 1,
+                  "speed": 600,
+                  "extrude_factor": 1,
+                  "absolute_coordinates": true,
+                  "absolute_extrude": true,
+                  "homing_origin": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "position": [
+                    1.21,
+                    0,
+                    0,
+                    0.121
+                  ],
+                  "gcode_position": [
+                    1.21,
+                    0,
+                    0,
+                    0.121
+                  ],
+                  "axis_map": {
+                    "X": 0,
+                    "Y": 1,
+                    "Z": 2,
+                    "E": 3
+                  }
+                },
+                "print_stats": {
+                  "filename": "parts/first/renamed journey.gcode",
+                  "print_duration": 0.026867949000001317,
+                  "total_duration": 4.247749737,
+                  "filament_used": 0.121,
+                  "state": "printing",
+                  "message": "",
+                  "info": {
+                    "total_layer": null,
+                    "current_layer": null
+                  }
+                }
+              },
+              "after": {
+                "gcode_move": {
+                  "speed_factor": 1,
+                  "speed": 600,
+                  "extrude_factor": 1,
+                  "absolute_coordinates": true,
+                  "absolute_extrude": true,
+                  "homing_origin": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "position": [
+                    1.21,
+                    0,
+                    0,
+                    0.121
+                  ],
+                  "gcode_position": [
+                    1.21,
+                    0,
+                    0,
+                    0.121
+                  ],
+                  "axis_map": {
+                    "X": 0,
+                    "Y": 1,
+                    "Z": 2,
+                    "E": 3
+                  }
+                },
+                "print_stats": {
+                  "filename": "parts/first/renamed journey.gcode",
+                  "print_duration": 0.03555203500000061,
+                  "total_duration": 4.256434763,
+                  "filament_used": 0.121,
+                  "state": "printing",
+                  "message": "",
+                  "info": {
+                    "total_layer": null,
+                    "current_layer": null
+                  }
+                }
+              },
+              "originalMoves": 1000,
+              "priming": false,
+              "appliesTo": "future_admissions"
+            }
+          },
+          {
+            "pausedMotionReport": {
+              "live_position": [
+                0,
+                0,
+                0,
+                0.8189435513678736
+              ],
+              "live_velocity": 0,
+              "live_extruder_velocity": 0
+            }
+          },
+          {
+            "filamentRunout": {
+              "sensor": "filament_switch_sensor tool",
+              "compiled": true,
+              "automaticPause": true,
+              "absentResumeRejected": true,
+              "runoutPauseMs": 1377.894185000001,
+              "settledStepClock": true,
+              "noAutomaticResume": true
+            }
+          },
+          {
+            "beforeObjectCancellation": {
+              "objectPriming": false,
+              "earlyObjectCancellation": true,
+              "cancelState": {
+                "state_token": "caf7f0c6-9692-4e79-8930-551c88980a7c",
+                "request_id": "complete",
+                "available": true,
+                "objects": [
+                  {
+                    "name": "LIVE"
+                  },
+                  {
+                    "name": "SKIP"
+                  }
+                ],
+                "excluded_objects": [
+                  "SKIP"
+                ],
+                "current_object": null,
+                "applies_to": "future_admissions"
+              },
+              "progress": {
+                "eventtime": 864801.198976771,
+                "status": {
+                  "virtual_sdcard": {
+                    "progress": 0.760613428090518,
+                    "is_active": false,
+                    "file_position": 16268,
+                    "file_size": 21388
+                  },
+                  "gcode_move": {
+                    "speed_factor": 1,
+                    "speed": 600,
+                    "extrude_factor": 1,
+                    "absolute_coordinates": true,
+                    "absolute_extrude": true,
+                    "homing_origin": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "position": [
+                      8.88,
+                      0,
+                      0,
+                      0.888
+                    ],
+                    "gcode_position": [
+                      8.88,
+                      0,
+                      0,
+                      0.888
+                    ],
+                    "axis_map": {
+                      "X": 0,
+                      "Y": 1,
+                      "Z": 2,
+                      "E": 3
+                    }
+                  },
+                  "toolhead": {
+                    "estimated_print_time": 12.219942,
+                    "homed_axes": "xyz",
+                    "axis_minimum": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "axis_maximum": [
+                      200,
+                      200,
+                      200,
+                      0
+                    ],
+                    "position": [
+                      8.88,
+                      0,
+                      0,
+                      0.888
+                    ],
+                    "extruder": "extruder",
+                    "max_velocity": 100,
+                    "max_accel": 1000,
+                    "square_corner_velocity": 5,
+                    "minimum_cruise_ratio": 0.5
+                  },
+                  "print_stats": {
+                    "filename": "parts/first/renamed journey.gcode",
+                    "print_duration": 2.447257616000001,
+                    "total_duration": 6.8870757,
+                    "filament_used": 0.888,
+                    "state": "paused",
+                    "message": "",
+                    "info": {
+                      "total_layer": null,
+                      "current_layer": null
+                    }
+                  }
+                }
+              },
+              "skipOffset": 21229
+            }
+          },
+          {
+            "objectCancellation": {
+              "compiled": true,
+              "firstTargetCancellation": false,
+              "objectPriming": false,
+              "earlyObjectCancellation": true,
+              "paused": true,
+              "retryWithoutMotion": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 0,
+              "durationMs": 247.9338430000007,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "nativeTemperatureHistory": {
+              "samples": 14,
+              "sensors": [
+                "extruder",
+                "heater_bed"
+              ],
+              "authenticated": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 1,
+              "durationMs": 417.4372970000004,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 2,
+              "durationMs": 226.96339200000148,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 3,
+              "durationMs": 264.5656429999981,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 4,
+              "durationMs": 131.3669340000015,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 5,
+              "durationMs": 102.69110100000034,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 6,
+              "durationMs": 100.66839400000026,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 7,
+              "durationMs": 87.54324799999813,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "idleTimeout": {
+              "heaterOff": true,
+              "motorRelease": true,
+              "hostRemainsReady": true
+            }
+          },
+          {
+            "pausedTimeout": {
+              "cancelled": true,
+              "resumeRejected": true
+            }
+          },
+          {
+            "compiledOfflineManagement": {
+              "sameListener": true,
+              "priorJwt": true,
+              "originalSockets": true,
+              "unauthorizedRejected": true,
+              "copy": true,
+              "movePreservesIdentity": true,
+              "copyOverwriteReplacesIdentity": true,
+              "delete": true,
+              "recursiveDelete": true,
+              "nestedMetadataRevoked": true,
+              "sharedPrintSourcePreserved": true,
+              "downloadSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+              "notifications": 16,
+              "recursiveDeleteNotifications": 4
+            }
+          },
+          {
+            "compiledConfigOffline": {
+              "originalJwt": true,
+              "realConfiguration": true,
+              "readOnly": true,
+              "sameProcessRoot": true
+            }
+          },
+          {
+            "compiledDetachedWindow": {
+              "sameListener": true,
+              "priorJwt": true,
+              "originalSockets": true,
+              "metadataAndHistory": true,
+              "downloadSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+              "noPrintReplay": true,
+              "fileQueries": 50,
+              "fileQueryP99Ms": 7.567371999997704
+            }
+          },
+          {
+            "retainedProcessServer": {
+              "sameAddress": true,
+              "priorJwtAccepted": true,
+              "originalSocketsOpen": true,
+              "reinitializeMs": 4392.928719000003
+            }
+          },
+          {
+            "temperatureHistoryRestart": {
+              "preserved": true,
+              "samplesBefore": 38,
+              "samplesAfter": 40
+            }
+          },
+          {
+            "compiledQueueClearance": {
+              "noMotionBeforeConfirmation": true,
+              "oneAdmission": true,
+              "oldTokenRejected": true,
+              "originalProgramSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318"
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 0,
+              "durationMs": 243.02837200000067,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 1,
+              "durationMs": 259.30550799999764,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 2,
+              "durationMs": 370.96853700000065,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 3,
+              "durationMs": 456.5862679999991,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 4,
+              "durationMs": 123.33794399999897,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 5,
+              "durationMs": 102.78186000000278,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 6,
+              "durationMs": 111.97400200000266,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 7,
+              "durationMs": 102.0240300000005,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "nativeAuthorizationRestart": {
+              "compiled": true,
+              "processRestart": true,
+              "persistedLogin": true,
+              "priorTokenAccepted": true,
+              "filesAndHistory": true,
+              "noReplay": true,
+              "interruptedResumeRejected": true,
+              "explicitCancel": true,
+              "logoutRevoked": true
+            }
+          },
+          {
+            "namespace": true,
+            "automaticQueue": true,
+            "motionReportLoad": true,
+            "objectPriming": false,
+            "earlyObjectCancellation": true,
+            "fileMoveOwnership": [
+              {
+                "generation": 1,
+                "group": 0,
+                "before": {
+                  "state": "printing",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 9797.749845
+                },
+                "after": {
+                  "state": "printing",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 9878.055108
+                },
+                "durationMs": 80.30923299999995
+              },
+              {
+                "generation": 1,
+                "group": 1,
+                "before": {
+                  "state": "printing",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 14564.409822
+                },
+                "after": {
+                  "state": "printing",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 14736.803626
+                },
+                "durationMs": 172.39802400000008
+              },
+              {
+                "generation": 1,
+                "group": 2,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 18361.797206
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 18540.99132
+                },
+                "durationMs": 179.19422399999894
+              },
+              {
+                "generation": 1,
+                "group": 3,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 22028.522756
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 22350.354544
+                },
+                "durationMs": 321.8318880000006
+              },
+              {
+                "generation": 1,
+                "group": 4,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 25712.263624
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 25803.479392
+                },
+                "durationMs": 91.21444800000245
+              },
+              {
+                "generation": 1,
+                "group": 5,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 27519.259994
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 27594.179654
+                },
+                "durationMs": 74.91972000000169
+              },
+              {
+                "generation": 1,
+                "group": 6,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 28993.938915
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 29071.580041
+                },
+                "durationMs": 77.64140599999882
+              },
+              {
+                "generation": 1,
+                "group": 7,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 30517.177802
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 30594.970561
+                },
+                "durationMs": 77.79244900000049
+              },
+              {
+                "generation": 2,
+                "group": 0,
+                "before": {
+                  "state": "printing",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 47025.263949
+                },
+                "after": {
+                  "state": "printing",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 47279.256747
+                },
+                "durationMs": 253.9934579999972
+              },
+              {
+                "generation": 2,
+                "group": 1,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 50275.839621
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 50614.719561
+                },
+                "durationMs": 338.8804000000018
+              },
+              {
+                "generation": 2,
+                "group": 2,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 53635.373269
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 53928.696111
+                },
+                "durationMs": 293.32303200000024
+              },
+              {
+                "generation": 2,
+                "group": 3,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 57054.0538
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 57293.957699
+                },
+                "durationMs": 239.90968900000007
+              },
+              {
+                "generation": 2,
+                "group": 4,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 60722.22577
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 60991.068784
+                },
+                "durationMs": 268.8432739999989
+              },
+              {
+                "generation": 2,
+                "group": 5,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 63167.820624
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 63260.078684
+                },
+                "durationMs": 92.25841000000219
+              },
+              {
+                "generation": 2,
+                "group": 6,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 64727.973171
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 64808.407573
+                },
+                "durationMs": 80.43505200000072
+              },
+              {
+                "generation": 2,
+                "group": 7,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 66287.205965
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-7a7c1acd-bb05-408e-82f1-d902df0e2d72",
+                  "fileId": "authorized-file",
+                  "atMs": 66361.933401
+                },
+                "durationMs": 74.7280560000072
+              }
+            ],
+            "movesPrintingGenerations": [
+              1,
+              2
+            ],
+            "configListRequests": 2050,
+            "configListP99Ms": 5.3356910000002244,
+            "configDownloads": 2049,
+            "configDownloadP99Ms": 7.558060999999725,
+            "liveMotionSamples": 5823,
+            "liveExtrusionSamples": 1476,
+            "nativeAuthorization": true,
+            "apiLoad": true,
+            "completedStatistics": {
+              "total_duration": 10.483668547999999,
+              "print_duration": 4.91502637,
+              "filament_used": 1
+            },
+            "bundleManifestSha256": "a866845ac88327c3010fa99510218a93205f06f74a45b1da6f180069ffd1b4f1",
+            "bmp180": false,
+            "bme": false,
+            "bmeHeater": false,
+            "htu": false,
+            "htuHeater": false,
+            "htuModel": null,
+            "lm75": false,
+            "lm75Heater": false,
+            "sht": false,
+            "shtHeater": false,
+            "aht": false,
+            "ahtHeater": false,
+            "combinedHeater": false,
+            "combined": false,
+            "multi": false,
+            "dual": false,
+            "servos": false,
+            "outputPins": false,
+            "phaseQueries": 9927,
+            "phaseP99Ms": 3.1288720000002286,
+            "loaded": false,
+            "spi": false,
+            "software": false,
+            "model5160": false,
+            "model2240": false,
+            "curved": false,
+            "probeHome": false,
+            "safeHome": false,
+            "bltouch": false,
+            "tilted": false,
+            "manualTilt": false,
+            "skew": false,
+            "screws": false,
+            "manualScrews": false,
+            "bedScrews": false,
+            "kinematics": "cartesian",
+            "temperatureSensor": false,
+            "temperatureFan": false,
+            "hostSensor": false,
+            "spiSensor": false,
+            "spiHeater": false,
+            "sharedSpi": false,
+            "zEndstop": false,
+            "max31855": false,
+            "max31856": false,
+            "max31865": false,
+            "zTilt": false,
+            "quad": false,
+            "stressed": true,
+            "sensorless": false,
+            "tmc": [
+              {
+                "statusReads": 304,
+                "writes": 43
+              },
+              {
+                "statusReads": 216,
+                "writes": 42
+              },
+              {
+                "statusReads": 8,
+                "writes": 40
+              }
+            ],
+            "faultInjected": "adc",
+            "historyNotifications": 32,
+            "historyRequests": 2011,
+            "historyP99Ms": 54.550397999999404,
+            "lifecycleShutdowns": 8,
+            "copyRequests": 16,
+            "copyP95Ms": 214.28830700000253,
+            "copyOverwriteRequests": 16,
+            "copyOverwriteP95Ms": 388.19745500000136,
+            "directoryCopyRequests": 16,
+            "directoryCopyP95Ms": 385.3570589999981,
+            "copiesDuringPrint": 4,
+            "directoryCopiesDuringPrint": 2,
+            "fileNotifications": 1132,
+            "fileNotificationP95Ms": 368.71739499999967,
+            "movesDuringPrint": 3,
+            "directoryMoveRequests": 16,
+            "directoryMoveP95Ms": 424.07874699999957,
+            "directoryMovesDuringPrint": 3,
+            "moveRequests": 16,
+            "moveP95Ms": 338.47275400000217,
+            "deleteRequests": 16,
+            "deleteP95Ms": 453.15711199999714,
+            "publicThumbnailRequests": 16,
+            "publicThumbnailP95Ms": 200.77171199999793,
+            "thumbnailRequests": 16,
+            "thumbnailP95Ms": 115.72080600000118,
+            "metadataRequests": 16,
+            "metadataP95Ms": 322.3222999999998,
+            "downloads": 16,
+            "downloadP95Ms": 52.30363800000123,
+            "wireCommands": 234,
+            "wireSteps": 7506,
+            "minimumStepLeadMs": 88.801,
+            "directoryRequests": 8334,
+            "directoryP99Ms": 40.550420999999915,
+            "statusRequests": 39706,
+            "uploads": 16,
+            "statusP99Ms": 3.1135009999998147,
+            "uploadP95Ms": 57.46600600000238,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 1.969151,
+                  "maxMs": 18.546687
+                },
+                "cpu": {
+                  "user": 12235568,
+                  "system": 2286189
+                },
+                "rss": 359518208
+              },
+              {
+                "loop": {
+                  "p99Ms": 1.952767,
+                  "maxMs": 13.230079
+                },
+                "cpu": {
+                  "user": 7852355,
+                  "system": 1725759
+                },
+                "rss": 367550464
+              }
+            ]
+          },
+          {
+            "compiledServices": {
+              "syntheticSystemd": true,
+              "samples": 33,
+              "failedQueries": 1,
+              "queries": 1909,
+              "queryP99Ms": 5.8866779999953,
+              "notifications": 124,
+              "authorizedNotifications": true,
+              "sharedNativeUnit": true
+            }
+          },
+          {
+            "networkChanges": {
+              "sourceSamples": 7,
+              "notifications": 20,
+              "authorizedObservers": 4,
+              "failedCommandRetained": true,
+              "deviceGenerations": [
+                1,
+                2
+              ],
+              "systemQueries": 586,
+              "systemQueryP99Ms": 3.1561120000042138
+            }
+          },
+          {
+            "compiledQueue": {
+              "groups": 16,
+              "printingGenerations": [
+                1,
+                2
+              ],
+              "queries": 2273,
+              "queryP99Ms": 2.9506600000022445,
+              "durableMutations": 64,
+              "actualStartRequestPrefix": "queue-",
+              "journalCompleted": true,
+              "authorizedNotifications": true,
+              "noAutomaticReplay": true
+            }
+          },
+          {
+            "replacements": {
+              "seed": {
+                "operations": 32,
+                "p95Ms": 220.27908200000093,
+                "maxMs": 302.7268570000015
+              },
+              "upload": {
+                "operations": 16,
+                "p95Ms": 440.4691359999997,
+                "maxMs": 440.4691359999997
+              },
+              "move": {
+                "operations": 16,
+                "p95Ms": 516.6496800000023,
+                "maxMs": 516.6496800000023
+              },
+              "uploadDuringPrintGenerations": [
+                1,
+                2
+              ],
+              "moveDuringPrintGenerations": [
+                1,
+                2
+              ],
+              "notifications": 320,
+              "originalNotifications": 776
+            }
+          },
+          {
+            "configBackupLoad": {
+              "requests": 2050,
+              "p99Ms": 3.3347850000027393,
+              "mutationsBlockedDuringPrint": true
+            }
+          }
+        ]
+      },
+      "B": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-mixed-B-20261007.log",
+        "sha256": "fffebfac68e26882565311d5087a4ad1577e059cbdff16e4e8d2b35e07a38d40",
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "durationMs": 73569.417647,
+        "timing": {
+          "statusP99Ms": 4.6747629999999845,
+          "minimumStepLeadMs": 88.418,
+          "phaseP99Ms": 6.779751000001852,
+          "wireCommands": 224,
+          "wireSteps": 7862,
+          "historyP99Ms": 58.69337799999994,
+          "configListP99Ms": 7.716303000000153,
+          "configDownloadP99Ms": 9.241534000000684,
+          "completedStatistics": {
+            "total_duration": 10.95844669,
+            "print_duration": 5.132584478000001,
+            "filament_used": 1
+          }
+        },
+        "clearance": {
+          "noMotionBeforeConfirmation": true,
+          "oneAdmission": true,
+          "oldTokenRejected": true,
+          "originalProgramSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318"
+        },
+        "allDiagnostics": [
+          {
+            "retainedBundle": {
+              "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-product-bundle",
+              "manifestSha256": "ac658380edbb248db6ea72af04a88a00c163f14ff7e7c26817a5b869acd98f5d",
+              "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+            }
+          },
+          {
+            "earlyObjectCancellation": {
+              "before": {
+                "gcode_move": {
+                  "speed_factor": 1,
+                  "speed": 600,
+                  "extrude_factor": 1,
+                  "absolute_coordinates": true,
+                  "absolute_extrude": true,
+                  "homing_origin": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "position": [
+                    3.77,
+                    0,
+                    0,
+                    0.377
+                  ],
+                  "gcode_position": [
+                    3.77,
+                    0,
+                    0,
+                    0.377
+                  ],
+                  "axis_map": {
+                    "X": 0,
+                    "Y": 1,
+                    "Z": 2,
+                    "E": 3
+                  }
+                },
+                "print_stats": {
+                  "filename": "parts/first/renamed journey.gcode",
+                  "print_duration": 0.03309611499999846,
+                  "total_duration": 4.246336133000001,
+                  "filament_used": 0.377,
+                  "state": "printing",
+                  "message": "",
+                  "info": {
+                    "total_layer": null,
+                    "current_layer": null
+                  }
+                }
+              },
+              "after": {
+                "gcode_move": {
+                  "speed_factor": 1,
+                  "speed": 600,
+                  "extrude_factor": 1,
+                  "absolute_coordinates": true,
+                  "absolute_extrude": true,
+                  "homing_origin": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "position": [
+                    3.77,
+                    0,
+                    0,
+                    0.377
+                  ],
+                  "gcode_position": [
+                    3.77,
+                    0,
+                    0,
+                    0.377
+                  ],
+                  "axis_map": {
+                    "X": 0,
+                    "Y": 1,
+                    "Z": 2,
+                    "E": 3
+                  }
+                },
+                "print_stats": {
+                  "filename": "parts/first/renamed journey.gcode",
+                  "print_duration": 0.03670891399999891,
+                  "total_duration": 4.249948832,
+                  "filament_used": 0.377,
+                  "state": "printing",
+                  "message": "",
+                  "info": {
+                    "total_layer": null,
+                    "current_layer": null
+                  }
+                }
+              },
+              "originalMoves": 1000,
+              "priming": false,
+              "appliesTo": "future_admissions"
+            }
+          },
+          {
+            "pausedMotionReport": {
+              "live_position": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "live_velocity": 0,
+              "live_extruder_velocity": 0
+            }
+          },
+          {
+            "filamentRunout": {
+              "sensor": "filament_switch_sensor tool",
+              "compiled": true,
+              "automaticPause": true,
+              "absentResumeRejected": true,
+              "runoutPauseMs": 1796.0340919999999,
+              "settledStepClock": true,
+              "noAutomaticResume": true
+            }
+          },
+          {
+            "beforeObjectCancellation": {
+              "objectPriming": false,
+              "earlyObjectCancellation": true,
+              "cancelState": {
+                "state_token": "73fc5e56-92ef-449d-b2c8-1bb4f4c5ef5b",
+                "request_id": "complete",
+                "available": true,
+                "objects": [
+                  {
+                    "name": "LIVE"
+                  },
+                  {
+                    "name": "SKIP"
+                  }
+                ],
+                "excluded_objects": [
+                  "SKIP"
+                ],
+                "current_object": null,
+                "applies_to": "future_admissions"
+              },
+              "progress": {
+                "eventtime": 864695.49993012,
+                "status": {
+                  "virtual_sdcard": {
+                    "progress": 0.8850289882176922,
+                    "is_active": false,
+                    "file_position": 18929,
+                    "file_size": 21388
+                  },
+                  "gcode_move": {
+                    "speed_factor": 1,
+                    "speed": 600,
+                    "extrude_factor": 1,
+                    "absolute_coordinates": true,
+                    "absolute_extrude": true,
+                    "homing_origin": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "position": [
+                      10,
+                      0,
+                      0,
+                      2
+                    ],
+                    "gcode_position": [
+                      10,
+                      0,
+                      0,
+                      2
+                    ],
+                    "axis_map": {
+                      "X": 0,
+                      "Y": 1,
+                      "Z": 2,
+                      "E": 3
+                    }
+                  },
+                  "toolhead": {
+                    "estimated_print_time": 12.791894,
+                    "homed_axes": "xyz",
+                    "axis_minimum": [
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "axis_maximum": [
+                      200,
+                      200,
+                      200,
+                      0
+                    ],
+                    "position": [
+                      10,
+                      0,
+                      0,
+                      1
+                    ],
+                    "extruder": "extruder",
+                    "max_velocity": 100,
+                    "max_accel": 1000,
+                    "square_corner_velocity": 5,
+                    "minimum_cruise_ratio": 0.5
+                  },
+                  "print_stats": {
+                    "filename": "parts/first/renamed journey.gcode",
+                    "print_duration": 3.0124262749999997,
+                    "total_duration": 7.4543944269999995,
+                    "filament_used": 1,
+                    "state": "paused",
+                    "message": "",
+                    "info": {
+                      "total_layer": null,
+                      "current_layer": null
+                    }
+                  }
+                }
+              },
+              "skipOffset": 21229
+            }
+          },
+          {
+            "objectCancellation": {
+              "compiled": true,
+              "firstTargetCancellation": false,
+              "objectPriming": false,
+              "earlyObjectCancellation": true,
+              "paused": true,
+              "retryWithoutMotion": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 0,
+              "durationMs": 232.41205300000001,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "nativeTemperatureHistory": {
+              "samples": 14,
+              "sensors": [
+                "extruder",
+                "heater_bed"
+              ],
+              "authenticated": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 1,
+              "durationMs": 464.5294020000001,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 2,
+              "durationMs": 364.60757800000283,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 3,
+              "durationMs": 434.4997360000016,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 4,
+              "durationMs": 104.09946800000034,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 5,
+              "durationMs": 108.06842099999994,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 6,
+              "durationMs": 107.27079999999842,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 1,
+              "group": 7,
+              "durationMs": 118.70730299999923,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "idleTimeout": {
+              "heaterOff": true,
+              "motorRelease": true,
+              "hostRemainsReady": true
+            }
+          },
+          {
+            "pausedTimeout": {
+              "cancelled": true,
+              "resumeRejected": true
+            }
+          },
+          {
+            "compiledOfflineManagement": {
+              "sameListener": true,
+              "priorJwt": true,
+              "originalSockets": true,
+              "unauthorizedRejected": true,
+              "copy": true,
+              "movePreservesIdentity": true,
+              "copyOverwriteReplacesIdentity": true,
+              "delete": true,
+              "recursiveDelete": true,
+              "nestedMetadataRevoked": true,
+              "sharedPrintSourcePreserved": true,
+              "downloadSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+              "notifications": 16,
+              "recursiveDeleteNotifications": 4
+            }
+          },
+          {
+            "compiledConfigOffline": {
+              "originalJwt": true,
+              "realConfiguration": true,
+              "readOnly": true,
+              "sameProcessRoot": true
+            }
+          },
+          {
+            "compiledDetachedWindow": {
+              "sameListener": true,
+              "priorJwt": true,
+              "originalSockets": true,
+              "metadataAndHistory": true,
+              "downloadSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+              "noPrintReplay": true,
+              "fileQueries": 50,
+              "fileQueryP99Ms": 1.0518540000048233
+            }
+          },
+          {
+            "retainedProcessServer": {
+              "sameAddress": true,
+              "priorJwtAccepted": true,
+              "originalSocketsOpen": true,
+              "reinitializeMs": 4304.778394000001
+            }
+          },
+          {
+            "temperatureHistoryRestart": {
+              "preserved": true,
+              "samplesBefore": 40,
+              "samplesAfter": 43
+            }
+          },
+          {
+            "compiledQueueClearance": {
+              "noMotionBeforeConfirmation": true,
+              "oneAdmission": true,
+              "oldTokenRejected": true,
+              "originalProgramSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318"
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 0,
+              "durationMs": 227.9344759999949,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 1,
+              "durationMs": 413.86461899999995,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 2,
+              "durationMs": 227.38916800000152,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 3,
+              "durationMs": 460.286669000001,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 4,
+              "durationMs": 118.63916900000186,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 5,
+              "durationMs": 112.90029200000572,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 6,
+              "durationMs": 102.31914099999995,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "compiledRecursiveDelete": {
+              "generation": 2,
+              "group": 7,
+              "durationMs": 93.87699699999939,
+              "sharedSourcePreserved": true
+            }
+          },
+          {
+            "nativeAuthorizationRestart": {
+              "compiled": true,
+              "processRestart": true,
+              "persistedLogin": true,
+              "priorTokenAccepted": true,
+              "filesAndHistory": true,
+              "noReplay": true,
+              "interruptedResumeRejected": true,
+              "explicitCancel": true,
+              "logoutRevoked": true
+            }
+          },
+          {
+            "namespace": true,
+            "automaticQueue": true,
+            "motionReportLoad": true,
+            "objectPriming": false,
+            "earlyObjectCancellation": true,
+            "fileMoveOwnership": [
+              {
+                "generation": 1,
+                "group": 0,
+                "before": {
+                  "state": "printing",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 9875.502547
+                },
+                "after": {
+                  "state": "printing",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 9979.938572
+                },
+                "durationMs": 104.43984400000045
+              },
+              {
+                "generation": 1,
+                "group": 1,
+                "before": {
+                  "state": "printing",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 15421.779094
+                },
+                "after": {
+                  "state": "printing",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 15572.886315
+                },
+                "durationMs": 151.11138100000062
+              },
+              {
+                "generation": 1,
+                "group": 2,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 19235.695892
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 19315.498324
+                },
+                "durationMs": 79.80306200000268
+              },
+              {
+                "generation": 1,
+                "group": 3,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 22704.037076
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 22868.001408
+                },
+                "durationMs": 163.96611200000189
+              },
+              {
+                "generation": 1,
+                "group": 4,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 26309.062196
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 26579.67631
+                },
+                "durationMs": 270.61137400000007
+              },
+              {
+                "generation": 1,
+                "group": 5,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 28149.788115
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 28207.051304
+                },
+                "durationMs": 57.26336900000024
+              },
+              {
+                "generation": 1,
+                "group": 6,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 29723.397935
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 29803.43974
+                },
+                "durationMs": 80.04250500000126
+              },
+              {
+                "generation": 1,
+                "group": 7,
+                "before": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 31279.891294
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "complete",
+                  "fileId": "authorized-file",
+                  "atMs": 31363.706169
+                },
+                "durationMs": 83.8149650000014
+              },
+              {
+                "generation": 2,
+                "group": 0,
+                "before": {
+                  "state": "printing",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 49879.114681
+                },
+                "after": {
+                  "state": "printing",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 50098.867108
+                },
+                "durationMs": 219.75325700000394
+              },
+              {
+                "generation": 2,
+                "group": 1,
+                "before": {
+                  "state": "printing",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 52728.393991
+                },
+                "after": {
+                  "state": "printing",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 52976.168193
+                },
+                "durationMs": 247.77410199999576
+              },
+              {
+                "generation": 2,
+                "group": 2,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 56682.501718
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 56961.048862
+                },
+                "durationMs": 278.5470940000014
+              },
+              {
+                "generation": 2,
+                "group": 3,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 60477.053354
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 60571.48485
+                },
+                "durationMs": 94.43169599999965
+              },
+              {
+                "generation": 2,
+                "group": 4,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 63626.386293
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 63898.922115
+                },
+                "durationMs": 272.53683200000523
+              },
+              {
+                "generation": 2,
+                "group": 5,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 66071.019512
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 66151.130826
+                },
+                "durationMs": 80.11169400000654
+              },
+              {
+                "generation": 2,
+                "group": 6,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 67730.514518
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 67808.665615
+                },
+                "durationMs": 78.15143699999317
+              },
+              {
+                "generation": 2,
+                "group": 7,
+                "before": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 69307.748419
+                },
+                "after": {
+                  "state": "completed",
+                  "requestId": "queue-0f821b5d-6c1d-46e7-9431-a131a4421c6d",
+                  "fileId": "authorized-file",
+                  "atMs": 69389.564705
+                },
+                "durationMs": 81.81657600001199
+              }
+            ],
+            "movesPrintingGenerations": [
+              1,
+              2
+            ],
+            "configListRequests": 2142,
+            "configListP99Ms": 7.716303000000153,
+            "configDownloads": 2141,
+            "configDownloadP99Ms": 9.241534000000684,
+            "liveMotionSamples": 6142,
+            "liveExtrusionSamples": 1443,
+            "nativeAuthorization": true,
+            "apiLoad": true,
+            "completedStatistics": {
+              "total_duration": 10.95844669,
+              "print_duration": 5.132584478000001,
+              "filament_used": 1
+            },
+            "bundleManifestSha256": "ac658380edbb248db6ea72af04a88a00c163f14ff7e7c26817a5b869acd98f5d",
+            "bmp180": false,
+            "bme": false,
+            "bmeHeater": false,
+            "htu": false,
+            "htuHeater": false,
+            "htuModel": null,
+            "lm75": false,
+            "lm75Heater": false,
+            "sht": false,
+            "shtHeater": false,
+            "aht": false,
+            "ahtHeater": false,
+            "combinedHeater": false,
+            "combined": false,
+            "multi": false,
+            "dual": false,
+            "servos": false,
+            "outputPins": false,
+            "phaseQueries": 10333,
+            "phaseP99Ms": 6.779751000001852,
+            "loaded": false,
+            "spi": false,
+            "software": false,
+            "model5160": false,
+            "model2240": false,
+            "curved": false,
+            "probeHome": false,
+            "safeHome": false,
+            "bltouch": false,
+            "tilted": false,
+            "manualTilt": false,
+            "skew": false,
+            "screws": false,
+            "manualScrews": false,
+            "bedScrews": false,
+            "kinematics": "cartesian",
+            "temperatureSensor": false,
+            "temperatureFan": false,
+            "hostSensor": false,
+            "spiSensor": false,
+            "spiHeater": false,
+            "sharedSpi": false,
+            "zEndstop": false,
+            "max31855": false,
+            "max31856": false,
+            "max31865": false,
+            "zTilt": false,
+            "quad": false,
+            "stressed": true,
+            "sensorless": false,
+            "tmc": [
+              {
+                "statusReads": 320,
+                "writes": 43
+              },
+              {
+                "statusReads": 224,
+                "writes": 42
+              },
+              {
+                "statusReads": 8,
+                "writes": 40
+              }
+            ],
+            "faultInjected": "adc",
+            "historyNotifications": 32,
+            "historyRequests": 2116,
+            "historyP99Ms": 58.69337799999994,
+            "lifecycleShutdowns": 8,
+            "copyRequests": 16,
+            "copyP95Ms": 192.76423500000237,
+            "copyOverwriteRequests": 16,
+            "copyOverwriteP95Ms": 394.74373200000264,
+            "directoryCopyRequests": 16,
+            "directoryCopyP95Ms": 418.65428600000087,
+            "copiesDuringPrint": 4,
+            "directoryCopiesDuringPrint": 2,
+            "fileNotifications": 1132,
+            "fileNotificationP95Ms": 103.31429399999615,
+            "movesDuringPrint": 4,
+            "directoryMoveRequests": 16,
+            "directoryMoveP95Ms": 540.913942000001,
+            "directoryMovesDuringPrint": 3,
+            "moveRequests": 16,
+            "moveP95Ms": 278.2107990000004,
+            "deleteRequests": 16,
+            "deleteP95Ms": 172.60111299999699,
+            "publicThumbnailRequests": 16,
+            "publicThumbnailP95Ms": 204.51925800000026,
+            "thumbnailRequests": 16,
+            "thumbnailP95Ms": 80.3765080000012,
+            "metadataRequests": 16,
+            "metadataP95Ms": 320.8138530000015,
+            "downloads": 16,
+            "downloadP95Ms": 58.01951900000131,
+            "wireCommands": 224,
+            "wireSteps": 7862,
+            "minimumStepLeadMs": 88.418,
+            "directoryRequests": 8723,
+            "directoryP99Ms": 38.454664999997476,
+            "statusRequests": 41332,
+            "uploads": 16,
+            "statusP99Ms": 4.6747629999999845,
+            "uploadP95Ms": 56.84295099999872,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 2.015231,
+                  "maxMs": 33.325055
+                },
+                "cpu": {
+                  "user": 13196678,
+                  "system": 2403985
+                },
+                "rss": 416493568
+              },
+              {
+                "loop": {
+                  "p99Ms": 2.003967,
+                  "maxMs": 13.017087
+                },
+                "cpu": {
+                  "user": 8245224,
+                  "system": 1855407
+                },
+                "rss": 412905472
+              }
+            ]
+          },
+          {
+            "compiledServices": {
+              "syntheticSystemd": true,
+              "samples": 34,
+              "failedQueries": 1,
+              "queries": 2004,
+              "queryP99Ms": 3.9126630000027944,
+              "notifications": 128,
+              "authorizedNotifications": true,
+              "sharedNativeUnit": true
+            }
+          },
+          {
+            "networkChanges": {
+              "sourceSamples": 7,
+              "notifications": 20,
+              "authorizedObservers": 4,
+              "failedCommandRetained": true,
+              "deviceGenerations": [
+                1,
+                2
+              ],
+              "systemQueries": 617,
+              "systemQueryP99Ms": 2.9645700000000943
+            }
+          },
+          {
+            "compiledQueue": {
+              "groups": 16,
+              "printingGenerations": [
+                1,
+                2
+              ],
+              "queries": 2387,
+              "queryP99Ms": 5.013136999998096,
+              "durableMutations": 64,
+              "actualStartRequestPrefix": "queue-",
+              "journalCompleted": true,
+              "authorizedNotifications": true,
+              "noAutomaticReplay": true
+            }
+          },
+          {
+            "replacements": {
+              "seed": {
+                "operations": 32,
+                "p95Ms": 250.82467999999972,
+                "maxMs": 267.5506959999984
+              },
+              "upload": {
+                "operations": 16,
+                "p95Ms": 446.363021000001,
+                "maxMs": 446.363021000001
+              },
+              "move": {
+                "operations": 16,
+                "p95Ms": 528.3871899999976,
+                "maxMs": 528.3871899999976
+              },
+              "uploadDuringPrintGenerations": [
+                1,
+                2
+              ],
+              "moveDuringPrintGenerations": [
+                1,
+                2
+              ],
+              "notifications": 320,
+              "originalNotifications": 776
+            }
+          },
+          {
+            "configBackupLoad": {
+              "requests": 2141,
+              "p99Ms": 3.4656770000001416,
+              "mutationsBlockedDuringPrint": true
+            }
+          }
+        ]
+      },
+      "input": "Original 1000-movement program; original 16 groups, two software MCU generations, 64 queue mutations and all stop/recovery/ADC assertions retained. Same confirmation/automatic options on A and B.",
+      "deadlinesUnchangedMs": {
+        "case": 180000,
+        "child": 90000
+      },
+      "programSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+      "interpretation": "Both original complete cases passed with unchanged precision and software timing budgets. Does not establish target-board performance or G3."
+    }
+  },
+  "retainedFailures": [
+    {
+      "scope": "Initial new page markup assertion",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-queue-panel-source-current-20261007.log",
+        "sha256": "c02547215eb413612652002681abb2ff8acce30c49a28193e54ad82dc7542c93"
+      },
+      "cause": "The shared CSS contains iframe selectors; the new no-iframe assertion incorrectly inspected CSS rather than actual <iframe markup.",
+      "fix": "Only new assertion checks actual markup; existing styles retained."
+    },
+    {
+      "scope": "Independent dependency copy verification",
+      "cause": "fs.cp default converted .bin/markdown-it relative link into an absolute link outside B. verifyProductBundle/acceptance dependency guard rejected it before any performance run.",
+      "fix": "Only owned new B dependency directory replaced using verbatimSymlinks=true; all dependency bytes/relative links now match A SHA."
+    },
+    {
+      "scope": "Static browser layout preview",
+      "cause": "Browser URL policy rejected data: protocol; no server/browser workaround attempted.",
+      "status": "Actual rendered layout and page interaction remain unverified."
+    }
+  ],
+  "sources": {
+    "host/src/moonraker/native-job-queue.ts": "b82ebc62282945cb04bc8f3e76f3a75fdaa851b4287178828a3ba854871b13ff",
+    "host/src/runtime/product-queue-panel.ts": "df20dfeea37ee50b6c066b81a1b801c78b32ec6c0e8d56f3b6cb8d0f89c8e21b",
+    "host/src/runtime/product-client-assets.ts": "47691b4ca83596a5d7a60b65a7abefb7094a383af826fa69796dfc06e27be3b5",
+    "host/src/runtime/product-client-gateway.ts": "fde001447885d37b52cb3403ca982065ae2cc19a3af7e270c10dd1f81816af60",
+    "host/test/product-queue-panel.test.ts": "b871256d6f78e502b3590e668b94fd5a59228ea81ab23fcbae9d38fd7b72c15f",
+    "host/test/native-automatic-job-queue.test.ts": "ec7124ae50593c4de99b103484304b8b19b1b66100b4688adc7cac9f118318a3",
+    "host/acceptance/product-compiled-journey.test.ts": "d2de03884cd6581292ad600809e3a4cfebfcb3090d94678266b2bfa0adcf12eb",
+    "host/bench/product-client-gateway.ts": "7ff176547eaeac1610483417f97b57a79940dc5667a078a2550eb45b75fe8fb3"
+  },
+  "remaining": [
+    "Exact submitted head full CI pending",
+    "Actual same-bundle clients and queue panel browser interaction unverified; existing fixture-start authorization pending",
+    "PR #32 original postmerge clock failure unresolved; independent PR #34 diagnostic in flight",
+    "Target board/current-series hardware acceptance and G3 unresolved",
+    "Default Python entry and full Python retirement not completed"
+  ]
+}
