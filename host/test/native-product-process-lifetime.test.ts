@@ -47,7 +47,7 @@ test('released device window retains authorized file queries, uploads, authorita
  try{
   const base=await f.ready,headers={'x-api-key':f.key},events:any[]=[],profile=f.profiles[0],journal=profile.product.journal!,files=profile.options.server.nativeProcessFiles!;
   const get=async(path:string)=>{const response=await fetch(base+path,{headers});assert.equal(response.status,200,path);return (await response.json() as any).result;};
-  const upload=async(id:string)=>{const form=new FormData();form.append('file',new Blob(['; layer_height = 0.2\nG1 X1\n']),id+'.gcode');form.append('file_id',id);const response=await fetch(base+'/server/files/upload',{method:'POST',headers,body:form});assert.equal(response.status,200);assert.equal((await response.json() as any).result.print_started,false);};
+  const upload=async(id:string)=>{const form=new FormData();form.append('file',new Blob(['; layer_height = 0.2\nG1 X1\n']),id+'.gcode');form.append('file_id',id);const response=await fetch(base+'/server/files/upload',{method:'POST',headers,body:form});assert.equal(response.status,201);assert.equal((await response.json() as any).result.print_started,false);};
   await upload('retained');await journal.reserve({version:1,requestId:'history',fileId:'retained',nozzle:0,bed:0});await journal.transition('history',1,'cancelled');
   const original=await get('/server/history/list');assert.equal(original.count,1);const job=original.jobs[0];
   socket=new WebSocket(base.replace('http:','ws:')+'/websocket',{headers});socket.on('message',bytes=>events.push(JSON.parse(bytes.toString())));await once(socket,'open');socket.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'server.connection.identify',params:{client_name:'detached-test',version:'1',type:'web',url:'https://process.invalid'}}));await until(()=>events.some(e=>e.id===1));
@@ -84,7 +84,7 @@ test('released device window retains authorized file queries, uploads, authorita
 test('process download admitted before retirement survives attachment, and final shutdown waits ignored process authorization',async()=>{
  const f=await fixture(),held=Promise.withResolvers<void>(),final=Promise.withResolvers<void>();let transfer:Promise<void>|undefined,stopping:Promise<void>|undefined;
  try{
-  const base=await f.ready,headers={'x-api-key':f.key},form=new FormData();form.append('file',new Blob(['G1 X1\n']),'part.gcode');form.append('file_id','retained');assert.equal((await fetch(base+'/server/files/upload',{method:'POST',headers,body:form})).status,200);
+  const base=await f.ready,headers={'x-api-key':f.key},form=new FormData();form.append('file',new Blob(['G1 X1\n']),'part.gcode');form.append('file_id','retained');assert.equal((await fetch(base+'/server/files/upload',{method:'POST',headers,body:form})).status,201);
   const files=f.profiles[0].options.server.nativeProcessFiles!,signal=new AbortController().signal;let consumed=false;
   transfer=files.download('/server/files/gcodes/retained.gcode',{transport:'http',signal,authorize:()=>held.promise},async()=>{consumed=true;});await until(()=>files.status.authorizing===1);
   await f.control.reinitialize();assert.equal(files.status.closed,false);assert.equal(files.status.downloads,1);assert.equal(consumed,false);held.resolve();await transfer;assert.equal(consumed,true);
@@ -98,7 +98,7 @@ test('chunked same-path upload admitted by the old device cannot overwrite after
  try{
   const base=await f.ready,headers={'x-api-key':f.key},files=f.profiles[0].options.server.nativeProcessFiles!;
   const upload=async(content:string)=>{const form=new FormData();form.append('file',new Blob([content]),'target.gcode');return fetch(base+'/server/files/upload',{method:'POST',headers,body:form});};
-  const before=await upload('G1 X1\n');assert.equal(before.status,200);const old=(await before.json() as any).result.file.id;
+  const before=await upload('G1 X1\n');assert.equal(before.status,201);const old=(await before.json() as any).result.file.id;
   const off=files.observeChanges(event=>events.push(event));
   try{
    const outcome=Promise.withResolvers<number|'ECONNRESET'>();
@@ -116,7 +116,7 @@ test('chunked same-path upload admitted by the old device cannot overwrite after
    pending.end('\n\r\n--retired-upload--\r\n');const cancelled=await outcome.promise;assert.ok(cancelled===503||cancelled==='ECONNRESET',String(cancelled));
    const metadata=await (await fetch(base+'/server/files/metadata?filename=target.gcode',{headers})).json() as any;assert.equal(metadata.result.file_id,old);
    assert.equal(await (await fetch(base+'/server/files/gcodes/target.gcode',{headers})).text(),'G1 X1\n');assert.equal(events.length,0);
-   const current=await upload('G1 X2\n');assert.equal(current.status,200,await current.clone().text());const result=(await current.json() as any).result;
+   const current=await upload('G1 X2\n');assert.equal(current.status,201,await current.clone().text());const result=(await current.json() as any).result;
    assert.notEqual(result.file.id,old);assert.equal(result.action,'create_file');assert.equal(result.print_started,false);assert.equal(result.print_queued,false);
    assert.equal((await fetch(base+'/printer/files/info?file_id='+old,{headers})).status,404);assert.equal(await (await fetch(base+'/server/files/gcodes/target.gcode',{headers})).text(),'G1 X2\n');
    assert.equal(events.length,1);assert.equal(events[0].action,'create_file');assert.equal(events[0].item.path,'target.gcode');assert.equal(events[0].item.file_id,result.file.id);assert.equal(files.status.pending,0);
@@ -128,7 +128,7 @@ test('unconfirmed device stop blocks upload and move overwrites without changing
  const f=await fixture('stop');
  try{
   const base=await f.ready,headers={'x-api-key':f.key},upload=async(name:string,content:string)=>{const form=new FormData();form.append('file',new Blob([content]),name);return fetch(base+'/server/files/upload',{method:'POST',headers,body:form});};
-  const target=await upload('target.gcode','G1 X1\n'),source=await upload('source.gcode','G1 X9\n');assert.equal(target.status,200);assert.equal(source.status,200);
+  const target=await upload('target.gcode','G1 X1\n'),source=await upload('source.gcode','G1 X9\n');assert.equal(target.status,201);assert.equal(source.status,201);
   const ids=[(await target.json() as any).result.file.id,(await source.json() as any).result.file.id],events:any[]=[],files=f.profiles[0].options.server.nativeProcessFiles!,off=files.observeChanges(e=>events.push(e));
   try{
    await assert.rejects(f.control.reinitialize(),/stop|failed/i);assert.equal(f.profiles.length,1);assert.equal(f.counts.calls,1);
@@ -147,7 +147,7 @@ test('actual host loop retains JWT, database, file lock and identified socket ac
   socket=new WebSocket(base.replace('http:','ws:')+'/websocket',{headers});socket.on('message',bytes=>events.push(JSON.parse(bytes.toString())));await once(socket,'open');
   socket.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'server.connection.identify',params:{client_name:'host-process',version:'1',type:'web',url:'https://process.invalid'}}));await until(()=>events.some(e=>e.id===1));
   const connection=events.find(e=>e.id===1).result.connection_id;
-  const form=new FormData();form.append('file',new Blob(['G1 X1\n']),'part.gcode');form.append('file_id','retained');assert.equal((await fetch(base+'/server/files/upload',{method:'POST',headers,body:form})).status,200);
+  const form=new FormData();form.append('file',new Blob(['G1 X1\n']),'part.gcode');form.append('file_id','retained');assert.equal((await fetch(base+'/server/files/upload',{method:'POST',headers,body:form})).status,201);
   for(let generation=1;generation<=3;generation++){
    if(generation>1){const start=performance.now();await f.control.reinitialize();times.push(performance.now()-start);}
    assert.equal(f.addresses[generation-1],base);assert.equal(f.db.status.closed,false);assert.equal(socket.readyState,WebSocket.OPEN);assert.equal(f.counts.processOpens,1);assert.equal(f.counts.databaseCloses,0);assert.equal(f.counts.processReleases,0);
