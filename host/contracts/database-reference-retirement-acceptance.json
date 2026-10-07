@@ -1,0 +1,1185 @@
+{
+  "version": 1,
+  "recordedAt": "2026-10-07T10:17:06.532Z",
+  "status": "local reference-retirement candidate; own CI and normal PR integration pending",
+  "base": "73d4abe4bb7e64afb5d49aa37d0b5016c4fe9982",
+  "upstreamCommit": "1cfb0c41e468645951a371621f06d32777b6107c",
+  "upstreamSourceSha256": "c6de4ad5b946e687154aafd9f982d49b877b67eaaea9d3c4902e6db557c5702a",
+  "node": {
+    "version": "v26.10.0",
+    "binarySha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da"
+  },
+  "system": {
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "kernel": "6.18.36-amd64-desktop-rolling",
+    "platform": "linux",
+    "arch": "x64"
+  },
+  "sourceHashes": {
+    "host/bench/database.ts": "07e4bb4cdbe58d26da359b82045d1203135e5f7a42d43da391b8f98b56069c95",
+    "host/bench/database-registration.ts": "64af3ecd69593bfbfa04eca2b4709d07a3177561ce8c60db46389fd5b9cb2c3d",
+    "host/bench/database-namespace-read.ts": "1ca6949dc9833b5c35bd5b39365d898474d59434564504b22f402585ce83f747",
+    "host/bench/database-sql.ts": "84feefdf4b2434d0174e017b52dd6de201b1af4e6b387895f29da3c07b1cf1c3",
+    "host/bench/database-table.ts": "b7f5f1257885ee58c3a5d5cb7933b7c51a4a6b29397e004c3888be93bc05ec32",
+    "host/bench/database-backup.ts": "e9b31494e32fc663f7840b70b8c0041730f00f6f78dd14f16adfa26836600a1b",
+    "host/bench/database-restore.ts": "3c81c30a0a8c842eec2be9663c24915ba6d567e585d3f5d170c7c24dcb6784cb",
+    "host/test/database.test.ts": "1c1cbd9c2993e1b0a795d1192dfb9ac0d43f3ed2cb733cebb27560c8acdaaca2",
+    "host/test/database-reference.test.ts": "5e979cd46846ce1dd04962f98b8f280895ed6ea19e92d5e0e89b6c3ec71e9717",
+    "host/test/helpers/database-reference.ts": "0be6e5d5611edbc125b44b9eb7df8a3ff57da144afed44bcb6bed57079d69979",
+    "host/contracts/database-python-retirement-reference.json": "290c4c1c2e15bfecf3a2df01566217c7e4c85c5dd2a3a81dea0942f7f82a3935",
+    "docs/Node_Host_Delivery_Plan.md": "d64d931d32153cd995e118c8a3a871c3a737a9d7f970953e803b4a73982aae4b",
+    "docs/Node_Host_Startup.md": "1d88dac7a3f48a4ebad7afb04affbe7e0dab63cb5aaba54bfffacedbcb4c0ca4"
+  },
+  "unchangedProductionAndWorkloads": {
+    "productionDependenciesAndWorkflowsUnchanged": true,
+    "sevenOriginalNodeLoopPrefixesByteIdentical": true,
+    "all39OriginalTestNamesUnchanged": true,
+    "originalAssertionsAndWALFullRetained": true
+  },
+  "originalReference": {
+    "capsuleSha256": "290c4c1c2e15bfecf3a2df01566217c7e4c85c5dd2a3a81dea0942f7f82a3935",
+    "captureBase": "74a4304fd8a56363fbd0e0f673531e958888da1c",
+    "pythonRuntime": {
+      "version": "3.12.13",
+      "sqlite": "3.46.1",
+      "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+    },
+    "sqlite": "d51c9a21170975bde05a56306462bc2ed59ef4a3e3d8f7b68ae3233bc4d1c3ca",
+    "sqliteBytes": 12288,
+    "cases": 9,
+    "historicalBenchmarkProfiles": 12,
+    "scope": "Reference captured from original pinned Python programs before edits, not Node-generated. Actual Python SQLite image imported unchanged. Raw SQLite read independently verifies Node output against captured original reader."
+  },
+  "tests": {
+    "initialOriginal": {
+      "tests": 39,
+      "pass": 37,
+      "fail": 2,
+      "durationMs": 6734.963486,
+      "reason": "Both configured-server tests failed to load missing build/sealed-file.node; failures retained, no assertions removed",
+      "log": {
+        "name": "anyraid-database-original-test-20261007.log",
+        "sha256": "2e53c87e8f146fcef590672b05bce3d66b56941fd278bd304b71e165faaa3f20"
+      }
+    },
+    "originalAfterFixtureDependency": {
+      "tests": 39,
+      "pass": 39,
+      "fail": 0,
+      "durationMs": 7087.569405,
+      "log": {
+        "name": "anyraid-database-original-test-final-20261007.log",
+        "sha256": "1b90062632ab516345a4ce944a469d819fa341e77f65b85b10f50d94de4a76f9"
+      },
+      "captures": {
+        "name": "anyraid-database-original-calls-final-20261007.json",
+        "sha256": "18911ce7adced9bc8f8159dea1d6adc64fd4fe305560bdf34f9775d6131793e1"
+      },
+      "addon": {
+        "nativeSourceSha256": "0afd45d08682943ee61861a37c4422d0eb55f42c9d749581d7bc520b3cf0091e",
+        "binarySha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+        "scope": "Source-identical frozen addon copied into own worktree only; no frozen bundle or dependency mutation"
+      }
+    },
+    "retiredSuite": {
+      "tests": 43,
+      "pass": 43,
+      "fail": 0,
+      "durationMs": 6217.935415,
+      "log": {
+        "name": "anyraid-database-retirement-tests-20261007.log",
+        "sha256": "78124906d685f1f945dcea9fe64311b4a53d14876e3b8831458a9ce15a6dfe43"
+      },
+      "scope": "Original 39 plus four reference checks, before final integrity test strengthening."
+    },
+    "finalIntegrity": {
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "durationMs": 106.293443,
+      "log": {
+        "name": "anyraid-database-retirement-integrity-final-20261007.log",
+        "sha256": "af15ee4d5a4afbb348c15f61afa675645d1d355037004efcc1d818ea044badac"
+      },
+      "scope": "Tampering now recalculates internal output hash; whole-capsule digest still rejects. These four repeat cases are not added to coverage."
+    },
+    "finalSealedSuite": {
+      "tests": 43,
+      "pass": 43,
+      "fail": 0,
+      "durationMs": 6244.141205,
+      "log": {
+        "name": "anyraid-database-retirement-final-tests-20261007.log",
+        "sha256": "da32fdee5553abd740a9d6ca52935e5b67208ff16a25bade1751bedbf0ca81ee"
+      },
+      "scope": "Final escaped capsule and updated whole-capsule digest, strengthened self-consistent tamper test; repeated coverage not added."
+    }
+  },
+  "childProcessProbe": {
+    "guard": {
+      "name": "anyraid-history-no-python-20261006.mjs",
+      "sha256": "54fb6b50810da18b6c1c1cef0ee08896276b80486d2f32f83d3c364995f11cbc"
+    },
+    "scope": "NODE_OPTIONS inherited by Node children and Workers; rejects external executable before spawn. Guard permits Node and git; successful observed workloads launched only Node.",
+    "logs": [
+      {
+        "name": "anyraid-database-retirement-test-children-20261007.jsonl",
+        "sha256": "5efb1da5b3d6abcd907d704cb34a1c1772d44a99eb081163f23c80f13c55bd14",
+        "loadedInstances": 52,
+        "commands": [
+          {
+            "pid": 3202998,
+            "command": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+            "allowed": true
+          }
+        ]
+      },
+      {
+        "name": "anyraid-database-retirement-integrity-final-children-20261007.jsonl",
+        "sha256": "eed2bfb89ce79c1c54978a2d52e225e1aec9412fce000616e134e9774148b211",
+        "loadedInstances": 1,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-0-children-20261007.jsonl",
+        "sha256": "7afe24293d625c4bc39922b1adb19ee109c2b8548a88d62f3b00fd690f055f44",
+        "loadedInstances": 10,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-1-children-20261007.jsonl",
+        "sha256": "5447fcb1fe0b67623e64c6015d22e382e629652a78597d0e14a1f289366e79d4",
+        "loadedInstances": 10,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-2-children-20261007.jsonl",
+        "sha256": "d2572b9b8fac8212e9770a7ee10fa73beee67b4655286916ee19164d19de9cc7",
+        "loadedInstances": 10,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-3-children-20261007.jsonl",
+        "sha256": "62a5847a6b168b4d8c64167fdccc6a142e08fca337f604ff9741b62c8e38fde2",
+        "loadedInstances": 10,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-4-children-20261007.jsonl",
+        "sha256": "34fcb89a5d587dfd1efcb5782881bc54dbc62f22f3c8c47effd754f2612a1856",
+        "loadedInstances": 10,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-5-children-20261007.jsonl",
+        "sha256": "79e32f834456a94051ce677ebe91fe283b2396a1aa37c9056cca1b81d46d4fa6",
+        "loadedInstances": 10,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-6-children-20261007.jsonl",
+        "sha256": "e7ced3084fde5ccd8bb04d93561a2a5b862594a97a61194b331ab4028f3584bc",
+        "loadedInstances": 10,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-7-children-20261007.jsonl",
+        "sha256": "7875d4ee0de2671c51054fdd07b59751560904d0368c88ffb8a9c876ff5ad8a3",
+        "loadedInstances": 8,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-8-children-20261007.jsonl",
+        "sha256": "21e072f85c330ecfbf31bb1d519dac63a79583808675938a209ef2af64e14dd5",
+        "loadedInstances": 8,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-9-children-20261007.jsonl",
+        "sha256": "db60013c4fc89460bbd9774628da3e932d5493fe5b234b84312ec1137d7e401e",
+        "loadedInstances": 15,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-10-children-20261007.jsonl",
+        "sha256": "135ca0a77d51822b794531104fc0f279fb7de0d2ec75fc9f9833af28d620aaf7",
+        "loadedInstances": 2,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-11-children-20261007.jsonl",
+        "sha256": "16ae841d048216e73248c807830fb393f2f65bf827a3e8328815c83ac98ce204",
+        "loadedInstances": 11,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-12-children-20261007.jsonl",
+        "sha256": "62db7951a5ff131a93a769e3f71c54d689fbc7da6ba2ab8f283d1bc5749a5ebc",
+        "loadedInstances": 10,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-node-benchmark-13-children-20261007.jsonl",
+        "sha256": "ccd788513ccc5777b6e80e82342002f7f19eed341d62555908d2e26d5bca4096",
+        "loadedInstances": 10,
+        "commands": []
+      },
+      {
+        "name": "anyraid-database-retirement-final-test-children-20261007.jsonl",
+        "sha256": "620dec96ffd5bb8216738f9d2a4d9ac899a364a0c6fcb4bf1e81cfb9cf3aee95",
+        "loadedInstances": 52,
+        "commands": [
+          {
+            "pid": 3206173,
+            "command": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+            "allowed": true
+          }
+        ]
+      }
+    ],
+    "negative": {
+      "exitCode": 0,
+      "log": {
+        "name": "anyraid-database-retirement-guard-negative-20261007.log",
+        "sha256": "321af5ea215751485a3d071af45232917cb962054d7a5b361ced8f569045b473"
+      },
+      "childLog": {
+        "name": "anyraid-database-retirement-guard-negative-20261007.jsonl",
+        "sha256": "952af676ab5016ef95b7771fe26a817ce1ea47aff62ac5b4ad61de33aa8c09c8"
+      },
+      "pythonCreationRejected": true
+    }
+  },
+  "typecheck": {
+    "exitCode": 0,
+    "log": {
+      "name": "anyraid-database-retirement-sealed-types-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "benchmarks": {
+    "originalSummary": {
+      "name": "anyraid-database-benchmark-original-summary-20261007.json",
+      "sha256": "c784d7d41fe26c60636d8825e21ce3f64b22980a49bf6c28c5d5cc8f2cf65fda"
+    },
+    "currentSummary": {
+      "name": "anyraid-database-node-benchmark-summary-20261007.json",
+      "sha256": "26254c4907a9df36dc4e6701d6fc8d442af87d297b6c95e0ccd4af6ccf62dd68"
+    },
+    "profiles": [
+      {
+        "index": 0,
+        "script": "database",
+        "flags": {},
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 11045.613968,
+        "logSha256": "93ddf120d52dde4804424715b24db474055221bd5ab0d8013b484ab7d52ba57e",
+        "childrenLogSha256": "7afe24293d625c4bc39922b1adb19ee109c2b8548a88d62f3b00fd690f055f44",
+        "result": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "filesystem": "ext-family",
+          "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+          "batchSize": 0,
+          "namespaceLifecycle": false,
+          "namespaceSync": false,
+          "writes": 200,
+          "reads": 200,
+          "nodeWorker": {
+            "medianMs": 1141.3229760000004,
+            "p95Ms": 1192.2388740000006
+          },
+          "pythonProviderThread": {
+            "medianMs": 1160.6747339246795,
+            "p95Ms": 1183.8256600312889
+          },
+          "nodeEventLoopMaxMs": 2.097151,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:58:05.304Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              1182.1640300331637,
+              1160.6747339246795,
+              1086.3912439672276,
+              1145.5444949679077,
+              1183.8256600312889,
+              1026.658880058676,
+              1182.0319240214303
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            1067.5285170000006,
+            1075.6410969999997,
+            1078.6680279999996,
+            1141.3229760000004,
+            1167.656633,
+            1177.7691100000002,
+            1192.2388740000006
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. File-backed SQLite WAL + synchronous FULL on both sides; Node includes Worker round trips and bounded admission, Python uses original provider thread and Future dispatch; host filesystem only, not power-loss or target-board acceptance"
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": {
+          "medianMs": 1136.2592840000007,
+          "p95Ms": 1169.8397289999998
+        },
+        "medianRatio": 1.0044564581969124,
+        "p95Ratio": 1.0191471912303303
+      },
+      {
+        "index": 1,
+        "script": "database",
+        "flags": {
+          "DATABASE_BATCH_SIZE": "20"
+        },
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 1498.5329689999999,
+        "logSha256": "d8afdf3f48a7987cc44d6e0ad90116803228ac394299fda5697b6e22227080dc",
+        "childrenLogSha256": "5447fcb1fe0b67623e64c6015d22e382e629652a78597d0e14a1f289366e79d4",
+        "result": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "filesystem": "ext-family",
+          "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+          "batchSize": 20,
+          "namespaceLifecycle": false,
+          "namespaceSync": false,
+          "writes": 200,
+          "reads": 200,
+          "nodeWorker": {
+            "medianMs": 63.60461099999998,
+            "p95Ms": 80.96188600000005
+          },
+          "pythonProviderThread": {
+            "medianMs": 64.59025701042265,
+            "p95Ms": 66.21782900765538
+          },
+          "nodeEventLoopMaxMs": 2.016255,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:58:07.779Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              64.59025701042265,
+              66.21782900765538,
+              66.04742701165378,
+              64.8797710891813,
+              62.21444404218346,
+              38.07304298970848,
+              54.35860704164952
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            62.69476899999995,
+            63.12662399999999,
+            63.228026,
+            63.60461099999998,
+            63.68932199999995,
+            64.34836099999995,
+            80.96188600000005
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. File-backed SQLite WAL + synchronous FULL on both sides; Node includes Worker round trips and bounded admission, Python uses original provider thread and Future dispatch; host filesystem only, not power-loss or target-board acceptance"
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": {
+          "medianMs": 65.80114400000002,
+          "p95Ms": 69.94435999999996
+        },
+        "medianRatio": 0.9666186198829606,
+        "p95Ratio": 1.1575184332232091
+      },
+      {
+        "index": 2,
+        "script": "database",
+        "flags": {
+          "DATABASE_SYNC_NAMESPACE": "1"
+        },
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 2689.568765,
+        "logSha256": "b3182468c7199dd140e00f4a03b65be84f9f75fb1de03f0f617eb3caed7b8a57",
+        "childrenLogSha256": "d2572b9b8fac8212e9770a7ee10fa73beee67b4655286916ee19164d19de9cc7",
+        "result": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "filesystem": "ext-family",
+          "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+          "batchSize": 0,
+          "namespaceLifecycle": false,
+          "namespaceSync": true,
+          "cycles": 20,
+          "recordsPerCycle": 200,
+          "nodeWorker": {
+            "medianMs": 197.9900990000001,
+            "p95Ms": 213.03952300000014
+          },
+          "pythonProviderThread": {
+            "medianMs": 179.0698479162529,
+            "p95Ms": 186.59043195657432
+          },
+          "nodeEventLoopMaxMs": 4.141055,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:58:12.423Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              186.59043195657432,
+              180.4177570156753,
+              179.0225780569017,
+              179.0698479162529,
+              178.53515094611794,
+              176.58015398774296,
+              186.2574570113793
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            160.594873,
+            192.94351099999994,
+            194.8578369999999,
+            197.9900990000001,
+            201.22493299999996,
+            210.55770900000016,
+            213.03952300000014
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. File-backed SQLite WAL + synchronous FULL on both sides; Node includes Worker round trips and bounded admission, Python uses original provider thread and Future dispatch; host filesystem only, not power-loss or target-board acceptance"
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": {
+          "medianMs": 188.13695400000006,
+          "p95Ms": 198.8906609999999
+        },
+        "medianRatio": 1.052372193715861,
+        "p95Ratio": 1.0711388957574044
+      },
+      {
+        "index": 3,
+        "script": "database",
+        "flags": {
+          "DATABASE_NAMESPACE_LIFECYCLE": "1"
+        },
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 3432.875702000001,
+        "logSha256": "ec314b7bbe296be5592ead1f6b11abe9e2745f4a54be238a3b80340e16774686",
+        "childrenLogSha256": "62a5847a6b168b4d8c64167fdccc6a142e08fca337f604ff9741b62c8e38fde2",
+        "result": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "filesystem": "ext-family",
+          "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+          "batchSize": 0,
+          "namespaceLifecycle": true,
+          "namespaceSync": false,
+          "cycles": 20,
+          "recordsPerCycle": 200,
+          "nodeWorker": {
+            "medianMs": 268.060387,
+            "p95Ms": 290.90601600000036
+          },
+          "pythonProviderThread": {
+            "medianMs": 285.5451590148732,
+            "p95Ms": 305.9778300812468
+          },
+          "nodeEventLoopMaxMs": 2.615295,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:58:18.728Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              289.54764490481466,
+              305.9778300812468,
+              285.5451590148732,
+              247.93220404535532,
+              285.41783697437495,
+              290.24150397162884,
+              283.64416293334216
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            256.5290010000001,
+            265.22651899999994,
+            267.70603200000005,
+            268.060387,
+            274.0296080000003,
+            282.46351200000004,
+            290.90601600000036
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. File-backed SQLite WAL + synchronous FULL on both sides; Node includes Worker round trips and bounded admission, Python uses original provider thread and Future dispatch; host filesystem only, not power-loss or target-board acceptance"
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": {
+          "medianMs": 277.05136300000004,
+          "p95Ms": 293.3155469999997
+        },
+        "medianRatio": 0.9675476204027914,
+        "p95Ratio": 0.9917851916659592
+      },
+      {
+        "index": 4,
+        "script": "database-registration",
+        "flags": {},
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 11159.689731999999,
+        "logSha256": "7cfa8f16b82fa294548f5f120ad680fde21bcba4142473d099849331b9d7c6e2",
+        "childrenLogSha256": "34fcb89a5d587dfd1efcb5782881bc54dbc62f22f3c8c47effd754f2612a1856",
+        "result": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+          "registrations": 100,
+          "unregistrations": 100,
+          "nodeWorker": {
+            "medianMs": 1152.736755,
+            "p95Ms": 1230.358666
+          },
+          "pythonSynchronousInitialization": {
+            "medianMs": 1146.2067810352892,
+            "p95Ms": 1161.8555770255625
+          },
+          "eventLoopMaxMs": 3.371007,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:58:40.024Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              1149.9481140635908,
+              1161.8555770255625,
+              1018.8160539837554,
+              1146.2067810352892,
+              1125.2798930509016,
+              1046.5900829294696,
+              1147.6033478975296
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            1211.7502249999998,
+            1071.8310320000005,
+            1196.2516459999997,
+            1138.0039769999994,
+            1115.538892999999,
+            1230.358666,
+            1152.736755
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. WAL/FULL; Node includes Worker dispatch and wrapper construction, pinned Python methods use synchronous provider initialization with stub wrapper; not equivalent runtime-thread scheduling or hardware acceptance"
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": {
+          "medianMs": 1137.1092910000007,
+          "p95Ms": 1184.5222870000002
+        },
+        "medianRatio": 1.0137431503934473,
+        "p95Ratio": 1.0386960882906544
+      },
+      {
+        "index": 5,
+        "script": "database-namespace-read",
+        "flags": {},
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 1189.667655000001,
+        "logSha256": "e6ca1f5f5eff0aab1a631e02edb2fe96f0b4d6063a40d3e0087963bb72ef45fe",
+        "childrenLogSha256": "79e32f834456a94051ce677ebe91fe283b2396a1aa37c9056cca1b81d46d4fa6",
+        "result": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+          "records": 200,
+          "cycles": 50,
+          "changing": false,
+          "maxReadCacheBytes": 8388608,
+          "nodeWorker": {
+            "medianMs": 35.02992399999994,
+            "p95Ms": 42.09313899999995
+          },
+          "pythonProviderThread": {
+            "medianMs": 77.36564090009779,
+            "p95Ms": 78.00656999461353
+          },
+          "eventLoopMaxMs": 5.591039,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:58:42.554Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              78.00656999461353,
+              77.21248897723854,
+              77.08925707265735,
+              77.36564090009779,
+              77.77916605118662,
+              77.1131570218131,
+              77.52481289207935
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            41.92636700000003,
+            33.69697600000006,
+            34.82655100000011,
+            42.09313899999995,
+            34.50628699999993,
+            40.429856999999856,
+            35.02992399999994
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. Each cycle keys/values/items/contains with result verification; setup excluded, bounded Node Worker versus original Python provider thread; host file-backed SQLite, not target-board acceptance"
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": {
+          "medianMs": 35.488576999999964,
+          "p95Ms": 41.36319800000001
+        },
+        "medianRatio": 0.9870760385799626,
+        "p95Ratio": 1.0176471122953292
+      },
+      {
+        "index": 6,
+        "script": "database-namespace-read",
+        "flags": {
+          "DATABASE_ENUMERATION_CHANGING": "1"
+        },
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 4730.250382999999,
+        "logSha256": "a559a7ac3dd0ae482d6ad654c80941de9fe1237b5971cfe7ad0cb9542ab43125",
+        "childrenLogSha256": "e7ced3084fde5ccd8bb04d93561a2a5b862594a97a61194b331ab4028f3584bc",
+        "result": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+          "records": 200,
+          "cycles": 50,
+          "changing": true,
+          "maxReadCacheBytes": 8388608,
+          "nodeWorker": {
+            "medianMs": 424.35144100000025,
+            "p95Ms": 442.0613000000003
+          },
+          "pythonProviderThread": {
+            "medianMs": 366.9085499132052,
+            "p95Ms": 384.19957703445107
+          },
+          "eventLoopMaxMs": 2.611199,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:58:51.062Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              358.3864029496908,
+              339.2705110600218,
+              323.49190406966954,
+              366.9085499132052,
+              384.19957703445107,
+              376.9178770016879,
+              367.01914097648114
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            436.8309199999999,
+            418.20183799999995,
+            428.4691869999997,
+            424.35144100000025,
+            442.0613000000003,
+            420.24181499999986,
+            406.91934500000025
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. Each cycle keys/values/items/contains with result verification; setup excluded, bounded Node Worker versus original Python provider thread; host file-backed SQLite, not target-board acceptance"
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": {
+          "medianMs": 419.2767289999997,
+          "p95Ms": 438.29410899999993
+        },
+        "medianRatio": 1.0121034907234276,
+        "p95Ratio": 1.0085951212271493
+      },
+      {
+        "index": 7,
+        "script": "database-sql",
+        "flags": {},
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 1596.8912419999979,
+        "logSha256": "e4c32bf7c3edd79cc98acad5f1cbd4db34e438e0304afc552f7fe5fa8b9d6366",
+        "childrenLogSha256": "7875d4ee0de2671c51054fdd07b59751560904d0368c88ffb8a9c876ff5ad8a3",
+        "result": {
+          "node": "v26.10.0",
+          "many": false,
+          "filesystemMagic": 61267,
+          "nodeWorker": {
+            "medianMs": 132.12248799999998,
+            "p95Ms": 139.52501800000005
+          },
+          "pythonThread": {
+            "medianMs": 111.7529709590599,
+            "p95Ms": 115.89066800661385
+          },
+          "eventLoopMaxMs": 2.418687,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:58:53.798Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              115.89066800661385,
+              111.7529709590599,
+              100.2826850162819,
+              60.3353570913896,
+              113.91655099578202
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            103.16216600000007,
+            130.11086999999998,
+            132.12248799999998,
+            133.18382199999996,
+            139.52501800000005
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. 20 transactions of 100 upserts and 100-row read, WAL/FULL. Python pinned SQL methods grouped into one thread call, omitting individual cursor/future round trips and write acknowledgements; optimistic baseline, not full server or hardware."
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": {
+          "medianMs": 134.69225699999993,
+          "p95Ms": 139.04314599999998
+        },
+        "medianRatio": 0.9809211824255053,
+        "p95Ratio": 1.0034656292946655
+      },
+      {
+        "index": 8,
+        "script": "database-sql",
+        "flags": {
+          "SQL_MANY": "1"
+        },
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 1598.8807989999987,
+        "logSha256": "638fe1e2939ca97883eae836be2f8042eadf8dd140a8de1b999ec013055c34b4",
+        "childrenLogSha256": "21e072f85c330ecfbf31bb1d519dac63a79583808675938a209ef2af64e14dd5",
+        "result": {
+          "node": "v26.10.0",
+          "many": true,
+          "filesystemMagic": 61267,
+          "nodeWorker": {
+            "medianMs": 123.84501599999999,
+            "p95Ms": 142.60573899999997
+          },
+          "pythonThread": {
+            "medianMs": 115.39142194669694,
+            "p95Ms": 135.31236397102475
+          },
+          "eventLoopMaxMs": 1.949695,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:58:56.514Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              115.39142194669694,
+              118.42396296560764,
+              135.31236397102475,
+              113.69027791079134,
+              115.33826997037977
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            122.32098499999995,
+            123.79922499999998,
+            123.84501599999999,
+            125.75646099999994,
+            142.60573899999997
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. 20 transactions of 100 upserts and 100-row read, WAL/FULL. Python pinned SQL methods grouped into one thread call, omitting individual cursor/future round trips and write acknowledgements; optimistic baseline, not full server or hardware."
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": {
+          "medianMs": 121.54289599999993,
+          "p95Ms": 124.16849200000001
+        },
+        "medianRatio": 1.0189408025953246,
+        "p95Ratio": 1.148485712462385
+      },
+      {
+        "index": 9,
+        "script": "database-table",
+        "flags": {},
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 5403.751336000001,
+        "logSha256": "9b8fa5aafef250a8b6794806ab29ed290dc713c20bfdf92d19787bd1184e857c",
+        "childrenLogSha256": "db60013c4fc89460bbd9774628da3e932d5493fe5b234b84312ec1137d7e401e",
+        "result": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "tables": 50,
+          "nodeWorker": {
+            "medianMs": 632.3652730000003,
+            "p95Ms": 650.0804030000008
+          },
+          "pythonProvider": {
+            "medianMs": 1420.2697479631752,
+            "p95Ms": 1447.0530409598723
+          },
+          "eventLoopMaxMs": 3.405823,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:59:12.083Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              1375.4504229873419,
+              1420.2697479631752,
+              1421.0137058980763,
+              1447.0530409598723,
+              1419.2821000469849
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            525.2192050000001,
+            621.4918570000004,
+            644.5065579999996,
+            650.0804030000008,
+            632.3652730000003
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. 50 creates plus 50 upgrades, WAL/FULL; open/close and row assertions excluded. Node uses one atomic transaction and worker round trips, Python original registration commits creation/migration/metadata separately. Not equal durability work or hardware timing."
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": {
+          "medianMs": 623.1132190000003,
+          "p95Ms": 643.932065
+        },
+        "medianRatio": 1.0148481106127842,
+        "p95Ratio": 1.009548115918099
+      },
+      {
+        "index": 10,
+        "script": "database-backup",
+        "flags": {},
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 585.073543999999,
+        "logSha256": "02515cea2932b7e3bf80c47c80bb6b8b691295dfdb7ec39a373a480ab983ab7b",
+        "childrenLogSha256": "135ca0a77d51822b794531104fc0f279fb7de0d2ec75fc9f9833af28d620aaf7",
+        "result": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "filesystem": "ext-family",
+          "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+          "records": 1000,
+          "snapshotBytes": 1409024,
+          "nodeBackup": {
+            "medianMs": 44.317370000000096,
+            "p95Ms": 45.681358000000046
+          },
+          "pythonBackupThread": {
+            "medianMs": 19.005430047400296,
+            "p95Ms": 19.410706008784473
+          },
+          "nodeEventLoopMaxMs": 1.853439,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:59:13.049Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              19.199492991901934,
+              18.832247937098145,
+              18.946019001305103,
+              19.005430047400296,
+              19.190742052160203,
+              19.410706008784473,
+              18.829977954737842
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            20.527728000000025,
+            35.305048,
+            37.286044000000004,
+            44.317370000000096,
+            44.40679,
+            44.96365800000001,
+            45.681358000000046
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. Same WAL source and original Python provider thread. Node also stages, fsyncs and atomically publishes replacement; filesystem and process checks, not hardware power-loss acceptance"
+        },
+        "nodeStatsField": "nodeBackup",
+        "originalNodeStats": {
+          "medianMs": 43.80820999999992,
+          "p95Ms": 54.816749999999985
+        },
+        "medianRatio": 1.011622478982825,
+        "p95Ratio": 0.833346705158552
+      },
+      {
+        "index": 11,
+        "script": "database-restore",
+        "flags": {},
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 1218.8296370000025,
+        "logSha256": "cd0c53d8e3da75186c7274e05575e16239ffa046e07360f49c7fe76e9091760f",
+        "childrenLogSha256": "16ae841d048216e73248c807830fb393f2f65bf827a3e8328815c83ac98ce204",
+        "result": {
+          "node": "v26.10.0",
+          "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+          "filesystemMagic": 61267,
+          "filesystem": "ext-family",
+          "records": 1000,
+          "snapshotBytes": 1409024,
+          "nodeRestore": {
+            "medianMs": 12.486087999999995,
+            "p95Ms": 14.172691999999984
+          },
+          "pythonRestoreThread": {
+            "medianMs": 17.587191076017916,
+            "p95Ms": 22.978984052315354
+          },
+          "nodeEventLoopMaxMs": 1.061887,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:59:15.227Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              17.587191076017916,
+              17.689162050373852,
+              22.978984052315354,
+              17.554799909703434,
+              17.666031955741346,
+              17.070604022592306,
+              17.45389902498573
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            11.991893000000118,
+            12.253945999999928,
+            12.390137000000095,
+            12.486087999999995,
+            12.577130000000011,
+            12.84357399999999,
+            14.172691999999984
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. Same snapshot, actual worker/thread restore. Node additionally checks integrity/schema/size and fences old operations. Excludes service restart latency and hardware power-loss acceptance"
+        },
+        "nodeStatsField": "nodeRestore",
+        "originalNodeStats": {
+          "medianMs": 12.151756999999975,
+          "p95Ms": 22.24632399999996
+        },
+        "medianRatio": 1.0275129761070783,
+        "p95Ratio": 0.6370801755831664
+      },
+      {
+        "index": 12,
+        "script": "database",
+        "flags": {
+          "DATABASE_BATCH_SIZE": "37"
+        },
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 1200.5689190000048,
+        "logSha256": "df0bfd052c71c11909ecce34a7d73a2aab8cee189c9bf7e992fe6539a3c84047",
+        "childrenLogSha256": "62db7951a5ff131a93a769e3f71c54d689fbc7da6ba2ab8f283d1bc5749a5ebc",
+        "result": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "filesystem": "ext-family",
+          "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+          "batchSize": 37,
+          "namespaceLifecycle": false,
+          "namespaceSync": false,
+          "writes": 200,
+          "reads": 200,
+          "nodeWorker": {
+            "medianMs": 40.43394699999999,
+            "p95Ms": 41.48219100000006
+          },
+          "pythonProviderThread": null,
+          "nodeEventLoopMaxMs": 1.952767,
+          "historicalPythonReference": null,
+          "nodeSamplesMs": [
+            39.32729199999994,
+            39.89322900000002,
+            40.129302999999936,
+            40.43394699999999,
+            40.51902799999999,
+            40.80895199999998,
+            41.48219100000006
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. File-backed SQLite WAL + synchronous FULL on both sides; Node includes Worker round trips and bounded admission, Python uses original provider thread and Future dispatch; host filesystem only, not power-loss or target-board acceptance"
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": null,
+        "medianRatio": null,
+        "p95Ratio": null
+      },
+      {
+        "index": 13,
+        "script": "database-namespace-read",
+        "flags": {
+          "DATABASE_READ_CACHE_BYTES": "0"
+        },
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 2125.6872109999968,
+        "logSha256": "58466d4c05fd52bd3514c072cdf6ab5fa6159ab3edd5c547fd932390626395bd",
+        "childrenLogSha256": "ccd788513ccc5777b6e80e82342002f7f19eed341d62555908d2e26d5bca4096",
+        "result": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "benchmarkRoot": "/home/dek02/.cache/codex/tmp",
+          "records": 200,
+          "cycles": 50,
+          "changing": false,
+          "maxReadCacheBytes": 0,
+          "nodeWorker": {
+            "medianMs": 133.37754400000017,
+            "p95Ms": 140.97645699999998
+          },
+          "pythonProviderThread": {
+            "medianMs": 77.36564090009779,
+            "p95Ms": 78.00656999461353
+          },
+          "eventLoopMaxMs": 2.168831,
+          "historicalPythonReference": {
+            "capturedAt": "2026-10-07T09:58:42.554Z",
+            "filesystemMagic": 61267,
+            "runtime": {
+              "version": "3.12.13",
+              "sqlite": "3.46.1",
+              "binarySha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d"
+            },
+            "samplesMs": [
+              78.00656999461353,
+              77.21248897723854,
+              77.08925707265735,
+              77.36564090009779,
+              77.77916605118662,
+              77.1131570218131,
+              77.52481289207935
+            ],
+            "scope": "Historical pinned Python samples; not a current paired comparison or target-board printing budget"
+          },
+          "nodeSamplesMs": [
+            134.5921699999999,
+            130.2528920000001,
+            140.97645699999998,
+            135.74607600000013,
+            133.37754400000017,
+            131.87440300000003,
+            128.23259499999995
+          ],
+          "scope": "Historical Python timings are frozen and may use another filesystem/environment; current Node measurements and original assertions remain. Each cycle keys/values/items/contains with result verification; setup excluded, bounded Node Worker versus original Python provider thread; host file-backed SQLite, not target-board acceptance"
+        },
+        "nodeStatsField": "nodeWorker",
+        "originalNodeStats": null,
+        "medianRatio": null,
+        "p95Ratio": null
+      }
+    ],
+    "scope": "Same Node26.10 and ext-family disk, sequential original then retired CLI. Every original Node hot loop and assertion unchanged. Batch37 has null comparison; cache-disabled enumeration runs real workload. Historical Python samples are not current paired measurements. Single before/after batches do not prove statistical performance or target-board printing budget.",
+    "observations": {
+      "medianRatioRange": [
+        0.9666186198829606,
+        1.052372193715861
+      ],
+      "maxP95Ratio": 1.1575184332232091,
+      "p95IncreaseRetained": true,
+      "allSamplesRetained": true,
+      "sampleOrder": "Some original stats sort arrays in place; all measured values retained but not uniformly chronological."
+    }
+  },
+  "priorIntegration": {
+    "pr": 30,
+    "merge": "73d4abe4bb7e64afb5d49aa37d0b5016c4fe9982",
+    "preMergeHost": 37600361931,
+    "preMergeFirmware": 37600361911,
+    "preMergeAllSuccess": true,
+    "postMergeFirmware": {
+      "run": 37604560944,
+      "status": "success"
+    },
+    "postMergeHost": {
+      "run": 37604561024,
+      "status": "ordinary/protocol success; sanitizer in progress at observation"
+    }
+  },
+  "remaining": {
+    "globalPythonTestsRetired": false,
+    "defaultPythonEntryRetired": false,
+    "allMoonrakerComplete": false,
+    "fullSamePackageClientsPassed": false,
+    "targetBoardPerformancePassed": false,
+    "motionG3Closed": false,
+    "otherMachineAdaptations": "last",
+    "scope": "Only database reference execution and seven benchmark dependencies retired. Runtime database/motion, build dependencies and global Python CI unchanged."
+  },
+  "whitespace": {
+    "exitCode": 0,
+    "log": {
+      "name": "anyraid-database-retirement-whitespace-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "initialFailure": {
+      "reason": "Literal private-use U+E000 in captured boundary data rejected by repository checker.",
+      "capsuleBeforeSha256": "38381010e653e23a94039722a671d75dc82f79ea9e8cc40c8f8a7c4d315a862f"
+    },
+    "repair": "Only outer JSON representation escaped U+E000; full decoded capsule deep-equality verified. All original input/output and SQLite hashes unchanged. Bench hot loops/decoded workloads unchanged, so historical samples retained without rerunning benchmarks."
+  }
+}
