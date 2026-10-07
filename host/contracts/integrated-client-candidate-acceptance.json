@@ -5456,5 +5456,93 @@
     "fullClientAcceptance": false,
     "g3Closed": false,
     "performanceRegressionClaim": false
+  },
+  "currentNormalComposition": {
+    "date": "2026-10-07",
+    "sourceHead": "5201c9882f2ab0ab48ad6efea679712e5331c579",
+    "acceptedDevelop": "a863dc23e3266c3b1e74bba1d53964ee9dd39162",
+    "acceptedDevelopPostCi": {
+      "host": 37585785093,
+      "firmware": 37585785193,
+      "allRequiredSteps": "success"
+    },
+    "normalMergedHeads": {
+      "accounting": "4498e494ee6aba42a41b4cea7c8518e91772de97",
+      "reasons": "2af0b5fd0d009cf710c667649ceef7d6a233e30f",
+      "database": "33bfeb3d261e53073303a37a1c1e2ae0c10c1088"
+    },
+    "sourceChecks": {
+      "pass": 128,
+      "fail": 0,
+      "durationMs": 74641.239367,
+      "ordinaryOriginalTypecheckExit": 0,
+      "requiredSourceWhitespaceExit": 0,
+      "inputsPrecisionAndDeadlinesUnchanged": true,
+      "compiledOverlapNotAdded": true,
+      "artifacts": [
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-current-composition-20261007.log",
+          "sha256": "1b108e711b0210f93f91091c905a2b0daa1ec462701008b3ba4ed197f6c8489d"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-current-typecheck-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-current-whitespace-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    "production": {
+      "unchangedFromBuildSource": "599288a6",
+      "comparison": "git diff 599288a6 HEAD -- host/src host/scripts/build-product-host.ts host/tsconfig.product-host.json host/package.json host/package-lock.json was empty",
+      "sources": [
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate/host/src/operations/print.ts",
+          "sha256": "38210fca4b19f566da75a0aa1755a4e4dcfd1ecfdfebd0f1409261f8b6733db1"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate/host/src/operations/native-file-motion.ts",
+          "sha256": "3956081dc42b04caec69068bb801dfae32e4665e0f18f810efd64814955d1a5c"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate/host/src/moonraker/product-print-api.ts",
+          "sha256": "2e9177d2e3d39ea434a7789fa705eab0b4963578c3d70b2079830f7037ab9e8d"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate/host/src/operations/maintenance-gate.ts",
+          "sha256": "f7df9634dc7f2a87fd1971786d933aed1907c99bde26955c33e947761e8bb9c3"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate/host/src/moonraker/database-backup-files.ts",
+          "sha256": "535d24d301caa3efb599a7040a6655186fd704ddf72bc871fa546aea2ed12b12"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate/host/src/moonraker/configured-server.ts",
+          "sha256": "b418d510dbbe7d48d6fa69f9f8ad9b77db2356fc06cbf41182184f8d76ea5d54"
+        }
+      ],
+      "existingManifest": "41ea309562f785b2c77647e508bf748072b3d487bd9dddda2fa4242bcdd6dc4d",
+      "reuse": "Existing fixed-package ordinary mixed gate, partial actual clients and prior paired performance remain restricted to their verified package, inputs, environment and scope. Database backup cold-path cost retained. No new physical or target performance assertion."
+    },
+    "resolution": {
+      "productionConflicts": 0,
+      "deltaPositiveOwnerCorrectionInherited": true,
+      "originalFailuresRetained": true,
+      "documentationCountGuardFailure": "One local conflict resolution script expected five blocks instead of the actual seven. An intermediate local merge commit contained markers. Before any push the final merge restored the prior valid plan, retained incoming contract supersets and passed all JSON/marker/source-whitespace checks. No failure claimed as success.",
+      "originalPrHeadsMutated": false
+    },
+    "integration": "Prepare one coherent software composition PR; its exact final head still requires all mandatory CI. Existing individual PRs remain open until accepted composition supersedes them.",
+    "download": {
+      "officialClientSource": "Mainsail 2.19.0 downloadFile uses window.open(apiUrl + /server/files/gcodes/ + encoded filename)",
+      "interpretation": "Original-tab event timeout cannot distinguish actual transfer from new-page download observation. Shared installed Playwright observer prepared but not started.",
+      "autoReviewRejectedNewFixture": true,
+      "newFixtureNotStarted": true,
+      "explicitApprovalPending": true
+    },
+    "fullClientAcceptance": false,
+    "g3Closed": false,
+    "allPythonRetired": false
   }
 }
