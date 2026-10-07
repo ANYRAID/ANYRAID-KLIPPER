@@ -264,8 +264,15 @@ export class NativePrintUploads {
      await this.#authorize(context,{root:'gcodes',path:visible!,file_id:id,target_file_id:replacement.replaced.id,filename:replacement.replaced.name,size:replacement.replaced.size,sha256:replacement.replaced.sha256},signal);
      try{releaseFile=printOwner.beginFileMutation(replacement.replaced.id);}catch{throw new ApiError(403,'Print or maintenance owns this upload destination');}
      record=await this.#metadataMutation(()=>this.#files.replaceUpload(replacement,file!,signal),async()=>{await this.#metadata.invalidate(visible!);});
-    }else record=await this.#files.publish(id,filename,file,signal,visible);
+    }else{
+     if(visibleDirectory&&!await this.#files.hasDirectory(visibleDirectory,signal)){
+      const authorizedParents:string[]=[];let parent='';for(const part of visibleDirectory.split('/')){parent+=(parent?'/':'')+part;if(!await this.#files.hasDirectory(parent,signal)){await this.#authorize(context,{path:'gcodes/'+parent},signal,'server.files.post_directory');authorizedParents.push(parent);}}
+      signal.throwIfAborted();await this.#files.ensureUploadParents(visible!,signal,authorizedParents);
+     }
+     record=await this.#files.publish(id,filename,file,signal,visible);
+    }
    }catch(error){
+    if(error instanceof PublishedDirectoryCommitError)throw new ApiError(500,'Upload parent directory commit failed',{phase:error.phase,operation:'create_upload_parents'});
     if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);
     if(error instanceof PublishedReplacementCommitError){if(error.phase==='before-intent'&&error.cause instanceof PublishedFileChangedError)throw new ApiError(409,error.cause.message);throw new ApiError(500,'Upload replacement commit failed',{phase:error.phase});}
     if((error as NodeJS.ErrnoException)?.code==='EEXIST')throw new ApiError(409,'File ID or path exists; query its receipt');if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Upload directory not found');throw error;
