@@ -100,6 +100,7 @@ export class NativePersistentMetadata {
   if(!force&&this.versions.current(filename)?.state==='selected'){
    // Recovery verifies bytes once, in addition to checking the durable receipt.
    const sealed=await this.files.acquireBinary(id,signal,this.#budget);await sealed.reader.close();
+   if(initial.file.preview)await this.files.readPreview(id,signal,initial.file);
    try{recovered=await this.#life.recover(filename,signal,validate);}catch(error){if(!(error instanceof ApiError&&error.status===409&&error.message==='Metadata snapshot source changed'))throw error;}
   }
   if(recovered)this.#recovered++;

@@ -1,6 +1,7 @@
 import {publishedPath,visibleFilePath,pathParent,pathBasename} from './published-paths.ts';
 import {samePublishedFile,validateNamespace} from './namespace-move.ts';
 import type {PublishedPrintFile} from './published-files.ts';
+import {validatePublishedReceipt,samePublishedContent} from './published-receipt.ts';
 export interface CopyEntry {readonly source:PublishedPrintFile;readonly created:PublishedPrintFile;readonly modified:number;}
 export interface NamespaceCopy {
  readonly version:1;readonly action:'create_file'|'modify_file'|'create_dir';readonly source:string;readonly destination:string;readonly createdAt:number;
@@ -42,12 +43,11 @@ export function planNamespaceCopy(source:string,destination:string,records:reado
 }
 const object=(v:unknown,keys:readonly string[]):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
 function receipt(v:unknown):PublishedPrintFile{
- if(!object(v,['version','id','sha256','size','name','path'])||v.version!==1||typeof v.id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(v.id)||typeof v.sha256!=='string'||!/^[a-f0-9]{64}$/.test(v.sha256)||!Number.isSafeInteger(v.size)||(v.size as number)<0||(v.size as number)>1024**3||typeof v.name!=='string'||!v.name||v.name.length>256||/[\0-\x1f\x7f]/u.test(v.name))throw new Error('Invalid copy receipt');
- if(v.path!==undefined)publishedPath(v.path);return Object.freeze({...v}) as unknown as PublishedPrintFile;
+ try{return validatePublishedReceipt(v);}catch(cause){throw new Error('Invalid copy receipt',{cause});}
 }
 export function validateCopyIntent(v:unknown):NamespaceCopy{
  if(!object(v,['version','action','source','destination','createdAt','entries','replaced','directoriesBefore','directoriesAfter'])||v.version!==1||!['create_file','modify_file','create_dir'].includes(v.action as string)||typeof v.createdAt!=='number'||!Array.isArray(v.entries)||v.entries.length>10000||!Array.isArray(v.directoriesBefore)||!Array.isArray(v.directoriesAfter)||v.directoriesBefore.length>1024||v.directoriesAfter.length>1024)throw new Error('Invalid copy intent schema');
- const entries=v.entries.map(e=>{if(!object(e,['source','created','modified'])||typeof e.modified!=='number')throw new Error('Invalid copy entry');const source=receipt(e.source),created=receipt(e.created);if(source.id===created.id||source.sha256!==created.sha256||source.size!==created.size)throw new Error('Invalid copy content identity');return Object.freeze({source,created,modified:e.modified});});
+ const entries=v.entries.map(e=>{if(!object(e,['source','created','modified'])||typeof e.modified!=='number')throw new Error('Invalid copy entry');const source=receipt(e.source),created=receipt(e.created);if(source.id===created.id||!samePublishedContent(source,created))throw new Error('Invalid copy content identity');return Object.freeze({source,created,modified:e.modified});});
  const dirs=(values:unknown[])=>Object.freeze(values.map(e=>{if(!object(e,['path','modified'])||typeof e.modified!=='number')throw new Error('Invalid copy directory');return Object.freeze({path:publishedPath(e.path),modified:e.modified});}));
  const plan:NamespaceCopy=Object.freeze({version:1,action:v.action as NamespaceCopy['action'],source:publishedPath(v.source),destination:publishedPath(v.destination),createdAt:v.createdAt,entries:Object.freeze(entries),...v.replaced===undefined?{}:{replaced:receipt(v.replaced)},directoriesBefore:dirs(v.directoriesBefore),directoriesAfter:dirs(v.directoriesAfter)});
  const before=entries.map(e=>({file:e.source,modified:e.modified}));if(plan.replaced)before.push({file:plan.replaced,modified:0});

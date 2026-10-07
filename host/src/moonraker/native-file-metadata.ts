@@ -9,7 +9,7 @@ import {extractPublishedMetadata,samePublishedSource} from './native-metadata-so
 import {FileMetadataStore} from './file-metadata.ts';
 import {ApiError,type Json,type RpcContext} from './rpc.ts';
 import {nativeFilename} from './native-file-path.ts';
-const identity=(file:PublishedPrintFile,modified:number)=>JSON.stringify([file.sha256,file.name,file.size,modified]);
+const identity=(file:PublishedPrintFile,modified:number)=>JSON.stringify([file.sha256,file.name,file.size,modified,file.preview?.sha256,file.preview?.size]);
 /** Metadata and bounded derived previews for the immutable native namespace. Worker parsing shares the
  * existing slicer implementations; verified byte windows do not retain memfd leases. */
 export class NativeFileMetadata {
@@ -74,6 +74,7 @@ export class NativeFileMetadata {
    if(typeof result.thumbnailData!=='string')throw new ApiError(502,'Thumbnail extraction omitted source');
    let images:ThumbnailImage[]=[];
    if(result.thumbnailData){const processor=await(this.#processor??=ThumbnailProcessor.open({maxPending:2,maxQueuedBytes:4*1024**2}));signal.throwIfAborted();images=await processor.prepare(result.thumbnailData,signal);signal.throwIfAborted();}
+   if(!images.length&&result.thumbnailPng){const processor=await(this.#processor??=ThumbnailProcessor.open({maxPending:2,maxQueuedBytes:4*1024**2}));signal.throwIfAborted();images=await processor.prepareUfpPng(result.thumbnailPng,signal);signal.throwIfAborted();}
    const current=await this.#files.describeSource(id,signal);if(identity(current.file,current.modified)!==key||!samePublishedSource(result.source,current.source))throw new ApiError(409,'Native metadata source changed');
    // Concurrent cold readers must share the already published preview URLs.
    if(!force&&this.peek(filename,current.file,current.modified))return this.#cache.metadata(filename);

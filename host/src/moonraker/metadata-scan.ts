@@ -22,7 +22,7 @@ export async function scanFileMetadata(options:MetadataScanOptions):Promise<Meta
  catch(error){failed=true;primary=error;throw error;}
  finally{if(source.fd>=0){try{await source.close();}catch(error){throw new AggregateError(failed?[primary,error]:[error],'Metadata scan source close failed');}}}
 }
-export interface MetadataScanResult {committed:boolean;bundleId:string|null;extraction:Omit<MetadataExtraction,'thumbnailData'>|null;}
+export interface MetadataScanResult {committed:boolean;bundleId:string|null;extraction:Omit<MetadataExtraction,'thumbnailData'|'thumbnailPng'>|null;}
 export type ExtractedMetadataScanOptions=Omit<MetadataScanOptions,'source'|'extractor'>&{extract():Promise<MetadataExtraction>};
 /** Shared preparation for descriptor extraction and verified native byte windows.
  * The producer owns its IO and must supply the identity checked by validateSource. */
@@ -33,10 +33,11 @@ export async function scanExtractedMetadata(options:ExtractedMetadataScanOptions
   if(typeof options.validateSource!=='function')throw new TypeError('Metadata source validation is required');
   signal.throwIfAborted();if(!cache.isCurrent(ticket))return {committed:false,bundleId:null,extraction:null};
   const value=await options.extract();signal.throwIfAborted();
-  const {thumbnailData,...extraction}=value;
+  const {thumbnailData,thumbnailPng,...extraction}=value;
   if(!cache.isCurrent(ticket))return {committed:false,bundleId:null,extraction};
   if(typeof thumbnailData!=='string')throw new ApiError(502,'Metadata extraction omitted thumbnail input');
-  const images=thumbnailData?await processor.prepare(thumbnailData,signal):[];signal.throwIfAborted();
+  let images=thumbnailData?await processor.prepare(thumbnailData,signal):[];signal.throwIfAborted();
+  if(!images.length&&thumbnailPng){images=await processor.prepareUfpPng(thumbnailPng,signal);signal.throwIfAborted();}
   if(!cache.isCurrent(ticket))return {committed:false,bundleId:null,extraction};
   if(!await options.validateSource(extraction.source,signal))throw new ApiError(409,'Metadata source binding changed');signal.throwIfAborted();
   if(!cache.isCurrent(ticket))return {committed:false,bundleId:null,extraction};

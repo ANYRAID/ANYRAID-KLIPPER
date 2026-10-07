@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base": "e729df8f31e102a0bf7d3b6e377a761e13a188c4",
+  "scope": "本地组件准备，无完整 UFP 交付、CI、集成或打印速度通过声明",
+  "node": "v26.10.0",
+  "dependencies": {
+    "yauzl": "3.4.0",
+    "typesYauzl": "3.4.0",
+    "sharp": "0.35.4",
+    "security": "当前仍为 sharp 0.35.4；离线安装输出不关闭已知 GHSA-wq5f-xc86-pv6w，完整候选必须组合 #44 的已验证补丁"
+  },
+  "behavior": {
+    "members": [
+      "/3D/model.gcode",
+      "/Metadata/thumbnail.png"
+    ],
+    "model": "原始解压字节、独立 CRC32 与 SHA-256，不向 G-code 注入图片文本",
+    "io": "借用位置读取，调用者保留 FD 所有权；取消时排空已发出的读取",
+    "bounds": {
+      "archiveBytes": 67108864,
+      "modelBytes": 67108864,
+      "thumbnailBytes": 4194304,
+      "entries": 1024,
+      "directoryBytes": 1048576
+    },
+    "images": "原有隔离子进程新增 PNG 通道，完整严格解码、单页与原尺寸上限，原图字节不变；沿用队列容量、5 秒期限及主动取消杀死子进程且不自动重启",
+    "ownership": "排队时复制输入快照，PNG 与文本共用容量账本；不扩大文件路径或打印权限"
+  },
+  "validation": {
+    "source": {
+      "tests": 68,
+      "pass": 68,
+      "fail": 0,
+      "groups": [
+        48,
+        20
+      ]
+    },
+    "compiled": {
+      "tests": 34,
+      "pass": 34,
+      "fail": 0,
+      "overlapsSource": true,
+      "bundle": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-component-product-bundle",
+        "manifestSha256": "d939d1d17b835f93de8ffcd701184c31666c3b72b97bd932c68770d4c6c1db39",
+        "dependenciesSha256": "a71ac6c00160afa007a943e1b832c3ea73ce123711fb9d784be488364acb46a2"
+      }
+    },
+    "typecheck": "通过",
+    "whitespace": "通过",
+    "native": "复用未变 C，没有重新构建 C"
+  },
+  "performance": {
+    "scope": "Component ABBA; a supplied pinned bundle uses actual emitted JS and child. Same isolated child and exact image hashes; concurrent warm positioned 64 KiB reads. Includes IPC and parent verification in event-loop observations. Not complete UFP upload, durable thumbnail recovery, target board, Python equivalence or print speed.",
+    "order": [
+      "inline",
+      "png",
+      "png",
+      "inline"
+    ],
+    "warmupsPerRun": 3,
+    "measuredPerRun": 16,
+    "input": {
+      "width": 768,
+      "height": 512,
+      "pngBytes": 1182337,
+      "pngSha256": "ab9b202bc50c1ad0d29f4423b667074ec78f59554e1624d6dc9bdb241f967b67",
+      "textBytes": 1576505
+    },
+    "output": [
+      {
+        "width": 32,
+        "height": 21,
+        "format": "png",
+        "miniature": true,
+        "sha256": "dbe969e0d8dfda15453f6b52096f77e8d844edb2c6341db303302f0ec015a5f5"
+      },
+      {
+        "width": 768,
+        "height": 512,
+        "format": "png",
+        "miniature": false,
+        "sha256": "ab9b202bc50c1ad0d29f4423b667074ec78f59554e1624d6dc9bdb241f967b67"
+      }
+    ],
+    "combined": [
+      {
+        "mode": "inline",
+        "count": 32,
+        "medianMs": 21.94409100000007,
+        "p95Ms": 31.702328999999963
+      },
+      {
+        "mode": "png",
+        "count": 32,
+        "medianMs": 8.516761999999972,
+        "p95Ms": 14.438873000000058
+      }
+    ],
+    "runs": [
+      {
+        "mode": "inline",
+        "eventLoop": {
+          "p99Ms": 1.912831,
+          "maxMs": 2.557951
+        },
+        "read64KiB": {
+          "count": 433,
+          "medianMs": 0.02686000000005606,
+          "p95Ms": 0.29613399999993817
+        }
+      },
+      {
+        "mode": "png",
+        "eventLoop": {
+          "p99Ms": 2.177023,
+          "maxMs": 2.605055
+        },
+        "read64KiB": {
+          "count": 109,
+          "medianMs": 0.04930000000001655,
+          "p95Ms": 0.8403200000000197
+        }
+      },
+      {
+        "mode": "png",
+        "eventLoop": {
+          "p99Ms": 4.567039,
+          "maxMs": 4.915199
+        },
+        "read64KiB": {
+          "count": 137,
+          "medianMs": 0.07609099999990576,
+          "p95Ms": 2.9323249999999916
+        }
+      },
+      {
+        "mode": "inline",
+        "eventLoop": {
+          "p99Ms": 2.310143,
+          "maxMs": 4.001791
+        },
+        "read64KiB": {
+          "count": 448,
+          "medianMs": 0.031419999999798165,
+          "p95Ms": 0.4678959999998824
+        }
+      }
+    ],
+    "limitation": "PNG 通道处理耗时较低，但父事件循环及并发文件读取尾延迟较高；没有目标预算与完整 UFP 混合打印证据，不能认定打印不受影响",
+    "earlierRuns": "源码及首次编译 ABBA 与本机类型／回归检查并行，保留为诊断；最终编译 ABBA 在这些检查结束后单独运行，所有原样本均封存"
+  },
+  "preliminaryFailures": [
+    "猜测不存在的 @types/yauzl 3.2.0 导致 ETARGET，核验并固定 3.4.0",
+    "最初 CRC 负样本使用负整数导致夹具 RangeError，修订独立 ZIP 格式器后通过",
+    "性能脚本结果数组缺少显式类型；仅补类型后全量检查通过"
+  ],
+  "evidence": {
+    "file": "ufp-components-evidence.json.gz",
+    "sha256": "3ada32c7ca655d0e759d95c63592c7e80396f5b6a01ff1db43a2411323c66bfe",
+    "bytes": 173911,
+    "entries": 44,
+    "decodedBytes": 452277,
+    "credentialShapes": 0
+  },
+  "open": [
+    "同一文件权威所有者的模型与 PNG 耐久提交",
+    "图片引用、配额、替换、复制、移动、删除及重启恢复",
+    "元数据缓存与原始磁盘 UFP 路径",
+    "multipart 上传与当前权限边界",
+    "组合安全依赖修复",
+    "完整同包混合打印与必要性能",
+    "规定 CI 与正常 PR 集成",
+    "实际 Fluidd 与 Mainsail",
+    "目标板、G3、Python 退役与主线发布"
+  ]
+}

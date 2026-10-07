@@ -14,6 +14,8 @@ import {ProductPrintApi} from './product-print-api.ts';
 import {PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
 import {NativeFileMetadata} from './native-file-metadata.ts';
 import {NativePersistentMetadata} from './native-persistent-metadata.ts';
+import {extractUfpArchive} from './ufp-archive.ts';
+import {ThumbnailProcessor} from './thumbnail-process.ts';
 export interface NativeOfflineFileMutations {
  readonly available:boolean;
  beginFileMutations(fileIds:readonly string[]):()=>void;
@@ -38,6 +40,7 @@ export class NativePrintUploads {
  #draining:Promise<void>|undefined;
  #print:PrintController|undefined;
  #printApi:ProductPrintApi|undefined;
+ #ufpValidator:Promise<ThumbnailProcessor>|undefined;
  #offlineFiles:NativeOfflineFileMutations|undefined;
  #offlineReady:(()=>boolean)|undefined;
  readonly #metadataOwner:NativePrintUploads|undefined;
@@ -218,7 +221,8 @@ export class NativePrintUploads {
   signal.throwIfAborted();let release:()=>void;
   try{release=this.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks file uploads');}
   let releaseDevice:(()=>void)|undefined;try{if(deviceGate&&deviceGate!==this.#gate)releaseDevice=deviceGate.activity();}catch{release();throw new ApiError(409,'Maintenance blocks file uploads');}
-  let directory:string|undefined,file:FileHandle|undefined,releaseFile:(()=>void)|undefined;
+  let directory:string|undefined,file:FileHandle|undefined,archive:FileHandle|undefined,preview:FileHandle|undefined,releaseFile:(()=>void)|undefined;
+  const closeStaging=async()=>{const results=await Promise.allSettled([file,archive,preview].filter((handle):handle is FileHandle=>!!handle&&handle.fd>=0).map(handle=>handle.close()));const failed=results.filter(result=>result.status==='rejected');if(failed.length)throw new AggregateError(failed.map(result=>result.reason),'Upload staging close failed');file=archive=preview=undefined;};
   try{
    const query=new URL(request.url??'','http://localhost').searchParams;
    if([...query.keys()].some(key=>key!=='token')||query.getAll('token').length>1||query.has('token')&&!/^[A-Z2-7]{32}$/.test(query.get('token')!)||!/^multipart\/form-data(?:;|$)/i.test(request.headers['content-type']??''))throw new ApiError(400,'Expected multipart upload with at most one access token');
@@ -232,7 +236,7 @@ export class NativePrintUploads {
    for(const event of ['filesLimit','fieldsLimit','partsLimit'] as const)parser.on(event,()=>invalid('Multipart part capacity exceeded'));
    parser.on('file',(name,source,info)=>{
     source.on('error',()=>{});
-    if(fileTask||name!=='file'||!info.filename||info.filename.length>256||!info.filename.isWellFormed()||/[\\/\u0000-\u001f\u007f]/u.test(info.filename)||!configFiles&&!/\.(gcode|gco|g)$/i.test(info.filename)||!['7bit','8bit','binary'].includes(info.encoding)){source.resume();invalid('Expected one named G-code file');return;}
+    if(fileTask||name!=='file'||!info.filename||info.filename.length>256||!info.filename.isWellFormed()||/[\\/\u0000-\u001f\u007f]/u.test(info.filename)||!configFiles&&!/\.(gcode|gco|g|ufp)$/i.test(info.filename)||!['7bit','8bit','binary'].includes(info.encoding)){source.resume();invalid('Expected one named G-code or UFP file');return;}
     filename=info.filename;
     fileTask=(async()=>{for await(const chunk of source){signal.throwIfAborted();const buffer=chunk as Buffer;bytes+=buffer.length;if(bytes>this.#max)throw new ApiError(413,'Upload file limit exceeded');hash.update(buffer);let offset=0;while(offset<buffer.length){signal.throwIfAborted();const result=await file!.write(buffer,offset,buffer.length-offset);if(!result.bytesWritten)throw new Error('Upload staging write stalled');offset+=result.bytesWritten;}}if(source.truncated)throw new ApiError(413,'Upload file limit exceeded');})();
     void fileTask.catch(error=>parser.destroy(error));
@@ -249,27 +253,41 @@ export class NativePrintUploads {
     const name=fields.path?fields.path+'/'+filename:filename;const condition=request.headers['if-match'];if(condition!==undefined&&typeof condition!=='string')throw new ApiError(400,'Expected one config version digest');
     releaseDevice?.();releaseDevice=undefined;release();return await configFiles.save(name,content,condition?.replace(/^"|"$/g,''),context);
    }
-   if(!/\.(gcode|gco|g)$/i.test(filename))throw new ApiError(400,'Expected one named G-code file');
+   if(!/\.(gcode|gco|g|ufp)$/i.test(filename))throw new ApiError(400,'Expected one named G-code or UFP file');
    if(fields.root!==undefined&&fields.root!=='gcodes'||fields.print!==undefined&&!['false','0','','true'].includes(fields.print))throw new ApiError(400,'Expected gcodes root and boolean print flag');
-   const id=fields.file_id??randomUUID(),sha256=hash.digest('hex');if(!validId(id))throw new ApiError(400,'Invalid upload file ID');
+   const id=fields.file_id??randomUUID();let sha256=hash.digest('hex');if(!validId(id))throw new ApiError(400,'Invalid upload file ID');
    // Explicit legacy IDs without a path retain their already issued addresses.
    // Standard multipart clients publish the actual filename in the visible tree.
-   const visibleDirectory=fields.path?nativeFilename(fields.path):'',visible=fields.file_id!==undefined&&fields.path===undefined?undefined:nativeFilename((visibleDirectory?visibleDirectory+'/':'')+filename);
+   const visibleDirectory=fields.path?nativeFilename(fields.path):'';let visible=fields.file_id!==undefined&&fields.path===undefined?undefined:nativeFilename((visibleDirectory?visibleDirectory+'/':'')+filename);
    if(fields.checksum!==undefined&&(!/^[a-fA-F0-9]{64}$/.test(fields.checksum)||fields.checksum.toLowerCase()!==sha256))throw new ApiError(422,'Upload checksum mismatch');
    await this.#authorize(context,{root:'gcodes',filename,...visible?{path:visible}:{},file_id:id,size:bytes,sha256},signal);signal.throwIfAborted();
+   if(/\.ufp$/i.test(filename)){
+    archive=file;file=await open(join(directory,'model'),'wx+',0o600);
+    const extracted=await extractUfpArchive(archive,file,signal,{maxArchiveBytes:this.#max,maxModelBytes:this.#max});signal.throwIfAborted();
+    if(extracted.thumbnail){
+     // Decode in the bounded image child before any visible namespace mutation.
+     // This owner is independent of metadata scanning; cancellation fences it.
+     const validator=await(this.#ufpValidator??=ThumbnailProcessor.open({maxPending:2,maxQueuedBytes:4*1024**2}));signal.throwIfAborted();
+     await validator.prepareUfpPng(extracted.thumbnail.bytes,signal);signal.throwIfAborted();
+     preview=await open(join(directory,'preview'),'wx+',0o600);await preview.writeFile(extracted.thumbnail.bytes);
+    }
+    filename=filename.replace(/\.ufp$/i,'.gcode');bytes=extracted.model.size;sha256=extracted.model.sha256;
+    visible=fields.file_id!==undefined&&fields.path===undefined?undefined:nativeFilename((visibleDirectory?visibleDirectory+'/':'')+filename);
+    await this.#authorize(context,{root:'gcodes',filename,...visible?{path:visible}:{},file_id:id,size:bytes,sha256},signal);signal.throwIfAborted();
+   }
    let record;try{
     const replacement=visible?await this.#files.prepareUploadReplacement(id,filename,visible,signal).catch(error=>{if(error.code!=='ENOENT')throw error;return undefined;}):undefined;
     if(replacement){
      if(!printOwner)throw new ApiError(503,'Upload replacement requires its current print owner');
      await this.#authorize(context,{root:'gcodes',path:visible!,file_id:id,target_file_id:replacement.replaced.id,filename:replacement.replaced.name,size:replacement.replaced.size,sha256:replacement.replaced.sha256},signal);
      try{releaseFile=printOwner.beginFileMutation(replacement.replaced.id);}catch{throw new ApiError(403,'Print or maintenance owns this upload destination');}
-     record=await this.#metadataMutation(()=>this.#files.replaceUpload(replacement,file!,signal),async()=>{await this.#metadata.invalidate(visible!);});
+     record=await this.#metadataMutation(()=>this.#files.replaceUpload(replacement,file!,signal,preview),async()=>{await this.#metadata.invalidate(visible!);});
     }else{
      if(visibleDirectory&&!await this.#files.hasDirectory(visibleDirectory,signal)){
       const authorizedParents:string[]=[];let parent='';for(const part of visibleDirectory.split('/')){parent+=(parent?'/':'')+part;if(!await this.#files.hasDirectory(parent,signal)){await this.#authorize(context,{path:'gcodes/'+parent},signal,'server.files.post_directory');authorizedParents.push(parent);}}
       signal.throwIfAborted();await this.#files.ensureUploadParents(visible!,signal,authorizedParents);
      }
-     record=await this.#files.publish(id,filename,file,signal,visible);
+     record=await this.#files.publish(id,filename,file,signal,visible,preview);
     }
    }catch(error){
     if(error instanceof PublishedDirectoryCommitError)throw new ApiError(500,'Upload parent directory commit failed',{phase:error.phase,operation:'create_upload_parents'});
@@ -282,7 +300,7 @@ export class NativePrintUploads {
    if(fields.print==='true'){
     // The ordinary upload keeps its original return/finally path. Only this
     // explicit intent retires staging and mutation leases before admission.
-    await file.close();file=undefined;await rm(directory,{recursive:true,force:true});directory=undefined;
+    await closeStaging();await rm(directory,{recursive:true,force:true});directory=undefined;
     releaseFile?.();releaseFile=undefined;releaseDevice?.();releaseDevice=undefined;release();signal.throwIfAborted();
     const requestId='upload-'+randomUUID();
     try{
@@ -297,7 +315,7 @@ export class NativePrintUploads {
     }
    }
    return receipt;
-  }finally{try{await file?.close();}finally{try{if(directory)await rm(directory,{recursive:true,force:true});}finally{releaseFile?.();releaseDevice?.();release();}}}
+  }finally{try{await closeStaging();}finally{try{if(directory)await rm(directory,{recursive:true,force:true});}finally{releaseFile?.();releaseDevice?.();release();}}}
  }
  async info(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{
   signal.throwIfAborted();if(this.#closed)throw new ApiError(503,'Native uploads are closed');
@@ -421,7 +439,7 @@ export class NativePrintUploads {
  }
  /** Cancel requests and staging promptly. External policies may ignore their
   * signal; the dependency owner must drain them before releasing resources. */
- close():Promise<void>{this.#closed=true;this.#abort.abort(new ApiError(503,'Native uploads closed'));return Promise.all([Promise.allSettled([...this.#pending,...this.#downloads]),this.#metadataOwner?undefined:this.#metadata.close()]).then(()=>{});}
+ close():Promise<void>{this.#closed=true;this.#abort.abort(new ApiError(503,'Native uploads closed'));return Promise.all([Promise.allSettled([...this.#pending,...this.#downloads]),this.#metadataOwner?undefined:this.#metadata.close(),this.#ufpValidator?.then(owner=>owner.close(),()=>{})]).then(()=>{});}
  drain():Promise<void>{
   return this.#draining??=(async()=>{
    const [closed]=await Promise.allSettled([this.close()]);

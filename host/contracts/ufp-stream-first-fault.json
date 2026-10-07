@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "sourceParent": "8f27e850fde9019b7b39553c658bcac549ebc719",
+  "scope": "大图首次流错误的受控机制与异步请求身份观察，不是生产修复或原失败根因判定。",
+  "product": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-native-product-bundle",
+    "manifestSha256": "788cfc37a6c0da9951c2b2cc50b6d6f61eba68d2fad23ee2a3b5430e277304ed",
+    "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+  },
+  "productionChanged": false,
+  "originalFailure": {
+    "file": "anyraid-ufp-native-mixed-large.log",
+    "pass": 0,
+    "fail": 1,
+    "code": "ERR_INVALID_STATE",
+    "location": "Node.js 26.10.0 internal/deps/undici/undici:6906",
+    "cause": "unknown",
+    "matchingRequest": "not captured"
+  },
+  "controlled": {
+    "directBodyCancellation": {
+      "status": 1,
+      "matchingFault": true,
+      "condition": "FormData 文件异步生产器未结束时，直接取消 Request.body，随后释放原文件数据；调用栈与原失败位置一致。",
+      "sourceCancelled": false
+    },
+    "negativeControls": [
+      {
+        "mode": "formdata-complete",
+        "status": 0,
+        "matchingFault": false
+      },
+      {
+        "mode": "buffer-cancel",
+        "status": 0,
+        "matchingFault": false
+      }
+    ],
+    "httpControls": [
+      {
+        "mode": "early-close",
+        "status": 0,
+        "matchingFault": false
+      },
+      {
+        "mode": "signal-before-response",
+        "status": 0,
+        "matchingFault": false
+      },
+      {
+        "mode": "signal-after-response",
+        "status": 0,
+        "matchingFault": false
+      },
+      {
+        "mode": "reset",
+        "status": 0,
+        "matchingFault": false
+      }
+    ],
+    "interpretation": "HTTP 提前关闭、响应前后取消及连接重置均未触发同一故障，不能把它们认定为原根因。"
+  },
+  "requestIdentity": {
+    "method": "标准 AsyncLocalStorage 仅在大图诊断输入启用",
+    "controlledFault": {
+      "requestId": 17,
+      "description": "POST /controlled-body-only",
+      "matchingFault": true,
+      "processExit": 1
+    },
+    "fields": "递增请求 ID、HTTP 方法和无查询路径；没有请求头、令牌或正文",
+    "eventsBound": 64,
+    "unchanged": "FormData、传输、响应字节、原测试失败处理和打印门槛均保持"
+  },
+  "diagnostic": {
+    "latestPass": 1,
+    "latestFail": 0,
+    "capturedOriginalFault": false,
+    "firstObservedPass": 1,
+    "rootGateClosed": false,
+    "typecheck": true,
+    "whitespace": true,
+    "scope": "同一封存产品和原固定大图、1000条运动、双软件 MCU 两代及原期限；新观察没有复现首次原故障，不补写为根因通过。"
+  },
+  "evidence": {
+    "file": "ufp-stream-first-fault-evidence.json.gz",
+    "bytes": 137311,
+    "sha256": "7b9cf3fb84d9a170b33fc12d36dbeb855e253e737e6ce278277e526c6bd8ea00",
+    "entries": 24,
+    "credentialShapes": 0
+  },
+  "pending": [
+    "原混合首次对应请求及触发条件",
+    "原始磁盘完整 UFP 转换／发布／清理／恢复",
+    "最新 develop 组合、Draft PR 与自身完整 CI",
+    "实际同包客户端、目标板、G3及全部Python退役"
+  ]
+}
