@@ -1,0 +1,357 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base": "9bd80b3dd555ebd9d9ec21c2572187623db5347d",
+  "status": "LOCAL_FULL_FAILURE; diagnostic candidate only; exact-head remote CI and integration pending",
+  "reason": "Default spec omitted exit metadata on historical representable-profile test-file failures; runtime TrapQueue imports this module. Offline-only import isolation is insufficient for all known failures.",
+  "frozen": {
+    "host/package.json": "c6bb4f18ccc307836b9653cb491d1db8f3cae738f7732a46ef65555eb3f17b85",
+    "host/scripts/test-failure-reporter.mjs": "7b682a8eea9a785182b3f81d64fef4074e02a750259f00fbea1668a693f8e84f",
+    "host/test/test-failure-reporter.test.ts": "96c6c5ce18bb85931f4577e09f6173d55535eea51af27fd7f2632ec5c56b6aff"
+  },
+  "ordinary": {
+    "command": "npm test",
+    "exitCode": 1,
+    "tests": 4358,
+    "passed": 4342,
+    "failed": 16,
+    "observation": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "success": false,
+      "counts": {
+        "tests": 4358,
+        "failed": 16,
+        "passed": 4342,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 4358,
+        "suites": 0
+      }
+    },
+    "failures": [
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/motan-python-repr.test.ts",
+        "name": "Unicode 15 printability and quotes match Python across all codepoints in bounded batches",
+        "line": 28,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/motan-sos-reference.test.ts",
+        "name": "test/motan-sos-reference.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGSEGV",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/motion-graph-retirement.test.ts",
+        "name": "all captured motion configurations preserve full original positions and ten curves",
+        "line": 12,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": "ERR_ASSERTION"
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/native-grid-product.test.ts",
+        "name": "test/native-grid-product.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": 1,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/node-motion-probe.test.ts",
+        "name": "probe records off compiler controls without requiring a C compiler",
+        "line": 39,
+        "column": 45,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": "ERR_ASSERTION"
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/print-layer-pause-compiled.test.ts",
+        "name": "layer pause ownership, file boundary and failure cleanup run in an independent compiled product",
+        "line": 14,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/product-build.test.ts",
+        "name": "product publication is reproducible and preserves prior output on compiler or addon failure",
+        "line": 45,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/product-build.test.ts",
+        "name": "compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports",
+        "line": 57,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/product-client-gateway-compiled.test.ts",
+        "name": "protected client gateway and installed assets run from independent compiled product with unchanged protocol assertions",
+        "line": 14,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/product-native-authorization.test.ts",
+        "name": "test/product-native-authorization.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGSEGV",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/product-native-build.test.ts",
+        "name": "test/product-native-build.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGSEGV",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/sd-flash-build.test.ts",
+        "name": "compiled SD CLI and bundled FatFs run without Python, TS loader or source checkout",
+        "line": 11,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/serial-trigger.test.ts",
+        "name": "test/serial-trigger.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGSEGV",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/spi-temperature.test.ts",
+        "name": "test/spi-temperature.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGSEGV",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/step-history.test.ts",
+        "name": "test/step-history.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGSEGV",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-ufp-diagnostic-integration/host/test/temperature-fan.test.ts",
+        "name": "test/temperature-fan.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGSEGV",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      }
+    ]
+  },
+  "controls": {
+    "passed": 5,
+    "killedFile": "SIGKILL with runner exit 1",
+    "explicitExit": "17 with runner exit 1",
+    "assertion": "ERR_ASSERTION with unknown exit metadata null",
+    "success": "runner exit 0; no failure rows",
+    "boundedLabels": "under 16 KiB; arbitrary errors excluded"
+  },
+  "preservedEarlyObservations": {
+    "initial": "tool-output transcript of spec-only file failure; no child signal",
+    "observed": "same targeted scope with new reporter; file exit 1, signal null",
+    "direct": "direct fixture execution exposed nested spawnSync EPERM in restricted sandbox; not a hardware or numerical diagnosis",
+    "unsandboxed": "four fixture assertions failed because independent runner inherited NODE_TEST_CONTEXT",
+    "fixed": "explicitly remove only NODE_TEST_CONTEXT in the independent control runner; all five controls passed"
+  },
+  "validation": {
+    "typecheck": "passed; empty output",
+    "syntax": "passed",
+    "whitespace": "passed",
+    "productAndDependenciesUnchanged": [
+      "host/src",
+      "host/native",
+      "src",
+      "klippy",
+      "host/package-lock.json",
+      "host/binding.gyp",
+      "host/scripts/build-product-host.ts",
+      "host/tsconfig.product-host.json"
+    ],
+    "performance": "No product runtime change; sealed product performance/mixed evidence reused only within original scope"
+  },
+  "limits": [
+    "No historical exit signal can be reconstructed",
+    "No root cause or G3 closure",
+    "No physical MCU, target performance or precision acceptance",
+    "No fresh Fluidd/Mainsail scene launched",
+    "Full goal, Python retirement and complete Moonraker remain incomplete"
+  ],
+  "evidence": {
+    "path": "ordinary-test-exit-observation.evidence.json.gz",
+    "sha256": "f5dd16615f608c684b3d9eed26697b0c678644d3d70c75beb4ccbb61a489cf83",
+    "bytes": 870081,
+    "entries": 13
+  },
+  "capture": {
+    "inventory": "../../docs/diagnostics/node26-motion-capture-20261008/inventory.json",
+    "inspection": "../../docs/diagnostics/node26-motion-capture-20261008/inspection.json",
+    "scope": "Same-invocation retained inputs; inspection only, no new motion generation or failed-case rerun"
+  }
+}

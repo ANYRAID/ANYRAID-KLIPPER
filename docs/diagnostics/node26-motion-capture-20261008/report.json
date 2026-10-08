@@ -1,0 +1,78 @@
+{
+  "childWorkingDirectory": "/home/dek02/.cache/codex/tmp/anyraid-node-asan-66Nt0Y",
+  "corePolicy": {
+    "filter": "00000033",
+    "pattern": "core",
+    "usesPid": "1",
+    "limits": "Max core file size        0                    unlimited            bytes     "
+  },
+  "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+  "version": "v26.10.0",
+  "nodeSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+  "addonHashes": {},
+  "moduleHashes": {
+    "src/diagnostics/graph-motion.ts": "976fc6717387cdd23f2daffd43a91ae942f71ee6d9defef8e3775596b68544bf",
+    "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+    "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+    "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+    "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+    "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+    "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+  },
+  "compiledHashes": {},
+  "frozenSourceHashes": {},
+  "execution": "source",
+  "system": {
+    "platform": "linux",
+    "arch": "x64",
+    "kernel": "6.18.36-amd64-desktop-rolling",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "cpuAffinity": "0-5"
+  },
+  "kind": "motion",
+  "segv": "default",
+  "asan": "off",
+  "wasmBounds": "trap",
+  "jsOptimization": "off",
+  "args": [
+    "--no-maglev",
+    "--no-turbofan",
+    "/home/dek02/.cache/codex/tmp/anyraid-node-asan-66Nt0Y/fixture.mjs"
+  ],
+  "limit": 1,
+  "workers": 1,
+  "childDeadlineMs": 10000,
+  "outputBudgetBytes": 1048576,
+  "progressChannel": "fd3-ndjson",
+  "fixtureSha256": "42d80dd08baffb9f824ad896a36f779ad110cf3e1ec27227742371ef41205bd8",
+  "startedAt": "2026-10-08T09:02:28.698Z",
+  "updatedAt": "2026-10-08T09:02:29.649Z",
+  "elapsedMs": 950.909376,
+  "state": "failed",
+  "active": [],
+  "coreFiles": [],
+  "mismatchFiles": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-node-asan-66Nt0Y/motion-mismatch-3750822-0.bin",
+      "bytes": 4690925,
+      "sha256": "2359afd3d10045963ba3fbc3a5014ebdafdf9d9a7f11750e1bdf2526d1efdf10"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-node-asan-66Nt0Y/motion-mismatch-3750822-0.bin.repeat",
+      "bytes": 2139444,
+      "sha256": "e17eaaeb47aad77efaa7a8029db183d3641b6e263f98dc54044da5204bd0b617"
+    }
+  ],
+  "results": [
+    {
+      "index": 0,
+      "pid": 3750822,
+      "status": 1,
+      "signal": null,
+      "stdout": "motion:loading\nmotion:loaded\n",
+      "stderr": "file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-66Nt0Y/fixture.mjs:36\n   throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],xor,repeated,capture:capture.href,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));\n         ^\n\nError: Motion numerical mismatch {\"run\":0,\"panel\":0,\"curve\":0,\"index\":4399,\"actual\":68.74704880889482,\"expected\":68.74704004932397,\"error\":0.000008759570846450515,\"xor\":\"0x24df8780\",\"repeated\":68.74704004932397,\"capture\":\"file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-66Nt0Y/motion-mismatch-3750822-0.bin\",\"nearby\":[68.4400609336322,68.59354583124144,68.74704880889482,68.90053354091208,69.05405129749909],\"reference\":[68.4400609336322,68.59354583124144,68.74704004932397,68.90054230048293,69.05405129749909]}\n    at file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-66Nt0Y/fixture.mjs:36:10\n    at Array.forEach (<anonymous>)\n    at file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-66Nt0Y/fixture.mjs:25:12\n    at Array.forEach (<anonymous>)\n    at file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-66Nt0Y/fixture.mjs:23:118\n    at Array.forEach (<anonymous>)\n    at file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-66Nt0Y/fixture.mjs:23:9\n\nNode.js v26.10.0\n",
+      "progress": "{\"run\":0,\"stage\":\"positions\",\"elapsedMs\":156.969529,\"resources\":{\"userCPUTime\":159882,\"systemCPUTime\":26980,\"maxRSS\":161612,\"sharedMemorySize\":0,\"unsharedDataSize\":0,\"unsharedStackSize\":0,\"minorPageFault\":14906,\"majorPageFault\":0,\"swappedOut\":0,\"fsRead\":0,\"fsWrite\":0,\"ipcSent\":0,\"ipcReceived\":0,\"signalsCount\":0,\"voluntaryContextSwitches\":119,\"involuntaryContextSwitches\":98}}\n{\"run\":0,\"stage\":\"plots\",\"elapsedMs\":159.948215,\"resources\":{\"userCPUTime\":162046,\"systemCPUTime\":28008,\"maxRSS\":161612,\"sharedMemorySize\":0,\"unsharedDataSize\":0,\"unsharedStackSize\":0,\"minorPageFault\":15491,\"majorPageFault\":0,\"swappedOut\":0,\"fsRead\":0,\"fsWrite\":0,\"ipcSent\":0,\"ipcReceived\":0,\"signalsCount\":0,\"voluntaryContextSwitches\":128,\"involuntaryContextSwitches\":100}}\n{\"run\":0,\"stage\":\"comparison\",\"elapsedMs\":447.028113,\"resources\":{\"userCPUTime\":447349,\"systemCPUTime\":30023,\"maxRSS\":161612,\"sharedMemorySize\":0,\"unsharedDataSize\":0,\"unsharedStackSize\":0,\"minorPageFault\":16129,\"majorPageFault\":0,\"swappedOut\":0,\"fsRead\":0,\"fsWrite\":0,\"ipcSent\":0,\"ipcReceived\":0,\"signalsCount\":0,\"voluntaryContextSwitches\":170,\"involuntaryContextSwitches\":206}}\n",
+      "elapsedMs": 791.342815
+    }
+  ]
+}

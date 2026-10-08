@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "source": "One necessary full npm test with new failure reporter; no rerun of failed motion case",
+  "files": [
+    {
+      "file": "motion-mismatch-3750822-0.bin.gz",
+      "rawSha256": "2359afd3d10045963ba3fbc3a5014ebdafdf9d9a7f11750e1bdf2526d1efdf10",
+      "rawBytes": 4690925,
+      "compressedSha256": "3fda69c7012dd1729aa178d7eba01ff8866b94a5d0c5ae305a86207ad056350b",
+      "compressedBytes": 2588884
+    },
+    {
+      "file": "motion-mismatch-3750822-0.bin.repeat.gz",
+      "rawSha256": "e17eaaeb47aad77efaa7a8029db183d3641b6e263f98dc54044da5204bd0b617",
+      "rawBytes": 2139444,
+      "compressedSha256": "015d85e1403c1896f4db5333b02ed67716cf3bed9f7ab6b7dc2603a2171021be",
+      "compressedBytes": 1031263
+    }
+  ],
+  "scope": "Same-invocation raw arrays and original comparison; no tolerance or runtime change, no root-cause or G3 closure",
+  "textFiles": [
+    {
+      "file": "report.json",
+      "bytes": 5572,
+      "sha256": "7702cc10b83651011a8913f0fdcff34a45e732e9865cd3fbbee3712c1ab3dace"
+    },
+    {
+      "file": "fixture.mjs",
+      "bytes": 3817,
+      "sha256": "42d80dd08baffb9f824ad896a36f779ad110cf3e1ec27227742371ef41205bd8"
+    },
+    {
+      "file": "inspection.json",
+      "bytes": 10736,
+      "sha256": "0d82f6cce92ca41a4d180d388de7a0d21ef71dc20dd7f4e99f8f12a200cb7764"
+    }
+  ]
+}
