@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "scope": "Observed startup-dependent fixture repair and preserved CI failures. No production change, physical motion validation or all historical failure closure.",
+  "previousHead": "bffeaae022aa0475025e45540eb2ee03fe1a1d9b",
+  "ci": {
+    "host": {
+      "run": 37729908725,
+      "job": 113156441881,
+      "tests": 4222,
+      "passed": 4219,
+      "failed": 3,
+      "conclusion": "failure",
+      "skipped": [
+        "native protocol",
+        "sanitizer",
+        "Linux MCU"
+      ]
+    },
+    "firmware": {
+      "run": 37729908741,
+      "conclusion": "success"
+    },
+    "failures": [
+      "connected-printer reverse false: required calibration plan outside horizon",
+      "connected-printer reverse true: required calibration plan outside horizon",
+      "serial-motion: fixed 1.8 s movement before actual position observation"
+    ],
+    "unchangedHeadRerun": false
+  },
+  "observations": {
+    "before": "7/10, same three failures: aux current1.861859/1.830200, reserved3.050000/3.050010, one-second upper2.861859/2.830200; serial observed1.818224 vs hardcoded motion1.8",
+    "afterFirst": "8/10: idle maintenance appended an additional segment during wait; pulse assertion included zero-count position marker",
+    "afterSecond": "9/10: direct forcePosition raced with original idle maintenance. Initial pulse assertion equation reviewed against C and corrected before final source run; this 9/10 is not final evidence",
+    "final": "10/10 source controls; normal G-code exclusive owner blocks competing idle maintenance during one reservation-based wait, exact +1 segment; actual MCU-observed future movement, original100 steps and parsed wire equality, native past-history rejection, every real pulse after observed clock",
+    "compiled": "66/66 independently compiled affected controls with no TS loader",
+    "wholeFdGroup": "125/125 in one bounded run with readonly fd snapshots (83/83/83). Original124/125 failure retained; added awaits perturb scheduling, no root cause claim",
+    "typecheck": "Full locked project passed",
+    "whitespace": "Required check performed after documentation and archive creation"
+  },
+  "behavior": {
+    "adc": "Do not move floor(currentPrintTime+1.5)+OID reservation; when outside horizon assert false with unchanged timeline/mapping, then wait once for actual fence with 50 ms setup margin and <1500 ms bound. Final positive call is not retried.",
+    "ownership": "Use existing runExclusive; do not disable timer, bypass maintenance guards or change production cadence.",
+    "serial": "Future start from current actual mapping + original 120 ms lead; same .1 s cruise, speed10, stepDistance.01 and 100 steps. Invalid past queue is rejected without sending motion.",
+    "precision": "C native history, count, compression/payload checks and all motion protection remain unchanged"
+  },
+  "product": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "productionJavaScriptMatched": 636,
+    "allProductionJsUnchanged": true,
+    "product": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-startup-calibration-product",
+      "manifestSha256": "1bf9c05c0a7e04da4a148c7afd6eff152b25afd0a2f0708635bb7aa54cc250cf",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "baseline": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-startup-calibration-baseline-product",
+      "manifestSha256": "4b721ffb448502f03e800f350387976012244e4adc3e1cb92d56df38d7874f07",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "sourceFingerprints": {
+      "host/test/connected-printer.test.ts": "48613a7587c69c1061e27f423ea58b86ba0939e02b2771c2942868917b11e876",
+      "host/test/serial-motion.test.ts": "dfcad1ff45b6517fe62d1ee3811b172623073b81543ecd5aaa84dbb6644219a8"
+    }
+  },
+  "performance": {
+    "executedAgain": false,
+    "reused": "Previous ABBA5000 fixed-reference runtime samples and original full mixed workload from clock-startup-calibration-acceptance.json",
+    "condition": "All636 current productionJS match sealed B; production TS/C/build inputs and dependency locks unchanged; A/B package manifests/dependency hashes unchanged after tests",
+    "limit": "No new sample count, target-board speed or security dependency acceptance claimed. Locked B remains sharp0.35.4; independent PR44 owns0.35.5."
+  },
+  "originalEvidence": {
+    "path": "clock-startup-calibration-acceptance.evidence.json.gz",
+    "sha256": "ed3e1fd6b90b58ef82ded85f6938bb6f8845cb00c92e6616e73a13ca639a7bcf",
+    "unchanged": true
+  },
+  "evidence": {
+    "path": "clock-startup-fixture-acceptance.evidence.json.gz",
+    "sha256": "e52c0bede983b21c9c35b4493a20d77bc29162382af0bdaf814393954c03cfa0",
+    "bytes": 235539,
+    "entries": 37
+  },
+  "unresolved": [
+    "Current new head required complete CI",
+    "Original whole-process fd failure explanation",
+    "PR44 integration and combined product acceptance",
+    "Complete fixed Fluidd/Mainsail client journey",
+    "Cycnumbris500 target performance and motion precision",
+    "G3",
+    "Complete Moonraker and Python retirement",
+    "Mainline release"
+  ]
+}

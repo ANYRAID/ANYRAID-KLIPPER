@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "scope": "PR44 actual required CI completion and normal develop merge; graph synchronization of prevalidated local composition only. PR41 exact head and post-merge checks remain live, no deployment or G3 closure.",
+  "pr44": {
+    "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/44",
+    "head": "794fcf547ec81150fe6bcf8f8c2771a365631ebb",
+    "mergedAt": "2026-10-08T05:43:05Z",
+    "mergeCommit": "4ef5e28f6b3992d19a15e182f9814052e7ffdbd2",
+    "method": "Normal merge PR into develop with Chinese title/body; user-authorized self-review, all12 required checks completed before merge",
+    "host": {
+      "run": 37730692231,
+      "job": 113158891151,
+      "conclusion": "success",
+      "ordinaryPassed": 4206,
+      "ordinaryTests": 4206,
+      "protocol": "success",
+      "sanitizer": "success",
+      "linuxMcu": "success"
+    },
+    "firmware": {
+      "run": 37730692177,
+      "conclusion": "success"
+    },
+    "motion": {
+      "run": 37730692199,
+      "jobs": 10,
+      "conclusion": "all success"
+    },
+    "apiMerge": "Integration endpoint returned403 Resource not accessible by integration, no merge effect; authorized signed-in owner performed same normal PR merge in built-in browser, confirmed UI/API/Git ancestry",
+    "identity": "Web merge authored by current signed-in GitHub identity arthasxkyang with its verified GitHub noreply address; local task commits retain configured arthasxkyang identity",
+    "failedOldHeadPreserved": "dde3aa8c APT cancellation and all original raw evidence retained; no unchanged-head retry"
+  },
+  "postMerge": {
+    "commit": "4ef5e28f6b3992d19a15e182f9814052e7ffdbd2",
+    "host": {
+      "run": 37733779385,
+      "job": 113168623320,
+      "status": "in progress ordinary tests"
+    },
+    "firmware": {
+      "run": 37733779394,
+      "job": 113168623505,
+      "status": "in progress"
+    },
+    "motion": {
+      "run": 37733779348,
+      "status": "2 success,2 in progress,6 queued at recorded read"
+    },
+    "required": "Await each exact-commit terminal result; PR success does not replace post-merge verification"
+  },
+  "composition": {
+    "preparedCommit": "a0091188",
+    "parents": [
+      "f167815d423dd4d9e8d05523ea9cee78fe46ed22",
+      "794fcf547ec81150fe6bcf8f8c2771a365631ebb"
+    ],
+    "latestDevelopMergedNormally": "4ef5e28f6b3992d19a15e182f9814052e7ffdbd2",
+    "productionInputDifference": "Empty after normal graph synchronization",
+    "product": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-sharp-composition-product",
+      "manifestSha256": "f27b81b030972b1a9fae4f33985c217af34978f7ba093adc3eb506d565dd9df3",
+      "dependenciesSha256": "9844b3cfccd671b7fb1f3b57b98b489ce9efeca1003a7c73c5d54037403d922c"
+    },
+    "previousEvidence": {
+      "path": "clock-sharp-composition-acceptance.evidence.json.gz",
+      "sha256": "dbb3f387b612abdf9792b208f893429500d4148d1aaad990f120f973e613aeb3",
+      "unchanged": true
+    },
+    "validationReuse": "Previous105 compiled controls, original complete mixed1/1,5000 fixed-reference run apply to same immutable product and unchanged inputs; no rerun or sample accumulation for documentation/graph update",
+    "previousPerformanceLimit": "Retain unpaired status/upload tail increase and original sharp thumbnail+27%; no target board or zero-regression claim",
+    "pr41": "Exact f167 head and current CI unchanged; host37731996827 sanitizer live, firmware37731996790 succeeded. Do not update until existing exact-head run is terminal."
+  },
+  "evidence": {
+    "path": "clock-sharp-integration-preparation.evidence.json.gz",
+    "sha256": "b588208d02d37d67797dc039c00624c76f6cfc80bfd1ea805a09b36b3cdca782",
+    "bytes": 411536,
+    "entries": 6
+  },
+  "unresolved": [
+    "PR41 exact-head terminal CI",
+    "New combined-head CI and normal PR integration",
+    "Develop4ef5 post-merge terminal CI",
+    "Historical global fd failure explanation",
+    "Complete same-package Fluidd/Mainsail client outlet",
+    "Cycnumbris500 target performance and motion precision",
+    "G3",
+    "Complete Moonraker and Python retirement",
+    "Mainline release"
+  ]
+}

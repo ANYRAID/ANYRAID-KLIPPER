@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "scope": "Bounded software startup calibration candidate, not physical convergence, all historical CI root causes, target-board speed, complete clients or G3 closure.",
+  "base": "c7a2bda3e84dab5120790ea9ef64dc45e27d93c8",
+  "develop": "2911bd447ccca1999765b16ae797a25c90d38415",
+  "runtime": {
+    "node": "v26.10.0",
+    "nodeSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+    "typescript": "7.0.2"
+  },
+  "sourceFingerprints": {
+    "host/src/timing/clock-runtime.ts": "860d139b20eb2cc5558421fbb27b74b828337f8d34dec8cfbc546d18a0aeff6e",
+    "host/src/timing/clock-sync.ts": "296aef1e98374d42e8324f3789be490db336a42fdf6837499e3f11b0cbc3a562",
+    "host/src/protocol/serial-session.ts": "6422390a8b0d1c1598ecdeb1ceaa2b23ece409a99b8a4e1bde079900445befc9",
+    "host/test/clock-startup-calibration.test.ts": "bb77de472c8c6ed99bff7bc28d916e4485aea9be41bbf056074eb476f3796766",
+    "host/test/clock-fault-diagnostic.test.ts": "94d26e9d44071681f7b686f918fc1721cc8c6047f1212f88ca542d7b8b4add04",
+    "host/test/native-product-process-lifetime.test.ts": "78cf1c58e2a64ba69cbca38eff0351adb0a7b21305f6638f54e07c276b6c431d",
+    "host/bench/clock-runtime.ts": "9579daa4b68956eb43690c243ef01c5bcdf00b04d6c09b28f65d76a7c8065f93",
+    "host/bench/clock-startup-anchor-observation.ts": "84049a4f8cacf749df4e6babcd512b1ccfc043836ffd6d420f086f9ab2c0dac5",
+    "host/contracts/clock-startup-anchor-observation.json": "726b07d55ce7c4ba5acc13ee78dd2715c0a4845dfc6b6b01188b35e766eaca3d",
+    "host/acceptance/product-compiled-journey.test.ts": "c9bb4aaa3743db505771ade1adb3cc6593d265a07f54769d99072313482225e7"
+  },
+  "behavior": {
+    "originalWarmup": 8,
+    "anchor": "Strictly shorter measured RTT, real known-time reply, complete validated uint64 counter; no synthetic counter",
+    "calibrationQueriesMaximum": 8,
+    "calibrationSpacingSeconds": 0.05,
+    "calibrationDeadlineSeconds": 4.9195,
+    "normalUsableReplyRequired": true,
+    "activePeriodSeconds": 0.9839,
+    "activeLeaseSeconds": 4.9195,
+    "math": "ClockSync and original C motion unchanged",
+    "cost": "An improved anchor adds up to eight fresh replies, typically about 400 ms warmup per MCU; unavailable replies fail within one stale interval"
+  },
+  "validation": {
+    "sourceInitial": "7/8; captured prefix timer rounding not modeled; preserved",
+    "sourceCorrected": "8/8 before ninth observer case",
+    "sourceRegression": "77/78; active-query observer fixture failed at newly required first ordinary startup reply; moved injection after admission, keeping original cause/stop/timer assertions",
+    "compiledRegression": "124/125; sole original global fd growth assertion failed, no waiver",
+    "constrainedInitial": "Runner attempted child process and was denied before executing tests",
+    "constrainedFinal": "9/9 compiled startup controls with --test-isolation=none, no TS loader, child/addon permission or external PATH",
+    "fdObservation": "Same original three-generation assertion plus read-only symlink snapshots: 83/83/83; does not explain prior whole-group failure",
+    "typecheck": "Full locked project passed",
+    "whitespace": "Required check and git diff --check passed",
+    "mixed": "1/1 original 1000-move, two software MCU/two-generation mixed workload; original selector, 90 s child/180 s outer and assertions; no supplementary BENCH switches; not PR50 UFP/disk workload",
+    "ci": "Current new head not yet run; PR41 old 6f753d47 run37644492197 4185/4186 retained, not cleared"
+  },
+  "product": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "baseline": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-startup-calibration-baseline-product",
+      "manifestSha256": "4b721ffb448502f03e800f350387976012244e4adc3e1cb92d56df38d7874f07",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "candidate": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-startup-calibration-product",
+      "manifestSha256": "1bf9c05c0a7e04da4a148c7afd6eff152b25afd0a2f0708635bb7aa54cc250cf",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "changed": [
+      "host/src/timing/clock-runtime.js"
+    ],
+    "jsCount": 636,
+    "allNativeIdentical": true,
+    "originalMixedDriverSha256": "922282036ec3d4b84335efcae82c91d01e3565303e6ce934ce5c03b75472af98"
+  },
+  "performance": {
+    "plan": "raw/anyraid-clock-startup-calibration-performance-plan.json",
+    "order": [
+      {
+        "label": "A",
+        "medianMs": 0.005159999999989395,
+        "p95Ms": 0.013639999999995212,
+        "maxMs": 1.5701080000000047,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9
+      },
+      {
+        "label": "B",
+        "medianMs": 0.004870000000011032,
+        "p95Ms": 0.006990999999999303,
+        "maxMs": 0.35350400000000093,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9
+      },
+      {
+        "label": "B",
+        "medianMs": 0.004940000000004829,
+        "p95Ms": 0.008309999999994488,
+        "maxMs": 0.5696070000000049,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9
+      },
+      {
+        "label": "A",
+        "medianMs": 0.005079999999992424,
+        "p95Ms": 0.011740000000003192,
+        "maxMs": 3.112035999999989,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9
+      }
+    ],
+    "summary": {
+      "baselineMedianMs": 0.00511999999999091,
+      "candidateMedianMs": 0.004905000000007931,
+      "medianRatio": 0.9580078125032498,
+      "baselineP95Ms": 0.012689999999999202,
+      "candidateP95Ms": 0.007650499999996896,
+      "p95Ratio": 0.6028762805356483
+    },
+    "scope": "Desktop fake scheduler overhead with unchanged frozen reference; no live Python, physical wire or statistical speed guarantee"
+  },
+  "coldNegativeControl": {
+    "file": "raw/anyraid-clock-startup-calibration-negative-control-validation.json",
+    "scope": "Same wire sequence; A premature active at 0.4447 s then query timeout at usable lease boundary, B active at1.8294 s and still active at8 s with 1 MHz; query17 delayed only B reaches it before failure. Initial assertions mistook active failure for startup rejection then expected expiry error; both errors/raw observations retained, final read-only validation uses terminal observed failure without another execution."
+  },
+  "numericalBenchmarks": {
+    "periodic": "5000 samples, 4617 accepts, max tick/frequency error 0; unchanged historical reference gate passed",
+    "demand": "5000 samples, 4617 accepts, max tick/frequency error 0; unchanged historical reference gate passed"
+  },
+  "mixed": {
+    "statusRequests": 41622,
+    "statusP99Ms": 4.131056999998691,
+    "minimumStepLeadMs": 81.305,
+    "wireSteps": 7512,
+    "directoryP99Ms": 39.71486200000072,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 2.187263,
+          "maxMs": 20.725759
+        },
+        "cpu": {
+          "user": 13016106,
+          "system": 2430205
+        },
+        "rss": 357748736
+      },
+      {
+        "loop": {
+          "p99Ms": 1.966079,
+          "maxMs": 16.179199
+        },
+        "cpu": {
+          "user": 8668779,
+          "system": 1860562
+        },
+        "rss": 415952896
+      }
+    ]
+  },
+  "dependencyGate": {
+    "advisory": "https://github.com/advisories/GHSA-wq5f-xc86-pv6w",
+    "affected": "sharp <0.35.5",
+    "patched": "0.35.5",
+    "status": "Actual high advisory in both original locked comparison packages; no deployment, no audit waiver, no mutation of sealed dependencies; separate source/lock repair and fresh product validation required"
+  },
+  "evidence": {
+    "path": "clock-startup-calibration-acceptance.evidence.json.gz",
+    "sha256": "ed3e1fd6b90b58ef82ded85f6938bb6f8845cb00c92e6616e73a13ca639a7bcf",
+    "bytes": 325411,
+    "entries": 69
+  },
+  "unresolved": [
+    "Original whole-group fd assertion",
+    "Current-head complete required CI",
+    "sharp advisory",
+    "Complete fixed Fluidd/Mainsail journey",
+    "Cycnumbris 500 target board performance and motion precision",
+    "G3",
+    "177 klippy Python files and release"
+  ]
+}

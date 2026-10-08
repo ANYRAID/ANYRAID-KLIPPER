@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "scope": "Anticipatory software composition of two in-flight PR heads, with fresh independent product and original mixed regression; not normal integration, physical printing, complete clients, all historical CI roots or G3 closure",
+  "parents": {
+    "clock": "f167815d423dd4d9e8d05523ea9cee78fe46ed22",
+    "sharp": "794fcf547ec81150fe6bcf8f8c2771a365631ebb",
+    "develop": "2911bd447ccca1999765b16ae797a25c90d38415"
+  },
+  "product": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "oldClock": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-startup-calibration-product",
+      "manifestSha256": "1bf9c05c0a7e04da4a148c7afd6eff152b25afd0a2f0708635bb7aa54cc250cf",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "sharp": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-sharp-created-product-bundle",
+      "manifestSha256": "67d297e09cf71f50671735ac3d700088f1ecbb4be217a614cef9ee0311239432",
+      "dependenciesSha256": "9844b3cfccd671b7fb1f3b57b98b489ce9efeca1003a7c73c5d54037403d922c"
+    },
+    "combined": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-sharp-composition-product",
+      "manifestSha256": "f27b81b030972b1a9fae4f33985c217af34978f7ba093adc3eb506d565dd9df3",
+      "dependenciesSha256": "9844b3cfccd671b7fb1f3b57b98b489ce9efeca1003a7c73c5d54037403d922c"
+    },
+    "changedFromSharp": [
+      "host/src/timing/clock-runtime.js"
+    ],
+    "changedFromClock": [
+      "package-lock.json",
+      "package.json"
+    ],
+    "jsCount": 636,
+    "native": "Byte-identical accepted clock outputs, no new C build",
+    "actualSharp": {
+      "aom": "3.15.1",
+      "archive": "3.8.9",
+      "cairo": "1.18.6",
+      "cgif": "0.5.4",
+      "exif": "0.6.26",
+      "expat": "2.8.5",
+      "ffi": "3.8.0",
+      "fontconfig": "2.18.3",
+      "freetype": "2.14.3",
+      "fribidi": "1.0.17",
+      "glib": "2.90.0",
+      "harfbuzz": "14.5.0",
+      "heif": "1.23.5",
+      "highway": "1.4.0",
+      "imagequant": "2.4.1",
+      "lcms": "2.19.1",
+      "mozjpeg": "0826579",
+      "pango": "1.58.2",
+      "pixman": "0.46.4",
+      "png": "1.6.58",
+      "proxy-libintl": "0.5",
+      "rsvg": "2.63.2",
+      "tiff": "4.7.2",
+      "uhdr": "2.0.2",
+      "vips": "8.18.7",
+      "webp": "1.6.0",
+      "xml2": "2.15.4",
+      "zlib-ng": "2.3.3",
+      "sharp": "0.35.5"
+    },
+    "driverSha256": "922282036ec3d4b84335efcae82c91d01e3565303e6ce934ce5c03b75472af98"
+  },
+  "validation": {
+    "controls": "105/105 compiled controls, no TS loader, includes AHT, actual clock fences, connected MCUs, lifetime original fd assertion",
+    "fd": "83/83/83 with read-only snapshots; does not explain original prior 124/125 failure; no tolerance change",
+    "mixed": "1/1 fresh original full mixed workload, 1000 movements, two software MCUs/two generations, original 90s child/180s test deadlines and every original assertion; supplementary BENCH environment removed",
+    "fullTypecheck": "Passed using correct host working directory; first duplicated host path MODULE_NOT_FOUND preserved separately",
+    "build": "Fresh product JS, accepted unchanged native bytes copied and patched production dependencies independently copied; first sandbox child EPERM preserved, authorized build succeeded",
+    "unchangedArchives": {
+      "clock-startup-calibration-acceptance.evidence.json.gz": "ed3e1fd6b90b58ef82ded85f6938bb6f8845cb00c92e6616e73a13ca639a7bcf",
+      "clock-startup-fixture-acceptance.evidence.json.gz": "e52c0bede983b21c9c35b4493a20d77bc29162382af0bdaf814393954c03cfa0",
+      "sharp-update-evidence.json.gz": "5a11b25cb878248f81acfd50ab16361ef11836a1c9d7bb3ddd7315e0a997089a",
+      "sharp-created-evidence.json.gz": "1d66fe91d47ddf4ddf923fa7bcb4adc983c521c3ed31c255ee3d45128fe7f2e3",
+      "sharp-baseline-sync-evidence.json.gz": "c73c91b7049ebfe00191cce1b324da8de110cfc52f3fda6831b6278f02b6270c"
+    }
+  },
+  "performance": {
+    "clock": {
+      "steadyQueries": 5000,
+      "estimatesCompared": 5008,
+      "maxClockError": 0,
+      "maxFrequencyError": 1.1641532182693481e-9,
+      "callbackMedianMs": 0.004829999999998336,
+      "callbackP95Ms": 0.006979999999998654,
+      "callbackMaxMs": 0.37013499999999055,
+      "reference": {
+        "kind": "frozen independent Python numerical reference",
+        "capturedAt": "2026-10-07",
+        "sha256": "94fdae4b8aaf433c87c780c2ed31eac4feb173a46247554e4f4b98cb39ce457f"
+      },
+      "scope": "One current composition fixed numerical-reference run; no matched ABBA comparison or new comparative speed claim"
+    },
+    "mixed": {
+      "statusRequests": 42923,
+      "statusP99Ms": 6.596928999999363,
+      "minimumStepLeadMs": 83.271,
+      "wireSteps": 7938,
+      "uploads": 16,
+      "uploadP95Ms": 84.71826599999622,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.984511,
+            "maxMs": 19.447807
+          },
+          "cpu": {
+            "user": 13455053,
+            "system": 2349549
+          },
+          "rss": 309878784
+        },
+        {
+          "loop": {
+            "p99Ms": 2.312191,
+            "maxMs": 33.325055
+          },
+          "cpu": {
+            "user": 9015902,
+            "system": 1946288
+          },
+          "rss": 384344064
+        }
+      ],
+      "queueDurableMutations": 64
+    },
+    "limits": "Desktop bounded observation. Original positive step lead, event-loop P99<50ms/max<100ms and stop/recovery/assertions retained. Status P99 6.597ms is above earlier separate clock4.131/sharp4.296 single runs; uploadP95 84.718ms above prior sharp51.474ms. Unpaired single runs do not isolate dependency/clock causation; retain these observations, no zero-regression or target budget claim.",
+    "reuse": {
+      "sharpImageABBA": "All product JS except clock-runtime, native and actual image dependencies match sharp security package. Reuse original independent PNG/SVG ABBA32 per item; original thumbnailP95+27% remains. No new image sample count.",
+      "clockABBA": "Prior original A/B 5000 callback ABBA remains historical unchanged clock-path evidence; current single fixed-reference result above does not replace it."
+    },
+    "execution": "Sequential; no concurrent local build, test or install during mixed or clock timing"
+  },
+  "ci": {
+    "lastSuccessfulStatusRead": "2026-10-08 05:37 UTC",
+    "clock": {
+      "hostRun": 37731996827,
+      "host": "ordinary and protocol passed; sanitizer live; Linux MCU pending",
+      "firmwareRun": 37731996790,
+      "firmware": "success"
+    },
+    "sharp": {
+      "hostRun": 37730692231,
+      "host": "ordinary and protocol passed; sanitizer live; Linux MCU pending",
+      "firmwareRun": 37730692177,
+      "firmware": "success",
+      "motionRun": 37730692199,
+      "motion": "all 10 success"
+    },
+    "retrieval": "05:38:51 UTC connector transport errors saved; not workflow failures or terminal completion",
+    "inFlightHeadsUnchanged": true,
+    "unchangedHeadRetries": false
+  },
+  "evidence": {
+    "path": "clock-sharp-composition-acceptance.evidence.json.gz",
+    "sha256": "dbb3f387b612abdf9792b208f893429500d4148d1aaad990f120f973e613aeb3",
+    "bytes": 235718,
+    "entries": 38
+  },
+  "unresolved": [
+    "Complete exact-head CI and normal develop integration",
+    "Combined candidate own CI / post-merge verification",
+    "Prior fd failure explanation",
+    "Original UFP/disk candidate separate outlet",
+    "Complete fixed Fluidd/Mainsail journey",
+    "Cycnumbris500 target board performance and motion precision",
+    "G3",
+    "Complete Moonraker and all Python retirement",
+    "Mainline release"
+  ]
+}
