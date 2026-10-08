@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "6c2b86edf50ddc03a02d6e1e9bf8ea62e5f674bb",
+  "hostRun": 37741694535,
+  "hostJobs": [
+    {
+      "id": 113193631715,
+      "name": "checks",
+      "conclusion": "success"
+    },
+    {
+      "id": 113193631853,
+      "name": "sanitizer (asan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113193631913,
+      "name": "sanitizer (ubsan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113197817927,
+      "name": "host",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "pass": 4226,
+    "fail": 0
+  },
+  "sanitizer": {
+    "commands": 314,
+    "exactOriginalCommandMatch": true,
+    "allExitZero": true
+  },
+  "firmware": {
+    "run": 37741694455,
+    "job": 113193630977,
+    "conclusion": "success"
+  },
+  "timing": {
+    "windows": {
+      "113193631715": {
+        "first": "2026-10-08T07:09:23.9810183Z",
+        "last": "2026-10-08T07:22:03.8699346Z"
+      },
+      "113193631853": {
+        "first": "2026-10-08T07:09:16.4999869Z",
+        "last": "2026-10-08T07:21:41.6852510Z"
+      },
+      "113193631913": {
+        "first": "2026-10-08T07:09:18.0559090Z",
+        "last": "2026-10-08T07:20:53.3126659Z"
+      },
+      "113197817927": {
+        "first": "2026-10-08T07:22:10.5890801Z",
+        "last": "2026-10-08T07:22:10.8456268Z"
+      }
+    },
+    "combinedLogWindowMs": 774346,
+    "scope": "Single CI log window, excludes initial queue; no paired speedup or runtime performance inference."
+  },
+  "evidence": {
+    "path": "develop-6c2-terminal.evidence.json.gz",
+    "sha256": "3fb90ac75b7aef631b24f1fedcef249143c6410bad00db193e805d06e30e52e4",
+    "bytes": 570613,
+    "entries": 7
+  },
+  "scope": "Actual develop PR52 merge-result CI; PR50, clients, target board and G3 remain separate."
+}

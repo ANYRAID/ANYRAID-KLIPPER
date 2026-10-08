@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "bf310300033492dc738c6bfecc045a912d34a784",
+  "host": {
+    "run": 37738931475,
+    "job": 113184865806,
+    "ordinary": {
+      "pass": 4222,
+      "fail": 0
+    },
+    "protocol": "success",
+    "sanitizer": {
+      "commands": 314,
+      "exactOriginalReferenceMatch": true,
+      "allExitZero": true
+    },
+    "linuxMcu": "success",
+    "conclusion": "success"
+  },
+  "firmware": {
+    "run": 37738931541,
+    "job": 113184864799,
+    "conclusion": "success"
+  },
+  "evidence": {
+    "path": "develop-bf-terminal.evidence.json.gz",
+    "sha256": "a30e09ffb7eb3f55a065947a07d2e4256c9e35df373d87c62a663a3f45e418a7",
+    "bytes": 556906,
+    "entries": 4
+  },
+  "scope": "Actual develop merge-result CI for PR41, separate from its own-head and subsequent PR52/PR50 runs. No G3, target-board or default-switch claim."
+}

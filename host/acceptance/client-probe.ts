@@ -38,7 +38,7 @@ try{
   bootstrap=(async()=>{
    const response=await fetch(upstream+'/access/user',{method:'POST',headers:{'content-type':'application/json','x-api-key':key},body:JSON.stringify({username:'operator',password:'client-test-only'})});if(response.status!==200)throw new Error('User bootstrap failed');await response.arrayBuffer();
    const sample=new FormData();sample.append('file',new Blob(['G90\nG92 E0\n'+Array.from({length:1000},(_,i)=>'G1 X'+((i+1)/100)+' E'+((i+1)/1000)+' F60\n').join('')+'M400\n']),'client-sample.gcode');sample.append('file_id','client-sample');sample.append('root','gcodes');
-   const uploaded=await fetch(upstream+'/server/files/upload',{method:'POST',headers:{'x-api-key':key},body:sample});if(uploaded.status!==200)throw new Error('Sample upload failed');await uploaded.arrayBuffer();initialized=true;
+   const uploaded=await fetch(upstream+'/server/files/upload',{method:'POST',headers:{'x-api-key':key},body:sample});if(uploaded.status!==201)throw new Error('Sample upload failed: HTTP '+uploaded.status);await uploaded.arrayBuffer();initialized=true;
    console.log('CLIENT_SAMPLE client-sample.gcode (seeded by API)');server.listen(port,'127.0.0.1',()=>console.log('CLIENT_READY http://127.0.0.1:'+port));
   })().catch(error=>{console.error(error);abort.abort();});
  },trustedLoopback,{fixture,reuseBuild:processGeneration>1});

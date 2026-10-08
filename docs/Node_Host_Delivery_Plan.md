@@ -1,7 +1,7 @@
 # Klipper 与 Moonraker 集成交付计划
 
-审计日期：2026-10-08；当前 develop：`bf310300033492dc738c6bfecc045a912d34a784`（合并后 CI 在途）；
-最近完整核验 develop：`4ef5e28f6b3992d19a15e182f9814052e7ffdbd2`。
+审计日期：2026-10-08；当前 develop：`6c2b86edf50ddc03a02d6e1e9bf8ea62e5f674bb`（合并后 CI 全部通过）；
+最近完整核验 develop：`6c2b86edf50ddc03a02d6e1e9bf8ea62e5f674bb`。
 此前核验基线 `2911bd447ccca1999765b16ae797a25c90d38415`、
 `6ff1a391f4a1b4ba9cc8360a0a326da6a7fd695e` 和
 `207fc578d66d29d49b530057255f14b8bd01adfd` 的证据按原范围保留。
@@ -74,6 +74,21 @@ Moonraker。当前系列无运动准备与有判别力的 G3 观测可穿插推�
 缺少的授权／资料并报告阻塞，不以重复检查维持“正在推进”。
 
 ### 当前状态与下一动作
+
+PR #41 的 develop `bf310300` 合并后主机和固件全部通过；普通
+4222／4222、协议、原 314 条 sanitizer 命令及 Linux MCU 构建成功。
+PR #52 的上述最新 develop 合并后普通 4226／4226、协议、原 314 条
+sanitizer 命令、Linux MCU、固件及最终门禁全部成功。原始终态见
+[启动合并后记录](../host/contracts/develop-bf-terminal.json)与
+[并行检查合并后记录](../host/contracts/develop-6c2-terminal.json)。
+Moonraker #50 已正常快进至 `e5bf76b2`，七路原性能预算和原完整混合
+负载的本机证据通过，当前头自身 CI 在途，不变更或重跑旧头。
+客户端准备审查发现夹具预置上传仍要求旧 HTTP 200，而标准产品
+返回 HTTP 201；独立候选仅修正严格预期并保留实际失败状态。全量
+类型、空白及既有编译 HTTP 控制通过，未启动客户端场次；原自动审批
+拒绝和待答授权继续有效，见[夹具回执准备](../host/contracts/client-fixture-created-receipt.json)。
+
+以下按原头保留历史状态，不覆盖以上当前核验。
 
 PR #44 已正常合入此前 develop `4ef5e28f`。该合并提交的主机 37733779385、
 固件 37733779394 和十项运动诊断 37733779348 共 12 项终态成功；

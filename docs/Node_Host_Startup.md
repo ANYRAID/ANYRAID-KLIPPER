@@ -2758,6 +2758,10 @@ node host/acceptance/client-probe.ts /absolute/path/to/frontend 18326
 时通过原生 API 预置 client-sample.gcode（千段短直线与挤出运动），这不代表
 页面上传已验收。探针会构建并独立安装编译包依赖，在禁用 TS 加载和外部
 PATH 工具的子进程中运行产品；PTY、限位与温度模拟留在父进程。
+预置上传严格要求标准 HTTP 201；旧的 HTTP 200 预期会在页面启动前
+误报失败。此夹具修正不修改产品上传接口、15 分钟期限或运行授权，
+也不构成实际客户端通过，见
+[夹具回执准备记录](../host/contracts/client-fixture-created-receipt.json)。
 限位事件遵循 MCU 时钟，加热器输出 PWM 后 ADC 切换为固定热态值；
 这只是软件流程模拟，不是物理升温／冷却模型。现采用 createProcess 工厂，
 在所有设备代际保留原模拟 MCU、数据库、文件和历史。RESTART 复用有效
