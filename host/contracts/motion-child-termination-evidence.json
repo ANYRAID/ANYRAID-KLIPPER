@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base": "6c2b86edf50ddc03a02d6e1e9bf8ea62e5f674bb",
+  "failedCandidate": {
+    "head": "e5bf76b2285dfc96338ec276f523fceb3d05eb44",
+    "mergeRef": "1acc64dea636f4d38dedc137e62860e4193f6717",
+    "host": {
+      "run": 37742087298,
+      "pass": 4390,
+      "fail": 0,
+      "sanitizerCommands": 324,
+      "exactReferenceAndExtension": true,
+      "allModesAndFinalGate": "success"
+    },
+    "motion": {
+      "run": 37742087361,
+      "success": 9,
+      "failure": 1,
+      "failedJob": 113194893385,
+      "node": "v26.10.0",
+      "optimization": "off",
+      "execution": "source",
+      "verifiedChildren": 44,
+      "failedChild": {
+        "index": 44,
+        "pid": 2816,
+        "status": null,
+        "signal": "SIGKILL",
+        "stdout": "motion:loading\nmotion:loaded\n",
+        "stderr": "",
+        "elapsedMs": 10017.880409000005
+      },
+      "noMismatchSnapshots": true,
+      "artifactSha256": "b7b7952565094a5f757272b9f994491f031ed6cdece11efd00c6f17b667ae32e",
+      "classification": "SIGKILL after 10017.880409 ms is consistent with existing 10s spawn timeout, but the old report lacks the actual termination initiator and loop stage. Root cause remains unproved; no rerun."
+    },
+    "firmware": {
+      "run": 37742087324,
+      "job": 113194893013,
+      "conclusion": "failure",
+      "phase": "Prepare tests",
+      "reason": "20-minute existing step deadline during slow apt ARM toolchain download; firmware tests skipped."
+    }
+  },
+  "change": {
+    "scope": "Diagnostic only; unchanged runtime motion modules and frozen numerical references verified against failed artifact hashes.",
+    "childDeadlineMs": 10000,
+    "outputBudgetBytes": 1048576,
+    "progress": "Dedicated fd3 NDJSON, four boundaries per original loop, child CPU time and maxRSS; original stdout and mismatch snapshots retained.",
+    "termination": "Record first explicit deadline/output-budget/parent-interruption signal request; SIGKILL without a request remains external or unknown, not guessed OOM.",
+    "sampling": "No retry, no progress-based deadline refresh, no tolerance or 16-loop reduction."
+  },
+  "validation": {
+    "node": "26.10.0",
+    "tests": 19,
+    "pass": 19,
+    "fail": 0,
+    "durationMs": 28693.637007,
+    "fullTypecheck": "passed after local dependency preparation",
+    "whitespace": "passed",
+    "performance": "No product benchmark required: no runtime module, C, dependency or numerical operation change; diagnostic telemetry has overhead and is not a printing-speed claim."
+  },
+  "remaining": [
+    "Own CI and normal develop integration",
+    "No reproduction or root-cause claim for old motion SIGKILL",
+    "PR50 remains draft; firmware preparation failure also unresolved",
+    "Same-bundle actual clients, Cycnumbris 500 target precision/performance and G3 remain open"
+  ],
+  "evidence": {
+    "path": "motion-child-termination-evidence.evidence.json.gz",
+    "sha256": "1ab0a6146088bce2d953616c38ac2072f62793f8d8e67e6dcd77b8af90772144",
+    "bytes": 460167,
+    "entries": 20
+  }
+}
