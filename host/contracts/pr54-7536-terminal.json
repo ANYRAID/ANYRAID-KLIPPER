@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "7536b3fc20a9e0a6b1077391e1fc32e2730b2cc6",
+  "mergeRefPrefix": "48d0192f",
+  "base": "6c2b86edf50ddc03a02d6e1e9bf8ea62e5f674bb",
+  "hostRun": 37744927459,
+  "hostJobs": [
+    {
+      "id": 113204036144,
+      "name": "sanitizer (ubsan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113204036310,
+      "name": "sanitizer (asan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113204036432,
+      "name": "checks",
+      "conclusion": "success"
+    },
+    {
+      "id": 113208421632,
+      "name": "host",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "pass": 4229,
+    "fail": 0
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 314,
+    "exactOriginalCommandMatch": true,
+    "allExitZero": true
+  },
+  "firmware": {
+    "run": 37744927450,
+    "job": 113204036111,
+    "conclusion": "success"
+  },
+  "motion": {
+    "run": 37744927411,
+    "jobs": [
+      {
+        "id": 113204035948,
+        "name": "motion (26.9.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113204036105,
+        "name": "motion (26.9.0, default, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113204036146,
+        "name": "motion (26.9.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113204036169,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113204036211,
+        "name": "motion (26.9.0, off, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113204036275,
+        "name": "motion (26.10.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113204036312,
+        "name": "motion (26.10.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113204036352,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113204036409,
+        "name": "motion (26.10.0, off, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113204037443,
+        "name": "motion (26.10.0, default, compiled)",
+        "conclusion": "success"
+      }
+    ],
+    "childrenPerCondition": 50,
+    "conditions": 10,
+    "verifiedChildren": 500,
+    "deadlineMs": 10000,
+    "loops": 16,
+    "tolerancesUnchanged": true,
+    "progressReview": {
+      "schema": 1,
+      "head": "7536b3fc20a9e0a6b1077391e1fc32e2730b2cc6",
+      "run": 37744927411,
+      "job": 113204036409,
+      "artifact": 11535871772,
+      "artifactSha256": "e80a74c83dd3a9c5dc9b7f7c617ecd1c79c7d07fce165ad985be31b5968527b5",
+      "version": "v26.10.0",
+      "optimization": "off",
+      "execution": "source",
+      "verifiedChildren": 50,
+      "records": 3200,
+      "stagesPerOriginalLoop": 4,
+      "originalLoops": 16,
+      "childDeadlineMs": 10000,
+      "workers": 1,
+      "stdoutContractUnchanged": true,
+      "monotonicChildResources": true,
+      "maxRSSKiB": 207972,
+      "noTerminationRequest": true,
+      "noMismatchSnapshots": true,
+      "runtimeAndFrozenReferenceHashesMatchFailedCandidate": true,
+      "scope": "Validates diagnostic observability under this changed condition only. Telemetry overhead is not a print benchmark. Does not explain or close the original SIGKILL, intermittent numerical failure, target precision or G3."
+    }
+  },
+  "evidence": {
+    "path": "pr54-7536-terminal.evidence.json.gz",
+    "sha256": "f670394f7ee28711143b0ae392335df15ae983122bfdc4aa81fd0bfc3ee574fa",
+    "bytes": 688940,
+    "entries": 20
+  },
+  "scope": "Original PR54 exact-head CI only. Added diagnostic observability changes the condition; passing here does not explain old SIGKILL or close G3. No latest-develop combination, actual client or target precision claim."
+}

@@ -23,7 +23,8 @@ test('motion runtime probe verifies original reference in bounded fresh Node chi
  const first=run.stdout.split('\n').find(line=>line.startsWith('{'));assert.ok(first,run.stderr);const {directory}=JSON.parse(first);
  try{assert.equal(run.status,0,run.stderr+'\n'+run.stdout);const report=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));assert.equal(report.kind,'motion');assert.equal(report.asan,'off');assert.deepEqual(report.addonHashes,{});assert.equal(report.results.length,2);assert.equal(report.state,'completed');assert.deepEqual(report.active,[]);
  assert.equal(report.jsOptimization,'default');assert.equal(report.runtime,undefined);assert.equal(report.runtimeSha256,undefined);assert.equal(report.args.length,1);assert.equal(report.childWorkingDirectory,directory);assert.deepEqual(report.coreFiles,[]);if(process.platform==='linux'){assert.match(report.corePolicy.limits,/Max core file size/);assert.match(report.corePolicy.filter,/^[0-9a-f]+$/);}
- for(const result of report.results){assert.equal(result.status,0);assert.equal(result.signal,null);assert.equal(result.stdout,'motion:loading\nmotion:loaded\nmotion:verified\n');}
+ assert.equal(report.childDeadlineMs,10000);assert.equal(report.outputBudgetBytes,1024*1024);assert.equal(report.progressChannel,'fd3-ndjson');
+ for(const result of report.results){assert.equal(result.status,0);assert.equal(result.signal,null);assert.equal(result.termination,undefined);assert.equal(result.stdout,'motion:loading\nmotion:loaded\nmotion:verified\n');const progress=result.progress.trimEnd().split('\n').map((line:string)=>JSON.parse(line));assert.equal(progress.length,64);for(let run=0;run<16;run++){assert.deepEqual(progress.slice(run*4,run*4+4).map((p:any)=>[p.run,p.stage]),['positions','plots','comparison','verified'].map(stage=>[run,stage]));}for(let i=0;i<progress.length;i++){assert(progress[i].resources.userCPUTime>=0);assert(progress[i].resources.systemCPUTime>=0);assert(progress[i].resources.maxRSS>0);if(i)assert(progress[i].elapsedMs>=progress[i-1].elapsedMs);}}
  const source=readFileSync(new URL('../src/diagnostics/graph-motion.ts',import.meta.url));assert.equal(report.moduleHashes['src/diagnostics/graph-motion.ts'],createHash('sha256').update(source).digest('hex'));assert.equal(report.fixtureSha256,createHash('sha256').update(readFileSync(join(directory,'fixture.mjs'))).digest('hex'));
  const fixture=readFileSync(join(directory,'fixture.mjs'),'utf8'),injected=fixture.replace('const expected=r.curves[j];','const expected=r.curves[j];if(run===0&&i===0&&j===0)c.values[0]+=1;');assert.notEqual(fixture,injected);const path=join(directory,'injected.mjs');writeFileSync(path,injected);
  const failure=spawnSync(process.execPath,[path],{encoding:'utf8',timeout:10000});assert.equal(failure.status,1);assert.match(failure.stderr,/Error: Motion numerical mismatch /);const line=failure.stderr.split('\n').find(l=>l.startsWith('Error: Motion numerical mismatch '))!;const detail=JSON.parse(line.slice('Error: Motion numerical mismatch '.length));assert.equal(detail.actual,1);assert.equal(detail.expected,0);assert.equal(detail.repeated,0);assert.equal(detail.xor,'0x3ff0000000000000');assert.doesNotMatch(failure.stdout,/motion:verified/);
@@ -71,7 +72,7 @@ else {setTimeout(()=>process.exit(2),15000);}
   assert.equal(child.kill(signal),true);const result=await ended;
   const report=JSON.parse(readFileSync(join(directory!,'report.json'),'utf8'));
   if(signal==='SIGTERM'){
-   assert.equal(result.code,143);assert.equal(report.state,'interrupted');assert.equal(report.interruption,'SIGTERM');assert.deepEqual(report.active,[]);assert.equal(report.results.length,2);assert.equal(report.results[1].signal,'SIGTERM');assert.equal(report.results[1].status,null);
+   assert.equal(result.code,143);assert.equal(report.state,'interrupted');assert.equal(report.interruption,'SIGTERM');assert.deepEqual(report.active,[]);assert.equal(report.results.length,2);assert.equal(report.results[1].signal,'SIGTERM');assert.equal(report.results[1].status,null);assert.equal(report.results[1].termination.reason,'parent-interruption');assert.equal(report.results[1].termination.sent,true);
   }else{
    assert.equal(result.signal,'SIGKILL');assert.equal(report.state,'running');assert.equal(report.results.length,1);assert.equal(report.active[0].pid,worker);
   }
@@ -81,4 +82,18 @@ else {setTimeout(()=>process.exit(2),15000);}
   if(worker)try{process.kill(worker,'SIGKILL');}catch(error){if((error as NodeJS.ErrnoException).code!=='ESRCH')throw error;}
   rmSync(parent,{recursive:true,force:true});
  }
+});
+
+for(const mode of ['deadline','external-signal','output-budget'] as const)test(`probe distinguishes ${mode} without retrying or relaxing the fixed deadline`,()=>{
+ const parent=mkdtempSync(join(tmpdir(),'motion-termination-')),fake=join(parent,'controlled-node');
+ try{
+  const action=mode==='deadline'?"require('node:fs').writeSync(3,'{\"stage\":\"injected-wait\"}\\n');setInterval(()=>{},1000);":mode==='external-signal'?"process.kill(process.pid,'SIGKILL');":"require('node:fs').writeSync(3,Buffer.alloc(1024*1024+1,120));setInterval(()=>{},1000);";
+  writeFileSync(fake,'#!'+process.execPath+'\nif(process.argv.includes("--version"))console.log(process.version);else {'+action+'}\n');chmodSync(fake,0o700);
+  const run=spawnSync(process.execPath,[cli,'--node',fake,'--case','motion','--asan','off','--runs','3','--workers','1','--report-parent',parent],{encoding:'utf8',timeout:25000,maxBuffer:1024**2});
+  assert.equal(run.status,1,run.stdout+run.stderr);const {directory}=JSON.parse(run.stdout.split('\n')[0]),report=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));assert.equal(report.state,'failed');assert.equal(report.limit,3);assert.equal(report.results.length,1);assert.deepEqual(report.active,[]);assert.equal(report.childDeadlineMs,10000);const result=report.results[0];assert.equal(result.status,null);assert.equal(result.signal,'SIGKILL');
+  if(mode==='external-signal')assert.equal(result.termination,undefined);
+  else {assert.equal(result.termination.reason,mode);assert.equal(result.termination.signal,'SIGKILL');assert.equal(result.termination.sent,true);}
+  if(mode==='deadline'){assert(result.termination.requestedAtMs>=9900);assert.equal(result.progress,'{"stage":"injected-wait"}\n');assert.equal(result.error,undefined);}
+  if(mode==='output-budget'){assert.equal(result.error,'Output budget exceeded');assert(Buffer.byteLength(result.progress)<=1024*1024);}
+ }finally{rmSync(parent,{recursive:true,force:true});}
 });
