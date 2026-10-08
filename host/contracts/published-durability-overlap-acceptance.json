@@ -1,0 +1,1136 @@
+{
+  "schema": 1,
+  "status": "Isolated experimental candidate retained for review; NOT adopted into PR #50, develop or production",
+  "baselineCommit": "cbd97343de7958eb67cba77844da4d7c76bd6b54",
+  "candidateBranch": "devac/receipt-durability-overlap",
+  "relatedPR": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/50",
+  "scope": {
+    "onlyChangedProductionJs": "host/src/storage/published-files.js",
+    "onlyPublishPathChanged": true,
+    "persistenceFormatChanged": false,
+    "motionMathChanged": false,
+    "defaultEntryChanged": false,
+    "pythonFilesRetired": 0
+  },
+  "product": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle",
+    "manifestSha256": "e6520a2bc7599fbd8e66d4c8e3e415d251a57c42c527a4250f73784efc0fbc90",
+    "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e",
+    "checked": 641,
+    "changed": [
+      "host/src/storage/published-files.js"
+    ],
+    "mixedDriverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+    "mixedDriverByteIdentical": true,
+    "independentProductionDependencies": 16,
+    "install": {
+      "durationMs": 839.2018370000001,
+      "dependencies": 16
+    }
+  },
+  "invariants": [
+    "New/reused model and PNG inodes are verified and synced before preparation; content-directory sync is retained",
+    "Only the private staging receipt write/chmod/sync/stat/close overlaps content-directory sync; public receipt link waits for BOTH operations",
+    "All accepted preparation IO is joined on single failure, dual failure and cancellation before descriptor closure or temporary removal",
+    "Public receipt link, authority maps, final directory sync, success and notification preserve their original ordering; cached maps may be visible after link before the final sync, as before",
+    "Existing source ownership, content references, quotas, bounded 2048-byte receipt, admission limits, fault fencing and startup recovery remain unchanged",
+    "Removal and metadata retirement remain serial; no barrier removed and no math/precision allowance changed"
+  ],
+  "checks": {
+    "fullTypecheck": "passed",
+    "sourceRegression": {
+      "passed": 60,
+      "failed": 0
+    },
+    "compiledRegression": {
+      "passed": 304,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "newDurabilityControls": 12,
+    "ubsanSealedFileSubset": {
+      "passed": 51,
+      "failed": 0
+    },
+    "asanSealedFileSubset": {
+      "passed": 51,
+      "failed": 0,
+      "processWideLeakAccounting": false
+    },
+    "nativeSanitizerScope": "Task-local sealed-file sanitizer modules built from unchanged C source; other native addons ordinary product builds",
+    "overlappingCountsNotAdditive": true,
+    "controls": [
+      "Both held preparation orders prevent new public receipt and events",
+      "Directory/receipt EIO and ENOSPC drain the other IO, make close wait, preserve prior exact model and PNG",
+      "Both failures retained in AggregateError with no new authority",
+      "Cancellation drains either held operation and clears temporary reservations",
+      "Final receipt-link directory sync still precedes success/create event",
+      "Actual SIGKILL after only either preparatory sync preserves prior pair and cannot restore the new receipt"
+    ]
+  },
+  "performance": {
+    "schema": 1,
+    "plan": {
+      "schema": 1,
+      "baseline": "/home/dek02/.cache/codex/tmp/anyraid-metadata-invalidation-product-bundle",
+      "candidate": "/home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle",
+      "input": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+      "order": [
+        "A1",
+        "B1",
+        "B2",
+        "A2"
+      ],
+      "modes": [
+        "shared",
+        "cold",
+        "disk",
+        "invalidate",
+        "rescan",
+        "metadata-cold",
+        "cached"
+      ],
+      "warmupPerPhase": 3,
+      "samplesPerPhase": 16,
+      "advisoryDesktopRegressionBudget": {
+        "ratio": 1.2,
+        "absoluteSlackMs": 2
+      },
+      "scope": "Sequential isolated desktop diagnostics: actual compiled complete transactions; no target-machine or mixed-printing acceptance claim. Preset before measurement."
+    },
+    "modes": {
+      "shared": {
+        "a": {
+          "count": 32,
+          "medianMs": 22.34209800000002,
+          "p95Ms": 25.289255999999966,
+          "rawMs": [
+            21.97038299999997,
+            22.044173999999998,
+            22.05361499999998,
+            22.05369399999995,
+            22.067804999999964,
+            22.09062499999999,
+            22.172346000000005,
+            22.173086000000012,
+            22.189536000000032,
+            22.207385999999985,
+            22.248786999999993,
+            22.267277000000036,
+            22.28970700000002,
+            22.28999799999997,
+            22.290378000000032,
+            22.29143700000003,
+            22.392759000000012,
+            22.397238999999985,
+            22.48254000000003,
+            22.487540000000024,
+            22.50155000000001,
+            22.53431999999998,
+            22.559671000000037,
+            22.55997100000002,
+            22.602600999999993,
+            22.621811999999977,
+            22.720233000000007,
+            22.822114000000056,
+            23.07415800000001,
+            23.19775900000002,
+            25.289255999999966,
+            27.18394999999998
+          ]
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 22.630027000000013,
+          "p95Ms": 25.708932000000004,
+          "rawMs": [
+            21.690830000000005,
+            21.928072999999983,
+            21.972644000000003,
+            22.055664999999976,
+            22.125766,
+            22.12757499999998,
+            22.195137000000045,
+            22.196087000000034,
+            22.214506999999912,
+            22.283466999999973,
+            22.32749799999999,
+            22.38104899999999,
+            22.388439000000005,
+            22.40667000000002,
+            22.513689999999997,
+            22.587650999999994,
+            22.67240300000003,
+            22.680342999999993,
+            22.754883000000007,
+            22.77772299999998,
+            22.780844000000002,
+            22.79227400000002,
+            22.971877000000006,
+            22.99807599999997,
+            23.067037000000028,
+            23.294240000000002,
+            23.73823600000003,
+            24.067521,
+            24.710317999999972,
+            25.091912999999977,
+            25.708932000000004,
+            26.66157400000003
+          ]
+        },
+        "medianRatio": 1.012887285697162,
+        "p95Ratio": 1.0165950315027077,
+        "medianWithinAdvisoryBudget": true,
+        "p95WithinAdvisoryBudget": true,
+        "input": {
+          "path": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+          "archiveSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+          "variants": [
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+              "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+              "modelBytes": 262144,
+              "pngBytes": 1347830
+            }
+          ]
+        },
+        "loopP99": {
+          "A": [
+            1.780735,
+            1.769471
+          ],
+          "B": [
+            1.698815,
+            1.917951
+          ]
+        }
+      },
+      "cold": {
+        "a": {
+          "count": 32,
+          "medianMs": 36.902936499999896,
+          "p95Ms": 39.33850800000005,
+          "rawMs": [
+            36.15716600000019,
+            36.419239999999945,
+            36.45586000000003,
+            36.45703000000003,
+            36.47451000000001,
+            36.500620000000026,
+            36.56433199999992,
+            36.57403199999999,
+            36.594922,
+            36.61632200000008,
+            36.62589200000002,
+            36.736763999999994,
+            36.739333999999985,
+            36.77649400000007,
+            36.802155000000084,
+            36.88779599999998,
+            36.91807699999981,
+            36.96073699999988,
+            37.07092799999998,
+            37.331992000000014,
+            37.366591999999855,
+            37.56123500000001,
+            37.71546699999999,
+            37.837028000000146,
+            37.85829899999999,
+            37.90965899999992,
+            38.00016000000005,
+            38.382285000000024,
+            38.42445499999985,
+            38.43941600000005,
+            39.33850800000005,
+            53.332427999999936
+          ]
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 36.6375625,
+          "p95Ms": 49.720822,
+          "rawMs": [
+            21.79946199999995,
+            33.33288000000016,
+            34.71258799999987,
+            35.12042300000007,
+            35.820381999999995,
+            35.93876399999999,
+            36.08610499999986,
+            36.11164599999984,
+            36.12089600000013,
+            36.26553799999999,
+            36.30983900000001,
+            36.31548800000019,
+            36.32571799999994,
+            36.44601999999986,
+            36.572261000000026,
+            36.611942,
+            36.663183000000004,
+            36.815824999999904,
+            38.03512100000012,
+            39.01644299999998,
+            41.00757899999985,
+            41.1244200000001,
+            41.272351999999955,
+            42.00217100000009,
+            42.312355000000025,
+            43.31835799999999,
+            43.492260999999985,
+            43.532841000000076,
+            43.721974000000046,
+            43.81918499999995,
+            49.720822,
+            50.93712699999992
+          ]
+        },
+        "medianRatio": 0.992808864953067,
+        "p95Ratio": 1.263922414139345,
+        "medianWithinAdvisoryBudget": true,
+        "p95WithinAdvisoryBudget": false,
+        "input": {
+          "path": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+          "archiveSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+          "variants": [
+            {
+              "modelSha256": "ed0cb5e49438a8d74a1bf4fcf8fe0854315d2174706d918db833baf350f359ce",
+              "pngSha256": "a93272cccc3fe85006fa4087d226a90a61fde3e7f69f914ccc2a9df48797f292",
+              "modelBytes": 262170,
+              "pngBytes": 1347829
+            },
+            {
+              "modelSha256": "66e5d9971794cd03b08e9c00636685d6c815fdc13284e34e7cacc440723ff4f5",
+              "pngSha256": "928a678a3578fe2b21c7fe53b2d2ce5b5e3119580274096c077a6819aa773399",
+              "modelBytes": 262170,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "cdfb4161a121cb8f677b2fac454c6123f0c132548b6ccd31e65d10c2f5a8fb3c",
+              "pngSha256": "85ab9c7c375575f2f61f8a54489f634c36ca8a0eff5c5d0911be6e59e03b38d2",
+              "modelBytes": 262170,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "6efb28752c8b840b9067e83be6c9a8fb1bd9895ccada348d8cd9b30816027e5c",
+              "pngSha256": "737161ddc829e55a7acb03c883d7877d6f60fd0b12e0da30bc33015f9a0de011",
+              "modelBytes": 262170,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "edf7bf9c132ff2cf7e52edc13f906031503749fcd55239fb9ee182e01d3d72b6",
+              "pngSha256": "37e3528303cff044aa2c34d42f946f0d1e6507e37d469accc6aac8fdffa610d5",
+              "modelBytes": 262170,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "a47e2aadbfa9a7d6745f2344a6f6966b088b9f5a25695d199dba3473fabcb2b6",
+              "pngSha256": "8c47796e17929f4e105ea652cdafec18f171b20504bb93424cc6b46e5e365e92",
+              "modelBytes": 262170,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "ac3455efd8ca15b9cd69886c6c0c2deea26f867e95240673f3fc79c32a4f0f8b",
+              "pngSha256": "4c59e366382337c080279b19b81b8a7708c8ebe7a490374190c40f5d233617c1",
+              "modelBytes": 262170,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "72e73bedb540bc9399956a7a5ca4dda0d1fd53e6b08a6525e0d33ecf240c99b2",
+              "pngSha256": "8c17a98b520c016679544e9e9e662944bde7104002716dddfe5c5854474fd064",
+              "modelBytes": 262170,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "7fdba15242e29fc2ca519987c6a5c5afeb6a0e2cb3ed819f293dfa350ef44ad2",
+              "pngSha256": "f03a6311d0840fa6a4e5d0281b188b16422f6e3415e6cbb79de2a87cc1373a69",
+              "modelBytes": 262170,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "0f5ff9609644e73a68548161299dff871902cd7d9227cedfa9dc3fac65725288",
+              "pngSha256": "e2bfb197fe4e15d3186371928c6701a4d9ff5885855169aa046646840c6b7cea",
+              "modelBytes": 262170,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "8b9cff168456b98d3e7acfd9b061c9a4c401ea14579885f16ef54eab13458448",
+              "pngSha256": "633fdf714921e03554a8a254ca253eba092a76609a361a3500027e304218bc13",
+              "modelBytes": 262171,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "2d3281a5922f215ec9e8746583d6861491aa04fea8e6ce77d905dd28668aab0e",
+              "pngSha256": "5438feb19cd9bf551cb32fb86cfe9f98518a546d5cc4602181a7934b8834ac52",
+              "modelBytes": 262171,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "fcf5a8649c45d891a6ad173fef54145a52ce3415b6aa94fd1b2570d3d9c34e1a",
+              "pngSha256": "1f3e04f854b99b37448d06ac6fc40650475a39f19715063f3a527f2fe37c26fd",
+              "modelBytes": 262171,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "dc64b4920d95255dfc485435bd70265c87f9933fcf01e6b1b2490b1f35477c5c",
+              "pngSha256": "b633be36d4eb56b61b33cb48ae3abd8324f79e47837d36347bff200654125efa",
+              "modelBytes": 262171,
+              "pngBytes": 1347829
+            },
+            {
+              "modelSha256": "71ad9d49cbcf64ffdea4f3a42a5edf52f027b92fc68bcf7b82407ba90459297b",
+              "pngSha256": "c6712c23c7363d3a97979eef90bc0c6c11624749ab552adec1f044b201b7e189",
+              "modelBytes": 262171,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "d46b6ff8b24c2aba134af365421da229057d390dd9716a3033661aa6da1cf299",
+              "pngSha256": "8e27afee4ea0693ae22fe9e9955c00c5f9bee70e49cffe858a367fd8ee5a770e",
+              "modelBytes": 262171,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "5d8fe491b5b0ef43a313366e4d07b3b26c9fc839488c2ca33a4b9fd8d72a0e81",
+              "pngSha256": "b27b8f258e04baf1c830e8f557eef9643ec42d9ec658778a11ddc23ea290d542",
+              "modelBytes": 262171,
+              "pngBytes": 1347829
+            },
+            {
+              "modelSha256": "a24609a2a0f14c779fb7589fe65684ddc1e0c26b21dd860350ab496aa144b7ad",
+              "pngSha256": "271cfda9d9f0fe3045cf219298fba8b1cfce662b9ab4d0e3888b7d5368259060",
+              "modelBytes": 262171,
+              "pngBytes": 1347830
+            },
+            {
+              "modelSha256": "702dd42786d3bba5c0005142512ffcdf8004ca77d58333ebc0a1a6ef7a6859b0",
+              "pngSha256": "71c81f1ca883d5288f3a8fd2877e4eb25548c0b733e8c6ad4f730afcc62f90b4",
+              "modelBytes": 262171,
+              "pngBytes": 1347830
+            }
+          ]
+        },
+        "loopP99": {
+          "A": [
+            1.928191,
+            1.926143
+          ],
+          "B": [
+            1.892351,
+            1.839103
+          ]
+        }
+      },
+      "disk": {
+        "a": {
+          "count": 32,
+          "medianMs": 117.88146949999998,
+          "p95Ms": 129.99262599999997,
+          "rawMs": [
+            86.94060200000013,
+            87.82558300000005,
+            97.040841,
+            100.78656999999998,
+            104.74229100000002,
+            106.16551900000013,
+            106.74542700000006,
+            107.79518099999996,
+            108.29613599999993,
+            108.46581900000001,
+            108.75599300000022,
+            108.82894299999998,
+            108.84922400000005,
+            112.02689400000008,
+            114.425295,
+            116.65524400000004,
+            119.10769499999992,
+            119.61889199999996,
+            119.64088300000003,
+            119.98392699999977,
+            120.544175,
+            120.74604699999986,
+            121.81263999999999,
+            122.13719500000002,
+            123.733925,
+            124.00142900000003,
+            124.34824400000002,
+            124.93136099999992,
+            127.0072469999999,
+            129.53275099999996,
+            129.99262599999997,
+            138.30785300000002
+          ]
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 110.62258649999978,
+          "p95Ms": 123.14434799999981,
+          "rawMs": [
+            60.86963500000002,
+            98.094695,
+            104.36849600000005,
+            105.13893600000006,
+            105.18994699999985,
+            105.24441700000011,
+            106.49395400000003,
+            106.53536299999996,
+            106.9976999999999,
+            107.57305700000006,
+            108.56736000000001,
+            109.49706200000014,
+            109.69647400000008,
+            110.19453099999998,
+            110.33859200000006,
+            110.59100599999988,
+            110.65416699999969,
+            111.331905,
+            111.45749799999999,
+            111.76027099999988,
+            112.22179699999992,
+            112.33273799999995,
+            112.63464199999999,
+            112.73190399999999,
+            112.93981600000006,
+            113.05761800000005,
+            113.0926179999999,
+            114.15154199999984,
+            114.35513500000002,
+            120.96217999999999,
+            123.14434799999981,
+            127.821778
+          ]
+        },
+        "medianRatio": 0.9384221877213688,
+        "p95Ratio": 0.9473179501735725,
+        "medianWithinAdvisoryBudget": true,
+        "p95WithinAdvisoryBudget": true,
+        "input": {
+          "path": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+          "archiveBytes": 1348823,
+          "archiveSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+          "modelBytes": 262144,
+          "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+          "pngBytes": 1347830,
+          "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590"
+        },
+        "loopP99": {
+          "A": [
+            2.211839,
+            1.973247
+          ],
+          "B": [
+            2.543615,
+            2.332671
+          ]
+        }
+      },
+      "invalidate": {
+        "a": {
+          "count": 32,
+          "medianMs": 235.11720049999997,
+          "p95Ms": 290.29775300000006,
+          "rawMs": [
+            189.83922600000005,
+            196.94674699999996,
+            202.98998699999993,
+            224.28297900000007,
+            224.42346300000008,
+            224.57474300000013,
+            227.28985999999986,
+            227.591772,
+            228.0682179999999,
+            228.5943159999997,
+            229.09326099999998,
+            229.3058239999998,
+            229.89274299999943,
+            230.1213859999998,
+            231.2567200000003,
+            232.98047399999996,
+            237.25392699999998,
+            249.60741800000005,
+            255.64161399999966,
+            258.2468389999999,
+            260.1704719999998,
+            261.5670090000003,
+            261.8429140000003,
+            264.7100529999998,
+            264.7832699999999,
+            266.5370759999996,
+            267.9435510000003,
+            268.38716999999997,
+            268.59463300000016,
+            274.25141599999984,
+            290.29775300000006,
+            290.34198300000025
+          ]
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 231.14389350000033,
+          "p95Ms": 278.2536049999999,
+          "rawMs": [
+            154.25789799999984,
+            198.80893300000014,
+            215.0364300000001,
+            223.4607390000001,
+            224.61826500000006,
+            226.64561999999978,
+            226.70648200000005,
+            227.0688970000001,
+            227.38850000000002,
+            228.8269190000001,
+            228.8325380000001,
+            230.16334700000016,
+            230.4208490000001,
+            230.50259099999994,
+            230.85845500000005,
+            231.079518,
+            231.20826900000066,
+            231.433002,
+            232.81147099999998,
+            234.90946699999995,
+            236.1833939999999,
+            240.04295300000013,
+            241.239779,
+            241.2978189999999,
+            241.61408400000005,
+            248.096857,
+            260.49058700000023,
+            262.579833,
+            264.60222,
+            265.0484550000001,
+            278.2536049999999,
+            294.4965450000002
+          ]
+        },
+        "medianRatio": 0.9831007387313646,
+        "p95Ratio": 0.9585110533046387,
+        "medianWithinAdvisoryBudget": true,
+        "p95WithinAdvisoryBudget": true,
+        "input": {
+          "path": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+          "archiveSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+          "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+          "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+          "modelBytes": 262144,
+          "pngBytes": 1347830
+        },
+        "loopP99": {
+          "A": [
+            1.752063,
+            1.762303
+          ],
+          "B": [
+            1.799167,
+            1.736703
+          ]
+        }
+      },
+      "rescan": {
+        "a": {
+          "count": 32,
+          "medianMs": 230.20325349999996,
+          "p95Ms": 259.52182300000004,
+          "rawMs": [
+            167.51928700000008,
+            207.53030099999978,
+            218.78516799999989,
+            223.54491700000017,
+            225.10754700000007,
+            225.30404,
+            226.61109699999997,
+            227.15131400000018,
+            227.544711,
+            228.39615000000003,
+            228.50827299999992,
+            228.52612399999998,
+            229.44183599999997,
+            229.92672099999982,
+            230.0809720000002,
+            230.17751299999986,
+            230.22899400000006,
+            230.3961280000001,
+            231.67207299999995,
+            232.3573809999998,
+            234.24720699999943,
+            235.22125000000005,
+            235.36951899999985,
+            235.64316299999996,
+            235.69775600000003,
+            236.09888100000035,
+            236.13327100000015,
+            239.548945,
+            241.4935190000001,
+            258.7138719999998,
+            259.52182300000004,
+            260.3718710000003
+          ]
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 240.520757,
+          "p95Ms": 288.54523599999993,
+          "rawMs": [
+            171.99342500000012,
+            223.9241030000003,
+            224.76283300000068,
+            225.48733299999958,
+            226.66216799999984,
+            227.89344399999982,
+            227.965416,
+            228.6217829999996,
+            228.76924499999996,
+            229.38359300000002,
+            229.9110599999999,
+            231.0878349999998,
+            231.25514699999985,
+            232.64132500000005,
+            233.146033,
+            233.54974700000002,
+            247.49176699999998,
+            249.36381099999994,
+            252.29067899999995,
+            260.85004800000024,
+            261.15473199999997,
+            264.205062,
+            265.7258410000004,
+            267.31819300000006,
+            268.2907050000001,
+            270.18670900000006,
+            273.31882900000005,
+            274.54801499999985,
+            279.367757,
+            288.06249000000025,
+            288.54523599999993,
+            330.3840150000001
+          ]
+        },
+        "medianRatio": 1.0448191037404257,
+        "p95Ratio": 1.1118341905297109,
+        "medianWithinAdvisoryBudget": true,
+        "p95WithinAdvisoryBudget": true,
+        "input": {
+          "path": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+          "archiveSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+          "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+          "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+          "modelBytes": 262144,
+          "pngBytes": 1347830
+        },
+        "loopP99": {
+          "A": [
+            1.715199,
+            1.767423
+          ],
+          "B": [
+            1.836031,
+            1.739775
+          ]
+        }
+      },
+      "metadata-cold": {
+        "a": {
+          "count": 32,
+          "medianMs": 164.1120515,
+          "p95Ms": 182.67393100000004,
+          "rawMs": [
+            140.68327999999974,
+            144.66803200000004,
+            148.4324499999998,
+            155.73945400000002,
+            156.48498299999983,
+            157.23264299999983,
+            157.8484910000002,
+            160.39625400000023,
+            161.2557240000001,
+            161.433227,
+            162.3660299999999,
+            162.75805300000002,
+            162.86330500000008,
+            163.27006000000006,
+            163.37915199999998,
+            164.08423099999982,
+            164.1398720000002,
+            165.17636600000014,
+            165.37790799999993,
+            165.39302799999996,
+            165.65207099999998,
+            166.1606079999999,
+            166.24014899999997,
+            166.31842000000006,
+            166.34109000000035,
+            167.56530599999996,
+            169.33696899999995,
+            170.8504989999999,
+            171.3130450000001,
+            181.1900609999998,
+            182.67393100000004,
+            185.2980639999996
+          ]
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 143.83976599999994,
+          "p95Ms": 162.7935440000001,
+          "rawMs": [
+            73.46238600000015,
+            137.2311259999999,
+            137.4529379999999,
+            137.8142829999997,
+            139.2808520000001,
+            139.33099300000003,
+            139.43470399999978,
+            139.65039699999988,
+            139.73574699999995,
+            139.81429900000012,
+            140.61266999999998,
+            140.7298810000002,
+            140.9701240000004,
+            142.59866499999998,
+            142.69760600000018,
+            143.352445,
+            144.3270869999999,
+            144.74723299999994,
+            145.010716,
+            145.0286060000003,
+            146.02573900000016,
+            147.0045909999999,
+            147.3860169999998,
+            148.98209700000007,
+            150.72808900000018,
+            155.14432599999986,
+            158.64418100000012,
+            159.9250280000001,
+            159.99819799999977,
+            161.72101999999995,
+            162.7935440000001,
+            164.08930099999998
+          ]
+        },
+        "medianRatio": 0.8764729018087982,
+        "p95Ratio": 0.891170092573308,
+        "medianWithinAdvisoryBudget": true,
+        "p95WithinAdvisoryBudget": true,
+        "input": {
+          "path": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+          "archiveSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+          "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+          "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+          "modelBytes": 262144,
+          "pngBytes": 1347830
+        },
+        "loopP99": {
+          "A": [
+            1.893375,
+            1.733631
+          ],
+          "B": [
+            1.829887,
+            1.839103
+          ]
+        }
+      },
+      "cached": {
+        "a": {
+          "count": 32,
+          "medianMs": 0.14412699999996903,
+          "p95Ms": 0.19685200000003533,
+          "rawMs": [
+            0.11816199999998389,
+            0.12926099999998542,
+            0.1292810000000486,
+            0.13039200000002893,
+            0.13226200000002564,
+            0.13337200000000848,
+            0.1342520000000036,
+            0.1364510000000223,
+            0.13843200000002298,
+            0.13945199999994884,
+            0.14004200000005085,
+            0.14145100000001776,
+            0.14179200000000947,
+            0.14190199999995912,
+            0.14346199999999953,
+            0.14388199999996232,
+            0.14437199999997574,
+            0.14500199999997676,
+            0.14739100000002736,
+            0.1492619999999647,
+            0.1500419999999849,
+            0.1509619999999927,
+            0.15160199999996848,
+            0.15664200000003348,
+            0.16075200000000223,
+            0.1664920000000052,
+            0.17245200000002114,
+            0.1742619999999988,
+            0.1753720000000385,
+            0.18862300000000687,
+            0.19685200000003533,
+            0.35766499999999724
+          ]
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 0.15123199999999315,
+          "p95Ms": 0.5697870000000194,
+          "rawMs": [
+            0.1202310000000466,
+            0.12363099999998894,
+            0.12597099999999273,
+            0.12721200000004274,
+            0.12755099999998265,
+            0.12931099999997286,
+            0.13225099999999657,
+            0.13555200000001832,
+            0.13730199999997694,
+            0.13995199999999386,
+            0.14064100000001645,
+            0.14239199999997254,
+            0.14477199999998902,
+            0.14731199999999944,
+            0.1473619999999869,
+            0.149091999999996,
+            0.1533719999999903,
+            0.15403200000002926,
+            0.15566200000000663,
+            0.1560620000000199,
+            0.16449199999999564,
+            0.16581200000001672,
+            0.16981299999997646,
+            0.16996199999999817,
+            0.17203200000000152,
+            0.17431199999998626,
+            0.17850200000003724,
+            0.19435199999998076,
+            0.25212400000003754,
+            0.3338950000000409,
+            0.5697870000000194,
+            0.6493389999999977
+          ]
+        },
+        "medianRatio": 1.0492968007384158,
+        "p95Ratio": 2.894494340925757,
+        "medianWithinAdvisoryBudget": true,
+        "p95WithinAdvisoryBudget": true,
+        "input": {
+          "path": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+          "archiveSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+          "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+          "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+          "modelBytes": 262144,
+          "pngBytes": 1347830
+        },
+        "loopP99": {
+          "A": [
+            1.430527,
+            2.033663
+          ],
+          "B": [
+            2.115583,
+            2.131967
+          ]
+        }
+      }
+    }
+  },
+  "mixed": {
+    "passed": 0,
+    "failed": 1,
+    "totalMs": 55921.339583,
+    "firstFailure": {
+      "generation": 2,
+      "message": "Recursive cleanup must complete during each printing generation\n+ actual - expected\n\n+ 'completed'\n- 'printing'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Recursive cleanup must complete during each printing generation\n+ actual - expected\n\n+ 'completed'\n- 'printing'\n\n    at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-compiled-driver/host/acceptance/product-compiled-journey.test.js:1022:40\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async Promise.all (index 0)\n    at async finishFileLoad (file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-compiled-driver/host/acceptance/product-compiled-journey.test.js:1039:48)\n    at async TestContext.<anonymous> (file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-compiled-driver/host/acceptance/product-compiled-journey.test.js:2198:13)\n    at async Test.run (node:internal/test_runner/test:1409:7)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)"
+    },
+    "secondaryUnhandledStreamError": "ERR_INVALID_STATE: ReadableStream is already closed",
+    "generation1RecursiveDeleteGroups": 8,
+    "generation1DeleteTimesMs": [
+      222.7449889999989,
+      294.0662830000001,
+      307.58093700000245,
+      136.60174199999892,
+      106.99619299999904,
+      101.88301700000011,
+      123.30394199999864,
+      121.66839099999925
+    ],
+    "reinitialize": {
+      "sameAddress": true,
+      "priorJwtAccepted": true,
+      "originalSocketsOpen": true,
+      "reinitializeMs": 4228.381626000002
+    },
+    "firstFailureContextAvailable": false,
+    "completeMetricsUnavailable": true,
+    "originalMovements": 1000,
+    "softwareMCUs": 2,
+    "generationsRequired": 2,
+    "originalBudgetsRetained": true,
+    "noObserverWrapper": true,
+    "unchangedFailureNotRetried": true,
+    "limits": "First generation cleanup groups and retained listener/JWT/sockets reinitialization recorded; all final workload/time/stop assertions were not completed. Neither passing printing nor causal speedup proved."
+  },
+  "priorPRHeadCI": {
+    "verifiedAtUtc": "2026-10-08 00:51 UTC",
+    "head": "cbd97343de7958eb67cba77844da4d7c76bd6b54",
+    "host": {
+      "run": 37708532427,
+      "job": 113088622037,
+      "conclusion": "failure",
+      "passed": 4344,
+      "total": 4345,
+      "failed": 1,
+      "failureTest": "AHT heater requests fresh target feedback and renews PWM without forging samples: PA4",
+      "message": "MCU clock samples expired",
+      "remainingProtocolSanitizerAndLinuxMcuSteps": "not executed",
+      "causalAttributionToFileChanges": "unproved",
+      "unchangedRunNotRestarted": true
+    },
+    "firmware": {
+      "run": 37708532418,
+      "conclusion": "success"
+    },
+    "motionDiagnostics": {
+      "run": 37708532432,
+      "passed": 10,
+      "total": 10,
+      "conclusion": "success",
+      "doesNotCloseHistoricalG3": true
+    }
+  },
+  "decision": {
+    "productionAccepted": false,
+    "retainOnIndependentExperimentalBranch": true,
+    "doNotAdvancePR50HeadWithUnresolvedPerformanceCandidate": true,
+    "coldPublicationP95BudgetFailed": true,
+    "coldPublicationP95LimitMs": 49.20620960000006,
+    "observedP95Ms": 49.720822,
+    "reason": "Disk median improves and first-generation cleanup/reinitialization observed, but cold-content P95 exceeds preset advisory budget and original full workload fails in second generation. Repeated scans/cached tails also rise. Preserve all results; no unchanged retry seeking green."
+  },
+  "evidence": {
+    "path": "host/contracts/published-durability-overlap-acceptance.evidence.json.gz",
+    "bytes": 241893,
+    "sha256": "318bd8c0e19ecc3d5769b2c7fc3af2bce914711676d89a2ffdc468bb7966b4e2",
+    "entries": 89
+  },
+  "unverified": [
+    "Cold-content P95 performance budget",
+    "Complete second-generation mixed workload and motion/stop metrics",
+    "PR #50 exact-head host CI clock expiry cause and remaining mandatory checks",
+    "Develop integration and post-merge checks",
+    "Full same-package Fluidd/Mainsail acceptance",
+    "Cycnumbris 500 target/hardware performance",
+    "G3 motion precision",
+    "Complete Python retirement and full Moonraker",
+    "Master release"
+  ],
+  "next": "Resolve exact-head AHT clock-expiry blocker without weakening clock authorization, then optimize measured metadata/file transaction contention against unchanged mixed workload and retained cold-tail results."
+}

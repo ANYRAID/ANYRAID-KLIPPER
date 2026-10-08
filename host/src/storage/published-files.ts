@@ -678,10 +678,19 @@ export class PublishedPrintFiles {
    // Link is atomic and never replaces content already published under its digest.
    if(!reused)try{await link(temp,this.#path(model.sha256+'.gcode'));this.#storedBytes+=position;this.#reservedBytes-=position;reserved-=position;}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyBlob(model,'gcode',signal);}
    const preview=previewSource?(await this.#publishPreview(previewSource,previewBefore!,signal,bytes=>{this.#storedBytes+=bytes;this.#reservedBytes-=bytes;reserved-=bytes;})).preview:undefined;
-   const record:PublishedPrintFile=Object.freeze({version:1,id,name,...model,...path===undefined?{}:{path:visible},...preview?{preview}:{}});if(Buffer.byteLength(JSON.stringify(record))>2048)throw new Error('Published receipt exceeds limit');
-   await this.#root.sync();signal.throwIfAborted();
-   receipt=await open(receiptTemp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await receipt.writeFile(JSON.stringify(record));await receipt.chmod(0o400);await receipt.sync();const modified=(await receipt.stat()).mtimeMs/1000;await receipt.close();receipt=undefined;signal.throwIfAborted();
-   await link(receiptTemp,this.#path(id+'.json'));receiptLinked=true;const receiptBytes=Buffer.byteLength(JSON.stringify(record));this.#storedBytes+=receiptBytes;this.#reservedBytes-=receiptBytes;reserved-=receiptBytes;this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes,record,modified});this.#paths.set(visible,id);this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);this.#retainPreview(record);this.#publishing.delete(id);await this.#root.sync();this.#changed('create_file',record,modified);return record;
+   const record:PublishedPrintFile=Object.freeze({version:1,id,name,...model,...path===undefined?{}:{path:visible},...preview?{preview}:{}}),recordBytes=JSON.stringify(record),receiptBytes=Buffer.byteLength(recordBytes);if(receiptBytes>2048)throw new Error('Published receipt exceeds limit');
+   signal.throwIfAborted();
+   // The private staging receipt has no publication authority. Its own sync
+   // can overlap content-directory durability; neither accepted operation may
+   // outlive this call, including failures/cancellation. Publish only after both
+   // barriers, then retain the final directory sync for the public receipt link.
+   const durable=await Promise.allSettled([
+    Promise.resolve().then(()=>this.#root.sync()),
+    Promise.resolve().then(async()=>{receipt=await open(receiptTemp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await receipt.writeFile(recordBytes);await receipt.chmod(0o400);await receipt.sync();const modified=(await receipt.stat()).mtimeMs/1000;await receipt.close();receipt=undefined;return modified;})
+   ]);
+   const errors=durable.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length)throw errors.length===1?errors[0]:new AggregateError(errors,'Published content and staging receipt durability failed');
+   if(durable[1].status!=='fulfilled')throw new Error('Published receipt durability invariant failed');const modified=durable[1].value;signal.throwIfAborted();
+   await link(receiptTemp,this.#path(id+'.json'));receiptLinked=true;this.#storedBytes+=receiptBytes;this.#reservedBytes-=receiptBytes;reserved-=receiptBytes;this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes,record,modified});this.#paths.set(visible,id);this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);this.#retainPreview(record);this.#publishing.delete(id);await this.#root.sync();this.#changed('create_file',record,modified);return record;
   }catch(error){failure=error;if(receiptLinked)this.#writeFault=error;throw error;}finally{
    const closed=await Promise.allSettled([file?.close(),receipt?.close()]);
    const removed=await Promise.allSettled([unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;}),unlink(receiptTemp).catch(error=>{if(error.code!=='ENOENT')throw error;})]);
