@@ -1,0 +1,627 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base": "11a90a6e5e1c3710c37440bcf38479c08917d6ce",
+  "originalCandidate": "bf52ead88ae4c337c0dcdf1aaedfdcaccf22a91d",
+  "intermediateCommit": "f608c0e8",
+  "scope": "正常纳入已集成父目录、清台期限与标准回执，sharp 0.35.5 安全补丁保持独立；尚未集成或发布。",
+  "originalOwnCi": {
+    "host": 37656927312,
+    "firmware": 37656927652,
+    "motionDiagnostics": 37656927204,
+    "conclusion": "success"
+  },
+  "baseOwnCi": {
+    "host": 37672464456,
+    "firmware": 37672464533,
+    "conclusion": "success"
+  },
+  "basePostMergeCi": {
+    "host": 37676785099,
+    "firmware": 37676785376,
+    "status": "in_progress"
+  },
+  "validation": {
+    "intermediate": {
+      "source": 252,
+      "compiledOverlap": 29,
+      "mixed": 1,
+      "commit": "f608c0e8"
+    },
+    "final": {
+      "source": 121,
+      "compiledOverlap": 29,
+      "mixed": 1,
+      "typecheck": true,
+      "whitespace": true
+    },
+    "counts": "前后源码范围重叠，不相加；编译流程亦为重叠验证。",
+    "bundle": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-sharp-created-product-bundle",
+      "manifestSha256": "67d297e09cf71f50671735ac3d700088f1ecbb4be217a614cef9ee0311239432",
+      "dependenciesSha256": "9844b3cfccd671b7fb1f3b57b98b489ce9efeca1003a7c73c5d54037403d922c"
+    },
+    "native": "复用已验收 C 产物，没有重新构建。"
+  },
+  "productionScope": {
+    "againstCreatedProduct": "anyraid-created-parents-product-bundle",
+    "changed": [
+      "package.json",
+      "package-lock.json"
+    ],
+    "compiledChangesAgainstOriginalSharp": [
+      "host/src/moonraker/native-print-uploads.js",
+      "host/src/moonraker/server.js",
+      "host/src/storage/published-files.js"
+    ],
+    "removed": []
+  },
+  "performanceReuse": {
+    "originalContract": "sharp-update-acceptance.json",
+    "archiveSha256": "5a11b25cb878248f81acfd50ab16361ef11836a1c9d7bb3ddd7315e0a997089a",
+    "condition": "固定输入、图片源码和编译内容、实际独立依赖树摘要不变；只复用独立图片 PNG/SVG ABBA，不复用旧整体混合打印。",
+    "imageBindings": [
+      {
+        "source": "host/src/moonraker/thumbnail-images.ts",
+        "sha256": "6746f5dc532d612f65a8b3d94b4ad680ceb1c7a24541b17766c652e63e9847ff",
+        "compiled": "host/src/moonraker/thumbnail-images.js",
+        "compiledSha256": "f3ab190d1e6e401ffba9f5fa29c1f34d137518640be9cd0f0f445a2c766df0d1"
+      },
+      {
+        "source": "host/src/moonraker/thumbnail-process.ts",
+        "sha256": "43527d702940ed5a8b5821fde7a08bfc52eb76e0942f9c2a1ecae0aa14cc4df7",
+        "compiled": "host/src/moonraker/thumbnail-process.js",
+        "compiledSha256": "d8e466ee56f458b2d93cab83749a7fc6cb420cf83f410780d284e43673514931"
+      },
+      {
+        "source": "host/src/moonraker/thumbnail-process-child.ts",
+        "sha256": "f85d4d3382f6d11ab87617f7feb063c4c149691231672ab864e02d58deb55c92",
+        "compiled": "host/src/moonraker/thumbnail-process-child.js",
+        "compiledSha256": "908663b20529fe02beee33d5278cb9ace2ab2b73eeaff0fbe0b9b3da4b378b36"
+      }
+    ],
+    "dependenciesSha256": "9844b3cfccd671b7fb1f3b57b98b489ce9efeca1003a7c73c5d54037403d922c",
+    "workloads": [
+      {
+        "workload": "isolated-thumbnail",
+        "A": {
+          "samples": 32,
+          "medianMs": 22.05878400000006,
+          "p95Ms": 37.89845700000001
+        },
+        "B": {
+          "samples": 32,
+          "medianMs": 21.685807999999952,
+          "p95Ms": 48.162079000000006
+        },
+        "eventLoops": [
+          {
+            "side": "A1",
+            "p99Ms": 2.324479,
+            "maxMs": 3.815423
+          },
+          {
+            "side": "B1",
+            "p99Ms": 2.371583,
+            "maxMs": 4.171775
+          },
+          {
+            "side": "B2",
+            "p99Ms": 2.402303,
+            "maxMs": 3.571711
+          },
+          {
+            "side": "A2",
+            "p99Ms": 2.396159,
+            "maxMs": 3.852287
+          }
+        ],
+        "exactOutputHashesEqual": true
+      },
+      {
+        "workload": "svg-export",
+        "A": {
+          "samples": 32,
+          "medianMs": 3.067639999999983,
+          "p95Ms": 4.704540999999949
+        },
+        "B": {
+          "samples": 32,
+          "medianMs": 3.071640000000002,
+          "p95Ms": 4.930833000000007
+        },
+        "eventLoops": [
+          {
+            "side": "A1",
+            "p99Ms": 2.158591,
+            "maxMs": 2.414591
+          },
+          {
+            "side": "B1",
+            "p99Ms": 1.987583,
+            "maxMs": 2.004991
+          },
+          {
+            "side": "B2",
+            "p99Ms": 1.793023,
+            "maxMs": 1.806335
+          },
+          {
+            "side": "A2",
+            "p99Ms": 1.970175,
+            "maxMs": 1.974271
+          }
+        ],
+        "exactOutputHashesEqual": true
+      }
+    ],
+    "observedRegression": "缩略图 P95 37.898 → 48.162 ms，上升约 27%；中位约 22 ms，父循环 P99 ≤2.403 ms。没有隐去尾延迟或将其解释为目标板预算通过。"
+  },
+  "mixed": {
+    "namespace": true,
+    "automaticQueue": false,
+    "motionReportLoad": true,
+    "objectPriming": false,
+    "earlyObjectCancellation": true,
+    "fileMoveOwnership": [
+      {
+        "generation": 1,
+        "group": 0,
+        "before": {
+          "state": "printing",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 9511.774665
+        },
+        "after": {
+          "state": "printing",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 9960.805578
+        },
+        "durationMs": 449.03442300000097
+      },
+      {
+        "generation": 1,
+        "group": 1,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 15564.337285
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 15767.963992
+        },
+        "durationMs": 203.63122699999985
+      },
+      {
+        "generation": 1,
+        "group": 2,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 18680.846244
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 18965.882151
+        },
+        "durationMs": 285.0359669999998
+      },
+      {
+        "generation": 1,
+        "group": 3,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 22298.887079
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 22532.348372
+        },
+        "durationMs": 233.46143299999676
+      },
+      {
+        "generation": 1,
+        "group": 4,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 25790.207916
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 26024.645891
+        },
+        "durationMs": 234.43513499999972
+      },
+      {
+        "generation": 1,
+        "group": 5,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 28081.474915
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 28171.615755
+        },
+        "durationMs": 90.14141100000052
+      },
+      {
+        "generation": 1,
+        "group": 6,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 29728.691706
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 29806.593565
+        },
+        "durationMs": 77.90205900000001
+      },
+      {
+        "generation": 1,
+        "group": 7,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 31394.459354
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 31470.946327
+        },
+        "durationMs": 76.48712299999897
+      },
+      {
+        "generation": 2,
+        "group": 0,
+        "before": {
+          "state": "printing",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 47631.733548
+        },
+        "after": {
+          "state": "printing",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 47887.09487
+        },
+        "durationMs": 255.3613420000038
+      },
+      {
+        "generation": 2,
+        "group": 1,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 51187.46043
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 51340.795023
+        },
+        "durationMs": 153.33461299999908
+      },
+      {
+        "generation": 2,
+        "group": 2,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 54494.386376
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 54759.395761
+        },
+        "durationMs": 265.00967500000115
+      },
+      {
+        "generation": 2,
+        "group": 3,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 58534.738199
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 58656.977734
+        },
+        "durationMs": 122.23949500000163
+      },
+      {
+        "generation": 2,
+        "group": 4,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 61584.153349
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 61812.145037
+        },
+        "durationMs": 227.99246799999673
+      },
+      {
+        "generation": 2,
+        "group": 5,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 63649.602316
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 63742.479071
+        },
+        "durationMs": 92.87709499999619
+      },
+      {
+        "generation": 2,
+        "group": 6,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 65453.784203
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 65545.264812
+        },
+        "durationMs": 91.48035900000104
+      },
+      {
+        "generation": 2,
+        "group": 7,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 67265.245987
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-679dfa04-fdcd-4454-b2d4-d8222d33e253",
+          "fileId": "authorized-file",
+          "atMs": 67358.386716
+        },
+        "durationMs": 93.14083899999969
+      }
+    ],
+    "movesPrintingGenerations": [
+      1,
+      2
+    ],
+    "configListRequests": 2083,
+    "configListP99Ms": 8.346556000004057,
+    "configDownloads": 2082,
+    "configDownloadP99Ms": 9.555500000002212,
+    "liveMotionSamples": 5826,
+    "liveExtrusionSamples": 1452,
+    "nativeAuthorization": true,
+    "apiLoad": true,
+    "completedStatistics": {
+      "total_duration": 10.524399466999999,
+      "print_duration": 4.9011460389999995,
+      "filament_used": 1
+    },
+    "bundleManifestSha256": "67d297e09cf71f50671735ac3d700088f1ecbb4be217a614cef9ee0311239432",
+    "bmp180": false,
+    "bme": false,
+    "bmeHeater": false,
+    "htu": false,
+    "htuHeater": false,
+    "htuModel": null,
+    "lm75": false,
+    "lm75Heater": false,
+    "sht": false,
+    "shtHeater": false,
+    "aht": false,
+    "ahtHeater": false,
+    "combinedHeater": false,
+    "combined": false,
+    "multi": false,
+    "dual": false,
+    "servos": false,
+    "outputPins": false,
+    "phaseQueries": 10096,
+    "phaseP99Ms": 3.9497149999951944,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "skew": false,
+    "screws": false,
+    "manualScrews": false,
+    "bedScrews": false,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "temperatureFan": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": false,
+    "quad": false,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 304,
+        "writes": 43
+      },
+      {
+        "statusReads": 228,
+        "writes": 42
+      },
+      {
+        "statusReads": 8,
+        "writes": 40
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 2054,
+    "historyP99Ms": 55.59364199999982,
+    "lifecycleShutdowns": 8,
+    "copyRequests": 16,
+    "copyP95Ms": 192.04669099999592,
+    "copyOverwriteRequests": 16,
+    "copyOverwriteP95Ms": 265.02139499999976,
+    "directoryCopyRequests": 16,
+    "directoryCopyP95Ms": 443.3082890000005,
+    "copiesDuringPrint": 4,
+    "directoryCopiesDuringPrint": 2,
+    "fileNotifications": 1132,
+    "fileNotificationP95Ms": 166.04695500000162,
+    "movesDuringPrint": 2,
+    "directoryMoveRequests": 16,
+    "directoryMoveP95Ms": 500.3565640000015,
+    "directoryMovesDuringPrint": 2,
+    "moveRequests": 16,
+    "moveP95Ms": 448.61405899999954,
+    "deleteRequests": 16,
+    "deleteP95Ms": 305.5685219999996,
+    "publicThumbnailRequests": 16,
+    "publicThumbnailP95Ms": 202.8428070000009,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 102.1954889999979,
+    "metadataRequests": 16,
+    "metadataP95Ms": 238.87941599999976,
+    "downloads": 16,
+    "downloadP95Ms": 52.35043500000029,
+    "wireCommands": 236,
+    "wireSteps": 7657,
+    "minimumStepLeadMs": 87.97,
+    "directoryRequests": 8484,
+    "directoryP99Ms": 40.44367800001055,
+    "statusRequests": 40391,
+    "uploads": 16,
+    "statusP99Ms": 4.295839000002161,
+    "uploadP95Ms": 51.473824000000604,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 2.058239,
+          "maxMs": 18.661375
+        },
+        "cpu": {
+          "user": 12542958,
+          "system": 2328864
+        },
+        "rss": 339300352
+      },
+      {
+        "loop": {
+          "p99Ms": 1.965055,
+          "maxMs": 15.220735
+        },
+        "cpu": {
+          "user": 8718310,
+          "system": 1869883
+        },
+        "rss": 390164480
+      }
+    ],
+    "queue": {
+      "groups": 16,
+      "printingGenerations": [
+        1,
+        2
+      ],
+      "queries": 2319,
+      "queryP99Ms": 4.722163999998884,
+      "durableMutations": 64,
+      "actualStartRequestPrefix": "queue-",
+      "journalCompleted": true,
+      "authorizedNotifications": true,
+      "noAutomaticReplay": true
+    },
+    "pass": 1,
+    "fail": 0,
+    "originalMoves": 1000,
+    "watchdogMs": 90000,
+    "testTimeoutMs": 180000,
+    "noBenchmarkSwitches": true,
+    "scope": "最终同包原双模拟 MCU 两代与64次耐久队列写入；原停止、精度和循环门槛保留，桌面软件结果不证明目标板。"
+  },
+  "preliminaryErrors": [
+    {
+      "log": "anyraid-sharp-composed-typecheck.log",
+      "cause": "首条类型命令误以 host 为 cwd，导致重复 host 路径，MODULE_NOT_FOUND；从项目根纠正后成功。未计作产品通过。"
+    }
+  ],
+  "evidence": {
+    "file": "sharp-created-evidence.json.gz",
+    "sha256": "1d66fe91d47ddf4ddf923fa7bcb4adc983c521c3ed31c255ee3d45128fe7f2e3",
+    "bytes": 432643,
+    "entries": 46,
+    "credentialShapes": 0
+  },
+  "pending": [
+    "最终组合自身完整 CI",
+    "正常合并与合并后规定检查",
+    "实际同包客户端、目标板及 G3",
+    "完整 UFP、177 个 klippy Python 与默认入口退役、主线发布"
+  ]
+}
