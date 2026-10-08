@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "scope": "Normal latest-develop synchronization of existing PR44 security patch, not a new implementation; current full CI and normal integration pending.",
+  "oldHead": "dde3aa8cb08db7b7a7ca65c57b7f9c4a96bfdd24",
+  "develop": "2911bd447ccca1999765b16ae797a25c90d38415",
+  "oldCi": {
+    "host": {
+      "run": 37677416720,
+      "job": 112984393559,
+      "conclusion": "success",
+      "required": [
+        "npm tests",
+        "protocol-native",
+        "native-sanitized",
+        "Linux MCU"
+      ]
+    },
+    "motion": {
+      "run": 37677416749,
+      "conclusion": "success"
+    },
+    "firmware": {
+      "run": 37677416687,
+      "job": 112984392953,
+      "conclusion": "cancelled",
+      "step": "Prepare tests",
+      "aptWait": "2026-10-07T19:50:03 to2026-10-08T01:50:46, original unbounded apt update",
+      "matrix": "not executed",
+      "logs": "anyraid-sharp-baseline-sync-old-fw-cancelled.log",
+      "unchangedHeadNotRerun": true
+    }
+  },
+  "changes": {
+    "runtime": "No production TS, C, product build input, asset, license, package/lock or dependency changes against old PR44 head; exact production input git diff verified",
+    "merged": "Latest develop bounded APT preparation and original AHT fault snapshots",
+    "conflict": "Use current develop delivery state; retain historical sharp evidence contracts unchanged"
+  },
+  "product": {
+    "node": "v26.10.0",
+    "product": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-sharp-created-product-bundle",
+      "manifestSha256": "67d297e09cf71f50671735ac3d700088f1ecbb4be217a614cef9ee0311239432",
+      "dependenciesSha256": "9844b3cfccd671b7fb1f3b57b98b489ce9efeca1003a7c73c5d54037403d922c"
+    },
+    "matchedJs": 636,
+    "compiler": "7.0.2",
+    "sourcePackageSha256": "77813616f19dcaf75ad9754c22513b776aa4a4811d101163c9fc80c8845626da",
+    "lockSha256": "8623bd0466f9c771e46f838a0571579b87b961af270cff7a49bff38e30232f47",
+    "sharpVersions": {
+      "aom": "3.15.1",
+      "archive": "3.8.9",
+      "cairo": "1.18.6",
+      "cgif": "0.5.4",
+      "exif": "0.6.26",
+      "expat": "2.8.5",
+      "ffi": "3.8.0",
+      "fontconfig": "2.18.3",
+      "freetype": "2.14.3",
+      "fribidi": "1.0.17",
+      "glib": "2.90.0",
+      "harfbuzz": "14.5.0",
+      "heif": "1.23.5",
+      "highway": "1.4.0",
+      "imagequant": "2.4.1",
+      "lcms": "2.19.1",
+      "mozjpeg": "0826579",
+      "pango": "1.58.2",
+      "pixman": "0.46.4",
+      "png": "1.6.58",
+      "proxy-libintl": "0.5",
+      "rsvg": "2.63.2",
+      "tiff": "4.7.2",
+      "uhdr": "2.0.2",
+      "vips": "8.18.7",
+      "webp": "1.6.0",
+      "xml2": "2.15.4",
+      "zlib-ng": "2.3.3",
+      "sharp": "0.35.5"
+    },
+    "scope": "Readonly verification against newly compiled current merged source; no rebuilding, reinstalling or modifying old product. All product JS bytes, source lock and independent dependency identity match."
+  },
+  "validation": {
+    "currentCompiled": "29/29 AHT/fault observer/original clock controls, no TS loader; native C explicitly reused from immutable verified product",
+    "typecheck": "full locked TS project passed",
+    "whitespace": "required passed",
+    "initialObservationError": "A version lookup guessed sharp/lib/index.js and failed after byte/lock/dependency verification; retained. Package-declared resolution confirmed actual sharp and rsvg; not counted as product success/failure.",
+    "audit": {
+      "node": "v26.10.0",
+      "productionVulnerabilities": 0,
+      "advisory": "https://github.com/advisories/GHSA-wq5f-xc86-pv6w",
+      "sharp": "0.35.5",
+      "librsvg": "2.63.2"
+    }
+  },
+  "reuse": {
+    "originalContracts": [
+      "sharp-update-acceptance.json",
+      "sharp-created-acceptance.json"
+    ],
+    "oldArchives": {
+      "sharp-update-evidence.json.gz": "5a11b25cb878248f81acfd50ab16361ef11836a1c9d7bb3ddd7315e0a997089a",
+      "sharp-created-evidence.json.gz": "1d66fe91d47ddf4ddf923fa7bcb4adc983c521c3ed31c255ee3d45128fe7f2e3"
+    },
+    "condition": "636 newly compiled product JS byte-identical, source lock byte-identical, product assets/C source/build inputs git diff empty, immutable independently installed dependencies identity verified after tests; original complete mixed and image ABBA workloads unchanged",
+    "mixed": "Reuse exact same original full namespace/nativeAuthorization/apiLoad product run recorded in sharp-created contract; no new mixed execution or count added",
+    "imagePerformance": "Reuse exact original paired PNG/SVG ABBA; isolated thumbnail P95 37.898457→48.162079 ms (+27%) remains, not zero degradation or target-board budget",
+    "native": "Existing accepted C reused; no new C compilation"
+  },
+  "evidence": {
+    "file": "sharp-baseline-sync-evidence.json.gz",
+    "sha256": "c73c91b7049ebfe00191cce1b324da8de110cfc52f3fda6831b6278f02b6270c",
+    "bytes": 112195,
+    "entries": 27
+  },
+  "unresolved": [
+    "New current-head complete host and firmware CI",
+    "Normal develop integration and post-merge required checks",
+    "PR41 startup calibration whole-group fd assertion",
+    "Original PR50 AHT failure and extended UFP/disk mixed acceptance",
+    "Complete fixed client software exit",
+    "Target-board precision/performance and G3",
+    "177 klippy Python files and mainline release"
+  ]
+}

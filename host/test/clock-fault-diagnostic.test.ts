@@ -25,10 +25,12 @@ test('first retirement captures original expiry before a failed owner can be que
 });
 test('async query failure is captured at invalidation with the original identity and stop count',async t=>{
  const f=fixture(),capture=captureClockFaults(t.mock,()=>f.clock.time),original=f.transport.queryClock,cause=new Error('wire unavailable');let count=0;
- f.transport.queryClock=signal=>++count<=8?original(signal):Promise.reject(cause);
- const runtime=new ClockRuntime(1e6,f.transport,f.clock),start=runtime.start();await f.clock.advance(.41);await start;await settle();
+ // Permit the required first normal qualification, then fail the first active
+ // query. Startup rejection is a separate contract; preserve this fault's identity.
+ f.transport.queryClock=signal=>++count<=9?original(signal):Promise.reject(cause);
+ const runtime=new ClockRuntime(1e6,f.transport,f.clock),start=runtime.start();await f.clock.advance(.41);await start;await f.clock.advance(1);await settle();
  assert.equal(runtime.status.fault,cause);assert.equal(capture.snapshot().retirements[0].fault!.message,cause.message);
- assert.equal(f.queries,8);assert.equal(count,9);assert.equal(f.stops,1);assert.equal(f.clock.pending,0);
+ assert.equal(f.queries,9);assert.equal(count,10);assert.equal(f.stops,1);assert.equal(f.clock.pending,0);
 });
 test('normal stop stays distinct from a fault and uninitialized startup errors propagate',async t=>{
  const f=fixture(),capture=captureClockFaults(t.mock,()=>f.clock.time),runtime=new ClockRuntime(1e6,f.transport,f.clock);

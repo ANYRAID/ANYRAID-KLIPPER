@@ -1,0 +1,235 @@
+{
+  "schema": 1,
+  "date": "2026-10-07",
+  "scope": "Software motion admission candidate; not estimator convergence, original CI root cause, target-board performance, real client completion or G3.",
+  "base": "f34bfb5e68a1d00ca1745aa062d2d776a90a80fb",
+  "runtime": {
+    "node": "v26.10.0",
+    "nodeSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+    "typescript": "7.0.2"
+  },
+  "behavior": {
+    "warmup": 8,
+    "firstOrdinaryReply": "existing ninth query is awaited before activation",
+    "periodSeconds": 0.9839,
+    "usableLeaseSeconds": 4.9195,
+    "unusableReplies": "stay starting and retry on the periodic route; cannot renew original usable lease",
+    "normalAcceptedReply": "required for admission, not proof of convergence",
+    "math": "ClockSync unchanged; original filtering, precision and tolerances preserved"
+  },
+  "sourceFingerprints": {
+    "host/src/timing/clock-runtime.ts": "fb4c784ff0c2674a6ddd326c55d7b2474ee07539dca999306f12f57e0e880fcd",
+    "host/src/timing/clock-sync.ts": "296aef1e98374d42e8324f3789be490db336a42fdf6837499e3f11b0cbc3a562",
+    "host/src/protocol/serial-session.ts": "6422390a8b0d1c1598ecdeb1ceaa2b23ece409a99b8a4e1bde079900445befc9",
+    "host/test/clock-startup-admission.test.ts": "fc9367cc41b2b3f0e0b2a0073eec7a3331f5a87debef559e0f16e446adcbd8e2",
+    "host/test/clock-runtime.test.ts": "5444740934785d044265a1259be306a4a1363efba84d83e9c11b6108820db930",
+    "host/bench/clock-runtime.ts": "9579daa4b68956eb43690c243ef01c5bcdf00b04d6c09b28f65d76a7c8065f93",
+    "host/acceptance/product-compiled-journey.test.ts": "d2de03884cd6581292ad600809e3a4cfebfcb3090d94678266b2bfa0adcf12eb",
+    "host/test/helpers/serial-firmware.ts": "06b059bf47a419b396ef9f72da406095aafe9d5e5daa4529a9a45d12ac0500d1",
+    "host/test/helpers/clock-scheduler.ts": "318493d197ebf08a885157c2b85dd768f510feb469d05dd4610303a020072776",
+    "host/contracts/clock-warmup-wire-counterexample.json": "d55c01ed59138c67cd9efb99e874ff9c29f2dd9eacde761e93cf00bd51fec672"
+  },
+  "validation": {
+    "oldAdmissionAssertions": "0/7 on unchanged f34bfb5e; premature ready or missing rejection",
+    "source": "69/69 clock/serial/MCU tests including seven new cases; 41/41 distinct normal printing/process/RESTART/FIRMWARE_RESTART cases",
+    "compiled": "same seven cases 7/7, no TS loading; coverage overlaps source",
+    "compiledEnvironment": {
+      "PATH": "/no-programs",
+      "PYTHON": "/no-python",
+      "nodePermission": true,
+      "allowFsRead": "*",
+      "allowChildProcess": false,
+      "allowAddons": false
+    },
+    "typecheck": "full locked TS project passed",
+    "whitespace": "required and explicit changed/new files passed",
+    "mixed": "original complete namespace/nativeAuthorization/apiLoad case 1/1; original assertions, 1000 moves, two software MCUs/two generations, 90 s child/180 s test"
+  },
+  "product": {
+    "A": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-usable-lease-composed-product-bundle",
+      "manifestSha256": "106e3b7b208f3b8b82cfaa1ca40185a44f64f4dd6e046512a59931a9cdd38c08",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "B": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-startup-admission-product-bundle",
+      "manifestSha256": "69cb05c1db682ecd4fb894261fbfc8303d8e7774a1071a7797f57a5af99c1f6e",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "changed": [
+      "host/src/timing/clock-runtime.js"
+    ],
+    "removed": [],
+    "native": "Reused unchanged accepted native outputs; no fresh C rebuild.",
+    "conditions": "original case, no ANYRAID_BENCH switches, immutable installed bundle"
+  },
+  "mixed": {
+    "statusRequests": 41287,
+    "statusP99Ms": 4.423778000000311,
+    "minimumStepLeadMs": 87.015,
+    "wireSteps": 7622,
+    "directoryP99Ms": 40.10460800000874,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 2.030591,
+          "maxMs": 25.542655
+        },
+        "cpu": {
+          "user": 13001984,
+          "system": 2398375
+        },
+        "rss": 349274112
+      },
+      {
+        "loop": {
+          "p99Ms": 1.960959,
+          "maxMs": 12.083199
+        },
+        "cpu": {
+          "user": 7910477,
+          "system": 1822375
+        },
+        "rss": 385892352
+      }
+    ],
+    "queue": {
+      "groups": 16,
+      "printingGenerations": [
+        1,
+        2
+      ],
+      "queries": 2364,
+      "queryP99Ms": 4.989445999999589,
+      "durableMutations": 64,
+      "actualStartRequestPrefix": "queue-",
+      "journalCompleted": true,
+      "authorizedNotifications": true,
+      "noAutomaticReplay": true
+    }
+  },
+  "performance": {
+    "observations": {
+      "runtime-before": {
+        "node": "v26.10.0",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "steadyQueries": 5000,
+        "estimatesCompared": 5008,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9,
+        "callbackMedianMs": 0.00509000000002402,
+        "callbackP95Ms": 0.007011000000005652,
+        "callbackMaxMs": 0.2896339999999924,
+        "periodMs": 983.9,
+        "reference": {
+          "kind": "frozen independent Python numerical reference",
+          "capturedAt": "2026-10-07",
+          "sha256": "94fdae4b8aaf433c87c780c2ed31eac4feb173a46247554e4f4b98cb39ce457f"
+        },
+        "scope": "Includes fake scheduler and promise draining; no live Python, wire latency or hardware acceptance"
+      },
+      "runtime-after": {
+        "node": "v26.10.0",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "steadyQueries": 5000,
+        "estimatesCompared": 5008,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9,
+        "callbackMedianMs": 0.005200000000002092,
+        "callbackP95Ms": 0.011400000000008959,
+        "callbackMaxMs": 2.3481799999999993,
+        "periodMs": 983.9,
+        "reference": {
+          "kind": "frozen independent Python numerical reference",
+          "capturedAt": "2026-10-07",
+          "sha256": "94fdae4b8aaf433c87c780c2ed31eac4feb173a46247554e4f4b98cb39ce457f"
+        },
+        "scope": "Includes fake scheduler and promise draining; no live Python, wire latency or hardware acceptance"
+      },
+      "paired-before": {
+        "node": "v26.10.0",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "steadyQueries": 5000,
+        "estimatesCompared": 5008,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9,
+        "callbackMedianMs": 0.005119999999976699,
+        "callbackP95Ms": 0.011169999999992797,
+        "callbackMaxMs": 1.2357659999999981,
+        "periodMs": 983.9,
+        "reference": {
+          "kind": "frozen independent Python numerical reference",
+          "capturedAt": "2026-10-07",
+          "sha256": "94fdae4b8aaf433c87c780c2ed31eac4feb173a46247554e4f4b98cb39ce457f"
+        },
+        "scope": "Includes fake scheduler and promise draining; no live Python, wire latency or hardware acceptance"
+      },
+      "paired-after": {
+        "node": "v26.10.0",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "steadyQueries": 5000,
+        "estimatesCompared": 5008,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9,
+        "callbackMedianMs": 0.004930000000001655,
+        "callbackP95Ms": 0.0075399999999916645,
+        "callbackMaxMs": 0.4138449999999949,
+        "periodMs": 983.9,
+        "reference": {
+          "kind": "frozen independent Python numerical reference",
+          "capturedAt": "2026-10-07",
+          "sha256": "94fdae4b8aaf433c87c780c2ed31eac4feb173a46247554e4f4b98cb39ce457f"
+        },
+        "scope": "Includes fake scheduler and promise draining; no live Python, wire latency or hardware acceptance"
+      },
+      "compiled-runtime": {
+        "node": "v26.10.0",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "steadyQueries": 5000,
+        "estimatesCompared": 5008,
+        "maxClockError": 0,
+        "maxFrequencyError": 1.1641532182693481e-9,
+        "callbackMedianMs": 0.004859999999993647,
+        "callbackP95Ms": 0.007000000000005002,
+        "callbackMaxMs": 1.3666780000000074,
+        "periodMs": 983.9,
+        "reference": {
+          "kind": "frozen independent Python numerical reference",
+          "capturedAt": "2026-10-07",
+          "sha256": "94fdae4b8aaf433c87c780c2ed31eac4feb173a46247554e4f4b98cb39ce457f"
+        },
+        "scope": "Includes fake scheduler and promise draining; no live Python, wire latency or hardware acceptance"
+      }
+    },
+    "ordering": "first observed B during source regression then A; separate isolated sequential A then B; retain every raw sample in archive",
+    "interpretation": "first P95 increase retained. Sequential observation is not statistical acceleration or target-board timing acceptance."
+  },
+  "retainedFailures": [
+    "First two unit failures were fixture timestamp/endpoint mistakes; first process interrupted and bounded run retained. Corrected input passes.",
+    "Three legacy fake active-query fixtures waited for startup while withholding its newly required reply; updated active cases admit nine replies before stalling the tenth, and trailing-warmup case now expects startup rejection. Original 12 pass/3 timeout retained.",
+    "Two narrow read-path compiled launches reported missing file despite filesystem existence; unrestricted read-only permission from the compiled directory passes. Lookup cause unproven.",
+    "Single-MCU 4/20/20 ms injection initialize succeeded instead of expected rejection. No sample trace was emitted. Failed driver/log retained and excluded from deterministic CI; no claim that controlled multi-MCU failure is fixed."
+  ],
+  "capturedPrefix": {
+    "capture": "existing immutable controlled wire counterexample aux, first eight warmup and first ordinary reply",
+    "receiptSha256": "d55c01ed59138c67cd9efb99e874ff9c29f2dd9eacde761e93cf00bd51fec672",
+    "uptimeReceiveTime": "not captured; fixture uses sentTime, estimator initialization only",
+    "scope": "nine estimator inputs only; exact after-estimate matches first recorded rejection, no motion grant; not transport replay"
+  },
+  "archive": {
+    "path": "host/contracts/clock-startup-admission-evidence.json.gz",
+    "entries": 49,
+    "bytes": 429230,
+    "sha256": "392d999f9c7ee0b7df940b6e96852f2f5cb3d1ca14b9dec5da38863e639781fc",
+    "uncompressedBytes": 2652828,
+    "uncompressedSha256": "6cab5910367f2fe1a040e655052558d63ef3e7c844e3b2ee6a2ac553ea7444df",
+    "allEntryDigestsVerified": true
+  },
+  "open": [
+    "self CI and normal task PR integration",
+    "persistent warmup bias/convergence and historical mapping",
+    "same-bundle actual Fluidd/Mainsail full acceptance, r3 restart authorization outstanding",
+    "Cycnumbris 500 board/configuration and target performance/precision, G3",
+    "full native Moonraker, all Python retirement, default switch and master release"
+  ]
+}

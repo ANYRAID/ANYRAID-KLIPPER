@@ -16,13 +16,13 @@ test('a transport ignoring abort still cannot keep startup alive beyond its dead
  const r=new ClockRuntime(1e6,f.transport,f.clock),result=assert.rejects(r.start(),/timed out/);await f.clock.advance(5.1);await result;assert(aborted);assert.equal(r.status.state,'failed');assert.equal(f.stops,1);assert.equal(f.clock.pending,0);
 });
 test('an unanswered active query expires authorization and invalidates the estimator',async()=>{
- const f=fixture(),original=f.transport.queryClock;let count=0;f.transport.queryClock=s=>++count<=8?original(s):new Promise(()=>{});
+ const f=fixture(),original=f.transport.queryClock;let count=0;f.transport.queryClock=s=>++count<=9?original(s):new Promise(()=>{});
  const r=new ClockRuntime(1e6,f.transport,f.clock),start=r.start();await f.clock.advance(.41);await start;await f.clock.advance(5);
- assert.equal(r.status.state,'failed');assert.equal(r.sync.active,false);assert.throws(()=>r.assertActive());assert.equal(count,9);assert.equal(f.stops,1);assert.equal(f.clock.pending,0);
+ assert.equal(r.status.state,'failed');assert.equal(r.sync.active,false);assert.throws(()=>r.assertActive());assert.equal(count,10);assert.equal(f.stops,1);assert.equal(f.clock.pending,0);
 });
 test('a stalled host cannot renew stale authorization with a late fresh-looking reply',async()=>{
  const f=fixture(),original=f.transport.queryClock;let count=0,reply!:(sample:{clock32:number;sentTime:number;receiveTime:number})=>void;
- f.transport.queryClock=s=>++count<=8?original(s):new Promise(resolve=>{reply=resolve;});const r=new ClockRuntime(1e6,f.transport,f.clock),start=r.start();await f.clock.advance(.41);await start;
+ f.transport.queryClock=s=>++count<=9?original(s):new Promise(resolve=>{reply=resolve;});const r=new ClockRuntime(1e6,f.transport,f.clock),start=r.start();await f.clock.advance(.41);await start;await f.clock.advance(1);
  f.clock.time+=6;reply({clock32:8000000,sentTime:f.clock.time,receiveTime:f.clock.time});await settle();assert.equal(r.status.state,'failed');assert.equal(f.stops,1);assert.equal(r.sync.active,false);
 });
 test('unusable warmup, malformed timestamps and failed stop remain visible',async()=>{
@@ -91,10 +91,10 @@ test('an isolated rejected response preserves the lease and a usable response re
  await f.clock.advance(5);runtime.assertActive();assert(f.estimates>usable);assert.equal(f.stops,0);
  await runtime.stop();assert.equal(f.stops,1);assert.equal(f.clock.pending,0);
 });
-test('unusable trailing warmup replies cannot move the usable estimate deadline',async()=>{
+test('unusable trailing warmup replies cannot move the deadline or qualify startup',async()=>{
  const f=fixture(),original=f.transport.queryClock;let requests=0;
  f.transport.queryClock=async signal=>{const sample=await original(signal);return ++requests===1?sample:{...sample,sentTime:0};};
- const runtime=new ClockRuntime(1e6,f.transport,f.clock),start=runtime.start();await f.clock.advance(.41);await start;await settle();assert.equal(f.estimates,1);
- await f.clock.advance(4.4);runtime.assertActive();assert.equal(f.stops,0);
- await f.clock.advance(.2);assert.throws(()=>runtime.assertActive(),/expired/);await settle();assert.equal(f.stops,1);assert.equal(runtime.sync.active,false);assert.equal(f.clock.pending,0);
+ const runtime=new ClockRuntime(1e6,f.transport,f.clock),failed=assert.rejects(runtime.start(),/expired/);await f.clock.advance(.41);await settle();assert.equal(f.estimates,1);
+ await f.clock.advance(4.4);assert.equal(runtime.status.state,'starting');assert.throws(()=>runtime.assertActive(),/not active/);assert.equal(f.stops,0);
+ await f.clock.advance(.2);await failed;assert.equal(f.stops,1);assert.equal(runtime.sync.active,false);assert.equal(f.clock.pending,0);
 });

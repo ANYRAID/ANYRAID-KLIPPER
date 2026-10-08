@@ -1,0 +1,424 @@
+{
+  "schema": 1,
+  "status": "Diagnostic counterfactual; not production repair, CI success, convergence guarantee or G3 closure",
+  "ci": {
+    "head": "38ad39539282940bb33b25686852a8373d3d6499",
+    "run": 37725068722,
+    "job": 113141257420
+  },
+  "captured": {
+    "pin": "PA4",
+    "runtime": 1,
+    "time": 82.014793979,
+    "state": "failed",
+    "fault": {
+      "name": "Error",
+      "message": "MCU clock samples expired"
+    },
+    "uptime": {
+      "count": 2,
+      "recent": [
+        {
+          "transport": 0,
+          "sample": {
+            "high": 0,
+            "clock32": 1044422,
+            "sentTime": 76.600228697,
+            "receiveTime": 76.603675017
+          }
+        },
+        {
+          "transport": 1,
+          "sample": {
+            "high": 0,
+            "clock32": 1049651,
+            "sentTime": 76.607371732,
+            "receiveTime": 76.610526337
+          }
+        }
+      ]
+    },
+    "samples": {
+      "id": "1",
+      "initial": {
+        "frequency": 1000000,
+        "uptimeClock": "1049651",
+        "sentTime": 76.607371732
+      },
+      "count": 14,
+      "warmup": [
+        {
+          "sample": {
+            "clock32": 1101778,
+            "sentTime": 76.662507312,
+            "receiveTime": 76.66268898
+          },
+          "warmup": true,
+          "revision": 1,
+          "before": {
+            "sampleTime": 76.607371732,
+            "origin": "1049651",
+            "clockOffset": 0,
+            "frequency": 1000000
+          },
+          "after": {
+            "sampleTime": 76.60930041866666,
+            "origin": "1049651",
+            "clockOffset": 1737.5666666666666,
+            "frequency": 945433.0579274168
+          },
+          "release": {
+            "frequency": 945433.0579274168,
+            "sampleTime": 76.61020958466668,
+            "clock": "1048023"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1152518,
+            "sentTime": 76.713240189,
+            "receiveTime": 76.713384748
+          },
+          "warmup": true,
+          "revision": 2,
+          "before": {
+            "sampleTime": 76.60930041866666,
+            "origin": "1049651",
+            "clockOffset": 1737.5666666666666,
+            "frequency": 945433.0579274168
+          },
+          "after": {
+            "sampleTime": 76.61274955097778,
+            "origin": "1049651",
+            "clockOffset": 5108.547777777778,
+            "frequency": 966415.076512344
+          },
+          "release": {
+            "frequency": 966415.076512344,
+            "sampleTime": 76.61367727147778,
+            "clock": "1051128"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1204022,
+            "sentTime": 76.764775351,
+            "receiveTime": 76.764852645
+          },
+          "warmup": true,
+          "revision": 3,
+          "before": {
+            "sampleTime": 76.61274955097778,
+            "origin": "1049651",
+            "clockOffset": 5108.547777777778,
+            "frequency": 966415.076512344
+          },
+          "after": {
+            "sampleTime": 76.61778585446186,
+            "origin": "1049651",
+            "clockOffset": 10083.962851851851,
+            "frequency": 975901.6668384147
+          },
+          "release": {
+            "frequency": 975901.6668384147,
+            "sampleTime": 76.61874720746185,
+            "clock": "1055961"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1254880,
+            "sentTime": 76.815628693,
+            "receiveTime": 76.81570248
+          },
+          "warmup": true,
+          "revision": 4,
+          "before": {
+            "sampleTime": 76.61778585446186,
+            "origin": "1049651",
+            "clockOffset": 10083.962851851851,
+            "frequency": 975901.6668384147
+          },
+          "after": {
+            "sampleTime": 76.6243801504798,
+            "origin": "1049651",
+            "clockOffset": 16588.79742345679,
+            "frequency": 981308.1644621838
+          },
+          "release": {
+            "frequency": 981308.1644621838,
+            "sampleTime": 76.62534325697979,
+            "clock": "1062371"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1305630,
+            "sentTime": 76.866372668,
+            "receiveTime": 76.866460933
+          },
+          "warmup": true,
+          "revision": 5,
+          "before": {
+            "sampleTime": 76.6243801504798,
+            "origin": "1049651",
+            "clockOffset": 16588.79742345679,
+            "frequency": 981308.1644621838
+          },
+          "after": {
+            "sampleTime": 76.6324477975138,
+            "origin": "1049651",
+            "clockOffset": 24568.470842674895,
+            "frequency": 984804.3103570212
+          },
+          "release": {
+            "frequency": 984804.3103570212,
+            "sampleTime": 76.6334109040138,
+            "clock": "1070283"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1356110,
+            "sentTime": 76.916835636,
+            "receiveTime": 76.91692893
+          },
+          "warmup": true,
+          "revision": 6,
+          "before": {
+            "sampleTime": 76.6324477975138,
+            "origin": "1049651",
+            "clockOffset": 24568.470842674895,
+            "frequency": 984804.3103570212
+          },
+          "after": {
+            "sampleTime": 76.64192862191334,
+            "origin": "1049651",
+            "clockOffset": 33964.82181458573,
+            "frequency": 987260.5372653252
+          },
+          "release": {
+            "frequency": 987260.5372653252,
+            "sampleTime": 76.64289172841335,
+            "clock": "1079627"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1406052,
+            "sentTime": 76.966669875,
+            "receiveTime": 76.966876892
+          },
+          "warmup": true,
+          "revision": 7,
+          "before": {
+            "sampleTime": 76.64192862191334,
+            "origin": "1049651",
+            "clockOffset": 33964.82181458573,
+            "frequency": 987260.5372653252
+          },
+          "after": {
+            "sampleTime": 76.6527545601329,
+            "origin": "1049651",
+            "clockOffset": 44712.69442076621,
+            "frequency": 989168.71187457
+          },
+          "release": {
+            "frequency": 989168.71187457,
+            "sampleTime": 76.6537176666329,
+            "clock": "1090325"
+          }
+        },
+        {
+          "sample": {
+            "clock32": 1457332,
+            "sentTime": 77.018075813,
+            "receiveTime": 77.020363581
+          },
+          "warmup": true,
+          "revision": 8,
+          "before": {
+            "sampleTime": 76.6527545601329,
+            "origin": "1049651",
+            "clockOffset": 44712.69442076621,
+            "frequency": 989168.71187457
+          },
+          "after": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "release": {
+            "frequency": 990503.9332718619,
+            "sampleTime": 76.6658962715118,
+            "clock": "1102403"
+          }
+        }
+      ],
+      "recent": [
+        {
+          "sample": {
+            "clock32": 1483341,
+            "sentTime": 77.020707793,
+            "receiveTime": 77.044178005
+          },
+          "warmup": false,
+          "revision": 9,
+          "before": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "after": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 2443256,
+            "sentTime": 78.00400981,
+            "receiveTime": 78.004083117
+          },
+          "warmup": false,
+          "revision": 10,
+          "before": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "after": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 3426611,
+            "sentTime": 78.987333491,
+            "receiveTime": 78.98745383400001
+          },
+          "warmup": false,
+          "revision": 11,
+          "before": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "after": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 4410462,
+            "sentTime": 79.971204064,
+            "receiveTime": 79.97129866
+          },
+          "warmup": false,
+          "revision": 12,
+          "before": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "after": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 5393317,
+            "sentTime": 80.95400972,
+            "receiveTime": 80.954161955
+          },
+          "warmup": false,
+          "revision": 13,
+          "before": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "after": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "release": null
+        },
+        {
+          "sample": {
+            "clock32": 6376052,
+            "sentTime": 81.936742131,
+            "receiveTime": 81.936877353
+          },
+          "warmup": false,
+          "revision": 14,
+          "before": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "after": {
+            "sampleTime": 76.6649331650118,
+            "origin": "1049651",
+            "clockOffset": 56811.637940074004,
+            "frequency": 990503.9332718619
+          },
+          "release": null
+        }
+      ]
+    }
+  },
+  "expected": {
+    "original": {
+      "warmupAccepted": 8,
+      "regularAccepted": 0,
+      "regularRejected": 6
+    },
+    "counterfactual": [
+      {
+        "name": "first-known-warmup",
+        "anchorRevision": 1,
+        "periodicAccepted": 5,
+        "periodicRejected": 1
+      },
+      {
+        "name": "minimum-rtt-warmup",
+        "anchorRevision": 4,
+        "periodicAccepted": 5,
+        "periodicRejected": 1
+      }
+    ]
+  },
+  "scope": "Only this exact no-wrap, high=0 actual software-MCU input. Initial anchor uses an actual clock reply; earlier input is omitted in the counterfactual. No fabricated counters, live queries, timers, motion, changed outlier rules or lease. Candidate startup policy must separately retain full-width wrap/epoch handling, bound extra calibration/query cost, prove usable normal reply before ready and reject unresolved uncertainty.",
+  "priorFailedAdmissionPR": {
+    "number": 41,
+    "head": "6f753d478bdd67de6c8eaf988b21158d3bab9be4",
+    "status": "open draft, not integrated",
+    "failure": "TMC missing UART reply hit expired clock instead of original timeout assertion; original failure and assertions retained"
+  },
+  "decision": "Use actual captured timestamp/RTT uncertainty to assess bounded real-reply startup calibration; merely waiting for a first normal sample or renewing on any received reply is insufficient. Reuse the existing admission work and preserve its failure history; no new production policy adopted."
+}
