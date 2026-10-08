@@ -1132,5 +1132,324 @@
     "Complete Python retirement and full Moonraker",
     "Master release"
   ],
-  "next": "Resolve exact-head AHT clock-expiry blocker without weakening clock authorization, then optimize measured metadata/file transaction contention against unchanged mixed workload and retained cold-tail results."
+  "next": "Resolve exact-head AHT clock-expiry blocker without weakening clock authorization, then optimize measured metadata/file transaction contention against unchanged mixed workload and retained cold-tail results.",
+  "storageIOObservation": {
+    "status": "diagnostic_only_optimization_and_acceptance_unresolved",
+    "productionBase": "7d4407c3ef2090d2306829c6c01d99743cb8b156",
+    "plan": {
+      "scope": "One bounded original-assertion diagnostic, not acceptance or a benchmark. Exactly one driver change appends a file I/O observer to the child NODE_OPTIONS. Production bundle, input, assertions and deadlines remain unchanged.",
+      "originalPath": "/home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-compiled-driver/host/acceptance/product-compiled-journey.test.js",
+      "originalSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+      "diagnosticPath": "/home/dek02/.cache/codex/tmp/anyraid-storage-io-diagnostic-driver/host/acceptance/product-compiled-journey.test.js",
+      "diagnosticSha256": "9d7556357209e0ddd28f314c020077f530da1bae5e66c450cdeff85fc250c1cf",
+      "observerSha256": "42eb2ccbfb01d61345ba7e399f7c12071b322fd7589c9498248ebda1c5865062",
+      "workload": {
+        "namespace": true,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "metadataRescan": true,
+        "ufp": true,
+        "diskImport": true,
+        "largeUfp": true,
+        "machineControl": false,
+        "automaticQueue": false,
+        "queueConfirmation": false,
+        "layerPause": false,
+        "objectPriming": false,
+        "motionReport": true,
+        "originalMovements": 1000,
+        "softwareMCUs": 2,
+        "generationsRequired": 2
+      },
+      "outerDeadlineSeconds": 90,
+      "initialObserverSha256": "b4c9e824ac8a2a52d401db67fed9cb38161900b6b2fcbfe0a419f1c62f9f1d17",
+      "initialSetupFailure": {
+        "exitCode": 7,
+        "log": "anyraid-storage-io-initial-setup.log",
+        "reason": "FileHandle.close is an instance member; observation failed before software MCU startup",
+        "correction": "Observe six prototype methods only; close behavior unchanged"
+      },
+      "emptyObserverSha256": "5460ee42202e7c64da098a4c563d7be5f056930d644fe13e4b9c8e301304ad70",
+      "emptyObservation": {
+        "exitCode": 1,
+        "log": "anyraid-storage-io-empty-observation.log",
+        "processes": [
+          3559329,
+          3559365,
+          3559381
+        ],
+        "calls": 0,
+        "reason": "Instance methods shadow prototype observations; this run contains no I/O timing evidence",
+        "firstFailureGeneration": 1,
+        "root": "Recursive cleanup completed after printing",
+        "secondary": "Undici ERR_INVALID_STATE",
+        "correction": "Wrap the six methods on each actual open result; validated with three real file operations before the next bounded diagnostic"
+      },
+      "smoke": {
+        "total": 3,
+        "methods": [
+          "sync",
+          "writeFile",
+          "stat"
+        ],
+        "path": "anyraid-storage-io-observation-2.json"
+      },
+      "exitOnlyObserverSha256": "9d198bda423499ee0c23b6df8eca3a1ee22dc7c9e3cdd0e42801ccf0987d84d4",
+      "lostOnKillObservation": {
+        "exitCode": 1,
+        "log": "anyraid-storage-io-lost-on-kill-observation.log",
+        "processes": [
+          3559773,
+          3559810,
+          3559829
+        ],
+        "savedCalls": 0,
+        "root": "Recursive cleanup completed after printing",
+        "firstFailureGeneration": 1,
+        "scope": "No actual product-process I/O snapshot; do not use saved empty parent/worker observations as timing evidence",
+        "decision": "Independent emitted entry control captures stat/sync/writeFile; failed mixed fixture explicitly SIGKILLs the product child in finally. Save bounded checkpoints during I/O without replacing kill/stop behavior"
+      },
+      "entryControl": {
+        "path": "anyraid-storage-io-smoke-main.mjs",
+        "observation": "anyraid-storage-io-observation-3560859.json",
+        "calls": 3
+      },
+      "checkpoint": {
+        "completedCalls": 256,
+        "atomicPrivateFile": true,
+        "recentKept": 64,
+        "noAdditionalTimer": true,
+        "noAdditionalQuery": true,
+        "addsDiagnosticWrites": true
+      }
+    },
+    "firstFailure": {
+      "generation": 1,
+      "message": "Recursive cleanup must complete during each printing generation\n+ actual - expected\n\n+ 'completed'\n- 'printing'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Recursive cleanup must complete during each printing generation\n+ actual - expected\n\n+ 'completed'\n- 'printing'\n\n    at file:///home/dek02/.cache/codex/tmp/anyraid-storage-io-diagnostic-driver/host/acceptance/product-compiled-journey.test.js:1022:40\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+    },
+    "totalMs": 20595.460187,
+    "passed": 0,
+    "failed": 1,
+    "secondaryUnhandledStreamError": "Undici ERR_INVALID_STATE: ReadableStream is already closed",
+    "checkpoint": {
+      "pid": 3561140,
+      "calls": 15616,
+      "recent": 64,
+      "notFinalExit": true,
+      "possiblyMissingTrailingCalls": true,
+      "methods": {
+        "sync": {
+          "count": 936,
+          "sumCallMs": 7774.189109999958,
+          "maxCallMs": 23.570388000000094
+        },
+        "read": {
+          "count": 9352,
+          "sumCallMs": 740.7574150001124,
+          "maxCallMs": 16.92831699999988
+        },
+        "stat": {
+          "count": 4775,
+          "sumCallMs": 294.15311299999166,
+          "maxCallMs": 4.533977999999479
+        },
+        "writeFile": {
+          "count": 215,
+          "sumCallMs": 22.44751099998757,
+          "maxCallMs": 1.8343669999994745
+        },
+        "chmod": {
+          "count": 307,
+          "sumCallMs": 15.642583000011655,
+          "maxCallMs": 1.1280179999994289
+        },
+        "readFile": {
+          "count": 31,
+          "sumCallMs": 1.8490319999996245,
+          "maxCallMs": 0.33343500000046333
+        }
+      },
+      "largestCallDurationGroups": [
+        {
+          "method": "sync",
+          "owner": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1962:262",
+          "count": 142,
+          "totalMs": 1755.5537860000022,
+          "maxMs": 22.039694999999483,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1961:61",
+          "count": 142,
+          "totalMs": 1104.7657189999982,
+          "maxMs": 15.396934000000329,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1981:34",
+          "count": 142,
+          "totalMs": 1066.7647500000012,
+          "maxMs": 14.946165999997902,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1934:32",
+          "count": 118,
+          "totalMs": 971.1613970000053,
+          "maxMs": 23.570388000000094,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:2090:34",
+          "count": 108,
+          "totalMs": 773.1311709999827,
+          "maxMs": 19.58046699999977,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:2098:38",
+          "count": 85,
+          "totalMs": 592.4610270000021,
+          "maxMs": 13.323411999999735,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at #removeClaim (file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/moonraker/native-ufp-disk-imports.js:361:21)",
+          "count": 16,
+          "totalMs": 199.78393399999732,
+          "maxMs": 15.847090999999637,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at #json (file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/moonraker/native-ufp-disk-imports.js:235:57)",
+          "count": 16,
+          "totalMs": 161.10407399999895,
+          "maxMs": 13.687647999999172,
+          "errors": 0
+        },
+        {
+          "method": "read",
+          "owner": "at SealedBinaryReader.chunks (file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/gcode/sealed-file.js:103:56)",
+          "count": 1817,
+          "totalMs": 140.60584599998765,
+          "maxMs": 2.8424730000006093,
+          "errors": 0
+        },
+        {
+          "method": "read",
+          "owner": "at boundedRead (file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/moonraker/proc-stats.js:25:116)",
+          "count": 164,
+          "totalMs": 137.9361600000027,
+          "maxMs": 6.24962400000004,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at #json (file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/moonraker/native-ufp-disk-imports.js:231:20)",
+          "count": 16,
+          "totalMs": 130.392828,
+          "maxMs": 13.191100000000006,
+          "errors": 0
+        },
+        {
+          "method": "read",
+          "owner": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/moonraker/native-config-files.js:158:56",
+          "count": 1701,
+          "totalMs": 118.41934300005869,
+          "maxMs": 5.4217829999997775,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at #removeClaim (file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/moonraker/native-ufp-disk-imports.js:362:70)",
+          "count": 8,
+          "totalMs": 103.64656300000206,
+          "maxMs": 14.612151999999696,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "#applyReplacement",
+          "count": 8,
+          "totalMs": 86.28071900000032,
+          "maxMs": 14.235055999999531,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at #finish (file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/moonraker/native-ufp-disk-imports.js:350:21)",
+          "count": 8,
+          "totalMs": 81.07060900000033,
+          "maxMs": 14.129025000000183,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "#verifyBlob",
+          "count": 33,
+          "totalMs": 80.07716099999652,
+          "maxMs": 8.505248999999822,
+          "errors": 0
+        },
+        {
+          "method": "stat",
+          "owner": "#receipt",
+          "count": 1226,
+          "totalMs": 77.75426099998549,
+          "maxMs": 3.2941799999998693,
+          "errors": 0
+        },
+        {
+          "method": "read",
+          "owner": "#receipt",
+          "count": 997,
+          "totalMs": 66.1492650000223,
+          "maxMs": 7.656085999999959,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at #admit (file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/moonraker/native-ufp-disk-imports.js:301:29)",
+          "count": 8,
+          "totalMs": 62.13231399999859,
+          "maxMs": 12.910486000000674,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "owner": "at #admit (file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/moonraker/native-ufp-disk-imports.js:293:32)",
+          "count": 8,
+          "totalMs": 59.79576700000143,
+          "maxMs": 12.590720999998666,
+          "errors": 0
+        }
+      ]
+    },
+    "scope": [
+      "One original emitted driver with only child observation preload changed; exact before/after identities verified",
+      "Selected switches and fixed model/PNG bytes explicit; previous invocation full environment was not archived, so generation shift cannot be attributed to observer or production",
+      "Three observation attempts precede valid checkpoint: initial close member setup failed before MCU, prototype capture empty, instance capture lost when product child killed; all retained",
+      "The checkpoint survives original failed-fixture SIGKILL; no replacement signal handling, query, timer, relaxed stop, input or assertion",
+      "Observed I/O durations include scheduling and observer effects; sums overlap and cannot be treated as wall time or CPU share",
+      "No complete second-generation, performance, target-board, precision or stop acceptance",
+      "Sealed original product and dependencies unchanged; existing cold-tail failure and original mixed failures remain"
+    ],
+    "decision": "Publication inode/directory sync call groups are the largest observed call-duration sums. Do not remove causal durability barriers or infer directory enumeration alone dominates. Next optimization needs root/phase-aware concurrency evidence, fault/crash controls, and original full mixed plus cold-tail benchmarks before adoption.",
+    "evidence": {
+      "path": "host/contracts/published-durability-io-observation.evidence.json.gz",
+      "bytes": 20676,
+      "sha256": "e2041f354022f3e814a3ee9b2e5a189f2da2602213a8e81515dc30138a4f5277",
+      "entries": 20,
+      "redactedLogStateTokens": true,
+      "scope": "Original diagnostic logs remain in local temporary storage; archived logs remove test state-token values."
+    }
+  }
 }
