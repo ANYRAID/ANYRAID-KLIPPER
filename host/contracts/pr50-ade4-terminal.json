@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "ade4f8275006a284e18667554d83cdbf366ea5c9",
+  "base": "e647326b80ca990b70bbb23f9248d8fa6ee042ea",
+  "mergeRef": "3643d34c4c7bed6f9590b8cc9f6d590b299c7a51",
+  "hostRun": 37748729212,
+  "hostJobs": [
+    {
+      "id": 113216407612,
+      "name": "checks",
+      "conclusion": "success"
+    },
+    {
+      "id": 113216407874,
+      "name": "sanitizer (ubsan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113216408135,
+      "name": "sanitizer (asan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113220828470,
+      "name": "host",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "pass": 4393,
+    "fail": 0
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "coverage": "ufp",
+    "allExitZero": true
+  },
+  "firmware": [
+    {
+      "id": 113216407221,
+      "run": 37748729166,
+      "conclusion": "success"
+    }
+  ],
+  "motion": {
+    "run": 37748729216,
+    "jobs": [
+      {
+        "id": 113216407817,
+        "name": "motion (26.10.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113216407927,
+        "name": "motion (26.10.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113216407958,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113216408003,
+        "name": "motion (26.10.0, default, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113216408019,
+        "name": "motion (26.10.0, off, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113216408053,
+        "name": "motion (26.9.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113216408100,
+        "name": "motion (26.9.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113216408178,
+        "name": "motion (26.9.0, off, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113216408235,
+        "name": "motion (26.9.0, default, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113216408539,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "conclusion": "success"
+      }
+    ],
+    "conditions": 10,
+    "childrenPerCondition": 50,
+    "verifiedChildren": 500,
+    "deadlineMs": 10000,
+    "loops": 16,
+    "tolerancesUnchanged": true
+  },
+  "evidence": {
+    "path": "pr50-ade4-terminal.evidence.json.gz",
+    "sha256": "a7e46f2cd5c408234d6c31913f52eabff322f4261e8141207c2b9eb5778f5eb6",
+    "bytes": 603332,
+    "entries": 17
+  },
+  "scope": "PR50 actual ade4 combination exact-head success; source fingerprints permit reuse of sealed ABBA and mixed acceptance. Historical failures unexplained; no actual client, target precision, G3 or full retirement claim."
+}
