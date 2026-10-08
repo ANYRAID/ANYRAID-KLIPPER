@@ -1,6 +1,8 @@
-import {isAbsolute,relative,resolve,sep} from 'node:path';
+import {isAbsolute,relative,resolve,sep,dirname,basename} from 'node:path';
+import {realpath} from 'node:fs/promises';
 import {PublishedPrintFiles} from '../storage/published-files.ts';
 import {NativePrintUploads,type NativeUploadOptions} from '../moonraker/native-print-uploads.ts';
+import {NativeUfpDiskImports,type NativeUfpDiskImportOptions} from '../moonraker/native-ufp-disk-imports.ts';
 import {ServerInformation} from '../moonraker/metadata.ts';
 import {assertProductAuthorization} from './product-authorization.ts';
 import {ApiError} from '../moonraker/rpc.ts';
@@ -32,6 +34,8 @@ export interface NativeProductMachineOptions {
  uploads?:NativeUploadOptions;
  /** Explicit config subtree; only process-mode factories may expose it. */
  configFiles?:NativeConfigFilesOptions;
+ /** Separate service-owned filesystem inbox; requires process lifetime. */
+ diskImports?:Pick<NativeUfpDiskImportOptions,'root'|'maxClaims'|'maxClaimBytes'>;
  /** Borrowed process storage. A profile closes its admission/metadata layer,
   * releases its lease and adapter, but cannot close the file store. */
  fileResources?:NativeProductFileResources;
@@ -42,6 +46,8 @@ export interface NativeProductMachineOptions {
 }
 export interface NativeProductProcessResources {
  server:NativeMachineAdapter['server'];
+ /** Explicit current local filesystem policy from this process owner. */
+ diskImportContext?:NativeUfpDiskImportOptions['context'];
  /** Optional writable capability; host owns final cancellation and joins. */
  machineControl?:MachineControlPort;
  /** Runs after final server closure, or failed pre-server startup. Managed
@@ -55,6 +61,7 @@ export interface NativeProductProcessOptions extends Omit<NativeProductMachineOp
  createAdapter(configuration:ProductMachineConfiguration,signal:AbortSignal,gate:MaintenanceGate,process:Readonly<NativeMachineAdapter['server']>,reload?:HostReloadContext):Promise<Omit<NativeMachineAdapter,'server'>>;
 }
 function overlapping(a:string,b:string):boolean {const rel=relative(a,b);return rel===''||!isAbsolute(rel)&&rel!=='..'&&!rel.startsWith('..'+sep);}
+async function plannedPath(input:string):Promise<string>{let current=resolve(input);const suffix:string[]=[];for(let depth=0;depth<128;depth++){try{return resolve(await realpath(current),...suffix);}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;const parent=dirname(current);if(parent===current)throw error;suffix.unshift(basename(current));current=parent;}}throw new Error('Storage path depth exceeded');}
 function storageRoots(options:Pick<NativeProductMachineOptions,'filesRoot'|'metadataRoot'>){
  for(const path of [options.filesRoot,options.metadataRoot])if(typeof path!=='string'||!isAbsolute(path)||/[\0\r\n]/u.test(path))throw new TypeError('Native product storage requires absolute paths');
  const filesRoot=resolve(options.filesRoot),metadataRoot=resolve(options.metadataRoot);
@@ -67,6 +74,7 @@ export class NativeProductFileResources {
  readonly #files:PublishedPrintFiles;readonly #filesRoot:string;readonly #metadataRoot:string;
  #lease:ReturnType<typeof Promise.withResolvers<void>>|undefined;#closed=false;#closing:Promise<void>|undefined;
  #processFiles:NativePrintUploads|undefined;#openingFiles:Promise<NativePrintUploads>|undefined;
+ #diskImports:NativeUfpDiskImports|undefined;#openingImports:Promise<NativeUfpDiskImports>|undefined;
  #retirementFailed=false;#offlineOperations=0;readonly #offlineIds=new Set<string>();
  #beginOfflineMutation(ids:readonly string[]):()=>void{
   if(this.#closed||this.#lease||this.#retirementFailed||this.#offlineOperations>=4)throw new Error('Offline file mutation unavailable');
@@ -82,12 +90,17 @@ export class NativeProductFileResources {
    return this.#processFiles=owner;
   });return this.#openingFiles;
  }
+ async startDiskImports(options:NativeUfpDiskImportOptions):Promise<NativeUfpDiskImports>{
+  if(this.#closed||!this.#processFiles)throw new Error('Disk imports require open process files');
+  const root=await plannedPath(options.root),storage=await Promise.all([this.#filesRoot,this.#metadataRoot].map(plannedPath));if(storage.some(path=>overlapping(root,path)||overlapping(path,root)))throw new Error('Disk inbox must be separate from file and metadata stores');
+  return this.#openingImports??=NativeUfpDiskImports.open(this.#processFiles,this.#files,{...options}).then(owner=>this.#diskImports=owner);
+ }
  private constructor(files:PublishedPrintFiles,filesRoot:string,metadataRoot:string){this.#files=files;this.#filesRoot=filesRoot;this.#metadataRoot=metadataRoot;}
  static async open(options:Pick<NativeProductMachineOptions,'filesRoot'|'metadataRoot'|'files'>):Promise<NativeProductFileResources>{
   const {filesRoot,metadataRoot}=storageRoots(options),files=await PublishedPrintFiles.open(filesRoot,{...options.files});
   return new NativeProductFileResources(files,filesRoot,metadataRoot);
  }
- get status(){return {closing:this.#closed,leased:!!this.#lease,retirementFailed:this.#retirementFailed,offlineMutations:this.#offlineOperations,files:this.#files.status};}
+ get status(){return {closing:this.#closed,leased:!!this.#lease,retirementFailed:this.#retirementFailed,offlineMutations:this.#offlineOperations,files:this.#files.status,diskImports:this.#diskImports?.status};}
  acquire(options:Pick<NativeProductMachineOptions,'filesRoot'|'metadataRoot'>):{files:PublishedPrintFiles;release:(confirmed?:boolean)=>void}{
   const roots=storageRoots(options);
   if(roots.filesRoot!==this.#filesRoot||roots.metadataRoot!==this.#metadataRoot)throw new Error('Native process storage identity cannot change');
@@ -99,7 +112,7 @@ export class NativeProductFileResources {
  }
  close():Promise<void>{
   if(this.#closing)return this.#closing;this.#closed=true;
-  this.#closing=(async()=>{await this.#lease?.promise;await this.#openingFiles?.catch(()=>{});const results=await Promise.allSettled([this.#processFiles?.drain()]);try{await this.#files.close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process files cleanup failed');})();return this.#closing;
+  this.#closing=(async()=>{await this.#lease?.promise;await this.#openingImports?.catch(()=>{});const results=await Promise.allSettled([this.#diskImports?.close()]);await this.#openingFiles?.catch(()=>{});try{await this.#processFiles?.drain();}catch(error){results.push({status:'rejected',reason:error});}try{await this.#files.close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process files cleanup failed');})();return this.#closing;
  }
 }
 /** Assemble native file/metadata ownership once for real machine profiles and
@@ -145,8 +158,10 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  if(typeof options.createAdapter!=='function')throw new TypeError('Native machine adapter factory is required');
  if('createProcess' in options&&typeof options.createProcess!=='function')throw new TypeError('Native process resource factory is required');
  if(options.configFiles&&!('createProcess' in options))throw new TypeError('Config files require process lifetime');
+ if(options.diskImports&&!('createProcess' in options))throw new TypeError('Disk imports require process lifetime');
  storageRoots(options);
- const snapshot={...options,configFiles:options.configFiles?structuredClone(options.configFiles):undefined,files:{...options.files},uploads:{...options.uploads},standardPrint:options.standardPrint?{...options.standardPrint}:undefined},stopped=new AbortController();
+ if(options.diskImports){const root=options.diskImports.root;if(typeof root!=='string'||!isAbsolute(root)||/[\0\r\n]/u.test(root)||[options.filesRoot,options.metadataRoot].some(storage=>overlapping(resolve(root),resolve(storage))||overlapping(resolve(storage),resolve(root))))throw new TypeError('Disk inbox must be an absolute, separate storage root');}
+ const snapshot={...options,diskImports:options.diskImports?structuredClone(options.diskImports):undefined,configFiles:options.configFiles?structuredClone(options.configFiles):undefined,files:{...options.files},uploads:{...options.uploads},standardPrint:options.standardPrint?{...options.standardPrint}:undefined},stopped=new AbortController();
  const processOptions='createProcess' in snapshot?snapshot:undefined;
  let processResources:NativeProductProcessResources|undefined,processOpening:Promise<void>|undefined,processJournal:PrintJournal|undefined,processIdentity:ProductMachineConfiguration|undefined;
  let configFiles:NativeConfigFiles|undefined;
@@ -159,6 +174,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
   processOpening??=(async()=>{
    processResources=await processOptions!.createProcess(structuredClone(config),s);s.throwIfAborted();
    if(!processResources||typeof processResources.release!=='function')throw new TypeError('Native process resources must own cleanup');
+   if(snapshot.diskImports&&typeof processResources.diskImportContext!=='function')throw new TypeError('Disk imports require the current process filesystem policy');
    if(processResources.machineControl&&(['retirement','execute','assertDeviceAvailable','close'] as const).some(key=>typeof processResources!.machineControl![key]!=='function'))throw new TypeError('Invalid native machine control capability');
    assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);
    if(['nativeDetached','productPrint','nativeHost','nativeObjects','maintenanceGate','nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory','configFiles'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
@@ -196,6 +212,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  };
  if(processOptions){
   Object.defineProperty(factory,'serverLifetime',{value:'process',enumerable:true});
+  Object.defineProperty(factory,'diskImportStatus',{get:()=>resources?.status.diskImports,enumerable:true});
   Object.defineProperty(factory,'machineControl',{get:()=>processResources?.machineControl,enumerable:true});
   factory.resetFirmware=(profile,signal)=>resetConfiguredFirmware(profile.reader,profile.policies,signal);
   factory.bootstrap=(incoming,control)=>{
@@ -207,6 +224,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
     const serverOptions={nativeDetached:true as const,configFiles,nativeProcessFiles:files,nativeProcessHistory:processJournal!,productHostControl:control,
      nativePrinterIdentity:{configFile:config.printerConfig,softwareVersion:process.information.version},systemInformation:process.systemInformation??{},systemServices:process.systemServices??{},procStats:process.procStats??{},gcodeStore:process.gcodeStore??{},temperatureStore:{...process.temperatureStore,previous:undefined}};
     const server=process.authorization?await ConfiguredMoonraker.loadAuthorized(config.moonrakerConfig,{...process,...serverOptions}):await ConfiguredMoonraker.load(config.moonrakerConfig,{...process,...serverOptions});
+    if(snapshot.diskImports)try{await resources!.startDiskImports({...snapshot.diskImports,context:signal=>processResources!.diskImportContext!(AbortSignal.any([signal,stopped.signal]))});}catch(error){await server.close();throw error;}
     return {server,recoveryJournal:{path:config.journalPath+'.host-recovery.sqlite',deviceId:config.deviceId}};
    })();
   };

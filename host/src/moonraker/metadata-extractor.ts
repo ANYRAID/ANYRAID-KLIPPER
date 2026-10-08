@@ -3,7 +3,7 @@ import {Worker} from 'node:worker_threads';
 import type {FileHandle} from 'node:fs/promises';
 import {ApiError,type Json} from './rpc.ts';
 import {FileMetadataStore} from './file-metadata.ts';
-export interface MetadataExtraction {thumbnailData?:string;fields:Record<string,Json>;source:{dev:bigint;ino:bigint;mtimeNs:bigint;ctimeNs:bigint};objects:{hasObjects:boolean;hasM486Objects:boolean};}
+export interface MetadataExtraction {thumbnailData?:string;thumbnailPng?:Buffer;fields:Record<string,Json>;source:{dev:bigint;ino:bigint;mtimeNs:bigint;ctimeNs:bigint};objects:{hasObjects:boolean;hasM486Objects:boolean};}
 export interface MetadataExtractorOptions {maxPending?:number;timeoutMs?:number;maxFileBytes?:number;maxOutputBytes?:number;}
 export interface MetadataFieldExtraction {thumbnailData?:string;fields:Record<string,Json>;objects:MetadataExtraction['objects'];}
 export interface MetadataByteWindows {head:Uint8Array;tail:Uint8Array;size:number;modified:number;}

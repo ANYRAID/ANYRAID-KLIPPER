@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "scope": "Borrowed descriptor ingress in the existing native upload owner. Directory monitoring, claiming, cleanup and restart identity remain unimplemented.",
+  "sourceBase": "e8c0fa41",
+  "node": "v26.10.0",
+  "nodeExecutableSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+  "productionFilesChanged": [
+    "host/src/moonraker/native-print-uploads.ts"
+  ],
+  "dependenciesChanged": false,
+  "compiledCompared": {
+    "baseline": "anyraid-ufp-rescan-product-bundle",
+    "identicalModules": 631,
+    "changedModules": [
+      "moonraker/native-print-uploads.js"
+    ],
+    "independentProduct": false,
+    "acceptedProductCReused": true,
+    "borrowedDevelopmentDependencies": true,
+    "ptyTestShimRecompiled": true
+  },
+  "validation": {
+    "sourceFirst": {
+      "passed": 95,
+      "tests": 95
+    },
+    "finalSource": {
+      "passed": 96,
+      "tests": 96
+    },
+    "compiled": {
+      "passed": 103,
+      "tests": 103,
+      "additionalScope": "Seven existing offline file management tests",
+      "overlapsSource": true
+    },
+    "countsMustNotBeAdded": true,
+    "typecheck": "passed",
+    "driverCompile": "passed",
+    "whitespace": "passed"
+  },
+  "performance": {
+    "scope": "Quiet compiled JavaScript ABBA. Not target-board or mixed printing acceptance.",
+    "order": [
+      "baseline",
+      "candidate",
+      "candidate",
+      "baseline"
+    ],
+    "samplesPerPhase": 16,
+    "warmupsPerPhase": 3,
+    "groups": {
+      "baseline": {
+        "plain": {
+          "count": 32,
+          "medianMs": 59.48428200000012,
+          "p95Ms": 73.59391499999992,
+          "p99Ms": 97.121216,
+          "maxMs": 97.121216
+        },
+        "ufp": {
+          "count": 32,
+          "medianMs": 98.19011,
+          "p95Ms": 116.10914500000013,
+          "p99Ms": 119.53271099999984,
+          "maxMs": 119.53271099999984
+        },
+        "list": {
+          "count": 1024,
+          "medianMs": 0.009910000000218133,
+          "p95Ms": 0.023541000000022905,
+          "p99Ms": 0.04143000000021857,
+          "maxMs": 0.3754049999997733
+        },
+        "descriptor": null
+      },
+      "candidate": {
+        "plain": {
+          "count": 32,
+          "medianMs": 58.987235000000055,
+          "p95Ms": 81.14983800000005,
+          "p99Ms": 85.13008199999967,
+          "maxMs": 85.13008199999967
+        },
+        "ufp": {
+          "count": 32,
+          "medianMs": 96.6420690000001,
+          "p95Ms": 116.26498599999968,
+          "p99Ms": 122.95174799999995,
+          "maxMs": 122.95174799999995
+        },
+        "list": {
+          "count": 1024,
+          "medianMs": 0.009900000000016007,
+          "p95Ms": 0.02360999999973501,
+          "p99Ms": 0.03741099999979269,
+          "maxMs": 0.3236149999997906
+        },
+        "descriptor": {
+          "count": 32,
+          "medianMs": 95.77737699999989,
+          "p95Ms": 118.95576299999993,
+          "p99Ms": 128.87590900000032,
+          "maxMs": 128.87590900000032
+        }
+      }
+    },
+    "input": {
+      "modelBytes": 262144,
+      "modelSha256": "611f0168b31832885b3c43bb87a92e5329dce58327611de162505eb0803e7d66",
+      "pngBytes": 1347830,
+      "pngSha256": "1854971bc0a1c2f8d22bef0529b932fc3c62a6f1160f32272f3ec05dae238590",
+      "archiveBytes": 1348823,
+      "archiveSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e"
+    },
+    "eventLoops": [
+      {
+        "root": "/home/dek02/.cache/codex/tmp/anyraid-ufp-rescan-product-bundle/host",
+        "common": {
+          "p99Ms": 1.900543,
+          "maxMs": 3.368959
+        },
+        "descriptor": null
+      },
+      {
+        "root": "/home/dek02/.cache/codex/tmp/anyraid-disk-import-compiled-driver",
+        "common": {
+          "p99Ms": 1.935359,
+          "maxMs": 3.448831
+        },
+        "descriptor": {
+          "p99Ms": 1.825791,
+          "maxMs": 1.986559
+        }
+      },
+      {
+        "root": "/home/dek02/.cache/codex/tmp/anyraid-disk-import-compiled-driver",
+        "common": {
+          "p99Ms": 1.953791,
+          "maxMs": 3.096575
+        },
+        "descriptor": {
+          "p99Ms": 1.922047,
+          "maxMs": 4.251647
+        }
+      },
+      {
+        "root": "/home/dek02/.cache/codex/tmp/anyraid-ufp-rescan-product-bundle/host",
+        "common": {
+          "p99Ms": 1.880063,
+          "maxMs": 5.214207
+        },
+        "descriptor": null
+      }
+    ],
+    "sourcePreserved": true,
+    "mustNotInferTargetOrPrintingPerformance": true
+  },
+  "preparationFailures": [
+    "Benchmark dependency root initially pointed at host/node_modules",
+    "Sharp 0.35.5 formal package entry differs from the old lib/index.js layout; corrected via createRequire"
+  ],
+  "archive": {
+    "file": "ufp-descriptor-import-evidence.json.gz",
+    "entries": 32,
+    "bytes": 2864198,
+    "sha256": "c0b644ddc2c2472ae84142d1fc669e95f87754b02304ebb0bf2784ae0b176110",
+    "decodedAgainstEveryOriginal": true
+  },
+  "unclosed": [
+    "Full disk ingress directory and watcher",
+    "Durable archive claim and replay identity",
+    "Original archive cleanup and restart recovery",
+    "Compiled product and original printing mixed load",
+    "Own PR full CI and integration",
+    "Original UFP first failure and original grid/AHT causes",
+    "Full same-bundle clients",
+    "G3 and target board",
+    "Full Moonraker and Python retirement"
+  ]
+}

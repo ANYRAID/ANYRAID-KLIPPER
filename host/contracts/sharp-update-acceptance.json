@@ -1,0 +1,204 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "baseCommit": "7a7c5bd943c0d3b04f30b83b90f2df6f4985bc7b",
+  "scope": "修复既有 sharp/libvips 图片依赖；尚未合并、发布或完成全部替代。",
+  "advisory": "https://github.com/advisories/GHSA-wq5f-xc86-pv6w",
+  "dependency": {
+    "before": "sharp 0.35.4 / @img/sharp-libvips 1.3.3",
+    "after": "sharp 0.35.5 / @img/sharp-libvips 1.3.4",
+    "loadedRsvg": "2.63.2",
+    "changedLockEntries": "仅根声明、sharp 和 @img/sharp 家族，无无关升级",
+    "postAudit": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    }
+  },
+  "node": "v26.10.0",
+  "baseline": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-usable-lease-composed-product-bundle",
+    "manifestSha256": "106e3b7b208f3b8b82cfaa1ca40185a44f64f4dd6e046512a59931a9cdd38c08",
+    "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-sharp-product-bundle",
+    "manifestSha256": "f6cd266c8812324b126ca2228fc5235e0cc1d42343b9e3cb19066dfb913c7582",
+    "dependenciesSha256": "9844b3cfccd671b7fb1f3b57b98b489ce9efeca1003a7c73c5d54037403d922c"
+  },
+  "productChanged": [
+    "package-lock.json",
+    "package.json"
+  ],
+  "native": "复用未变化的已验收 C 产物，没有重新构建 C。",
+  "source": {
+    "pass": 75,
+    "fail": 0,
+    "typecheck": true,
+    "scope": "九份图片、隔离子进程、原生预览、持久元数据、上传及图表导出回归；没有重复新增镜像测试。"
+  },
+  "abba": {
+    "order": [
+      "A1",
+      "B1",
+      "B2",
+      "A2"
+    ],
+    "warmupsPerRun": 3,
+    "retainedPerPackagePerWorkload": 32,
+    "workloads": [
+      {
+        "workload": "isolated-thumbnail",
+        "A": {
+          "samples": 32,
+          "medianMs": 22.05878400000006,
+          "p95Ms": 37.89845700000001
+        },
+        "B": {
+          "samples": 32,
+          "medianMs": 21.685807999999952,
+          "p95Ms": 48.162079000000006
+        },
+        "eventLoops": [
+          {
+            "side": "A1",
+            "p99Ms": 2.324479,
+            "maxMs": 3.815423
+          },
+          {
+            "side": "B1",
+            "p99Ms": 2.371583,
+            "maxMs": 4.171775
+          },
+          {
+            "side": "B2",
+            "p99Ms": 2.402303,
+            "maxMs": 3.571711
+          },
+          {
+            "side": "A2",
+            "p99Ms": 2.396159,
+            "maxMs": 3.852287
+          }
+        ],
+        "exactOutputHashesEqual": true
+      },
+      {
+        "workload": "svg-export",
+        "A": {
+          "samples": 32,
+          "medianMs": 3.067639999999983,
+          "p95Ms": 4.704540999999949
+        },
+        "B": {
+          "samples": 32,
+          "medianMs": 3.071640000000002,
+          "p95Ms": 4.930833000000007
+        },
+        "eventLoops": [
+          {
+            "side": "A1",
+            "p99Ms": 2.158591,
+            "maxMs": 2.414591
+          },
+          {
+            "side": "B1",
+            "p99Ms": 1.987583,
+            "maxMs": 2.004991
+          },
+          {
+            "side": "B2",
+            "p99Ms": 1.793023,
+            "maxMs": 1.806335
+          },
+          {
+            "side": "A2",
+            "p99Ms": 1.970175,
+            "maxMs": 1.974271
+          }
+        ],
+        "exactOutputHashesEqual": true
+      }
+    ],
+    "scope": "相同固定 PNG/SVG；保留全样本及输出摘要，包含 IPC、图片解码与并发 64 KiB 文件读取。有限桌面测量，不能证明统计学零退化。",
+    "observedRegression": "缩略图 P95 37.898 → 48.162 ms，上升约 27%；中位约 22 ms，父循环 P99 ≤2.403 ms。没有隐去尾延迟或将其解释为目标板预算通过。"
+  },
+  "mixed": {
+    "pass": 1,
+    "fail": 0,
+    "originalMoves": 1000,
+    "noBenchmarkSwitches": true,
+    "watchdogMs": 90000,
+    "testTimeoutMs": 180000,
+    "statusRequests": 42756,
+    "statusP99Ms": 8.071054000000004,
+    "directoryRequests": 8931,
+    "directoryP99Ms": 43.543760000000475,
+    "minimumStepLeadMs": 87.665,
+    "wireSteps": 7410,
+    "uploads": 16,
+    "uploadP95Ms": 68.90743600000133,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 2.559999,
+          "maxMs": 26.607615
+        },
+        "cpu": {
+          "user": 13454636,
+          "system": 2570783
+        },
+        "rss": 346394624
+      },
+      {
+        "loop": {
+          "p99Ms": 1.983487,
+          "maxMs": 14.303231
+        },
+        "cpu": {
+          "user": 8822552,
+          "system": 1829482
+        },
+        "rss": 302473216
+      }
+    ],
+    "queue": {
+      "groups": 16,
+      "printingGenerations": [
+        1,
+        2
+      ],
+      "queries": 2480,
+      "queryP99Ms": 9.245138999998744,
+      "durableMutations": 64,
+      "actualStartRequestPrefix": "queue-",
+      "journalCompleted": true,
+      "authorizedNotifications": true,
+      "noAutomaticReplay": true
+    },
+    "scope": "同一完整编译包、原双 MCU 两代混合打印与现有停止/授权/恢复门槛；未改变原输入、运动精度、截止或负载。仅软件 MCU。"
+  },
+  "preliminaryErrors": [
+    {
+      "result": "失败",
+      "scope": "安装成功后的一次版本读取使用猜测的 sharp/lib/index.js 路径，ERR_MODULE_NOT_FOUND；改用包声明导入确认真实版本，不计作产品故障或通过。"
+    }
+  ],
+  "unrun": [
+    "自身完整 CI、正常 PR 集成及合并后检查",
+    "Fluidd/Mainsail 同包实际完整页面流程",
+    "目标板图片/打印预算、G3 与当前系列实机",
+    "完整 UFP 用户路径、默认 Python 入口及177个klippy Python 文件退役"
+  ],
+  "archive": {
+    "file": "sharp-update-evidence.json.gz",
+    "sha256": "5a11b25cb878248f81acfd50ab16361ef11836a1c9d7bb3ddd7315e0a997089a",
+    "bytes": 3157327,
+    "entries": 33,
+    "decodedBytes": 3630412,
+    "credentialShapes": 0
+  }
+}

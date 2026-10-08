@@ -2,6 +2,7 @@ import {createHash} from 'node:crypto';
 import {publishedPath,visibleFilePath,pathBasename} from './published-paths.ts';
 import {samePublishedFile,validateNamespace} from './namespace-move.ts';
 import type {PublishedPrintFile} from './published-files.ts';
+import {validatePublishedReceipt,samePublishedContent} from './published-receipt.ts';
 export interface FileReplacement {
  readonly version:1;readonly action:'create_file'|'move_file';readonly created:PublishedPrintFile;readonly replaced:PublishedPrintFile;
  readonly source?:PublishedPrintFile;readonly modified:number;readonly namespaceSha256:string;
@@ -10,22 +11,21 @@ export interface FileReplacement {
 export const replacementIntentLimit=2*1024**2;
 const object=(v:unknown,keys:readonly string[]):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
 function receipt(v:unknown):PublishedPrintFile{
- if(!object(v,['version','id','sha256','size','name','path'])||v.version!==1||typeof v.id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(v.id)||typeof v.sha256!=='string'||!/^[a-f0-9]{64}$/.test(v.sha256)||!Number.isSafeInteger(v.size)||(v.size as number)<0||(v.size as number)>1024**3||typeof v.name!=='string'||!v.name||v.name.length>256||/[\0-\x1f\x7f]/u.test(v.name))throw new Error('Invalid replacement receipt');
- if(v.path!==undefined)publishedPath(v.path);return Object.freeze({...v}) as unknown as PublishedPrintFile;
+ try{return validatePublishedReceipt(v);}catch(cause){throw new Error('Invalid replacement receipt',{cause});}
 }
 /** Hash canonical identities incrementally; yield at bounded intervals so a
  * large catalog does not serialize into one synchronous journal-sized string. */
 export async function replacementNamespaceHash(files:readonly PublishedPrintFile[],directories:readonly {path:string;modified:number}[]):Promise<string>{
  validateNamespace(files,directories);const hash=createHash('sha256');
  const ordered=[...files].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
- for(const [i,f] of ordered.entries()){hash.update(JSON.stringify([f.id,f.sha256,f.size,f.name,visibleFilePath(f)])+'\n');if(i%128===127)await new Promise<void>(resolve=>setImmediate(resolve));}
+ for(const [i,f] of ordered.entries()){hash.update(JSON.stringify([f.id,f.sha256,f.size,f.name,visibleFilePath(f),...f.preview?[f.preview.sha256,f.preview.size]:[]])+'\n');if(i%128===127)await new Promise<void>(resolve=>setImmediate(resolve));}
  hash.update(JSON.stringify([...directories].sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0)));return hash.digest('hex');
 }
 export function validateReplacementIntent(v:unknown):FileReplacement{
  if(!object(v,['version','action','created','replaced','source','modified','namespaceSha256','directories'])||v.version!==1||!['create_file','move_file'].includes(v.action as string)||typeof v.modified!=='number'||!Number.isFinite(v.modified)||v.modified<0||typeof v.namespaceSha256!=='string'||!/^[a-f0-9]{64}$/.test(v.namespaceSha256)||!Array.isArray(v.directories)||v.directories.length>1024)throw new Error('Invalid replacement intent schema');
  const created=receipt(v.created),replaced=receipt(v.replaced),source=v.source===undefined?undefined:receipt(v.source);
  if(created.id===replaced.id||visibleFilePath(created)!==visibleFilePath(replaced)||created.name!==pathBasename(visibleFilePath(created)))throw new Error('Invalid replacement destination identity');
- if(v.action==='create_file'&&source||v.action==='move_file'&&(!source||source.id!==created.id||source.sha256!==created.sha256||source.size!==created.size||visibleFilePath(source)===visibleFilePath(created)))throw new Error('Invalid replacement source identity');
+ if(v.action==='create_file'&&source||v.action==='move_file'&&(!source||source.id!==created.id||!samePublishedContent(source,created)||visibleFilePath(source)===visibleFilePath(created)))throw new Error('Invalid replacement source identity');
  const directories=Object.freeze(v.directories.map(d=>{if(!object(d,['path','modified'])||typeof d.modified!=='number'||!Number.isFinite(d.modified)||d.modified<0)throw new Error('Invalid replacement directory');return Object.freeze({path:publishedPath(d.path),modified:d.modified});}));
  validateNamespace(source?[source,replaced]:[replaced],directories);validateNamespace([created],directories);
  if(directories.some((d,i)=>i>0&&directories[i-1].path>=d.path))throw new Error('Noncanonical replacement directory catalog');
