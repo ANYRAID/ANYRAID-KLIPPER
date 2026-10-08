@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "sourceHead": "5fb711973e05ee844863c26b450cbc906497b74b",
+  "nodeVersions": [
+    "v26.10.0",
+    "v22.22.3"
+  ],
+  "crossRuntimeExactFieldsEqual": true,
+  "files": [
+    {
+      "file": "weighted4-ieee-analysis.mjs",
+      "bytes": 5277,
+      "sha256": "42f436c60e33b7f0e1479c674515abf3329f76ca47acaf97af9e8e027d000e7c"
+    },
+    {
+      "file": "weighted4-ieee-node26.json",
+      "bytes": 4829,
+      "sha256": "dd4b5e569c09d569cacb0828007ada7e8caa3db105b2631a647fd47f915c23ef"
+    },
+    {
+      "file": "weighted4-ieee-node22.json",
+      "bytes": 4829,
+      "sha256": "1c4878927c97aba77b6681eea3edbb4a3987f5fb75de0ccd22f1f93858a50ba8"
+    }
+  ],
+  "scope": "Read-only scalar IEEE emulation over the previously captured input. No motion generation, failed test rerun, performance claim or G3 closure. Existing capture and inspection remain unchanged."
+}
