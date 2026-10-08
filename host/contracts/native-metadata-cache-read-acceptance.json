@@ -1,0 +1,654 @@
+{
+  "schema": 1,
+  "status": "unadopted_cache_contention_improved_but_cold_and_rescan_tails_and_original_mixed_failed",
+  "date": "2026-10-08",
+  "baseCommit": "cbd97343de7958eb67cba77844da4d7c76bd6b54",
+  "branch": "devac/metadata-cache-read-lane",
+  "scope": [
+    "Only native persistent metadata product JS changes versus original cbd baseline; prior receipt overlap and bounded-retirement trials are not included",
+    "Independent cached reads verify actual durable receipt/source and the same cache object after async IO; changed bindings/tickets return to the captured earlier serial tail",
+    "Earlier same-filename operations prohibit parallel admission; every later writer waits for earlier accepted readers, including misses and cancellations",
+    "Serial and parallel work share four admission slots and the same close owner; no hidden/background scan or timer",
+    "Joined tail resolves without response payload to avoid retaining every completed body",
+    "Original durable version/source protocol, immutable schema, precise sequences, native C motion and JS motion algorithms remain",
+    "No print input, acceptance assertion, motion/authorization lifetime, deadline, default switch or machine operation changed"
+  ],
+  "product": {
+    "schema": 1,
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-cache-read-product-bundle-v2",
+      "manifestSha256": "c78e9e521e87b0e3155a0e693dc0dcc1cdf3bec9aecdece89d8fd64c544de355",
+      "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+    },
+    "baseline": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-invalidation-product-bundle",
+      "manifestSha256": "6f2fd9ea8b1e980bd24556402e1c4cc17854a36c290cbfc79e9b3efe2f7c0d44",
+      "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+    },
+    "jsCount": 641,
+    "changedJs": [
+      "host/src/moonraker/native-persistent-metadata.js"
+    ],
+    "ptySha256": "d0be1baa4217068c6dd1918035739a436cc77f241cdcee045043e60a8575372e",
+    "sourceSha256": "bc74409f9a13b9aa38ae94a9c584c3a2423ab898d00df3361ffe16a9d7490465",
+    "scope": "Fresh compiled product from cbd baseline, only native persistent metadata changes; no receipt overlap or bounded-retirement trial. Native modules rebuilt privately, independent locked production dependencies; test driver generated separately, same helper C asset."
+  },
+  "driver": {
+    "jsChecked": 641,
+    "originalMixedDriverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+    "tsLoading": false,
+    "observer": false
+  },
+  "waitDiscriminator": {
+    "plan": {
+      "schema": 1,
+      "identities": {
+        "B": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle",
+          "manifestSha256": "e6520a2bc7599fbd8e66d4c8e3e415d251a57c42c527a4250f73784efc0fbc90",
+          "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+        },
+        "C": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-version-retirement-product-bundle",
+          "manifestSha256": "f206d9d215d4fc5050d737cc3886c8d5b9a066e2359171b683a5a4403a4f773a",
+          "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+        }
+      },
+      "input": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+      "inputSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+      "node": "v26.10.0",
+      "order": [
+        "C-queue-control",
+        "C-rescan",
+        "B-rescan",
+        "C-contention"
+      ],
+      "scripts": {
+        "anyraid-metadata-wait-observer.mjs": "37a44291083e881b1186b3d36666ec5ae308c3b391d0e7d9858f26dc1ac62ecb",
+        "anyraid-metadata-wait-preload.mjs": "d9a49febb4f12504aef8ce3273d4d335558ec3bfc7d1f4e09bace8b4bb58efed",
+        "anyraid-metadata-wait-contention.mjs": "ff425936124ea29434cffccdd0f45bc04a7c19d250707417014a3f4c98a6672c",
+        "anyraid-metadata-wait-observer.test.mjs": "e8e875470c5e5a4ed4e5bfa610c16281876954d386917f57e6cae501a81be873",
+        "anyraid-metadata-invalidation-perf.mjs": "27494817aa689f8f85b920946ae3e2a28465b95e82bec79edb5edec3b900e3b6"
+      },
+      "controls": {
+        "count": 4,
+        "testIsolation": "none",
+        "initialSyntaxFailureBeforeControls": true
+      },
+      "scope": "New stage/queue discriminator on two retained failed candidates. Sequential diagnostic only, no acceptance retry or performance admission. Original 3 warmups/16 rescan samples and PNG checks retained. Queue-control/cached contention are explicitly additional workloads. Parent CPU excludes child image CPU; nested/parallel spans overlap. No printing or machine operation."
+    },
+    "controls": 4,
+    "spans": {
+      "C-queue-control": {
+        "count": 175,
+        "dropped": 0
+      },
+      "C-rescan": {
+        "count": 1454,
+        "dropped": 0
+      },
+      "B-rescan": {
+        "count": 1511,
+        "dropped": 0
+      },
+      "C-contention": {
+        "count": 1597,
+        "dropped": 0
+      }
+    },
+    "singleRescanC": {
+      "durationMedianMs": 222.86547199999995,
+      "entryToFirstResolveMedianMs": 0.02810999999996966,
+      "syncUnionMedianMs": 195.1360190000014,
+      "imagePreparationMedianMs": 11.535613999999896,
+      "parentCpuMedianMs": 27.034
+    },
+    "independentReaderC": {
+      "durationMs": {
+        "count": 16,
+        "median": 235.9567750000001,
+        "max": 241.57400099999995,
+        "raw": [
+          221.46969400000012,
+          234.6634959999999,
+          231.95198600000003,
+          233.35880300000008,
+          235.9567750000001,
+          241.57400099999995,
+          240.68513900000016,
+          235.2923639999999,
+          241.44977400000016,
+          236.18191899999965,
+          239.5577159999998,
+          227.76975999999968,
+          233.01487599999973,
+          232.00010099999963,
+          239.4086070000003,
+          238.18461300000035
+        ]
+      },
+      "entryToFirstResolveMs": {
+        "count": 16,
+        "median": 235.77425400000038,
+        "max": 241.36306000000013,
+        "raw": [
+          221.28315300000008,
+          234.46471500000007,
+          231.78195499999993,
+          232.89605100000017,
+          235.77425400000038,
+          241.36306000000013,
+          240.53317800000013,
+          235.11579400000028,
+          241.26262300000008,
+          235.98424799999975,
+          239.3284249999997,
+          227.60964999999987,
+          232.81023499999947,
+          231.80066999999963,
+          239.15632600000026,
+          237.8951420000003
+        ]
+      },
+      "executionAfterResolveMs": {
+        "count": 16,
+        "median": 0.19878099999982624,
+        "max": 0.46275199999990946,
+        "raw": [
+          0.18654100000003382,
+          0.19878099999982624,
+          0.17003100000010818,
+          0.46275199999990946,
+          0.18252099999972415,
+          0.21094099999982063,
+          0.15196100000002843,
+          0.17656999999962864,
+          0.18715100000008533,
+          0.19767099999990023,
+          0.22929100000010294,
+          0.16010999999980413,
+          0.2046410000002652,
+          0.19943100000000413,
+          0.25228100000003906,
+          0.28947100000004866
+        ]
+      }
+    },
+    "queueControl": "Held actual source validation; independent cached request did not settle before release; two requests retained by owner",
+    "invalidAttempts": [
+      "Observer control initially had a syntax error before tests ran; fixed controls executed with test isolation none, 4/4 passed",
+      "Summary initially required cached firstResolve after public rescan settlement; it is 0.027 ms earlier because owner tail advances before outer Promise instrumentation settles. Original assertion failure retained. Final comparison uses last observed nested rescan phase, preserving all timestamps"
+    ],
+    "limitations": [
+      "Not a performance admission run, historic 354 ms tail root cause or complete mixed-printing observation",
+      "Span and CPU samples overlap; only sync interval unions avoid double counting within each request",
+      "Parent process CPU excludes image subprocess CPU; image span includes IPC, scheduling and child work",
+      "Entry to first resolve includes admission/scheduling, not private owner timestamp"
+    ]
+  },
+  "checks": {
+    "fullTypecheck": "passed_on_final_source",
+    "whitespaceAndDiff": "passed_before_seal; final new files also checked before commit",
+    "sourceInitial": {
+      "passed": 26,
+      "failed": 0
+    },
+    "compiledDraft": {
+      "passed": 303,
+      "failed": 0
+    },
+    "compiledFinal": {
+      "passed": 304,
+      "failed": 0,
+      "newControls": 12
+    },
+    "countsOverlapAndAreNotAdditive": true,
+    "controls": [
+      "Independent cached metadata and real thumbnail download bypass another held rescan",
+      "Cold readers and same-filename forced/cached operations keep serial generation order",
+      "Later writers wait for earlier accepted parallel validation",
+      "Invalidated cache ticket falls back behind earlier tail without waiting on itself",
+      "Deleted source rejects; actual upload replacement returns new receipt and preview through serial recovery",
+      "Cancellation preserves original reason and drains admitted work",
+      "Close aborts/drains held writer and parallel reader",
+      "Four shared admission slots reject overflow without hidden source resolution",
+      "A recovery fault discovered during parallel validation fences its response",
+      "Completed admission tail releases copied response bodies while owner stays open"
+    ],
+    "nativeAndMotionSourceUnchanged": true,
+    "requiredRemoteHeadCI": "not_run_for_this_unadopted_branch"
+  },
+  "responseRetention": {
+    "draft": {
+      "schema": 1,
+      "bundle": "/home/dek02/.cache/codex/tmp/anyraid-metadata-cache-read-product-bundle",
+      "node": "v26.10.0",
+      "expected": "retained",
+      "readCopies": 64,
+      "gcRequests": 8,
+      "liveResponseCopies": 64,
+      "status": {
+        "persistent": true,
+        "scans": 1,
+        "recovered": 0,
+        "imageBytes": 0,
+        "imageBundles": 0,
+        "storedImageBytes": 0,
+        "pending": 0,
+        "closed": false,
+        "faulted": false,
+        "cache": {
+          "entries": 1,
+          "bytes": 264,
+          "maxRecords": 128,
+          "maxBytes": 8388608,
+          "maxRecordBytes": 262144
+        },
+        "snapshots": {
+          "reservedBytes": 0,
+          "reservations": 0,
+          "maxBytes": 67108864,
+          "maxSnapshots": 2,
+          "pageBytes": 4096
+        }
+      },
+      "scope": "Isolated explicit-GC response-retention discriminator. Not a heap-growth benchmark, complete process leak proof, or production GC policy. Same owner remains open; copied response bodies must not be retained by its completed admission tail."
+    },
+    "final": {
+      "schema": 1,
+      "bundle": "/home/dek02/.cache/codex/tmp/anyraid-metadata-cache-read-product-bundle-v2",
+      "node": "v26.10.0",
+      "expected": "released",
+      "readCopies": 64,
+      "gcRequests": 8,
+      "liveResponseCopies": 0,
+      "status": {
+        "persistent": true,
+        "scans": 1,
+        "recovered": 0,
+        "imageBytes": 0,
+        "imageBundles": 0,
+        "storedImageBytes": 0,
+        "pending": 0,
+        "closed": false,
+        "faulted": false,
+        "cache": {
+          "entries": 1,
+          "bytes": 263,
+          "maxRecords": 128,
+          "maxBytes": 8388608,
+          "maxRecordBytes": 262144
+        },
+        "snapshots": {
+          "reservedBytes": 0,
+          "reservations": 0,
+          "maxBytes": 67108864,
+          "maxSnapshots": 2,
+          "pageBytes": 4096
+        }
+      },
+      "scope": "Isolated explicit-GC response-retention discriminator. Not a heap-growth benchmark, complete process leak proof, or production GC policy. Same owner remains open; copied response bodies must not be retained by its completed admission tail."
+    },
+    "sameFixedControl": true,
+    "initialFinalFailure": {
+      "liveCopies": 1,
+      "expected": 0,
+      "reason": "Response creation remained in GC job scope; producer moved to separate completed async scope, zero-live assertion unchanged",
+      "artifact": "anyraid-metadata-cache-read-v2-retention-after.log"
+    },
+    "initialBuildFailure": {
+      "reason": "New worktree linked to older checkout missing re2-wasm/yauzl; link corrected to existing matching development dependencies without installing into shared symlink",
+      "artifact": "anyraid-metadata-cache-read-build.log"
+    },
+    "scope": "Explicit-GC response-retention discriminator only; no process-wide leak or heap-growth claim"
+  },
+  "performance": {
+    "plan": {
+      "schema": 1,
+      "identities": {
+        "A": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-invalidation-product-bundle",
+          "manifestSha256": "6f2fd9ea8b1e980bd24556402e1c4cc17854a36c290cbfc79e9b3efe2f7c0d44",
+          "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+        },
+        "D": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-cache-read-product-bundle-v2",
+          "manifestSha256": "c78e9e521e87b0e3155a0e693dc0dcc1cdf3bec9aecdece89d8fd64c544de355",
+          "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+        }
+      },
+      "order": [
+        "A1",
+        "D1",
+        "D2",
+        "A2"
+      ],
+      "modes": [
+        "shared",
+        "cold",
+        "disk",
+        "invalidate",
+        "rescan",
+        "metadata-cold",
+        "cached",
+        "contention"
+      ],
+      "input": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+      "inputSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+      "node": "v26.10.0",
+      "scripts": {
+        "anyraid-ufp-reuse-storage-perf.mjs": "d5cecd8aba391bb22f8c9969288b94063fdfa8d552a56232256327d26537ce04",
+        "anyraid-disk-ledger-perf-unique.mjs": "c1c6138b93e3a73028b36f55c012a7e96458d524cbf219dc180f135cae808867",
+        "anyraid-metadata-invalidation-perf.mjs": "27494817aa689f8f85b920946ae3e2a28465b95e82bec79edb5edec3b900e3b6",
+        "anyraid-metadata-wait-contention.mjs": "ff425936124ea29434cffccdd0f45bc04a7c19d250707417014a3f4c98a6672c"
+      },
+      "warmupPerPhase": 3,
+      "samplesPerPhase": 16,
+      "budget": {
+        "rescanAndOriginalModes": {
+          "ratio": 1.2,
+          "absoluteSlackMs": 2
+        },
+        "contentionCachedP95": {
+          "maxBaselineRatio": 0.1,
+          "maxAbsoluteMs": 5
+        }
+      },
+      "scope": "Changed product versus cbd baseline, only native persistent metadata JS differs. Sequential ABBA, 32 samples per arm/mode, same actual UFP/durable assertions and PNG reads, no observer or TS in measured processes. Contention is an additional two-file rescan plus independent cached request. Local desktop only; earlier failed trials and original printing gate remain separate."
+    },
+    "modes": {
+      "shared": {
+        "a": {
+          "count": 32,
+          "medianMs": 21.971326000000033,
+          "p95Ms": 22.958056
+        },
+        "d": {
+          "count": 32,
+          "medianMs": 21.82944999999998,
+          "p95Ms": 24.011256000000003
+        },
+        "budget": {
+          "medianMs": 28.36559120000004,
+          "p95Ms": 29.5496672
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      },
+      "cold": {
+        "a": {
+          "count": 32,
+          "medianMs": 36.06927449999989,
+          "p95Ms": 37.49803300000008
+        },
+        "d": {
+          "count": 32,
+          "medianMs": 36.40866749999992,
+          "p95Ms": 53.87532599999986
+        },
+        "budget": {
+          "medianMs": 45.28312939999987,
+          "p95Ms": 46.99763960000009
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": false
+      },
+      "disk": {
+        "a": {
+          "count": 32,
+          "medianMs": 117.33366950000004,
+          "p95Ms": 127.69204200000001
+        },
+        "d": {
+          "count": 32,
+          "medianMs": 108.01018600000009,
+          "p95Ms": 117.03460199999995
+        },
+        "budget": {
+          "medianMs": 142.80040340000005,
+          "p95Ms": 155.23045040000002
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      },
+      "invalidate": {
+        "a": {
+          "count": 32,
+          "medianMs": 253.0382595000001,
+          "p95Ms": 289.0594390000001
+        },
+        "d": {
+          "count": 32,
+          "medianMs": 233.67986949999977,
+          "p95Ms": 284.67811399999937
+        },
+        "budget": {
+          "medianMs": 305.6459114000001,
+          "p95Ms": 348.87132680000013
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      },
+      "rescan": {
+        "a": {
+          "count": 32,
+          "medianMs": 228.24437000000012,
+          "p95Ms": 268.8640929999999
+        },
+        "d": {
+          "count": 32,
+          "medianMs": 253.94413650000024,
+          "p95Ms": 292.24757199999976
+        },
+        "budget": {
+          "medianMs": 275.89324400000015,
+          "p95Ms": 324.6369115999999
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      },
+      "metadata-cold": {
+        "a": {
+          "count": 32,
+          "medianMs": 143.04933999999992,
+          "p95Ms": 172.02369999999996
+        },
+        "d": {
+          "count": 32,
+          "medianMs": 163.32535799999994,
+          "p95Ms": 192.27616199999966
+        },
+        "budget": {
+          "medianMs": 173.6592079999999,
+          "p95Ms": 208.42843999999994
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      },
+      "cached": {
+        "a": {
+          "count": 32,
+          "medianMs": 0.15549649999999815,
+          "p95Ms": 0.525305000000003
+        },
+        "d": {
+          "count": 32,
+          "medianMs": 0.15195600000001264,
+          "p95Ms": 1.8750080000000366
+        },
+        "budget": {
+          "medianMs": 2.186595799999998,
+          "p95Ms": 2.6303660000000035
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      },
+      "contention": {
+        "a": {
+          "count": 32,
+          "medianMs": 247.19189700000015,
+          "p95Ms": 268.86166000000003
+        },
+        "d": {
+          "count": 32,
+          "medianMs": 247.24807250000003,
+          "p95Ms": 327.184706
+        },
+        "budget": {
+          "medianMs": 298.6302764000002,
+          "p95Ms": 324.63399200000003
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": false,
+        "cached": {
+          "a": {
+            "count": 32,
+            "medianMs": 247.30076299999973,
+            "p95Ms": 268.97882100000015,
+            "rawMs": [
+              195.36709400000018,
+              201.82959800000026,
+              217.6806290000004,
+              222.32366999999977,
+              236.6156390000001,
+              237.99757200000022,
+              238.63640900000019,
+              242.62127199999986,
+              243.16408,
+              243.24478199999976,
+              243.5010000000002,
+              244.42917899999998,
+              245.286341,
+              245.59577000000036,
+              246.2697659999999,
+              247.22378899999967,
+              247.3777369999998,
+              248.1413849999999,
+              248.22147499999983,
+              249.59220200000027,
+              250.33665900000005,
+              250.80717399999958,
+              251.02289200000087,
+              251.05332099999987,
+              252.84885899999972,
+              252.94311500000003,
+              253.07066999999984,
+              254.18140500000004,
+              254.25977199999988,
+              256.63926900000024,
+              268.97882100000015,
+              277.8139100000001
+            ]
+          },
+          "d": {
+            "count": 32,
+            "medianMs": 0.37194300000010116,
+            "p95Ms": 3.2274799999995594,
+            "rawMs": [
+              0.3078129999998964,
+              0.32060299999989184,
+              0.3283529999998791,
+              0.33396300000003976,
+              0.3392830000000231,
+              0.3423840000000382,
+              0.3439730000000054,
+              0.34519300000010844,
+              0.3472230000002128,
+              0.3484929999999622,
+              0.35195299999986673,
+              0.3573430000001281,
+              0.36105399999996735,
+              0.36125399999991714,
+              0.37095399999998335,
+              0.3709630000003017,
+              0.37292299999990064,
+              0.378153999999995,
+              0.3894430000000284,
+              0.4092639999998937,
+              0.414314000000104,
+              0.43349399999988236,
+              0.4476039999999557,
+              0.4969950000004246,
+              0.786877000000004,
+              0.8446479999997791,
+              0.9330289999998058,
+              1.0560500000001412,
+              1.3607930000002852,
+              1.3727429999999003,
+              3.2274799999995594,
+              7.39028000000053
+            ]
+          },
+          "p95BudgetMs": 5,
+          "withinBudget": true
+        }
+      }
+    },
+    "rawEntry": "anyraid-metadata-cache-read-v2-performance-summary.json",
+    "failedMetrics": [
+      "cold P95",
+      "contention rescan P95"
+    ],
+    "noUnchangedHeadRetry": true,
+    "firstDraftResultsRetainedButNotFinalAdmission": true,
+    "firstDraftProduct": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-cache-read-product-bundle",
+      "manifestSha256": "ca22f17ad975d258ce801ff00cc9951bb0cfe93e156759734f96199bb8242abc",
+      "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+    },
+    "firstDraftRawEntry": "anyraid-metadata-cache-read-performance-summary.json",
+    "inputIncludedInEvidence": true,
+    "noTargetBoardOrPrintingClaim": true
+  },
+  "mixed": {
+    "passed": 0,
+    "failed": 1,
+    "testMs": 20405.686515,
+    "suiteMs": 20597.546274,
+    "firstFailure": {
+      "generation": 1,
+      "message": "Recursive cleanup must complete during each printing generation\n+ actual - expected\n\n+ 'finishing'\n- 'printing'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Recursive cleanup must complete during each printing generation\n+ actual - expected\n\n+ 'finishing'\n- 'printing'\n\n    at file:///home/dek02/.cache/codex/tmp/anyraid-metadata-cache-read-compiled-driver-v2/host/acceptance/product-compiled-journey.test.js:1022:40\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+    },
+    "originalMovements": 1000,
+    "softwareMCUs": 2,
+    "generationsRequired": 2,
+    "originalDriverByteIdentical": true,
+    "outerDeadlineSeconds": 90,
+    "outerDeadlineTriggered": false,
+    "completeSecondGenerationAndMetrics": false,
+    "completeStopAcceptance": false,
+    "bundleUnchanged": true,
+    "noObserver": true,
+    "unchangedHeadNotRetried": true,
+    "additionalUndiciFailureLogged": false
+  },
+  "decision": {
+    "productionAccepted": false,
+    "advancePR50": false,
+    "mergeDevelopOrRelease": false,
+    "reason": "Independent cached-reader gain and completed controls are insufficient: cold P95 and concurrent rescan P95 exceed preset desktop budgets; original full mixed workload fails in generation 1 with finishing rather than printing. Retain separate branch for review and substantive correction. Never discard draft/final failures or extend the print to make this pass."
+  },
+  "evidence": {
+    "path": "host/contracts/native-metadata-cache-read.evidence.json.gz",
+    "sha256": "ce1cc96f52d086dec19b55522a19f78dd0ea9e301bdcc11f8fbd3fbd64f3795e",
+    "bytes": 2031628,
+    "entries": 231,
+    "redactedTestStateTokens": true
+  },
+  "developPostMergePR51": {
+    "commit": "2911bd447ccca1999765b16ae797a25c90d38415",
+    "hostRun": 37714673849,
+    "firmwareRun": 37714673535,
+    "requiredChecks": "all_success_verified",
+    "scope": "Already completed diagnostic integration, not CI for this candidate or a closure of AHT expiry/G3"
+  },
+  "unverified": [
+    "Full original mixed printing/stop metrics",
+    "Cold/concurrent rescan tail cause",
+    "Same-package actual Fluidd/Mainsail complete journeys",
+    "Target board performance and Cycnumbris 500 hardware acceptance",
+    "G3 timing/precision",
+    "Full Moonraker and Python retirement"
+  ]
+}

@@ -33,6 +33,9 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 时保持拒绝，操作和独立包证据见[队列页面验收](host/contracts/product-queue-panel-acceptance.json)。
 实际页面与当前系列验收仍待完成。
 面向用户的未发布变化见 [版本变化](CHANGELOG.md)。
+元数据缓存读取的独立候选及双文件竞争验证见
+[缓存读取审查](host/contracts/native-metadata-cache-read-acceptance.json)，
+完整混合、集成和目标性能门槛仍按交付计划执行。
 
 交付按同包软件闭环、Cycnumbris 500 受控试验、完整退役与发布三个
 出口推进。上传／移动覆盖 PR #3 的精确头 `12e85c5` 规定 CI 通过，

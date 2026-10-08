@@ -16,13 +16,15 @@ import {nativeFilename} from './native-file-path.ts';
 import {extractPublishedMetadata,samePublishedSource} from './native-metadata-source.ts';
 import {ApiError,type Json,type RpcContext} from './rpc.ts';
 import type {ThumbnailDownload} from './thumbnail-download.ts';
-/** Owns the existing durable metadata protocol for the native receipt namespace.
- * All public work is serialized and bounded; cached images remain disk-backed. */
+/** Owns the durable metadata protocol for the native receipt namespace. Writers
+ * serialize; independent cache reads verify actual receipts within the same
+ * bounded admission/close owner. Cached images remain disk-backed. */
 export class NativePersistentMetadata {
  readonly #cache=new FileMetadataStore({maxRecords:128,maxBytes:8*1024**2,maxRecordBytes:256*1024});
  readonly #keys=new Map<string,PublishedSourceIdentity>();readonly #bundles=new Map<string,string>();
  readonly #invalidations=new Map<string,Promise<void>>();
  readonly #stop=new AbortController();readonly #pending=new Set<Promise<unknown>>();
+ readonly #filenames=new Map<string,number>();
  #tail:Promise<unknown>=Promise.resolve();#closing:Promise<void>|undefined;#fault:unknown;#scans=0;#recovered=0;
  readonly #budget:PrintSnapshotBudget;readonly #life:MetadataLifecycle;
  private readonly files:PublishedPrintFiles;
@@ -66,17 +68,22 @@ export class NativePersistentMetadata {
  }
  get status(){return {persistent:true,scans:this.#scans,recovered:this.#recovered,imageBytes:this.images.status.cacheBytes,imageBundles:this.images.status.cachedBundles,storedImageBytes:this.images.status.storage.storedBytes,pending:this.#pending.size,closed:this.#stop.signal.aborted,faulted:!!this.#fault,cache:this.#cache.status,snapshots:this.#budget.status};}
  #index(){this.#bundles.clear();const intents=new Map(this.intents.unresolved().map(i=>[i.id,i]));for(const version of this.versions.entries())if(version.state==='selected'){const intent=intents.get(version.scanId!);if(!intent)throw new Error('Selected metadata has no scan intent');this.#bundles.set(intent.bundleId,version.filename);}}
- #admit<T>(operation:()=>Promise<T>):Promise<T>{
-  if(this.#stop.signal.aborted||this.#fault||this.intents.status.faulted||this.snapshots.status.faulted||this.versions.status.faulted)return Promise.reject(new ApiError(503,'Native metadata requires recovery'));
+ #available(){return !this.#stop.signal.aborted&&!this.#fault&&!this.intents.status.faulted&&!this.snapshots.status.faulted&&!this.versions.status.faulted;}
+ #admit<T>(operation:(earlier:Promise<unknown>)=>Promise<T>,filename:string,parallel=false):Promise<T>{
+  if(!this.#available())return Promise.reject(new ApiError(503,'Native metadata requires recovery'));
   if(this.#pending.size>=4)return Promise.reject(new ApiError(503,'Native metadata queue full'));
-  const task=this.#tail.then(operation);this.#tail=task.catch(()=>{});this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+  const earlier=this.#tail,task=(parallel?Promise.resolve():earlier).then(()=>operation(earlier));
+  // Later writers still wait for every earlier accepted read. A parallel cache
+  // miss falls back behind the captured earlier tail, never behind itself.
+  this.#tail=parallel?Promise.allSettled([earlier,task]).then(()=>{}):task.catch(()=>{});this.#pending.add(task);this.#filenames.set(filename,(this.#filenames.get(filename)??0)+1);
+  return task.finally(()=>{this.#pending.delete(task);const count=this.#filenames.get(filename)!-1;if(count)this.#filenames.set(filename,count);else this.#filenames.delete(filename);});
  }
  peek(filename:string,file:PublishedPrintFile,modified:number):Readonly<Record<string,Json>>|undefined{const value=this.#cache.peek(filename);return value?.sha256===file.sha256&&value?.name===file.name&&value?.modified===modified?value:undefined;}
  #drop(filename:string){this.#cache.invalidate(filename);this.#keys.delete(filename);}
  invalidate(filename:string):Promise<void>{
   this.#drop(filename);for(const [bundle,owner] of this.#bundles)if(owner===filename)this.#bundles.delete(bundle);
   const existing=this.#invalidations.get(filename);if(existing)return existing;
-  const task=this.#admit(async()=>{if(this.versions.current(filename)?.state!=='invalidated'&&(this.versions.current(filename)||this.intents.unresolved().some(intent=>intent.filename===filename)))await this.#life.invalidate(filename,new AbortController().signal);await this.#life.retireSuperseded(new AbortController().signal,filename);this.#index();}).catch(error=>{this.#fault=error;throw error;}).finally(()=>this.#invalidations.delete(filename));
+  const task=this.#admit(async()=>{if(this.versions.current(filename)?.state!=='invalidated'&&(this.versions.current(filename)||this.intents.unresolved().some(intent=>intent.filename===filename)))await this.#life.invalidate(filename,new AbortController().signal);await this.#life.retireSuperseded(new AbortController().signal,filename);this.#index();},filename).catch(error=>{this.#fault=error;throw error;}).finally(()=>this.#invalidations.delete(filename));
   this.#invalidations.set(filename,task);return task;
  }
  #room(){while(this.#keys.size&&(this.#keys.size>=128||this.#cache.status.bytes>this.#cache.status.maxBytes-this.#cache.status.maxRecordBytes-256)){this.#drop(this.#keys.keys().next().value!);}}
@@ -88,7 +95,20 @@ export class NativePersistentMetadata {
  }
  #request(filename:string,signal:AbortSignal,force:boolean):Promise<Record<string,Json>>{
   try{nativeFilename(filename);}catch(error){return Promise.reject(error);}
-  const combined=AbortSignal.any([signal,this.#stop.signal]);return this.#admit(()=>this.#get(filename,combined,force));
+  const combined=AbortSignal.any([signal,this.#stop.signal]),key=this.#keys.get(filename),snapshot=this.#cache.peek(filename),parallel=!force&&!this.#filenames.has(filename)&&!!key&&!!snapshot;
+  return this.#admit(async earlier=>{
+   if(parallel){const value=await this.#cached(filename,combined,key!,snapshot!);if(value)return value;return earlier.then(()=>this.#get(filename,combined,false));}
+   return this.#get(filename,combined,force);
+  },filename,parallel);
+ }
+ async #cached(filename:string,signal:AbortSignal,key:PublishedSourceIdentity,snapshot:Readonly<Record<string,Json>>):Promise<Record<string,Json>|undefined>{
+  signal.throwIfAborted();let initial:Awaited<ReturnType<PublishedPrintFiles['describeSource']>>;
+  try{const id=await this.files.resolvePath(filename,signal);initial=await this.files.describeSource(id,signal);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return;throw error;}
+  signal.throwIfAborted();if(!this.#available())throw new ApiError(503,'Native metadata requires recovery');
+  // A concurrent writer can evict/invalidate this cache entry while stat yields.
+  // Changed bindings or cache tickets return to the original serial protocol.
+  if(this.#keys.get(filename)!==key||this.#cache.peek(filename)!==snapshot||!samePublishedSource(key,initial.source)||!this.peek(filename,initial.file,initial.modified))return;
+  this.#keys.delete(filename);this.#keys.set(filename,key);return this.#cache.metadata(filename);
  }
  async #get(filename:string,signal:AbortSignal,force:boolean):Promise<Record<string,Json>>{
   signal.throwIfAborted();let id:string,initial:Awaited<ReturnType<PublishedPrintFiles['describeSource']>>;
