@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "status": "Diagnostic preparation only; CI clock expiry root cause and actual fix remain open",
+  "baselineCommit": "d8d41e0ee56c37f6e7236c0de3b7223df38333a6",
+  "branch": "devac/aht-clock-expiry",
+  "relatedPR": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/50",
+  "scope": {
+    "productionSourceChanged": false,
+    "nativeSourceChanged": false,
+    "clockMathChanged": false,
+    "clockAuthorizationChanged": false,
+    "originalAhtAssertionsAndWaitsRetained": true,
+    "newQueriesOrTimers": false,
+    "defaultEntryChanged": false,
+    "pythonRetired": 0
+  },
+  "invariants": [
+    "Observe original uptime, start, estimator accept and invalidate once; preserve arguments, values and original error identity",
+    "Snapshot first initialized-clock retirement before failed session lookup becomes unavailable",
+    "Retain up to eight warmup and 32 recent replies per observed estimator, including original accepted/rejected release and exact BigInt anchors",
+    "Retain up to 16 actual uptime replies with observation-order transport IDs; match by exact sentTime and (high << 32) | clock32 to initial anchors",
+    "Normal retirement and failures remain distinct; failed observation sink cannot mask or repeat original retirement",
+    "AHT startup is inside the existing cleanup boundary, records failure snapshot and rethrows the original error",
+    "All clock lease deadlines, estimator semantics, original target feedback and PWM renewal assertions, NACK stopping and numeric tolerances unchanged"
+  ],
+  "priorFailure": {
+    "head": "cbd97343de7958eb67cba77844da4d7c76bd6b54",
+    "run": 37708532427,
+    "job": 113088622037,
+    "passed": 4344,
+    "total": 4345,
+    "failed": 1,
+    "test": "AHT heater requests fresh target feedback and renews PWM without forging samples: PA4",
+    "message": "MCU clock samples expired",
+    "remainingProtocolSanitizerAndLinuxMcuSteps": "not executed",
+    "noRawClockSamplesAvailableInOldFailure": true,
+    "unchangedHeadNotRerun": true,
+    "relatedAhtClockSerialSourceMatchesBaseline": true,
+    "firmwareRun37708532418": "success",
+    "motionRun37708532432": "10/10 success; historical G3 not closed"
+  },
+  "isolatedDiagnosis": {
+    "instrumentedOnly": true,
+    "passed": 2,
+    "failed": 0,
+    "reproducedCiExpiry": false,
+    "clockOwners": 4,
+    "samples": 56,
+    "dropped": 0,
+    "rejected": [
+      {
+        "id": 1,
+        "warmup": false,
+        "sample": {
+          "clock32": 1434866,
+          "sentTime": 912343.351472327,
+          "receiveTime": 912343.360160081
+        },
+        "before": {
+          "sampleTime": 912342.9994507674,
+          "origin": "1017518",
+          "clockOffset": 56742.25612764788,
+          "frequency": 999943.9935609369
+        },
+        "after": {
+          "sampleTime": 912342.9994507674,
+          "origin": "1017518",
+          "clockOffset": 56742.25612764788,
+          "frequency": 999943.9935609369
+        }
+      },
+      {
+        "id": 2,
+        "warmup": false,
+        "sample": {
+          "clock32": 1433873,
+          "sentTime": 912343.351720957,
+          "receiveTime": 912343.360255501
+        },
+        "before": {
+          "sampleTime": 912343.0006731828,
+          "origin": "1017925",
+          "clockOffset": 56430.36590175592,
+          "frequency": 1000329.6450118665
+        },
+        "after": {
+          "sampleTime": 912343.0006731828,
+          "origin": "1017925",
+          "clockOffset": 56430.36590175592,
+          "frequency": 1000329.6450118665
+        }
+      }
+    ],
+    "firstAssertionFailures": [],
+    "conclusion": "Each of the first two physical estimators rejected one non-warmup known-time reply and later accepted renewal. This does not prove CI root cause; observing isolated rejection or warmup conditioning alone is insufficient.",
+    "initialSetupFailure": "No serialqueue.node because the baseline native build module has no CLI entry; explicit buildProductNative invocation completed. Initial setup log retained; no MCU started in failed setup."
+  },
+  "checks": {
+    "finalFullTypecheck": "passed",
+    "beforeUptimeAdditionSource": {
+      "passed": 30,
+      "failed": 0
+    },
+    "finalCompiledRegression": {
+      "passed": 31,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "newUptimeObservationControl": "Exact high counter and departure/receive times, 16-reply retention, copied returned values/snapshots, unchanged call count and original failure identity",
+    "observationsNotAcceptance": true,
+    "countsNotAdditive": true,
+    "whitespace": "passed",
+    "productionRuntimeBenchmarksNotRepeated": "No production source changed; no runtime performance improvement claimed"
+  },
+  "product": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-aht-clock-product-bundle",
+    "manifestSha256": "d3f458d7b17091b153ad562ebb8c304359889c5454ebad1b467b12bfbfc34197",
+    "checkedProductionJs": 636,
+    "productionSourceChanged": false,
+    "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb",
+    "independentDependencies": 15,
+    "install": {
+      "durationMs": 1306.4597210000002,
+      "dependencies": 15
+    },
+    "noTsLoadingDuringCompiledTests": true
+  },
+  "evidence": {
+    "path": "host/contracts/aht-clock-expiry-observation-acceptance.evidence.json.gz",
+    "bytes": 102720,
+    "sha256": "aa471cee31ba666232280da47ed7c0158e4e57fca653d94b42be492dad96f525",
+    "entries": 25
+  },
+  "unverified": [
+    "CI failure raw sample/uptime cause",
+    "Actual AHT or clock defect repair",
+    "New exact-head required CI and post-merge checks",
+    "PR #50 remaining required host checks and integration",
+    "Original full second-generation printing and cold-tail budgets",
+    "Same-package complete client acceptance",
+    "G3 precision and Cycnumbris 500 target/hardware budgets",
+    "Complete Moonraker and Python retirement",
+    "Master release"
+  ],
+  "next": "Submit observation-only branch through normal develop PR. Inspect new exact-head CI evidence; a success is not cause closure. Use first-retirement raw input to choose repair without weakening clock authority or original motion/thermal gates."
+}

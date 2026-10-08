@@ -1655,6 +1655,18 @@ path 使用 `gcodes/相对目录`，先创建父目录；根目录不可删除�
 32 段、单段 255 UTF-8 字节、总长 1,024 字节；回执另受原 2,048 字节限额。
 命名空间与私有 blob／回执目录分离，可见名字不会作为真实存储路径打开。
 
+`gcodes` 上传的 path 可以指定不存在的子目录。完成摘要核验和上传授权后，
+缺失的各级目录还须通过 `server.files.post_directory` 授权；目录权限等待
+期间已存在的父目录消失时返回 409，不隐式重新创建。全部缺失目录以一次
+既有目录索引耐久提交创建，保留已有目录时间和原目录／存储配额；通知在
+提交后按父到子发送，随后才发布文件。目录提交失败返回 500，
+`error.data.operation=create_upload_parents`，phase 沿用 before-replace／replaced；
+后者须先恢复文件库。之后文件发布失败或请求取消可留下已耐久创建的空目录，
+应查询实际目录和文件回执，不把目录与文件当成一个原子事务或自动重试。
+`config` 根继续采用原配置写入保护，本能力不扩大其可写目录范围。
+源码、同包软件负载及有限本机性能范围见
+[上传父目录验收](../host/contracts/upload-parents-acceptance.json)；真实客户端和目标板仍待验。
+
 显式 `print=true` 支持标准“上传并打印”候选。文件发布后先关闭临时源、
 删除暂存目录并释放文件／设备／进程上传占用，再使用入站时捕获的打印
 API。沿用既有机器温度策略和 30 秒准入期限，重新授权 `printer.print.start`
@@ -1666,8 +1678,16 @@ API。沿用既有机器温度策略和 30 秒准入期限，重新授权 `print
 普通上传省略该字段或提交空、`false`、`0` 时仍不启动。
 丢失回执时应查询文件、当前打印状态与历史，不重发带打印标志的上传；
 当前设备就绪时可用 `/printer/print/status?request_id=...` 核对耐久记录，
-准入前拒绝可能没有该记录。现有 HTTP 200 和 result 别名保持；官方 201
-及 Location 回执差额仍未收口，不据本批声称全部文件契约兼容。
+准入前拒绝可能没有该记录。成功发布现返回 HTTP 201 和 `Location`，
+顶层字段及旧 `result` 别名保持。Location 使用当前 HTTP 监听器的请求
+Host 和逐段 URI 编码的回执路径，适用于 gcodes／config、显式旧 ID 地址、
+中文、空格和字面百分号；不带令牌／查询，不由转发头选择协议或主机。
+既有获准跨域来源可读取该头；来源、鉴权及 OPTIONS 准入未扩大。
+已发布但打印准入失败仍为 201，可读取文件和 `print_error`；发布前失败
+保留原错误状态，不提供成功 Location。客户端应按 2xx 判断上传成功，
+不能继续硬编码 200。源码、独立 JS、同包混合打印与同盘性能见
+[标准上传回执验收](../host/contracts/upload-created-acceptance.json)。
+自动创建父目录、UFP、完整页面及目标板验收仍待完成。
 行为断言、固定字节输入与性能原样本见[上传启动验收](../host/contracts/upload-print-intent-acceptance.json)。
 原版只读工作树可由 `ANYRAID_UPLOAD_BASELINE` 指定，用 Node.js 26 执行
 `node host/bench/upload-print-intent.ts`；基准先核对三个原模块摘要，保留

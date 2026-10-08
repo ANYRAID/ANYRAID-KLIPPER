@@ -19,8 +19,11 @@ echo -e "\n\n=============== Install system dependencies\n\n"
 PKGS="virtualenv python2-dev libffi-dev build-essential"
 PKGS="${PKGS} gcc-avr avr-libc"
 PKGS="${PKGS} libnewlib-arm-none-eabi gcc-arm-none-eabi binutils-arm-none-eabi"
-sudo apt-get update
-sudo apt-get install ${PKGS}
+# Bound individual network stalls and fail if any index could not be updated.
+# The workflow also bounds the complete bootstrap, including toolchain/pip IO.
+APT_OPTIONS=(-o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30)
+sudo apt-get "${APT_OPTIONS[@]}" --error-on=any update
+sudo apt-get "${APT_OPTIONS[@]}" -y install ${PKGS}
 
 
 ######################################################################
