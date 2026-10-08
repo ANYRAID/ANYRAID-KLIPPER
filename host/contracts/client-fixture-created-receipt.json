@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base": "6c2b86edf50ddc03a02d6e1e9bf8ea62e5f674bb",
+  "problem": "Interactive fixture required HTTP200 for sample multipart upload, but the current product endpoint unconditionally returns standard HTTP201. It would abort before exposing the frontend listener.",
+  "change": "Require exactly HTTP201 and report the actual numeric failure status; no HTTP200 fallback.",
+  "source": {
+    "path": "host/acceptance/client-probe.ts",
+    "beforeSha256": "551f352c91c2cac824912ce81cdf0561372c608f815912eb908038266b47d6ec",
+    "afterSha256": "069291db2ff853e6e32bfb076be6b91e961a9a4557abecb6a0499319f8edb724",
+    "serverSourceSha256": "1a8f3a646e05c5333ae3a8941724335697019d0f22668f12665254d87a6f2241"
+  },
+  "checks": {
+    "node": "26.10.0",
+    "typecheck": "passed, includes acceptance/**/*.ts",
+    "whitespace": "passed",
+    "existingHttpControl": {
+      "name": "created upload Location downloads exact published bytes: legacy.gcode",
+      "pass": 1,
+      "fail": 0,
+      "durationMs": 225.12007,
+      "scope": "Existing compiled HTTP unit control against sealed PR50 product; verifies file_id upload HTTP201, Location and exact download. Does not start client-probe.",
+      "productManifestSha256": "9127984d9e10530023c6c02827202b62ad951c5e768161b459d29b013fabce45",
+      "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+    },
+    "interactiveFixture": "NOT RUN: prior automatic-approval rejection remains pending; no expired session restart or new UI server.",
+    "performance": "No new runtime benchmark: only acceptance bootstrap expectation changes, product runtime/native/dependencies unchanged."
+  },
+  "preparationFailure": "Initial evidence script spawnSync(git show) reported EPERM and exited before archive creation. Preserved original script and tool-output transcription; standalone git snapshot and read-only file input corrected sealing only.",
+  "invariants": [
+    "127.0.0.1 only",
+    "Original 15-minute deadline unchanged",
+    "Only software PTY MCU fixture; no physical device paths",
+    "No authorization change or existing session restart",
+    "No claim of actual Fluidd/Mainsail or G3 acceptance"
+  ],
+  "evidence": {
+    "path": "client-fixture-created-receipt.evidence.json.gz",
+    "sha256": "088dd06a7c1af610c55dd3ee461f39cd1325e8239ac4a66e0019cb309e3d0ca3",
+    "bytes": 2584,
+    "entries": 5
+  },
+  "remaining": [
+    "Own CI, normal develop merge and merge-result checks",
+    "Explicit pending authorization before any new interactive client fixture",
+    "Actual same-bundle Fluidd/Mainsail and full delivery gates"
+  ]
+}
