@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "9bf86ced34a573716c2a8a1a57845ce5ee4b6fb8",
+  "mergeRef": "656cf827e12cd732aefdf5f4594e1720efa89638",
+  "hostRun": 37744007066,
+  "hostJobs": [
+    {
+      "id": 113201082131,
+      "name": "sanitizer (asan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113201082283,
+      "name": "checks",
+      "conclusion": "success"
+    },
+    {
+      "id": 113201082348,
+      "name": "sanitizer (ubsan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113205322191,
+      "name": "host",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "pass": 4226,
+    "fail": 0
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 314,
+    "exactOriginalCommandMatch": true,
+    "allExitZero": true
+  },
+  "firmware": {
+    "run": 37744007188,
+    "job": 113201084243,
+    "conclusion": "success"
+  },
+  "evidence": {
+    "path": "pr53-9bf-terminal.evidence.json.gz",
+    "sha256": "b819c81bd2a7f0a5ae1cbf3b41518a4a006bef8447f3a4497ad630731bf486cb",
+    "bytes": 571953,
+    "entries": 7
+  },
+  "scope": "PR53 own exact-head CI; only fixture HTTP201 expectation and prior develop evidence. No actual client, G3 or postmerge pass claim."
+}
