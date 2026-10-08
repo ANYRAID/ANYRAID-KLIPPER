@@ -41,7 +41,7 @@ CI 将两种模式和普通检查分开运行；每种模式内部保持原逐�
 原 sanitizer 构建参数、运行环境和 60 秒子命令期限。最终 `host` 检查只在
 普通检查及全部 sanitizer 作业成功时通过，取消或跳过均不能放行。
 本机控制验证覆盖命令完整性和门禁失败传播；精确候选头和合并后 CI
-已核验，见[当前合并后终态](../host/contracts/develop-9bd-terminal.json)、
+已核验，见[9bd 合并后终态](../host/contracts/develop-9bd-terminal.json)、
 [诊断集成终态](../host/contracts/develop-e647-terminal.json)
 与[UFP 组合终态](../host/contracts/pr50-ade4-terminal.json)。记录只证明
 对应提交、输入和环境通过，不将一次检查耗时当作目标板性能提升。
@@ -64,8 +64,9 @@ null。正常结束有一行 `nodeTestObservation` 总计，失败退出仍由 N
 精确头首轮全部 15 项远程检查通过并正常合入 develop `1f0e11f1`，
 普通检查 Node 26.11.1 为 4398／4398，根总计与 spec 一致，见
 [精确头终态](../host/contracts/pr55-5fb-terminal.json)。这不是本机失败
-Node 26.10.0 的同版本对照，实际合并后检查仍待终态；不能把观测能力
-当作稳定性修复。
+Node 26.10.0 的同版本对照。实际合并后全部 15 项检查亦已独立核验
+通过，见[合并后终态](../host/contracts/develop-1f0-terminal.json)；不能把
+观测能力当作稳定性修复。
 
 ## 数据库本机验证与历史参考
 
