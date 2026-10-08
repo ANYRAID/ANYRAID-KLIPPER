@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,readdir} from 'node:fs/promises';
+import {mkdtemp,rm,readdir,readlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {once} from 'node:events';
@@ -140,7 +140,7 @@ test('unconfirmed device stop blocks upload and move overwrites without changing
  }finally{await f.close();}
 });
 test('actual host loop retains JWT, database, file lock and identified socket across three device generations',async t=>{
- const f=await fixture();let socket:WebSocket|undefined;const times:number[]=[],fds:number[]=[];
+ const f=await fixture();let socket:WebSocket|undefined;const times:number[]=[],fds:number[]=[],fdSnapshots:{fd:string;target:string}[][]=[];
  try{
   const base=await f.ready,events:any[]=[];const user=await (await fetch(base+'/access/user',{method:'POST',headers:{'x-api-key':f.key,'content-type':'application/json'},body:JSON.stringify({username:'operator',password:'test-only-password'})})).json() as any;
   assert(user.result,user.error?.message);const headers={authorization:'Bearer '+user.result.token};
@@ -154,8 +154,10 @@ test('actual host loop retains JWT, database, file lock and identified socket ac
    assert.equal((await (await fetch(base+'/server/info',{headers})).json() as any).result.native_host.ready,true);
    assert.equal((await fetch(base+'/server/database/compact',{method:'POST',headers})).status,200);assert.equal(await (await fetch(base+'/server/files/gcodes/retained.gcode',{headers})).text(),'G1 X1\n');
    socket.send(JSON.stringify({jsonrpc:'2.0',id:generation+1,method:'server.websocket.id'}));await until(()=>events.some(e=>e.id===generation+1));assert.equal(events.find(e=>e.id===generation+1).result.websocket_id,connection);
-   await assert.rejects(PublishedPrintFiles.open(join(f.root,'files')),/Lock published file directory/);fds.push((await readdir('/proc/self/fd')).length);
+   await assert.rejects(PublishedPrintFiles.open(join(f.root,'files')),/Lock published file directory/);const descriptors=await readdir('/proc/self/fd');fds.push(descriptors.length);
+   fdSnapshots.push(await Promise.all(descriptors.map(async fd=>({fd,target:await readlink('/proc/self/fd/'+fd).catch(error=>String((error as NodeJS.ErrnoException).code))}))));
   }
+  t.diagnostic(JSON.stringify({readyFileDescriptors:fds,fdSnapshots}));
   assert(f.fixtures.slice(0,-1).every(g=>g.transport.stops.every(n=>n===1)));assert(fds.at(-1)!<=fds[0]+2);
   f.abort.abort();await f.running;assert.deepEqual(f.counts,{processOpens:1,processReleases:1,databaseCloses:1,calls:3,terminal:true});assert(f.fixtures.every(g=>g.transport.stops.every(n=>n===1)));
   t.diagnostic(JSON.stringify({reinitializeMs:times,readyFileDescriptors:fds,scope:'Three actual host generations with two simulated PTY MCUs each; native JWT and identified WebSocket retained'}));
