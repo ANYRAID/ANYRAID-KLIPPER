@@ -31,6 +31,30 @@ test('concurrent identical preview publications charge one blob and retain both 
   await f.store.remove('one',signal());assert.deepEqual((await f.store.readPreview('two',signal()))!.bytes,f.previews[0]);await f.reopen();await f.store.remove('two',signal());assert.equal(f.store.status.storedBytes,0);
  }finally{await f.close();}
 });
+for(const suffix of ['gcode','png'])for(const code of ['EIO','ENOSPC','ENOENT'])test(`deduplicated ${suffix} durability failure ${code} never publishes a new authority`,async t=>{
+ const f=await fixture();try{
+  const original=await f.publish('original'),blob=join(f.root,(suffix==='gcode'?original.sha256:original.preview!.sha256)+'.'+suffix);
+  const prototype=Object.getPrototypeOf(f.handles[0]) as FileHandle,previous=prototype.sync;
+  let injected=false;t.mock.method(prototype,'sync',async function(this:FileHandle){if(await readlink('/proc/self/fd/'+this.fd)===blob){injected=true;throw Object.assign(new Error('Injected reused content durability failure'),{code});}return previous.call(this);});
+  await assert.rejects(f.publish('uncommitted'),{code});assert(injected);t.mock.restoreAll();
+  await assert.rejects(f.store.inspect('uncommitted'),{code:'ENOENT'});assert.deepEqual(await f.store.inspect('original'),original);
+  assert.deepEqual((await f.store.readBytes('original',signal())).bytes,f.models[0]);assert.deepEqual((await f.store.readPreview('original',signal()))!.bytes,f.previews[0]);
+  assert.equal(f.store.status.reservedBytes,0);assert.equal(f.store.status.storedBytes,await charged(f.root));assert(!(await readdir(f.root)).some(name=>name.startsWith('.')));
+  await f.reopen();assert.deepEqual(await f.store.inspect('original'),original);const next=await f.publish('next');assert.deepEqual(next.preview,original.preview);
+ }finally{t.mock.restoreAll();await f.close();}
+});
+for(const code of ['EIO','ENOSPC','ENOENT'])test(`reused preview sync failure ${code} cannot retire the replaced authority`,async t=>{
+ const f=await fixture();try{
+  const original=await f.publish('original'),blob=join(f.root,original.preview!.sha256+'.png'),plan=await f.store.prepareUploadReplacement('uncommitted','original.gcode','original.gcode',signal());
+  const prototype=Object.getPrototypeOf(f.handles[0]) as FileHandle,previous=prototype.sync;let injected=false;
+  t.mock.method(prototype,'sync',async function(this:FileHandle){if(await readlink('/proc/self/fd/'+this.fd)===blob){injected=true;throw Object.assign(new Error('Injected reused preview durability failure'),{code});}return previous.call(this);});
+  await assert.rejects(f.store.replaceUpload(plan,f.handles[1],signal(),f.handles[2]),{code});assert(injected);t.mock.restoreAll();
+  assert.equal(await f.store.resolvePath('original.gcode',signal()),'original');await assert.rejects(f.store.inspect('uncommitted'),{code:'ENOENT'});
+  assert.deepEqual((await f.store.readBytes('original',signal())).bytes,f.models[0]);assert.deepEqual((await f.store.readPreview('original',signal()))!.bytes,f.previews[0]);
+  assert.equal(f.store.status.reservedBytes,0);assert.equal(f.store.status.storedBytes,await charged(f.root));assert(!(await readdir(f.root)).some(name=>name.startsWith('.')));
+  await f.reopen();assert.deepEqual(await f.store.inspect('original'),original);
+ }finally{t.mock.restoreAll();await f.close();}
+});
 for(const sharedModel of [false,true])test(`one receipt binds exact model and preview through dedup, restart and last-reference deletion (sharedModel=${sharedModel})`,async()=>{
  const f=await fixture();try{
   const one=await f.publish('one'),two=await f.publish('two',sharedModel?0:1);

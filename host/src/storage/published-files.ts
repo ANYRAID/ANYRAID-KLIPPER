@@ -565,11 +565,14 @@ export class PublishedPrintFiles {
  async #verifyExisting(record:PublishedPrintFile,signal:AbortSignal):Promise<void>{
   await this.#verifyBlob(record,'gcode',signal);if(record.preview)await this.#verifyBlob(record.preview,'png',signal);
  }
- async #verifyBlob(record:Pick<PublishedPrintFile,'sha256'|'size'>,suffix:'gcode'|'png',signal:AbortSignal):Promise<void>{
-  const file=await open(this.#path(record.sha256+'.'+suffix),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
+ async #verifyBlob(record:Pick<PublishedPrintFile,'sha256'|'size'>,suffix:'gcode'|'png',signal:AbortSignal,reuse=false):Promise<boolean>{
+  let file:FileHandle;try{file=await open(this.#path(record.sha256+'.'+suffix),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);}catch(error){if(reuse&&(error as NodeJS.ErrnoException)?.code==='ENOENT')return false;throw error;}
   try{const stat=await file.stat();if(!stat.isFile()||stat.size!==record.size)throw new Error('Existing published content is invalid');const buffer=Buffer.alloc(65536),hash=createHash('sha256');let position=0;
    while(position<record.size){signal.throwIfAborted();const {bytesRead}=await file.read(buffer,0,Math.min(buffer.length,record.size-position),position);if(!bytesRead)throw new Error('Existing published content is truncated');hash.update(buffer.subarray(0,bytesRead));position+=bytesRead;}
    signal.throwIfAborted();if(hash.digest('hex')!==record.sha256)throw new Error('Existing published content digest mismatch');
+   // Reusing existing bytes still requires their inode to be durable before a
+   // new receipt can reference them. Never sync a redundant dirty temporary.
+   if(reuse){await file.sync();signal.throwIfAborted();}return true;
   }finally{await file.close();}
  }
  /** Snapshot known receipt IDs behind the mutation barrier. This is an inventory,
@@ -644,8 +647,8 @@ export class PublishedPrintFiles {
     while(written<bytesRead){signal.throwIfAborted();const result=await target.write(buffer,written,bytesRead-written,position+written);if(!result.bytesWritten)throw new Error('Published preview write stalled');written+=result.bytesWritten;}position+=bytesRead;
    }
    const after=await source.stat({bigint:true});signal.throwIfAborted();if(before.dev!==after.dev||before.ino!==after.ino||before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs)throw new PublishedFileChangedError('Published preview source changed during copy');
-   const preview=Object.freeze({sha256:hash.digest('hex'),size:position});await target.chmod(0o400);await target.sync();const identity=await target.stat({bigint:true});await target.close();target=undefined;signal.throwIfAborted();
-   let linked=false;try{await link(temp,this.#path(preview.sha256+'.png'));linked=true;consume(position);}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyBlob(preview,'png',signal);}
+   const preview=Object.freeze({sha256:hash.digest('hex'),size:position}),reused=await this.#verifyBlob(preview,'png',signal,true);await target.chmod(0o400);if(!reused)await target.sync();const identity=await target.stat({bigint:true});await target.close();target=undefined;signal.throwIfAborted();
+   let linked=false;if(!reused)try{await link(temp,this.#path(preview.sha256+'.png'));linked=true;consume(position);}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyBlob(preview,'png',signal);}
    return {preview,linked,identity:{dev:identity.dev,ino:identity.ino}};
   }finally{
    try{await target?.close();await unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;});}catch(cause){this.#writeFault=cause;throw new Error('Published preview cleanup failed',{cause});}
@@ -671,9 +674,9 @@ export class PublishedPrintFiles {
    }
    const after=await source.stat({bigint:true});signal.throwIfAborted();if(before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs)throw new Error('Published source changed during copy');
    const model={sha256:hash.digest('hex'),size:position};
-   await file.chmod(0o400);await file.sync();await file.close();file=undefined;signal.throwIfAborted();
+   const reused=await this.#verifyBlob(model,'gcode',signal,true);await file.chmod(0o400);if(!reused)await file.sync();await file.close();file=undefined;signal.throwIfAborted();
    // Link is atomic and never replaces content already published under its digest.
-   try{await link(temp,this.#path(model.sha256+'.gcode'));this.#storedBytes+=position;this.#reservedBytes-=position;reserved-=position;}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyBlob(model,'gcode',signal);}
+   if(!reused)try{await link(temp,this.#path(model.sha256+'.gcode'));this.#storedBytes+=position;this.#reservedBytes-=position;reserved-=position;}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyBlob(model,'gcode',signal);}
    const preview=previewSource?(await this.#publishPreview(previewSource,previewBefore!,signal,bytes=>{this.#storedBytes+=bytes;this.#reservedBytes-=bytes;reserved-=bytes;})).preview:undefined;
    const record:PublishedPrintFile=Object.freeze({version:1,id,name,...model,...path===undefined?{}:{path:visible},...preview?{preview}:{}});if(Buffer.byteLength(JSON.stringify(record))>2048)throw new Error('Published receipt exceeds limit');
    await this.#root.sync();signal.throwIfAborted();
