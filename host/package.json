@@ -11,7 +11,7 @@
     "test:native-sanitized": "node scripts/test-native-sanitized.ts",
     "pretest": "npm run build:native",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "node --test test/*.test.ts",
+    "test": "node --test --test-reporter=spec --test-reporter=./scripts/test-failure-reporter.mjs --test-reporter-destination=stdout --test-reporter-destination=stdout test/*.test.ts",
     "bench": "node bench/math.ts",
     "bench:bed-tilt": "node bench/bed-tilt.ts",
     "bench:manual-probe": "node bench/manual-probe.ts",

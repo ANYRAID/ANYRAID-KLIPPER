@@ -28,7 +28,7 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 实现清单见 [配置节校验器](../host/src/config/native-printer-sections.ts)，
 验证结果见 [配置预检验收](../host/contracts/native-printer-sections-acceptance.json)。
 
-## 原生 sanitizer 检查调度候选
+## 原生 sanitizer 检查调度
 
 从 `host` 目录执行 `npm run test:native-sanitized` 仍依次运行 UBSAN
 和 ASAN。独立模式可用 `npm run test:native-sanitized -- --mode=ubsan`
@@ -36,12 +36,32 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 模式参数写错会在构建前拒绝。覆盖参考见
 [原成功 CI 命令清单](../host/contracts/native-sanitizer-command-reference.json)。
 
-CI 候选将两种模式和普通检查分开运行；每种模式内部保持原逐文件
+CI 将两种模式和普通检查分开运行；每种模式内部保持原逐文件
 顺序，先执行 `npm run build:native` 准备原测试依赖的普通插件，再运行
 原 sanitizer 构建参数、运行环境和 60 秒子命令期限。最终 `host` 检查只在
 普通检查及全部 sanitizer 作业成功时通过，取消或跳过均不能放行。
-本机控制验证覆盖命令完整性和门禁失败传播；实际 CI 耗时仍待验证。
+本机控制验证覆盖命令完整性和门禁失败传播；精确候选头和合并后 CI
+已核验，见[当前合并后终态](../host/contracts/develop-9bd-terminal.json)、
+[诊断集成终态](../host/contracts/develop-e647-terminal.json)
+与[UFP 组合终态](../host/contracts/pr50-ade4-terminal.json)。记录只证明
+对应提交、输入和环境通过，不将一次检查耗时当作目标板性能提升。
 当前 CI 参考测试仍需要 Python，不因调度拆分移除 Python 配置。
+
+## 普通测试失败观测候选
+
+`npm test` 保留原生前置构建及 `test/*.test.ts` 全部普通检查，原并发、
+断言和期限不变。沿用 spec 输出，另输出 `nodeTestFailure` JSON 行，
+记录文件／用例、错误类型、测试子进程退出码及信号；未提供的字段为
+null。正常结束有一行 `nodeTestObservation` 总计，失败退出仍由 Node
+测试 runner 决定。不增加重试，不接管产品进程或改变打印运行参数。
+
+额外报告只读取选定元信息，字段长度有上限，不复制环境变量、任意错误
+对象、断言实际／期望值或调用栈。原 spec 报告内容保留，不能把额外报告
+理解为对原日志的脱敏。历史只含 `test failed` 的记录不能倒推信号；
+该候选及一次成功均不关闭已知运动数值异常或 G3。
+五项控制和全量类型通过；一次完整普通检查捕获 16 项失败，原始记录见
+[退出观测](../host/contracts/ordinary-test-exit-observation.json)。该候选仍
+须精确头远程检查及正常审阅，不能把观测能力当作稳定性修复。
 
 ## 数据库本机验证与历史参考
 

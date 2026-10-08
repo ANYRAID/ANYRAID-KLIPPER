@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "e647326b80ca990b70bbb23f9248d8fa6ee042ea",
+  "base": null,
+  "mergeRef": null,
+  "hostRun": 37748488987,
+  "hostJobs": [
+    {
+      "id": 113215626591,
+      "name": "sanitizer (ubsan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113215626857,
+      "name": "checks",
+      "conclusion": "success"
+    },
+    {
+      "id": 113215626948,
+      "name": "sanitizer (asan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113220257807,
+      "name": "host",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "pass": 4229,
+    "fail": 0
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 314,
+    "exactFrozenReferenceMatch": true,
+    "coverage": "legacy",
+    "allExitZero": true
+  },
+  "firmware": [
+    {
+      "id": 113215626879,
+      "run": 37748488970,
+      "conclusion": "success"
+    }
+  ],
+  "motion": {
+    "run": 37748488964,
+    "jobs": [
+      {
+        "id": 113215626639,
+        "name": "motion (26.10.0, default, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113215626810,
+        "name": "motion (26.10.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113215626824,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113215626834,
+        "name": "motion (26.9.0, default, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113215626882,
+        "name": "motion (26.10.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113215626892,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113215626901,
+        "name": "motion (26.9.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113215626933,
+        "name": "motion (26.10.0, off, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113215627029,
+        "name": "motion (26.9.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113215627050,
+        "name": "motion (26.9.0, off, source)",
+        "conclusion": "success"
+      }
+    ],
+    "conditions": 10,
+    "childrenPerCondition": 50,
+    "verifiedChildren": 500,
+    "deadlineMs": 10000,
+    "loops": 16,
+    "tolerancesUnchanged": true
+  },
+  "evidence": {
+    "path": "develop-e647-terminal.evidence.json.gz",
+    "sha256": "99dd83004350ab252cf599e63d761709a30837522ddd10d7afba4eadbf0318f1",
+    "bytes": 594384,
+    "entries": 17
+  },
+  "scope": "Actual develop e647 postmerge success; does not explain historical grid409 or motion SIGKILL, does not close actual clients, target performance or G3."
+}

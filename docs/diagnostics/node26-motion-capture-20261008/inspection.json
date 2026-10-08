@@ -1,0 +1,392 @@
+{
+  "comparison": {
+    "actual": 68.74704880889482,
+    "expected": 68.74704004932397,
+    "difference": 0.000008759570846450515,
+    "absolute": 0.000008759570846450515,
+    "within": false,
+    "tolerance": 1e-8,
+    "recomputedDifference": 0.000008759570846450515,
+    "recomputedWithin": false
+  },
+  "version": 3,
+  "kind": "curves",
+  "run": 0,
+  "panel": 0,
+  "curve": 0,
+  "index": 4399,
+  "compressedSHA256": "2359afd3d10045963ba3fbc3a5014ebdafdf9d9a7f11750e1bdf2526d1efdf10",
+  "rawSHA256": "2359afd3d10045963ba3fbc3a5014ebdafdf9d9a7f11750e1bdf2526d1efdf10",
+  "sameInvocationInputs": true,
+  "differences": [
+    {
+      "stage": "standalone positions vs reference",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "reference panel 0 curve 0",
+      "count": 6,
+      "examples": [
+        {
+          "index": 4399,
+          "actual": 68.74704880889482,
+          "expected": 68.74704004932397,
+          "actualBits": "0x40512fcfa5ceae04",
+          "expectedBits": "0x40512fcf81112984"
+        },
+        {
+          "index": 4400,
+          "actual": 68.90053354091208,
+          "expected": 68.90054230048293,
+          "actualBits": "0x405139a2576ecac8",
+          "expectedBits": "0x405139a27c2c4f48"
+        },
+        {
+          "index": 7856,
+          "actual": -58.33989667948458,
+          "expected": -58.33992009911526,
+          "actualBits": "0xc04d2b81bc0133e0",
+          "expectedBits": "0xc04d2b8280767a00"
+        },
+        {
+          "index": 7857,
+          "actual": -58.48805789952394,
+          "expected": -58.48803447989326,
+          "actualBits": "0xc04d3e78ae668140",
+          "expectedBits": "0xc04d3e77e9f13b20"
+        },
+        {
+          "index": 8662,
+          "actual": -99.99998309439206,
+          "expected": -99.99999986831654,
+          "actualBits": "0xc058ffffb917bde0",
+          "expectedBits": "0xc058ffffff729b20"
+        },
+        {
+          "index": 8663,
+          "actual": -100.00001664224101,
+          "expected": -99.99999986831654,
+          "actualBits": "0xc059000045cd7860",
+          "expectedBits": "0xc058ffffff729b20"
+        }
+      ]
+    },
+    {
+      "stage": "reference panel 0 curve 1",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "reference panel 0 curve 2",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "reference panel 0 curve 3",
+      "count": 50,
+      "examples": [
+        {
+          "index": 7857,
+          "actual": -56.66636593637975,
+          "expected": -56.66636594774843,
+          "actualBits": "0xc04c554b7a9ff5b0",
+          "expectedBits": "0xc04c554b7ab85fb0"
+        },
+        {
+          "index": 7858,
+          "actual": -56.81544764527757,
+          "expected": -56.8154476565752,
+          "actualBits": "0xc04c686096a408a0",
+          "expectedBits": "0xc04c686096bc4b90"
+        },
+        {
+          "index": 7859,
+          "actual": -56.96508005470946,
+          "expected": -56.96508006600709,
+          "actualBits": "0xc04c7b87be447fe0",
+          "expectedBits": "0xc04c7b87be5cc2d0"
+        },
+        {
+          "index": 7860,
+          "actual": -57.115261169045084,
+          "expected": -57.11526118034271,
+          "actualBits": "0xc04c8ec0e0c3c610",
+          "expectedBits": "0xc04c8ec0e0dc0900"
+        },
+        {
+          "index": 7861,
+          "actual": -57.26598870531063,
+          "expected": -57.265988716466154,
+          "actualBits": "0xc04ca20beafb3510",
+          "expectedBits": "0xc04ca20beb1329e0"
+        },
+        {
+          "index": 7862,
+          "actual": -57.41726009404147,
+          "expected": -57.41726010519699,
+          "actualBits": "0xc04cb568c75ceac0",
+          "expectedBits": "0xc04cb568c774df90"
+        },
+        {
+          "index": 7863,
+          "actual": -57.56907248084531,
+          "expected": -57.56907249200083,
+          "actualBits": "0xc04cc8d75df72460",
+          "expectedBits": "0xc04cc8d75e0f1930"
+        },
+        {
+          "index": 7864,
+          "actual": -57.72142272775227,
+          "expected": -57.72142273876568,
+          "actualBits": "0xc04cdc57947724c0",
+          "expectedBits": "0xc04cdc57948ecb70"
+        },
+        {
+          "index": 7865,
+          "actual": -57.87430741435173,
+          "expected": -57.87430742529409,
+          "actualBits": "0xc04cefe94e2ba540",
+          "expectedBits": "0xc04cefe94e4324e0"
+        },
+        {
+          "index": 7866,
+          "actual": -58.02772283978186,
+          "expected": -58.02772285065316,
+          "actualBits": "0xc04d038c6c091b90",
+          "expectedBits": "0xc04d038c6c207420"
+        },
+        {
+          "index": 7867,
+          "actual": -58.18166502436384,
+          "expected": -58.18166503516409,
+          "actualBits": "0xc04d1740ccad3c20",
+          "expectedBits": "0xc04d1740ccc46da0"
+        },
+        {
+          "index": 7868,
+          "actual": -58.33612971152036,
+          "expected": -58.33612972224955,
+          "actualBits": "0xc04d2b064c6318d0",
+          "expectedBits": "0xc04d2b064c7a2340"
+        },
+        {
+          "index": 7869,
+          "actual": -58.49111236983617,
+          "expected": -58.491112380494314,
+          "actualBits": "0xc04d3edcc5278dc0",
+          "expectedBits": "0xc04d3edcc53e7120"
+        },
+        {
+          "index": 7870,
+          "actual": -58.64660819497658,
+          "expected": -58.646608205563666,
+          "actualBits": "0xc04d52c40ead6000",
+          "expectedBits": "0xc04d52c40ec41c50"
+        },
+        {
+          "index": 7871,
+          "actual": -58.80261211245852,
+          "expected": -58.8026121229035,
+          "actualBits": "0xc04d66bbfe633100",
+          "expectedBits": "0xc04d66bbfe799f30"
+        },
+        {
+          "index": 7872,
+          "actual": -58.959118779426944,
+          "expected": -58.95911878980087,
+          "actualBits": "0xc04d7ac467774f20",
+          "expectedBits": "0xc04d7ac4678d9640"
+        }
+      ]
+    },
+    {
+      "stage": "reference panel 1 curve 0",
+      "count": 9,
+      "examples": [
+        {
+          "index": 4399,
+          "actual": 1535.0297765337473,
+          "expected": 1534.9421808252828,
+          "actualBits": "0x4097fc1e7dbd5a88",
+          "expectedBits": "0x4097fbc4cb0cde08"
+        },
+        {
+          "index": 4400,
+          "actual": 1534.8473201726165,
+          "expected": 1535.0225115895455,
+          "actualBits": "0x4097fb63a7e63a84",
+          "expectedBits": "0x4097fc170d473384"
+        },
+        {
+          "index": 4401,
+          "actual": 1535.1775658700717,
+          "expected": 1535.0899701616072,
+          "actualBits": "0x4097fcb5d3d3d360",
+          "expectedBits": "0x4097fc5c212356e0"
+        },
+        {
+          "index": 7856,
+          "actual": -1481.4294267750938,
+          "expected": -1481.6636230818858,
+          "actualBits": "0xc09725b7bba70c38",
+          "expectedBits": "0xc09726a78ccf2648"
+        },
+        {
+          "index": 7857,
+          "actual": -1481.6122003935561,
+          "expected": -1481.1438077799721,
+          "actualBits": "0xc0972672e4a8f3b0",
+          "expectedBits": "0xc09724934258bf90"
+        },
+        {
+          "index": 7858,
+          "actual": -1480.3765523652146,
+          "expected": -1480.6107486720066,
+          "actualBits": "0xc097218196f17750",
+          "expectedBits": "0xc097227168199160"
+        },
+        {
+          "index": 8662,
+          "actual": 0.16773782363088685,
+          "expected": -0.0000014210854715202004,
+          "actualBits": "0x3fc5786ed9660000",
+          "expectedBits": "0xbeb7d78400000000"
+        },
+        {
+          "index": 8663,
+          "actual": -0.33547848943271674,
+          "expected": 0,
+          "actualBits": "0xbfd5787ac5280000",
+          "expectedBits": "0x0000000000000000"
+        },
+        {
+          "index": 8664,
+          "actual": 0.16773924471635837,
+          "expected": 0,
+          "actualBits": "0x3fc5787ac5280000",
+          "expectedBits": "0x0000000000000000"
+        }
+      ]
+    },
+    {
+      "stage": "reference panel 1 curve 1",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "reference panel 1 curve 2",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "reference panel 1 curve 3",
+      "count": 1,
+      "examples": [
+        {
+          "index": 7857,
+          "actual": -1485.2928970299217,
+          "expected": -1485.2930100062167,
+          "actualBits": "0xc097352bed32f270",
+          "expectedBits": "0xc097352c0ad0a868"
+        }
+      ]
+    },
+    {
+      "stage": "reference panel 2 curve 0",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "reference panel 2 curve 1",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "plot nominal vs reference",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "velocity 0 vs captured input derivative",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "acceleration 0 vs captured velocity derivative",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "velocity panel 0 vs raw stage",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "acceleration panel 0 vs raw stage",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "velocity 1 vs captured input derivative",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "acceleration 1 vs captured velocity derivative",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "velocity panel 1 vs raw stage",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "acceleration panel 1 vs raw stage",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "velocity 2 vs captured input derivative",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "acceleration 2 vs captured velocity derivative",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "velocity panel 2 vs raw stage",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "acceleration panel 2 vs raw stage",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "velocity 3 vs captured input derivative",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "acceleration 3 vs captured velocity derivative",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "velocity panel 3 vs raw stage",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "stage": "acceleration panel 3 vs raw stage",
+      "count": 0,
+      "examples": []
+    }
+  ],
+  "limitation": "Invariant differences locate inconsistent stored stages; they do not establish the runtime, compiler or hardware root cause."
+}
