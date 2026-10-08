@@ -1,0 +1,301 @@
+{
+  "schema": 1,
+  "node": "v26.10.0",
+  "rawSha256": "2359afd3d10045963ba3fbc3a5014ebdafdf9d9a7f11750e1bdf2526d1efdf10",
+  "compressedSha256": "3fda69c7012dd1729aa178d7eba01ff8866b94a5d0c5ae305a86207ad056350b",
+  "analyzerSha256": "81b4aafd074dc62303674c679bb3e6de14795fb635bacc62674f74c6e0185f89",
+  "coreSha256": "11a961ddccd1617cda79809fe42d3b5edf5a29b7b5005b9214e119e09e054a0b",
+  "sourceSha256": {
+    "filter": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+    "graph": "976fc6717387cdd23f2daffd43a91ae942f71ee6d9defef8e3775596b68544bf"
+  },
+  "controls": [
+    "one",
+    "third",
+    "negative third",
+    "even tie down",
+    "odd tie up",
+    "carry tie",
+    "rounded addition",
+    "cancellation",
+    "rounded multiplication"
+  ],
+  "constants": {
+    "n": 83,
+    "margin": 500,
+    "weight": "0x3df05afa3b52ece5",
+    "pi": "0x400921fb54442d18",
+    "dt": "0x3f1a36e2eb1c432d",
+    "omega2": "0x40e79d21f857df14",
+    "damping": "0x4035fdbbe9bba775"
+  },
+  "comparisons": [
+    {
+      "stage": "saved filtered vs emulated saved nominal",
+      "length": 12266,
+      "actualSha256": "bbf6ad4211bdc967d4427015e42214e98cc5588ac2cd086eeea6b66d95d1e5e2",
+      "expectedSha256": "0cb6f65d8b7167a47ca6c4471875c3a54e8374ec793b1fa1b264df72f2064bd6",
+      "bitDifferences": 3,
+      "examples": [
+        {
+          "index": 4399,
+          "actualBits": "0x403544dd3e8c7eac",
+          "expectedBits": "0x403544dd3e88bb8c",
+          "residual": {
+            "integer": "246560",
+            "binaryExponent": -48,
+            "approximation": 8.759570846450515e-10
+          }
+        },
+        {
+          "index": 7856,
+          "actualBits": "0x40478a1b25f4b5f4",
+          "expectedBits": "0x40478a1b25efae72",
+          "residual": {
+            "integer": "329602",
+            "binaryExponent": -47,
+            "approximation": 2.3419630679200054e-9
+          }
+        },
+        {
+          "index": 8662,
+          "actualBits": "0x4043d9259a2488d3",
+          "expectedBits": "0x4043d9259a20eeab",
+          "residual": {
+            "integer": "236072",
+            "binaryExponent": -47,
+            "approximation": 1.6773924471635837e-9
+          }
+        }
+      ]
+    },
+    {
+      "stage": "saved nominal head vs emulated saved nominal spring",
+      "length": 12266,
+      "actualSha256": "a43dc8991675fc88b3b3f9a49b4806ff936b982da08e4fb1bc44d9095212efba",
+      "expectedSha256": "a43dc8991675fc88b3b3f9a49b4806ff936b982da08e4fb1bc44d9095212efba",
+      "bitDifferences": 0,
+      "examples": []
+    },
+    {
+      "stage": "saved new head vs emulated saved filtered spring",
+      "length": 12266,
+      "actualSha256": "141b510efdb2f20d5a8f0e8f835257a59bc7b46bc160574c99b67814818b0ab7",
+      "expectedSha256": "141b510efdb2f20d5a8f0e8f835257a59bc7b46bc160574c99b67814818b0ab7",
+      "bitDifferences": 0,
+      "examples": []
+    },
+    {
+      "stage": "corrected filtered velocity vs fixed reference",
+      "length": 11266,
+      "actualSha256": "4859a03fdb3b959f89fb7c342cb9ac77580f168cb04939be81479d7f08e98207",
+      "expectedSha256": "4859a03fdb3b959f89fb7c342cb9ac77580f168cb04939be81479d7f08e98207",
+      "bitDifferences": 0,
+      "budgetBits": "0x3e45798ee2308c3a",
+      "aboveOriginalTolerance": 0,
+      "examples": []
+    },
+    {
+      "stage": "corrected filtered acceleration vs fixed reference",
+      "length": 11266,
+      "actualSha256": "e005740b270d20a54daf007c222ccc739454da1cf56aebb689d1367b84631055",
+      "expectedSha256": "e005740b270d20a54daf007c222ccc739454da1cf56aebb689d1367b84631055",
+      "bitDifferences": 0,
+      "budgetBits": "0x3f1a36e2eb1c432d",
+      "aboveOriginalTolerance": 0,
+      "examples": []
+    },
+    {
+      "stage": "corrected head velocity vs fixed reference",
+      "length": 11266,
+      "actualSha256": "0825b16d03e77ea03c49e436252fa42d28cd8f3f0c80dbf47a891438292c0245",
+      "expectedSha256": "0825b16d03e77ea03c49e436252fa42d28cd8f3f0c80dbf47a891438292c0245",
+      "bitDifferences": 0,
+      "budgetBits": "0x3e45798ee2308c3a",
+      "aboveOriginalTolerance": 0,
+      "examples": []
+    },
+    {
+      "stage": "corrected head acceleration vs fixed reference",
+      "length": 11266,
+      "actualSha256": "804da1eb3cd991f1f0d11b4025cce6ffd75a3b76a75c271460137115c602b1b9",
+      "expectedSha256": "804da1eb3cd991f1f0d11b4025cce6ffd75a3b76a75c271460137115c602b1b9",
+      "bitDifferences": 0,
+      "budgetBits": "0x3f1a36e2eb1c432d",
+      "aboveOriginalTolerance": 0,
+      "examples": []
+    },
+    {
+      "stage": "corrected head deviation vs fixed reference",
+      "length": 11266,
+      "actualSha256": "06de8fd6f67ef307868727e3b20b62460b229bc3e85814bba7ae9c9388bea5b7",
+      "expectedSha256": "4e388938d3b965f53092cdd3794fe98f126d5cf3e8b2968026e19ee304ee6be1",
+      "bitDifferences": 919,
+      "budgetBits": "0x3ddb7cdfd9d7bdbb",
+      "aboveOriginalTolerance": 0,
+      "examples": [
+        {
+          "index": 0,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 1,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 2,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 3,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 4,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 5,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 6,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 7,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 8,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 9,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 10,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 11,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 12,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 13,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 14,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        },
+        {
+          "index": 15,
+          "actualBits": "0x8000000000000000",
+          "expectedBits": "0x0000000000000000",
+          "residual": {
+            "integer": "0",
+            "binaryExponent": -1074,
+            "approximation": 0
+          }
+        }
+      ]
+    }
+  ],
+  "scope": "Full saved scalar arrays only, with integer emulation of normal binary64 round-to-nearest ties-to-even operations. Does not import or invoke original simulation/filter, rerun the failed test, prove temporal input integrity, identify runtime/compiler/hardware root cause, cover unrelated failures or close G3."
+}
