@@ -1500,8 +1500,22 @@ probe-grid／source-brake 的 SIGSEGV、类型剥离及 Unicode 表示等失败�
 原总计与新报告一致，不重跑原头求绿。原日志、源码、性能全部样本、
 相同 667 文件产品清单及早期夹具断言错误见
 [编译失败观测验收](../host/contracts/product-compiler-observation-acceptance.json)。
-必要实现已在独立任务分支完成，新精确头 CI 待执行；未计已集成。
+必要实现已形成草稿 PR #56，精确头 `d1007093`，基线仍为
+`1f0e11f1`。主机 `37761732945`、固件 `37761733122` 已启动；
+当前头仍待规定终态，不计已集成。该批路径不匹配现有运动工作流，
+未改筛选或手动重跑无变化矩阵，旧运动终态仅保留原覆盖范围。
 既有客户端专项授权仍待答，不启动场次，G3 保持 unresolved。
+
+对该新失败归档的只读关联分析，将四个 Go PC 分别绑定到对应测试和
+启动前候选摘要：`0x148884f`、`0x167c631`、`0x17d40ed`、
+`0x177626f` 均在相同摘要候选的不可执行 `.gopclntab` 中。
+这比事后未知文件身份多了启动前候选身份，但实际包装器执行路线、
+加载映射、运行中内容变化仍未知，不能推断真实执行了该段或归因硬件。
+native-history 的原生栈另有 V8 `unreachable code`、
+`ScriptCompiler::CompileFunction` 和 `BuiltinLoader::LookupAndCompile`，
+原日志没有该文件的用例结果，不将 SIGTRAP 直接归为 history 业务实现故障。
+原文行号、文件摘要及范围见[新故障关联分析](../host/contracts/toolchain-observed-fault-analysis.json)。
+该纯分析先本地提交，随下一必要实现同步，不改变正在运行的 PR 头。
 
 ## 验证、推进与报告规则
 
