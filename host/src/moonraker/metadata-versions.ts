@@ -22,12 +22,13 @@ export class MetadataVersionWriteError extends Error {
  * so recovery never falls back to a retired selection or reuses a published sequence. */
 export class MetadataVersions {
  #store:PublishedPrintFiles;#current=new Map<string,MetadataVersion>();#sequence=0n;#maxFiles:number;#maxPending:number;
+ #retained:MetadataVersion[]=[];
  #tail:Promise<unknown>=Promise.resolve();#pending=new Set<Promise<unknown>>();#fault:unknown;#closed=false;#closing:Promise<void>|undefined;
  #budget=new PrintSnapshotBudget({maxBytes:65536,maxSnapshots:1});
  private constructor(store:PublishedPrintFiles,maxFiles:number,maxPending:number){this.#store=store;this.#maxFiles=maxFiles;this.#maxPending=maxPending;}
  static async open(directory:string,options:{maxFiles?:number;maxPending?:number}={}):Promise<MetadataVersions>{
   const count=options.maxFiles??1024,pending=options.maxPending??4;if(!Number.isSafeInteger(count)||count<1||count>4096||!Number.isSafeInteger(pending)||pending<1||pending>16)throw new RangeError('Invalid metadata version capacity');
-  const store=await PublishedPrintFiles.open(directory,{maxFileBytes:32768,maxPublishedFiles:count+1,maxOperations:1,maxStorageBytes:256*1024**2}),instance=new MetadataVersions(store,count,pending);
+  const store=await PublishedPrintFiles.open(directory,{maxFileBytes:32768,maxPublishedFiles:count+2,maxOperations:1,maxStorageBytes:256*1024**2}),instance=new MetadataVersions(store,count,pending);
   try{
    const signal=new AbortController().signal,ids=await store.listIds(signal),records:MetadataVersion[]=[];if(ids.length>8192)throw new Error('Metadata version recovery limit exceeded');
    // Validate all retained events before deleting any superseded event.
@@ -37,7 +38,7 @@ export class MetadataVersions {
    return instance;
   }catch(error){await store.close();throw error;}
  }
- get status(){return {closed:this.#closed,faulted:this.#fault!==undefined,pending:this.#pending.size,files:this.#current.size,sequence:this.#sequence.toString(),staging:this.#budget.status};}
+ get status(){return {closed:this.#closed,faulted:this.#fault!==undefined,pending:this.#pending.size,files:this.#current.size,sequence:this.#sequence.toString(),retainedVersions:this.#retained.length,staging:this.#budget.status};}
  #readable():void{if(this.#closed||this.#fault!==undefined)throw new Error('Metadata versions require an open recovered store');}
  current(filename:string):MetadataVersion|undefined{this.#readable();validateMetadataFilename(filename);return this.#current.get(filename);}
  entries():readonly MetadataVersion[]{this.#readable();return Object.freeze([...this.#current.values()]);}
@@ -49,10 +50,14 @@ export class MetadataVersions {
   try{
    stage=await sealedBuffer(Buffer.from(JSON.stringify(candidate)),signal,this.#budget);await this.#store.publish(candidate.id,'metadata-version',stage.file,signal);await stage.close();stage=undefined;
    this.#current.set(filename,candidate);this.#sequence=BigInt(sequence);
-   // Once the new record is durable, finish compaction despite late cancellation.
-   if(previous)await this.#store.remove(previous.id,new AbortController().signal);return candidate;
+   // Keep at most one obsolete event after a pending publication. Every new
+   // head is fully durable before reclamation; selection/invalidation, a second
+   // obsolete event, and close drain the bounded backlog. No idle/background IO.
+   if(previous)this.#retained.push(previous);
+   if(state!=='pending'||this.#retained.length>=2)await this.#compact();return candidate;
   }catch(error){try{await stage?.close();}catch(cleanup){error=new AggregateError([error,cleanup],'Metadata version staging cleanup failed');}this.#fault=error;throw new MetadataVersionWriteError(candidate,error);}
  }
+ async #compact():Promise<void>{if(!this.#retained.length)return;if(this.#retained.some(value=>this.#current.get(value.filename)===value))throw new Error('Cannot reclaim current metadata version');await this.#store.removeMany(this.#retained.map(value=>value.id),new AbortController().signal);this.#retained=[];}
  /** Accept only a newly allocated durable scan intent; callers must never reuse
   * an old scan ID as a new generation. */
  begin(intent:MetadataScanIntent,signal:AbortSignal):Promise<MetadataVersion>{return this.#run(async()=>{const value=metadataScanIntent(intent);if(this.#current.get(value.filename)?.scanId===value.id)throw new Error('Scan generation already current');return this.#write(value.filename,'pending',value.id,signal);});}
@@ -61,5 +66,5 @@ export class MetadataVersions {
  /** Read-only predicate. The lifecycle owner serializes version changes with
   * retirement and must use fresh scan IDs; absence alone is not authorization. */
  canRetire(intent:MetadataScanIntent):boolean{const current=this.current(intent.filename);return current!==undefined&&current.scanId!==intent.id;}
- close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#closing=Promise.allSettled([...this.#pending]).then(()=>this.#store.close());return this.#closing;}
+ close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#closing=(async()=>{await Promise.allSettled([...this.#pending]);const errors:unknown[]=[];try{if(this.#fault===undefined)await this.#compact();}catch(error){this.#fault=error;errors.push(error);}try{await this.#store.close();}catch(error){errors.push(error);}if(errors.length)throw errors.length===1?errors[0]:new AggregateError(errors,'Metadata version close failed');})();return this.#closing;}
 }

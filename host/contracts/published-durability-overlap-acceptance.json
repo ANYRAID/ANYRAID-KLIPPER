@@ -1930,5 +1930,495 @@
       "entries": 12,
       "redactedLogStateTokens": true
     }
+  },
+  "versionRetirementTrial": {
+    "status": "unadopted_rescan_tail_and_original_mixed_failed",
+    "baseCommit": "9ae7fe5bcd5ef2ebb75879973435df9169e929d8",
+    "branch": "devac/receipt-durability-overlap",
+    "product": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-version-retirement-product-bundle",
+      "manifestSha256": "f206d9d215d4fc5050d737cc3886c8d5b9a066e2359171b683a5a4403a4f773a",
+      "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+    },
+    "driver": {
+      "checked": 641,
+      "changed": [
+        "host/src/moonraker/metadata-versions.js",
+        "host/src/storage/published-files.js"
+      ],
+      "mixedDriverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+      "mixedDriverByteIdentical": true
+    },
+    "scope": [
+      "Only two product JS change relative to prior unadopted receipt overlap: published-files and metadata-versions",
+      "Existing immutable version schema, exact sequence high-water, durable head publication and recovery validation remain",
+      "At most one obsolete version remains after a successful pending write; selection/invalidation, a second obsolete version and close drain it; publication capacity increases by one transient record",
+      "Retirement validates all bounded copied member IDs before mutation; preview receipts are excluded",
+      "All retired receipts are unlinked and directory-synced before any last content reference is reclaimed; final content-directory sync precedes success/events",
+      "Partial mutation is not atomic deletion or rollback: failure fences writes and recovery validates every remaining receipt before orphan collection",
+      "No idle/background write, motion algorithm, authorization lifetime, print input, assertion or deadline change"
+    ],
+    "checks": {
+      "fullTypecheck": "passed",
+      "whitespaceAndDiff": "passed_before_commit",
+      "sourceRelated": {
+        "passed": 42,
+        "failed": 0
+      },
+      "compiled": {
+        "initialPassed": 318,
+        "initialFailed": 1,
+        "initialFailure": "Missing copied host/test/helpers/pty.c before importing one test file",
+        "sameSourceAssetSha256": "d0be1baa4217068c6dd1918035739a436cc77f241cdcee045043e60a8575372e",
+        "afterAssetFixOnlyUnstartedFile": {
+          "passed": 1,
+          "failed": 0
+        },
+        "uniquePassedControls": 319,
+        "notClaimingFirstChainPassed": true
+      },
+      "newControls": 15,
+      "ubsanSealedFileSubset": {
+        "passed": 67,
+        "failed": 0
+      },
+      "asanSealedFileSubset": {
+        "passed": 67,
+        "failed": 0,
+        "processWideLeakAccounting": false
+      },
+      "countsOverlapAndAreNotAdditive": true,
+      "actualSigkillControls": 2,
+      "controls": [
+        "Shared references and independent sealed reader survive batch deletion with exact storage accounting",
+        "Either held directory barrier joins late cancellation and close before returning",
+        "Partial second receipt/content unlink failures preserve remaining published heads and require recovery",
+        "EIO/ENOSPC at either directory barrier fence writes without destructive rollback",
+        "Duplicate/oversize/missing/unsafe IDs, preabort, externally changed receipts and previews reject before mutation",
+        "Global retained backlog and cross-file capacity stay bounded; stale selection cannot remove current heads",
+        "Close failure preserves durable pending head and reports failure; existing >Number sequence recovery passes",
+        "SIGKILL before reclamation receipt/content directory barriers retains fully published selected sequence 5; recovered next sequence is 6"
+      ]
+    },
+    "comparison": {
+      "plan": {
+        "schema": 1,
+        "baseline": "/home/dek02/.cache/codex/tmp/anyraid-metadata-invalidation-product-bundle",
+        "prior": "/home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle",
+        "candidate": "/home/dek02/.cache/codex/tmp/anyraid-version-retirement-product-bundle",
+        "identities": {
+          "A": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-invalidation-product-bundle",
+            "manifestSha256": "6f2fd9ea8b1e980bd24556402e1c4cc17854a36c290cbfc79e9b3efe2f7c0d44",
+            "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+          },
+          "B": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle",
+            "manifestSha256": "e6520a2bc7599fbd8e66d4c8e3e415d251a57c42c527a4250f73784efc0fbc90",
+            "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+          },
+          "C": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-version-retirement-product-bundle",
+            "manifestSha256": "f206d9d215d4fc5050d737cc3886c8d5b9a066e2359171b683a5a4403a4f773a",
+            "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+          }
+        },
+        "input": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+        "inputSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+        "order": [
+          "A1",
+          "B1",
+          "C1",
+          "C2",
+          "B2",
+          "A2"
+        ],
+        "modes": [
+          "shared",
+          "cold",
+          "disk",
+          "invalidate",
+          "rescan",
+          "metadata-cold",
+          "cached"
+        ],
+        "warmupPerPhase": 3,
+        "samplesPerPhase": 16,
+        "advisoryDesktopRegressionBudget": {
+          "ratio": 1.2,
+          "absoluteSlackMs": 2
+        },
+        "scriptSha256": {
+          "anyraid-ufp-reuse-storage-perf.mjs": "d5cecd8aba391bb22f8c9969288b94063fdfa8d552a56232256327d26537ce04",
+          "anyraid-disk-ledger-perf-unique.mjs": "c1c6138b93e3a73028b36f55c012a7e96458d524cbf219dc180f135cae808867",
+          "anyraid-metadata-invalidation-perf.mjs": "27494817aa689f8f85b920946ae3e2a28465b95e82bec79edb5edec3b900e3b6"
+        },
+        "scope": "Sequential three-arm desktop comparison. A is original candidate baseline, B retains the previously failed receipt overlap, C adds only bounded version retirement. 32 samples per arm per mode, source/digest/PNG assertions preserved. Report C versus B separately and budget C versus A. Historical failures remain; no target-board, printing or G3 acceptance."
+      },
+      "modes": {
+        "shared": {
+          "a": {
+            "count": 32,
+            "medianMs": 23.866390500000023,
+            "p95Ms": 25.200274999999976
+          },
+          "b": {
+            "count": 32,
+            "medianMs": 23.958555999999987,
+            "p95Ms": 28.098476000000005
+          },
+          "c": {
+            "count": 32,
+            "medianMs": 21.587222499999996,
+            "p95Ms": 26.817207999999994
+          },
+          "budget": {
+            "medianMs": 30.639668600000025,
+            "p95Ms": 32.24032999999997
+          },
+          "cMedianWithinBudget": true,
+          "cP95WithinBudget": true,
+          "cVersusB": {
+            "medianRatio": 0.9010235216179142,
+            "p95Ratio": 0.9544008009544713
+          },
+          "loopP99": {
+            "A": [
+              1.855487,
+              1.680383
+            ],
+            "B": [
+              1.720319,
+              1.881087
+            ],
+            "C": [
+              1.941503,
+              1.805311
+            ]
+          }
+        },
+        "cold": {
+          "a": {
+            "count": 32,
+            "medianMs": 41.5425755,
+            "p95Ms": 46.56669299999999
+          },
+          "b": {
+            "count": 32,
+            "medianMs": 35.62550550000003,
+            "p95Ms": 37.80969700000014
+          },
+          "c": {
+            "count": 32,
+            "medianMs": 36.07382699999994,
+            "p95Ms": 45.0272809999999
+          },
+          "budget": {
+            "medianMs": 51.8510906,
+            "p95Ms": 57.88003159999998
+          },
+          "cMedianWithinBudget": true,
+          "cP95WithinBudget": true,
+          "cVersusB": {
+            "medianRatio": 1.0125842845935171,
+            "p95Ratio": 1.1908924051943535
+          },
+          "loopP99": {
+            "A": [
+              1.812479,
+              1.815551
+            ],
+            "B": [
+              1.896447,
+              1.893375
+            ],
+            "C": [
+              1.938431,
+              1.841151
+            ]
+          }
+        },
+        "disk": {
+          "a": {
+            "count": 32,
+            "medianMs": 118.25991450000004,
+            "p95Ms": 139.2790339999999
+          },
+          "b": {
+            "count": 32,
+            "medianMs": 106.95658150000003,
+            "p95Ms": 122.63243299999976
+          },
+          "c": {
+            "count": 32,
+            "medianMs": 107.23260999999985,
+            "p95Ms": 130.45571599999994
+          },
+          "budget": {
+            "medianMs": 143.91189740000004,
+            "p95Ms": 169.1348407999999
+          },
+          "cMedianWithinBudget": true,
+          "cP95WithinBudget": true,
+          "cVersusB": {
+            "medianRatio": 1.0025807528263215,
+            "p95Ratio": 1.0637945672985236
+          },
+          "loopP99": {
+            "A": [
+              2.004991,
+              1.975295
+            ],
+            "B": [
+              2.246655,
+              2.414591
+            ],
+            "C": [
+              2.055167,
+              2.281471
+            ]
+          }
+        },
+        "invalidate": {
+          "a": {
+            "count": 32,
+            "medianMs": 244.95573200000013,
+            "p95Ms": 283.60832100000016
+          },
+          "b": {
+            "count": 32,
+            "medianMs": 241.71030949999988,
+            "p95Ms": 297.295478
+          },
+          "c": {
+            "count": 32,
+            "medianMs": 222.3006039999999,
+            "p95Ms": 270.159586
+          },
+          "budget": {
+            "medianMs": 295.9468784000001,
+            "p95Ms": 342.3299852000002
+          },
+          "cMedianWithinBudget": true,
+          "cP95WithinBudget": true,
+          "cVersusB": {
+            "medianRatio": 0.9196984789761317,
+            "p95Ratio": 0.908724168350788
+          },
+          "loopP99": {
+            "A": [
+              1.760255,
+              1.787903
+            ],
+            "B": [
+              1.750015,
+              1.818623
+            ],
+            "C": [
+              1.704959,
+              1.787903
+            ]
+          }
+        },
+        "rescan": {
+          "a": {
+            "count": 32,
+            "medianMs": 231.2483185000001,
+            "p95Ms": 269.247613
+          },
+          "b": {
+            "count": 32,
+            "medianMs": 251.52804700000013,
+            "p95Ms": 294.2364340000004
+          },
+          "c": {
+            "count": 32,
+            "medianMs": 222.43502600000033,
+            "p95Ms": 353.668463
+          },
+          "budget": {
+            "medianMs": 279.4979822000001,
+            "p95Ms": 325.0971356
+          },
+          "cMedianWithinBudget": true,
+          "cP95WithinBudget": false,
+          "cVersusB": {
+            "medianRatio": 0.8843348829405104,
+            "p95Ratio": 1.201987320849598
+          },
+          "loopP99": {
+            "A": [
+              1.721343,
+              1.726463
+            ],
+            "B": [
+              1.724415,
+              1.739775
+            ],
+            "C": [
+              2.740223,
+              1.757183
+            ]
+          }
+        },
+        "metadata-cold": {
+          "a": {
+            "count": 32,
+            "medianMs": 161.21207100000015,
+            "p95Ms": 183.567724
+          },
+          "b": {
+            "count": 32,
+            "medianMs": 154.96677499999987,
+            "p95Ms": 178.07143399999995
+          },
+          "c": {
+            "count": 32,
+            "medianMs": 154.4536825,
+            "p95Ms": 166.94624399999998
+          },
+          "budget": {
+            "medianMs": 195.45448520000016,
+            "p95Ms": 222.2812688
+          },
+          "cMedianWithinBudget": true,
+          "cP95WithinBudget": true,
+          "cVersusB": {
+            "medianRatio": 0.9966890160810287,
+            "p95Ratio": 0.9375240051135885
+          },
+          "loopP99": {
+            "A": [
+              1.738751,
+              1.858559
+            ],
+            "B": [
+              1.846271,
+              1.830911
+            ],
+            "C": [
+              1.813503,
+              1.886207
+            ]
+          }
+        },
+        "cached": {
+          "a": {
+            "count": 32,
+            "medianMs": 0.14318700000001172,
+            "p95Ms": 0.23864399999996522
+          },
+          "b": {
+            "count": 32,
+            "medianMs": 0.1493575000000078,
+            "p95Ms": 0.17850299999997787
+          },
+          "c": {
+            "count": 32,
+            "medianMs": 0.1508269999999925,
+            "p95Ms": 0.33832499999999754
+          },
+          "budget": {
+            "medianMs": 2.171824400000014,
+            "p95Ms": 2.2863727999999583
+          },
+          "cMedianWithinBudget": true,
+          "cP95WithinBudget": true,
+          "cVersusB": {
+            "medianRatio": 1.009838809567545,
+            "p95Ratio": 1.895346296701117
+          },
+          "loopP99": {
+            "A": [
+              2.052095,
+              1.302527
+            ],
+            "B": [
+              1.747967,
+              2.030591
+            ],
+            "C": [
+              1.599487,
+              2.054143
+            ]
+          }
+        }
+      },
+      "rawSampleEntry": "anyraid-version-retirement-comparison-summary.json",
+      "failedMode": "rescan",
+      "failedMetric": "P95",
+      "failedObservedMs": 353.668463,
+      "failedBudgetMs": 325.0971356,
+      "rescanTailPhase": "C1 contains all large tail samples; C2 is faster, neither phase discarded",
+      "causalAttribution": "Unproved; no stage/CPU attribution from aggregate latency and loop samples",
+      "historicalReceiptOverlapColdTailFailureRetained": true
+    },
+    "mixed": {
+      "passed": 0,
+      "failed": 1,
+      "totalMs": 20593.056415,
+      "firstFailure": {
+        "generation": 1,
+        "message": "Recursive cleanup must complete during each printing generation\n+ actual - expected\n\n+ 'completed'\n- 'printing'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Recursive cleanup must complete during each printing generation\n+ actual - expected\n\n+ 'completed'\n- 'printing'\n\n    at file:///home/dek02/.cache/codex/tmp/anyraid-version-retirement-compiled-driver/host/acceptance/product-compiled-journey.test.js:1022:40\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+      },
+      "secondaryUnhandledStreamError": "Undici ERR_INVALID_STATE: ReadableStream is already closed",
+      "originalDriverByteIdentical": true,
+      "originalMovements": 1000,
+      "softwareMCUs": 2,
+      "generationsRequired": 2,
+      "outerDeadlineSeconds": 90,
+      "outerDeadlineTriggered": false,
+      "noObserver": true,
+      "completeSecondGenerationAndMetrics": false,
+      "completeStopAcceptance": false,
+      "bundleUnchanged": true,
+      "unchangedHeadNotRetried": true
+    },
+    "decision": {
+      "productionAccepted": false,
+      "advancePR50": false,
+      "mergeDevelopOrRelease": false,
+      "reason": "Lower invalidate/rescan medians are insufficient: rescan P95 exceeds the preset original-baseline desktop budget and original full mixed workload still fails in generation 1. Retain the experiment only for review/further substantive correction."
+    },
+    "evidence": {
+      "path": "host/contracts/published-version-retirement.evidence.json.gz",
+      "bytes": 284346,
+      "sha256": "e05aeb8583bdd643625ebca0549c28d584b667ef9baf213d7c2b0a6df46755bc",
+      "entries": 134,
+      "redactedLogStateTokens": true
+    },
+    "unverified": [
+      "Rescan P95 regression cause",
+      "Complete original mixed workload and motion/stop metrics",
+      "Same-package actual client journeys",
+      "Target-board performance and G3 precision",
+      "Full Moonraker and Python retirement"
+    ]
+  },
+  "developPostMergePR51": {
+    "verifiedAtUtc": "2026-10-08 02:20 UTC",
+    "commit": "2911bd447ccca1999765b16ae797a25c90d38415",
+    "pr": 51,
+    "selfReviewed": true,
+    "merged": true,
+    "host": {
+      "run": 37714673849,
+      "job": 113108329297,
+      "status": "completed",
+      "conclusion": "success",
+      "ordinary": "success",
+      "protocol": "success",
+      "sanitizers": "success",
+      "linuxMcu": "success"
+    },
+    "firmware": {
+      "run": 37714673535,
+      "job": 113108327945,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "source": "GitHub workflow job metadata, exact run IDs",
+    "scope": "PR 51 diagnostics on develop only; not CI or acceptance of the unadopted version-retirement experiment. Does not close historical AHT root cause, mixed-printing performance, G3, target board, full client or Python retirement."
   }
 }

@@ -713,6 +713,34 @@ export class PublishedPrintFiles {
   try{const stat=await source.stat();if(!stat.isFile()||stat.size!==record.size)throw new Error('Published content does not match receipt size');snapshot=await createSealedBinaryReader(source,record.sha256,signal,{maxBytes:this.#maxBytes,budget});await source.close();return {record,...snapshot};}
   catch(error){try{await source.close();}finally{await snapshot?.reader.close();}throw error;}
  },false,signal);}
+ /** Bounded retirement of unpreviewed records. This is not an atomic delete:
+  * an error after the first unlink faults the store and requires recovery.
+  * All receipts are validated before mutation; their absence is durably synced
+  * before any last content reference is unlinked. No work escapes the call. */
+ removeMany(ids:readonly string[],signal:AbortSignal):Promise<readonly PublishedPrintFile[]>{
+  if(!Array.isArray(ids)||ids.length<1||ids.length>16||new Set(ids).size!==ids.length)return Promise.reject(new Error('Invalid published retirement batch'));const batch=[...ids];
+  return this.#run(async()=>{
+  signal.throwIfAborted();
+  if(this.#writeFault)throw new Error('Published writes require recovery',{cause:this.#writeFault});
+  const entries:{id:string;stored:StoredReceipt;record:PublishedPrintFile}[]=[],released=new Map<string,{count:number;size:number}>();
+  for(const id of batch){this.#id(id);const stored=this.#records.get(id);if(!stored)throw Object.assign(new Error('Published identifier does not exist'),{code:'ENOENT'});const record=await this.#record(id),receipt=await lstat(this.#path(id+'.json'));
+   if(!samePublishedFile(record,stored.record)||!receipt.isFile()||receipt.size!==stored.receiptBytes)throw new Error('Published receipt changed outside store');
+   if(record.preview)throw new Error('Published retirement batch does not accept previews');const references=this.#references.get(record.sha256),prior=released.get(record.sha256);if(!references||(prior?.count??0)>=references||prior&&prior.size!==record.size)throw new Error('Published content reference invariant failed');
+   released.set(record.sha256,{count:(prior?.count??0)+1,size:record.size});entries.push({id,stored,record});
+  }
+  signal.throwIfAborted();let started=false;
+  try{
+   // An uncertain unlink may have taken effect even when its promise rejects.
+   // Once mutation is attempted, cancellation cannot skip the durable drain.
+   started=true;for(const {id} of entries)await unlink(this.#path(id+'.json'));
+   await this.#root.sync();
+   for(const {id,stored,record} of entries){this.#records.delete(id);this.#paths.delete(visibleFilePath(record));this.#storedBytes-=stored.receiptBytes;}
+   let collected=false;
+   for(const [sha256,value] of released){const remaining=this.#references.get(sha256)!-value.count;if(remaining)this.#references.set(sha256,remaining);else{this.#references.delete(sha256);await unlink(this.#path(sha256+'.gcode'));this.#storedBytes-=value.size;collected=true;}}
+   if(collected)await this.#root.sync();
+   for(const {record} of entries)this.#changed('delete_file',record,0);return Object.freeze(entries.map(entry=>entry.record));
+  }catch(error){if(started)this.#writeFault=error;throw error;}
+ },true,signal);}
  /** Remove the receipt durably before reclaiming its last content reference.
   * Readers already returned own sealed snapshots independent of this store. */
  remove(id:string,signal:AbortSignal,expected?:PublishedPrintFile):Promise<PublishedPrintFile>{return this.#run(async()=>{

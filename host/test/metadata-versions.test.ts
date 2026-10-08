@@ -29,9 +29,9 @@ test('file and queue bounds plus preabort do not destroy valid version state',as
 });
 test('failed compaction retains the new durable head and recovery cleans obsolete events',async()=>{
  const f=await fixture(),probe=await open('/dev/null','r'),prototype=Object.getPrototypeOf(probe),original=prototype.sync;await probe.close();let calls=0;try{
-  const a=await f.intents.begin('part.gcode',signal),first=await f.versions.begin(a,signal),b=await f.intents.begin('part.gcode',signal);let candidate:import('../src/moonraker/metadata-versions.ts').MetadataVersion|undefined;
+  await f.versions.invalidate('part.gcode',signal);const a=await f.intents.begin('part.gcode',signal),first=await f.versions.begin(a,signal),b=await f.intents.begin('part.gcode',signal);let candidate:import('../src/moonraker/metadata-versions.ts').MetadataVersion|undefined;
   // New event publication uses four sync calls; fifth sync follows removal of
-  // the old receipt. No destructive rollback of the new head is permitted.
+  // the two obsolete receipts. No destructive rollback of the new head is permitted.
   prototype.sync=function(...args:unknown[]){if(++calls===5)return Promise.reject(new Error('injected compaction sync failure'));return Reflect.apply(original,this,args);};
   try{await assert.rejects(f.versions.begin(b,signal),(error:any)=>{assert.ok(error instanceof MetadataVersionWriteError);candidate=error.candidate;return true;});}finally{prototype.sync=original;}
   assert.equal(f.versions.status.faulted,true);assert.throws(()=>f.versions.current('part.gcode'),/recovered/);await f.versions.close();const recovered=await MetadataVersions.open(join(f.dir,'versions'));try{assert.deepEqual(recovered.current('part.gcode'),candidate);assert.notEqual(recovered.current('part.gcode')?.id,first.id);assert.equal((await readdir(join(f.dir,'versions'))).filter(name=>name.endsWith('.json')).length,1);}finally{await recovered.close();}
