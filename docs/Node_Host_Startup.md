@@ -1575,6 +1575,14 @@ MCU 模拟器在父进程，子进程不导入源码测试夹具。编译包请�
 目标板和 G3 门槛独立保留，结果见
 [原子版本头审查](../host/contracts/native-metadata-atomic-heads-acceptance.json)。
 
+在启动时钟准入与 sharp 0.35.5 基线上的内容准备候选，让模型最终同步
+和预览准备并行；两支全部排空后才处理失败或继续原目录／回执屏障。
+五次耐久同步、摘要、源身份、配额及关闭等待均保留，没有安装或迁移
+选项变化。同一封存包的原完整混合软件负载和七路原性能预算已通过；
+失效重建与冷元数据等尾延迟上涨保留。原失败仍封存，当前头集成 CI、
+实际客户端、目标板及 G3 未完成，不能据此切换默认打印入口，见
+[内容准备组合验收](../host/contracts/content-paired-composition-acceptance.json)。
+
 ## 独立依赖安装验收
 
 运行 `npm --prefix host run test:product-install`：每个编译运行场景在新的

@@ -35,9 +35,10 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 面向用户的未发布变化见 [版本变化](CHANGELOG.md)。
 
 元数据原子版本头候选减少耐久写入成本，同一独立包的磁盘、大图和
-重扫完整混合软件验证已通过；冷内容尾延迟、当前头 CI、实际客户端
-和目标板门槛仍待收口，见
-[原子版本头审查](host/contracts/native-metadata-atomic-heads-acceptance.json)。
+重扫完整混合软件验证已通过。新内容准备组合通过七路原性能预算和
+原完整混合负载；当前头 CI、实际客户端和目标板门槛仍待收口，见
+[原子版本头审查](host/contracts/native-metadata-atomic-heads-acceptance.json)与
+[内容准备组合验收](host/contracts/content-paired-composition-acceptance.json)。
 协议升级和降级副本要求见启动说明，候选尚未正常集成或发布。
 
 交付按同包软件闭环、Cycnumbris 500 受控试验、完整退役与发布三个

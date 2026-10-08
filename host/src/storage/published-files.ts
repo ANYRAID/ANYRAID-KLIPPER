@@ -674,10 +674,22 @@ export class PublishedPrintFiles {
    }
    const after=await source.stat({bigint:true});signal.throwIfAborted();if(before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs)throw new Error('Published source changed during copy');
    const model={sha256:hash.digest('hex'),size:position};
-   const reused=await this.#verifyBlob(model,'gcode',signal,true);await file.chmod(0o400);if(!reused)await file.sync();await file.close();file=undefined;signal.throwIfAborted();
-   // Link is atomic and never replaces content already published under its digest.
-   if(!reused)try{await link(temp,this.#path(model.sha256+'.gcode'));this.#storedBytes+=position;this.#reservedBytes-=position;reserved-=position;}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyBlob(model,'gcode',signal);}
-   const preview=previewSource?(await this.#publishPreview(previewSource,previewBefore!,signal,bytes=>{this.#storedBytes+=bytes;this.#reservedBytes-=bytes;reserved-=bytes;})).preview:undefined;
+   // Independent content preparation may overlap, but neither branch publishes
+   // a receipt. Drain BOTH branches before any cleanup, failure or close.
+   const prepared=await Promise.allSettled([
+    (async()=>{
+     const reused=await this.#verifyBlob(model,'gcode',signal,true);await file!.chmod(0o400);if(!reused)await file!.sync();await file!.close();file=undefined;signal.throwIfAborted();
+     // Link is atomic and never replaces content already published under its digest.
+     if(!reused)try{await link(temp,this.#path(model.sha256+'.gcode'));this.#storedBytes+=position;this.#reservedBytes-=position;reserved-=position;}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyBlob(model,'gcode',signal);}
+    })(),
+    previewSource?this.#publishPreview(previewSource,previewBefore!,signal,bytes=>{this.#storedBytes+=bytes;this.#reservedBytes-=bytes;reserved-=bytes;}):Promise.resolve(undefined),
+   ]);
+   const failures=prepared.filter(result=>result.status==='rejected').map(result=>result.reason);
+   // Both branches may observe the same cancellation reason. Keep its identity
+   // instead of wrapping one failure twice; distinct failures remain aggregated.
+   if(failures.length===2&&Object.is(failures[0],failures[1]))throw failures[0];
+   if(failures.length)throw failures.length===1?failures[0]:new AggregateError(failures,'Published content preparation failed');
+   const preview=prepared[1].status==='fulfilled'?prepared[1].value?.preview:undefined;
    const record:PublishedPrintFile=Object.freeze({version:1,id,name,...model,...path===undefined?{}:{path:visible},...preview?{preview}:{}});if(Buffer.byteLength(JSON.stringify(record))>2048)throw new Error('Published receipt exceeds limit');
    await this.#root.sync();signal.throwIfAborted();
    receipt=await open(receiptTemp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await receipt.writeFile(JSON.stringify(record));await receipt.chmod(0o400);await receipt.sync();const modified=(await receipt.stat()).mtimeMs/1000;await receipt.close();receipt=undefined;signal.throwIfAborted();
