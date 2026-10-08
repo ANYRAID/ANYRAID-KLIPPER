@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "candidate": "75a2daa6",
+  "develop": "6c2b86edf50ddc03a02d6e1e9bf8ea62e5f674bb",
+  "normalMerge": true,
+  "conflicts": [
+    "docs/Node_Host_Delivery_Plan.md; both histories retained"
+  ],
+  "checks": {
+    "node": "26.10.0",
+    "controls": {
+      "pass": 4,
+      "fail": 0,
+      "durationMs": 757.627314
+    },
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "productionSourceNativeAndDependenciesVsCandidate": "identical; existing sealed product/performance/mixed evidence reused; no additional samples"
+  },
+  "coverage": {
+    "legacy": 314,
+    "total": 324,
+    "testsPerMode": 153,
+    "buildsPerMode": 9,
+    "timeoutMs": 60000,
+    "legacyReferenceUnchanged": true,
+    "explicitSourceBoundExtension": "native-sanitizer-ufp-coverage-extension.json"
+  },
+  "evidence": {
+    "path": "content-paired-integration-preparation.evidence.json.gz",
+    "sha256": "2395addd2fb189d79aac21dd9c090104aa972f83ad94a3bdb4cc92ae3a2da65b",
+    "bytes": 7687,
+    "entries": 7
+  },
+  "scope": "Local integration preparation only; current PR head own and develop merge-result CI remain separate."
+}

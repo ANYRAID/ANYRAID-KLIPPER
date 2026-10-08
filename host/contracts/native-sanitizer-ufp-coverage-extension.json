@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "scope": "Explicit additive UFP coverage from original PR50 source; original successful serial coverage remains immutable. Not generated from candidate --list.",
+  "sourceCommit": "38ad39539282940bb33b25686852a8373d3d6499",
+  "sourceFile": "host/scripts/test-native-sanitized.ts",
+  "sourceSha256": "caafcbed83e3b8741ae3010ed28c6291817c586b05180df541b23cc1688a542f",
+  "legacyReference": "native-sanitizer-command-reference.json",
+  "legacyReferenceSha256": "5f9128cdc29cb4a0232a23c05907dae63eac4e3fd2a942bfaa596d110415a43d",
+  "insertions": [
+    {
+      "before": "scripts/build-can-query.ts",
+      "commands": [
+        [
+          "scripts/build-file-events.ts",
+          "$flag"
+        ]
+      ]
+    },
+    {
+      "before": "test/print-clock.test.ts",
+      "commands": [
+        [
+          "scripts/build-file-write-lease.ts",
+          "$flag"
+        ]
+      ]
+    },
+    {
+      "before": "test/native-file-start-accounting.test.ts",
+      "commands": [
+        [
+          "--test",
+          "--test-reporter=tap",
+          "test/file-events.test.ts"
+        ],
+        [
+          "--test",
+          "--test-reporter=tap",
+          "test/file-write-lease.test.ts"
+        ],
+        [
+          "--test",
+          "--test-reporter=tap",
+          "test/native-ufp-disk-imports.test.ts"
+        ]
+      ]
+    }
+  ],
+  "expected": {
+    "legacyCommands": 314,
+    "totalCommands": 324,
+    "testsPerMode": 153,
+    "buildsPerMode": 9,
+    "timeoutMs": 60000
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "0e433f9a8370ab3afaa397f450157de097fd6ac0",
+  "hostRun": 37740001936,
+  "hostJobs": [
+    {
+      "id": 113188273249,
+      "name": "checks",
+      "conclusion": "success"
+    },
+    {
+      "id": 113188273547,
+      "name": "sanitizer (asan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113188273549,
+      "name": "sanitizer (ubsan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113192258208,
+      "name": "host",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "pass": 4226,
+    "fail": 0
+  },
+  "sanitizer": {
+    "commands": 314,
+    "exactOriginalCommandMatch": true,
+    "allExitZero": true
+  },
+  "firmware": {
+    "run": 37740001952,
+    "job": 113188273289,
+    "conclusion": "success"
+  },
+  "timing": {
+    "windows": {
+      "113188273249": {
+        "first": "2026-10-08T06:52:03.5193703Z",
+        "last": "2026-10-08T07:04:30.6695061Z"
+      },
+      "113188273547": {
+        "first": "2026-10-08T06:52:03.6882642Z",
+        "last": "2026-10-08T07:04:51.6040804Z"
+      },
+      "113188273549": {
+        "first": "2026-10-08T06:52:03.6184929Z",
+        "last": "2026-10-08T07:03:27.3027600Z"
+      },
+      "113192258208": {
+        "first": "2026-10-08T07:04:57.8359464Z",
+        "last": "2026-10-08T07:04:58.1469753Z"
+      }
+    },
+    "combinedLogWindowMs": 774627,
+    "scope": "Single CI log window, excludes initial queue; no paired speedup or runtime performance inference."
+  },
+  "evidence": {
+    "path": "native-sanitizer-combined-terminal.evidence.json.gz",
+    "sha256": "0aec095ee9381cae12b7d8b2c4b1d67ec67b7e11d283239edceeb5a5ca3b13c3",
+    "bytes": 571441,
+    "entries": 7
+  },
+  "scope": "Current PR52 combined head own terminal; merge-result CI still separate."
+}

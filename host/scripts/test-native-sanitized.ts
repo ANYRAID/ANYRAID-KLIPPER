@@ -2,16 +2,22 @@ import {spawnSync} from 'node:child_process';
 import {existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 const host=fileURLToPath(new URL('..',import.meta.url));
+const input=process.argv.slice(2),listing=input[0]==='--list';
+if(listing)input.shift();
+if(input.length>1||input.length===1&&!['--mode=ubsan','--mode=asan'].includes(input[0]))throw new Error('Usage: test-native-sanitized.ts [--list] [--mode=ubsan|--mode=asan]');
+const modes=input.length?[input[0]==='--mode=asan']:[false,true];
+const commands:string[][]=[];
 function run(args:string[],env:NodeJS.ProcessEnv=process.env):void {
+  if(listing){commands.push(args);return;}
   const started=performance.now();
   const result=spawnSync(process.execPath,args,{cwd:host,stdio:'inherit',timeout:60000,env});
   console.log(JSON.stringify({sanitizedCommand:args,elapsedMs:performance.now()-started,status:result.status,signal:result.signal}));
   if(result.status!==0)throw new Error(`Sanitized check failed: ${result.error??result.status}; signal=${result.signal??'none'}; command=${JSON.stringify(args)}`);
 }
-const lookup=spawnSync(process.env.CC??'cc',['-print-file-name=libasan.so'],{encoding:'utf8'});
-const runtime=lookup.stdout.trim();
-if(lookup.status!==0||!existsSync(runtime))throw new Error('Compiler AddressSanitizer runtime was not found');
-for(const address of [false,true]) {
+const lookup=listing?undefined:spawnSync(process.env.CC??'cc',['-print-file-name=libasan.so'],{encoding:'utf8'});
+const runtime=lookup?.stdout.trim()??'';
+if(!listing&&(lookup?.status!==0||!existsSync(runtime)))throw new Error('Compiler AddressSanitizer runtime was not found');
+for(const address of modes) {
   const flag=address?'--address':'--sanitize',suffix=address?'asan':'ubsan';
   run(['scripts/build-native.ts',flag]);run(['scripts/build-stepcompress.ts',flag]);run(['scripts/build-serialqueue.ts',flag]);run(['scripts/build-unix-peer.ts',flag]);run(['scripts/build-sealed-file.ts',flag]);run(['scripts/build-file-events.ts',flag]);run(['scripts/build-can-query.ts',flag]);run(['scripts/build-ar100-flash.ts','--testing',flag]);
   const env:NodeJS.ProcessEnv={...process.env,
@@ -60,3 +66,4 @@ for(const address of [false,true]) {
   if(new Set(tests).size!==tests.length)throw new Error('Duplicate sanitized test file');
   for(const file of tests)run(['--test','--test-reporter=tap',file],env);
 }
+if(listing)console.log(JSON.stringify({modes:modes.map(address=>address?'asan':'ubsan'),timeoutMs:60000,commands}));

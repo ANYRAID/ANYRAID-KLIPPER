@@ -4,7 +4,7 @@ on:
     branches: [develop, master]
   pull_request:
 jobs:
-  host:
+  checks:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -30,7 +30,6 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run test:protocol-native
-      - run: npm run test:native-sanitized
       - name: Build Linux MCU with Node command generator
         working-directory: .
         run: |
@@ -38,3 +37,41 @@ jobs:
           cp test/configs/linuxprocess.config "$build_dir/config"
           make KCONFIG_CONFIG="$build_dir/config" OUT="$build_dir/out/" olddefconfig
           make KCONFIG_CONFIG="$build_dir/config" OUT="$build_dir/out/" all
+  sanitizers:
+    name: sanitizer (${{ matrix.mode }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [ubsan, asan]
+    defaults:
+      run:
+        working-directory: host
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: host/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts
+      - name: Build ordinary native prerequisites
+        run: npm run build:native
+      - run: npm run test:native-sanitized -- --mode=${{ matrix.mode }}
+  host:
+    if: ${{ always() }}
+    needs: [checks, sanitizers]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every host check and sanitizer mode
+        env:
+          CHECKS_RESULT: ${{ needs.checks.result }}
+          SANITIZERS_RESULT: ${{ needs.sanitizers.result }}
+        run: |
+          test "$CHECKS_RESULT" = success
+          test "$SANITIZERS_RESULT" = success
