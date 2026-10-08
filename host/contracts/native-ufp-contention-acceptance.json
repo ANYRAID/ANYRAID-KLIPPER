@@ -1,0 +1,207 @@
+{
+  "schema": 1,
+  "status": "unintegrated candidate; complete mixed printing still failed",
+  "baselineCommit": "592a975d37bad022dac2e2f48d694eba7fc36fb2",
+  "baselinePR": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/50",
+  "candidateBranch": "devac/ufp-mixed-contention",
+  "scope": {
+    "onlyChangedProductionJs": "host/src/storage/published-files.js",
+    "motionMathChanged": false,
+    "defaultEnabled": false,
+    "pythonRetiredInThisIncrement": 0
+  },
+  "product": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-reuse-product-bundle",
+    "manifestSha256": "ba5310438e16df1a904cebaaa687a25043324da5c90e48f45f5012c8bb55a911",
+    "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e",
+    "productionJsComparedWithDriver": 641,
+    "productionJsChangedAgainstBaseline": 1,
+    "independentProductionDependencies": 16,
+    "installMs": 858.807548,
+    "mixedDriverByteIdentical": true,
+    "mixedDriverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab"
+  },
+  "invariants": [
+    "Existing content is fully verified and its inode synced before reusing it for a new receipt",
+    "Only ENOENT at opening an existing blob permits a cold publication; read or sync ENOENT still fails",
+    "New content, receipt and directory syncs retained; disk claim ledger and fresh authorization unchanged",
+    "Model/preview sync failure or cancellation refuses new authority, retains old references and clears temporary reservations",
+    "Stored bytes, quotas, source ownership, event and recovery protocols retained"
+  ],
+  "checks": {
+    "typecheck": "passed",
+    "initialSourceStorage": {
+      "passed": 97,
+      "failed": 1,
+      "cause": "Sandbox spawnSync EPERM, reproduced by independent simple child probe; status was misleadingly zero with empty stdout"
+    },
+    "permittedChildOwnership": {
+      "passed": 1,
+      "failed": 0
+    },
+    "compiledRegression": {
+      "passed": 218,
+      "failed": 0
+    },
+    "laterReplacementFailureControls": {
+      "added": 3,
+      "includedInBothSanitizerPreviewRuns": true
+    },
+    "ubsanPreview": {
+      "passed": 32,
+      "failed": 0
+    },
+    "asanPreview": {
+      "passed": 32,
+      "failed": 0,
+      "processWideLeakAccounting": false
+    },
+    "faultCases": [
+      "EIO",
+      "ENOSPC",
+      "ENOENT"
+    ],
+    "overlappingCountsNotAdditive": true,
+    "firstBuildFailure": "Sandbox spawnSync EPERM; new private build completed after permitted execution",
+    "firstDriverCompileFailure": "External tsconfig lacked Node typeRoots; corrected before any product test"
+  },
+  "observation": {
+    "firstSetupFailure": "Missing host path layer; preloader failed before product opened; preserved",
+    "instrumentedBaseline": {
+      "passed": 0,
+      "failed": 1,
+      "firstFailure": "Recursive cleanup must complete during each printing generation: completed vs printing",
+      "fsyncWithinPublication": {
+        "count": 594,
+        "overlappingTotalMs": 3932.247275000016
+      },
+      "imagesPrepareUfpPng": {
+        "count": 24,
+        "overlappingTotalMs": 211.1191979999976
+      },
+      "notAnAdditiveOrUniqueRootCause": true,
+      "boundedSpansPerFlush": 1024,
+      "flushIntervalMs": 1000,
+      "lastCapturedTimeMs": 19054.980024,
+      "onlyCompletedSpansInLastPeriodicFlush": true,
+      "finalInFlightMetricsUnavailableAfterKill": true
+    }
+  },
+  "performance": {
+    "sequence": [
+      "A1",
+      "B1",
+      "B2",
+      "A2"
+    ],
+    "warmupPerPhase": 3,
+    "samplesPerPhase": 16,
+    "inputDigestsAndColdVariantsEqualAcrossArms": true,
+    "advisoryDesktopBound": {
+      "ratio": 1.2,
+      "additiveMs": 2
+    },
+    "results": {
+      "disk": {
+        "samplesPerArm": 32,
+        "baseline": {
+          "medianMs": 124.87017600000001,
+          "p95Ms": 158.7027529999998,
+          "loopP99Ms": [
+            1.991679,
+            2.072575
+          ]
+        },
+        "candidate": {
+          "medianMs": 117.27033799999992,
+          "p95Ms": 125.71735699999999,
+          "loopP99Ms": [
+            2.025471,
+            2.252799
+          ]
+        },
+        "medianRatio": 0.9391380853022896,
+        "medianAdvisoryPassed": true,
+        "p95AdvisoryPassed": true
+      },
+      "shared": {
+        "samplesPerArm": 32,
+        "baseline": {
+          "medianMs": 41.77133550000002,
+          "p95Ms": 50.23154899999997,
+          "loopP99Ms": [
+            1.991679,
+            1.830911
+          ]
+        },
+        "candidate": {
+          "medianMs": 25.368398000000013,
+          "p95Ms": 27.484105999999997,
+          "loopP99Ms": [
+            1.895423,
+            1.778687
+          ]
+        },
+        "medianRatio": 0.6073159427713294,
+        "medianAdvisoryPassed": true,
+        "p95AdvisoryPassed": true
+      },
+      "cold": {
+        "samplesPerArm": 32,
+        "baseline": {
+          "medianMs": 36.90529700000013,
+          "p95Ms": 44.62253700000008,
+          "loopP99Ms": [
+            1.883135,
+            1.853439
+          ]
+        },
+        "candidate": {
+          "medianMs": 36.22198350000008,
+          "p95Ms": 39.672983000000045,
+          "loopP99Ms": [
+            1.795071,
+            1.898495
+          ]
+        },
+        "medianRatio": 0.9814846768473358,
+        "medianAdvisoryPassed": true,
+        "p95AdvisoryPassed": true
+      }
+    },
+    "rawSamples": "logs/anyraid-ufp-reuse-abba-summary.json",
+    "notTargetBoardOrPrintingAcceptance": true
+  },
+  "mixedPrinting": {
+    "passed": 0,
+    "failed": 1,
+    "durationMs": 20576.864064,
+    "firstFailure": "Recursive cleanup must complete during each printing generation: actual completed, expected printing",
+    "firstGenerationOnly": true,
+    "secondaryFailure": "Undici ERR_INVALID_STATE ReadableStream already closed after workload cancellation",
+    "originalMovements": 1000,
+    "plannedDeviceGenerations": 2,
+    "childDeadlineMs": 90000,
+    "caseDeadlineMs": 180000,
+    "diskImportsPerGeneration": 8,
+    "originalLoadPrecisionAndStopAssertionsRetained": true,
+    "nonRegression": "not accepted",
+    "logs": "logs/anyraid-ufp-reuse-mixed.log"
+  },
+  "next": "Distinguish metadata lifecycle queue wait from actual durable preparation/retirement costs, then improve implementation and validate a changed candidate; do not repeat unchanged failed heads seeking green",
+  "open": [
+    "Own exact-head CI and normal PR to develop integration",
+    "Full fixed-bundle Fluidd and Mainsail acceptance; r3 restart authorization still pending",
+    "Consumer disk quarantine/retry and full Moonraker differences",
+    "Cycnumbris 500 target performance, filesystem leases and motion accuracy",
+    "G3 BigInt ULP mismatch 220614 at index4897",
+    "177 klippy Python files, complete Python retirement and mainline release"
+  ],
+  "evidence": {
+    "path": "host/contracts/native-ufp-contention-acceptance.evidence.json.gz",
+    "bytes": 292251,
+    "sha256": "e06ab2450eca4301358da912b6af0745d7ff757f4b986ec86b92422e96bb11fb",
+    "entries": 62,
+    "reader": "Node gunzipSync then JSON.parse; each UTF-8 entry carries bytes and SHA-256"
+  }
+}

@@ -33,6 +33,8 @@ export interface ProductHostProfile {
 }
 export interface HostReloadContext {readonly reason:'initial'|HostReloadKind;}
 export interface ProductHostFactory {
+ /** Process inbox diagnostics; no mutation or filesystem capability. */
+ readonly diskImportStatus?:import('../moonraker/native-ufp-disk-imports.ts').NativeUfpDiskImports['status'];
  (signal:AbortSignal,context?:HostReloadContext):Promise<ProductHostProfile>;
  /** Explicit process dependency ownership. Must also provide final cleanup. */
  readonly serverLifetime?:'process';

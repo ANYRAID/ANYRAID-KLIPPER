@@ -10,7 +10,7 @@ import {PublishedPrintFiles} from '../src/storage/published-files.ts';
 const signal=()=>new AbortController().signal;
 async function fixture(options:Parameters<typeof PublishedPrintFiles.open>[1]={}){const directory=await mkdtemp(join(tmpdir(),'published-recovery-')),root=join(directory,'store'),sourcePath=join(directory,'source');await writeFile(sourcePath,'G1 X1\n');const source=await open(sourcePath,'r'),store=await PublishedPrintFiles.open(root,options);return {directory,root,source,store,async close(){await store.close();await source.close();await rm(directory,{recursive:true,force:true});}};}
 test('directory ownership lock excludes second instance and separate process until close',async()=>{
- const f=await fixture();const script=`import {PublishedPrintFiles} from ${JSON.stringify(new URL('../src/storage/published-files.ts',import.meta.url).href)};try{const s=await PublishedPrintFiles.open(process.argv[1]);await s.close();process.stdout.write('opened');}catch(e){if(!String(e).includes('Lock published file directory'))throw e;process.stdout.write('locked');}`;
+ const f=await fixture();const script=`import {PublishedPrintFiles} from ${JSON.stringify(new URL('../src/storage/published-files.'+(import.meta.url.endsWith('.ts')?'ts':'js'),import.meta.url).href)};try{const s=await PublishedPrintFiles.open(process.argv[1]);await s.close();process.stdout.write('opened');}catch(e){if(!String(e).includes('Lock published file directory'))throw e;process.stdout.write('locked');}`;
  try{await assert.rejects(PublishedPrintFiles.open(f.root),/Lock published file directory/);const locked=spawnSync(process.execPath,['--input-type=module','-e',script,f.root],{encoding:'utf8',timeout:10000});assert.equal(locked.status,0,locked.stderr);assert.equal(locked.stdout,'locked');await f.store.close();const free=spawnSync(process.execPath,['--input-type=module','-e',script,f.root],{encoding:'utf8',timeout:10000});assert.equal(free.status,0,free.stderr);assert.equal(free.stdout,'opened');}finally{await f.close();}
 });
 test('startup validates references then removes only known temporary and orphan content',async()=>{
@@ -40,7 +40,7 @@ test('killed uploader releases directory lock and recovery preserves committed f
   const path=join(f.directory,'large');await writeFile(path,'G1 X1\n'.repeat(20000));
   const script=`
    import {open} from 'node:fs/promises';
-   import {PublishedPrintFiles} from ${JSON.stringify(new URL('../src/storage/published-files.ts',import.meta.url).href)};
+   import {PublishedPrintFiles} from ${JSON.stringify(new URL('../src/storage/published-files.'+(import.meta.url.endsWith('.ts')?'ts':'js'),import.meta.url).href)};
    process.on('message',()=>{});
    const store=await PublishedPrintFiles.open(process.argv[1]);
    const file=await open(process.argv[2],'r');

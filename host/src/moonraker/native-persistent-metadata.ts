@@ -81,23 +81,36 @@ export class NativePersistentMetadata {
  }
  #room(){while(this.#keys.size&&(this.#keys.size>=128||this.#cache.status.bytes>this.#cache.status.maxBytes-this.#cache.status.maxRecordBytes-256)){this.#drop(this.#keys.keys().next().value!);}}
  metadata(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
-  try{nativeFilename(filename);}catch(error){return Promise.reject(error);}
-  const combined=AbortSignal.any([signal,this.#stop.signal]);return this.#admit(()=>this.#get(filename,combined));
+  return this.#request(filename,signal,false);
  }
- async #get(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
+ rescan(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
+  return this.#request(filename,signal,true);
+ }
+ #request(filename:string,signal:AbortSignal,force:boolean):Promise<Record<string,Json>>{
+  try{nativeFilename(filename);}catch(error){return Promise.reject(error);}
+  const combined=AbortSignal.any([signal,this.#stop.signal]);return this.#admit(()=>this.#get(filename,combined,force));
+ }
+ async #get(filename:string,signal:AbortSignal,force:boolean):Promise<Record<string,Json>>{
   signal.throwIfAborted();let id:string,initial:Awaited<ReturnType<PublishedPrintFiles['describeSource']>>;
   try{id=await this.files.resolvePath(filename,signal);initial=await this.files.describeSource(id,signal);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT'){this.#drop(filename);throw new ApiError(404,'Published file not found');}throw error;}
-  const key=this.#keys.get(filename);if(key&&samePublishedSource(key,initial.source)&&this.peek(filename,initial.file,initial.modified)){this.#keys.delete(filename);this.#keys.set(filename,key);return this.#cache.metadata(filename);}
+  const key=this.#keys.get(filename);if(!force&&key&&samePublishedSource(key,initial.source)&&this.peek(filename,initial.file,initial.modified)){this.#keys.delete(filename);this.#keys.set(filename,key);return this.#cache.metadata(filename);}
   this.#drop(filename);this.#room();
   const validate=async(source:PublishedSourceIdentity,s:AbortSignal)=>{try{return samePublishedSource(source,(await this.files.describeSource(id,s)).source);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return false;throw error;}};
   let recovered=false;
-  if(this.versions.current(filename)?.state==='selected'){
+  if(!force&&this.versions.current(filename)?.state==='selected'){
    // Recovery verifies bytes once, in addition to checking the durable receipt.
    const sealed=await this.files.acquireBinary(id,signal,this.#budget);await sealed.reader.close();
+   if(initial.file.preview)await this.files.readPreview(id,signal,initial.file);
    try{recovered=await this.#life.recover(filename,signal,validate);}catch(error){if(!(error instanceof ApiError&&error.status===409&&error.message==='Metadata snapshot source changed'))throw error;}
   }
   if(recovered)this.#recovered++;
-  else{if(this.versions.current(filename)){await this.#life.invalidate(filename,signal);await this.#life.retireSuperseded(signal,filename);}const result=await this.#life.scanExtraction(filename,signal,validate,()=>extractPublishedMetadata(this.files,this.#budget,this.extractor,id,signal));if(!result.committed)throw new ApiError(409,'Native metadata scan superseded');this.#scans++;}
+  else{const version=this.versions.current(filename);if(version){
+    // A retained invalidation already durably revokes every prior selection.
+    // Keep ordered retirement, but do not publish the same tombstone again
+    // before allocating a fresh scan intent and pending generation.
+    if(version.state!=='invalidated')await this.#life.invalidate(filename,signal);
+    this.#index();await this.#life.retireSuperseded(signal,filename);
+   }const result=await this.#life.scanExtraction(filename,signal,validate,()=>extractPublishedMetadata(this.files,this.#budget,this.extractor,id,signal));if(!result.committed)throw new ApiError(409,'Native metadata scan superseded');this.#scans++;}
   const current=await this.files.describeSource(id,signal);if(!samePublishedSource(initial.source,current.source)){this.#drop(filename);await this.#life.invalidate(filename,new AbortController().signal);throw new ApiError(409,'Native metadata receipt changed');}
   this.#keys.set(filename,current.source);await this.#life.retireSuperseded(signal,filename);this.#index();return this.#cache.metadata(filename);
  }

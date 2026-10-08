@@ -1,0 +1,224 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "scope": "本地源码检查点；编译、性能与完整 UFP 待验证，不作为完整交付",
+  "node": "26.10.0",
+  "parentCommit": "b4fc2e94",
+  "author": "arthasxkyang",
+  "distinctSourceTests": 242,
+  "groups": [
+    {
+      "tests": 101,
+      "raw": "anyraid-ufp-storage-regression.log"
+    },
+    {
+      "tests": 23,
+      "raw": "anyraid-ufp-preview-tests-final.log"
+    },
+    {
+      "tests": 105,
+      "raw": "anyraid-ufp-adapter-regression.log"
+    },
+    {
+      "tests": 19,
+      "overlap": 6,
+      "raw": "anyraid-ufp-native-final-tests.log"
+    }
+  ],
+  "sources": [
+    {
+      "name": "host/src/moonraker/metadata-extractor.ts",
+      "size": 7880,
+      "sha256": "5ff4aa86ef328bc867c2cc2151873443c448980aaa12ec8b68d938be1181fb18"
+    },
+    {
+      "name": "host/src/moonraker/metadata-scan.ts",
+      "size": 3741,
+      "sha256": "9c36a55e75a83ae050da1070e30f84aca5768bc277412ae5948fe8c5ae3dc7fe"
+    },
+    {
+      "name": "host/src/moonraker/native-file-metadata.ts",
+      "size": 9506,
+      "sha256": "37b2720b72658beb3070f8132a74051a0eebceaa1ad1075688de01fba170acb9"
+    },
+    {
+      "name": "host/src/moonraker/native-metadata-source.ts",
+      "size": 2463,
+      "sha256": "9f264f6ad8e30cafc5c96d14bcacd0fbf9b0acbf52e21b2ed6fd737a3edf3725"
+    },
+    {
+      "name": "host/src/moonraker/native-persistent-metadata.ts",
+      "size": 12999,
+      "sha256": "d7145a74fb8b50a799aab62d72f47c246d7700a7692eced30edd61e6c1341226"
+    },
+    {
+      "name": "host/src/moonraker/native-print-uploads.ts",
+      "size": 53282,
+      "sha256": "68f5bded110c83e0e9ec8fbf548816d31edc7c076690f8d8e5a48c9f60b24b3b"
+    },
+    {
+      "name": "host/src/moonraker/thumbnail-images.ts",
+      "size": 5778,
+      "sha256": "e722ed6dfc2fc28a20edfdc55b8ccafdc9895834ab9a45a02a27c77fbcafd456"
+    },
+    {
+      "name": "host/src/moonraker/thumbnail-process-child.ts",
+      "size": 1321,
+      "sha256": "64320fef26f0fcae87351a9cd985cbfa14c6e563a4f9b024f6e8c954a77b2df2"
+    },
+    {
+      "name": "host/src/moonraker/thumbnail-process.ts",
+      "size": 8054,
+      "sha256": "7e5f204999d32a8eb111a9f82a9ceb8d394cc7dcb39bb821d1d8c27002cea5f4"
+    },
+    {
+      "name": "host/src/storage/namespace-copy.ts",
+      "size": 9319,
+      "sha256": "1d9a0f4cff086f4c7d109076d94f66d73f6a1dafebfb4b3d5738ada99a2b0bda"
+    },
+    {
+      "name": "host/src/storage/namespace-delete.ts",
+      "size": 6432,
+      "sha256": "5129e27890efbf9622f2af7c54fdbc539a0a3a38d837989ebb11becd944468b3"
+    },
+    {
+      "name": "host/src/storage/namespace-move.ts",
+      "size": 8467,
+      "sha256": "b29184e2e46bf9dfbc27fbf8017ee26324634aa804f4e1aa80e4657bfae0f928"
+    },
+    {
+      "name": "host/src/storage/namespace-replace.ts",
+      "size": 5456,
+      "sha256": "8edd0870fd4bd489f6b3cc2f37be7c432276f654603d1380232a02a70ef20e8d"
+    },
+    {
+      "name": "host/src/storage/published-files.ts",
+      "size": 93543,
+      "sha256": "d624508dac9cd8e223586c6bb47d9992139256e19d3077fc8e471c20a3aac49f"
+    },
+    {
+      "name": "host/test/ufp-thumbnail.test.ts",
+      "size": 6336,
+      "sha256": "4470617184ffce848ad3f34de5511a46c9f98246927e8dbdb095e65535553b88"
+    },
+    {
+      "name": "host/src/storage/published-receipt.ts",
+      "size": 2015,
+      "sha256": "e305881f4b420b6c9f84724a3c23db8df3b629a760a5e7b79973b423957dec7c"
+    },
+    {
+      "name": "host/test/published-preview.test.ts",
+      "size": 15353,
+      "sha256": "5991e9afa2a83b4b3640c77f6d701b210e5f60446378225f131073e18c5c50f8"
+    },
+    {
+      "name": "host/test/helpers/ufp-fixture.ts",
+      "size": 1517,
+      "sha256": "dac3a505ae3068fb458eb04069b24d9cd09ecfa6b4cb3d1ea079f7deb77719d4"
+    },
+    {
+      "name": "host/test/native-ufp-upload.test.ts",
+      "size": 13609,
+      "sha256": "70bd547e68f0c4e5918b51167d84338358c469aad60a71e7846d7e65f15d5971"
+    }
+  ],
+  "rawRuns": [
+    {
+      "name": "anyraid-ufp-storage-typecheck.log",
+      "exitCode": 1
+    },
+    {
+      "name": "anyraid-ufp-storage-typecheck-2.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-storage-regression.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-preview-typecheck.log",
+      "exitCode": 1
+    },
+    {
+      "name": "anyraid-ufp-preview-typecheck-2.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-preview-tests.log",
+      "exitCode": 1
+    },
+    {
+      "name": "anyraid-ufp-preview-tests-2.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-storage-typecheck-final.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-preview-tests-final.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-storage-whitespace.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-adapter-typecheck.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-adapter-typecheck-2.log",
+      "exitCode": 1
+    },
+    {
+      "name": "anyraid-ufp-adapter-typecheck-3.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-adapter-regression.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-native-http-tests.log",
+      "exitCode": 1
+    },
+    {
+      "name": "anyraid-ufp-native-http-tests-2.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-native-typecheck-final.log",
+      "exitCode": 1
+    },
+    {
+      "name": "anyraid-ufp-native-typecheck-final-2.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-native-final-tests.log",
+      "exitCode": 0
+    },
+    {
+      "name": "anyraid-ufp-native-whitespace.log",
+      "exitCode": 0
+    }
+  ],
+  "evidence": {
+    "path": "native-ufp-source-evidence.json.gz",
+    "entries": 39,
+    "size": 110930,
+    "sha256": "95ad36113f14b11509378e81e1c36ff16fee201d5494aab9918b350cc824e219",
+    "credentialShapes": 0
+  },
+  "pending": [
+    "独立编译包验证",
+    "完整混合打印及 ABBA",
+    "安全依赖 #44 组合",
+    "原始磁盘 UFP 元数据",
+    "精确候选 CI 与正常集成",
+    "完整同包客户端",
+    "目标板预算、G3 与真实验收",
+    "全部 Python 退役和主线发布"
+  ]
+}

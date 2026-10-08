@@ -1,0 +1,574 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base": "11a90a6e5e1c3710c37440bcf38479c08917d6ce",
+  "sourceParent": "5c61f97a",
+  "scope": "原生 UFP 上传与联合模型／PNG、元数据及文件生命周期候选；Draft，不是完整 UFP、生产交付或 Python 全部退役。",
+  "product": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-created-product-bundle",
+    "manifestSha256": "6a33f12a265a696778965e17cd1937f24732c8a4ade275b052d0f4b476669f16",
+    "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+  },
+  "productionDifferenceFromPreviousSealedBundle": [
+    "host/src/moonraker/server.js"
+  ],
+  "validation": {
+    "source": 133,
+    "compiledOverlap": 70,
+    "typecheck": true,
+    "whitespace": true,
+    "mixedLarge": 1,
+    "scope": "正常纳入已集成的标准201／Location及清台期限测试；转换后的可打印模型地址、上传、队列及打印 API 复验。重叠源码与编译覆盖不相加。"
+  },
+  "previousCheckpoint": "native-ufp-bundle-checkpoint.json",
+  "streamEvidence": "ufp-stream-first-fault.json",
+  "originalLargeGate": {
+    "closed": false,
+    "cause": "unknown",
+    "originalPass": 0,
+    "originalFail": 1,
+    "contextObservedPass": 1,
+    "currentCompositionPass": 1,
+    "interpretation": "正常组合的通过不覆盖最初失败；受控取消已确定一种相同栈机制，但原请求／触发仍未捕获。"
+  },
+  "mixed": {
+    "namespace": true,
+    "automaticQueue": false,
+    "motionReportLoad": true,
+    "objectPriming": false,
+    "earlyObjectCancellation": true,
+    "fileMoveOwnership": [
+      {
+        "generation": 1,
+        "group": 0,
+        "before": {
+          "state": "printing",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 10102.92996
+        },
+        "after": {
+          "state": "printing",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 10607.472059
+        },
+        "durationMs": 504.5456490000015
+      },
+      {
+        "generation": 1,
+        "group": 1,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 16748.26346
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 16956.178964
+        },
+        "durationMs": 207.92066400000112
+      },
+      {
+        "generation": 1,
+        "group": 2,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 20185.655167
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 20283.709322
+        },
+        "durationMs": 98.0544349999982
+      },
+      {
+        "generation": 1,
+        "group": 3,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 24422.620218
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 24522.125868
+        },
+        "durationMs": 99.50584999999774
+      },
+      {
+        "generation": 1,
+        "group": 4,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 28319.094269
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 28403.545424
+        },
+        "durationMs": 84.44783499999903
+      },
+      {
+        "generation": 1,
+        "group": 5,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 30103.199613
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 30187.248127
+        },
+        "durationMs": 84.04849399999875
+      },
+      {
+        "generation": 1,
+        "group": 6,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 31838.913215
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 31936.430802
+        },
+        "durationMs": 97.51813699999911
+      },
+      {
+        "generation": 1,
+        "group": 7,
+        "before": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 33802.880236
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "complete",
+          "fileId": "authorized-file",
+          "atMs": 33903.36127
+        },
+        "durationMs": 100.48168400000577
+      },
+      {
+        "generation": 2,
+        "group": 0,
+        "before": {
+          "state": "printing",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 49291.020621
+        },
+        "after": {
+          "state": "printing",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 49739.42591
+        },
+        "durationMs": 448.4055389999994
+      },
+      {
+        "generation": 2,
+        "group": 1,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 52865.25567
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 53101.360459
+        },
+        "durationMs": 236.10493900000438
+      },
+      {
+        "generation": 2,
+        "group": 2,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 56723.223526
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 56822.332981
+        },
+        "durationMs": 99.10976500000106
+      },
+      {
+        "generation": 2,
+        "group": 3,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 60651.822916
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 60811.729333
+        },
+        "durationMs": 159.907017000005
+      },
+      {
+        "generation": 2,
+        "group": 4,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 64446.633013
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 64545.539678
+        },
+        "durationMs": 98.90762499999983
+      },
+      {
+        "generation": 2,
+        "group": 5,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 66488.568511
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 66587.146684
+        },
+        "durationMs": 98.578502999997
+      },
+      {
+        "generation": 2,
+        "group": 6,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 68360.201711
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 68457.637643
+        },
+        "durationMs": 97.43685199999891
+      },
+      {
+        "generation": 2,
+        "group": 7,
+        "before": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 70224.488199
+        },
+        "after": {
+          "state": "completed",
+          "requestId": "queue-9eb4508e-53e1-4e45-9faa-c4aa62820c10",
+          "fileId": "authorized-file",
+          "atMs": 70309.516756
+        },
+        "durationMs": 85.02903700000024
+      }
+    ],
+    "movesPrintingGenerations": [
+      1,
+      2
+    ],
+    "configListRequests": 2173,
+    "configListP99Ms": 6.1411410000000615,
+    "configDownloads": 2173,
+    "configDownloadP99Ms": 10.501079999994545,
+    "liveMotionSamples": 6212,
+    "liveExtrusionSamples": 1444,
+    "nativeAuthorization": true,
+    "apiLoad": true,
+    "completedStatistics": {
+      "total_duration": 10.878726544000001,
+      "print_duration": 5.217035276000001,
+      "filament_used": 1
+    },
+    "bundleManifestSha256": "6a33f12a265a696778965e17cd1937f24732c8a4ade275b052d0f4b476669f16",
+    "bmp180": false,
+    "bme": false,
+    "bmeHeater": false,
+    "htu": false,
+    "htuHeater": false,
+    "htuModel": null,
+    "lm75": false,
+    "lm75Heater": false,
+    "sht": false,
+    "shtHeater": false,
+    "aht": false,
+    "ahtHeater": false,
+    "combinedHeater": false,
+    "combined": false,
+    "multi": false,
+    "dual": false,
+    "servos": false,
+    "outputPins": false,
+    "phaseQueries": 10504,
+    "phaseP99Ms": 3.7707999999984168,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "skew": false,
+    "screws": false,
+    "manualScrews": false,
+    "bedScrews": false,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "temperatureFan": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": false,
+    "quad": false,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 312,
+        "writes": 43
+      },
+      {
+        "statusReads": 240,
+        "writes": 42
+      },
+      {
+        "statusReads": 8,
+        "writes": 40
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 2121,
+    "historyP99Ms": 59.45284699999684,
+    "lifecycleShutdowns": 8,
+    "copyRequests": 16,
+    "copyP95Ms": 248.7742569999973,
+    "copyOverwriteRequests": 16,
+    "copyOverwriteP95Ms": 506.68640799999775,
+    "directoryCopyRequests": 16,
+    "directoryCopyP95Ms": 392.57578300000023,
+    "copiesDuringPrint": 2,
+    "directoryCopiesDuringPrint": 2,
+    "fileNotifications": 1132,
+    "fileNotificationP95Ms": 267.6300680000004,
+    "movesDuringPrint": 2,
+    "directoryMoveRequests": 16,
+    "directoryMoveP95Ms": 466.43445200000133,
+    "directoryMovesDuringPrint": 2,
+    "moveRequests": 16,
+    "moveP95Ms": 503.8414010000015,
+    "deleteRequests": 16,
+    "deleteP95Ms": 430.92575300000317,
+    "publicThumbnailRequests": 16,
+    "publicThumbnailP95Ms": 227.32541700000002,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 83.72201200000018,
+    "metadataRequests": 16,
+    "metadataP95Ms": 328.6805239999994,
+    "downloads": 16,
+    "downloadP95Ms": 58.65205900000001,
+    "wireCommands": 233,
+    "wireSteps": 7994,
+    "minimumStepLeadMs": 87.849,
+    "directoryRequests": 8761,
+    "directoryP99Ms": 41.45648799999981,
+    "statusRequests": 42013,
+    "uploads": 16,
+    "statusP99Ms": 3.60122599999886,
+    "uploadP95Ms": 102.577279000001,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.979391,
+          "maxMs": 18.169855
+        },
+        "cpu": {
+          "user": 13116953,
+          "system": 2406097
+        },
+        "rss": 332677120
+      },
+      {
+        "loop": {
+          "p99Ms": 1.963007,
+          "maxMs": 13.484031
+        },
+        "cpu": {
+          "user": 9364225,
+          "system": 2108427
+        },
+        "rss": 419602432
+      }
+    ],
+    "input": {
+      "originalProgramRetainedExactly": true,
+      "originalMovements": 1000,
+      "modelSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+      "archiveSha256": "e19d305ab3591c1a2f1121d524cafac267b89aa414ae6942c7ea2397892737df",
+      "loadModelSha256": "c3ee34051ee5e3e246d155ca24b04f35213682937159faedac846ff358dcdc90",
+      "loadModelBytes": 262144,
+      "externalPngSha256": "ab9b202bc50c1ad0d29f4423b667074ec78f59554e1624d6dc9bdb241f967b67",
+      "externalPngBytes": 1182337,
+      "largeUfpImage": true,
+      "compiledBundle": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-ufp-created-product-bundle",
+        "manifestSha256": "6a33f12a265a696778965e17cd1937f24732c8a4ade275b052d0f4b476669f16",
+        "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+      }
+    },
+    "queue": {
+      "groups": 16,
+      "printingGenerations": [
+        1,
+        2
+      ],
+      "queries": 2414,
+      "queryP99Ms": 4.424869000000399,
+      "durableMutations": 64,
+      "actualStartRequestPrefix": "queue-",
+      "journalCompleted": true,
+      "authorizedNotifications": true,
+      "noAutomaticReplay": true
+    },
+    "pass": 1,
+    "fail": 0,
+    "originalMoves": 1000,
+    "watchdogMs": 90000,
+    "testTimeoutMs": 180000,
+    "scope": "本轮最终同包、原固定大图和原1000运动、双软件 MCU 两代，原停止／精度／循环门槛保留；观察器仅诊断启用。"
+  },
+  "performance": {
+    "results": [
+      {
+        "channel": "inline",
+        "upload": {
+          "samples": 32,
+          "medianMs": 40.92717300000004,
+          "p95Ms": 67.04688399999941
+        },
+        "metadata": {
+          "samples": 32,
+          "medianMs": 172.10816299999715,
+          "p95Ms": 193.71083899999985
+        },
+        "cached": {
+          "samples": 256,
+          "medianMs": 0.47060099999907834,
+          "p95Ms": 1.4221630000001824
+        }
+      },
+      {
+        "channel": "ufp",
+        "upload": {
+          "samples": 32,
+          "medianMs": 58.056431999999404,
+          "p95Ms": 64.80789000000004
+        },
+        "metadata": {
+          "samples": 32,
+          "medianMs": 163.61552800000027,
+          "p95Ms": 180.06316400000014
+        },
+        "cached": {
+          "samples": 256,
+          "medianMs": 0.4919309999986581,
+          "p95Ms": 1.989837000000989
+        }
+      }
+    ],
+    "order": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1
+    ],
+    "warmupsPerChannel": 3,
+    "warmupsRetained": 6,
+    "pngBytes": 1182337,
+    "pngSha256": "ab9b202bc50c1ad0d29f4423b667074ec78f59554e1624d6dc9bdb241f967b67",
+    "modelBytes": 262144,
+    "modelSha256": "b7aaa6bbc42ff604b255b467ecb1e18a347612326fd1d6da573a1e6a76e11bd3",
+    "archiveBytes": 1183303,
+    "archiveSha256": "d9e24f2864b5d4fd229d6c21fc292c3e845a477c9071305ccb15fb0e069b4dff",
+    "loopP99MaxMs": 2.121727,
+    "loopMaxMs": 7.180287,
+    "scope": "One compiled installed product, real loopback multipart publication and persistent cold/cached metadata, exact model/original PNG verified. Three warmups retain startup samples; ABBA 32 samples per channel. Both carry the same motion commands, different immutable bytes (inline comments versus separate PNG); no target board, Python or physical printing proof.",
+    "limits": "两个通道命令一致但不可变文件字节不同；保留所有样本及启动样本，没有零回退、目标板预算或原大图根因通过声明。"
+  },
+  "native": "未变 C 复用已有验收产物，没有重新构建 C。",
+  "rollback": "新 PNG 引用仍为当前候选结构，旧程序不能直接打开该新状态；必须恢复升级前一致文件／元数据／队列状态，不能删字段降级。",
+  "evidence": {
+    "file": "native-ufp-created-evidence.json.gz",
+    "sha256": "82eec41da2983ca00c9664b44f5c19da29fb2c95a8f978cb39bdb8b77f3eabb8",
+    "bytes": 576136,
+    "entries": 60,
+    "credentialShapes": 0
+  },
+  "pending": [
+    "自身完整 CI 与正常 PR 集成",
+    "原大图首次请求和实际触发条件",
+    "原始磁盘 UFP 完整转换／发布／清理／恢复",
+    "同包 Fluidd／Mainsail、目标板、G3、177个klippy Python、默认入口及主线发布"
+  ]
+}
