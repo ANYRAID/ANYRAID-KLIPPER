@@ -4,6 +4,20 @@
   "base": "4ef5e28f6b3992d19a15e182f9814052e7ffdbd2",
   "scope": "CI 调度候选；不改产品、原生 C、依赖、数值算法、断言或 sanitizer 环境。",
   "node": "26.10.0",
+  "reviewCorrection": "独立 sanitizer 作业须先运行原 build:native；原流程由 npm test 的 pretest 提供普通插件，AR100 测试仍直接核验普通生产及测试插件。本次保留原准备，不改 314 条 sanitizer 命令。",
+  "correctionValidation": {
+    "controlsPass": 4,
+    "fail": 0,
+    "durationMs": 686.661014,
+    "typecheck": "完整类型检查通过",
+    "whitespace": "规定 Node 空白检查及 git diff --check 通过",
+    "firstRestrictedExecution": "修正后首次受限执行仅报告测试工作进程失败，未报告子测试结果；随后获准环境完成上述四项检查。保留失败，不宣称已定位该环境失败根因。"
+  },
+  "previousCandidate": {
+    "commit": "9bbb149fd2fea55c32171abe3b3753a3e6a856e0",
+    "hostRun": 37738347503,
+    "scope": "自审发现普通插件前置构建缺项；当时 checks、UBSAN、ASAN 尚在运行，未取消、重启或计通过。修正必须等待新提交自己的完整 CI。"
+  },
   "local": {
     "controls": "host/test/native-sanitizer-workflow.test.ts",
     "pass": 4,

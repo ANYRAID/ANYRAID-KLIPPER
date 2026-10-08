@@ -29,6 +29,8 @@ test('stable host check waits for ordinary checks and both independent sanitizer
  assert.deepEqual(gate.needs,['checks','sanitizers']);assert.equal(gate.if,'${{ always() }}');
  assert.deepEqual(sanitizers.strategy.matrix.mode,['ubsan','asan']);assert.equal(sanitizers.strategy['fail-fast'],false);
  assert(sanitizers.steps.some((s:any)=>s.run==='npm run test:native-sanitized -- --mode=${{ matrix.mode }}'));
+ const prepare=sanitizers.steps.findIndex((s:any)=>s.run==='npm run build:native'),execute=sanitizers.steps.findIndex((s:any)=>s.run==='npm run test:native-sanitized -- --mode=${{ matrix.mode }}');
+ assert(prepare>sanitizers.steps.findIndex((s:any)=>s.run==='npm ci --ignore-scripts')&&prepare<execute,'independent sanitizer runner must build ordinary native prerequisites before original sanitized commands');
  for(const job of Object.values(workflow.jobs) as any[]){assert.notEqual(job['continue-on-error'],true);for(const step of job.steps)assert.notEqual(step['continue-on-error'],true);}
  for(const job of [checks,sanitizers])assert(job.steps.some((s:any)=>s.uses==='actions/setup-node@v4'&&s.with['node-version']==='26'));
  for(const command of ['npm ci --ignore-scripts','npm run typecheck','npm test','npm run test:protocol-native'])assert(checks.steps.some((s:any)=>s.run===command));

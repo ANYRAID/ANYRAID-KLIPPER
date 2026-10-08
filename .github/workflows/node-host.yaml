@@ -60,6 +60,8 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm ci --ignore-scripts
+      - name: Build ordinary native prerequisites
+        run: npm run build:native
       - run: npm run test:native-sanitized -- --mode=${{ matrix.mode }}
   host:
     if: ${{ always() }}

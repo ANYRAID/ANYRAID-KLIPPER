@@ -37,7 +37,8 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 [原成功 CI 命令清单](../host/contracts/native-sanitizer-command-reference.json)。
 
 CI 候选将两种模式和普通检查分开运行；每种模式内部保持原逐文件
-顺序、构建参数、运行环境和 60 秒子命令期限。最终 `host` 检查只在
+顺序，先执行 `npm run build:native` 准备原测试依赖的普通插件，再运行
+原 sanitizer 构建参数、运行环境和 60 秒子命令期限。最终 `host` 检查只在
 普通检查及全部 sanitizer 作业成功时通过，取消或跳过均不能放行。
 本机控制验证覆盖命令完整性和门禁失败传播；实际 CI 耗时仍待验证。
 当前 CI 参考测试仍需要 Python，不因调度拆分移除 Python 配置。
