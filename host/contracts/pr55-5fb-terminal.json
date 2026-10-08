@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "5fb711973e05ee844863c26b450cbc906497b74b",
+  "base": "9bd80b3dd555ebd9d9ec21c2572187623db5347d",
+  "mergeRef": "025a741d1d0359ba415cb3df0fee47aac93f8c85",
+  "hostRun": 37755033287,
+  "hostJobs": [
+    {
+      "id": 113237375364,
+      "name": "checks",
+      "conclusion": "success"
+    },
+    {
+      "id": 113237375842,
+      "name": "sanitizer (asan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113237375849,
+      "name": "sanitizer (ubsan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113242513450,
+      "name": "host",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "pass": 4398,
+    "fail": 0
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "coverage": "ufp",
+    "allExitZero": true
+  },
+  "firmware": [
+    {
+      "id": 113237374797,
+      "run": 37755033297,
+      "conclusion": "success"
+    }
+  ],
+  "motion": {
+    "run": 37755033440,
+    "jobs": [
+      {
+        "id": 113237375533,
+        "name": "motion (26.9.0, default, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113237375701,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113237375810,
+        "name": "motion (26.9.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113237375868,
+        "name": "motion (26.9.0, off, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113237375873,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113237375887,
+        "name": "motion (26.10.0, default, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113237375920,
+        "name": "motion (26.10.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113237375979,
+        "name": "motion (26.10.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113237376267,
+        "name": "motion (26.9.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113237376543,
+        "name": "motion (26.10.0, off, source)",
+        "conclusion": "success"
+      }
+    ],
+    "conditions": 10,
+    "childrenPerCondition": 50,
+    "verifiedChildren": 500,
+    "deadlineMs": 10000,
+    "loops": 16,
+    "tolerancesUnchanged": true
+  },
+  "evidence": {
+    "path": "pr55-5fb-terminal.evidence.json.gz",
+    "sha256": "ee2ff8e0b16e5d846c03c222db50d87514fe7f2c644546ab95ee3e84f5973396",
+    "bytes": 608175,
+    "entries": 17
+  },
+  "scope": "PR #55 精确头首轮远程检查；普通测试 Node 26.11.1 与本机 Node 26.10.0 失败不是同版本对照；不覆盖本机失败、完整客户端、目标板或 G3",
+  "ordinaryReporter": {
+    "node": "v26.11.1",
+    "rootSummaryAgreesWithSpec": true,
+    "failureRows": 0,
+    "tests": 4398,
+    "passed": 4398,
+    "failed": 0,
+    "localNode26_10FailuresRetained": true
+  }
+}

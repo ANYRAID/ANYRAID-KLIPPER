@@ -47,7 +47,7 @@ CI 将两种模式和普通检查分开运行；每种模式内部保持原逐�
 对应提交、输入和环境通过，不将一次检查耗时当作目标板性能提升。
 当前 CI 参考测试仍需要 Python，不因调度拆分移除 Python 配置。
 
-## 普通测试失败观测候选
+## 普通测试失败观测
 
 `npm test` 保留原生前置构建及 `test/*.test.ts` 全部普通检查，原并发、
 断言和期限不变。沿用 spec 输出，另输出 `nodeTestFailure` JSON 行，
@@ -60,8 +60,12 @@ null。正常结束有一行 `nodeTestObservation` 总计，失败退出仍由 N
 理解为对原日志的脱敏。历史只含 `test failed` 的记录不能倒推信号；
 该候选及一次成功均不关闭已知运动数值异常或 G3。
 五项控制和全量类型通过；一次完整普通检查捕获 16 项失败，原始记录见
-[退出观测](../host/contracts/ordinary-test-exit-observation.json)。该候选仍
-须精确头远程检查及正常审阅，不能把观测能力当作稳定性修复。
+[退出观测](../host/contracts/ordinary-test-exit-observation.json)。PR #55
+精确头首轮全部 15 项远程检查通过并正常合入 develop `1f0e11f1`，
+普通检查 Node 26.11.1 为 4398／4398，根总计与 spec 一致，见
+[精确头终态](../host/contracts/pr55-5fb-terminal.json)。这不是本机失败
+Node 26.10.0 的同版本对照，实际合并后检查仍待终态；不能把观测能力
+当作稳定性修复。
 
 ## 数据库本机验证与历史参考
 
