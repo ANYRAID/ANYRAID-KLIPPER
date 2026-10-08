@@ -28,6 +28,20 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 实现清单见 [配置节校验器](../host/src/config/native-printer-sections.ts)，
 验证结果见 [配置预检验收](../host/contracts/native-printer-sections-acceptance.json)。
 
+## 原生 sanitizer 检查调度候选
+
+从 `host` 目录执行 `npm run test:native-sanitized` 仍依次运行 UBSAN
+和 ASAN。独立模式可用 `npm run test:native-sanitized -- --mode=ubsan`
+或 `--mode=asan`；`--list` 只输出命令清单，不编译或运行测试。
+模式参数写错会在构建前拒绝。覆盖参考见
+[原成功 CI 命令清单](../host/contracts/native-sanitizer-command-reference.json)。
+
+CI 候选将两种模式和普通检查分开运行；每种模式内部保持原逐文件
+顺序、构建参数、运行环境和 60 秒子命令期限。最终 `host` 检查只在
+普通检查及全部 sanitizer 作业成功时通过，取消或跳过均不能放行。
+本机控制验证覆盖命令完整性和门禁失败传播；实际 CI 耗时仍待验证。
+当前 CI 参考测试仍需要 Python，不因调度拆分移除 Python 配置。
+
 ## 数据库本机验证与历史参考
 
 在 Node.js 26 环境安装 `host` 依赖并构建原生插件后，从 `host` 目录执行：
