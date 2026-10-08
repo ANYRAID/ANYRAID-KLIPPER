@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "9fe4eb0c3deb4db3a0d27f86ff7030f201450e28",
+  "mergeRef": "14ed2982152f8a5d9c23e0811f7618ba74934166",
+  "base": "926c7f895ecc4c6c24cc0b85194b6a80d70c64c7",
+  "hostRun": 37746635574,
+  "hostJobs": [
+    {
+      "id": 113209558985,
+      "name": "checks",
+      "conclusion": "success"
+    },
+    {
+      "id": 113209559322,
+      "name": "sanitizer (ubsan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113209559378,
+      "name": "sanitizer (asan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113214009834,
+      "name": "host",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "pass": 4229,
+    "fail": 0
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 314,
+    "exactOriginalCommandMatch": true,
+    "allExitZero": true
+  },
+  "firmware": {
+    "run": 37746635563,
+    "job": 113209559077,
+    "conclusion": "success"
+  },
+  "motion": {
+    "run": 37746635571,
+    "jobs": [
+      {
+        "id": 113209558947,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113209559122,
+        "name": "motion (26.10.0, off, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113209559230,
+        "name": "motion (26.10.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113209559262,
+        "name": "motion (26.9.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113209559270,
+        "name": "motion (26.9.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113209559276,
+        "name": "motion (26.10.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113209559284,
+        "name": "motion (26.9.0, off, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113209559330,
+        "name": "motion (26.9.0, default, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113209559334,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113209559674,
+        "name": "motion (26.10.0, default, compiled)",
+        "conclusion": "success"
+      }
+    ],
+    "conditions": 10,
+    "childrenPerCondition": 50,
+    "verifiedChildren": 500,
+    "deadlineMs": 10000,
+    "loops": 16,
+    "tolerancesUnchanged": true
+  },
+  "evidence": {
+    "path": "pr54-9fe-terminal.evidence.json.gz",
+    "sha256": "8fa43fc4db1d431c1a471f48736a5932e2e929d1c93557897a4fe7fa0d58eb5c",
+    "bytes": 593534,
+    "entries": 17
+  },
+  "scope": "PR54 combination exact-head success. Does not explain original PR50 SIGKILL or develop926 grid-save409; no postmerge, actual client, target precision or G3 closure claim."
+}
