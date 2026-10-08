@@ -1451,5 +1451,484 @@
       "redactedLogStateTokens": true,
       "scope": "Original diagnostic logs remain in local temporary storage; archived logs remove test state-token values."
     }
+  },
+  "rootPhaseObservation": {
+    "status": "diagnostic_only_no_same_root_batching_opportunity_observed",
+    "productionBase": "7d4407c3ef2090d2306829c6c01d99743cb8b156",
+    "plan": {
+      "scope": "One bounded original-assertion diagnostic, not acceptance or a benchmark. Exactly one driver change appends a file I/O observer to the child NODE_OPTIONS. Production bundle, input, assertions and deadlines remain unchanged.",
+      "originalPath": "/home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-compiled-driver/host/acceptance/product-compiled-journey.test.js",
+      "originalSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+      "diagnosticPath": "/home/dek02/.cache/codex/tmp/anyraid-storage-sync-phase-diagnostic-driver/host/acceptance/product-compiled-journey.test.js",
+      "diagnosticSha256": "97eefffbea2283e0376a3ccef6b3b8ff76713d2cf9b8352c12fab8d6d3ec1dbc",
+      "observerSha256": "227aea74ec18f312236a2e1cf969f8eb77f2ddd56aa06eebf8a11e5540f1f23b",
+      "workload": {
+        "namespace": true,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "metadataRescan": true,
+        "ufp": true,
+        "diskImport": true,
+        "largeUfp": true,
+        "machineControl": false,
+        "automaticQueue": false,
+        "queueConfirmation": false,
+        "layerPause": false,
+        "objectPriming": false,
+        "motionReport": true,
+        "originalMovements": 1000,
+        "softwareMCUs": 2,
+        "generationsRequired": 2
+      },
+      "outerDeadlineSeconds": 90
+    },
+    "run": {
+      "schema": 1,
+      "scope": "Diagnostic only; exact invocation flags preserved, original assertions failed.",
+      "productionBase": "7d4407c3ef2090d2306829c6c01d99743cb8b156",
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+      "nodeVersion": "v26.10.0",
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle",
+        "manifestSha256": "e6520a2bc7599fbd8e66d4c8e3e415d251a57c42c527a4250f73784efc0fbc90",
+        "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+      },
+      "env": {
+        "TMPDIR": "/home/dek02/.cache/codex/tmp",
+        "ANYRAID_ACCEPTANCE_BUNDLE": "/home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle",
+        "ANYRAID_ACCEPTANCE_MANIFEST_SHA256": "e6520a2bc7599fbd8e66d4c8e3e415d251a57c42c527a4250f73784efc0fbc90",
+        "ANYRAID_ACCEPTANCE_DEPENDENCIES_SHA256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e",
+        "ANYRAID_BENCH_METADATA_RESCAN": "on",
+        "ANYRAID_BENCH_UFP_LOAD": "on",
+        "ANYRAID_BENCH_DISK_IMPORT": "on",
+        "ANYRAID_BENCH_UFP_IMAGE": "large",
+        "NODE_OPTIONS": "--no-experimental-strip-types --import=/home/dek02/.cache/codex/tmp/anyraid-storage-sync-phase-observer.mjs"
+      },
+      "arguments": [
+        "--test",
+        "--test-isolation=none",
+        "--test-name-pattern=^namespace=true nativeAuthorization=true apiLoad=true load=false spi=false software=false model5160=false model2240=false curved=false probeHome=false safeHome=false bltouch=false tilted=false manualTilt=false kinematics=cartesian temperatureSensor=false hostSensor=false spiSensor=false spiHeater=false sharedSpi=false zEndstop=false max31855=false:",
+        "/home/dek02/.cache/codex/tmp/anyraid-storage-sync-phase-diagnostic-driver/host/acceptance/product-compiled-journey.test.js"
+      ],
+      "outerDeadlineSeconds": 90,
+      "exitCode": 1,
+      "checkpointNotFinalExit": true
+    },
+    "firstFailure": {
+      "generation": 1,
+      "message": "Recursive cleanup must complete during each printing generation\n+ actual - expected\n\n+ 'completed'\n- 'printing'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Recursive cleanup must complete during each printing generation\n+ actual - expected\n\n+ 'completed'\n- 'printing'\n\n    at file:///home/dek02/.cache/codex/tmp/anyraid-storage-sync-phase-diagnostic-driver/host/acceptance/product-compiled-journey.test.js:1022:40\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+    },
+    "passed": 0,
+    "failed": 1,
+    "totalMs": 20793.600499,
+    "secondaryUnhandledStreamError": "Undici ERR_INVALID_STATE: ReadableStream is already closed",
+    "control": {
+      "realFileIO": true,
+      "calls": 6,
+      "rootSyncs": 3,
+      "maximumAcceptedOverlap": 2,
+      "overlappingAcceptedSyncs": 1,
+      "droppedRootEvents": 0
+    },
+    "checkpoint": {
+      "pid": 3564062,
+      "calls": 15360,
+      "notFinalExit": true,
+      "possiblyMissingTrailingCalls": true,
+      "rootEvents": 1184,
+      "droppedRootEvents": 0,
+      "totals": {
+        "stat file": {
+          "calls": 4677,
+          "sumCallMs": 289.8718489999425,
+          "maxCallMs": 8.582205999999132
+        },
+        "read file": {
+          "calls": 9194,
+          "sumCallMs": 693.9683819998945,
+          "maxCallMs": 9.885334999999031
+        },
+        "stat directory": {
+          "calls": 8,
+          "sumCallMs": 0.23446300000003362,
+          "maxCallMs": 0.043600999999966916
+        },
+        "sync directory": {
+          "calls": 592,
+          "sumCallMs": 4291.731478999996,
+          "maxCallMs": 25.96476999999868
+        },
+        "writeFile file": {
+          "calls": 214,
+          "sumCallMs": 24.879378000005545,
+          "maxCallMs": 3.5778230000000804
+        },
+        "sync file": {
+          "calls": 338,
+          "sumCallMs": 2940.9121280000127,
+          "maxCallMs": 32.718440000000555
+        },
+        "chmod file": {
+          "calls": 306,
+          "sumCallMs": 21.203989999998612,
+          "maxCallMs": 3.3557890000010957
+        },
+        "readFile file": {
+          "calls": 31,
+          "sumCallMs": 2.1864520000031007,
+          "maxCallMs": 0.5621780000001309
+        }
+      },
+      "roots": [
+        {
+          "id": 1,
+          "identity": "2e8cc0d1698fe4dfd94c646cc2f250514478428e8a5e2778316dced4d2f81996",
+          "label": "compiled-journey-cIgDyk/files",
+          "fd": 21,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 76,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 569.1302040000048
+        },
+        {
+          "id": 2,
+          "identity": "8bd75c4f2d8da6bde5a9ae3a456dd558a65061b5434a96fb9c29f253a23352bb",
+          "label": "compiled-journey-cIgDyk/config",
+          "fd": 30,
+          "active": 0,
+          "maximumActive": 0,
+          "acceptedSyncs": 0,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 0
+        },
+        {
+          "id": 3,
+          "identity": "f4d8448a48abc8ac2da2dc1d49074d76f8112e31111c3df68dfe669b2319c9c1",
+          "label": "compiled-journey-cIgDyk/metadata",
+          "fd": 37,
+          "active": 0,
+          "maximumActive": 0,
+          "acceptedSyncs": 0,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 0
+        },
+        {
+          "id": 4,
+          "identity": "8d494058c0ae7348f2ec2fadac123960e506ed85a988bb82f39dcc72dcc1a0cf",
+          "label": "metadata/images",
+          "fd": 38,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 65,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 438.9822929999996
+        },
+        {
+          "id": 5,
+          "identity": "0638ea7e3a2e314740c973074ec30f40b872562e6da69394293faf897f97098f",
+          "label": "metadata/intents",
+          "fd": 39,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 82,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 600.2531520000025
+        },
+        {
+          "id": 6,
+          "identity": "8ef6f679888351ba4d5391355ff60143b48881d64979943cda1922cc01d0cd80",
+          "label": "metadata/snapshots",
+          "fd": 40,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 82,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 524.0196059999885
+        },
+        {
+          "id": 7,
+          "identity": "a3cc123bf86c7e7af68993bdf63b125b1adf066322db51eaac0cd20bd0bb8304",
+          "label": "metadata/versions",
+          "fd": 41,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 214,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 1478.514240000005
+        },
+        {
+          "id": 9,
+          "identity": "eda53503e67eae7a44557e0ea9dce20d4b646bcdc636e2c4988d55567219298d",
+          "label": "compiled-journey-cIgDyk/disk-inbox",
+          "fd": 55,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 9,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 74.51560399999988
+        },
+        {
+          "id": 10,
+          "identity": "2e8cc0d1698fe4dfd94c646cc2f250514478428e8a5e2778316dced4d2f81996",
+          "label": "compiled-journey-cIgDyk/files",
+          "fd": 56,
+          "active": 0,
+          "maximumActive": 0,
+          "acceptedSyncs": 0,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 0
+        },
+        {
+          "id": 11,
+          "identity": "6e47e4fbecad15fd6309edb0c9d7ba4b32c540c3fd6c86194aa9e83f9b8ae2bc",
+          "label": "disk-inbox/.native-ufp-claims",
+          "fd": 56,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 16,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 157.1212450000021
+        },
+        {
+          "id": 667,
+          "identity": "ee61eaea87ae9a51bb8e585bf2b1a41e881405af43936eeb2c8d0471052a7af9",
+          "label": ".native-ufp-claims/44f18f60-96f6-426d-bc59-ef5b68584f4a",
+          "fd": 106,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 6,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 54.03461199999765
+        },
+        {
+          "id": 953,
+          "identity": "af380b8c5be9735475ce86d8f067d6ba5fab39f73f85b35e32849bc05a139f6a",
+          "label": ".native-ufp-claims/996ad0bc-b965-46dc-89fc-1136c2e6101f",
+          "fd": 103,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 6,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 55.84122899999784
+        },
+        {
+          "id": 1220,
+          "identity": "2c5cd8108bc2d09fe3c812c104574b62c0fa32d443cc6684c37330d75288044a",
+          "label": ".native-ufp-claims/6ce38a46-83e3-41fb-ab90-6f8ce51f4f01",
+          "fd": 109,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 6,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 65.21677500000078
+        },
+        {
+          "id": 1417,
+          "identity": "3164d6894098303212be0511f911349c7396ea1f89103f7e8f545d66ca02b3ab",
+          "label": ".native-ufp-claims/9472988d-ead7-4458-a411-8518972dd621",
+          "fd": 101,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 6,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 53.35497299999952
+        },
+        {
+          "id": 1524,
+          "identity": "e0f9739fd4c071832669bc42b2d89ec3e164e1505cca6d05db1c9d9183ea8881",
+          "label": ".native-ufp-claims/d1cbf13d-e9ec-4650-bc2d-5ad0c2626ba7",
+          "fd": 90,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 6,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 54.90421499999866
+        },
+        {
+          "id": 1632,
+          "identity": "94a2ec991a2fa4da9ea5f45f84391eeec80ad84aef5bbd68d7cd214bfd2f2081",
+          "label": ".native-ufp-claims/9479ac14-a305-42c6-8b85-91d1c2577c83",
+          "fd": 103,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 6,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 57.493603999997504
+        },
+        {
+          "id": 1735,
+          "identity": "8d8614930e1a462eb92f8da9a52523068df0b1d1f825edbd41d3acface11eab9",
+          "label": ".native-ufp-claims/707575cd-6ee2-4ed0-9c12-f3eacecac474",
+          "fd": 101,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 6,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 53.84136800000124
+        },
+        {
+          "id": 1840,
+          "identity": "1fafd0a4ba1bdc931f40f0cf55dd21bb53417608da2ab832c807bbd1cfeeee35",
+          "label": ".native-ufp-claims/65dd4c8e-ad4d-4b8d-9118-826ad4b8408f",
+          "fd": 101,
+          "active": 0,
+          "maximumActive": 1,
+          "acceptedSyncs": 6,
+          "overlappingAcceptedSyncs": 0,
+          "totalCallMs": 54.50835900000129
+        }
+      ],
+      "largestSyncGroups": [
+        {
+          "method": "sync",
+          "kind": "file",
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1962:262",
+          "calls": 141,
+          "totalCallMs": 1637.0176180000108,
+          "maxCallMs": 32.718440000000555,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "kind": "file",
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1934:32",
+          "calls": 117,
+          "totalCallMs": 858.8388680000039,
+          "maxCallMs": 16.349349000000075,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "kind": "directory",
+          "root": 7,
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1961:61",
+          "calls": 63,
+          "totalCallMs": 455.70988399999806,
+          "maxCallMs": 22.037003000001278,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "kind": "directory",
+          "root": 7,
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1981:34",
+          "calls": 63,
+          "totalCallMs": 444.4299630000014,
+          "maxCallMs": 14.001064999998562,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "kind": "directory",
+          "root": 7,
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:2090:34",
+          "calls": 44,
+          "totalCallMs": 291.03487100000257,
+          "maxCallMs": 12.314430999998876,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "kind": "directory",
+          "root": 7,
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:2098:38",
+          "calls": 44,
+          "totalCallMs": 287.33952200000294,
+          "maxCallMs": 14.879579000000376,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "kind": "directory",
+          "root": 5,
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1981:34",
+          "calls": 23,
+          "totalCallMs": 180.23298799999975,
+          "maxCallMs": 13.871893999999884,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "kind": "directory",
+          "root": 5,
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1961:61",
+          "calls": 23,
+          "totalCallMs": 177.2022550000006,
+          "maxCallMs": 13.65483999999924,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "kind": "directory",
+          "root": 4,
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1961:61",
+          "calls": 22,
+          "totalCallMs": 155.16948500000126,
+          "maxCallMs": 20.70363300000099,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "kind": "directory",
+          "root": 4,
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1981:34",
+          "calls": 22,
+          "totalCallMs": 146.2409249999996,
+          "maxCallMs": 11.133272999999463,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "kind": "directory",
+          "root": 6,
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1961:61",
+          "calls": 23,
+          "totalCallMs": 144.2586019999967,
+          "maxCallMs": 10.561754999998811,
+          "errors": 0
+        },
+        {
+          "method": "sync",
+          "kind": "directory",
+          "root": 6,
+          "phase": "at file:///home/dek02/.cache/codex/tmp/anyraid-receipt-overlap-product-bundle/host/src/storage/published-files.js:1981:34",
+          "calls": 23,
+          "totalCallMs": 135.6567859999941,
+          "maxCallMs": 10.440123000000312,
+          "errors": 0
+        }
+      ]
+    },
+    "sourceInterpretation": {
+      "metadataVersionRoot": 7,
+      "publications": 63,
+      "compactions": 44,
+      "publicationDirectorySyncs": 126,
+      "compactionDirectorySyncs": 88,
+      "barriers": [
+        "Content inode durable before content-directory publication",
+        "Private receipt durable before public receipt link; final directory sync after receipt link",
+        "New version durably published before old version compaction",
+        "Old receipt unlink durably synced before last content reference removal"
+      ]
+    },
+    "limits": [
+      "Private checkpoints, stack capture and one readlink per directory open add diagnostic overhead",
+      "Root accepted-call concurrency is not kernel syscall overlap; same-identity roots are retained separately",
+      "Checkpoint is incomplete and may omit trailing operations or in-flight calls after SIGKILL",
+      "No second-generation, original complete metrics, stop acceptance, target-board performance or G3 result",
+      "Historical original mixed invocation did not archive full environment; generation shifts cannot be attributed to this observer",
+      "Existing cold-tail regression and original mixed failures remain; candidate stays unadopted"
+    ],
+    "decision": "Observed product directory handles have max accepted concurrency 1 and zero overlap. Do not implement same-root fsync coalescing for this workload or remove causal barriers. The versions root maps to 63 immutable publications and 44 ordered compactions. Investigate the durable record protocol cost with explicit recovery, quota, cancellation and crash equivalence before any replacement; retain original full mixed and cold-tail gates.",
+    "evidence": {
+      "path": "host/contracts/published-durability-sync-phase.evidence.json.gz",
+      "bytes": 84569,
+      "sha256": "54ee556d7fb7604184e91f7d95ff5f21c909d160b6c2d2a628d87d463414b970",
+      "entries": 12,
+      "redactedLogStateTokens": true
+    }
   }
 }
