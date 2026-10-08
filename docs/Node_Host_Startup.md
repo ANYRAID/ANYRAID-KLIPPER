@@ -537,15 +537,17 @@ MCU 的八条热身回复使用特殊初始离群规则，不能直接作为设�
 观测。夹具修复采用现有命令独占所有者、实际预留和当前时钟，不改变
 生产准入、期限或位置历史保护；源码 10／10 和编译相关 66／66 通过。
 原 124／125 fd 失败及后续有快照的 125／125 均保留，后者不解释
-前者。当前头完整 CI 及目标板仍待验，见
+前者。夹具头 f167815d 的普通 4222／4222、协议、sanitizer、Linux MCU
+和固件已终态成功；组合新头及目标板仍待验，见
 [补充验收](../host/contracts/clock-startup-fixture-acceptance.json)。
 启动修复与 sharp 0.35.5 的独立组合包已完成 105 项编译回归和一次
 原双 MCU 两代完整混合负载，原 1000 条运动、90 秒子进程期限、停止、
 正步提前量及循环门槛保留；封存包及依赖指纹见
 [组合验收](../host/contracts/clock-sharp-composition-acceptance.json)。
 安全依赖 #44 已完成 12 项检查并正常合入 develop；启动修复 #41
-自身完整 CI、组合新头及其正常集成／合并后验证仍未完成，见
-[集成追踪](../host/contracts/clock-sharp-integration-preparation.json)。
+组合新头及其正常集成／合并后验证仍未完成，见
+[集成追踪](../host/contracts/clock-sharp-integration-preparation.json)及
+[旧头终态记录](../host/contracts/clock-sharp-pr41-terminal.json)。
 不得据此切换默认入口或允许真实运动。状态／上传
 尾延迟单次观测的上升和既有图片性能代价仍保留，目标板尚未验收。
 
