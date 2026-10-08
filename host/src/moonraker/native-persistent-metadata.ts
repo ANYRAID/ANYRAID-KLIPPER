@@ -104,7 +104,13 @@ export class NativePersistentMetadata {
    try{recovered=await this.#life.recover(filename,signal,validate);}catch(error){if(!(error instanceof ApiError&&error.status===409&&error.message==='Metadata snapshot source changed'))throw error;}
   }
   if(recovered)this.#recovered++;
-  else{if(this.versions.current(filename)){await this.#life.invalidate(filename,signal);this.#index();await this.#life.retireSuperseded(signal,filename);}const result=await this.#life.scanExtraction(filename,signal,validate,()=>extractPublishedMetadata(this.files,this.#budget,this.extractor,id,signal));if(!result.committed)throw new ApiError(409,'Native metadata scan superseded');this.#scans++;}
+  else{const version=this.versions.current(filename);if(version){
+    // A retained invalidation already durably revokes every prior selection.
+    // Keep ordered retirement, but do not publish the same tombstone again
+    // before allocating a fresh scan intent and pending generation.
+    if(version.state!=='invalidated')await this.#life.invalidate(filename,signal);
+    this.#index();await this.#life.retireSuperseded(signal,filename);
+   }const result=await this.#life.scanExtraction(filename,signal,validate,()=>extractPublishedMetadata(this.files,this.#budget,this.extractor,id,signal));if(!result.committed)throw new ApiError(409,'Native metadata scan superseded');this.#scans++;}
   const current=await this.files.describeSource(id,signal);if(!samePublishedSource(initial.source,current.source)){this.#drop(filename);await this.#life.invalidate(filename,new AbortController().signal);throw new ApiError(409,'Native metadata receipt changed');}
   this.#keys.set(filename,current.source);await this.#life.retireSuperseded(signal,filename);this.#index();return this.#cache.metadata(filename);
  }

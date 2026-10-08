@@ -407,3 +407,7 @@ G-code 调度中验证，按工具暂停回抽及多热端温度快照也已验�
 共同文件发布后续候选减少重复内容的耐久写入成本，保留完整校验、
 失败拒绝及引用保护；本机对照有收益，但完整打印负载仍未通过，见
 [性能与失败记录](host/contracts/native-ufp-contention-acceptance.json)。
+元数据后续候选复用已经耐久提交的失效记录，避免在重新扫描前重复
+写入相同失效状态；旧预览撤销、新扫描代次及有序清理仍保留。局部
+性能改善尚不足以通过完整打印门槛，见
+[元数据性能审查](host/contracts/native-metadata-invalidation-acceptance.json)。
