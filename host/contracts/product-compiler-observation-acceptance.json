@@ -1,0 +1,535 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "productBase": "1f0e11f1bf416ef40abbfcbed54335a3915ddd76",
+  "sourceHead": "234f9395228b14bde6302273b2605b7d03ec3916",
+  "node": "v26.10.0",
+  "targeted": {
+    "pass": 4,
+    "fail": 0,
+    "initialFixtureByteCountFailureRetained": true
+  },
+  "typecheck": "success",
+  "whitespace": "success",
+  "cost": {
+    "schema": 1,
+    "budget": {
+      "warmups": 1,
+      "samples": 16,
+      "p95MaxMs": 250,
+      "scope": "Additional pre-launch digest work on this desktop, fixed before measurement; no compiler execution or target-board/printing-speed claim"
+    },
+    "node": "v26.10.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "logicalCpus": 6,
+    "kernel": "6.18.36-amd64-desktop-rolling",
+    "samplesMs": [
+      24.002149000000003,
+      17.206904999999992,
+      16.84190000000001,
+      16.927711000000016,
+      16.974331000000006,
+      16.939881000000014,
+      17.168633999999997,
+      16.67326799999998,
+      17.720011,
+      16.88489100000004,
+      17.15437399999996,
+      16.723828999999967,
+      18.67845299999999,
+      17.228425000000016,
+      17.656540000000007,
+      17.63709
+    ],
+    "medianMs": 17.16150399999998,
+    "p95Ms": 24.002149000000003,
+    "maxMs": 24.002149000000003,
+    "passed": true,
+    "inputs": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "platform": "linux",
+      "arch": "x64",
+      "typescript": "7.0.2",
+      "files": {
+        "entry": {
+          "bytes": 44,
+          "sha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd"
+        },
+        "wrapper": {
+          "bytes": 609,
+          "sha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e"
+        },
+        "resolver": {
+          "bytes": 3051,
+          "sha256": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+        },
+        "package": {
+          "bytes": 3087,
+          "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+        },
+        "config": {
+          "bytes": 472,
+          "sha256": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e"
+        },
+        "hostConfig": {
+          "bytes": 527,
+          "sha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1"
+        },
+        "lock": {
+          "bytes": 69143,
+          "sha256": "f3cf393547e61fc9ca09d33246faa789c483009de2c518c541db47ddb6fdfec8"
+        },
+        "nativePackage": {
+          "bytes": 1042,
+          "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7"
+        },
+        "nativeCandidate": {
+          "bytes": 24101026,
+          "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4"
+        }
+      }
+    },
+    "sourceSha256": "e5bcea8ca347a5c013fc494d4c83addb055f68b2ba20d6395b76ebf327f07db7",
+    "benchmarkSha256": "f0031f4a4ca67d89f0d5d34e208ea4a86e2e997c59ae7ee95c5f57f9f86cf0d0"
+  },
+  "equivalence": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "baseline": "/home/dek02/.cache/codex/tmp/anyraid-content-clock-sharp-product",
+    "output": "/home/dek02/.cache/codex/tmp/anyraid-compiler-observation-equivalence-product",
+    "baselineManifestSha256": "9127984d9e10530023c6c02827202b62ad951c5e768161b459d29b013fabce45",
+    "candidateManifestSha256": "9127984d9e10530023c6c02827202b62ad951c5e768161b459d29b013fabce45",
+    "fileCount": 667,
+    "allFileDigestsEqual": true,
+    "manifestsByteEqual": true,
+    "scope": "Fresh TypeScript compile with unchanged native files reused from sealed baseline; no native recompile, dependency install, service launch, client scene or printing. Native builds remain covered by ordinary regression."
+  },
+  "ordinary": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "success": false,
+    "counts": {
+      "tests": 4387,
+      "failed": 12,
+      "passed": 4375,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4387,
+      "suites": 0
+    },
+    "exitCode": 1,
+    "failureRows": [
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/motan-python-repr.test.ts",
+        "name": "Unicode 15 printability and quotes match Python across all codepoints in bounded batches",
+        "line": 28,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/native-history.test.ts",
+        "name": "test/native-history.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGTRAP",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/object-print.test.ts",
+        "name": "test/object-print.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": 1,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/print-layer-pause-compiled.test.ts",
+        "name": "layer pause ownership, file boundary and failure cleanup run in an independent compiled product",
+        "line": 14,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/probe-grid.test.ts",
+        "name": "test/probe-grid.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGSEGV",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/product-build.test.ts",
+        "name": "product publication is reproducible and preserves prior output on compiler or addon failure",
+        "line": 45,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/product-build.test.ts",
+        "name": "compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports",
+        "line": 57,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/product-host.test.ts",
+        "name": "executable host owns authenticated HTTP and graceful SIGINT shutdown (delta=true)",
+        "line": 38,
+        "column": 88,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/product-machine.test.ts",
+        "name": "read-only preflight CLI validates included topology without journal or MCU acquisition (delta=false)",
+        "line": 16,
+        "column": 33,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/sd-flash-build.test.ts",
+        "name": "compiled SD CLI and bundled FatFs run without Python, TS loader or source checkout",
+        "line": 11,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/source-brake.test.ts",
+        "name": "test/source-brake.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGSEGV",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/spectrogram-plot.test.ts",
+        "name": "spectrogram CLI renders short raw input, exports complete JSON, and preserves files on failure",
+        "line": 12,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      }
+    ],
+    "compilerRows": [
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "platform": "linux",
+        "arch": "x64",
+        "typescript": "7.0.2",
+        "files": {
+          "entry": {
+            "bytes": 44,
+            "sha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd"
+          },
+          "wrapper": {
+            "bytes": 609,
+            "sha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e"
+          },
+          "resolver": {
+            "bytes": 3051,
+            "sha256": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+          },
+          "package": {
+            "bytes": 3087,
+            "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+          },
+          "config": {
+            "bytes": 472,
+            "sha256": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e"
+          },
+          "hostConfig": {
+            "bytes": 527,
+            "sha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1"
+          },
+          "lock": {
+            "bytes": 69143,
+            "sha256": "f3cf393547e61fc9ca09d33246faa789c483009de2c518c541db47ddb6fdfec8"
+          },
+          "nativePackage": {
+            "bytes": 1042,
+            "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7"
+          },
+          "nativeCandidate": {
+            "bytes": 24101026,
+            "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4"
+          }
+        },
+        "status": 2,
+        "signal": null,
+        "errorCode": null,
+        "scope": "Pre-launch file digests; nativeCandidate is the installed platform candidate. Actual wrapper launch route, loaded memory, source inputs and concurrent mutation are not attested."
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "platform": "linux",
+        "arch": "x64",
+        "typescript": "7.0.2",
+        "files": {
+          "entry": {
+            "bytes": 44,
+            "sha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd"
+          },
+          "wrapper": {
+            "bytes": 609,
+            "sha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e"
+          },
+          "resolver": {
+            "bytes": 3051,
+            "sha256": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+          },
+          "package": {
+            "bytes": 3087,
+            "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+          },
+          "config": {
+            "bytes": 472,
+            "sha256": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e"
+          },
+          "hostConfig": {
+            "bytes": 527,
+            "sha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1"
+          },
+          "lock": {
+            "bytes": 69143,
+            "sha256": "f3cf393547e61fc9ca09d33246faa789c483009de2c518c541db47ddb6fdfec8"
+          },
+          "nativePackage": {
+            "bytes": 1042,
+            "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7"
+          },
+          "nativeCandidate": {
+            "bytes": 24101026,
+            "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4"
+          }
+        },
+        "status": 2,
+        "signal": null,
+        "errorCode": null,
+        "scope": "Pre-launch file digests; nativeCandidate is the installed platform candidate. Actual wrapper launch route, loaded memory, source inputs and concurrent mutation are not attested."
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "platform": "linux",
+        "arch": "x64",
+        "typescript": "7.0.2",
+        "files": {
+          "entry": {
+            "bytes": 44,
+            "sha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd"
+          },
+          "wrapper": {
+            "bytes": 609,
+            "sha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e"
+          },
+          "resolver": {
+            "bytes": 3051,
+            "sha256": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+          },
+          "package": {
+            "bytes": 3087,
+            "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+          },
+          "config": {
+            "bytes": 472,
+            "sha256": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e"
+          },
+          "hostConfig": {
+            "bytes": 527,
+            "sha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1"
+          },
+          "lock": {
+            "bytes": 69143,
+            "sha256": "f3cf393547e61fc9ca09d33246faa789c483009de2c518c541db47ddb6fdfec8"
+          },
+          "nativePackage": {
+            "bytes": 1042,
+            "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7"
+          },
+          "nativeCandidate": {
+            "bytes": 24101026,
+            "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4"
+          }
+        },
+        "status": 2,
+        "signal": null,
+        "errorCode": null,
+        "scope": "Pre-launch file digests; nativeCandidate is the installed platform candidate. Actual wrapper launch route, loaded memory, source inputs and concurrent mutation are not attested."
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "platform": "linux",
+        "arch": "x64",
+        "typescript": "7.0.2",
+        "files": {
+          "entry": {
+            "bytes": 44,
+            "sha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd"
+          },
+          "wrapper": {
+            "bytes": 609,
+            "sha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e"
+          },
+          "resolver": {
+            "bytes": 3051,
+            "sha256": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+          },
+          "package": {
+            "bytes": 3087,
+            "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+          },
+          "config": {
+            "bytes": 472,
+            "sha256": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e"
+          },
+          "hostConfig": {
+            "bytes": 527,
+            "sha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1"
+          },
+          "lock": {
+            "bytes": 69143,
+            "sha256": "f3cf393547e61fc9ca09d33246faa789c483009de2c518c541db47ddb6fdfec8"
+          },
+          "nativePackage": {
+            "bytes": 1042,
+            "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7"
+          },
+          "nativeCandidate": {
+            "bytes": 24101026,
+            "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4"
+          }
+        },
+        "status": 2,
+        "signal": null,
+        "errorCode": null,
+        "scope": "Pre-launch file digests; nativeCandidate is the installed platform candidate. Actual wrapper launch route, loaded memory, source inputs and concurrent mutation are not attested."
+      }
+    ]
+  },
+  "evidence": {
+    "path": "product-compiler-observation-acceptance.evidence.json.gz",
+    "sha256": "bcb64214f886a2a1aeb66a62030a698f4b49b20b992721ae891b59305854818d",
+    "bytes": 281844,
+    "entries": 15
+  },
+  "scope": "Bounded TypeScript build-input and wrapper-exit observation. No change to compiler args, 60-second timeout, 4-MiB output cap, product bytes, printing behavior or tolerances; no retries or closure of historical failures, client acceptance or G3."
+}
