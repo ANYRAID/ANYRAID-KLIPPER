@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "sourceBase": "926c7f895ecc4c6c24cc0b85194b6a80d70c64c7",
+  "failedDevelop": {
+    "path": "develop-926-terminal.json",
+    "evidenceSha256": "09f32642679721852dfde6b8df87c9258ccf5ab7351d9ee12e12eea3844a4b27"
+  },
+  "hypotheses": [
+    "Motion port busy or pending moves",
+    "Controller action, safety stop or failed state",
+    "Independent MCU/hardware fault between calibration completion and configuration save"
+  ],
+  "change": "Test-only failure message captures configuration GET snapshot plus current controller, native port, MCU group, hardware, maintenance and physical stop state. No wait, retry, production guard, HTTP200 expectation, geometry, precision or deadline change.",
+  "observation": {
+    "node": "26.10.0",
+    "conditions": [
+      "original rectangular grid",
+      "original circular grid"
+    ],
+    "pass": 2,
+    "fail": 0,
+    "durationMs": 16498.565081,
+    "originalFailureReproduced": false,
+    "rootCause": "unproved",
+    "preparation": "First attempt did not start because native plugins were absent; built original plugins, then ran the previously unstarted observation once."
+  },
+  "integration": {
+    "fullTypecheck": "passed",
+    "whitespace": "passed",
+    "productSourceNativeDependenciesVsPR50e5": "identical",
+    "motionDiagnosticAndTestsVsPR54Combination": "identical",
+    "performance": "Reuse existing source-identical PR50 sealed product, original seven budgets and mixed load evidence; no additional benchmark samples or target claim."
+  },
+  "evidence": {
+    "path": "grid-save-idle-observation.evidence.json.gz",
+    "sha256": "53ebb55888d1895c6f66f10684eddf34e73137f22f37bdfb172dc7ac30bd876c",
+    "bytes": 5316,
+    "entries": 6
+  },
+  "decision": "Retain current develop failure as unresolved. Future 409 evidence must distinguish actual ownership/fault states; successful limited observation cannot close the original failure or G3."
+}

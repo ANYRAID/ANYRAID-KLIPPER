@@ -44,11 +44,14 @@ const source=kind==='motion'?`console.log('motion:loading');
 const {motionPlots,motionPositions}=await import(${JSON.stringify(motionModule)});
 const {motionGraphReference}=await import(${JSON.stringify(referenceModule)});
 const {default:assert}=await import('node:assert/strict');
-const {writeFileSync}=await import('node:fs');
+const {writeFileSync,writeSync}=await import('node:fs');
 const {serialize}=await import('node:v8');
+// A dedicated pipe keeps the original verification stdout contract intact.
+const progress=(run,stage)=>{if(process.env.ANYRAID_MOTION_PROGRESS==='1')writeSync(3,JSON.stringify({run,stage,elapsedMs:performance.now(),resources:process.resourceUsage()})+'\\n');};
 const profile={order:4,jerkLimit:true},reference=motionGraphReference('weighted4',undefined,profile);
 console.log('motion:loaded');
 for(let run=0;run<16;run++){
+ progress(run,'positions');
  const positions=motionPositions(profile);assert.equal(positions.length,reference.positions.length);
  positions.forEach((v,i)=>{const expected=reference.positions[i],difference=v-expected,absolute=Math.abs(difference),within=absolute<=1e-12;if(!within){
   const capture=new URL('motion-mismatch-'+process.pid+'-'+run+'.bin',import.meta.url);
@@ -56,7 +59,9 @@ for(let run=0;run<16;run++){
   const repeated=motionPositions(profile);writeFileSync(new URL(capture.href+'.repeat'),serialize({positions:repeated}),{flag:'wx',mode:0o600,flush:true});
   throw new Error('Motion position mismatch '+JSON.stringify({run,index:i,actual:v,expected:reference.positions[i],repeated:repeated[i],capture:capture.href}));
  }});
+ progress(run,'plots');
  let stages;const panels=motionPlots('weighted4',undefined,profile,value=>{stages=value;});assert.equal(panels.length,reference.panels.length);
+ progress(run,'comparison');
  panels.forEach((p,i)=>{const r=reference.panels[i];assert.equal(p.plot.curves.length,r.curves.length);p.plot.curves.forEach((c,j)=>{
   const expected=r.curves[j];assert.deepEqual(c.times,expected.times);assert.equal(c.values.length,expected.values.length);
   c.values.forEach((v,k)=>{const target=expected.values[k],difference=v-target,absolute=Math.abs(difference),tolerance=[1e-8,1e-4,1e-10][i],within=absolute<=tolerance;if(!within){
@@ -73,6 +78,7 @@ for(let run=0;run<16;run++){
    throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],xor,repeated,capture:capture.href,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));
   }});
  });});
+ progress(run,'verified');
 }
 console.log('motion:verified');
 `:kind==='strip'?`import {stripTypeScriptTypes} from 'node:module';
@@ -81,7 +87,7 @@ for(let i=0;i<40;i++)stripTypeScriptTypes(source);
 console.log('stripped');\n`:`console.log('started');\n`;
 writeFileSync(fixture,source);
 if(execution==='compiled'){const path=join(directory,'source-fixture.mjs'),root=join(directory,'source');writeFileSync(path,source.replace(JSON.stringify(motionModule),JSON.stringify(pathToFileURL(join(root,'src/diagnostics/graph-motion.ts')).href)).replace(JSON.stringify(referenceModule),JSON.stringify(pathToFileURL(join(root,'bench/motion-graph-reference.ts')).href)));sourceFixture={path,sha256:hash(path)};}
-const env:NodeJS.ProcessEnv={...process.env,LD_PRELOAD:runtime,ASAN_OPTIONS:`detect_leaks=0:abort_on_error=1:${segv==='exclusive'?'handle_segv=2:':''}verbosity=1:log_path=${join(directory,'asan')}`};
+const env:NodeJS.ProcessEnv={...process.env,ANYRAID_MOTION_PROGRESS:kind==='motion'?'1':undefined,LD_PRELOAD:runtime,ASAN_OPTIONS:`detect_leaks=0:abort_on_error=1:${segv==='exclusive'?'handle_segv=2:':''}verbosity=1:log_path=${join(directory,'asan')}`};
 // Do not inherit unrelated runtime flags or addon paths into minimal cases.
 delete env.NODE_OPTIONS;if(asan==='off'){delete env.LD_PRELOAD;delete env.ASAN_OPTIONS;}for(const key of Object.keys(env))if(key.startsWith('ANYRAID_')&&key.endsWith('_ADDON'))delete env[key];
 const addonHashes:Record<string,string>={};
@@ -94,11 +100,11 @@ const args=[...(execution==='compiled'?['--no-experimental-strip-types']:[]),...
 // fixture imports make motion independent of cwd; history still needs host.
 const childWorkingDirectory=kind==='history'?host:directory;
 const corePolicy=process.platform==='linux'?{filter:readFileSync('/proc/self/coredump_filter','utf8').trim(),pattern:readFileSync('/proc/sys/kernel/core_pattern','utf8').trim(),usesPid:readFileSync('/proc/sys/kernel/core_uses_pid','utf8').trim(),limits:readFileSync('/proc/self/limits','utf8').split('\n').find(line=>line.startsWith('Max core file size'))}:undefined;
-interface Result {index:number;pid:number|undefined;status:number|null;signal:NodeJS.Signals|null;error?:string;stdout:string;stderr:string;elapsedMs:number}
+interface Result {index:number;pid:number|undefined;status:number|null;signal:NodeJS.Signals|null;error?:string;stdout:string;stderr:string;progress:string;termination?:{reason:'deadline'|'output-budget'|'parent-interruption';signal:NodeJS.Signals;requestedAtMs:number;sent:boolean};elapsedMs:number}
 const results:Result[]=[];let next=0,failed=false;
 const startedAt=new Date().toISOString(),started=performance.now();
-const metadata={childWorkingDirectory,corePolicy,node,version:version.stdout.trim(),nodeSha256:hash(node),runtime,runtimeSha256:runtime?hash(runtime):undefined,addonHashes,moduleHashes,compiledHashes,frozenSourceHashes,sourceFixture,compilerVersion,execution,system,kind,segv,asan,wasmBounds,jsOptimization,args,limit,workers,fixtureSha256:hash(fixture)};
-const active=new Map<ReturnType<typeof spawn>,{index:number;pid:number|undefined}>();
+const metadata={childWorkingDirectory,corePolicy,node,version:version.stdout.trim(),nodeSha256:hash(node),runtime,runtimeSha256:runtime?hash(runtime):undefined,addonHashes,moduleHashes,compiledHashes,frozenSourceHashes,sourceFixture,compilerVersion,execution,system,kind,segv,asan,wasmBounds,jsOptimization,args,limit,workers,childDeadlineMs:10000,outputBudgetBytes:1024*1024,progressChannel:kind==='motion'?'fd3-ndjson':undefined,fixtureSha256:hash(fixture)};
+const active=new Map<ReturnType<typeof spawn>,{index:number;pid:number|undefined;terminate:(signal:NodeJS.Signals,reason:NonNullable<Result['termination']>['reason'])=>void}>();
 let interruption:NodeJS.Signals|undefined,killTimer:ReturnType<typeof setTimeout>|undefined;
 /** A killed parent leaves state=running, never a false completion. Store in a
  * persistent --report-parent when the environment may discard /tmp. */
@@ -106,26 +112,31 @@ function checkpoint(state:'running'|'completed'|'failed'|'interrupted'){
  const coreFiles=readdirSync(directory).filter(name=>/^core(?:\.|$)/.test(name)).map(name=>({path:join(directory,name),bytes:statSync(join(directory,name)).size}));
  const mismatchFiles=readdirSync(directory).filter(name=>/^motion-mismatch-\d+-\d+\.bin(?:\.repeat)?$/.test(name)).map(name=>({path:join(directory,name),bytes:statSync(join(directory,name)).size,sha256:hash(join(directory,name))}));
  const path=join(directory,'report.json'),temporary=path+'.tmp';
- writeFileSync(temporary,JSON.stringify({...metadata,startedAt,updatedAt:new Date().toISOString(),elapsedMs:performance.now()-started,state,interruption,active:[...active.values()],coreFiles,mismatchFiles,results},null,2),{flush:true,mode:0o600});
+ writeFileSync(temporary,JSON.stringify({...metadata,startedAt,updatedAt:new Date().toISOString(),elapsedMs:performance.now()-started,state,interruption,active:[...active.values()].map(({index,pid})=>({index,pid})),coreFiles,mismatchFiles,results},null,2),{flush:true,mode:0o600});
  renameSync(temporary,path);
 }
 function interrupt(signal:NodeJS.Signals){
  if(interruption)return;interruption=signal;checkpoint('interrupted');
- for(const child of active.keys())child.kill('SIGTERM');
- killTimer=setTimeout(()=>{for(const child of active.keys())child.kill('SIGKILL');},1000);killTimer.unref();
+ for(const child of active.values())child.terminate('SIGTERM','parent-interruption');
+ killTimer=setTimeout(()=>{for(const child of active.values())child.terminate('SIGKILL','parent-interruption');},1000);killTimer.unref();
 }
 const onInterrupt=()=>interrupt('SIGINT'),onTerminate=()=>interrupt('SIGTERM');
 process.on('SIGINT',onInterrupt);process.on('SIGTERM',onTerminate);
 checkpoint('running');
 console.log(JSON.stringify({directory,kind,node,version:version.stdout.trim(),limit,workers,segv,asan,wasmBounds,jsOptimization,execution,compilerVersion}));
 await Promise.all(Array.from({length:workers},async()=>{while(next<limit&&!failed&&!interruption){const index=next++,begin=performance.now();await new Promise<void>(resolve=>{
- const child=spawn(node,args,{cwd:childWorkingDirectory,env,timeout:10000,killSignal:'SIGKILL'});let stdout='',stderr='',error:string|undefined;
- active.set(child,{index,pid:child.pid});checkpoint(interruption?'interrupted':'running');
- const capture=(target:'stdout'|'stderr',chunk:Buffer)=>{if(stdout.length+stderr.length+chunk.length>1024*1024){error='Output budget exceeded';child.kill('SIGKILL');return;}if(target==='stdout')stdout+=chunk.toString();else stderr+=chunk.toString();};
+ const child=spawn(node,args,{cwd:childWorkingDirectory,env,stdio:['pipe','pipe','pipe','pipe']});let stdout='',stderr='',progress='',outputBytes=0,error:string|undefined,termination:Result['termination'];
+ const terminate=(signal:NodeJS.Signals,reason:NonNullable<Result['termination']>['reason'])=>{const requestedAtMs=performance.now()-begin,sent=child.kill(signal);termination??={reason,signal,requestedAtMs,sent};};
+ // Match the original spawn timeout: one fixed deadline, never refreshed by progress.
+ const deadline=setTimeout(()=>terminate('SIGKILL','deadline'),10000);deadline.unref();
+ child.once('exit',()=>clearTimeout(deadline));
+ active.set(child,{index,pid:child.pid,terminate});checkpoint(interruption?'interrupted':'running');
+ const capture=(target:'stdout'|'stderr'|'progress',chunk:Buffer)=>{outputBytes+=chunk.length;if(outputBytes>1024*1024){error='Output budget exceeded';terminate('SIGKILL','output-budget');return;}if(target==='stdout')stdout+=chunk.toString();else if(target==='stderr')stderr+=chunk.toString();else progress+=chunk.toString();};
+ (child.stdio[3] as import('node:stream').Readable).on('data',b=>capture('progress',b));
  child.stdout.on('data',b=>capture('stdout',b));child.stderr.on('data',b=>capture('stderr',b));child.on('error',e=>{error=e.message;});
- child.on('close',(status,signal)=>{const marker=kind==='motion'?'motion:verified':kind==='strip'?'stripped':kind==='empty'?'started':undefined;if(status===0&&marker&&stdout.trimEnd().split('\n').at(-1)!==marker&&!error)error='Verification completion marker missing';const result={index,pid:child.pid,status,signal,error,stdout,stderr,elapsedMs:performance.now()-begin};results.push(result);active.delete(child);if(status!==0||error){failed=true;console.log(JSON.stringify({index,status,signal,error}));}checkpoint(interruption?'interrupted':'running');resolve();});
+ child.on('close',(status,signal)=>{clearTimeout(deadline);const marker=kind==='motion'?'motion:verified':kind==='strip'?'stripped':kind==='empty'?'started':undefined;if(status===0&&marker&&stdout.trimEnd().split('\n').at(-1)!==marker&&!error)error='Verification completion marker missing';const result={index,pid:child.pid,status,signal,error,stdout,stderr,progress,termination,elapsedMs:performance.now()-begin};results.push(result);active.delete(child);if(status!==0||error||termination){failed=true;console.log(JSON.stringify({index,status,signal,error,termination}));}checkpoint(interruption?'interrupted':'running');resolve();});
  });}}));
 checkpoint(interruption?'interrupted':failed?'failed':'completed');
 clearTimeout(killTimer);process.removeListener('SIGINT',onInterrupt);process.removeListener('SIGTERM',onTerminate);
-console.log(JSON.stringify({directory,runs:results.length,failures:results.filter(r=>r.status!==0||r.error).length}));
+console.log(JSON.stringify({directory,runs:results.length,failures:results.filter(r=>r.status!==0||r.error||r.termination).length}));
 if(interruption)process.exitCode=interruption==='SIGINT'?130:143;else if(failed)process.exitCode=1;
