@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "recordedAt": {
+    "current_time": "2026-10-08 05:59:44 UTC"
+  },
+  "scope": "Exact old PR41 head terminal CI, prepared normal fast-forward to prevalidated sharp composition. No unchanged-head retry and no new local performance samples.",
+  "oldPr41": {
+    "head": "f167815d423dd4d9e8d05523ea9cee78fe46ed22",
+    "host": {
+      "run": 37731996827,
+      "job": 113162999995,
+      "conclusion": "success",
+      "ordinaryTests": 4222,
+      "ordinaryPass": 4222,
+      "protocol": "success",
+      "sanitizer": "success",
+      "sanitizedCommands": 314,
+      "linuxMcu": "success",
+      "completedAt": "2026-10-08T05:56:54Z"
+    },
+    "firmware": {
+      "run": 37731996790,
+      "conclusion": "success"
+    },
+    "fd": {
+      "counts": [
+        85,
+        85,
+        85
+      ],
+      "meaning": "Original assertion passed in this CI with readonly snapshots; does not explain prior whole-group failure or close its root cause"
+    }
+  },
+  "preparedComposition": {
+    "commit": "9d81e54051f4ed771ed21b621811be818f06dc80",
+    "develop": "4ef5e28f6b3992d19a15e182f9814052e7ffdbd2",
+    "method": "Normal fast-forward same PR41 task branch after exact old-head CI completed; existing normal merge ancestry retained",
+    "productionInputsUnchangedSinceLocalValidation": true,
+    "product": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-clock-sharp-composition-product",
+      "manifestSha256": "f27b81b030972b1a9fae4f33985c217af34978f7ba093adc3eb506d565dd9df3",
+      "dependenciesSha256": "9844b3cfccd671b7fb1f3b57b98b489ce9efeca1003a7c73c5d54037403d922c"
+    },
+    "validationReuse": "105 compiled controls, original full mixed1/1 and5000 fixed numerical-reference run reused under exact immutable product; no rerun for terminal metadata",
+    "performanceLimits": "Desktop bounded observation. Original positive step lead, event-loop P99<50ms/max<100ms and stop/recovery/assertions retained. Status P99 6.597ms is above earlier separate clock4.131/sharp4.296 single runs; uploadP95 84.718ms above prior sharp51.474ms. Unpaired single runs do not isolate dependency/clock causation; retain these observations, no zero-regression or target budget claim.",
+    "newCombinedHeadCi": "Required after push; old-head success does not certify new head"
+  },
+  "developPostMerge": {
+    "commit": "4ef5e28f6b3992d19a15e182f9814052e7ffdbd2",
+    "hostRun": 37733779385,
+    "host": "ordinary/protocol success, sanitizer in progress",
+    "firmwareRun": 37733779394,
+    "firmware": "success",
+    "motionRun": 37733779348,
+    "motion": "all10 success"
+  },
+  "evidence": {
+    "path": "clock-sharp-pr41-terminal.evidence.json.gz",
+    "sha256": "7980c95d0b0cfdaa0017c0ee89a2b314c01987bb416d992df12dade8aa20f8bb",
+    "bytes": 411899,
+    "entries": 3
+  },
+  "remaining": [
+    "Combined head own full CI and normal develop integration",
+    "Develop post-merge host terminal",
+    "Historical global fd failure explanation",
+    "Complete same-package clients",
+    "Cycnumbris500 target performance and precision",
+    "G3",
+    "Complete Moonraker",
+    "Full Python retirement",
+    "Mainline release"
+  ]
+}

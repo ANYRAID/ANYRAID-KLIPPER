@@ -50,10 +50,44 @@ export class ClockRuntime {
    const requested=this.#now(),uptime=await this.#query(s=>this.#transport.uptime(s),5);this.#abort.signal.throwIfAborted();this.#validate(uptime,requested);
    if(!Number.isInteger(uptime.high)||uptime.high<0||uptime.high>0xffffffff||!Number.isInteger(uptime.clock32)||uptime.clock32<0||uptime.clock32>0xffffffff||uptime.sentTime===0)throw new Error('Invalid uptime response');
    this.#sync=new ClockSync(this.#frequency,(BigInt(uptime.high)<<32n)|BigInt(uptime.clock32),uptime.sentTime);
-   let learned=0;
-   for(let i=0;i<8;i++){await this.#wait(.05);const time=this.#now(),sample=await this.#query(s=>this.#transport.queryClock(s),5);this.#abort.signal.throwIfAborted();this.#validate(sample,time);const estimate=this.sync.accept(sample,true);if(estimate){this.#transport.setClockEstimate(estimate);learned++;this.#expires=sample.receiveTime+STALE;}}
+   let learned=0,minRtt=uptime.receiveTime-uptime.sentTime,anchor:number|undefined;
+   const warmup:{sample:ClockSample;clock:bigint}[]=[];
+   for(let i=0;i<8;i++){
+    await this.#wait(.05);const time=this.#now(),sample=await this.#query(s=>this.#transport.queryClock(s),5);this.#abort.signal.throwIfAborted();this.#validate(sample,time);
+    const estimate=this.sync.accept(sample,true);warmup.push({sample:{...sample},clock:this.sync.lastClock});
+    if(sample.sentTime&&sample.receiveTime-sample.sentTime<minRtt){minRtt=sample.receiveTime-sample.sentTime;anchor=i;}
+    if(estimate){this.#transport.setClockEstimate(estimate);learned++;this.#expires=sample.receiveTime+STALE;}
+   }
    if(!learned)throw new Error('No usable clock warmup samples');
-   this.#state='active';this.#tick();if(this.status.state!=='active')throw this.#fault;
+   if(anchor!==undefined){
+    // Uptime remains the full-width counter epoch. A real clock reply with a
+    // shorter measured RTT supplies a less uncertain departure-time anchor;
+    // never synthesize a counter or change the regression/outlier formula.
+    const selected=warmup[anchor],previous=this.sync;
+    this.#sync=new ClockSync(this.#frequency,selected.clock,selected.sample.sentTime);previous.invalidate();
+    // Later retained samples condition the estimator, but their stale release
+    // values and the previous owner's lease are not republished or inherited.
+    for(const row of warmup.slice(anchor+1))this.sync.accept(row.sample,true);
+    learned=0;this.#expires=Infinity;const deadline=this.#now()+STALE;
+    // At most eight extra startup queries at the existing 20 Hz warmup rate,
+    // within one existing stale interval. Motion stays fenced throughout.
+    for(let i=0;i<8;i++){
+     await this.#wait(.05);const time=this.#now();if(time>=deadline)throw new Error('MCU clock calibration deadline exceeded');
+     const sample=await this.#query(s=>this.#transport.queryClock(s),Math.min(5,deadline-time));this.#abort.signal.throwIfAborted();const now=this.#validate(sample,time);
+     if(now>=deadline)throw new Error('MCU clock calibration deadline exceeded');
+     const estimate=this.sync.accept(sample,true);if(estimate){this.#transport.setClockEstimate(estimate);learned++;this.#expires=sample.receiveTime+STALE;}
+    }
+    if(!learned)throw new Error('No usable clock calibration samples');
+   }
+   // Warmup deliberately bypasses part of the outlier filter. Before granting
+   // motion, qualify the existing first periodic reply under the normal model.
+   // Unusable replies keep the original usable-estimate deadline, even here.
+   while(!await this.#sample()){
+    const now=this.#now();if(now>=this.#expires)throw new Error('MCU clock samples expired');
+    await this.#wait(Math.min(this.#expires-now,Math.max(0,PERIOD-(now-this.#lastRequest))));
+   }
+   this.#abort.signal.throwIfAborted();this.#state='active';this.assertActive();
+   this.#cancel=this.#scheduler.schedule(()=>this.#tick(),Math.max(0,PERIOD-(this.#now()-this.#lastRequest)));
   }catch(error){try{await this.#end(error,true);}catch{/* Retained in status. */}throw error;}
  }
  /** Best-effort fresh sample request. Shares the periodic query route, permits
@@ -61,17 +95,18 @@ export class ClockRuntime {
   * Completion must still be checked against sync.lastClock by the caller. */
  requestSample():void{
   this.assertActive();
-  try{if(this.#now()-this.#lastRequest>=.05)this.#sample();}catch(error){this.#fail(error);throw error;}
+  try{if(this.#now()-this.#lastRequest>=.05)void this.#sample().catch(error=>{if(this.#state==='active')this.#fail(error);});}catch(error){this.#fail(error);throw error;}
  }
- #sample():void{
-  if(this.#inFlight)return;
-  this.#inFlight=true;this.sync.querySent();const requested=this.#now();this.#lastRequest=requested;
-  void this.#query(s=>this.#transport.queryClock(s),Math.min(5,this.#expires-requested)).then(sample=>{
+ async #sample():Promise<boolean>{
+  if(this.#inFlight)return false;
+  const requested=this.#now();if(requested>=this.#expires)throw new Error('MCU clock samples expired');
+  this.#inFlight=true;this.sync.querySent();this.#lastRequest=requested;
+  try{const sample=await this.#query(s=>this.#transport.queryClock(s),Math.min(5,this.#expires-requested));
    this.#abort.signal.throwIfAborted();const now=this.#validate(sample,requested);if(now>=this.#expires)throw new Error('Late clock response cannot renew expired motion authorization');
    // A reply can advance raw MCU time while its estimator sample is unusable.
    // Only a published usable estimate renews the existing motion clock lease.
-   const estimate=this.sync.accept(sample);if(estimate){this.#transport.setClockEstimate(estimate);this.#expires=sample.receiveTime+STALE;}
-  }).catch(error=>{if(this.#state==='active')this.#fail(error);}).finally(()=>{this.#inFlight=false;});
+   const estimate=this.sync.accept(sample);if(estimate){this.#transport.setClockEstimate(estimate);this.#expires=sample.receiveTime+STALE;}return estimate!==null;
+  }finally{this.#inFlight=false;}
  }
  #tick():void{
   if(this.#state!=='active')return;
