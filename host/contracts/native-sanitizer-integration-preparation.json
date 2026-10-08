@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "scope": "PR52 与最新 develop 的独立预合并准备；不更新在途 PR 头，不计完整 CI、打印性能或交付通过。",
+  "candidate": "63293c6fd564c26badcd04a206592a9e6b8ada8d",
+  "develop": "bf310300033492dc738c6bfecc045a912d34a784",
+  "merge": "正常合并，只在交付计划发生文档冲突，保留两侧历史并更新当前头；生产及依赖与 develop 相同，调度入口、覆盖参考和控制与候选相同。",
+  "checks": {
+    "controlsPass": 4,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 705.633043,
+    "typecheck": "完整类型检查通过",
+    "whitespace": "规定 Node 空白及 git diff --check 通过",
+    "runtimeAndDependencies": "git diff origin/develop -- host/src host/native host/package.json host/package-lock.json 无差异",
+    "sanitizerInputs": "工作流、sanitizer 入口、命令参考及控制测试与 63293c6f 无差异"
+  },
+  "pr41": {
+    "head": "50a3c65cefd6d221b903189b7f4b420372b19d0f",
+    "ownHead": "主机与固件全部终态成功；普通 4222／4222，协议、314 条 sanitizer 命令、Linux MCU 全部通过",
+    "merge": "正常合入 bf310300，父提交 4ef5e28f 和 50a3c65c，树与已检头相同",
+    "terminal": "host/contracts/clock-sharp-combined-head-terminal.json",
+    "postMergeHostRun": 37738931475,
+    "postMergeFirmwareRun": 37738931541,
+    "postMerge": "类型及空白通过，完整终态仍待核验"
+  },
+  "remaining": [
+    "保留 63293c6f 原运行，等待全部终态并保留原始日志后才发布组合",
+    "发布后的组合头必须执行自身完整 CI，不能用旧头或 develop 成功替代",
+    "没有新调度耗时结果，不宣称已实现加速",
+    "同包完整客户端、原冷内容预算、目标板、G3、完整 Moonraker、Python 退役和主线发布仍开放"
+  ]
+}

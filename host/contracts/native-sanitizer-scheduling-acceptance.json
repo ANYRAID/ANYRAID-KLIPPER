@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base": "4ef5e28f6b3992d19a15e182f9814052e7ffdbd2",
+  "scope": "CI 调度候选；不改产品、原生 C、依赖、数值算法、断言或 sanitizer 环境。",
+  "node": "26.10.0",
+  "reviewCorrection": "独立 sanitizer 作业须先运行原 build:native；原流程由 npm test 的 pretest 提供普通插件，AR100 测试仍直接核验普通生产及测试插件。本次保留原准备，不改 314 条 sanitizer 命令。",
+  "correctionValidation": {
+    "controlsPass": 4,
+    "fail": 0,
+    "durationMs": 686.661014,
+    "typecheck": "完整类型检查通过",
+    "whitespace": "规定 Node 空白检查及 git diff --check 通过",
+    "firstRestrictedExecution": "修正后首次受限执行仅报告测试工作进程失败，未报告子测试结果；随后获准环境完成上述四项检查。保留失败，不宣称已定位该环境失败根因。"
+  },
+  "previousCandidate": {
+    "commit": "9bbb149fd2fea55c32171abe3b3753a3e6a856e0",
+    "hostRun": 37738347503,
+    "scope": "自审发现普通插件前置构建缺项；当时 checks、UBSAN、ASAN 尚在运行，未取消、重启或计通过。修正必须等待新提交自己的完整 CI。"
+  },
+  "local": {
+    "controls": "host/test/native-sanitizer-workflow.test.ts",
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 707.128454,
+    "coverageReference": "host/contracts/native-sanitizer-command-reference.json",
+    "commands": 314,
+    "perMode": {"testFiles": 150, "builds": 7, "commandTimeoutMs": 60000},
+    "gateResultCombinations": 25,
+    "typecheck": "通过完整 tsconfig 类型检查",
+    "whitespace": "规定 Node 空白检查及 git diff --check 通过",
+    "initialSetupFailure": "首次依赖链接路径错误，yaml 模块缺失导致测试未启动；改正链接后完成上述控制检查。未改产品或放宽条件。"
+  },
+  "serialTimingReference": {
+    "sourceRun": 37730692231,
+    "sourceJob": 113158891151,
+    "sourceCommit": "794fcf547ec81150fe6bcf8f8c2771a365631ebb",
+    "testCommands": 300,
+    "testTotalMs": 1224837.4871930014,
+    "buildCommands": 14,
+    "buildTotalMs": 12688.97488099998,
+    "scope": "既有成功 PR 原始串行日志；不是本候选的测量。"
+  },
+  "remaining": [
+    "本候选自己的完整 CI 及实际耗时尚待验证，不能宣称加速已实现",
+    "不使用旧头成功替代当前头终态",
+    "启动校准 PR、原冷内容预算、同包完整客户端、目标板、G3、完整 Moonraker、Python 退役和主线发布仍开放"
+  ]
+}

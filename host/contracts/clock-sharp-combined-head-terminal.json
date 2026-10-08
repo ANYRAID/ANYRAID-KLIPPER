@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "recordedAt": {
+    "current_time": "2026-10-08 06:39:14 UTC"
+  },
+  "commit": "50a3c65cefd6d221b903189b7f4b420372b19d0f",
+  "scope": "PR41 组合头自身完整 CI 终态；历史 fd 异常、目标板、G3 和完整交付仍开放。",
+  "host": {
+    "run": 37735416655,
+    "job": 113173715644,
+    "conclusion": "success",
+    "ordinary": {
+      "tests": 4222,
+      "pass": 4222,
+      "fail": 0,
+      "durationMs": 684354.926795
+    },
+    "protocol": "success",
+    "sanitizer": "success",
+    "sanitizedCommands": 314,
+    "linuxMcu": "success"
+  },
+  "firmware": {
+    "run": 37735416662,
+    "job": 113173715729,
+    "conclusion": "success"
+  },
+  "evidence": {
+    "path": "host/contracts/clock-sharp-combined-head-terminal.evidence.json.gz",
+    "sha256": "4f22738016c39d42fdb59e439a56b1506b900c29e575b59157d1eab93eade8d2",
+    "bytes": 410035,
+    "entries": 3
+  },
+  "remaining": [
+    "PR41 已正常合入 bf310300；合并后主机 37738931475 与固件 37738931541 在途",
+    "历史 fd 整组异常判别",
+    "原冷内容性能预算",
+    "完整同包客户端出口",
+    "目标板性能和精度",
+    "G3",
+    "完整 Moonraker",
+    "Python 退役",
+    "主线发布"
+  ],
+  "merge": {
+    "commit": "bf310300033492dc738c6bfecc045a912d34a784",
+    "parents": [
+      "4ef5e28f6b3992d19a15e182f9814052e7ffdbd2",
+      "50a3c65cefd6d221b903189b7f4b420372b19d0f"
+    ],
+    "tree": "与已检 PR 头相同",
+    "postMerge": "完整终态待核验"
+  }
+}

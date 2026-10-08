@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "recordedAt": {
+    "current_time": "2026-10-08 06:15:48 UTC"
+  },
+  "commit": "4ef5e28f6b3992d19a15e182f9814052e7ffdbd2",
+  "scope": "Actual develop post-merge required CI, separately from PR44 exact-head success. No source mutation, benchmark rerun, deployment or motion/G3 acceptance.",
+  "host": {
+    "run": 37733779385,
+    "job": 113168623320,
+    "conclusion": "success",
+    "ordinary": {
+      "tests": 4206,
+      "pass": 4206,
+      "fail": 0,
+      "durationMs": 629785.336846
+    },
+    "protocol": "success",
+    "sanitizer": "success",
+    "sanitizedCommands": 314,
+    "linuxMcu": "success"
+  },
+  "firmware": {
+    "run": 37733779394,
+    "job": 113168623505,
+    "conclusion": "success"
+  },
+  "motion": {
+    "run": 37733779348,
+    "jobs": [
+      {
+        "id": 113168623511,
+        "name": "motion (26.9.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113168623578,
+        "name": "motion (26.10.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113168623628,
+        "name": "motion (26.10.0, default, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113168623663,
+        "name": "motion (26.9.0, off, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113168623670,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113168623693,
+        "name": "motion (26.9.0, default, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113168623694,
+        "name": "motion (26.10.0, off, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113168623709,
+        "name": "motion (26.10.0, off, source)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113168623753,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113168623758,
+        "name": "motion (26.9.0, default, compiled)",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "requiredChecks": 12,
+  "conclusion": "All12 terminal success",
+  "pr44": "Merged PR description updated in existing signed-in built-in browser after connector returned403; same authorized metadata operation, no source or check changes",
+  "pr41": {
+    "head": "50a3c65cefd6d221b903189b7f4b420372b19d0f",
+    "hostRun": 37735416655,
+    "host": "ordinary/protocol success, sanitizer in progress",
+    "firmwareRun": 37735416662,
+    "firmware": "success",
+    "requirement": "Await exact combined-head terminal; not certified by develop result"
+  },
+  "evidence": {
+    "path": "host/contracts/develop-4ef5-terminal.evidence.json.gz",
+    "sha256": "fe73bbfefe7f741c0fbe0fa3fd0646aac2f7d2576f0fb333b703e0db936cca34",
+    "bytes": 405983,
+    "entries": 3
+  },
+  "remaining": [
+    "PR41 own terminal and normal integration",
+    "Historical fd failure explanation",
+    "PR50 original cold-content budget and own integration",
+    "Complete same-package client journey",
+    "Cycnumbris500 target performance and precision",
+    "G3",
+    "Complete Moonraker",
+    "Full Python retirement",
+    "Mainline release"
+  ]
+}

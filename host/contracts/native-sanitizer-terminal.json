@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "63293c6fd564c26badcd04a206592a9e6b8ada8d",
+  "scope": "PR52 修正头自身终态和旧缺项失败；不是新组合、合并后或打印性能验收。",
+  "host": {
+    "run": 37738552000,
+    "jobs": [
+      {
+        "id": 113183622156,
+        "name": "sanitizer (asan)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113183622389,
+        "name": "sanitizer (ubsan)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113183622521,
+        "name": "checks",
+        "conclusion": "success"
+      },
+      {
+        "id": 113187098904,
+        "name": "host",
+        "conclusion": "success"
+      }
+    ],
+    "ordinary": {
+      "pass": 4210,
+      "fail": 0
+    },
+    "commands": 314,
+    "perMode": 157,
+    "coverageExactlyMatchesOriginal": true,
+    "protocol": "success",
+    "linuxMcu": "success"
+  },
+  "firmware": {
+    "run": 37738551994,
+    "job": 113183622330,
+    "conclusion": "success"
+  },
+  "previous": {
+    "head": "9bbb149fd2fea55c32171abe3b3753a3e6a856e0",
+    "run": 37738347503,
+    "ordinary": "success",
+    "ubsan": "failure",
+    "asan": "failure",
+    "host": "failure",
+    "cause": "AR100 原始测试读取普通生产及测试插件；拆分首次缺少原 npm test 前置构建。已补 build:native，原失败保留。"
+  },
+  "timing": {
+    "jobLogWindows": {
+      "113183622156": {
+        "first": "2026-10-08T06:36:40.8944457Z",
+        "last": "2026-10-08T06:48:01.6289800Z",
+        "durationMs": 680734
+      },
+      "113183622389": {
+        "first": "2026-10-08T06:36:40.4577707Z",
+        "last": "2026-10-08T06:46:19.9145334Z",
+        "durationMs": 579457
+      },
+      "113183622521": {
+        "first": "2026-10-08T06:36:40.9589515Z",
+        "last": "2026-10-08T06:47:08.7385258Z",
+        "durationMs": 627780
+      },
+      "113187098904": {
+        "first": "2026-10-08T06:48:09.1897278Z",
+        "last": "2026-10-08T06:48:09.4804247Z",
+        "durationMs": 291
+      }
+    },
+    "combinedLogWindowMs": 689023,
+    "scope": "实际独立作业日志最早开始至最终门禁日志结束，含作业交接等待；不含工作流首个作业排队，不是重复配对或产品性能对照，不推断稳定加速幅度。"
+  },
+  "evidence": {
+    "path": "host/contracts/native-sanitizer-terminal.evidence.json.gz",
+    "sha256": "bed8d47080ada29c96722a69d2f44c203c6af0fd54074d17d2c4e11045ec9569",
+    "bytes": 727383,
+    "entries": 16
+  },
+  "remaining": [
+    "发布已准备的最新 develop 组合头并完成其自身 CI",
+    "合并后检查",
+    "完整交付、G3、客户端、Python 退役"
+  ]
+}
