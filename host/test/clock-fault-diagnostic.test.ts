@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {ClockRuntime,type ClockTransport} from '../src/timing/clock-runtime.ts';
 import {FakeClock,settle} from './helpers/clock-scheduler.ts';
 import {captureClockFaults} from './helpers/clock-fault-diagnostic.ts';
+import {MessageDictionary} from '../src/protocol/dictionary.ts';
+import {DictionaryClockTransport} from '../src/protocol/clock-transport.ts';
 
 function fixture(){
  const clock=new FakeClock();let queries=0,stops=0;
@@ -41,4 +43,13 @@ test('a failed diagnostic sink cannot mask retirement or repeat its first-fault 
  const runtime=new ClockRuntime(1e6,f.transport,f.clock),start=runtime.start();await f.clock.advance(.41);await start;
  await runtime.stop();runtime.sync.invalidate();assert.equal(observations,1);assert.equal(f.stops,1);
  assert.equal(capture.snapshot().observerErrors[0].message,'diagnostic sink failed');assert.equal(runtime.status.fault,undefined);assert.equal(runtime.sync.active,false);
+});
+test('uptime observation retains exact initial timestamps in a bounded copied ring without additional queries',async t=>{
+ const dictionary=new MessageDictionary();dictionary.identify(Buffer.from(JSON.stringify({commands:{get_uptime:2,get_clock:3},responses:{'uptime high=%u clock=%u':4,'clock clock=%u':5},config:{CLOCK_FREQ:1e6}})),false);
+ const f=fixture(),capture=captureClockFaults(t.mock,()=>f.clock.time),cause=new Error('uptime query failed');let queries=0,fail=false;
+ const connection={async query(){queries++;if(fail)throw cause;return {message:{name:'uptime',parameters:{high:0xf1234567,clock:1000000+queries}},sentTime:10+queries,receiveTime:10+queries+.002};},setClockEstimate(){},async stop(){}};
+ const transports=[new DictionaryClockTransport(dictionary,connection),new DictionaryClockTransport(dictionary,connection)],signal=new AbortController().signal;
+ for(let i=0;i<20;i++){const sample=await transports[i%2].uptime(signal);assert.equal(sample.clock32,1000001+i);assert.equal(sample.high,0xf1234567);sample.receiveTime=0;}
+ const observed=capture.snapshot().uptime;assert.equal(queries,20);assert.equal(observed.count,20);assert.equal(observed.recent.length,16);assert.equal(observed.recent[0].sample.clock32,1000005);assert.equal(observed.recent[0].sample.receiveTime,15.002);assert.equal(observed.recent.at(-1)!.sample.receiveTime,30.002);assert.deepEqual(observed.recent.slice(0,2).map(row=>row.transport),[0,1]);
+ observed.recent[0].sample.sentTime=0;assert.equal(capture.snapshot().uptime.recent[0].sample.sentTime,15);fail=true;await assert.rejects(transports[0].uptime(signal),error=>error===cause);assert.equal(queries,21);assert.equal(capture.snapshot().uptime.count,20);
 });
