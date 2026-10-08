@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "926c7f895ecc4c6c24cc0b85194b6a80d70c64c7",
+  "hostRun": 37745614432,
+  "hostJobs": [
+    {
+      "id": 113206259536,
+      "name": "sanitizer (asan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113206259742,
+      "name": "sanitizer (ubsan)",
+      "conclusion": "success"
+    },
+    {
+      "id": 113206259787,
+      "name": "checks",
+      "conclusion": "failure"
+    },
+    {
+      "id": 113210493923,
+      "name": "host",
+      "conclusion": "failure"
+    }
+  ],
+  "ordinary": {
+    "tests": 4226,
+    "pass": 4225,
+    "fail": 1,
+    "failure": {
+      "file": "host/test/native-grid-product.test.ts",
+      "line": 26,
+      "name": "HTTP grid calibration measures, activates, saves and reloads; circular=false",
+      "actual": 409,
+      "expected": 200,
+      "message": "Configuration save requires an idle printer",
+      "rootCause": "Unproved: original report does not capture the rejected idle predicate or contemporaneous device/controller fault."
+    }
+  },
+  "protocol": "skipped after ordinary failure",
+  "linuxMcu": "skipped after ordinary failure",
+  "sanitizer": {
+    "commands": 314,
+    "exactOriginalCommandMatch": true,
+    "allExitZero": true
+  },
+  "firmware": {
+    "run": 37745614409,
+    "job": 113206259340,
+    "conclusion": "success"
+  },
+  "evidence": {
+    "path": "develop-926-terminal.evidence.json.gz",
+    "sha256": "09f32642679721852dfde6b8df87c9258ccf5ab7351d9ee12e12eea3844a4b27",
+    "bytes": 567663,
+    "entries": 7
+  },
+  "scope": "Actual postmerge CI failed; no unchanged rerun or root-cause claim. Own PR53 exact-head success remains separate. Motion G3, clients and target acceptance remain open."
+}

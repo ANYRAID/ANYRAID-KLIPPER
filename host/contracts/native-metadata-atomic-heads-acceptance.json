@@ -1,0 +1,284 @@
+{
+  "schema": 1,
+  "status": "draft-review-only-not-adopted",
+  "node": "v26.10.0",
+  "provenance": {
+    "develop": "2911bd447ccca1999765b16ae797a25c90d38415",
+    "priorPr50": "cbd97343de7958eb67cba77844da4d7c76bd6b54",
+    "normalCombinedBaseline": "7fd0f1c5b76ec1e2bd52fd1ea6c7f086801d8c4a",
+    "identity": {
+      "schema": 1,
+      "baseline": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-atomic-heads-baseline-product",
+        "manifestSha256": "6f2fd9ea8b1e980bd24556402e1c4cc17854a36c290cbfc79e9b3efe2f7c0d44",
+        "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+      },
+      "candidate": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-atomic-heads-product",
+        "manifestSha256": "4d787f32ba87c0610179c3e954a47f1aeaa3621107075aa4b20c4e279297f963",
+        "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+      },
+      "jsCount": 642,
+      "changedJs": [
+        "host/src/moonraker/metadata-head-storage.js",
+        "host/src/moonraker/metadata-versions.js"
+      ],
+      "originalMixedDriverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab"
+    }
+  },
+  "protocol": {
+    "format": 2,
+    "innerRecordVersion": 1,
+    "sequence": "exact uint64 decimal string; high water of all retained latest heads including tombstones",
+    "head": "private 0600 one-link checksummed file keyed by SHA-256 of validated UTF-8 filename",
+    "bounds": {
+      "headBytes": 32768,
+      "historicalFilenames": 4096,
+      "recoveryEntries": 32768,
+      "recoveryBytes": 268435456,
+      "acceptedOperations": 4
+    },
+    "commit": [
+      "validate current head",
+      "write private temporary head",
+      "sync head data",
+      "atomic rename",
+      "sync directory",
+      "acknowledge generation"
+    ],
+    "lateCancellation": "before rename preserves prior head and fences; after rename drains commit",
+    "failure": "fence owner; candidate outcome uncertain; reopen complete validation; no destructive rollback",
+    "migration": [
+      "validate ALL current heads and legacy receipt/content authorities",
+      "reject conflicting sequence, digest, filename, state or unknown entries before cleanup",
+      "re-establish directory barrier on surviving heads",
+      "persist every missing/latest head",
+      "remove legacy receipts and sync directory",
+      "remove legacy content/temporary files and sync directory"
+    ],
+    "downgrade": "Old implementation rejects v2 heads. Use consistent complete pre-migration backup; deleting v2 heads is not rollback.",
+    "runtimeSyncs": {
+      "previousNormalReplacement": 6,
+      "candidate": 2
+    },
+    "unchanged": [
+      "motion algorithms and precision guards",
+      "metadata state/identity authority",
+      "ordered snapshot/image/intent retirement",
+      "source/PNG bytes",
+      "original printing input, deadlines and assertions"
+    ]
+  },
+  "checks": {
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "source": {
+      "initialPassed": 41,
+      "headGroupPassed": 15,
+      "overlapping": true
+    },
+    "compiled": {
+      "initial": {
+        "total": 307,
+        "passed": 304,
+        "failedToStart": 3,
+        "cause": "new child controls referenced TS path after compilation; no TS file present; failed log retained"
+      },
+      "correctedHeadGroup": {
+        "passed": 15
+      },
+      "finalHeadAndCapacityGroup": {
+        "passed": 17
+      },
+      "uniqueControlsCovered": 309,
+      "notASingleAllPassedInitialRun": true,
+      "actualSigkillBoundaries": [
+        "data sync before rename",
+        "directory sync after rename before response",
+        "partially completed legacy migration"
+      ]
+    },
+    "native": "C source and complete compiled native inventory unchanged; privately rebuilt product. No new sanitizer run claimed."
+  },
+  "performance": {
+    "plan": "Prespecified seven-mode sequential A1 B1 B2 A2; 3 warmups and 16 measured samples per phase; 32 samples per arm; median/P95 budget baseline*1.2+2ms.",
+    "inputSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+    "modes": {
+      "shared": {
+        "baseline": {
+          "medianMs": 24.436842499999955,
+          "p95Ms": 25.726458000000036
+        },
+        "candidate": {
+          "medianMs": 24.401850999999994,
+          "p95Ms": 25.60448600000001
+        },
+        "budget": {
+          "medianMs": 31.324210999999945,
+          "p95Ms": 32.871749600000044
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      },
+      "cold": {
+        "baseline": {
+          "medianMs": 36.18916300000001,
+          "p95Ms": 38.724002999999925
+        },
+        "candidate": {
+          "medianMs": 36.2102680000001,
+          "p95Ms": 52.61389899999995
+        },
+        "budget": {
+          "medianMs": 45.426995600000005,
+          "p95Ms": 48.46880359999991
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": false
+      },
+      "disk": {
+        "baseline": {
+          "medianMs": 117.03855449999998,
+          "p95Ms": 129.00273100000004
+        },
+        "candidate": {
+          "medianMs": 115.68303749999995,
+          "p95Ms": 128.0999119999999
+        },
+        "budget": {
+          "medianMs": 142.44626539999996,
+          "p95Ms": 156.80327720000005
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      },
+      "invalidate": {
+        "baseline": {
+          "medianMs": 231.86579400000005,
+          "p95Ms": 270.94418800000017
+        },
+        "candidate": {
+          "medianMs": 165.55316300000004,
+          "p95Ms": 203.6296420000001
+        },
+        "budget": {
+          "medianMs": 280.23895280000005,
+          "p95Ms": 327.13302560000017
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      },
+      "rescan": {
+        "baseline": {
+          "medianMs": 230.002661,
+          "p95Ms": 276.41776600000003
+        },
+        "candidate": {
+          "medianMs": 164.74298900000002,
+          "p95Ms": 189.94313300000022
+        },
+        "budget": {
+          "medianMs": 278.0031932,
+          "p95Ms": 333.7013192
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      },
+      "metadata-cold": {
+        "baseline": {
+          "medianMs": 156.41010600000004,
+          "p95Ms": 179.5485410000001
+        },
+        "candidate": {
+          "medianMs": 121.65619550000008,
+          "p95Ms": 142.22583700000018
+        },
+        "budget": {
+          "medianMs": 189.69212720000004,
+          "p95Ms": 217.45824920000013
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      },
+      "cached": {
+        "baseline": {
+          "medianMs": 0.1545720000000017,
+          "p95Ms": 0.23184300000002622
+        },
+        "candidate": {
+          "medianMs": 0.14294699999999239,
+          "p95Ms": 0.8761219999999525
+        },
+        "budget": {
+          "medianMs": 2.185486400000002,
+          "p95Ms": 2.2782116000000316
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true
+      }
+    },
+    "overallPassed": false,
+    "failed": [
+      "cold content publication P95"
+    ],
+    "cachedP95IncreaseRetained": true,
+    "coldStaticClosure": "13 literal-import JS modules plus all native inventory and installed dependency hashes equal; changed version modules absent. Static scope only, no runtime trace or cause proof; failure retained.",
+    "scope": "Desktop software only; no hardware/target print budget or zero-regression claim"
+  },
+  "mixed": {
+    "passed": 1,
+    "total": 1,
+    "testDurationMs": 69980.701253,
+    "suiteDurationMs": 70170.530943,
+    "outerDeadlineSeconds": 90,
+    "outerDeadlineTriggered": false,
+    "originalDriverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+    "originalMoves": 1000,
+    "softwareMcus": 2,
+    "generations": 2,
+    "metadataRescans": 16,
+    "diskImports": 16,
+    "queueDurableMutations": 64,
+    "statusP99Ms": 8.570448999998916,
+    "minimumStepLeadMs": 78.071,
+    "eventLoopP99Ms": [
+      2.590719,
+      1.968127
+    ],
+    "allOriginalAssertionsRetained": true,
+    "sourceModelAndOriginalPngVerified": true,
+    "priorFailuresRetained": true,
+    "scope": "One exact changed product software run; full actual client/hardware/G3 and historical intermittent failures remain open"
+  },
+  "review": {
+    "destination": "existing PR #50 remains Draft",
+    "reason": "Substantive durability change now passes original mixed software gate; current-head full CI needed. Cold-control failure prevents adoption/merge.",
+    "selfReview": "Reviewed descriptor-anchored IO, exclusive ownership, checksum/schema/bounds, exact sequence, migration validation before cleanup, cancellation/close drain, uncertain commit and downgrade. Tests bind actual compiled product.",
+    "notExecuted": [
+      "current-head remote CI",
+      "r3 interactive client restart",
+      "real Fluidd/Mainsail full acceptance on this package",
+      "Cycnumbris 500 hardware/target performance",
+      "G3 closure",
+      "Python retirement/default switch/develop or master merge"
+    ],
+    "next": "Capture distinguishable file/directory sync versus admission/scheduling on the byte-identical cold publication path; do not optimize unexecuted version modules or retry the unchanged failed timing gate for green."
+  },
+  "evidence": {
+    "path": "native-metadata-atomic-heads-v2.evidence.json.gz",
+    "sha256": "4e59665ccb0e4660860cd528ad8bb60f4e4e33f3b44a821e7f3703cf0ab4c19e",
+    "bytes": 1722544,
+    "entries": 104,
+    "priorArchives": {
+      "aht-clock-expiry-observation-acceptance.evidence.json.gz": "aa471cee31ba666232280da47ed7c0158e4e57fca653d94b42be492dad96f525",
+      "native-metadata-invalidation-acceptance.evidence.json.gz": "cdfaa612a3f6438d11ee7f87a9b331370f5fc34a9ddb4706ed5410c9a48ddd9d",
+      "native-ufp-contention-acceptance.evidence.json.gz": "e06ab2450eca4301358da912b6af0745d7ff757f4b986ec86b92422e96bb11fb",
+      "native-ufp-disk-ledger-acceptance.evidence.json.gz": "205eecff243c99b923920fcbbb0e5aec3da73d11813a2ca2002eb35349485a6e"
+    },
+    "rawSamplesRetained": true,
+    "initialFailuresRetained": true,
+    "exactInputRetained": true,
+    "sourceAndDocumentsBound": true,
+    "redactedRuntimeTokens": true
+  }
+}

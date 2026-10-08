@@ -27,12 +27,12 @@ test('invalidation persists and prevents recovery falling back to the old select
 test('file and queue bounds plus preabort do not destroy valid version state',async()=>{
  const f=await fixture({maxFiles:1,maxPending:1});try{const intent=await f.intents.begin('part.gcode',signal),pending=f.versions.begin(intent,signal);await assert.rejects(f.versions.invalidate('other.gcode',signal),/queue/);const current=await pending;await assert.rejects(f.versions.invalidate('other.gcode',signal),/capacity/);await assert.rejects(f.versions.invalidate('part.gcode',AbortSignal.abort(new Error('cancel'))),/cancel/);assert.equal(f.versions.current('part.gcode'),current);assert.equal(f.versions.status.faulted,false);assert.ok(await f.versions.select(current,signal));}finally{await f.close();}
 });
-test('failed compaction retains the new durable head and recovery cleans obsolete events',async()=>{
+test('directory sync uncertainty retains the new head and recovery never falls back',async()=>{
  const f=await fixture(),probe=await open('/dev/null','r'),prototype=Object.getPrototypeOf(probe),original=prototype.sync;await probe.close();let calls=0;try{
   const a=await f.intents.begin('part.gcode',signal),first=await f.versions.begin(a,signal),b=await f.intents.begin('part.gcode',signal);let candidate:import('../src/moonraker/metadata-versions.ts').MetadataVersion|undefined;
-  // New event publication uses four sync calls; fifth sync follows removal of
-  // the old receipt. No destructive rollback of the new head is permitted.
-  prototype.sync=function(...args:unknown[]){if(++calls===5)return Promise.reject(new Error('injected compaction sync failure'));return Reflect.apply(original,this,args);};
+  // The second sync persists the atomic replacement directory. Its failure
+  // must fence the owner, never destructively restore the previous generation.
+  prototype.sync=function(...args:unknown[]){if(++calls===2)return Promise.reject(new Error('injected head directory sync failure'));return Reflect.apply(original,this,args);};
   try{await assert.rejects(f.versions.begin(b,signal),(error:any)=>{assert.ok(error instanceof MetadataVersionWriteError);candidate=error.candidate;return true;});}finally{prototype.sync=original;}
   assert.equal(f.versions.status.faulted,true);assert.throws(()=>f.versions.current('part.gcode'),/recovered/);await f.versions.close();const recovered=await MetadataVersions.open(join(f.dir,'versions'));try{assert.deepEqual(recovered.current('part.gcode'),candidate);assert.notEqual(recovered.current('part.gcode')?.id,first.id);assert.equal((await readdir(join(f.dir,'versions'))).filter(name=>name.endsWith('.json')).length,1);}finally{await recovered.close();}
  }finally{prototype.sync=original;await f.close();}

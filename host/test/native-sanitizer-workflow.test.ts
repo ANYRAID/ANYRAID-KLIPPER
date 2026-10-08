@@ -3,19 +3,31 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {parse} from 'yaml';
 const host=fileURLToPath(new URL('..',import.meta.url));
 const reference=JSON.parse(readFileSync(new URL('../contracts/native-sanitizer-command-reference.json',import.meta.url),'utf8')) as {timeoutMs:number;commands:string[][]};
+const extension=JSON.parse(readFileSync(new URL('../contracts/native-sanitizer-ufp-coverage-extension.json',import.meta.url),'utf8')) as {legacyReferenceSha256:string;insertions:{before:string;commands:string[][]}[]};
 function list(...args:string[]){
  const result=spawnSync(process.execPath,['scripts/test-native-sanitized.ts','--list',...args],{cwd:host,encoding:'utf8',timeout:10000});
  assert.equal(result.status,0,result.stderr);return JSON.parse(result.stdout) as {modes:string[];timeoutMs:number;commands:string[][]};
 }
 test('separate sanitizer modes retain every command from the successful original serial CI exactly once',()=>{
  const original=list(),ubsan=list('--mode=ubsan'),asan=list('--mode=asan');
- assert.deepEqual(original.commands,reference.commands);assert.deepEqual([...ubsan.commands,...asan.commands],reference.commands);
+ assert.equal(createHash('sha256').update(readFileSync(new URL('../contracts/native-sanitizer-command-reference.json',import.meta.url))).digest('hex'),extension.legacyReferenceSha256);
+ assert.equal(reference.commands.length,314);
+ const expected=reference.commands.flatMap(command=>{
+  const insertion=extension.insertions.find(x=>command.includes(x.before));
+  if(!insertion)return [command];
+  const index=reference.commands.indexOf(command),flag=index<157?'--sanitize':'--address';
+  return [...insertion.commands.map(c=>c.map(x=>x==='$flag'?flag:x)),command];
+ });
+ assert.equal(expected.length,324);assert.deepEqual(original.commands,expected);assert.deepEqual([...ubsan.commands,...asan.commands],expected);
+ const additions=expected.filter(c=>!reference.commands.some(old=>JSON.stringify(old)===JSON.stringify(c)));
+ assert.deepEqual(original.commands.filter(c=>!additions.some(added=>JSON.stringify(added)===JSON.stringify(c))),reference.commands);
  assert.deepEqual(original.modes,['ubsan','asan']);assert.deepEqual(ubsan.modes,['ubsan']);assert.deepEqual(asan.modes,['asan']);
  for(const mode of [original,ubsan,asan])assert.equal(mode.timeoutMs,reference.timeoutMs);
- for(const mode of [ubsan,asan]){assert.equal(mode.commands.filter(c=>c[0]==='--test').length,150);assert.equal(mode.commands.filter(c=>c[0]!=='--test').length,7);}
+ for(const mode of [ubsan,asan]){assert.equal(mode.commands.filter(c=>c[0]==='--test').length,153);assert.equal(mode.commands.filter(c=>c[0]!=='--test').length,9);}
 });
 test('invalid sanitizer selection fails before any build or test can run',()=>{
  for(const args of [['--mode=unknown'],['--mode='],['--mode=asan','--mode=ubsan'],['--mode'],['--address'],['--list','--mode=unknown']]){

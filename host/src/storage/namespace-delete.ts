@@ -2,6 +2,7 @@ import {publishedPath,visibleFilePath} from './published-paths.ts';
 import {samePublishedFile,validateNamespace} from './namespace-move.ts';
 import {replacementNamespaceHash} from './namespace-replace.ts';
 import type {PublishedPrintFile} from './published-files.ts';
+import {validatePublishedReceipt} from './published-receipt.ts';
 export interface NamespaceDelete {
  readonly version:1;readonly action:'delete_dir';readonly source:string;readonly namespaceSha256:string;
  readonly deleted:readonly {file:PublishedPrintFile;modified:number}[];
@@ -24,8 +25,7 @@ export async function planNamespaceDelete(source:string,records:readonly {file:P
 }
 const object=(v:unknown,keys:readonly string[]):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
 function receipt(v:unknown):PublishedPrintFile{
- if(!object(v,['version','id','sha256','size','name','path'])||v.version!==1||typeof v.id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(v.id)||typeof v.sha256!=='string'||!/^[a-f0-9]{64}$/.test(v.sha256)||!Number.isSafeInteger(v.size)||(v.size as number)<0||(v.size as number)>1024**3||typeof v.name!=='string'||!v.name||v.name.length>256||/[\0-\x1f\x7f]/u.test(v.name))throw new Error('Invalid delete receipt');
- if(v.path!==undefined)publishedPath(v.path);return Object.freeze({...v}) as unknown as PublishedPrintFile;
+ try{return validatePublishedReceipt(v);}catch(cause){throw new Error('Invalid delete receipt',{cause});}
 }
 export function validateDeleteIntent(v:unknown):NamespaceDelete{
  if(!object(v,['version','action','source','namespaceSha256','deleted','directoriesBefore','directoriesAfter'])||v.version!==1||v.action!=='delete_dir'||typeof v.namespaceSha256!=='string'||!/^[a-f0-9]{64}$/.test(v.namespaceSha256)||!Array.isArray(v.deleted)||v.deleted.length>10000||!Array.isArray(v.directoriesBefore)||v.directoriesBefore.length>1024||!Array.isArray(v.directoriesAfter)||v.directoriesAfter.length>1024)throw new Error('Invalid delete intent schema');

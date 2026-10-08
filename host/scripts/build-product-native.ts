@@ -4,9 +4,9 @@ import {mkdir,mkdtemp,readFile,writeFile,readdir,rm,copyFile,lstat} from 'node:f
 import {dirname,join,resolve,relative} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../../',import.meta.url));
-export const productAddons=['trapq','stepcompress','serialqueue','unix-peer','sealed-file','can-query','ar100-flash'] as const;
-export const productExecutables=['fatfs-helper'] as const;
-const scripts=['build-fatfs.ts','build-native.ts',...productAddons.slice(1).map(name=>'build-'+name+'.ts')];
+export const productAddons=['trapq','stepcompress','serialqueue','unix-peer','sealed-file','file-events','can-query','ar100-flash'] as const;
+export const productExecutables=['fatfs-helper','file-write-lease'] as const;
+const scripts=['build-fatfs.ts','build-file-write-lease.ts','build-native.ts',...productAddons.slice(1).map(name=>'build-'+name+'.ts')];
 /** Compile a private snapshot of the required C sources. No existing addon or
  * Python file is copied; callers publish the result only after the whole build. */
 export async function buildProductNative(destination:string):Promise<void>{

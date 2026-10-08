@@ -1,5 +1,6 @@
 import {publishedPath,visibleFilePath,pathParent,pathBasename} from './published-paths.ts';
 import type {PublishedPrintFile} from './published-files.ts';
+import {validatePublishedReceipt,samePublishedContent} from './published-receipt.ts';
 export interface MoveEntry {readonly before:PublishedPrintFile;readonly after:PublishedPrintFile;readonly modified:number;}
 export interface NamespaceMove {
  readonly version:1;readonly action:'move_dir';readonly source:string;readonly destination:string;
@@ -7,7 +8,7 @@ export interface NamespaceMove {
  readonly directoriesBefore:readonly {path:string;modified:number}[];
  readonly directoriesAfter:readonly {path:string;modified:number}[];
 }
-export const samePublishedFile=(a:PublishedPrintFile,b:PublishedPrintFile)=>a.id===b.id&&a.sha256===b.sha256&&a.size===b.size&&a.name===b.name&&visibleFilePath(a)===visibleFilePath(b);
+export const samePublishedFile=(a:PublishedPrintFile,b:PublishedPrintFile)=>a.id===b.id&&samePublishedContent(a,b)&&a.name===b.name&&visibleFilePath(a)===visibleFilePath(b);
 const error=(message:string,code:string)=>Object.assign(new Error(message),{code});
 const movedPath=(value:string)=>{try{return publishedPath(value);}catch(cause){throw Object.assign(new TypeError('Invalid resolved move path',{cause}),{code:'EINVAL'});}};
 const catalog=(directories:ReadonlyMap<string,number>)=>[...directories].sort(([a],[b])=>a<b?-1:a>b?1:0).map(([path,modified])=>Object.freeze({path,modified}));
@@ -40,14 +41,13 @@ export function validateNamespace(files:readonly PublishedPrintFile[],directorie
 }
 const object=(value:unknown,keys:readonly string[]):value is Record<string,unknown>=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).every(key=>keys.includes(key));
 function receipt(value:unknown):PublishedPrintFile{
- if(!object(value,['version','id','sha256','size','name','path'])||value.version!==1||typeof value.id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(value.id)||typeof value.sha256!=='string'||!/^[a-f0-9]{64}$/.test(value.sha256)||!Number.isSafeInteger(value.size)||(value.size as number)<0||(value.size as number)>1024**3||typeof value.name!=='string'||!value.name||value.name.length>256||/[\0-\x1f\x7f]/u.test(value.name))throw new Error('Invalid move receipt');
- if(value.path!==undefined)publishedPath(value.path);return Object.freeze({...value}) as unknown as PublishedPrintFile;
+ try{return validatePublishedReceipt(value);}catch(cause){throw new Error('Invalid move receipt',{cause});}
 }
 /** Validate exact schema and deterministic path transformation independently of
  * JSON key order. Recovery also replans using ALL current records. */
 export function validateMoveIntent(value:unknown):NamespaceMove{
  if(!object(value,['version','action','source','destination','changed','directoriesBefore','directoriesAfter'])||value.version!==1||value.action!=='move_dir'||!Array.isArray(value.changed)||value.changed.length>10000||!Array.isArray(value.directoriesBefore)||!Array.isArray(value.directoriesAfter)||value.directoriesBefore.length>1024||value.directoriesAfter.length>1024)throw new Error('Invalid move intent schema');
- const changed=value.changed.map(entry=>{if(!object(entry,['before','after','modified'])||typeof entry.modified!=='number'||!Number.isFinite(entry.modified)||entry.modified<0)throw new Error('Invalid move entry');const before=receipt(entry.before),after=receipt(entry.after);if(before.id!==after.id||before.sha256!==after.sha256||before.size!==after.size)throw new Error('Invalid move identity');return Object.freeze({before,after,modified:entry.modified});});
+ const changed=value.changed.map(entry=>{if(!object(entry,['before','after','modified'])||typeof entry.modified!=='number'||!Number.isFinite(entry.modified)||entry.modified<0)throw new Error('Invalid move entry');const before=receipt(entry.before),after=receipt(entry.after);if(before.id!==after.id||!samePublishedContent(before,after))throw new Error('Invalid move identity');return Object.freeze({before,after,modified:entry.modified});});
  const dirs=(entries:unknown[])=>entries.map(entry=>{if(!object(entry,['path','modified'])||typeof entry.modified!=='number')throw new Error('Invalid move directory entry');return Object.freeze({path:publishedPath(entry.path),modified:entry.modified});});
  const plan:NamespaceMove=Object.freeze({version:1,action:'move_dir',source:publishedPath(value.source),destination:publishedPath(value.destination),changed:Object.freeze(changed),directoriesBefore:Object.freeze(dirs(value.directoriesBefore)),directoriesAfter:Object.freeze(dirs(value.directoriesAfter))});
  const expected=planNamespaceMove(plan.source,plan.destination,changed.map(e=>({file:e.before,modified:e.modified})),new Map(plan.directoriesBefore.map(e=>[e.path,e.modified])));

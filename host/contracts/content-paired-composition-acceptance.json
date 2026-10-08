@@ -1,0 +1,373 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "LOCAL_CANDIDATE_PASSED: original mixed and original seven performance budgets passed; own CI, normal integration, clients and target hardware remain.",
+  "relatedPR": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/50",
+  "base": {
+    "pr50": "38ad39539282940bb33b25686852a8373d3d6499",
+    "develop": "bf310300033492dc738c6bfecc045a912d34a784",
+    "composition": "be7816a3d6e98e2e5895dcc55e982bce17b3baee"
+  },
+  "production": {
+    "changed": [
+      "host/src/storage/published-files.ts"
+    ],
+    "sourceSha256": "08cb5f8d164cde33430b46eef2901220e4acfecbd717a47b78f6141af7f2bcb6",
+    "invariants": [
+      "Original five syncs and two directory barriers retained; receipt only after both content branches drain.",
+      "Original quota, admission, source/model/preview identity, cancellation and cleanup retained.",
+      "No native motion source or precision/deadline/assertion change; original 642-module mixed driver unchanged."
+    ],
+    "newControls": 7
+  },
+  "identities": {
+    "schema": 1,
+    "baseline": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-clock-sharp-baseline-product",
+      "manifestSha256": "e009810d3b8231240ecef9c2bf6d54f08dd1590f596f81d50ec648a7dadc0ac0",
+      "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+    },
+    "candidate": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-content-clock-sharp-product",
+      "manifestSha256": "9127984d9e10530023c6c02827202b62ad951c5e768161b459d29b013fabce45",
+      "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+    },
+    "changedJs": [
+      "host/src/storage/published-files.js"
+    ],
+    "jsCount": 642,
+    "originalMixedDriverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+    "native": "Candidate freshly built in private source snapshot; baseline explicitly reuses identical native bytes. No second C build claim.",
+    "dependencies": "Independent copies of unchanged original locked UFP production dependencies, verified by full digest; both sharp0.35.5 and matching lock.",
+    "scope": "Changed clock/sharp composition compared with original trial; not an adoption or performance result."
+  },
+  "checks": {
+    "typecheck": "passed before build",
+    "freshPrivateCandidateNativeAndJsBuild": "passed; A explicitly reuses identical C bytes",
+    "compiledInitial": {
+      "reported": 349,
+      "pass": 348,
+      "fail": 1,
+      "reason": "driver fixture pty.c missing; disk import test never started"
+    },
+    "afterFixtureCorrection": {
+      "pass": 1,
+      "fail": 0,
+      "scope": "Only previously unstarted disk import control; do not claim first run 349/349."
+    },
+    "distinctControlsCovered": 349,
+    "whitespace": "passed"
+  },
+  "preparationFailures": {
+    "first": {
+      "scope": "Tool-output transcription, not a raw execution log. Original initial script is archived unchanged.",
+      "error": "EEXIST while creating host/contracts symlink: compiled driver already emitted three JSON files into that directory.",
+      "correction": "Preserved emitted directory and added only the two required source fixture JSON links. No production change."
+    },
+    "second": "EACCES copying driver/package.json already readonly; changed idempotent preparation script only; original log/script preserved."
+  },
+  "performance": {
+    "scope": "Isolated desktop ABBA A1 B1 B2 A2, three warmups and sixteen measurements per phase, 32 per arm per mode. No concurrent local build/test/install/observer. Not target-board or no-regression proof.",
+    "budgetRule": "Both contemporaneous A*1.2+2ms AND frozen original PR50 median/P95 budgets required for all seven modes.",
+    "frozenBudgetSource": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-content-clock-sharp-trial/host/contracts/native-metadata-atomic-heads-acceptance.json",
+      "sha256": "c9e787047be22632d63da4ef6a95fa3fb558e2d3fbc6bac666ced5bcd39c9eca",
+      "modes": {
+        "shared": {
+          "medianMs": 31.324210999999945,
+          "p95Ms": 32.871749600000044
+        },
+        "cold": {
+          "medianMs": 45.426995600000005,
+          "p95Ms": 48.46880359999991
+        },
+        "disk": {
+          "medianMs": 142.44626539999996,
+          "p95Ms": 156.80327720000005
+        },
+        "invalidate": {
+          "medianMs": 280.23895280000005,
+          "p95Ms": 327.13302560000017
+        },
+        "rescan": {
+          "medianMs": 278.0031932,
+          "p95Ms": 333.7013192
+        },
+        "metadata-cold": {
+          "medianMs": 189.69212720000004,
+          "p95Ms": 217.45824920000013
+        },
+        "cached": {
+          "medianMs": 2.185486400000002,
+          "p95Ms": 2.2782116000000316
+        }
+      }
+    },
+    "modes": {
+      "shared": {
+        "samplesPerArm": 32,
+        "a": {
+          "medianMs": 21.52504499999999,
+          "p95Ms": 23.37047899999999,
+          "maxMs": 32.756733999999994
+        },
+        "b": {
+          "medianMs": 21.61458600000003,
+          "p95Ms": 22.653410000000008,
+          "maxMs": 23.671193000000017
+        },
+        "contemporaryBudget": {
+          "medianMs": 27.83005399999999,
+          "p95Ms": 30.044574799999985
+        },
+        "frozenBudget": {
+          "medianMs": 31.324210999999945,
+          "p95Ms": 32.871749600000044
+        },
+        "allBudgetsPassed": true
+      },
+      "cold": {
+        "samplesPerArm": 32,
+        "a": {
+          "medianMs": 36.6009140000001,
+          "p95Ms": 44.486479000000145,
+          "maxMs": 74.52504600000009
+        },
+        "b": {
+          "medianMs": 34.80610050000007,
+          "p95Ms": 37.77019000000007,
+          "maxMs": 50.97046399999999
+        },
+        "contemporaryBudget": {
+          "medianMs": 45.92109680000012,
+          "p95Ms": 55.383774800000175
+        },
+        "frozenBudget": {
+          "medianMs": 45.426995600000005,
+          "p95Ms": 48.46880359999991
+        },
+        "allBudgetsPassed": true
+      },
+      "disk": {
+        "samplesPerArm": 32,
+        "a": {
+          "medianMs": 117.83664799999985,
+          "p95Ms": 127.48828500000002,
+          "maxMs": 131.30618700000014
+        },
+        "b": {
+          "medianMs": 111.33739200000002,
+          "p95Ms": 122.72126199999991,
+          "maxMs": 135.32137899999998
+        },
+        "contemporaryBudget": {
+          "medianMs": 143.40397759999982,
+          "p95Ms": 154.98594200000002
+        },
+        "frozenBudget": {
+          "medianMs": 142.44626539999996,
+          "p95Ms": 156.80327720000005
+        },
+        "allBudgetsPassed": true
+      },
+      "invalidate": {
+        "samplesPerArm": 32,
+        "a": {
+          "medianMs": 184.83759699999973,
+          "p95Ms": 199.48469699999987,
+          "maxMs": 212.60343999999986
+        },
+        "b": {
+          "medianMs": 170.733026,
+          "p95Ms": 234.5777790000002,
+          "maxMs": 241.31365800000003
+        },
+        "contemporaryBudget": {
+          "medianMs": 223.80511639999966,
+          "p95Ms": 241.38163639999982
+        },
+        "frozenBudget": {
+          "medianMs": 280.23895280000005,
+          "p95Ms": 327.13302560000017
+        },
+        "allBudgetsPassed": true
+      },
+      "rescan": {
+        "samplesPerArm": 32,
+        "a": {
+          "medianMs": 180.98992549999997,
+          "p95Ms": 207.1029349999999,
+          "maxMs": 213.8550839999998
+        },
+        "b": {
+          "medianMs": 163.37158699999998,
+          "p95Ms": 191.65331100000003,
+          "maxMs": 193.0701899999999
+        },
+        "contemporaryBudget": {
+          "medianMs": 219.18791059999995,
+          "p95Ms": 250.52352199999984
+        },
+        "frozenBudget": {
+          "medianMs": 278.0031932,
+          "p95Ms": 333.7013192
+        },
+        "allBudgetsPassed": true
+      },
+      "metadata-cold": {
+        "samplesPerArm": 32,
+        "a": {
+          "medianMs": 109.18886600000008,
+          "p95Ms": 117.3633890000001,
+          "maxMs": 130.32088
+        },
+        "b": {
+          "medianMs": 120.18145100000015,
+          "p95Ms": 137.77682800000002,
+          "maxMs": 159.23849199999995
+        },
+        "contemporaryBudget": {
+          "medianMs": 133.0266392000001,
+          "p95Ms": 142.8360668000001
+        },
+        "frozenBudget": {
+          "medianMs": 189.69212720000004,
+          "p95Ms": 217.45824920000013
+        },
+        "allBudgetsPassed": true
+      },
+      "cached": {
+        "samplesPerArm": 32,
+        "a": {
+          "medianMs": 0.15594199999998182,
+          "p95Ms": 0.4994570000000067,
+          "maxMs": 0.594206999999983
+        },
+        "b": {
+          "medianMs": 0.15816699999999173,
+          "p95Ms": 0.417855999999972,
+          "maxMs": 4.5081389999999715
+        },
+        "contemporaryBudget": {
+          "medianMs": 2.1871303999999783,
+          "p95Ms": 2.599348400000008
+        },
+        "frozenBudget": {
+          "medianMs": 2.185486400000002,
+          "p95Ms": 2.2782116000000316
+        },
+        "allBudgetsPassed": true
+      }
+    },
+    "tailIncreasesRetained": [
+      "invalidate P95",
+      "metadata-cold median and P95",
+      "cached maximum"
+    ],
+    "identitiesAndInputsUnchanged": true
+  },
+  "mixed": {
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "bundleUnchanged": true
+    },
+    "pass": 1,
+    "fail": 0,
+    "durationMs": 70548.257902,
+    "originalDriverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+    "outerDeadlineSeconds": 90,
+    "originalMovements": 1000,
+    "softwareMcus": 2,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 2.088959,
+          "maxMs": 19.693567
+        },
+        "cpu": {
+          "user": 13411449,
+          "system": 2514722
+        },
+        "rss": 363397120
+      },
+      {
+        "loop": {
+          "p99Ms": 2.492415,
+          "maxMs": 18.956287
+        },
+        "cpu": {
+          "user": 8608732,
+          "system": 1879179
+        },
+        "rss": 386244608
+      }
+    ],
+    "wireCommands": 235,
+    "wireSteps": 7954,
+    "minimumStepLeadMs": 76.808,
+    "statusRequests": 38272,
+    "statusP99Ms": 7.958034999999654,
+    "diskImport": {
+      "operations": 16,
+      "rawSettlementMs": [
+        545.8007739999994,
+        601.7844019999993,
+        274.47911700000077,
+        230.75202100000024,
+        227.0648229999988,
+        255.38828600000124,
+        245.21437200000037,
+        239.10451100000137,
+        557.7512509999942,
+        402.67781000000105,
+        487.78608999999415,
+        320.4825980000023,
+        524.4048320000002,
+        567.7580120000057,
+        526.6506909999953,
+        637.1533149999959
+      ],
+      "printingGenerations": [
+        1,
+        2
+      ],
+      "modelAndOriginalPngVerified": true,
+      "originalRemovedAfterPublication": true,
+      "noAutomaticPrinting": true
+    },
+    "metadataRescan": {
+      "operations": 16,
+      "medianMs": 193.332696999998,
+      "p95Ms": 427.64038699999946,
+      "duringPrintGenerations": [
+        1,
+        2
+      ],
+      "oldUrlsRevoked": true,
+      "originalModelBytesPreserved": true
+    },
+    "scope": "Same sealed B product, original compiled driver and all original completion/cleanup/stop assertions. Software evidence only; historical intermittent cause not established."
+  },
+  "historical": {
+    "contract": "content-paired-preparation-trial.json",
+    "evidenceSha256": "c2a9778649ab566054e68096b402e9e094e5612b010f78cb7bb892e940a2b84a",
+    "status": "Original unadopted trial generation-2 recursive cleanup failed. Preserved unchanged; new clock/sharp composition is changed condition and does not explain old root cause.",
+    "pr50OriginalColdFailure": {
+      "p95Ms": 52.613899,
+      "budgetMs": 48.46880359999991
+    }
+  },
+  "evidence": {
+    "path": "content-paired-composition-acceptance.evidence.json.gz",
+    "sha256": "a668a5d1cc704a5ed16c6b9b9e3ae3387edcc2530de60a84724128a413f36dee",
+    "bytes": 255191,
+    "entries": 97
+  },
+  "remaining": [
+    "Current head own CI and normal merge into develop; merge-result validation",
+    "Same-bundle actual Fluidd/Mainsail acceptance",
+    "Target-board performance and G3; no physical movement/default switch",
+    "Full Moonraker and Python retirement"
+  ]
+}

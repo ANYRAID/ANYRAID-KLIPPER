@@ -8,6 +8,8 @@ import {PublishedPrintFiles} from '../src/storage/published-files.ts';
 import {NativePrintUploads} from '../src/moonraker/native-print-uploads.ts';
 import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
 import {ApiError,type Json,type RpcContext} from '../src/moonraker/rpc.ts';
+import {NativePersistentMetadata} from '../src/moonraker/native-persistent-metadata.ts';
+import {MetadataVersions} from '../src/moonraker/metadata-versions.ts';
 test('persistent native assembly restores original URL without extraction and retires deleted or republished receipts',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'native-persistent-')),signal=new AbortController().signal,context:RpcContext={signal,transport:'http',authorize(){}};
  let files=await PublishedPrintFiles.open(join(dir,'files')),owner=await NativePrintUploads.open(files,new MaintenanceGate(),{metadataRoot:join(dir,'metadata')});
@@ -47,5 +49,20 @@ test('nested native previews keep their original URLs and source ID after reopen
   assert.deepEqual((await (await owner.resolveThumbnail(path,context)).read()).bytes,png);await owner.close();await files.close();
   files=await PublishedPrintFiles.open(join(dir,'files'));owner=await NativePrintUploads.open(files,new MaintenanceGate(),{metadataRoot:join(dir,'metadata')});assert(owner.hasThumbnail(path));assert.deepEqual((await (await owner.resolveThumbnail(path,context)).read()).bytes,png);assert.deepEqual(await owner.metadata({filename},signal),fields);
   assert('scans' in owner.status.metadata);assert.equal(owner.status.metadata.scans,0);assert.equal(owner.filename('part'),filename);await assert.rejects(owner.resolveThumbnail('/server/files/gcodes/'+String((fields.thumbnails as Record<string,Json>[]).at(-1)!.relative_path),context),error=>error instanceof ApiError&&error.status===404);
+ }finally{await owner.close();await files.close();await rm(dir,{recursive:true,force:true});}
+});
+for(const reopen of [false,true])test(`durable invalidation is reused before a fresh scan without another tombstone (reopen=${reopen})`,async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'native-invalidation-reuse-')),signal=new AbortController().signal,files=await PublishedPrintFiles.open(join(dir,'files'));let owner=await NativePersistentMetadata.open(join(dir,'metadata'),files);
+ try{
+  const png=await sharp({create:{width:32,height:32,channels:3,background:'#3a6'}}).png().toBuffer(),data=png.toString('base64');await writeFile(join(dir,'source'),`; thumbnail_png begin 32x32 ${data.length}\n; ${data}\n; thumbnail_png end\nG1 X1\n`);const source=await open(join(dir,'source'),'r');try{await files.publish('part','part.gcode',source,signal);}finally{await source.close();}
+  const first=await owner.metadata('part.gcode',signal),old='/server/files/gcodes/'+(first.thumbnails as Record<string,Json>[])[0].relative_path;assert(owner.hasThumbnail(old));await owner.invalidate('part.gcode');assert.equal(owner.hasThumbnail(old),false);
+  if(reopen){await owner.close();owner=await NativePersistentMetadata.open(join(dir,'metadata'),files);assert.equal(owner.hasThumbnail(old),false);}
+  const next=await owner[reopen?'rescan':'metadata']('part.gcode',signal),url='/server/files/gcodes/'+(next.thumbnails as Record<string,Json>[])[0].relative_path;assert.notEqual(url,old);assert.equal(owner.hasThumbnail(old),false);assert.deepEqual((await (await owner.resolveThumbnail(url,{signal,transport:'http',authorize(){}})).read()).bytes,png);assert.equal(owner.status.snapshots.reservations,0);await owner.close();
+  const versions=await MetadataVersions.open(join(dir,'metadata','versions'));try{assert.equal(versions.status.sequence,'5');assert.equal(versions.current('part.gcode')?.state,'selected');assert.equal(versions.entries().length,1);}finally{await versions.close();}
+ }finally{await owner.close();await files.close();await rm(dir,{recursive:true,force:true});}
+});
+test('cancelled scan after durable invalidation allocates no new generation or images',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'native-invalidation-cancel-')),signal=new AbortController().signal,files=await PublishedPrintFiles.open(join(dir,'files')),owner=await NativePersistentMetadata.open(join(dir,'metadata'),files);
+ try{await writeFile(join(dir,'source'),'G1 X1\n');const source=await open(join(dir,'source'),'r');try{await files.publish('part','part.gcode',source,signal);}finally{await source.close();}await owner.metadata('part.gcode',signal);await owner.invalidate('part.gcode');const abort=new AbortController();abort.abort(new Error('cancel before fresh scan'));await assert.rejects(owner.rescan('part.gcode',abort.signal),/cancel before fresh scan/);assert.equal(owner.status.snapshots.reservations,0);assert.equal(owner.status.storedImageBytes,0);await owner.close();const versions=await MetadataVersions.open(join(dir,'metadata','versions'));try{assert.equal(versions.status.sequence,'3');assert.equal(versions.current('part.gcode')?.state,'invalidated');}finally{await versions.close();}
  }finally{await owner.close();await files.close();await rm(dir,{recursive:true,force:true});}
 });

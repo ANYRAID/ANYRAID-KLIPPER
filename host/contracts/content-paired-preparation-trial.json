@@ -1,0 +1,293 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "UNADOPTED: original mixed generation 2 cleanup assertion failed; do not merge this trial into PR #50 or claim delivery.",
+  "base": "38ad39539282940bb33b25686852a8373d3d6499",
+  "branch": "devac/content-paired-prepare",
+  "relatedPR": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/50",
+  "productionTrial": {
+    "changed": [
+      "host/src/storage/published-files.ts"
+    ],
+    "hypothesis": "Overlap independent model finalization and PNG preparation after the model initial copy, retaining both durable directory barriers and receipt sync.",
+    "invariants": [
+      "Five original syncs retained; receipt only after both branches drain and content directory sync",
+      "Shared bounded admission/quota retained; no detached tasks; close/failure/cancel drain both",
+      "Same abort reason identity; distinct failures aggregated",
+      "Content/model/preview SHA and source identity checks retained",
+      "Default printer, MCU C, clock math and original mixed deadlines/assertions unchanged"
+    ],
+    "adopted": false
+  },
+  "failuresPreserved": {
+    "initialTypecheck": "overloaded FileHandle.read Parameters tuple incorrectly typed; corrected test hook only",
+    "initialCompiled": {
+      "passed": 315,
+      "total": 316,
+      "failed": 1,
+      "case": "cancelled borrowed preview reads drain before deleting or releasing source ownership",
+      "error": "duplicate cancellation reason aggregated; source now preserves same reason identity"
+    },
+    "initialOfflineReplay": "serialized BigInt string compared to live BigInt; diagnostic encode corrected, failed log and script retained"
+  },
+  "checks": {
+    "typecheck": "passed",
+    "compiled": {
+      "passed": 316,
+      "total": 316,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 44760.429165
+    },
+    "newMeaningfulControls": 7,
+    "countsNotAdditive": true,
+    "independentNativeAndJsProduct": true,
+    "sanitizer": "No new local sanitizer run; native source/inventory unchanged",
+    "whitespace": "passed"
+  },
+  "identities": {
+    "schema": 1,
+    "baseline": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-atomic-heads-product",
+      "manifestSha256": "4d787f32ba87c0610179c3e954a47f1aeaa3621107075aa4b20c4e279297f963",
+      "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+    },
+    "candidate": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-content-paired-prepare-v2-product",
+      "manifestSha256": "87e54f226e9bebb0390b8bdf0d94204761db52620792c4cb7e8308aefcad191b",
+      "dependenciesSha256": "56a5240fb271fae524d7cf261ed5207474670118ec79941fb0b7b6dc4c3f7f7e"
+    },
+    "changedJs": [
+      "host/src/storage/published-files.js"
+    ],
+    "jsCount": 642,
+    "originalMixedDriverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab"
+  },
+  "performance": {
+    "scope": "Desktop isolated ABBA; A1 B1 B2 A2, three warmups and sixteen measurements per phase, no observer/concurrent local tests or builds; not target-board acceptance.",
+    "budgetRule": "Original A * 1.2 + 2 ms for median and P95 retained",
+    "modes": {
+      "shared": {
+        "countPerArm": 32,
+        "a": {
+          "medianMs": 24.851534999999956,
+          "p95Ms": 37.12518499999999
+        },
+        "b": {
+          "medianMs": 24.436232999999987,
+          "p95Ms": 25.843143000000055
+        },
+        "budget": {
+          "medianMs": 31.821841999999947,
+          "p95Ms": 46.550221999999984
+        },
+        "passed": true
+      },
+      "cold": {
+        "countPerArm": 32,
+        "a": {
+          "medianMs": 36.228014999999914,
+          "p95Ms": 55.4908089999999
+        },
+        "b": {
+          "medianMs": 34.86452499999996,
+          "p95Ms": 37.80156600000009
+        },
+        "budget": {
+          "medianMs": 45.473617999999895,
+          "p95Ms": 68.58897079999987
+        },
+        "passed": true
+      },
+      "disk": {
+        "countPerArm": 32,
+        "a": {
+          "medianMs": 117.61011549999989,
+          "p95Ms": 124.73251199999993
+        },
+        "b": {
+          "medianMs": 116.92599599999994,
+          "p95Ms": 128.511888
+        },
+        "budget": {
+          "medianMs": 143.13213859999988,
+          "p95Ms": 151.67901439999991
+        },
+        "passed": true
+      },
+      "invalidate": {
+        "countPerArm": 32,
+        "a": {
+          "medianMs": 163.82160349999992,
+          "p95Ms": 190.55595799999992
+        },
+        "b": {
+          "medianMs": 164.97767049999982,
+          "p95Ms": 188.45153300000015
+        },
+        "budget": {
+          "medianMs": 198.5859241999999,
+          "p95Ms": 230.6671495999999
+        },
+        "passed": true
+      },
+      "rescan": {
+        "countPerArm": 32,
+        "a": {
+          "medianMs": 162.92353549999996,
+          "p95Ms": 185.87555900000007
+        },
+        "b": {
+          "medianMs": 178.547325,
+          "p95Ms": 208.6815489999999
+        },
+        "budget": {
+          "medianMs": 197.50824259999993,
+          "p95Ms": 225.05067080000006
+        },
+        "passed": true
+      },
+      "metadata-cold": {
+        "countPerArm": 32,
+        "a": {
+          "medianMs": 118.66821350000009,
+          "p95Ms": 128.298266
+        },
+        "b": {
+          "medianMs": 107.91515400000014,
+          "p95Ms": 116.65255700000012
+        },
+        "budget": {
+          "medianMs": 144.4018562000001,
+          "p95Ms": 155.95791920000002
+        },
+        "passed": true
+      },
+      "cached": {
+        "countPerArm": 32,
+        "a": {
+          "medianMs": 0.1457820000000254,
+          "p95Ms": 0.18045299999999997
+        },
+        "b": {
+          "medianMs": 0.1471769999999708,
+          "p95Ms": 0.6307899999999904
+        },
+        "budget": {
+          "medianMs": 2.1749384000000305,
+          "p95Ms": 2.2165436
+        },
+        "passed": true
+      }
+    },
+    "inputReference": {
+      "path": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+      "sha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e"
+    },
+    "identitiesAndInputsUnchanged": true,
+    "qualifications": [
+      "Baseline cold tail is elevated; prior failed cold budget/result retained and not waived",
+      "Rescan median and P95 rise retained even inside budget",
+      "Cached P95 rises retained; no zero-regression claim",
+      "Seven performance modes alone cannot authorize adoption"
+    ]
+  },
+  "originalMixed": {
+    "passed": 0,
+    "total": 1,
+    "exitCode": 1,
+    "signal": null,
+    "bundleUnchanged": true,
+    "testDurationMs": 51350.64075,
+    "suiteDurationMs": 51809.004533,
+    "outerDeadlineSeconds": 90,
+    "outerDeadlineTriggered": false,
+    "firstFailure": {
+      "generation": 2,
+      "message": "Recursive cleanup must complete during each printing generation",
+      "actual": "completed",
+      "expected": "printing",
+      "site": "original compiled product-compiled-journey.test.js:1022"
+    },
+    "secondaryFailure": "Undici Invalid state: ReadableStream is already closed after first assertion failure; full failure ring retained",
+    "completeBothGenerationMetrics": false,
+    "unchangedHeadNotRerun": true,
+    "adoptionBlocked": true
+  },
+  "newCi": {
+    "head": "38ad39539282940bb33b25686852a8373d3d6499",
+    "runtimeHead": "7e4b33139c7e933e273924a120fe40df5d389816",
+    "runtimeHeadHostRun": 37723534280,
+    "runtimeHeadFullHostChecks": "success including npm test, protocol, sanitizer and Linux MCU",
+    "currentHost": {
+      "run": 37725068722,
+      "job": 113141257420,
+      "passed": 4362,
+      "total": 4363,
+      "failedCase": "AHT heater requests fresh target feedback and renews PWM without forging samples: PA4",
+      "error": "MCU clock samples expired",
+      "laterProtocolSanitizerLinuxMcu": "skipped"
+    },
+    "currentFirmware": {
+      "run": 37725068727,
+      "conclusion": "success"
+    },
+    "currentMotion": {
+      "run": 37725068723,
+      "passed": 10,
+      "total": 10
+    },
+    "noUnchangedHeadRetry": true
+  },
+  "actualClockDiscriminator": {
+    "sourceAndImmutableCompiledReproduceAll14": true,
+    "upstreamTranscriptionSameRejectionDecisionsAndOriginalPrecision": true,
+    "noLiveMcuNoTimers": true,
+    "acceptedWarmup": 8,
+    "rejectedRealTime": 6,
+    "expiry": 81.939863581,
+    "retirementTime": 82.014793979,
+    "lastReplyAgeMs": 77.91662600000393,
+    "initialUptimeRoundtripMs": 3.1546049999917614,
+    "estimatedFrequencyHz": 990503.9332718619,
+    "nominalFrequencyHz": 1000000,
+    "rejectionGuardEnds": 87.018075813,
+    "conditionalFrequencyInterval": {
+      "lower": 999986.0787741668,
+      "upper": 1000025.1666914799
+    },
+    "qualification": "Offline conditional interval analysis: software firmware uses 1 MHz monotonic host clock. Assumes a constant counter, frame sample time in each recorded departure/receive interval, no reset/wrap. Does not prove physical oscillator frequency, transport timestamp correctness or a safe replacement algorithm.",
+    "interpretation": "Received replies do not grant authorization when the estimate remains rejected. Actual failure is reproduced by existing startup-biased model and 10-second positive-outlier filtering before the unchanged approximately 4.92-second lease; original compiler divergence is not observed in this input. Exact origin of initial timing bias and safe startup repair remain unproved.",
+    "clockModelAndAuthorityChanged": false
+  },
+  "evidence": {
+    "path": "host/contracts/content-paired-preparation-trial.evidence.json.gz",
+    "bytes": 468190,
+    "sha256": "c2a9778649ab566054e68096b402e9e094e5612b010f78cb7bb892e940a2b84a",
+    "entries": 115,
+    "redactions": 1
+  },
+  "priorArchives": [
+    {
+      "path": "host/contracts/native-metadata-atomic-heads-v2.evidence.json.gz",
+      "bytes": 1722544,
+      "sha256": "4e59665ccb0e4660860cd528ad8bb60f4e4e33f3b44a821e7f3703cf0ab4c19e"
+    },
+    {
+      "path": "host/contracts/cold-content-sync-observation.evidence.json.gz",
+      "bytes": 146096,
+      "sha256": "17ce0d8a2cdfc673fa348eeceb6893825f8385b71d355f317b5104eadb65d010"
+    }
+  ],
+  "next": "Keep failed storage trial separate. Use exact captured inputs to validate bounded startup calibration confidence/convergence, preserve original estimator references/clock lease/outlier filtering and AHT 4300 ms assertions. Do not merge #50, rerun failed unchanged head, restart r3 fixture, move real hardware or claim G3 closure.",
+  "unverified": [
+    "Safe startup calibration repair",
+    "Original mixed generation 2 cleanup stability",
+    "Current head full CI",
+    "Same-package complete Fluidd/Mainsail acceptance",
+    "Target-board performance and G3",
+    "Complete Moonraker and Python retirement",
+    "develop integration and master release"
+  ]
+}
