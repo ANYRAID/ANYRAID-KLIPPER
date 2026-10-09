@@ -68,6 +68,37 @@ Node 26.10.0 的同版本对照。实际合并后全部 15 项检查亦已独立
 通过，见[合并后终态](../host/contracts/develop-1f0-terminal.json)；不能把
 观测能力当作稳定性修复。
 
+### 有限滤波边界捕获
+
+`host/scripts/diagnose-node-asan.ts` 新增 `--filter-trace off|on`，默认
+off。on 只接受 `--case motion --execution source --runs 1 --workers 1`。
+调用前校验已审查滤波源码摘要，只在新诊断目录生成私有模块；不修改
+产品源码。原 16 轮、参考、容差、10 秒子进程期限、输出上限和失配
+捕获保留。每轮额外二进制最多 8 MiB；固定六个索引保存实际单次
+输入读取、加权项、补偿过渡与输出赋值，并保存调用前后的全输入。
+
+一次 Node 26.10 源码观测记录 96 个位置、15,936 项过渡，全部符合
+独立整数舍入模型；没有复现历史失配。插桩会改变 JIT 形态和时间，
+这只证明捕获设施可用，不是性能测试、根因判断或 G3 通过。产品
+源码和依赖未变，完整同包客户端与真实运动门禁仍保留。
+两项实际注册控制、类型检查、原始驱动／模块／16 份二进制、初始
+仅文件级测试结果和重放结果均见
+[边界捕获准备](../host/contracts/motion-filter-boundary-capture.json)。
+
+证据归档是 gzip JSON；`entries` 含相对路径、原始字节数、SHA-256
+及 base64。校验归档和条目摘要后将 `capture/` 提取到新临时目录，
+无需再次运行运动生成或子进程。保留原历史捕获文件和独立整数模型，
+从仓库根目录执行以下只读分析，输出必须为不存在的新路径：
+
+```sh
+node docs/diagnostics/node26-motion-capture-20261008/filter-boundary-analysis.mjs \
+  /absolute/extracted/capture /absolute/new-analysis.json
+```
+
+分析按所给目录读取条目，不依赖报告中的历史绝对路径。当前模型仅
+覆盖捕获中正常、有限 binary64 的运算范围；不声明完整 IEEE 特殊值
+覆盖。不在相同条件下扩展子进程次数求绿。
+
 ### 产品 TypeScript 编译失败观测
 
 构建所有者在原编译命令启动前读取入口、包装器、解析器、包元信息、
