@@ -1,0 +1,248 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "sourceSha256": "cb203054e07e5cdd55205cec4c75a9435b6acaae2974d9628a72e4f2d2a11526",
+  "node": "v26.10.0",
+  "control": {
+    "before": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "mode": "before",
+      "sourceSha256": "e5bcea8ca347a5c013fc494d4c83addb055f68b2ba20d6395b76ebf327f07db7",
+      "controlDeadlineMs": 750,
+      "killSignal": "SIGKILL",
+      "rows": [
+        {
+          "kind": "regular",
+          "status": 0,
+          "signal": null,
+          "errorCode": null,
+          "completed": true,
+          "stdout": "{\"completed\":true,\"value\":{\"schema\":1,\"node\":\"v26.10.0\",\"platform\":\"linux\",\"arch\":\"x64\",\"typescript\":\"7.0.2\",\"files\":{\"entry\":{\"unavailable\":\"ENOENT\"},\"wrapper\":{\"unavailable\":\"ENOENT\"},\"resolver\":{\"unavailable\":\"ENOENT\"},\"package\":{\"bytes\":39,\"sha256\":\"5822ee8e5f2d4ba7f5de9d91b314c012f91de246dfc50feda7d05c7ec829d0c8\"},\"config\":{\"unavailable\":\"ENOENT\"},\"hostConfig\":{\"unavailable\":\"ENOENT\"},\"lock\":{\"unavailable\":\"ENOENT\"},\"nativePackage\":{\"bytes\":2,\"sha256\":\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\"},\"nativeCandidate\":{\"unavailable\":\"ENOENT\"}}}}\n",
+          "stderr": ""
+        },
+        {
+          "kind": "typescript-package-fifo",
+          "status": null,
+          "signal": "SIGKILL",
+          "errorCode": "ETIMEDOUT",
+          "completed": false,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "kind": "native-package-fifo",
+          "status": null,
+          "signal": "SIGKILL",
+          "errorCode": "ETIMEDOUT",
+          "completed": false,
+          "stdout": "",
+          "stderr": ""
+        }
+      ],
+      "scope": "Disposable local metadata fixtures only; no compiler, product build, service, client scene or printing. Timeout is an outer fixture bound, not a change to the product compiler deadline."
+    },
+    "candidate": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "mode": "after",
+      "sourceSha256": "cb203054e07e5cdd55205cec4c75a9435b6acaae2974d9628a72e4f2d2a11526",
+      "controlDeadlineMs": 750,
+      "killSignal": "SIGKILL",
+      "rows": [
+        {
+          "kind": "regular",
+          "status": 0,
+          "signal": null,
+          "errorCode": null,
+          "completed": true,
+          "stdout": "{\"completed\":true,\"value\":{\"schema\":1,\"node\":\"v26.10.0\",\"platform\":\"linux\",\"arch\":\"x64\",\"typescript\":\"7.0.2\",\"files\":{\"package\":{\"bytes\":39,\"sha256\":\"5822ee8e5f2d4ba7f5de9d91b314c012f91de246dfc50feda7d05c7ec829d0c8\"},\"nativeCandidate\":{\"unavailable\":\"ENOENT\"},\"nativePackage\":{\"bytes\":2,\"sha256\":\"44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a\"},\"entry\":{\"unavailable\":\"ENOENT\"},\"wrapper\":{\"unavailable\":\"ENOENT\"},\"resolver\":{\"unavailable\":\"ENOENT\"},\"config\":{\"unavailable\":\"ENOENT\"},\"hostConfig\":{\"unavailable\":\"ENOENT\"},\"lock\":{\"unavailable\":\"ENOENT\"}}}}\n",
+          "stderr": ""
+        },
+        {
+          "kind": "typescript-package-fifo",
+          "status": 0,
+          "signal": null,
+          "errorCode": null,
+          "completed": true,
+          "stdout": "{\"completed\":true,\"value\":{\"schema\":1,\"node\":\"v26.10.0\",\"platform\":\"linux\",\"arch\":\"x64\",\"typescript\":null,\"files\":{\"package\":{\"unavailable\":\"NOT_BOUNDED_FILE\"},\"nativeCandidate\":{\"unavailable\":\"NOT_BOUNDED_FILE\"},\"nativePackage\":{\"unavailable\":\"NOT_BOUNDED_FILE\"},\"entry\":{\"unavailable\":\"ENOENT\"},\"wrapper\":{\"unavailable\":\"ENOENT\"},\"resolver\":{\"unavailable\":\"ENOENT\"},\"config\":{\"unavailable\":\"ENOENT\"},\"hostConfig\":{\"unavailable\":\"ENOENT\"},\"lock\":{\"unavailable\":\"ENOENT\"}}}}\n",
+          "stderr": ""
+        },
+        {
+          "kind": "native-package-fifo",
+          "status": 0,
+          "signal": null,
+          "errorCode": null,
+          "completed": true,
+          "stdout": "{\"completed\":true,\"value\":{\"schema\":1,\"node\":\"v26.10.0\",\"platform\":\"linux\",\"arch\":\"x64\",\"typescript\":\"7.0.2\",\"files\":{\"package\":{\"bytes\":39,\"sha256\":\"5822ee8e5f2d4ba7f5de9d91b314c012f91de246dfc50feda7d05c7ec829d0c8\"},\"nativeCandidate\":{\"unavailable\":\"NOT_BOUNDED_FILE\"},\"nativePackage\":{\"unavailable\":\"NOT_BOUNDED_FILE\"},\"entry\":{\"unavailable\":\"ENOENT\"},\"wrapper\":{\"unavailable\":\"ENOENT\"},\"resolver\":{\"unavailable\":\"ENOENT\"},\"config\":{\"unavailable\":\"ENOENT\"},\"hostConfig\":{\"unavailable\":\"ENOENT\"},\"lock\":{\"unavailable\":\"ENOENT\"}}}}\n",
+          "stderr": ""
+        }
+      ],
+      "scope": "Disposable local metadata fixtures only; no compiler, product build, service, client scene or printing. Timeout is an outer fixture bound, not a change to the product compiler deadline."
+    },
+    "harnessScope": "Optional module override was added after the before run; each result binds the observed module digest. Outer 750ms is a fixture control, not the compiler deadline."
+  },
+  "targeted": {
+    "pass": 6,
+    "fail": 0
+  },
+  "outcomes": {
+    "targetedSandbox": 1,
+    "directSandboxDiagnostic": 1,
+    "targetedUnsandboxed": 0,
+    "typecheck": 0,
+    "cost": 0,
+    "equivalence": 0,
+    "whitespace": 0,
+    "nodeWhitespace": 0,
+    "full": null,
+    "fullAttempt": {
+      "status": "interrupted",
+      "exitCode": null,
+      "originalSession": 41649,
+      "observedAt": "2026-10-09T07:27:33Z",
+      "handleObservation": "Unknown process id 41649",
+      "logHasRootReport": false,
+      "logHasFinalCounts": false,
+      "lastLogModification": "2026-10-08T10:31:21.303147024Z",
+      "hostProcessInspection": "A subsequent read-only ps -eo pid,ppid,comm,etime inspection found no node, npm or tsc command; node_repl and Codex processes were present. The first inspection approval timed out and the single allowed retry succeeded.",
+      "cause": "Unknown; no terminal exit status recovered. The original attempt was not restarted. Any later CI result has a distinct head and run identity and cannot replace this partial log."
+    }
+  },
+  "cost": {
+    "schema": 1,
+    "budget": {
+      "warmups": 1,
+      "samples": 16,
+      "p95MaxMs": 250,
+      "scope": "Additional pre-launch digest work on this desktop, fixed before measurement; no compiler execution or target-board/printing-speed claim"
+    },
+    "node": "v26.10.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "logicalCpus": 6,
+    "kernel": "6.18.36-amd64-desktop-rolling",
+    "samplesMs": [
+      23.43748099999999,
+      28.695485000000005,
+      18.314988,
+      17.736781000000008,
+      19.140079999999983,
+      17.935463999999996,
+      17.490906999999993,
+      17.895742000000013,
+      17.406645999999995,
+      17.346934999999974,
+      19.979941999999994,
+      19.130780000000016,
+      17.52826799999997,
+      17.539557000000002,
+      17.369595000000004,
+      22.520637999999963
+    ],
+    "medianMs": 17.915603000000004,
+    "p95Ms": 28.695485000000005,
+    "maxMs": 28.695485000000005,
+    "passed": true,
+    "inputs": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "platform": "linux",
+      "arch": "x64",
+      "typescript": "7.0.2",
+      "files": {
+        "package": {
+          "bytes": 3087,
+          "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+        },
+        "nativeCandidate": {
+          "bytes": 24101026,
+          "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4"
+        },
+        "nativePackage": {
+          "bytes": 1042,
+          "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7"
+        },
+        "entry": {
+          "bytes": 44,
+          "sha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd"
+        },
+        "wrapper": {
+          "bytes": 609,
+          "sha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e"
+        },
+        "resolver": {
+          "bytes": 3051,
+          "sha256": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+        },
+        "config": {
+          "bytes": 472,
+          "sha256": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e"
+        },
+        "hostConfig": {
+          "bytes": 527,
+          "sha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1"
+        },
+        "lock": {
+          "bytes": 69143,
+          "sha256": "f3cf393547e61fc9ca09d33246faa789c483009de2c518c541db47ddb6fdfec8"
+        }
+      }
+    },
+    "sourceSha256": "cb203054e07e5cdd55205cec4c75a9435b6acaae2974d9628a72e4f2d2a11526",
+    "benchmarkSha256": "f0031f4a4ca67d89f0d5d34e208ea4a86e2e997c59ae7ee95c5f57f9f86cf0d0"
+  },
+  "equivalence": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "baseline": "/home/dek02/.cache/codex/tmp/anyraid-content-clock-sharp-product",
+    "output": "/home/dek02/.cache/codex/tmp/anyraid-compiler-metadata-bounds-equivalence-product",
+    "baselineManifestSha256": "9127984d9e10530023c6c02827202b62ad951c5e768161b459d29b013fabce45",
+    "candidateManifestSha256": "9127984d9e10530023c6c02827202b62ad951c5e768161b459d29b013fabce45",
+    "fileCount": 667,
+    "allFileDigestsEqual": true,
+    "manifestsByteEqual": true,
+    "scope": "Fresh TypeScript compile with unchanged native files reused from sealed baseline; no native recompile, dependency install, service launch, client scene or printing. Native builds remain covered by ordinary regression."
+  },
+  "ordinary": null,
+  "failures": [
+    {
+      "schema": 1,
+      "node": "v26.10.0",
+      "file": "/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/api-key-authorization-compiled.test.ts",
+      "name": "compiled native authorization serves HTTP without Python or TypeScript loading",
+      "line": 10,
+      "column": 1,
+      "nesting": 0,
+      "error": {
+        "code": "ERR_TEST_FAILURE",
+        "failureType": "testCodeFailure",
+        "exitCode": null,
+        "signal": null,
+        "causeCode": null
+      },
+      "truncatedFields": []
+    }
+  ],
+  "oldPrTerminal": {
+    "head": "d10070931cbefebad4ed73ca1f6749efa1a46fc0",
+    "allSuccess": true,
+    "ordinary": {
+      "tests": 4402,
+      "pass": 4402,
+      "fail": 0
+    },
+    "evidence": {
+      "path": "pr56-d100-terminal.evidence.json.gz",
+      "sha256": "467a654325ebafd43a6f0120e10bbb76fc2a87cf062c878c72c95eed92cfecab",
+      "bytes": 584783,
+      "entries": 7
+    }
+  },
+  "evidence": {
+    "path": "product-compiler-metadata-bounds.evidence.json.gz",
+    "sha256": "c9f527a6e710005f840aae388d66b4c2ee9e9f81ad9371fafdab31a8eda04cf3",
+    "bytes": 78084,
+    "entries": 24
+  },
+  "scope": "Bounded metadata and nonblocking descriptor observation only. Actual compiler route, loaded memory, concurrent mutation, target-board performance, printing acceptance and G3 remain unattested; original failures are retained."
+}

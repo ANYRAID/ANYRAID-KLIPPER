@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "head": "d10070931cbefebad4ed73ca1f6749efa1a46fc0",
+  "base": "1f0e11f1bf416ef40abbfcbed54335a3915ddd76",
+  "mergeRef": "5259ab47cbf9d606d1bd1363f8460cd15b67e87c",
+  "hostRun": 37761732945,
+  "jobs": [
+    {
+      "id": 113259524626,
+      "name": "checks",
+      "run": 37761732945,
+      "conclusion": "success"
+    },
+    {
+      "id": 113259524838,
+      "name": "sanitizer (asan)",
+      "run": 37761732945,
+      "conclusion": "success"
+    },
+    {
+      "id": 113259524892,
+      "name": "sanitizer (ubsan)",
+      "run": 37761732945,
+      "conclusion": "success"
+    },
+    {
+      "id": 113264464861,
+      "name": "host",
+      "run": 37761732945,
+      "conclusion": "success"
+    },
+    {
+      "id": 113259525621,
+      "name": "build",
+      "run": 37761733122,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4402,
+    "pass": 4402,
+    "fail": 0
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4402,
+      "failed": 0,
+      "passed": 4402,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4402,
+      "suites": 0
+    }
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": false,
+    "reason": "Changed paths are outside the unchanged motion workflow filter; prior develop 1f0 motion evidence retains its original scope and does not count as a current-head run."
+  },
+  "evidence": {
+    "path": "pr56-d100-terminal.evidence.json.gz",
+    "sha256": "467a654325ebafd43a6f0120e10bbb76fc2a87cf062c878c72c95eed92cfecab",
+    "bytes": 584783,
+    "entries": 7
+  },
+  "scope": "Exact PR 56 d100 merge-ref terminal; local FIFO defect found independently remains a required correction before merge. No motion rerun or printing acceptance implied."
+}
