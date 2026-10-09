@@ -34,7 +34,9 @@
     "everyProductionFileAndLockMatchesBuiltSource": true,
     "nativeAndDependencyBytesReused": true,
     "noFreshInstallOrNativeBuildClaim": true,
-    "actualDevelop": "e312c17234a5a5db8f2981fc3827661b04187714"
+    "actualDevelopAtScenePreparation": "e312c17234a5a5db8f2981fc3827661b04187714",
+    "fixtureIntegratedDevelop": "3fcc9c631121e3e7b178f2412b664e9563480988",
+    "fixtureIntegratedTree": "bdd3b58efc73e327d59c31ac47e1a64b0eda723f"
   },
   "launch": {
     "entry": "host/acceptance/client-probe.ts",
@@ -153,9 +155,13 @@
       "http": "rebase Host/Origin for the extra loopback hop",
       "queue": "explicit job_queue with no startup/automatic dispatch and operator_confirmation",
       "validation": "First blocked by shared missing dependencies; after isolated lock install, 48 tests: 47 pass and 1 test HTTP Host construction failure. Repair then exposed relay Origin mismatch: 1 pass/1 fail. HTTP and websocket origin repair then 2/2 passed. Other 46 unaffected checks not repeated. Final full typecheck and required whitespace passed.",
-      "officialPagesAfterRepair": "not rerun; authorization consumed"
+      "officialPagesAfterRepair": "not rerun; authorization consumed",
+      "candidateCi": "pr60-6ce-terminal.json",
+      "developCi": "develop-3fcc-terminal.json",
+      "normallyMergedPr": 60,
+      "allFiveRequiredChecksIndependentlyPassedAtBothHeads": true
     },
-    "next": "After normal PR integration, obtain a new bounded scene authorization and verify remaining actual-page gates using this corrected fixture. Continue independent Moonraker software work while physical G3 remains unresolved."
+    "next": "PR #60 is normally integrated and post-merge checks passed. A new bounded two-scene authorization question is pending; do not infer consent or launch a third scene. Prepare Mainsail recovery/configuration/file management, then both clients queue clearance and process recovery with the same sealed bundle. Preparation is not page acceptance. Continue independent Moonraker software work while physical G3 remains unresolved."
   },
   "evidence": {
     "file": "integrated-client-bundle-acceptance.evidence.gz",

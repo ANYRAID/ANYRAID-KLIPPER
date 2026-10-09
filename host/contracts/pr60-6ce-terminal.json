@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "head": "6ce675a026a6357a92cab005b3cf4f0a5faeb651",
+  "base": "e312c17234a5a5db8f2981fc3827661b04187714",
+  "mergeRef": "05d9b239dcb1703ae186a8d90375239811508914",
+  "hostRun": 37969730115,
+  "jobs": [
+    {
+      "id": 113952978372,
+      "name": "sanitizer (ubsan)",
+      "run": 37969730115,
+      "conclusion": "success"
+    },
+    {
+      "id": 113952978570,
+      "name": "sanitizer (asan)",
+      "run": 37969730115,
+      "conclusion": "success"
+    },
+    {
+      "id": 113952978805,
+      "name": "checks",
+      "run": 37969730115,
+      "conclusion": "success"
+    },
+    {
+      "id": 113957986029,
+      "name": "host",
+      "run": 37969730115,
+      "conclusion": "success"
+    },
+    {
+      "id": 113952977552,
+      "name": "build",
+      "run": 37969729984,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4437,
+    "pass": 4437,
+    "fail": 0
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4437,
+      "failed": 0,
+      "passed": 4437,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4437,
+      "suites": 0
+    }
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": false,
+    "reason": "Changed paths are outside the unchanged motion workflow filter; prior develop e312 motion evidence retains its original scope and does not count as a current-head run."
+  },
+  "evidence": {
+    "path": "pr60-6ce-terminal.evidence.json.gz",
+    "sha256": "85207e0288ce45275b7c3e1515d0b261bda128d70ab696885e34a97d69d0f158",
+    "bytes": 584133,
+    "entries": 7
+  },
+  "scope": "PR #60 修复候选精确头的五项规定 CI；不替代实际合并后、完整官方客户端、目标板或 G3 验收。"
+}
