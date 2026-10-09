@@ -40,6 +40,11 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 合并后的五项规定检查分别通过，含普通 4437／4437、协议、Linux MCU、
 精确 324 条 sanitizer 命令及固件，见
 [合并后终态](host/contracts/develop-3fcc-terminal.json)。完整页面与 G3 仍待验。
+私密配置文件所有者 PR #61 已正常合入 develop `48731115`；最新
+候选的五项检查及 4473／4473 通过，见[候选终态](host/contracts/pr61-43cf-terminal.json)。
+实际合并后的五项规定检查独立通过，含 4473／4473、协议、Linux MCU、
+324 条 sanitizer 命令及固件，见[合并后终态](host/contracts/develop-4873-terminal.json)。
+上述 CI 不覆盖后续本地 LDAP 身份候选；模板／LDAP 完整装配和全面 Python 退役未完成。
 受保护入口新增清台确认页面候选，请求确认在旧服务、策略关闭及设备忙
 时保持拒绝，操作和独立包证据见[队列页面验收](host/contracts/product-queue-panel-acceptance.json)。
 实际页面与当前系列验收仍待完成。

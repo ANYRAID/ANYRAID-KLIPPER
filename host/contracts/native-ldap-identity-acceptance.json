@@ -1,0 +1,190 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "base": "48731115e3d23c3f5e17cb77af6e31f98b3872a6",
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "file": "moonraker/components/authorization.py",
+    "sourceSha256": "1ee62abc536cdb83e9efe65b07bf05114c9244137cc61befb1073dc54f22bc11",
+    "scope": "Actual pinned source inspected; identity tests inject directory decisions and do not execute the upstream Python implementation."
+  },
+  "sources": {
+    "src/moonraker/local-user-authorization.ts": "9bc6cac24a281fb59371abb2f52dd048f32787bddb274336f9cba5bfa3631de4",
+    "src/moonraker/api-key-authorization.ts": "6cbac42187b2420e9c40f6083a464419e6da5418d1fa38b57a994c3b0229404e",
+    "test/ldap-user-authorization.test.ts": "b82986179e691645a97fe685a05dd49c4425cfab99ba17e3db52e70f078eaaf1",
+    "test/ldap-user-network.test.ts": "f594e49ef4fbde5ab32707956a67c109842feaec5a8708d6025e256d3d2047fd",
+    "bench/ldap-identity.ts": "f4a9a20564fb9ea2147f58f88d0d8fbf1e019b3220da58f1cd6c7f70e8a5d6d6"
+  },
+  "validation": {
+    "initial": {
+      "testCount": 6,
+      "passed": 0,
+      "failed": 6,
+      "scope": "Five new cases failed due to status-field and duplicate private-namespace fixture mistakes; existing local-user file failed to import missing reused sealed-file native prerequisite. Initial full source snapshot was not captured; raw failure and type diagnostics retained."
+    },
+    "repaired": {
+      "actualCases": 8,
+      "passed": 7,
+      "failed": 1,
+      "reason": "Sandbox disallowed 127.0.0.1 listening; native prerequisite bytes reused from unchanged locked product, not freshly built."
+    },
+    "affectedLocalNetwork": {
+      "actualCases": 1,
+      "passed": 1,
+      "scope": "Only EPERM-failed existing HTTP/WebSocket case rerun with authorized sandbox escalation; 10 second case timeout, no official client or MCU."
+    },
+    "newDirectoryNetwork": {
+      "actualCases": 1,
+      "passed": 1,
+      "scope": "Actual native HTTP/WebSocket, injected directory authentication; policy/source/session revoke paths only."
+    },
+    "additionalDurableControls": {
+      "actualCases": 2,
+      "passed": 2
+    },
+    "finalTypecheck": true,
+    "requiredWhitespace": true,
+    "notCombinedIntoSingleGreenChain": true
+  },
+  "performance": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "source": {
+      "baselineSha256": "7c5c8cc6456bfb5e65a3f4e0e2f6b9627f50eb08bb6d7889f8cd2419a4368daf",
+      "currentSha256": "9bc6cac24a281fb59371abb2f52dd048f32787bddb274336f9cba5bfa3631de4"
+    },
+    "inputSha256": "d65fa68b0eeaf5430bb2ac3c6030c41261c7c679ed7b14eeaf09c3c07ba9d3f8",
+    "warmups": 2,
+    "samples": 7,
+    "order": "ABBA; 14 samples per group",
+    "iterations": {
+      "cached": 100000,
+      "login": 2
+    },
+    "budget": {
+      "ratio": 1.1,
+      "batchAllowanceMs": 2
+    },
+    "timings": {
+      "cached": {
+        "baseline": {
+          "samplesMs": [
+            20.81050700000003,
+            20.68528600000002,
+            20.416701999999987,
+            20.868097999999918,
+            20.736576000000014,
+            20.607825000000048,
+            20.69408599999997,
+            20.796496999999817,
+            20.541774000000032,
+            20.559353999999985,
+            20.45385199999987,
+            20.46993199999997,
+            20.665346,
+            20.68961500000023
+          ],
+          "medianMs": 20.68528600000002,
+          "p95Ms": 20.868097999999918
+        },
+        "current": {
+          "samplesMs": [
+            20.866097999999965,
+            20.812776999999983,
+            20.85976800000003,
+            21.045530999999983,
+            20.990069999999832,
+            20.99574000000007,
+            21.02449999999999,
+            20.93364900000006,
+            20.92167799999993,
+            20.961279999999988,
+            20.871517999999924,
+            20.833998000000065,
+            20.859018000000106,
+            21.084411000000273
+          ],
+          "medianMs": 20.93364900000006,
+          "p95Ms": 21.084411000000273
+        },
+        "medianRatio": 1.0120067472115222,
+        "budgetPassed": true
+      },
+      "login": {
+        "baseline": {
+          "samplesMs": [
+            30.36069999999995,
+            30.157926999999972,
+            30.530091999999968,
+            31.146760000000086,
+            30.60321299999987,
+            30.60295300000007,
+            30.600403000000142,
+            30.236417999999958,
+            30.962748000000147,
+            30.293079000000034,
+            31.04286900000011,
+            30.28152900000009,
+            31.039097999999967,
+            30.305929000000106
+          ],
+          "medianMs": 30.600403000000142,
+          "p95Ms": 31.146760000000086
+        },
+        "current": {
+          "samplesMs": [
+            30.16859700000009,
+            30.81917599999997,
+            30.216828000000078,
+            31.010917999999947,
+            30.495470999999952,
+            31.001817999999957,
+            30.696383999999853,
+            31.002027999999882,
+            30.28163900000004,
+            31.234110999999984,
+            30.235607999999957,
+            31.26524100000006,
+            30.70472400000017,
+            31.08833900000036
+          ],
+          "medianMs": 30.81917599999997,
+          "p95Ms": 31.26524100000006
+        },
+        "medianRatio": 1.0071493502879627,
+        "budgetPassed": true
+      }
+    },
+    "scope": "Real private SQLite identity owners and local PBKDF2 logins; cached signed-token checks. No LDAP wire/TLS, official clients, motion, printing or target-board performance claim."
+  },
+  "nativePrerequisite": {
+    "file": "sealed-file.node",
+    "sha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+    "reusedLockedBytes": true
+  },
+  "behavior": {
+    "ldapPasswordPersisted": false,
+    "explicitLdapUserCreation": false,
+    "localLdapPasswordReset": false,
+    "sourceMatching": true,
+    "firstLoginAction": "user_logged_in",
+    "serializedDurablePublication": true,
+    "lateCancelledAuthenticationPublishesIdentity": false,
+    "sharedJwtLogoutDeleteRestart": true,
+    "existingValidJwtRemainsWhenDirectoryLoginDisabled": true
+  },
+  "remaining": [
+    "Actual LDAP directory transport, filter escaping, bind/search/rebind and TLS checks",
+    "General template, private values and exact integer/float type bridge",
+    "Standard configuration/dependency assembly and own candidate CI",
+    "Official client missing journeys, target board, Cycnumbris 500, G3",
+    "Full Python retirement and mainline release"
+  ],
+  "ci": "Local candidate only; no PR or complete candidate CI yet.",
+  "evidence": {
+    "file": "native-ldap-identity-acceptance.evidence.json.gz",
+    "sha256": "513f7a25f322fe34d88a931c067cca58654fcb95d90ad2c0d876bd0f4afb4c93",
+    "bytes": 31045,
+    "entries": 18
+  }
+}
