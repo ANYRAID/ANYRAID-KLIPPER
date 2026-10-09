@@ -3596,3 +3596,35 @@ LDAP；`/access/info` 仅按明确注入的可用来源报告策略。
 1.1 倍加 2 ms 批次桌面预算，不证明目录传输或目标板打印预算。
 复现时先用 `git show 48731115:host/src/moonraker/local-user-authorization.ts`
 导出原源码，再以 Node.js 26 运行 `node host/bench/ldap-identity.ts <原源码路径>`。
+
+## LDAP／LDAPS 传输接入候选
+
+`LdapAuthorization` 实现上述目录依赖，由装配者创建、注入并关闭。
+`LdapOptions` 接受已解析的 `host`、`port`、`secure`、`baseDn`、
+`groupDn`、`bindDn`、`bindPassword`、`userFilter`、`membershipAttribute`、
+`checkDnCase` 及 `activeDirectory`；不自行渲染模板或公开已解析凭据。
+配置完整装配尚未完成，标准 `loadAuthorized` 仍拒绝 `[ldap]`，
+不能凭独立所有者测试声明标准服务器或完整 LDAP 已交付。
+
+先绑定服务账号或匿名身份，在基准 DN 下搜索，然后以结果第一项
+DN 绑定用户。默认查询 uid，AD 查询 sAMAccountName；自定义过滤器
+的所有 USERNAME 均替换为 RFC4515 转义值。分组按指定属性校验，
+默认 DN 大小写敏感。重绑失败仅尝试新的用户连接，不透明重连或
+自动重放记忆凭据，不能因会话断开退回匿名搜索。
+
+每次登录独立建立连接。默认总期限 10 秒、响应总量 1 MiB、队列
+32 项、搜索最多 1024 项；超过期限或资源界限拒绝该登录。取消和
+`close()` 关闭实际连接及等待操作，关闭目录所有者后不能再登录。
+数据回调在库解析前检查已取消状态，并隔离解析异常。LDAPS 最低
+TLS 1.2，始终验证 CA 和主机名，DNS 名提供 SNI；`ca` 只允许配置
+在加密传输上，不提供关闭证书校验的选项。错误、状态及对象检查
+不返回绑定密码；不承诺 JavaScript 字符串的即时内存清零。
+
+固定库为 ldapts 9.2.0，安装源码与固定标签 Client Git blob 一致。
+九项不同控制分轮验证，完整类型及规定空白检查通过；合成目录
+登录七轮、每轮八次，P95 42.32 ms，事件循环 P99 最高 1.79 ms。
+预定桌面预算分别为登录 P95 250 ms、事件循环 P99 20 ms／最大
+50 ms。复现：Node.js 26 执行 `node host/bench/ldap-transport.ts`，
+仅在本机合成目录监听 127.0.0.1 并关闭。范围与原始证据见
+[传输验收记录](../host/contracts/native-ldap-transport-acceptance.json)，
+不证明实际用户目录、TLS 延迟、目标板打印或 G3 通过。

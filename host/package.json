@@ -324,6 +324,7 @@
     "complex.js": "2.4.3",
     "fft.js": "4.0.4",
     "fontkit": "2.0.4",
+    "ldapts": "9.2.0",
     "markdown-it": "15.0.2",
     "markdown-it-attrs": "4.3.1",
     "ml-matrix": "6.15.0",

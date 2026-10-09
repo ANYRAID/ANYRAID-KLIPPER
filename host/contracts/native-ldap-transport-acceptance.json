@@ -1,0 +1,211 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "base": "2b8f2085498170242e4c27ea42389f07fb819f34",
+  "scope": "Independent actual LDAP/LDAPS transport and native identity dependency. Standard configuration assembly still rejects LDAP; complete template owner, actual customer directory, full Moonraker/Python retirement and hardware gates remain open.",
+  "sources": {
+    "src/moonraker/ldap-authorization.ts": "ff96ac7998eaceeaf4a22645f166d50fd58717d77fe94888271e1ea61d18b2f2",
+    "test/ldap-authorization.test.ts": "6606caf0539fd5e086b3d3597073b17fca395872e52c8e314c22201f6d480c7a",
+    "test/helpers/ldap-peer.ts": "897f6b4be1e5822067a1a39c90108d51f8e38b928be8447fd79aa8c683abd622",
+    "test/helpers/mqtt-certificate.ts": "f5d72c7829572dba2277ead5556dd52bed29a46ee15d478cbf6436996c56788a",
+    "bench/ldap-transport.ts": "71f7c95b1146a207bccec6bf0bea733090688b9b562fc81ec548cbe440d11852",
+    "package.json": "eae7c182b215087a2082045ffae7da54cb6cc8e2a0af146fc64a728ff8f36c9b",
+    "package-lock.json": "b890eff34a349b721afd6013f53d6e2c3fa14538ce8ae6bc0bd580ec328da389"
+  },
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "path": "moonraker/components/ldap.py",
+    "sha256": "7e07463a2af1ff17501334f926c12fc629d4801674312aa02391b2a3710588aa",
+    "executedAsPythonOracle": false
+  },
+  "dependency": {
+    "name": "ldapts",
+    "version": "9.2.0",
+    "npmIntegrity": "sha512-5mDg3OT5fDP9DUXga9dCLW8cMW24OTOKT4pv/Qj+f2zCV3qxb+gkZLCzMAqzVTOANoycidKkYpPvkclUQU2aXw==",
+    "sourceRef": "v9.2.0",
+    "verifiedClientGitBlob": "a72c87b354b00bf65d1e9868baa471b5c2979805",
+    "sourceSha256": "b3ee5f26f7cce4852011f9fb745f09ec2253ce7122571d74c2d85f8850fbb3c6",
+    "installScriptsExecuted": false,
+    "originalLockedClientBundleChanged": false
+  },
+  "validation": {
+    "first": {
+      "actualCases": 7,
+      "passed": 7,
+      "failed": 0,
+      "source": "validation/first-source-oct10.json.gz"
+    },
+    "guarded": {
+      "actualCases": 7,
+      "passed": 7,
+      "failed": 0,
+      "scope": "Six affected wire cases and a new coalesced/oversized BER control; unchanged pure config case not repeated.",
+      "source": "validation/guarded-source-oct10.json.gz"
+    },
+    "additional": {
+      "actualCases": 2,
+      "passed": 2,
+      "failed": 0,
+      "scope": "Expanded group case includes case-sensitive rejection; new capacity/close case. No unchanged successful reruns."
+    },
+    "uniqueTransportCases": 9,
+    "notOneNineCaseGreenRun": true,
+    "finalTypecheck": true,
+    "requiredWhitespace": true
+  },
+  "limits": {
+    "queue": 32,
+    "defaultTotalOperationMs": 10000,
+    "defaultConnectMs": 10000,
+    "defaultResponseBytes": 1048576,
+    "searchSizeLimit": 1024,
+    "autoRebind": false,
+    "transparentSessionReconnect": false,
+    "tlsCertificateAndHostVerification": true,
+    "tlsMinimum": "TLSv1.2",
+    "credentialsInPublicInspection": false
+  },
+  "performance": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "sources": {
+      "../src/moonraker/ldap-authorization.ts": "ff96ac7998eaceeaf4a22645f166d50fd58717d77fe94888271e1ea61d18b2f2",
+      "../test/helpers/ldap-peer.ts": "897f6b4be1e5822067a1a39c90108d51f8e38b928be8447fd79aa8c683abd622",
+      "./ldap-transport.ts": "71f7c95b1146a207bccec6bf0bea733090688b9b562fc81ec548cbe440d11852",
+      "../package-lock.json": "b890eff34a349b721afd6013f53d6e2c3fa14538ce8ae6bc0bd580ec328da389"
+    },
+    "inputSha256": "8bbb1cbbd7e08d19af18495b811b5675e88c0d08aa1f4b3f9ec6dc1600c43dfc",
+    "iterations": 8,
+    "warmups": 2,
+    "samples": 7,
+    "loginSamplesMs": [
+      [
+        41.166196000000014,
+        42.64847099999997,
+        41.0239939999999,
+        41.04290500000002,
+        42.092674999999986,
+        40.99451500000009,
+        41.053454999999985,
+        40.84976299999994
+      ],
+      [
+        41.206245999999965,
+        42.748181999999815,
+        41.12104599999998,
+        41.855223000000024,
+        42.06757500000003,
+        40.93880399999989,
+        42.00479500000006,
+        41.09223500000007
+      ],
+      [
+        40.987033999999994,
+        41.97796399999993,
+        40.95392400000014,
+        42.1644060000001,
+        41.87132399999996,
+        41.95102399999996,
+        41.01674400000002,
+        42.14158599999996
+      ],
+      [
+        41.81488299999978,
+        41.01816399999984,
+        41.07628499999987,
+        41.91908400000011,
+        40.96510399999988,
+        40.99264500000004,
+        41.075045000000046,
+        41.07944600000019
+      ],
+      [
+        42.08021599999984,
+        41.721852000000126,
+        41.989434000000074,
+        42.00392499999998,
+        41.01869499999975,
+        41.08640500000001,
+        42.32107799999994,
+        41.581420999999864
+      ],
+      [
+        40.99489500000027,
+        41.014484999999695,
+        41.02756499999987,
+        42.06234499999982,
+        41.921863999999914,
+        41.93117399999983,
+        40.98610499999995,
+        40.82728300000008
+      ],
+      [
+        40.96146399999998,
+        41.26496700000007,
+        41.96285499999976,
+        40.99779400000034,
+        42.030255000000125,
+        41.93576499999972,
+        42.039504999999735,
+        40.982344999999896
+      ]
+    ],
+    "eventLoop": [
+      {
+        "p99Ms": 1.510399,
+        "maxMs": 1.769471
+      },
+      {
+        "p99Ms": 1.778687,
+        "maxMs": 1.824767
+      },
+      {
+        "p99Ms": 1.484799,
+        "maxMs": 2.035711
+      },
+      {
+        "p99Ms": 1.787903,
+        "maxMs": 2.003967
+      },
+      {
+        "p99Ms": 1.435647,
+        "maxMs": 1.800191
+      },
+      {
+        "p99Ms": 1.329151,
+        "maxMs": 1.800191
+      },
+      {
+        "p99Ms": 1.737727,
+        "maxMs": 1.790975
+      }
+    ],
+    "budget": {
+      "loginP95Ms": 250,
+      "eventLoopP99Ms": 20,
+      "eventLoopMaxMs": 50
+    },
+    "medianMs": 41.166196000000014,
+    "p95Ms": 42.32107799999994,
+    "pass": true,
+    "scope": "Actual TCP LDAP service/anonymous bind, subtree search, user bind and group policy on one synthetic loopback peer. No Python/real-directory/TLS-latency/printing/target-board comparison; cached JWT performance retains its separately fingerprinted identity scope."
+  },
+  "identityPerformanceRetained": {
+    "report": "native-ldap-identity-acceptance.json",
+    "exactMeasuredIdentitySourcesUnchanged": true,
+    "newTransportNotIncludedInCachedTokenPath": true
+  },
+  "remaining": [
+    "Standard configuration and private template/secrets assembly",
+    "Actual customer directory and TLS latency acceptance",
+    "Complete fixed-client missing journeys",
+    "Cycnumbris 500 target-board printing/performance and G3 precision",
+    "Full Python retirement and mainline release"
+  ],
+  "evidence": {
+    "file": "native-ldap-transport-acceptance.evidence.json.gz",
+    "sha256": "24a37072482d170813be24fea360b9c579abb5c1c660a26999a8be2e739ba8a3",
+    "bytes": 119941,
+    "entries": 22
+  }
+}
