@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/node-motion-diagnostics.yaml'
       - 'host/scripts/diagnose-node-asan.ts'
+      - 'host/scripts/motion-filter-trace.ts'
       - 'host/package.json'
       - 'host/package-lock.json'
       - 'host/src/diagnostics/graph-motion.ts'
@@ -19,6 +20,7 @@ on:
     paths:
       - '.github/workflows/node-motion-diagnostics.yaml'
       - 'host/scripts/diagnose-node-asan.ts'
+      - 'host/scripts/motion-filter-trace.ts'
       - 'host/package.json'
       - 'host/package-lock.json'
       - 'host/src/diagnostics/graph-motion.ts'

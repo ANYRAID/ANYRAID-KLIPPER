@@ -1,0 +1,216 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "head": "df45a8e1c0ea0b0a032366e52237620cd09fa991",
+  "base": "88b6826d521d59029261c2a809c49ab815ee3ab3",
+  "mergeRef": "d51de6b6f89cbe86140f64c1fe976f77c07fc7cb",
+  "hostRun": 37945271906,
+  "jobs": [
+    {
+      "id": 113869805720,
+      "name": "checks",
+      "run": 37945271906,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869805876,
+      "name": "sanitizer (ubsan)",
+      "run": 37945271906,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869806243,
+      "name": "sanitizer (asan)",
+      "run": 37945271906,
+      "conclusion": "success"
+    },
+    {
+      "id": 113875482468,
+      "name": "host",
+      "run": 37945271906,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869805516,
+      "name": "build",
+      "run": 37945271955,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869805615,
+      "name": "motion (26.9.0, off, compiled)",
+      "run": 37945271895,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869805726,
+      "name": "motion (26.9.0, default, source)",
+      "run": 37945271895,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869805856,
+      "name": "motion (26.10.0, default, compiled)",
+      "run": 37945271895,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869805887,
+      "name": "motion (26.10.0, off, source)",
+      "run": 37945271895,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869805906,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "run": 37945271895,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869805922,
+      "name": "motion (26.10.0, off, compiled)",
+      "run": 37945271895,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869805951,
+      "name": "motion (26.9.0, off, source)",
+      "run": 37945271895,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869806065,
+      "name": "motion (26.9.0, default, compiled)",
+      "run": 37945271895,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869806081,
+      "name": "motion (26.10.0, default, source)",
+      "run": 37945271895,
+      "conclusion": "success"
+    },
+    {
+      "id": 113869806101,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "run": 37945271895,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4432,
+    "pass": 4432,
+    "fail": 0
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4432,
+      "failed": 0,
+      "passed": 4432,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4432,
+      "suites": 0
+    }
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": true,
+    "jobs": [
+      {
+        "id": 113869805615,
+        "name": "motion (26.9.0, off, compiled)",
+        "run": 37945271895,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113869805726,
+        "name": "motion (26.9.0, default, source)",
+        "run": 37945271895,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113869805856,
+        "name": "motion (26.10.0, default, compiled)",
+        "run": 37945271895,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113869805887,
+        "name": "motion (26.10.0, off, source)",
+        "run": 37945271895,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113869805906,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "run": 37945271895,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113869805922,
+        "name": "motion (26.10.0, off, compiled)",
+        "run": 37945271895,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113869805951,
+        "name": "motion (26.9.0, off, source)",
+        "run": 37945271895,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113869806065,
+        "name": "motion (26.9.0, default, compiled)",
+        "run": 37945271895,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113869806081,
+        "name": "motion (26.10.0, default, source)",
+        "run": 37945271895,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113869806101,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "run": 37945271895,
+        "runs": 50,
+        "failures": 0
+      }
+    ],
+    "conditions": 10,
+    "childrenPerCondition": 50,
+    "verifiedChildren": 500,
+    "deadlineMs": 10000,
+    "loops": 16,
+    "scope": "Motion diagnostic crash checks only; not G3 numerical acceptance."
+  },
+  "evidence": {
+    "path": "pr57-df45-terminal.evidence.json.gz",
+    "sha256": "f90ddcdb0e3566a7143b91b05b4871227fce8aa91ff41b73985bd87e05da66c3",
+    "bytes": 617467,
+    "entries": 22
+  },
+  "scope": "PR57 exact df45 composition into develop88. All source/lock bytes match the measured8deb composition; current develop87 merge-ref525 has the identical tree. Original mixed and retained seven budgets passed on8deb; prior failures preserved. Preparation verifier failures retained. Software integration candidate only; not actual clients, physical motion, G3, full Python retirement or default/release switch."
+}

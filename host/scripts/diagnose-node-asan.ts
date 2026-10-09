@@ -5,13 +5,15 @@ import {mkdtempSync,readFileSync,writeFileSync,renameSync,mkdirSync,cpSync,readd
 import {tmpdir,cpus,release} from 'node:os';
 import {join,isAbsolute} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
+import {prepareTracedMotionModules} from './motion-filter-trace.ts';
 const host=fileURLToPath(new URL('..',import.meta.url));
 const options=new Map<string,string>();
-for(let i=2;i<process.argv.length;i+=2){const key=process.argv[i]!,value=process.argv[i+1];if(!['--case','--runs','--workers','--node','--segv','--asan','--wasm-bounds','--js-optimization','--report-parent','--execution'].includes(key)||value===undefined||options.has(key))throw new Error('Use --case empty|strip|motion|history --runs 1..1000 --workers 1..8 --node /path/node --segv default|exclusive --asan on|off --wasm-bounds trap|inline --js-optimization default|off|jitless --report-parent /existing/directory --execution source|compiled');options.set(key,value);}
+for(let i=2;i<process.argv.length;i+=2){const key=process.argv[i]!,value=process.argv[i+1];if(!['--case','--runs','--workers','--node','--segv','--asan','--wasm-bounds','--js-optimization','--report-parent','--execution','--filter-trace'].includes(key)||value===undefined||options.has(key))throw new Error('Use --case empty|strip|motion|history --runs 1..1000 --workers 1..8 --node /path/node --segv default|exclusive --asan on|off --wasm-bounds trap|inline --js-optimization default|off|jitless --report-parent /existing/directory --execution source|compiled --filter-trace off|on');options.set(key,value);}
 const kind=options.get('--case')??'strip',limit=Number(options.get('--runs')??200),workers=Number(options.get('--workers')??8),node=options.get('--node')??process.execPath,segv=options.get('--segv')??'default',asan=options.get('--asan')??'on',wasmBounds=options.get('--wasm-bounds')??'trap',jsOptimization=options.get('--js-optimization')??'default';
 const execution=options.get('--execution')??'source';
+const filterTrace=options.get('--filter-trace')??'off';
 const reportParent=options.get('--report-parent')??tmpdir();
-if(jsOptimization==='jitless'&&execution!=='compiled'||!['source','compiled'].includes(execution)||execution==='compiled'&&kind!=='motion'||!isAbsolute(reportParent)||!['default','off','jitless'].includes(jsOptimization)||!isAbsolute(node)||!['on','off'].includes(asan)||!['trap','inline'].includes(wasmBounds)||kind==='history'&&asan==='off'||!['empty','strip','motion','history'].includes(kind)||!['default','exclusive'].includes(segv)||!Number.isSafeInteger(limit)||limit<1||limit>1000||!Number.isSafeInteger(workers)||workers<1||workers>8)throw new RangeError('Invalid diagnostic options');
+if(!['off','on'].includes(filterTrace)||filterTrace==='on'&&(kind!=='motion'||execution!=='source'||limit!==1||workers!==1)||jsOptimization==='jitless'&&execution!=='compiled'||!['source','compiled'].includes(execution)||execution==='compiled'&&kind!=='motion'||!isAbsolute(reportParent)||!['default','off','jitless'].includes(jsOptimization)||!isAbsolute(node)||!['on','off'].includes(asan)||!['trap','inline'].includes(wasmBounds)||kind==='history'&&asan==='off'||!['empty','strip','motion','history'].includes(kind)||!['default','exclusive'].includes(segv)||!Number.isSafeInteger(limit)||limit<1||limit>1000||!Number.isSafeInteger(workers)||workers<1||workers>8)throw new RangeError('Invalid diagnostic options');
 let runtime:string|undefined;
 if(asan==='on'){const lookup=spawnSync(process.env.CC??'cc',['-print-file-name=libasan.so'],{encoding:'utf8',timeout:10000});if(lookup.status!==0)throw new Error('ASan runtime lookup failed');runtime=lookup.stdout.trim();}
 const hash=(path:string)=>createHash('sha256').update(readFileSync(path)).digest('hex');
@@ -37,12 +39,18 @@ if(execution==='compiled'){
  function freeze(relative:string){for(const entry of readdirSync(join(moduleRoot,relative),{withFileTypes:true})){const path=join(relative,entry.name),original=join(moduleRoot,path);if(entry.isDirectory()){mkdirSync(join(sourceRoot,path));freeze(path);}else if(entry.isFile()){compiledHashes[path]=hash(original);const sourcePath=path.endsWith('.js')?path.slice(0,-3)+'.ts':path;cpSync(path.endsWith('.js')?join(host,sourcePath):original,join(sourceRoot,sourcePath));frozenSourceHashes[sourcePath]=hash(join(sourceRoot,sourcePath));}else throw new Error('Unexpected diagnostic dependency');}}
  freeze('');
 }
+let filterTraceSources:ReturnType<typeof prepareTracedMotionModules>|undefined;
+if(filterTrace==='on'){
+ moduleRoot=join(directory,'filter-trace');filterTraceSources=prepareTracedMotionModules(host,moduleRoot);
+}
 const motionModule=pathToFileURL(join(moduleRoot,'src/diagnostics/graph-motion.'+moduleExtension)).href;
-const referenceModule=pathToFileURL(join(moduleRoot,'bench/motion-graph-reference.'+moduleExtension)).href;
+const referenceModule=pathToFileURL(join(filterTrace==='on'?host:moduleRoot,'bench/motion-graph-reference.'+moduleExtension)).href;
+const filterModule=pathToFileURL(join(moduleRoot,'src/diagnostics/motion-filters.'+moduleExtension)).href;
 const system={platform:process.platform,arch:process.arch,kernel:release(),cpu:cpus()[0]?.model,cpuAffinity:process.platform==='linux'?/^Cpus_allowed_list:\s*(.*)$/m.exec(readFileSync('/proc/self/status','utf8'))?.[1]:undefined};
 const source=kind==='motion'?`console.log('motion:loading');
 const {motionPlots,motionPositions}=await import(${JSON.stringify(motionModule)});
 const {motionGraphReference}=await import(${JSON.stringify(referenceModule)});
+${filterTrace==='on'?`const {drainFilterTrace}=await import(${JSON.stringify(filterModule)});`:''}
 const {default:assert}=await import('node:assert/strict');
 const {writeFileSync,writeSync}=await import('node:fs');
 const {serialize}=await import('node:v8');
@@ -61,6 +69,7 @@ for(let run=0;run<16;run++){
  }});
  progress(run,'plots');
  let stages;const panels=motionPlots('weighted4',undefined,profile,value=>{stages=value;});assert.equal(panels.length,reference.panels.length);
+ ${filterTrace==='on'?`const traceBytes=serialize({schema:1,run,calls:drainFilterTrace()});assert.ok(traceBytes.length<=8*1024*1024);writeFileSync(new URL('motion-filter-trace-'+process.pid+'-'+run+'.bin',import.meta.url),traceBytes,{flag:'wx',mode:0o600,flush:true});`:''}
  progress(run,'comparison');
  panels.forEach((p,i)=>{const r=reference.panels[i];assert.equal(p.plot.curves.length,r.curves.length);p.plot.curves.forEach((c,j)=>{
   const expected=r.curves[j];assert.deepEqual(c.times,expected.times);assert.equal(c.values.length,expected.values.length);
@@ -103,7 +112,7 @@ const corePolicy=process.platform==='linux'?{filter:readFileSync('/proc/self/cor
 interface Result {index:number;pid:number|undefined;status:number|null;signal:NodeJS.Signals|null;error?:string;stdout:string;stderr:string;progress:string;termination?:{reason:'deadline'|'output-budget'|'parent-interruption';signal:NodeJS.Signals;requestedAtMs:number;sent:boolean};elapsedMs:number}
 const results:Result[]=[];let next=0,failed=false;
 const startedAt=new Date().toISOString(),started=performance.now();
-const metadata={childWorkingDirectory,corePolicy,node,version:version.stdout.trim(),nodeSha256:hash(node),runtime,runtimeSha256:runtime?hash(runtime):undefined,addonHashes,moduleHashes,compiledHashes,frozenSourceHashes,sourceFixture,compilerVersion,execution,system,kind,segv,asan,wasmBounds,jsOptimization,args,limit,workers,childDeadlineMs:10000,outputBudgetBytes:1024*1024,progressChannel:kind==='motion'?'fd3-ndjson':undefined,fixtureSha256:hash(fixture)};
+const metadata={childWorkingDirectory,corePolicy,node,version:version.stdout.trim(),nodeSha256:hash(node),runtime,runtimeSha256:runtime?hash(runtime):undefined,addonHashes,moduleHashes,compiledHashes,frozenSourceHashes,sourceFixture,compilerVersion,execution,system,kind,segv,asan,wasmBounds,jsOptimization,args,limit,workers,childDeadlineMs:10000,outputBudgetBytes:1024*1024,progressChannel:kind==='motion'?'fd3-ndjson':undefined,fixtureSha256:hash(fixture),filterTrace,filterTraceSources,filterTraceScope:filterTrace==='on'?'One traced source child, original sixteen loops and deadlines. Operand snapshots can change JIT shape; no root-cause or G3 closure.':undefined};
 const active=new Map<ReturnType<typeof spawn>,{index:number;pid:number|undefined;terminate:(signal:NodeJS.Signals,reason:NonNullable<Result['termination']>['reason'])=>void}>();
 let interruption:NodeJS.Signals|undefined,killTimer:ReturnType<typeof setTimeout>|undefined;
 /** A killed parent leaves state=running, never a false completion. Store in a
@@ -111,8 +120,9 @@ let interruption:NodeJS.Signals|undefined,killTimer:ReturnType<typeof setTimeout
 function checkpoint(state:'running'|'completed'|'failed'|'interrupted'){
  const coreFiles=readdirSync(directory).filter(name=>/^core(?:\.|$)/.test(name)).map(name=>({path:join(directory,name),bytes:statSync(join(directory,name)).size}));
  const mismatchFiles=readdirSync(directory).filter(name=>/^motion-mismatch-\d+-\d+\.bin(?:\.repeat)?$/.test(name)).map(name=>({path:join(directory,name),bytes:statSync(join(directory,name)).size,sha256:hash(join(directory,name))}));
+ const filterTraceFiles=readdirSync(directory).filter(name=>/^motion-filter-trace-\d+-\d+\.bin$/.test(name)).map(name=>({path:join(directory,name),bytes:statSync(join(directory,name)).size,sha256:hash(join(directory,name))}));
  const path=join(directory,'report.json'),temporary=path+'.tmp';
- writeFileSync(temporary,JSON.stringify({...metadata,startedAt,updatedAt:new Date().toISOString(),elapsedMs:performance.now()-started,state,interruption,active:[...active.values()].map(({index,pid})=>({index,pid})),coreFiles,mismatchFiles,results},null,2),{flush:true,mode:0o600});
+ writeFileSync(temporary,JSON.stringify({...metadata,startedAt,updatedAt:new Date().toISOString(),elapsedMs:performance.now()-started,state,interruption,active:[...active.values()].map(({index,pid})=>({index,pid})),coreFiles,mismatchFiles,filterTraceFiles,results},null,2),{flush:true,mode:0o600});
  renameSync(temporary,path);
 }
 function interrupt(signal:NodeJS.Signals){

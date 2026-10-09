@@ -1,0 +1,228 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "base": "92c981103a80fb95b77bbca25fa0843a7ad65bc2",
+  "status": "DIAGNOSTIC_PREPARATION_ONLY; finite instrumented source condition passed; historical mismatch not reproduced; G3 unresolved; exact-head CI pending",
+  "source": {
+    "host/scripts/diagnose-node-asan.ts": "53b088e577e307177d3db8370b185d7cf546318eb95b44065a8f1755a859172b",
+    "host/scripts/motion-filter-trace.ts": "531b13f1ca3cf485a5b5140dce9e8162932ca2b7062ecf485837692f51666233",
+    "host/test/motion-filter-trace.test.ts": "bc47106a5fa23bba021acb7dc63b1284e34e61616d0be2ed323c07a772624f70",
+    "docs/diagnostics/node26-motion-capture-20261008/filter-boundary-analysis.mjs": "7b698f142e4ef39a44ebeae038cb09f91d1f856c5f9f460e9a0c643380d8a251",
+    "docs/diagnostics/node26-motion-capture-20261008/anyraid-captured-ieee-core.mjs": "11a961ddccd1617cda79809fe42d3b5edf5a29b7b5005b9214e119e09e054a0b"
+  },
+  "productSourceAndDependencyChanges": false,
+  "defaultCapture": "off",
+  "enabledCondition": {
+    "case": "motion",
+    "execution": "source",
+    "runs": 1,
+    "workers": 1,
+    "originalLoops": 16,
+    "childDeadlineMs": 10000,
+    "outputBudgetBytes": 1048576,
+    "captureBytesPerLoopLimit": 8388608,
+    "fixedIndices": [
+      4398,
+      4399,
+      7855,
+      7856,
+      8661,
+      8662
+    ]
+  },
+  "validation": {
+    "typecheck": {
+      "command": "Node 26.10 host/node_modules/typescript/bin/tsc -p host/tsconfig.json",
+      "exitCode": 0
+    },
+    "initialControlInvocation": {
+      "command": "Node 26.10 --test host/test/motion-filter-trace.test.ts",
+      "exitCode": 0,
+      "observedTests": 1,
+      "scope": "File-level result only; named controls not observed, not counted as two controls."
+    },
+    "directControls": {
+      "command": "Node 26.10 host/test/motion-filter-trace.test.ts",
+      "exitCode": 0,
+      "tests": 2,
+      "passed": 2
+    },
+    "probe": {
+      "exitCode": 0,
+      "childStatus": 0,
+      "childSignal": null,
+      "loops": 16,
+      "progressRows": 64,
+      "historicalFailureReproduced": false
+    },
+    "analysis": {
+      "exitCode": 0,
+      "roundingControls": 9,
+      "points": 96,
+      "terms": 15936,
+      "inputBeforeAfterBitEqual": true,
+      "allRecordedTransitionsMatchIntegerBinary64Model": true,
+      "replayChange": "Only reads capture files relative to supplied extraction directory; second pure analysis did not launch a child."
+    },
+    "archiveReplay": {
+      "archiveAndAll35EntryHashesVerified": true,
+      "sourceHashesVerified": true,
+      "exitCode": 0,
+      "analysisSha256": "d64d458198995e1d3bc35eeabd1b0fc9c8849d9caa27d13273ca9ebee3203926",
+      "exactlyEqualsOriginalAnalysis": true,
+      "launchedMotionChild": false
+    }
+  },
+  "scope": "One instrumented source child only. The original sixteen loops, references, tolerances and ten-second deadline were retained. Actual single-read operands, compensated transitions and assignment boundaries were recorded at six fixed indices; the instrumented program can change JIT shape and timing. No mismatch occurred, so this does not distinguish or close the historical arithmetic, input-change, storage, runtime/compiler/hardware hypotheses. Not a performance measurement, production acceptance or G3 closure.",
+  "performance": "No product code, dependencies or defaults changed; this trace changes JIT shape and timing and is not a performance measurement. Existing product performance evidence retains its original scope.",
+  "archive": {
+    "path": "motion-filter-boundary-capture.evidence.json.gz",
+    "sha256": "ddd2824ad57600a5988d59aacf85f0d4fd1bae7384dc852284e0a00dc6135405",
+    "bytes": 2974648,
+    "entries": 35,
+    "uncompressedBytes": 5930651
+  },
+  "analysis": {
+    "schema": 1,
+    "date": "2026-10-09",
+    "node": "v26.10.0",
+    "childNode": "v26.10.0",
+    "reportSha256": "9d08879b0c9895ad4df9372ff5fc85ca13bd44f653fd2d2b0f7185d2ff023c87",
+    "analyzerSha256": "7b698f142e4ef39a44ebeae038cb09f91d1f856c5f9f460e9a0c643380d8a251",
+    "coreSha256": "11a961ddccd1617cda79809fe42d3b5edf5a29b7b5005b9214e119e09e054a0b",
+    "historicalRawSha256": "2359afd3d10045963ba3fbc3a5014ebdafdf9d9a7f11750e1bdf2526d1efdf10",
+    "controls": [
+      "one",
+      "third",
+      "negative third",
+      "even tie down",
+      "odd tie up",
+      "carry tie",
+      "rounded addition",
+      "cancellation",
+      "rounded multiplication"
+    ],
+    "files": [
+      {
+        "file": "motion-filter-trace-233670-0.bin",
+        "run": 0,
+        "sha256": "28fe51897b6fa66853e679d38a17c9b67523fc863ba22ddc8fa40a0668e5e095",
+        "bytes": 364488
+      },
+      {
+        "file": "motion-filter-trace-233670-1.bin",
+        "run": 1,
+        "sha256": "9343967fcbc539dfb903aa54a48840a7bdaca0c5c5ff9ec8d90f22e02431c4ff",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-10.bin",
+        "run": 10,
+        "sha256": "b64b24131646e7f91dcf92e3f5a9b3dcb9e148534f2af3e4851d2ef29b731f8a",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-11.bin",
+        "run": 11,
+        "sha256": "0f3f48b58ba0aa13967cd5a2a5a854d3e4a3cb98ce4a1dbcd7829133773b9ea6",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-12.bin",
+        "run": 12,
+        "sha256": "834a01250f1aba393746248e42952a723a65bd48e245daf91149ed1c5d3291d5",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-13.bin",
+        "run": 13,
+        "sha256": "a7bc66c199aafe73644e470eda82925805e51a90dad2f0a0e4d1577b69254510",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-14.bin",
+        "run": 14,
+        "sha256": "d6398f2e9194c4dbfc850c18cf29995b1b7f3b31fa39d1989be13e2e40ce2491",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-15.bin",
+        "run": 15,
+        "sha256": "98fb9299f3b36ed5e55eb56c90875e5231e223a1741c806d1827827323994727",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-2.bin",
+        "run": 2,
+        "sha256": "e7ce8ba0d6f4a1284c3f5393c2792d28714db1e96a7f87247e879a9d79e977d0",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-3.bin",
+        "run": 3,
+        "sha256": "f4f8121f213e263274565549e188caa3f08020ad381c6f7891274d08bc60def6",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-4.bin",
+        "run": 4,
+        "sha256": "faf2d84ed9271ae289c383f64c9142334bf82ed815bdbbe698688f5a28023282",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-5.bin",
+        "run": 5,
+        "sha256": "d6f588093e18ff94bb4c4849770fea3609044f9505104f8ad29c8bd1f3a9edc6",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-6.bin",
+        "run": 6,
+        "sha256": "7f2eac721dd0028307c33e8ddf3c7b1da99fc5144dbffecca6ae3e0aa4b14aba",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-7.bin",
+        "run": 7,
+        "sha256": "3e9c34ee6bdb6e5f9ac8ee316f6cacea0464bd1f05db04f0c192ef904a760cd8",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-8.bin",
+        "run": 8,
+        "sha256": "b24489fb81abfe94274d6793e130b07f47c635d70dbe6db6fa0f8fd734b0562f",
+        "bytes": 364502
+      },
+      {
+        "file": "motion-filter-trace-233670-9.bin",
+        "run": 9,
+        "sha256": "5f0f5cca5e40708f8f8ad4e3f2e07689ab6ec0fdc92e548c30eaaa72021421da",
+        "bytes": 364502
+      }
+    ],
+    "observedLoops": 16,
+    "observedPoints": 96,
+    "observedTerms": 15936,
+    "inputMatchesHistoricalCapture": true,
+    "inputBeforeAfterBitEqual": true,
+    "allRecordedTransitionsMatchIntegerBinary64Model": true,
+    "originalAssertionsPassed": true,
+    "originalChildDeadlineMs": 10000,
+    "childElapsedMs": 542.136228,
+    "source": {
+      "motion-filters.ts": {
+        "originalSha256": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "observedSha256": "fe7795ff69df80e5fea42480be1b14736339963d2cb222c93e601b5c78c0eb2f"
+      },
+      "graph-motion.ts": {
+        "originalSha256": "976fc6717387cdd23f2daffd43a91ae942f71ee6d9defef8e3775596b68544bf",
+        "observedSha256": "976fc6717387cdd23f2daffd43a91ae942f71ee6d9defef8e3775596b68544bf"
+      },
+      "legacy-motion-shaper.ts": {
+        "originalSha256": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "observedSha256": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db"
+      }
+    },
+    "scope": "One instrumented source child only. The original sixteen loops, references, tolerances and ten-second deadline were retained. Actual single-read operands, compensated transitions and assignment boundaries were recorded at six fixed indices; the instrumented program can change JIT shape and timing. No mismatch occurred, so this does not distinguish or close the historical arithmetic, input-change, storage, runtime/compiler/hardware hypotheses. Not a performance measurement, production acceptance or G3 closure."
+  }
+}

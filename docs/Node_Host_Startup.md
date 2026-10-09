@@ -68,6 +68,37 @@ Node 26.10.0 的同版本对照。实际合并后全部 15 项检查亦已独立
 通过，见[合并后终态](../host/contracts/develop-1f0-terminal.json)；不能把
 观测能力当作稳定性修复。
 
+### 有限滤波边界捕获
+
+`host/scripts/diagnose-node-asan.ts` 新增 `--filter-trace off|on`，默认
+off。on 只接受 `--case motion --execution source --runs 1 --workers 1`。
+调用前校验已审查滤波源码摘要，只在新诊断目录生成私有模块；不修改
+产品源码。原 16 轮、参考、容差、10 秒子进程期限、输出上限和失配
+捕获保留。每轮额外二进制最多 8 MiB；固定六个索引保存实际单次
+输入读取、加权项、补偿过渡与输出赋值，并保存调用前后的全输入。
+
+一次 Node 26.10 源码观测记录 96 个位置、15,936 项过渡，全部符合
+独立整数舍入模型；没有复现历史失配。插桩会改变 JIT 形态和时间，
+这只证明捕获设施可用，不是性能测试、根因判断或 G3 通过。产品
+源码和依赖未变，完整同包客户端与真实运动门禁仍保留。
+两项实际注册控制、类型检查、原始驱动／模块／16 份二进制、初始
+仅文件级测试结果和重放结果均见
+[边界捕获准备](../host/contracts/motion-filter-boundary-capture.json)。
+
+证据归档是 gzip JSON；`entries` 含相对路径、原始字节数、SHA-256
+及 base64。校验归档和条目摘要后将 `capture/` 提取到新临时目录，
+无需再次运行运动生成或子进程。保留原历史捕获文件和独立整数模型，
+从仓库根目录执行以下只读分析，输出必须为不存在的新路径：
+
+```sh
+node docs/diagnostics/node26-motion-capture-20261008/filter-boundary-analysis.mjs \
+  /absolute/extracted/capture /absolute/new-analysis.json
+```
+
+分析按所给目录读取条目，不依赖报告中的历史绝对路径。当前模型仅
+覆盖捕获中正常、有限 binary64 的运算范围；不声明完整 IEEE 特殊值
+覆盖。不在相同条件下扩展子进程次数求绿。
+
 ### 产品 TypeScript 编译失败观测
 
 构建所有者在原编译命令启动前读取入口、包装器、解析器、包元信息、
@@ -1656,8 +1687,9 @@ MCU 模拟器在父进程，子进程不导入源码测试夹具。编译包请�
 修改持久格式。临时回执已同步而内容目录屏障尚未完成时的 SIGKILL
 恢复只证明进程中断范围，不是物理断电耐久证明。
 新组合包通过七路新比较、原固定和此前失败比较预算，以及原完整
-混合软件验收。冷发布中位数与同期基线相近，不宣称打印提速；新头
-CI、正常集成、实际客户端和目标板门槛仍待完成，见
+混合软件验收。冷发布中位数与同期基线相近，不宣称打印提速；PR #58
+精确头与实际合并后检查通过并正常集成，原文见
+[合并后终态](../host/contracts/develop87-build-terminal.json)。实际客户端和目标板仍待验，见
 [回执准备审查](../host/contracts/native-publication-authority-preparation.json)。
 
 ## 独立依赖安装验收
@@ -3461,6 +3493,9 @@ XML 解析在有两秒期限和内存限制的 Worker 中完成。RSS 限 1 MiB�
 混合失败按原指纹保留；接入文件失效准入与私有回执准备后，组合包
 `8deb5fc7`／依赖 `7149c1b8` 首次通过原完整混合软件验收，71.0 秒，
 并通过七路原预算，见[组合证据](../host/contracts/native-publication-authority-preparation.json)。
-正常任务分支现接入同一组受测源码；组合头仍须取得自己的 CI 和正常
-集成验收。有限软件结果不解释旧失败共同根因，也不关闭实际客户端门禁。
+正常任务分支接入同一组受测源码，组合头 `df45a8e1` 的全部 15 项 CI
+成功，原文见[组合头终态](../host/contracts/pr57-df45-terminal.json)；PR #57
+已正常合入 develop `92c98110`，内容树与受测组合相同。实际合并后
+全部 15 项检查亦通过，见[集成终态](../host/contracts/develop92-build-terminal.json)。
+有限软件结果不解释旧失败共同根因，也不关闭实际客户端门禁。
 实际同包客户端、目标板和 G3 仍待验，不构成完整 Moonraker 或发布完成。

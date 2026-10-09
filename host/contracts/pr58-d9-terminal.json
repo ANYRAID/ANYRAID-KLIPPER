@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "head": "d9dbcfe220d97c332a39323c3d93187058649e93",
+  "base": "88b6826d521d59029261c2a809c49ab815ee3ab3",
+  "mergeRef": "70ad82e1a1dca06b65e6dc8b24544ea5e8bd6db5",
+  "draft": true,
+  "merged": false,
+  "jobs": [
+    {
+      "id": 113866667133,
+      "name": "checks",
+      "run": 37944359136,
+      "conclusion": "success"
+    },
+    {
+      "id": 113866667278,
+      "name": "sanitizer (ubsan)",
+      "run": 37944359136,
+      "conclusion": "success"
+    },
+    {
+      "id": 113866667339,
+      "name": "sanitizer (asan)",
+      "run": 37944359136,
+      "conclusion": "success"
+    },
+    {
+      "id": 113872442752,
+      "name": "host",
+      "run": 37944359136,
+      "conclusion": "success"
+    },
+    {
+      "id": 113866666964,
+      "name": "build",
+      "run": 37944359177,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4418,
+    "pass": 4418,
+    "fail": 0
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4418,
+      "failed": 0,
+      "passed": 4418,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4418,
+      "suites": 0
+    }
+  },
+  "queueControls": [
+    "durable deletion invalidation is admitted when four read requests are occupied and runs before queued reads",
+    "four reserved invalidations retain FIFO and deduplicate filenames without consuming read capacity",
+    "close drains accepted invalidations while active and queued reads cancel without leaking admission",
+    "a replenished invalidation lane yields to a queued read after four turns",
+    "a fifth distinct invalidation is bounded and retains the existing recovery fault while accepted work drains",
+    "HTTP deletion at read saturation commits metadata before its file notification and remains usable"
+  ],
+  "authorityControls": [
+    "private receipt and content directory sync overlap but neither public authority nor close completes before both",
+    "directory failure drains the other private authority barrier before cleanup or close",
+    "receipt failure drains the other private authority barrier before cleanup or close",
+    "cancellation drains held directory authority preparation without linking or announcing a receipt",
+    "cancellation drains held receipt authority preparation without linking or announcing a receipt",
+    "authority preparation retains both distinct failures in barrier order",
+    "authority preparation retains one shared failure identity",
+    "SIGKILL with durable private receipt and pending content directory barrier preserves old authority and recovers orphans"
+  ],
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": false,
+    "reason": "None of this PR’s twenty changed paths match the existing motion workflow filters. No new G3 or target-board result."
+  },
+  "evidence": {
+    "path": "pr58-d9-terminal.evidence.json.gz",
+    "sha256": "aebf45bab7ca41b1d1581fad624c1ce1f84665c4bd3df0fa4a675b54e9cb96e3",
+    "bytes": 587121,
+    "entries": 9
+  },
+  "scope": "PR58 d9dbcfe2 synthetic merge into develop88 only. Normal installed/build CI with Node26.11.1, separate from desktop26.10 plus unmerged-announcements8deb composition. Changed composition passed retained performance budgets and original mixed driver; older5f cold failure remains. This CI does not cover unmerged announcement source, actual clients, physical motion, G3 or default/release switch."
+}

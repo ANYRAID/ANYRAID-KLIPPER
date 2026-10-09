@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "status": "READ_ONLY_PREPARATION; no client server or scene launched",
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+    "manifestSha256": "8deb5fc70d8e3ccff3aa5cad40ee316c055f9e8e4da49cee7bde1c95c27630f3",
+    "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+  },
+  "clients": [
+    {
+      "name": "fluidd",
+      "version": "1.37.6",
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fixed-frontends/fluidd-1.37.6",
+      "archiveSha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed456",
+      "assetFiles": 255,
+      "assetTreeSha256": "61769e745cfd4e0c58430052db3cd2df5bcdc5961d6661d059b1b5bdde9647ae",
+      "everyFileMatchesOriginalArchive": true
+    },
+    {
+      "name": "mainsail",
+      "version": "2.19.0",
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fixed-frontends/mainsail-2.19.0",
+      "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
+      "assetFiles": 193,
+      "assetTreeSha256": "c9efdf1e72020aab7b0d2139f7f1d70018e136bd9cb2dde1ca8c3715d05ad1eb",
+      "everyFileMatchesOriginalArchive": true
+    }
+  ],
+  "integratedSource": {
+    "head": "92c981103a80fb95b77bbca25fa0843a7ad65bc2",
+    "tree": "ed3ba1f95941365c4f23b864b4929eb3113ce566",
+    "productionSourceFiles": 642,
+    "everyProductionFileAndLockMatchesBuiltSource": true,
+    "nativeAndDependencyBytesReused": true,
+    "noFreshInstallOrNativeBuildClaim": true
+  },
+  "launch": {
+    "entry": "host/acceptance/client-probe.ts",
+    "fixture": "PR53 strict HTTP201 fix",
+    "mode": "existing authenticated operator login; PTY software MCU only; loopback 127.0.0.1",
+    "scenes": [
+      "Fluidd fresh scene",
+      "Mainsail fresh scene"
+    ],
+    "deadlinePerSceneMs": 900000,
+    "deadlineIncludesStartup": true,
+    "automaticExtensionOrRelaunch": false,
+    "sameBundleForBoth": true
+  },
+  "acceptance": [
+    "actual login",
+    "browser chooser upload and exact download hash",
+    "rename/copy/delete and preview updates",
+    "print, pause/resume/cancel with simulated MCU evidence",
+    "history/configuration/queue controlled operations",
+    "disconnect/reconnect and explicit recovery"
+  ],
+  "authorization": "Loopback downloads authorized for this session. Prior expired-scene restart rejection remains; fresh scene launch still requires the pending explicit authorization.",
+  "exclusions": [
+    "No actual page acceptance yet",
+    "No real hardware or target performance/precision claim",
+    "No historical motion root-cause or G3 closure"
+  ]
+}
