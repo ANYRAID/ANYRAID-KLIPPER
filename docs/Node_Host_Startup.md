@@ -41,13 +41,13 @@ CI 将两种模式和普通检查分开运行；每种模式内部保持原逐�
 原 sanitizer 构建参数、运行环境和 60 秒子命令期限。最终 `host` 检查只在
 普通检查及全部 sanitizer 作业成功时通过，取消或跳过均不能放行。
 本机控制验证覆盖命令完整性和门禁失败传播；精确候选头和合并后 CI
-已核验，见[当前合并后终态](../host/contracts/develop-9bd-terminal.json)、
+已核验，见[9bd 合并后终态](../host/contracts/develop-9bd-terminal.json)、
 [诊断集成终态](../host/contracts/develop-e647-terminal.json)
 与[UFP 组合终态](../host/contracts/pr50-ade4-terminal.json)。记录只证明
 对应提交、输入和环境通过，不将一次检查耗时当作目标板性能提升。
 当前 CI 参考测试仍需要 Python，不因调度拆分移除 Python 配置。
 
-## 普通测试失败观测候选
+## 普通测试失败观测
 
 `npm test` 保留原生前置构建及 `test/*.test.ts` 全部普通检查，原并发、
 断言和期限不变。沿用 spec 输出，另输出 `nodeTestFailure` JSON 行，
@@ -60,8 +60,33 @@ null。正常结束有一行 `nodeTestObservation` 总计，失败退出仍由 N
 理解为对原日志的脱敏。历史只含 `test failed` 的记录不能倒推信号；
 该候选及一次成功均不关闭已知运动数值异常或 G3。
 五项控制和全量类型通过；一次完整普通检查捕获 16 项失败，原始记录见
-[退出观测](../host/contracts/ordinary-test-exit-observation.json)。该候选仍
-须精确头远程检查及正常审阅，不能把观测能力当作稳定性修复。
+[退出观测](../host/contracts/ordinary-test-exit-observation.json)。PR #55
+精确头首轮全部 15 项远程检查通过并正常合入 develop `1f0e11f1`，
+普通检查 Node 26.11.1 为 4398／4398，根总计与 spec 一致，见
+[精确头终态](../host/contracts/pr55-5fb-terminal.json)。这不是本机失败
+Node 26.10.0 的同版本对照。实际合并后全部 15 项检查亦已独立核验
+通过，见[合并后终态](../host/contracts/develop-1f0-terminal.json)；不能把
+观测能力当作稳定性修复。
+
+### 产品 TypeScript 编译失败观测
+
+构建所有者在原编译命令启动前读取入口、包装器、解析器、包元信息、
+当前平台原生编译器候选、所选配置、host 基础配置和锁文件的 SHA-256。
+每个摘要文件限 64 MiB，摘要流读取期限 2 秒，不能读取时记录有限错误码，仍执行
+原编译。只有失败时追加 `productCompilerFailure` JSON，记录包装器
+进程的 status、signal 和 spawn 错误码；原失败前缀、编译输出、60 秒
+期限、4 MiB 输出限制和清理逻辑保留，不增加重试或编译选项。
+
+摘要是启动前读到的字节，不能证明实际 execve／子进程路线、内存映射、
+完整源码输入或执行中未被修改。没有导出环境变量、任意错误对象或额外
+绝对路径；原编译器输出仍可能包含路径。候选解析遵循当前已安装的
+TypeScript 7 平台包布局，缺失或不兼容时明确记录 unavailable，不能
+把候选摘要当成执行证明。该工具不进入产品编译闭包，不参与打印循环。
+历史故障条件映射与限制见[工具链只读审计](../host/contracts/toolchain-fault-readonly-audit.json)。
+四项控制和全量类型通过，完整普通回归仍有 12 项失败；四次真实编译
+故障已记录启动前候选摘要及原包装器 status 2／signal null。桌面摘要
+开销 P95 24.00 ms，新编译清单与原 B 包完全一致。全部原日志及限制见
+[编译观测验收](../host/contracts/product-compiler-observation-acceptance.json)。
 
 ## 数据库本机验证与历史参考
 

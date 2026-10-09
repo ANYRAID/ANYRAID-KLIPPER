@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "productBase": "1f0e11f1bf416ef40abbfcbed54335a3915ddd76",
+  "originalCaptureHead": "5fb711973e05ee844863c26b450cbc906497b74b",
+  "nodeVersions": [
+    "v26.10.0",
+    "v22.22.3"
+  ],
+  "crossRuntimeExactFieldsEqual": true,
+  "rawCaptureSha256": "2359afd3d10045963ba3fbc3a5014ebdafdf9d9a7f11750e1bdf2526d1efdf10",
+  "files": [
+    {
+      "file": "anyraid-captured-ieee-core.mjs",
+      "bytes": 2699,
+      "sha256": "11a961ddccd1617cda79809fe42d3b5edf5a29b7b5005b9214e119e09e054a0b"
+    },
+    {
+      "file": "anyraid-captured-weighted4-full-ieee.mjs",
+      "bytes": 5698,
+      "sha256": "81b4aafd074dc62303674c679bb3e6de14795fb635bacc62674f74c6e0185f89"
+    },
+    {
+      "file": "weighted4-full-ieee-node26.json",
+      "bytes": 9580,
+      "sha256": "89655a16e6e47b81b2801e8b15bfc2252c8e11feb1a2c02558345507b8c4c825"
+    },
+    {
+      "file": "weighted4-full-ieee-node22.json",
+      "bytes": 9580,
+      "sha256": "a7e3093459d182aa69d89e04f07df8ac102da4c9a7a04d23254ba5062cacff78"
+    }
+  ],
+  "scope": "Full saved scalar arrays only, with integer emulation of normal binary64 round-to-nearest ties-to-even operations. Does not import or invoke original simulation/filter, rerun the failed test, prove temporal input integrity, identify runtime/compiler/hardware root cause, cover unrelated failures or close G3.",
+  "reproduce": "From repository root: node docs/diagnostics/node26-motion-capture-20261008/anyraid-captured-weighted4-full-ieee.mjs docs/diagnostics/node26-motion-capture-20261008/motion-mismatch-3750822-0.bin.gz <new-output-path>"
+}

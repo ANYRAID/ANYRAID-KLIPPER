@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "node": "v26.10.0",
+  "rawSha256": "2359afd3d10045963ba3fbc3a5014ebdafdf9d9a7f11750e1bdf2526d1efdf10",
+  "compressedSha256": "3fda69c7012dd1729aa178d7eba01ff8866b94a5d0c5ae305a86207ad056350b",
+  "analyzerSha256": "42f436c60e33b7f0e1479c674515abf3329f76ca47acaf97af9e8e027d000e7c",
+  "sourceSha256": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+  "controls": [
+    "one",
+    "third",
+    "negative third",
+    "even tie down",
+    "odd tie up",
+    "carry tie",
+    "rounded addition",
+    "cancellation",
+    "rounded multiplication"
+  ],
+  "weightBits": "0x3df05afa3b52ece5",
+  "points": [
+    {
+      "index": 4398,
+      "actualBits": "0x4035431ab423dc9b",
+      "emulatedBits": "0x4035431ab423dc9b",
+      "equal": true,
+      "exactResidual": {
+        "integer": "0",
+        "binaryExponent": -48
+      },
+      "approximateResidual": 0
+    },
+    {
+      "index": 4399,
+      "actualBits": "0x403544dd3e8c7eac",
+      "emulatedBits": "0x403544dd3e88bb8c",
+      "equal": false,
+      "exactResidual": {
+        "integer": "246560",
+        "binaryExponent": -48
+      },
+      "approximateResidual": 8.759570846450515e-10
+    },
+    {
+      "index": 4400,
+      "actualBits": "0x403546a0ca76517e",
+      "emulatedBits": "0x403546a0ca76517e",
+      "equal": true,
+      "exactResidual": {
+        "integer": "0",
+        "binaryExponent": -48
+      },
+      "approximateResidual": 0
+    },
+    {
+      "index": 7855,
+      "actualBits": "0x40478ada51022012",
+      "emulatedBits": "0x40478ada51022012",
+      "equal": true,
+      "exactResidual": {
+        "integer": "0",
+        "binaryExponent": -47
+      },
+      "approximateResidual": 0
+    },
+    {
+      "index": 7856,
+      "actualBits": "0x40478a1b25f4b5f4",
+      "emulatedBits": "0x40478a1b25efae72",
+      "equal": false,
+      "exactResidual": {
+        "integer": "329602",
+        "binaryExponent": -47
+      },
+      "approximateResidual": 2.3419630679200054e-9
+    },
+    {
+      "index": 7857,
+      "actualBits": "0x4047895b7e9deaa0",
+      "emulatedBits": "0x4047895b7e9deaa0",
+      "equal": true,
+      "exactResidual": {
+        "integer": "0",
+        "binaryExponent": -47
+      },
+      "approximateResidual": 0
+    },
+    {
+      "index": 8661,
+      "actualBits": "0x4043da6d4835624f",
+      "emulatedBits": "0x4043da6d4835624f",
+      "equal": true,
+      "exactResidual": {
+        "integer": "0",
+        "binaryExponent": -47
+      },
+      "approximateResidual": 0
+    },
+    {
+      "index": 8662,
+      "actualBits": "0x4043d9259a2488d3",
+      "emulatedBits": "0x4043d9259a20eeab",
+      "equal": false,
+      "exactResidual": {
+        "integer": "236072",
+        "binaryExponent": -47
+      },
+      "approximateResidual": 1.6773924471635837e-9
+    },
+    {
+      "index": 8663,
+      "actualBits": "0x4043d7ddec0c7b07",
+      "emulatedBits": "0x4043d7ddec0c7b07",
+      "equal": true,
+      "exactResidual": {
+        "integer": "0",
+        "binaryExponent": -47
+      },
+      "approximateResidual": 0
+    }
+  ],
+  "method": "Integer emulation of each binary64 multiply, add and subtract in the saved weighted4 scalar operation, including Neumaier branches and rounded weight; round-to-nearest ties-to-even, n=83. No host floating arithmetic in emulated numeric operations.",
+  "scope": "Frozen saved nominal inputs only. No original motion/filter import or live regeneration, no failed test rerun. A differing stored result does not distinguish transient arithmetic faults, changed input before capture, serialization/memory faults or other runtime/compiler/hardware causes. G3 remains unresolved.",
+  "velocity": [
+    {
+      "index": 4399,
+      "emulatedBits": "0x40512fcf81112984",
+      "referenceBits": "0x40512fcf81112984",
+      "equalReference": true,
+      "actualBits": "0x40512fcfa5ceae04"
+    },
+    {
+      "index": 4400,
+      "emulatedBits": "0x405139a27c2c4f48",
+      "referenceBits": "0x405139a27c2c4f48",
+      "equalReference": true,
+      "actualBits": "0x405139a2576ecac8"
+    },
+    {
+      "index": 7856,
+      "emulatedBits": "0xc04d2b8280767a00",
+      "referenceBits": "0xc04d2b8280767a00",
+      "equalReference": true,
+      "actualBits": "0xc04d2b81bc0133e0"
+    },
+    {
+      "index": 7857,
+      "emulatedBits": "0xc04d3e77e9f13b20",
+      "referenceBits": "0xc04d3e77e9f13b20",
+      "equalReference": true,
+      "actualBits": "0xc04d3e78ae668140"
+    },
+    {
+      "index": 8662,
+      "emulatedBits": "0xc058ffffff729b20",
+      "referenceBits": "0xc058ffffff729b20",
+      "equalReference": true,
+      "actualBits": "0xc058ffffb917bde0"
+    },
+    {
+      "index": 8663,
+      "emulatedBits": "0xc058ffffff729b20",
+      "referenceBits": "0xc058ffffff729b20",
+      "equalReference": true,
+      "actualBits": "0xc059000045cd7860"
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "productBase": "1f0e11f1bf416ef40abbfcbed54335a3915ddd76",
+  "failedHead": "5fb711973e05ee844863c26b450cbc906497b74b",
+  "rawLog": {
+    "archive": "ordinary-test-exit-observation.evidence.json.gz",
+    "entry": "full.log",
+    "sha256": "e196769d11f433987c59b9b429ec80770d475b40484cce0c82e9c56a135d1f69"
+  },
+  "currentCompiler": {
+    "path": "host/node_modules/@typescript/typescript-linux-x64/lib/tsc",
+    "bytes": 24101026,
+    "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+    "packageVersion": "7.0.2",
+    "failedAttemptExecutableSha256": null,
+    "failedAttemptMemoryMap": null
+  },
+  "currentBinaryConditionalMaps": [
+    {
+      "loggedPc": "0x14217ac",
+      "currentBinaryLoad": {
+        "start": "0xca0000",
+        "endExclusive": "0x1a91b60",
+        "readable": true,
+        "writable": false,
+        "executable": false
+      },
+      "currentBinarySection": {
+        "name": ".gopclntab",
+        "start": "0x11d1fe0",
+        "endExclusive": "0x1a8a50f",
+        "executable": false
+      }
+    },
+    {
+      "loggedPc": "0x16290f0",
+      "currentBinaryLoad": {
+        "start": "0xca0000",
+        "endExclusive": "0x1a91b60",
+        "readable": true,
+        "writable": false,
+        "executable": false
+      },
+      "currentBinarySection": {
+        "name": ".gopclntab",
+        "start": "0x11d1fe0",
+        "endExclusive": "0x1a8a50f",
+        "executable": false
+      }
+    }
+  ],
+  "sourceSha256": {
+    "host/scripts/build-product-host.ts": "446830181fa89106a5a847ec64d6ab4f1b1da037e7f2c8cf39ad1c38f856a9a2",
+    "host/scripts/build-product-native.ts": "909ee14093031f38662787173746b49967538af7866bb757784fbe23311bd52d",
+    "host/test/product-build.test.ts": "3ac7e8771e5b0c2d69c8af7262ea39b14ec4d45648db17498ed2176ff4c6ef3b",
+    "host/test/product-client-gateway-compiled.test.ts": "702687956f0130509b813acbab8fedd64afbe5dd809e69fe14aa2ef1816726df",
+    "host/test/sd-flash-build.test.ts": "027e461238f5888f368ea230aee936daee10149ae7d23f590489fe541ed91b4d",
+    "host/tsconfig.product-host.json": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e"
+  },
+  "excerpts": [
+    {
+      "label": "node-strip",
+      "firstLine": 2698,
+      "lastLine": 2717,
+      "text": "  throw new ERR_INTERNAL_ASSERTION(message);\n        ^\n\nError [ERR_INTERNAL_ASSERTION]: memory access out of bounds\nThis is caused by either a bug in Node.js or incorrect usage of Node.js internals.\nPlease open an issue with this stack trace at https://github.com/nodejs/node/issues\n\n    at assert.fail (node:internal/assert:17:9)\n    at parseTypeScript (node:internal/modules/typescript:68:16)\n    at processTypeScriptCode (node:internal/modules/typescript:129:37)\n    at Object.stripTypeScriptModuleTypes (node:internal/modules/typescript:172:22)\n    at stripTypeScriptModuleTypes (node:internal/modules/esm/translators:35:49)\n    at ModuleLoader.<anonymous> (node:internal/modules/esm/translators:684:29)\n    at #translate (node:internal/modules/esm/loader:441:20)\n    at afterLoad (node:internal/modules/esm/loader:509:29)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:514:12)\n    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:567:36) {\n  code: 'ERR_INTERNAL_ASSERTION'\n}\n"
+    },
+    {
+      "label": "gcc-ice",
+      "firstLine": 4646,
+      "lastLine": 4665,
+      "text": "  during GIMPLE pass: alias\n  In file included from /home/dek02/.cache/codex/tmp/compiled-layer-pause-efVhIr/.product-native-0Kte7Z/.native-source-ZX3OtQ/host/native/stepcompress.c:227:\n  /home/dek02/.cache/codex/tmp/compiled-layer-pause-efVhIr/.product-native-0Kte7Z/.native-source-ZX3OtQ/host/native/shaper.inc.c: In function ‘cancel_pressure_advance_after’:\n  /home/dek02/.cache/codex/tmp/compiled-layer-pause-efVhIr/.product-native-0Kte7Z/.native-source-ZX3OtQ/host/native/shaper.inc.c:273:19: internal compiler error: Segmentation fault\n    273 | static napi_value cancel_pressure_advance_after(napi_env env,napi_callback_info info) {\n        |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n  0x1989316 internal_error(char const*, ...)\n  \t???:0\n  Please submit a full bug report, with preprocessed source (by using -freport-bug).\n  Please include the complete backtrace with any bug report.\n  See <file:///usr/share/doc/gcc-12/README.Bugs> for instructions.\n  /home/dek02/.cache/codex/tmp/compiled-layer-pause-efVhIr/.product-native-0Kte7Z/.native-source-ZX3OtQ/klippy/chelper/stepcompress.c: In function ‘check_line’:\n  /home/dek02/.cache/codex/tmp/compiled-layer-pause-efVhIr/.product-native-0Kte7Z/.native-source-ZX3OtQ/klippy/chelper/stepcompress.c:231:15: warning: comparison of integer expressions of different signedness: ‘uint32_t’ {aka ‘unsigned int’} and ‘int32_t’ {aka ‘int’} [-Wsign-compare]\n    231 |         if (p < point.minp || p > point.maxp) {\n        |               ^\n  /home/dek02/.cache/codex/tmp/compiled-layer-pause-efVhIr/.product-native-0Kte7Z/.native-source-ZX3OtQ/klippy/chelper/stepcompress.c:231:33: warning: comparison of integer expressions of different signedness: ‘uint32_t’ {aka ‘unsigned int’} and ‘int32_t’ {aka ‘int’} [-Wsign-compare]\n    231 |         if (p < point.minp || p > point.maxp) {\n        |                                 ^\n  /home/dek02/.cache/codex/tmp/compiled-layer-pause-efVhIr/.product-native-0Kte7Z/.native-source-ZX3OtQ/klippy/chelper/stepcompress.c: In function ‘stepcompress_set_invert_sdir’:\n  /home/dek02/.cache/codex/tmp/compiled-layer-pause-efVhIr/.product-native-0Kte7Z/.native-source-ZX3OtQ/klippy/chelper/stepcompress.c:282:21: warning: comparison of integer expressions of different signedness: ‘uint32_t’ {aka ‘unsigned int’} and ‘int’ [-Wsign-compare]"
+    },
+    {
+      "label": "go-pc-14217ac",
+      "firstLine": 5732,
+      "lastLine": 5751,
+      "text": "test at test/product-build.test.ts:57:1\n✖ compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports (291.311297ms)\n  Error: Product TypeScript build failed: fatal error: unexpected signal during runtime execution\n  [signal SIGSEGV: segmentation violation code=0x2 addr=0x14217ac pc=0x14217ac]\n  \n  goroutine 1 gp=0x2dcd7097a1e0 m=7 mp=0x2dcd70c00808 [running]:\n  runtime.throw({0x10012ca?, 0xe53000?})\n  \truntime/panic.go:1229 +0x48 fp=0x2dcd70b5eea8 sp=0x2dcd70b5ee78 pc=0x487c48\n  runtime.sigpanic()\n  \truntime/signal_unix.go:915 +0x3df fp=0x2dcd70b5ef08 sp=0x2dcd70b5eea8 pc=0x489a9f\n  runtime: g 1: unexpected return pc for runtime.sigpanic called from 0x14217ac\n  stack: frame={sp:0x2dcd70b5eea8, fp:0x2dcd70b5ef08} stack=[0x2dcd70b5c000,0x2dcd70b60000)\n                     7 6 5 4  3 2 1 0   f e d c  b a 9 8  0123456789abcdef\n  00002dcd70b5eda0:                    0000718d ffc66900          .i...q..\n  00002dcd70b5edb0: 00000000 0043dac0  00002dcd 70b5ee18  ..C........p.-..\n                    ^ <runtime.(*mheap).alloc.func1+0x0>\n  00002dcd70b5edc0: 00000000 004217f4  00002dcd 70b5eda8  ..B........p.-..\n                    ^ <runtime.mallocgcSmallScanNoHeader+0x214>\n  00002dcd70b5edd0: 00000000 00484a8c  00002dcd 70b5ee08  .JH........p.-..\n                    ^ <runtime.typehash+0xcc>"
+    },
+    {
+      "label": "go-pc-16290f0",
+      "firstLine": 32206,
+      "lastLine": 32225,
+      "text": "✖ protected client gateway and installed assets run from independent compiled product with unchanged protocol assertions (1987.437821ms)\n  Error: Product TypeScript build failed: unexpected fault address 0x16290f0\n  fatal error: fault\n  [signal SIGSEGV: segmentation violation code=0x2 addr=0x16290f0 pc=0x16290f0]\n  \n  goroutine 5037 gp=0x3b43946f3a40 m=10 mp=0x3b4394780808 [running]:\n  runtime.throw({0xfdfe0a?, 0x3b43a7838fe8?})\n  \truntime/panic.go:1229 +0x48 fp=0x3b43a7838fc0 sp=0x3b43a7838f90 pc=0x487c48\n  runtime.sigpanic()\n  \truntime/signal_unix.go:945 +0x285 fp=0x3b43a7839020 sp=0x3b43a7838fc0 pc=0x489945\n  runtime: g 5037: unexpected return pc for runtime.sigpanic called from 0x16290f0\n  stack: frame={sp:0x3b43a7838fc0, fp:0x3b43a7839020} stack=[0x3b43a7836000,0x3b43a783a000)\n                     7 6 5 4  3 2 1 0   f e d c  b a 9 8  0123456789abcdef\n  00003b43a7838ec0: 00003b43 a7838ef8  00000000 00451f6a  ....C;..j.E.....\n                                       ^ <runtime.gwrite+0xea>\n  00003b43a7838ed0: 00000000 0048bcf1  00000000 00000002  ..H.............\n                    ^ <runtime.write+0x31>\n  00003b43a7838ee0: 00000000 01163210  00003b43 00000001  .2..........C;..\n  00003b43a7838ef0: 00000000 00000001  00003b43 a7838f20  ........ ...C;..\n  00003b43a7838f00: 00000000 004643c5  00003b43 a7838f7f  .CF.........C;.."
+    }
+  ],
+  "ownership": {
+    "typescriptOutput": "mkdtemp .product-build- under each test-owned output parent; compiler and project input files remain shared read inputs",
+    "nativeSource": "mkdtemp .native-source- containing private C and Node-header copies; compile helper output is within that private snapshot",
+    "launch": "TypeScript wrapper attempts process.execve and may fall back to execFileSync; actual route of failed attempts was not captured",
+    "productionBoundary": "Build owners are excluded from tsconfig.product-host.json includes; product-host and product-client source imports do not reference these owners",
+    "limit": "Static ownership structure is not a complete runtime file-writer attestation"
+  },
+  "decision": "Preserve distinct Node strip, GCC and Go failures. Current ELF addresses cannot establish historical execution mappings without the failed executable identity. Next necessary observation is pre-launch compiler/wrapper/config digests plus original exit code and signal, without retry or changed compilation options.",
+  "scope": "Read-only original logs, current ELF and source; no compiler execution, failed test rerun, product change, shared-fault attribution or G3 closure",
+  "analyzerSha256": "3148419a06e473e3bcb005e54f2ed91be8329e8bfb55eaeaf42b14a6cb5869ea"
+}

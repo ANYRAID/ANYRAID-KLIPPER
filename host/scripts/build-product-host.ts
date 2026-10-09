@@ -4,6 +4,7 @@ import {mkdir,mkdtemp,readFile,writeFile,readdir,rename,rm,lstat,copyFile,cp,acc
 import {dirname,join,resolve,relative} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {buildProductNative,productAddons,productExecutables} from './build-product-native.ts';
+import {captureProductCompilerInputs,productCompilerFailure} from './product-compiler-observation.ts';
 const host=fileURLToPath(new URL('..',import.meta.url));
 const requiredAddons=[...productAddons] as string[];
 /** Build into a private staging directory; replace only a recognized, offline
@@ -17,8 +18,9 @@ export async function buildProductHost(output=join(host,'build/product-host'),co
   let present=false;try{const info=await lstat(target);present=true;if(!info.isDirectory()||info.isSymbolicLink())throw new Error('Product output must be a generated directory');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
   if(present){let marker;try{marker=JSON.parse(await readFile(join(target,'build-info.json'),'utf8'));}catch{throw new Error('Refusing to replace an unrecognized product output');}if(marker?.schema!==1||marker.product!=='anyraid-product-host'||!marker.files?.['scripts/product-host.js'])throw new Error('Refusing to replace an unrecognized product output');}
   stage=await mkdtemp(join(parent,'.product-build-'));
+  const compilerInputs=await captureProductCompilerInputs(host,resolve(config));
   const result=spawnSync(process.execPath,[join(host,'node_modules/typescript/bin/tsc'),'-p',resolve(config),'--outDir',stage],{encoding:'utf8',timeout:60000,maxBuffer:4*1024**2});
-  if(result.error||result.status!==0)throw new Error('Product TypeScript build failed: '+(result.error?.message??result.stdout+result.stderr));
+  if(result.error||result.status!==0)throw productCompilerFailure(result,compilerInputs);
   for(const entry of ['scripts/flash-sdcard.js','scripts/product-host.js','scripts/product-client.js','host/src/runtime/product-client-gateway.js','host/src/runtime/product-client-assets.js','host/src/runtime/product-host.js','host/src/runtime/host-recovery-journal-worker.js','host/src/operations/print-journal-worker.js','host/src/moonraker/database-worker.js','host/src/moonraker/metadata-extractor-worker.js','host/src/moonraker/file-list-worker.js','host/src/moonraker/thumbnail-process-child.js','host/src/calibration/spectrum-worker.js','host/src/calibration/shaper-fit-worker.js'])await access(join(stage,entry));
   if(nativeDirectory===undefined){nativeScratch=await mkdtemp(join(parent,'.product-native-'));nativeDirectory=join(nativeScratch,'addons');await buildProductNative(nativeDirectory);}
   const addons=[...requiredAddons];try{await access(join(nativeDirectory,'template.node'));addons.push('template');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}

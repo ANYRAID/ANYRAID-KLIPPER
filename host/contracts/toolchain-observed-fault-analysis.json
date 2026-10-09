@@ -1,0 +1,303 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "sourceHead": "d10070931cbefebad4ed73ca1f6749efa1a46fc0",
+  "evidence": {
+    "archive": "product-compiler-observation-acceptance.evidence.json.gz",
+    "archiveSha256": "bcb64214f886a2a1aeb66a62030a698f4b49b20b992721ae891b59305854818d",
+    "entry": "full.log",
+    "entrySha256": "b820eeb15f39d16a768acc576acce545635de8a0198cd825521973bd3ee6b940"
+  },
+  "candidateSha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+  "compilerFailures": [
+    {
+      "context": "test at test/print-layer-pause-compiled.test.ts:14:1",
+      "line": 4687,
+      "address": "0x148884f",
+      "pc": "0x148884f",
+      "observationLine": 5502,
+      "observation": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "platform": "linux",
+        "arch": "x64",
+        "typescript": "7.0.2",
+        "files": {
+          "entry": {
+            "bytes": 44,
+            "sha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd"
+          },
+          "wrapper": {
+            "bytes": 609,
+            "sha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e"
+          },
+          "resolver": {
+            "bytes": 3051,
+            "sha256": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+          },
+          "package": {
+            "bytes": 3087,
+            "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+          },
+          "config": {
+            "bytes": 472,
+            "sha256": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e"
+          },
+          "hostConfig": {
+            "bytes": 527,
+            "sha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1"
+          },
+          "lock": {
+            "bytes": 69143,
+            "sha256": "f3cf393547e61fc9ca09d33246faa789c483009de2c518c541db47ddb6fdfec8"
+          },
+          "nativePackage": {
+            "bytes": 1042,
+            "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7"
+          },
+          "nativeCandidate": {
+            "bytes": 24101026,
+            "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4"
+          }
+        },
+        "status": 2,
+        "signal": null,
+        "errorCode": null,
+        "scope": "Pre-launch file digests; nativeCandidate is the installed platform candidate. Actual wrapper launch route, loaded memory, source inputs and concurrent mutation are not attested."
+      },
+      "candidateElfMapping": {
+        "load": {
+          "start": "0xca0000",
+          "endExclusive": "0x1a91b60",
+          "executable": false
+        },
+        "section": {
+          "name": ".gopclntab",
+          "start": "0x11d1fe0",
+          "endExclusive": "0x1a8a50f",
+          "executable": false
+        }
+      },
+      "scope": "Mapping of the file whose SHA-256 matches the pre-launch installed candidate; not proof of actual executable selection or loaded memory."
+    },
+    {
+      "context": "test at test/product-build.test.ts:45:1",
+      "line": 5517,
+      "address": "0x167c631",
+      "pc": "0x167c631",
+      "observationLine": 20741,
+      "observation": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "platform": "linux",
+        "arch": "x64",
+        "typescript": "7.0.2",
+        "files": {
+          "entry": {
+            "bytes": 44,
+            "sha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd"
+          },
+          "wrapper": {
+            "bytes": 609,
+            "sha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e"
+          },
+          "resolver": {
+            "bytes": 3051,
+            "sha256": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+          },
+          "package": {
+            "bytes": 3087,
+            "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+          },
+          "config": {
+            "bytes": 472,
+            "sha256": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e"
+          },
+          "hostConfig": {
+            "bytes": 527,
+            "sha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1"
+          },
+          "lock": {
+            "bytes": 69143,
+            "sha256": "f3cf393547e61fc9ca09d33246faa789c483009de2c518c541db47ddb6fdfec8"
+          },
+          "nativePackage": {
+            "bytes": 1042,
+            "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7"
+          },
+          "nativeCandidate": {
+            "bytes": 24101026,
+            "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4"
+          }
+        },
+        "status": 2,
+        "signal": null,
+        "errorCode": null,
+        "scope": "Pre-launch file digests; nativeCandidate is the installed platform candidate. Actual wrapper launch route, loaded memory, source inputs and concurrent mutation are not attested."
+      },
+      "candidateElfMapping": {
+        "load": {
+          "start": "0xca0000",
+          "endExclusive": "0x1a91b60",
+          "executable": false
+        },
+        "section": {
+          "name": ".gopclntab",
+          "start": "0x11d1fe0",
+          "endExclusive": "0x1a8a50f",
+          "executable": false
+        }
+      },
+      "scope": "Mapping of the file whose SHA-256 matches the pre-launch installed candidate; not proof of actual executable selection or loaded memory."
+    },
+    {
+      "context": "test at test/product-build.test.ts:57:1",
+      "line": 20752,
+      "address": "0x17d40ed",
+      "pc": "0x17d40ed",
+      "observationLine": 21586,
+      "observation": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "platform": "linux",
+        "arch": "x64",
+        "typescript": "7.0.2",
+        "files": {
+          "entry": {
+            "bytes": 44,
+            "sha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd"
+          },
+          "wrapper": {
+            "bytes": 609,
+            "sha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e"
+          },
+          "resolver": {
+            "bytes": 3051,
+            "sha256": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+          },
+          "package": {
+            "bytes": 3087,
+            "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+          },
+          "config": {
+            "bytes": 472,
+            "sha256": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e"
+          },
+          "hostConfig": {
+            "bytes": 527,
+            "sha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1"
+          },
+          "lock": {
+            "bytes": 69143,
+            "sha256": "f3cf393547e61fc9ca09d33246faa789c483009de2c518c541db47ddb6fdfec8"
+          },
+          "nativePackage": {
+            "bytes": 1042,
+            "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7"
+          },
+          "nativeCandidate": {
+            "bytes": 24101026,
+            "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4"
+          }
+        },
+        "status": 2,
+        "signal": null,
+        "errorCode": null,
+        "scope": "Pre-launch file digests; nativeCandidate is the installed platform candidate. Actual wrapper launch route, loaded memory, source inputs and concurrent mutation are not attested."
+      },
+      "candidateElfMapping": {
+        "load": {
+          "start": "0xca0000",
+          "endExclusive": "0x1a91b60",
+          "executable": false
+        },
+        "section": {
+          "name": ".gopclntab",
+          "start": "0x11d1fe0",
+          "endExclusive": "0x1a8a50f",
+          "executable": false
+        }
+      },
+      "scope": "Mapping of the file whose SHA-256 matches the pre-launch installed candidate; not proof of actual executable selection or loaded memory."
+    },
+    {
+      "context": "test at test/sd-flash-build.test.ts:11:1",
+      "line": 21622,
+      "address": "0x177626f",
+      "pc": "0x177626f",
+      "observationLine": 23988,
+      "observation": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "platform": "linux",
+        "arch": "x64",
+        "typescript": "7.0.2",
+        "files": {
+          "entry": {
+            "bytes": 44,
+            "sha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd"
+          },
+          "wrapper": {
+            "bytes": 609,
+            "sha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e"
+          },
+          "resolver": {
+            "bytes": 3051,
+            "sha256": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+          },
+          "package": {
+            "bytes": 3087,
+            "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+          },
+          "config": {
+            "bytes": 472,
+            "sha256": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e"
+          },
+          "hostConfig": {
+            "bytes": 527,
+            "sha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1"
+          },
+          "lock": {
+            "bytes": 69143,
+            "sha256": "f3cf393547e61fc9ca09d33246faa789c483009de2c518c541db47ddb6fdfec8"
+          },
+          "nativePackage": {
+            "bytes": 1042,
+            "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7"
+          },
+          "nativeCandidate": {
+            "bytes": 24101026,
+            "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4"
+          }
+        },
+        "status": 2,
+        "signal": null,
+        "errorCode": null,
+        "scope": "Pre-launch file digests; nativeCandidate is the installed platform candidate. Actual wrapper launch route, loaded memory, source inputs and concurrent mutation are not attested."
+      },
+      "candidateElfMapping": {
+        "load": {
+          "start": "0xca0000",
+          "endExclusive": "0x1a91b60",
+          "executable": false
+        },
+        "section": {
+          "name": ".gopclntab",
+          "start": "0x11d1fe0",
+          "endExclusive": "0x1a8a50f",
+          "executable": false
+        }
+      },
+      "scope": "Mapping of the file whose SHA-256 matches the pre-launch installed candidate; not proof of actual executable selection or loaded memory."
+    }
+  ],
+  "nodeFatal": {
+    "firstLine": 2711,
+    "lastLine": 2747,
+    "excerpt": "# Fatal error in , line 0\n# unreachable code\n#\n#\n#\n#FailureMessage Object: 0x7ffcbd91f380\n----- Native stack trace -----\n\n 1: 0xaa1c41  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n 2: 0x28ff6b1 V8_Fatal(char const*, ...) [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n 3: 0x1408079  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n 4: 0x1406b95  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n 5: 0x1407d8a  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n 6: 0x1406b95  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n 7: 0x1407d8a  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n 8: 0x1406b95  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n 9: 0x1407d8a  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n10: 0x1406b95  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n11: 0x1407d8a  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n12: 0x1406b95  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n13: 0x1407d8a  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n14: 0x1406b95  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n15: 0x1407d8a  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n16: 0x1406b95  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n17: 0x140dbd5  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n18: 0x14074cf  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n19: 0x1416361  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n20: 0x14162fd  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n21: 0x1401297  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n22: 0xd6f84a  [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n23: 0xcddcec v8::ScriptCompiler::CompileFunction(v8::Local<v8::Context>, v8::ScriptCompiler::Source*, unsigned long, v8::Local<v8::String>*, unsigned long, v8::Local<v8::Object>*, v8::ScriptCompiler::CompileOptions, v8::ScriptCompiler::NoCacheReason) [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n24: 0x9b9626 node::builtins::BuiltinLoader::LookupAndCompile(v8::Local<v8::Context>, node::builtins::BuiltinSource const*, node::Realm*) [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n25: 0x9b9bdc node::builtins::BuiltinLoader::LookupAndCompileFunction(v8::Local<v8::Context>, char const*, node::Realm*) [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n26: 0x9bb17f node::builtins::BuiltinLoader::CompileFunction(v8::FunctionCallbackInfo<v8::Value> const&) [/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node]\n27: 0x76a979d8fae9 \n✖ test/native-history.test.ts (78.010412ms)\n{\"nodeTestFailure\":{\"schema\":1,\"node\":\"v26.10.0\",\"file\":\"/home/dek02/.cache/codex/tmp/anyraid-compiler-failure-provenance/host/test/native-history.test.ts\",\"name\":\"test/native-history.test.ts\",\"line\":1,\"column\":1,\"nesting\":0,\"error\":{\"code\":\"ERR_TEST_FAILURE\",\"failureType\":\"testCodeFailure\",\"exitCode\":null,\"signal\":\"SIGTRAP\",\"causeCode\":null},\"truncatedFields\":[]}}",
+    "scope": "Original native stack and runner signal only; no Node executable digest at failure time or module evaluation boundary was captured."
+  },
+  "decision": "The four failed attempts now have matching pre-launch candidate file identity, so candidate-version differences before launch are not supported by these records. Actual wrapper route, loaded image/memory, concurrent mutation and common cause remain unproven; a further execution-mapping claim requires those missing observations, not another unchanged success run.",
+  "scope": "Read-only existing failure archive and matching current candidate ELF. No compiler/test execution, retry, source/product change, hardware attribution or G3 closure.",
+  "analyzerSha256": "eaac6bb27b6a26fbdac2900cadadd96be6f0fa4acf697acb7f068ad9b6184653"
+}
