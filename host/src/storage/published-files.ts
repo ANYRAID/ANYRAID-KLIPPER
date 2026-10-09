@@ -691,8 +691,15 @@ export class PublishedPrintFiles {
    if(failures.length)throw failures.length===1?failures[0]:new AggregateError(failures,'Published content preparation failed');
    const preview=prepared[1].status==='fulfilled'?prepared[1].value?.preview:undefined;
    const record:PublishedPrintFile=Object.freeze({version:1,id,name,...model,...path===undefined?{}:{path:visible},...preview?{preview}:{}});if(Buffer.byteLength(JSON.stringify(record))>2048)throw new Error('Published receipt exceeds limit');
-   await this.#root.sync();signal.throwIfAborted();
-   receipt=await open(receiptTemp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await receipt.writeFile(JSON.stringify(record));await receipt.chmod(0o400);await receipt.sync();const modified=(await receipt.stat()).mtimeMs/1000;await receipt.close();receipt=undefined;signal.throwIfAborted();
+   // The private receipt may be prepared while content names become durable.
+   // Drain both barriers before linking its public name, cleanup or close.
+   const authority=await Promise.allSettled([
+    this.#root.sync(),
+    (async()=>{signal.throwIfAborted();receipt=await open(receiptTemp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await receipt.writeFile(JSON.stringify(record));await receipt.chmod(0o400);await receipt.sync();const modified=(await receipt.stat()).mtimeMs/1000;await receipt.close();receipt=undefined;return modified;})(),
+   ] as const);
+   if(authority[0].status==='rejected'){if(authority[1].status==='rejected'&&!Object.is(authority[0].reason,authority[1].reason))throw new AggregateError([authority[0].reason,authority[1].reason],'Published authority preparation failed');throw authority[0].reason;}
+   if(authority[1].status==='rejected')throw authority[1].reason;
+   const modified=authority[1].value;signal.throwIfAborted();
    await link(receiptTemp,this.#path(id+'.json'));receiptLinked=true;const receiptBytes=Buffer.byteLength(JSON.stringify(record));this.#storedBytes+=receiptBytes;this.#reservedBytes-=receiptBytes;reserved-=receiptBytes;this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes,record,modified});this.#paths.set(visible,id);this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);this.#retainPreview(record);this.#publishing.delete(id);await this.#root.sync();this.#changed('create_file',record,modified);return record;
   }catch(error){failure=error;if(receiptLinked)this.#writeFault=error;throw error;}finally{
    const closed=await Promise.allSettled([file?.close(),receipt?.close()]);

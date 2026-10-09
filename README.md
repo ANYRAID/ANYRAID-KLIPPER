@@ -35,8 +35,11 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 面向用户的未发布变化见 [版本变化](CHANGELOG.md)。
 
 持久元数据失效准入候选避免读队列满时文件已删除却返回恢复故障，
-并让失效优先于未开始的重扫。组合软件负载已验证，冷发布性能门槛
-仍未关闭，当前不合并，见[失效准入审查](host/contracts/native-metadata-invalidation-admission.json)。
+并让失效优先于未开始的重扫。首包冷发布性能失败原样保留，见
+[失效准入审查](host/contracts/native-metadata-invalidation-admission.json)。后续候选
+并行准备私有回执与内容目录同步，保留公开回执前的双屏障和五次同步；
+新组合通过七路原预算及原完整混合软件验收，尚未证明冷发布提速。
+当前待新头 CI 和正常集成，见[回执准备审查](host/contracts/native-publication-authority-preparation.json)。
 
 元数据原子版本头候选减少耐久写入成本，同一独立包的磁盘、大图和
 重扫完整混合软件验证已通过。新内容准备组合通过七路原性能预算和
