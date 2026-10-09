@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "pr": 57,
+  "testedSourceHead": "6be88322639c4d2f40c7de08098ce7fe150b83bc",
+  "hypotheses": [
+    "Copy cleanup is rejected with 409 and waiting for automatic Idle spans print completion.",
+    "A direct 200 cleanup or the preceding operations consume the remaining print window."
+  ],
+  "plan": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-announcements-bounded-product",
+      "manifestSha256": "3ff6903111920bef5939c8faea0f0da9415cd083cfb7496bdaef33ddd580e7cf",
+      "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+    },
+    "driverSha256": "234f2f649db96de9d25be70babab00d1f7daff2ff85d77c077c803efd953a01b",
+    "args": [
+      "--test",
+      "--test-isolation=none",
+      "--test-name-pattern=^namespace=true nativeAuthorization=true apiLoad=true load=false spi=false software=false model5160=false model2240=false curved=false probeHome=false safeHome=false bltouch=false tilted=false manualTilt=false kinematics=cartesian temperatureSensor=false hostSensor=false spiSensor=false spiHeater=false sharedSpi=false zEndstop=false max31855=false:",
+      "/home/dek02/.cache/codex/tmp/anyraid-announcements-overlap-driver/host/acceptance/product-compiled-journey.test.js"
+    ],
+    "selectedEnvironment": {
+      "TMPDIR": "/home/dek02/.cache/codex/tmp",
+      "ANYRAID_ACCEPTANCE_BUNDLE": "/home/dek02/.cache/codex/tmp/anyraid-announcements-bounded-product",
+      "ANYRAID_ACCEPTANCE_MANIFEST_SHA256": "3ff6903111920bef5939c8faea0f0da9415cd083cfb7496bdaef33ddd580e7cf",
+      "ANYRAID_ACCEPTANCE_DEPENDENCIES_SHA256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895",
+      "ANYRAID_BENCH_METADATA_RESCAN": "on",
+      "ANYRAID_BENCH_UFP_LOAD": "on",
+      "ANYRAID_BENCH_DISK_IMPORT": "on",
+      "ANYRAID_BENCH_UFP_IMAGE": "large",
+      "NODE_OPTIONS": "--no-experimental-strip-types"
+    },
+    "outerDeadlineSeconds": 90,
+    "scope": "One bounded overlap observation of existing requests with unchanged original program, assertions and deadlines. No added HTTP requests. Not an acceptance pass or unchanged rerun seeking green; prior failures retained. No client scene."
+  },
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "bundleUnchanged": true
+  },
+  "driver": {
+    "originalSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+    "observedSha256": "234f2f649db96de9d25be70babab00d1f7daff2ff85d77c077c803efd953a01b",
+    "addsNetworkRequests": false,
+    "reversesExactly": true,
+    "originalProgramAssertionsAndDeadlinesRetained": true,
+    "scope": "Six bounded observation edits in a separate diagnostic copy; original driver and products immutable."
+  },
+  "observations": [
+    {
+      "generation": 1,
+      "group": 0,
+      "beginMs": 16742.909463,
+      "attempts": [
+        {
+          "status": 200,
+          "elapsedMs": 194.20103400000153
+        }
+      ],
+      "idlePolls": 0,
+      "states": [],
+      "copyCompletedMs": 194.42681699999957,
+      "recursiveMs": 178.68793799999912,
+      "totalMs": 373.1226050000005,
+      "originalStatus": {
+        "mode": "native",
+        "standard_print": true,
+        "pending_compatibility": 0,
+        "state": "printing",
+        "state_token": "e625cf03-409b-47e8-8463-0e2c8a2ff3b8:6",
+        "pause_pending": false,
+        "paused_before_file": false,
+        "request": {
+          "version": 1,
+          "request_id": "complete",
+          "file_id": "authorized-file",
+          "nozzle": 200,
+          "bed": 60,
+          "expires_at": 1791549055012
+        },
+        "pending_device_actions": 0,
+        "safe_stop_pending": false,
+        "failed": false,
+        "closed": false
+      },
+      "scope": "Observation only; original program, requests, polling interval, deadlines and assertions retained."
+    },
+    {
+      "generation": 2,
+      "group": 0,
+      "beginMs": 50540.659925,
+      "attempts": [
+        {
+          "status": 200,
+          "elapsedMs": 181.37968199999887
+        }
+      ],
+      "idlePolls": 0,
+      "states": [],
+      "copyCompletedMs": 181.4826929999981,
+      "recursiveMs": 224.1861229999995,
+      "totalMs": 405.6855660000001,
+      "originalStatus": {
+        "mode": "native",
+        "standard_print": true,
+        "pending_compatibility": 0,
+        "state": "printing",
+        "state_token": "fc6eab5a-5009-4e3a-9287-0d1eef7c50e1:2",
+        "pause_pending": false,
+        "paused_before_file": false,
+        "request": {
+          "version": 1,
+          "request_id": "queue-d085414f-65c5-415f-b024-9ab33db787f5",
+          "file_id": "authorized-file",
+          "nozzle": 200,
+          "bed": 60,
+          "expires_at": 1791549064147
+        },
+        "pending_device_actions": 0,
+        "safe_stop_pending": false,
+        "failed": false,
+        "closed": false
+      },
+      "scope": "Observation only; original program, requests, polling interval, deadlines and assertions retained."
+    }
+  ],
+  "preparationFailures": [
+    "First preparation rejected an ambiguous polling replacement before running.",
+    "Retry copying task-owned symlinks encountered ERR_FS_CP_EINVAL; logs retained. Corrected preparation rebuilds only its disposable copy and scopes the replacement."
+  ],
+  "outcome": "Both generations directly returned 200 and remained printing after cleanup (373.123 ms and 405.686 ms). The 409-to-Idle branch was not exercised. Prior candidate/baseline failures were not reproduced; their cause remains unproven.",
+  "acceptanceGateClosed": false,
+  "noMoreSameConditionRepeats": true,
+  "nextEvidence": "Capture the original failing iteration: first namespace completion time/state, cleanup admission status, any Idle waiting and controller transition at recursive cleanup. A successful observed sample is insufficient to close the failed original driver gate.",
+  "evidence": {
+    "file": "native-announcements-overlap-observation.evidence.json.gz",
+    "sha256": "edfd6cd56b7c899bfd3e3e366314e0babe68b459cfd72474b502d91a28e12728",
+    "uncompressedSha256": "4ef0677e7b03b462876f14d638cb1292404fc85a2594c77dd85b1a44adce8ed5",
+    "entries": 11,
+    "bytes": 57717
+  }
+}

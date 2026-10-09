@@ -319,11 +319,14 @@ ${machineControlLoad?`Object.defineProperty(createProductHostProfile,'machineCon
   let finishCopyCheckpoint:()=>Promise<void>=async()=>{};
   function beginLoad(){
    if(!stressed)return;const abort=new AbortController(),generation=++loadGeneration;let failure:unknown,namespaceCheckpoint=false,sourceCopyCheckpoint=!namespace,replacementCheckpoint=!namespace,fileMoveCheckpoint=!namespace;
+   type MutationObservation={queuedMs:number;admittedMs:number|null;completedMs:number|null;attempts:{status:number;elapsedMs:number}[];idlePolls:number;idleStates:{state:string;atMs:number}[]};
+   type CleanupObservation={generation:number;group:number;namespace:{atMs:number;status:unknown}|undefined;beginMs:number;stage:string;attempts:{status:number;elapsedMs:number}[];idlePolls:number;idleStates:{state:string;atMs:number}[];copyCompletedMs?:number;recursive?:MutationObservation;totalMs?:number;status?:unknown};
+   let lastCleanupObservation:CleanupObservation|undefined;
    finishNamespaceCheckpoint=async()=>{if(!namespace)return;const deadline=performance.now()+12000;while(!namespaceCheckpoint){if(failure)throw failure;if(performance.now()>=deadline)assert.fail(JSON.stringify({checkpoint:'First namespace checkpoint did not complete',current:await get(),idle:(await get('/printer/objects/query?idle_timeout')).status.idle_timeout}));await delay(5);}};
    // Do not race automatic runout pause against the first file move's printing
    // observation. All original I/O remains timed; no extra motion or delay.
    finishCopyCheckpoint=async()=>{const deadline=performance.now()+12000;while(!sourceCopyCheckpoint||!replacementCheckpoint||!fileMoveCheckpoint){if(failure)throw failure;assert(performance.now()<deadline,'First source copy, replacements and file move checkpoint did not complete');await delay(5);}};
-   const own=(work:()=>Promise<void>)=>work().catch(error=>{if(!abort.signal.aborted){if(diskImportLoad&&failure===undefined)t.diagnostic(JSON.stringify({mixedWorkloadFirstFailure:{generation,message:error instanceof Error?error.message:String(error),stack:error instanceof Error?error.stack:undefined}}));failure??=error;abort.abort();}});
+   const own=(work:()=>Promise<void>)=>work().catch(error=>{if(!abort.signal.aborted){if(diskImportLoad&&failure===undefined)t.diagnostic(JSON.stringify({mixedWorkloadFirstFailure:{generation,message:error instanceof Error?error.message:String(error),stack:error instanceof Error?error.stack:undefined,cleanup:lastCleanupObservation}}));failure??=error;abort.abort();}});
    const tasks=Array.from({length:4},()=>own(async()=>{while(!abort.signal.aborted){const begin=performance.now(),response=await checkedFetch(base+'/printer/objects/query?'+(motionReportLoad?'motion_report&':'')+'toolhead&extruder&heater_bed&virtual_sdcard&print_stats&pause_resume&'+(tilted?'bed_tilt':'bed_mesh=profile_name'),{headers,signal:abort.signal});assert.equal(response.status,200);const body=await response.json() as any;assert(body.result.status.toolhead);if(motionReportLoad){const motion=body.result.status.motion_report;assert(motion);for(const value of [motion.live_velocity,motion.live_extruder_velocity])assert(value===null||Number.isFinite(value));if(motion.live_position!==null)assert(motion.live_position.length===4&&motion.live_position.every(Number.isFinite));if(motion.live_velocity>0)liveMotionSamples++;if(motion.live_extruder_velocity>0)liveExtrusionSamples++;}latencies.push(performance.now()-begin);await delay(5,undefined,{signal:abort.signal});}}));
    // Add real disk transactions alongside every original mixed workload.
    // Keep all movement, fault, event and deadline assertions unchanged.
@@ -351,18 +354,29 @@ ${machineControlLoad?`Object.defineProperty(createProductHostProfile,'machineCon
    // One client mutation lane shares the store's bounded admission with the
    // concurrent catalog/status readers. Queue time remains in operation timing.
    let mutationTail:Promise<void>=Promise.resolve();
+   // Observation uses only existing requests. Each response owns one bounded
+   // record; it does not add polling, retain responses or change admission.
+   const mutationObservations=new WeakMap<Response,MutationObservation>();
    const fileMutationFetch=async(input:string,options:RequestInit,busyStatus:number,busyMessage:string)=>{
+    const observation:MutationObservation={queuedMs:performance.now(),admittedMs:null,completedMs:null,attempts:[],idlePolls:0,idleStates:[]};
+    if(input===base+'/server/files/directory'&&options.method==='DELETE'&&lastCleanupObservation?.stage==='recursive')lastCleanupObservation.recursive=observation;
     const previous=mutationTail,turn=Promise.withResolvers<void>();mutationTail=turn.promise;await previous;
+    observation.admittedMs=performance.now();
     try{
+    let requestBegin=performance.now();
     let response=await checkedFetch(input,options);
+    observation.attempts.push({status:response.status,elapsedMs:performance.now()-requestBegin});
     if(response.status===busyStatus){
      const error=(await response.clone().json() as any).error;
      // These load files are unrelated to the print. Only the exact pre-admission
      // maintenance rejection permits one new request after automatic Idle.
      assert.equal(error.message,busyMessage);assert.equal(error.data,undefined);await response.arrayBuffer();
-     const deadline=performance.now()+7000;while((await get('/printer/objects/query?idle_timeout')).status.idle_timeout.state!=='Idle'){const current=await get();assert.notEqual(current.state,'failed',JSON.stringify({checkpoint:'File maintenance interrupted by printer failure',current})+' '+stderr);assert(performance.now()<deadline,'File load maintenance did not finish');await delay(20,undefined,{signal:abort.signal});}
+     const deadline=performance.now()+7000;while(true){const state=(await get('/printer/objects/query?idle_timeout')).status.idle_timeout.state;observation.idlePolls++;if(observation.idleStates.length<4&&observation.idleStates.at(-1)?.state!==state)observation.idleStates.push({state,atMs:performance.now()});if(state==='Idle')break;const current=await get();assert.notEqual(current.state,'failed',JSON.stringify({checkpoint:'File maintenance interrupted by printer failure',current})+' '+stderr);assert(performance.now()<deadline,'File load maintenance did not finish');await delay(20,undefined,{signal:abort.signal});}
+     requestBegin=performance.now();
      response=await checkedFetch(input,options);
+     observation.attempts.push({status:response.status,elapsedMs:performance.now()-requestBegin});
     }
+    observation.completedMs=performance.now();mutationObservations.set(response,observation);
     return response;
     }finally{turn.resolve();}
    };
@@ -445,22 +459,28 @@ ${machineControlLoad?`Object.defineProperty(createProductHostProfile,'machineCon
     if(i===0)await wait('printing');
     if((await get()).state==='printing')directoryCopiesDuringPrint.push(generation);
     await copy(targetDirectory,treePath,'create_dir',directoryCopyTimes);
-    if(i===0){assert.equal((await get()).state,'printing','First namespace group must finish during printing');namespaceCheckpoint=true;}
+    const namespaceObservation=i===0?{atMs:performance.now(),status:await get()}:undefined;
+    if(i===0){assert.equal(namespaceObservation!.status.state,'printing','First namespace group must finish during printing');namespaceCheckpoint=true;}
     const treeMetadata=(await (await checkedFetch(base+'/server/files/metadata?filename='+treePath+'/organized.gcode',{headers,signal:abort.signal})).json() as any).result;assert.equal(treeMetadata.sha256,body.result.file.sha256);assert.notEqual(treeMetadata.file_id,body.result.file.id);assert.equal((await get('/server/files/metadata?filename='+deletePath)).file_id,body.result.file.id);
+    const cleanupObservation:CleanupObservation={generation,group:i,namespace:namespaceObservation,beginMs:performance.now(),stage:'copy',attempts:[],idlePolls:0,idleStates:[]};lastCleanupObservation=cleanupObservation;
     const cleanupCopy=async(url:string,busyMessage:string)=>{
+     let requestBegin=performance.now();
      let response=await checkedFetch(base+url,{method:'DELETE',headers,signal:abort.signal});
+     cleanupObservation.attempts.push({status:response.status,elapsedMs:performance.now()-requestBegin});
      if(response.status===409){
       assert.equal((await response.json() as any).error.message,busyMessage);
-      const deadline=performance.now()+7000;while((await get('/printer/objects/query?idle_timeout')).status.idle_timeout.state!=='Idle'){assert(performance.now()<deadline,'Copy cleanup maintenance did not finish');await delay(20,undefined,{signal:abort.signal});}
+      const deadline=performance.now()+7000;while(true){const state=(await get('/printer/objects/query?idle_timeout')).status.idle_timeout.state;cleanupObservation.idlePolls++;if(cleanupObservation.idleStates.length<4&&cleanupObservation.idleStates.at(-1)?.state!==state)cleanupObservation.idleStates.push({state,atMs:performance.now()});if(state==='Idle')break;assert(performance.now()<deadline,'Copy cleanup maintenance did not finish');await delay(20,undefined,{signal:abort.signal});}
       // A new, explicitly checked cleanup request after automatic maintenance;
       // never retry a changed path, unknown error or uncertain durable commit.
-      response=await checkedFetch(base+url,{method:'DELETE',headers,signal:abort.signal});
+      requestBegin=performance.now();response=await checkedFetch(base+url,{method:'DELETE',headers,signal:abort.signal});cleanupObservation.attempts.push({status:response.status,elapsedMs:performance.now()-requestBegin});
      }
      assert.equal(response.status,200,await response.clone().text());await response.arrayBuffer();
     };
     await cleanupCopy('/server/files/gcodes/'+copyPath,'Print or maintenance owns this file');
+    cleanupObservation.copyCompletedMs=performance.now()-cleanupObservation.beginMs;cleanupObservation.stage='recursive';
     const recursiveBegin=performance.now(),recursive=await fileMutationFetch(base+'/server/files/directory',{method:'DELETE',headers,body:JSON.stringify({path:'gcodes/'+treePath,force:true}),signal:abort.signal},409,'Maintenance blocks directory deletion');assert.equal(recursive.status,200,await recursive.clone().text());assert.equal((await recursive.json() as any).result.action,'delete_dir');assert.equal((await checkedFetch(base+'/server/files/metadata?filename='+treePath+'/organized.gcode',{headers,signal:abort.signal})).status,404);assert.equal((await get('/server/files/metadata?filename='+deletePath)).file_id,body.result.file.id);
-    if(i===0)assert.equal((await get()).state,'printing','Recursive cleanup must complete during each printing generation');t.diagnostic(JSON.stringify({compiledRecursiveDelete:{generation,group:i,durationMs:performance.now()-recursiveBegin,sharedSourcePreserved:true}}));
+    cleanupObservation.recursive=mutationObservations.get(recursive);cleanupObservation.stage='checked';
+    if(i===0){const status=await get();cleanupObservation.status=status;cleanupObservation.totalMs=performance.now()-cleanupObservation.beginMs;t.diagnostic(JSON.stringify({cleanupOverlapObservation:cleanupObservation}));assert.equal(status.state,'printing','Recursive cleanup must complete during each printing generation');}t.diagnostic(JSON.stringify({compiledRecursiveDelete:{generation,group:i,durationMs:performance.now()-recursiveBegin,sharedSourcePreserved:true}}));
    }eventStarts.set('delete_file:'+body.result.file.id,performance.now());const deleteBegin=performance.now(),deleted=await fileMutationFetch(base+'/server/files/gcodes/'+deletePath,{method:'DELETE',headers,signal:abort.signal},409,'Print or maintenance owns this file');assert.equal(deleted.status,200);assert.equal((await deleted.json() as any).result.action,'delete_file');deleteTimes.push(performance.now()-deleteBegin);if(cleanupDirectory){const removedDirectory=await fileMutationFetch(base+'/server/files/directory?path=gcodes/'+cleanupDirectory,{method:'DELETE',headers,signal:abort.signal},409,'Maintenance blocks directory mutation');assert.equal(removedDirectory.status,200);}assert.equal((await checkedFetch(base+'/server/files/gcodes/'+extracted.thumbnails[1].relative_path,{headers,signal:abort.signal})).status,404);await delay(25,undefined,{signal:abort.signal});}});tasks.push(fileLoad);finishFileLoad=async()=>{await Promise.all([fileLoad,replacementLoad]);if(failure)throw failure;};
    tasks.push(own(async()=>{while(!abort.signal.aborted){const begin=performance.now(),response=await checkedFetch(base+'/server/files/directory?extended=true'+(namespace?'&path=gcodes/parts/first':''),{headers,signal:abort.signal});assert.equal(response.status,200);const entries=(await response.json() as any).result.files;assert.equal(entries.find((entry:any)=>entry.file_id==='authorized-file')?.sha256,sha256);assert.equal(new Set(entries.map((entry:any)=>entry.filename)).size,entries.length);directoryTimes.push(performance.now()-begin);await delay(5,undefined,{signal:abort.signal});}}));
    tasks.push(own(async()=>{while(!abort.signal.aborted){const begin=performance.now(),response=await checkedFetch(base+'/server/history/list?limit=50',{headers,signal:abort.signal});assert.equal(response.status,200);const body=await response.json() as any;assert.equal(body.result.count,body.result.jobs.length);historyTimes.push(performance.now()-begin);await delay(25,undefined,{signal:abort.signal});}}));
