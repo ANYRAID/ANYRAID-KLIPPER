@@ -1,0 +1,464 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "branchBase": "88b6826d521d59029261c2a809c49ab815ee3ab3",
+  "testedParent": "be245745ac4430342530983aabc9a026175dbc26",
+  "build": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "sourceBase": "9ceb7ddaea907070f5aaeda676c5422938f09548",
+    "queueSourceSha256": "d1e37a9181cd1c841841b6759af1fed340bdb09375d72af91450e6d5ccf51cb2",
+    "storageSourceSha256": "f839108e2e4d34fd231cd6a6c9258d26ac509110d3ff61507a357a1c40a107f7",
+    "testSourceSha256": "98a85d7c7e7175492ae0994318d9f150c1f4f8282cdcff51211e86e377b62c41",
+    "baseline": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-announcements-bounded-product",
+      "manifestSha256": "3ff6903111920bef5939c8faea0f0da9415cd083cfb7496bdaef33ddd580e7cf",
+      "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+    },
+    "prior": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-invalidation-fair-composition-product",
+      "manifestSha256": "5f3013f473adf5c9ecba1abbbc5acc849bbbe5d237020e1456179d203a0acc41",
+      "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+    },
+    "candidate": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+      "manifestSha256": "8deb5fc70d8e3ccff3aa5cad40ee316c055f9e8e4da49cee7bde1c95c27630f3",
+      "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+    },
+    "changed": [
+      "host/src/moonraker/native-persistent-metadata.js",
+      "host/src/storage/published-files.js"
+    ],
+    "changedSincePriority": [
+      "host/src/storage/published-files.js"
+    ],
+    "nativeBytesReused": true,
+    "dependencyBytesCopiedAndHashEqual": true,
+    "scope": "Normal JS compilation of a private source snapshot: exact announcement9ceb with priority-admission plus authority preparation overlays. Unchanged native and production dependencies reused by byte equality; no fresh install claim. Earlier products preserved."
+  },
+  "behavior": {
+    "contentInodesDurableBeforeNames": true,
+    "contentDirectoryAndPrivateReceiptMayOverlap": true,
+    "bothBarriersDrainedBeforePublicReceiptLink": true,
+    "finalReceiptDirectorySyncBeforeNotification": true,
+    "syncCallsWithPreview": 5,
+    "quotaAdmissionSourceIdentityAndCloseProtectionRetained": true,
+    "persistentFormatUnchanged": true
+  },
+  "controls": {
+    "runs": [
+      {
+        "log": "anyraid-authority-preparation-controls.log",
+        "tests": 63,
+        "passed": 63,
+        "failed": 0,
+        "cancelled": 0,
+        "sha256": "5a9cc0845cb7d705dd60fd5050b847178e98fa4d32068f1d9e8c4e7ae2838566"
+      },
+      {
+        "log": "anyraid-authority-preparation-compiled-controls.log",
+        "tests": 8,
+        "passed": 8,
+        "failed": 0,
+        "cancelled": 0,
+        "sha256": "de82cac58fa4077a4e13ab6b91bc5a184ce745c65e4743cff9400795eb5e8576"
+      },
+      {
+        "log": "anyraid-authority-preparation-affected-controls.log",
+        "tests": 215,
+        "passed": 197,
+        "failed": 16,
+        "cancelled": 2,
+        "sha256": "cbec09041c84c92d4320964a3da0970839c59d27e18f7e29eb5f51f56b57e555"
+      },
+      {
+        "log": "anyraid-authority-preparation-lease-correction-controls.log",
+        "tests": 23,
+        "passed": 23,
+        "failed": 0,
+        "cancelled": 0,
+        "sha256": "19ff6a02e7cf6e3bd2089099507d1810fe09fe7e8fe2eb0a05ce3b554219e2e3"
+      }
+    ],
+    "typecheck": "passed",
+    "firstAffectedRunPassed": false,
+    "sourcePrerequisiteRepair": {
+      "missingBefore": "host/build/file-write-lease",
+      "buildScript": "host/scripts/build-file-write-lease.ts",
+      "helperSha256": "38fe07785a44103e1ef1a69412d6a8a93822df3e2373c702f6f1b92522de7355",
+      "helperBytesEqualSealedProduct": true,
+      "codeOrDeadlineChanged": false,
+      "scope": "Original 215-test affected chain completed at code1: 197 passed,16 failed,2 cancelled. Two already-timed-out fixture IPC children were independently identified and killed so this same chain could finish. After building its absent project prerequisite, only the disk-import file plus one write-lease control ran:23 passed. Not one wholly green affected chain."
+    }
+  },
+  "performance": {
+    "node": "v26.10.0",
+    "plan": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "frozenBudgetSource": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-content-clock-sharp-trial/host/contracts/native-metadata-atomic-heads-acceptance.json",
+        "sha256": "c9e787047be22632d63da4ef6a95fa3fb558e2d3fbc6bac666ced5bcd39c9eca",
+        "modes": {
+          "shared": {
+            "medianMs": 31.324210999999945,
+            "p95Ms": 32.871749600000044
+          },
+          "cold": {
+            "medianMs": 45.426995600000005,
+            "p95Ms": 48.46880359999991
+          },
+          "disk": {
+            "medianMs": 142.44626539999996,
+            "p95Ms": 156.80327720000005
+          },
+          "invalidate": {
+            "medianMs": 280.23895280000005,
+            "p95Ms": 327.13302560000017
+          },
+          "rescan": {
+            "medianMs": 278.0031932,
+            "p95Ms": 333.7013192
+          },
+          "metadata-cold": {
+            "medianMs": 189.69212720000004,
+            "p95Ms": 217.45824920000013
+          },
+          "cached": {
+            "medianMs": 2.185486400000002,
+            "p95Ms": 2.2782116000000316
+          }
+        }
+      },
+      "historicalComparativeBudgets": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-invalidation-priority-performance-summary.json",
+        "sha256": "dbd76a6cf5f2085cf6f9248104b17c1655a481a02d4b6648e17267e0cd5e2659",
+        "modes": {
+          "shared": {
+            "medianMs": 28.334161999999992,
+            "p95Ms": 28.946145199999954
+          },
+          "cold": {
+            "medianMs": 43.46585899999995,
+            "p95Ms": 45.94494799999993
+          },
+          "disk": {
+            "medianMs": 141.51964339999998,
+            "p95Ms": 155.9824351999999
+          },
+          "invalidate": {
+            "medianMs": 200.45100979999984,
+            "p95Ms": 226.52748919999993
+          },
+          "rescan": {
+            "medianMs": 196.99418059999988,
+            "p95Ms": 203.28134480000043
+          },
+          "metadata-cold": {
+            "medianMs": 142.61073920000013,
+            "p95Ms": 154.31962879999992
+          },
+          "cached": {
+            "medianMs": 2.170395800000006,
+            "p95Ms": 2.250010399999951
+          }
+        }
+      },
+      "identities": {
+        "A": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-announcements-bounded-product",
+          "manifestSha256": "3ff6903111920bef5939c8faea0f0da9415cd083cfb7496bdaef33ddd580e7cf",
+          "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+        },
+        "B": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+          "manifestSha256": "8deb5fc70d8e3ccff3aa5cad40ee316c055f9e8e4da49cee7bde1c95c27630f3",
+          "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+        }
+      },
+      "order": [
+        "A1",
+        "B1",
+        "B2",
+        "A2"
+      ],
+      "input": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+      "inputSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+      "modes": [
+        "shared",
+        "cold",
+        "disk",
+        "invalidate",
+        "rescan",
+        "metadata-cold",
+        "cached"
+      ],
+      "warmupsPerPhase": 3,
+      "samplesPerPhase": 16,
+      "budget": {
+        "ratio": 1.2,
+        "absoluteSlackMs": 2
+      },
+      "scripts": {
+        "anyraid-ufp-reuse-storage-perf.mjs": "d5cecd8aba391bb22f8c9969288b94063fdfa8d552a56232256327d26537ce04",
+        "anyraid-disk-ledger-perf-unique.mjs": "c1c6138b93e3a73028b36f55c012a7e96458d524cbf219dc180f135cae808867",
+        "anyraid-metadata-invalidation-perf.mjs": "27494817aa689f8f85b920946ae3e2a28465b95e82bec79edb5edec3b900e3b6"
+      },
+      "scope": "Sequential compiled product ABBA after a new production intervention: priority admission plus overlapping private receipt preparation with content directory synchronization. Both authority barriers drain before public receipt link. Five syncs, durability and original script/assertions/deadlines remain. Require fresh comparative, fixed original and the prior failed-run comparative budgets; no historical failure is erased. Fixed actual model/PNG and durable filesystem assertions. No observer, no TS, no parallel test/build process. Local desktop; original mixed and target-board gates remain separate."
+    },
+    "modes": {
+      "shared": {
+        "a": {
+          "medianMs": 22.85703650000002,
+          "p95Ms": 26.506020000000035
+        },
+        "b": {
+          "medianMs": 23.834453999999994,
+          "p95Ms": 25.378175000000056
+        },
+        "freshBudget": {
+          "medianMs": 29.428443800000025,
+          "p95Ms": 33.80722400000004
+        },
+        "historicalBudget": {
+          "medianMs": 28.334161999999992,
+          "p95Ms": 28.946145199999954
+        },
+        "fixedBudget": {
+          "medianMs": 31.324210999999945,
+          "p95Ms": 32.871749600000044
+        },
+        "allBudgetsPassed": true
+      },
+      "cold": {
+        "a": {
+          "medianMs": 34.40358399999997,
+          "p95Ms": 38.928863999999976
+        },
+        "b": {
+          "medianMs": 34.42716399999995,
+          "p95Ms": 37.801859000000036
+        },
+        "freshBudget": {
+          "medianMs": 43.28430079999996,
+          "p95Ms": 48.71463679999997
+        },
+        "historicalBudget": {
+          "medianMs": 43.46585899999995,
+          "p95Ms": 45.94494799999993
+        },
+        "fixedBudget": {
+          "medianMs": 45.426995600000005,
+          "p95Ms": 48.46880359999991
+        },
+        "allBudgetsPassed": true
+      },
+      "disk": {
+        "a": {
+          "medianMs": 115.662711,
+          "p95Ms": 126.43148800000006
+        },
+        "b": {
+          "medianMs": 117.201502,
+          "p95Ms": 127.63857400000006
+        },
+        "freshBudget": {
+          "medianMs": 140.7952532,
+          "p95Ms": 153.71778560000007
+        },
+        "historicalBudget": {
+          "medianMs": 141.51964339999998,
+          "p95Ms": 155.9824351999999
+        },
+        "fixedBudget": {
+          "medianMs": 142.44626539999996,
+          "p95Ms": 156.80327720000005
+        },
+        "allBudgetsPassed": true
+      },
+      "invalidate": {
+        "a": {
+          "medianMs": 183.7169335000001,
+          "p95Ms": 209.44856299999992
+        },
+        "b": {
+          "medianMs": 163.83039600000006,
+          "p95Ms": 189.7418829999997
+        },
+        "freshBudget": {
+          "medianMs": 222.4603202000001,
+          "p95Ms": 253.3382755999999
+        },
+        "historicalBudget": {
+          "medianMs": 200.45100979999984,
+          "p95Ms": 226.52748919999993
+        },
+        "fixedBudget": {
+          "medianMs": 280.23895280000005,
+          "p95Ms": 327.13302560000017
+        },
+        "allBudgetsPassed": true
+      },
+      "rescan": {
+        "a": {
+          "medianMs": 180.59457199999997,
+          "p95Ms": 191.41870500000005
+        },
+        "b": {
+          "medianMs": 160.04840049999984,
+          "p95Ms": 188.35904400000004
+        },
+        "freshBudget": {
+          "medianMs": 218.71348639999997,
+          "p95Ms": 231.70244600000004
+        },
+        "historicalBudget": {
+          "medianMs": 196.99418059999988,
+          "p95Ms": 203.28134480000043
+        },
+        "fixedBudget": {
+          "medianMs": 278.0031932,
+          "p95Ms": 333.7013192
+        },
+        "allBudgetsPassed": true
+      },
+      "metadata-cold": {
+        "a": {
+          "medianMs": 108.94765150000023,
+          "p95Ms": 128.53059400000006
+        },
+        "b": {
+          "medianMs": 115.56913850000001,
+          "p95Ms": 134.01788699999997
+        },
+        "freshBudget": {
+          "medianMs": 132.7371818000003,
+          "p95Ms": 156.23671280000008
+        },
+        "historicalBudget": {
+          "medianMs": 142.61073920000013,
+          "p95Ms": 154.31962879999992
+        },
+        "fixedBudget": {
+          "medianMs": 189.69212720000004,
+          "p95Ms": 217.45824920000013
+        },
+        "allBudgetsPassed": true
+      },
+      "cached": {
+        "a": {
+          "medianMs": 0.1432320000000118,
+          "p95Ms": 2.9637989999999945
+        },
+        "b": {
+          "medianMs": 0.15273200000001452,
+          "p95Ms": 0.2744339999999852
+        },
+        "freshBudget": {
+          "medianMs": 2.171878400000014,
+          "p95Ms": 5.556558799999993
+        },
+        "historicalBudget": {
+          "medianMs": 2.170395800000006,
+          "p95Ms": 2.250010399999951
+        },
+        "fixedBudget": {
+          "medianMs": 2.185486400000002,
+          "p95Ms": 2.2782116000000316
+        },
+        "allBudgetsPassed": true
+      }
+    },
+    "allSevenPassed": true,
+    "threeBudgetSetsRequired": true,
+    "priorFailedComparisonRetained": true,
+    "speedupClaimed": false,
+    "scope": "New production intervention, one ABBA pair-of-pairs,32 measured samples per arm/mode. Original scripts,input,assertions and90s child deadlines unchanged; prior exact comparative and fixed budgets retained in addition to fresh comparative. Cold medians are nearly equal, so no demonstrated cold speedup or historical environment root cause claimed."
+  },
+  "mixed": {
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "bundleUnchanged": true
+    },
+    "driverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+    "durationMs": 70976.37711,
+    "originalMovements": 1000,
+    "generations": 2,
+    "recursiveDeletes": 16,
+    "rescans": {
+      "operations": 16,
+      "medianMs": 189.2298710000032,
+      "p95Ms": 332.27045499999804,
+      "duringPrintGenerations": [
+        1,
+        2
+      ],
+      "oldUrlsRevoked": true,
+      "originalModelBytesPreserved": true
+    },
+    "diskImports": {
+      "operations": 16,
+      "rawSettlementMs": [
+        426.692411,
+        392.9655380000004,
+        395.68352199999936,
+        344.048542999999,
+        233.97964200000024,
+        244.18316699999923,
+        240.98036499999944,
+        241.159447,
+        628.9527820000003,
+        533.0174390000029,
+        399.7193530000004,
+        376.8340919999973,
+        633.8568360000063,
+        378.8099169999987,
+        403.8384780000051,
+        329.611109999998
+      ],
+      "printingGenerations": [
+        1,
+        2
+      ],
+      "modelAndOriginalPngVerified": true,
+      "originalRemovedAfterPublication": true,
+      "noAutomaticPrinting": true
+    },
+    "queue": {
+      "durableMutations": 64,
+      "printingGenerations": [
+        1,
+        2
+      ]
+    },
+    "firstChangedCandidateRunPassed": true,
+    "scope": "Original unmodified compiled mixed software driver on8deb5fc7, no observer or TS production loading. Not actual machine or G3 acceptance."
+  },
+  "preparationFailure": {
+    "script": "anyraid-authority-preparation-performance-first-preparation.mjs",
+    "log": "anyraid-authority-preparation-performance-run.log",
+    "cause": "Before any workload or plan write, exact JSON budget guard incorrectly used rounded45.944948 rather than stored binary64 value45.94494799999993. Only guard literal corrected; all budgets are still loaded from the same immutable source bytes."
+  },
+  "priorEvidence": {
+    "priority": "native-metadata-invalidation-admission.json",
+    "syncObservation": "native-publication-sync-observation.json",
+    "parentCi": "pr58-be245-terminal.json"
+  },
+  "promotion": {
+    "draftOnly": true,
+    "mergeAllowed": false,
+    "reasons": [
+      "Follow-up source head exact CI not yet run.",
+      "Both PR58 and announcementPR57 normal integration and same-product actual clients remain pending.",
+      "Cycnumbris500,target board,G3 and all Python/macro retirement remain incomplete."
+    ]
+  },
+  "evidence": {
+    "path": "native-publication-authority-preparation.evidence.json.gz",
+    "sha256": "df9e85bfabb460f433a8d80edd1ed0bd43692361c261e0e5bdb2cef667ad706d",
+    "bytes": 1666519,
+    "entries": 104
+  },
+  "scope": "Authority preparation follow-up for the retained metadata-admission candidate. The compiled product composes unmerged announcement9ceb with admission and storage overlays. Five sync calls and public durable receipt order retained; no mathematical algorithm,tolerance,motion C,default entry or hardware action changed."
+}

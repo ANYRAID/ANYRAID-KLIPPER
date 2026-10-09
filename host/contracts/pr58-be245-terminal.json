@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "date": "2026-10-09 13:57:05 UTC",
+  "head": "be245745ac4430342530983aabc9a026175dbc26",
+  "base": "88b6826d521d59029261c2a809c49ab815ee3ab3",
+  "mergeRef": "7a23be23a884c63b2e6dc0093e502cb22d4838f7",
+  "draft": true,
+  "merged": false,
+  "jobs": [
+    {
+      "id": 113847172191,
+      "name": "sanitizer (asan)",
+      "run": 37938683926,
+      "conclusion": "success"
+    },
+    {
+      "id": 113847172515,
+      "name": "sanitizer (ubsan)",
+      "run": 37938683926,
+      "conclusion": "success"
+    },
+    {
+      "id": 113847172826,
+      "name": "checks",
+      "run": 37938683926,
+      "conclusion": "success"
+    },
+    {
+      "id": 113852741775,
+      "name": "host",
+      "run": 37938683926,
+      "conclusion": "success"
+    },
+    {
+      "id": 113847174294,
+      "name": "build",
+      "run": 37938684319,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4410,
+    "pass": 4410,
+    "fail": 0
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4410,
+      "failed": 0,
+      "passed": 4410,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4410,
+      "suites": 0
+    }
+  },
+  "newControls": [
+    "durable deletion invalidation is admitted when four read requests are occupied and runs before queued reads",
+    "four reserved invalidations retain FIFO and deduplicate filenames without consuming read capacity",
+    "close drains accepted invalidations while active and queued reads cancel without leaking admission",
+    "a replenished invalidation lane yields to a queued read after four turns",
+    "a fifth distinct invalidation is bounded and retains the existing recovery fault while accepted work drains",
+    "HTTP deletion at read saturation commits metadata before its file notification and remains usable"
+  ],
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": false,
+    "reason": "None of this PR’s twelve changed paths match the existing motion workflow path filters. No fresh motion, numerical G3 or target-board result claimed."
+  },
+  "evidence": {
+    "path": "pr58-be245-terminal.evidence.json.gz",
+    "sha256": "7139d75ab088fb634e5b3fd734ace46612657e67dbc11abbd7f3741dd98a9611",
+    "bytes": 585096,
+    "entries": 9
+  },
+  "scope": "PR58 be245 synthetic merge into develop88 only. Normal installed/build CI with Node26.11.1, separate from the desktop26.10 priority plus unmerged-announcements compiled composition. The cold comparative P95 gate remains failed; no merge, product default switch or hardware acceptance."
+}

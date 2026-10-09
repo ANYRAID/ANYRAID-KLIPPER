@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "candidateSourceHead": "be245745ac4430342530983aabc9a026175dbc26",
+  "identities": {
+    "baseline": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-announcements-bounded-product",
+      "manifestSha256": "3ff6903111920bef5939c8faea0f0da9415cd083cfb7496bdaef33ddd580e7cf",
+      "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+    },
+    "candidate": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-invalidation-fair-composition-product",
+      "manifestSha256": "5f3013f473adf5c9ecba1abbbc5acc849bbbe5d237020e1456179d203a0acc41",
+      "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+    }
+  },
+  "sourceSha256": "e6157ee5dcb3ba76f498c72795e09355d555306e1c8b953441bc94d798721b74",
+  "inputSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+  "originalBenchmarkSha256": "d5cecd8aba391bb22f8c9969288b94063fdfa8d552a56232256327d26537ce04",
+  "summary": {
+    "baseline": {
+      "samples": 16,
+      "meanElapsedMs": 43.24718806249999,
+      "meanSyncUnionMs": 39.650661499999984,
+      "syncWallShare": 0.9168379096161726,
+      "meanVerifyMs": 1.9203571249999811,
+      "syncCallsPerPublication": 5,
+      "instrumentedMedianMs": 41.02816700000017,
+      "instrumentedP95Ms": 70.29156
+    },
+    "candidate": {
+      "samples": 16,
+      "meanElapsedMs": 36.207898999999976,
+      "meanSyncUnionMs": 33.404832187499935,
+      "syncWallShare": 0.9225841076141965,
+      "meanVerifyMs": 1.5479185625000085,
+      "syncCallsPerPublication": 5,
+      "instrumentedMedianMs": 35.40081400000008,
+      "instrumentedP95Ms": 45.93925999999988
+    }
+  },
+  "evidence": {
+    "path": "native-publication-sync-observation.evidence.json.gz",
+    "sha256": "96cb58e8761b16adb93382a4ab9968d6a0eca79ea54c66b5c1f1cfe96cf0416f",
+    "bytes": 1424280,
+    "entries": 15
+  },
+  "originalColdGatePassed": false,
+  "scope": "Only this instrumented observation pair. Sync durations may overlap (model/preview prepare in parallel), so union wall time is reported separately from per-call duration. Neither relative raw results nor matching syscall counts explain earlier failed P95 samples or authorize promotion; the original cold gate remains failed.",
+  "limits": "Current A/B instrumented observations only. Identical counts and dominant sync wall time do not explain historical failed raw samples. Five file/directory syncs, original assertions and input preserved. No acceptance budget change, no production change, no CI or machine claim."
+}

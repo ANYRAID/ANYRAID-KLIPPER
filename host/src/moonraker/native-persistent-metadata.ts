@@ -16,6 +16,7 @@ import {nativeFilename} from './native-file-path.ts';
 import {extractPublishedMetadata,samePublishedSource} from './native-metadata-source.ts';
 import {ApiError,type Json,type RpcContext} from './rpc.ts';
 import type {ThumbnailDownload} from './thumbnail-download.ts';
+interface MetadataRequest {operation:()=>Promise<unknown>;resolve(value:unknown):void;reject(error:unknown):void;invalidation:boolean;promise:Promise<unknown>;}
 /** Owns the existing durable metadata protocol for the native receipt namespace.
  * All public work is serialized and bounded; cached images remain disk-backed. */
 export class NativePersistentMetadata {
@@ -23,7 +24,8 @@ export class NativePersistentMetadata {
  readonly #keys=new Map<string,PublishedSourceIdentity>();readonly #bundles=new Map<string,string>();
  readonly #invalidations=new Map<string,Promise<void>>();
  readonly #stop=new AbortController();readonly #pending=new Set<Promise<unknown>>();
- #tail:Promise<unknown>=Promise.resolve();#closing:Promise<void>|undefined;#fault:unknown;#scans=0;#recovered=0;
+ readonly #queue:MetadataRequest[]=[];#active=false;#requests=0;#invalidationRequests=0;#invalidationBurst=0;
+ #closing:Promise<void>|undefined;#fault:unknown;#scans=0;#recovered=0;
  readonly #budget:PrintSnapshotBudget;readonly #life:MetadataLifecycle;
  private readonly files:PublishedPrintFiles;
  private readonly root:FileHandle;
@@ -64,19 +66,31 @@ export class NativePersistentMetadata {
    await owner.#life.retireSuperseded(signal);owner.#index();return owner;
   }catch(error){const failed:unknown[]=[error];for(const close of closers.reverse())try{await close();}catch(cleanup){failed.push(cleanup);}if(failed.length>1)throw new AggregateError(failed,'Native metadata startup cleanup failed');throw error;}
  }
- get status(){return {persistent:true,scans:this.#scans,recovered:this.#recovered,imageBytes:this.images.status.cacheBytes,imageBundles:this.images.status.cachedBundles,storedImageBytes:this.images.status.storage.storedBytes,pending:this.#pending.size,closed:this.#stop.signal.aborted,faulted:!!this.#fault,cache:this.#cache.status,snapshots:this.#budget.status};}
+ get status(){return {persistent:true,scans:this.#scans,recovered:this.#recovered,imageBytes:this.images.status.cacheBytes,imageBundles:this.images.status.cachedBundles,storedImageBytes:this.images.status.storage.storedBytes,pending:this.#pending.size,pendingRequests:this.#requests,pendingInvalidations:this.#invalidationRequests,maxPendingRequests:4,maxPendingInvalidations:4,closed:this.#stop.signal.aborted,faulted:!!this.#fault,cache:this.#cache.status,snapshots:this.#budget.status};}
  #index(){this.#bundles.clear();const intents=new Map(this.intents.unresolved().map(i=>[i.id,i]));for(const version of this.versions.entries())if(version.state==='selected'){const intent=intents.get(version.scanId!);if(!intent)throw new Error('Selected metadata has no scan intent');this.#bundles.set(intent.bundleId,version.filename);}}
- #admit<T>(operation:()=>Promise<T>):Promise<T>{
+ #admit<T>(operation:()=>Promise<T>,invalidation=false):Promise<T>{
   if(this.#stop.signal.aborted||this.#fault||this.intents.status.faulted||this.snapshots.status.faulted||this.versions.status.faulted)return Promise.reject(new ApiError(503,'Native metadata requires recovery'));
-  if(this.#pending.size>=4)return Promise.reject(new ApiError(503,'Native metadata queue full'));
-  const task=this.#tail.then(operation);this.#tail=task.catch(()=>{});this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+  // Four mutation slots match the upload owner's maximum capacity. Read/scan
+  // saturation must not reject invalidation after a durable file mutation.
+  if((invalidation?this.#invalidationRequests:this.#requests)>=4)return Promise.reject(new ApiError(503,'Native metadata queue full'));
+  const result=Promise.withResolvers<T>();this.#pending.add(result.promise);if(invalidation)this.#invalidationRequests++;else this.#requests++;
+  this.#queue.push({operation,resolve:value=>result.resolve(value as T),reject:result.reject,invalidation,promise:result.promise});this.#drain();return result.promise;
+ }
+ #drain():void{
+  if(this.#active||!this.#queue.length)return;
+  // An active transaction always finishes. Both lanes retain their own FIFO.
+  // After four invalidations, one queued read/scan must get a turn.
+  const urgent=this.#queue.findIndex(request=>request.invalidation),read=this.#queue.findIndex(request=>!request.invalidation);
+  const index=urgent>=0&&(this.#invalidationBurst<4||read<0)?urgent:read,request=this.#queue.splice(index,1)[0];this.#active=true;if(request.invalidation)this.#invalidationBurst=Math.min(4,this.#invalidationBurst+1);else this.#invalidationBurst=0;
+  const finish=()=>{this.#pending.delete(request.promise);this.#active=false;if(request.invalidation)this.#invalidationRequests--;else this.#requests--;this.#drain();};
+  Promise.resolve().then(request.operation).then(value=>{finish();request.resolve(value);},error=>{finish();request.reject(error);});
  }
  peek(filename:string,file:PublishedPrintFile,modified:number):Readonly<Record<string,Json>>|undefined{const value=this.#cache.peek(filename);return value?.sha256===file.sha256&&value?.name===file.name&&value?.modified===modified?value:undefined;}
  #drop(filename:string){this.#cache.invalidate(filename);this.#keys.delete(filename);}
  invalidate(filename:string):Promise<void>{
   this.#drop(filename);for(const [bundle,owner] of this.#bundles)if(owner===filename)this.#bundles.delete(bundle);
   const existing=this.#invalidations.get(filename);if(existing)return existing;
-  const task=this.#admit(async()=>{if(this.versions.current(filename)?.state!=='invalidated'&&(this.versions.current(filename)||this.intents.unresolved().some(intent=>intent.filename===filename)))await this.#life.invalidate(filename,new AbortController().signal);await this.#life.retireSuperseded(new AbortController().signal,filename);this.#index();}).catch(error=>{this.#fault=error;throw error;}).finally(()=>this.#invalidations.delete(filename));
+  const task=this.#admit(async()=>{if(this.versions.current(filename)?.state!=='invalidated'&&(this.versions.current(filename)||this.intents.unresolved().some(intent=>intent.filename===filename)))await this.#life.invalidate(filename,new AbortController().signal);await this.#life.retireSuperseded(new AbortController().signal,filename);this.#index();},true).catch(error=>{this.#fault=error;throw error;}).finally(()=>this.#invalidations.delete(filename));
   this.#invalidations.set(filename,task);return task;
  }
  #room(){while(this.#keys.size&&(this.#keys.size>=128||this.#cache.status.bytes>this.#cache.status.maxBytes-this.#cache.status.maxRecordBytes-256)){this.#drop(this.#keys.keys().next().value!);}}
