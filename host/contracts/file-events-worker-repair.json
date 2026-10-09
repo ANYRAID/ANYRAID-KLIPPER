@@ -18,7 +18,24 @@
     },
     "isolatedReporter": "File-level pass only; direct no-isolation TAP report preserves all eight actual cases."
   },
-  "candidateCi": "pending after source repair; historical failure is retained",
+  "candidateCi": {
+    "stateAtRepairCommit": "pending after source repair; historical failure is retained",
+    "head": "6ce675a026a6357a92cab005b3cf4f0a5faeb651",
+    "runtime": "26.11.1",
+    "report": "pr60-6ce-terminal.json",
+    "allFiveChecksSuccess": true,
+    "ordinaryTestsPassed": 4437,
+    "workerTerminationCasePassed": true
+  },
+  "developCi": {
+    "head": "3fcc9c631121e3e7b178f2412b664e9563480988",
+    "runtime": "26.11.1",
+    "report": "develop-3fcc-terminal.json",
+    "allFiveChecksSuccess": true,
+    "ordinaryTestsPassed": 4437,
+    "workerTerminationCasePassed": true,
+    "independentRawLogVerification": true
+  },
   "evidence": {
     "path": "file-events-worker-repair.evidence.json.gz",
     "sha256": "21cd7b9924ae7bc724c0fc214d056991e911670d8eae3ff2aa008f1440c4e4c7",
