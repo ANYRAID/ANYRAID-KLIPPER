@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "head": "a95aa70e7d614a70bf8d1ba64b9254cdd5d048ed",
+  "base": "e312c17234a5a5db8f2981fc3827661b04187714",
+  "mergeRef": "ae60bc01ef4682523d77219983462fbd213c451f",
+  "hostRun": 37967473636,
+  "jobs": [
+    {
+      "id": 113945329685,
+      "name": "checks",
+      "run": 37967473636,
+      "conclusion": "failure"
+    },
+    {
+      "id": 113945329996,
+      "name": "sanitizer (asan)",
+      "run": 37967473636,
+      "conclusion": "success"
+    },
+    {
+      "id": 113945330123,
+      "name": "sanitizer (ubsan)",
+      "run": 37967473636,
+      "conclusion": "success"
+    },
+    {
+      "id": 113950320622,
+      "name": "host",
+      "run": 37967473636,
+      "conclusion": "failure"
+    },
+    {
+      "id": 113945330929,
+      "name": "build",
+      "run": 37967473829,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": false,
+  "ordinary": {
+    "tests": 4437,
+    "pass": 4436,
+    "fail": 1
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": false,
+    "counts": {
+      "tests": 4437,
+      "failed": 1,
+      "passed": 4436,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4437,
+      "suites": 0
+    }
+  },
+  "protocol": "skipped",
+  "linuxMcu": "skipped",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": false,
+    "reason": "Changed paths are outside the unchanged motion workflow filter; prior develop e312 motion evidence retains its original scope and does not count as a current-head run."
+  },
+  "evidence": {
+    "path": "pr60-a95-terminal.evidence.json.gz",
+    "sha256": "0dca80d8475d6d901a8918017dad6b39c65924584ba248ade5074fa63259b346",
+    "bytes": 584390,
+    "entries": 7
+  },
+  "scope": "候选 a95 原完整检查终态；保留 FileHandle 失败及跳过的协议和 Linux MCU，不构成通过。"
+}

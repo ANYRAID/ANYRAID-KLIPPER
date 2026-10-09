@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "failure": {
+    "report": "pr60-a95-terminal.json",
+    "runtime": "26.11.1",
+    "cause": "Test-owned FileHandle was not explicitly closed; garbage collection emitted ERR_INVALID_STATE.",
+    "productionChange": false
+  },
+  "repair": "Close the borrowed directory FileHandle after adding the watch; prove the native watch still delivers an event and worker termination releases its inotify descriptor.",
+  "local": {
+    "runtime": "26.10.0",
+    "typecheck": "passed",
+    "directTest": {
+      "tests": 8,
+      "pass": 8,
+      "fail": 0
+    },
+    "isolatedReporter": "File-level pass only; direct no-isolation TAP report preserves all eight actual cases."
+  },
+  "candidateCi": "pending after source repair; historical failure is retained",
+  "evidence": {
+    "path": "file-events-worker-repair.evidence.json.gz",
+    "sha256": "21cd7b9924ae7bc724c0fc214d056991e911670d8eae3ff2aa008f1440c4e4c7",
+    "bytes": 1035,
+    "entries": 4
+  }
+}

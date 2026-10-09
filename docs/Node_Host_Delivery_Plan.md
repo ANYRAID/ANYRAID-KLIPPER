@@ -1,5 +1,15 @@
 # Klipper 与 Moonraker 集成交付计划
 
+同包页面及夹具 PR #60 的首个候选 `a95aa70e` 未通过完整 CI：
+普通 4437 项中 4436 通过，Worker 终止测试遗漏显式关闭目录
+FileHandle，Node.js 26.11.1 报垃圾回收错误。324 条 sanitizer 命令与
+固件通过；协议及 Linux MCU 被跳过，不计通过。原始终态见
+[候选失败证据](../host/contracts/pr60-a95-terminal.json)。测试修复明确
+关闭借用句柄，并验证原生监听仍能接收事件、Worker 终止释放内核
+描述符；本机 Node.js 26.10.0 的 8 项定向测试及类型检查通过，见
+[修复证据](../host/contracts/file-events-worker-repair.json)。修复后的
+完整 CI 和合并后验证仍待完成，产品源码与性能基线不变。
+
 审计日期：2026-10-10；当前 develop：
 `e312c17234a5a5db8f2981fc3827661b04187714`（#59 有限捕获设施与此前集成证据已正常合入）。
 当前实际合并后的全部 15 项检查已独立核验成功，原始日志见
