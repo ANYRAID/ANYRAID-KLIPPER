@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "head": "88b6826d521d59029261c2a809c49ab815ee3ab3",
+  "base": null,
+  "mergeRef": null,
+  "hostRun": 37921642007,
+  "jobs": [
+    {
+      "id": 113790715119,
+      "name": "checks",
+      "run": 37921642007,
+      "conclusion": "success"
+    },
+    {
+      "id": 113790715284,
+      "name": "sanitizer (asan)",
+      "run": 37921642007,
+      "conclusion": "success"
+    },
+    {
+      "id": 113790715370,
+      "name": "sanitizer (ubsan)",
+      "run": 37921642007,
+      "conclusion": "success"
+    },
+    {
+      "id": 113795150419,
+      "name": "host",
+      "run": 37921642007,
+      "conclusion": "success"
+    },
+    {
+      "id": 113790715625,
+      "name": "build",
+      "run": 37921642096,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4404,
+    "pass": 4404,
+    "fail": 0
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4404,
+      "failed": 0,
+      "passed": 4404,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4404,
+      "suites": 0
+    }
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": false,
+    "reason": "Changed paths are outside the unchanged motion workflow filter; prior develop 1f0 motion evidence retains its original scope and does not count as a current-head run."
+  },
+  "evidence": {
+    "path": "develop88-build-terminal.evidence.json.gz",
+    "sha256": "0c602c06521211c74ef9b3f65438844710e4822b1d45f87444848576d2cabc91",
+    "bytes": 580925,
+    "entries": 7
+  },
+  "scope": "实际 develop 合并头的独立主机和固件终态；不替代客户端、目标板、G3 或完整交付。"
+}
