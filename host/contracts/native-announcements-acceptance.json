@@ -1,0 +1,191 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "base": "88b6826d521d59029261c2a809c49ab815ee3ab3",
+  "scope": "Native announcements candidate; draft, not integrated or released. Complete ordinary and mixed printing gates remain open.",
+  "source": {
+    "host/src/moonraker/announcements.ts": "19770c86e6d61b8ec6617ce47af52c2885dd21fefecb86845a697add9fdedab8",
+    "host/src/moonraker/announcements-rss.ts": "d814f5877878e0d3f86dbe06a9d485f9c809e6ade48fadc4c2443c8ebc03dd52",
+    "host/src/moonraker/announcements-parse-worker.ts": "ea3bb0c733a5be361af02cf314b8d199128133b949cb6af8e39e62d256b01023",
+    "host/src/moonraker/configured-server.ts": "659f06da0bc2c22a15371b2b3bf1c3b017533dcfe683814c95bdee93a87538ac",
+    "host/test/announcements.test.ts": "ca7fb549e840aa6870085d96a7799da7daab83412f81ba6ba4205a9174febe7c",
+    "host/test/announcements-network.test.ts": "b1e008fb6e428482591604eddd59f9cd435fcb2f27f84495aa248d998b1a96d3",
+    "host/bench/announcements.mjs": "bd89dcf402dec2fc503efd7a68af96e1e5d118fce3e516fd1a6cad65c72a667e",
+    "host/package.json": "54a9fa5d1a53627fa4d5e8c25cd61fcbe1bb90066f552825971d17a9f42083b2",
+    "host/package-lock.json": "0e48d6b498257b096ba262ca837764c6261aa0daa770cb1d65feb466dd8fd3e2"
+  },
+  "upstream": {
+    "repository": "Arksine/moonraker",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "path": "moonraker/components/announcements.py",
+    "gitBlob": "2618075587b494dc8e8928d29e64a473b6750703",
+    "contentSha256": "0a2dab4ab7e802101af9626b4949ad55b367c5c1e65eba53af3dc0091e93ff35"
+  },
+  "client": {
+    "version": "Fluidd 1.37.6",
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-fixed-frontends/fluidd-1.37.6/assets/socketActions-BJ1uuZOs.js",
+    "sha256": "7b3e244a1ab5209968cb63f5ba34663e938c97bcb1db42884738e2bba406b3b3",
+    "bytes": 111608,
+    "calls": [
+      {
+        "call": "server.announcements.list",
+        "offset": 108652,
+        "context": "wait:`${Q.onFileSystem}/${e}/`,...n,params:{path:e,force:t}})},serverAnnouncementsList(e){return $(`server.announcements.list`,{dispatch:`announcements/onAnnouncementsList`,...e})},serverAnnouncementsDismiss(e,t,n){return $(`server.announcements.dismiss`,{...n,params:{entry_id:e,wake_time:t}})},serverLogsRollover(e,t){"
+      },
+      {
+        "call": "server.announcements.dismiss",
+        "offset": 108777,
+        "context": "`,{dispatch:`announcements/onAnnouncementsList`,...e})},serverAnnouncementsDismiss(e,t,n){return $(`server.announcements.dismiss`,{...n,params:{entry_id:e,wake_time:t}})},serverLogsRollover(e,t){return $(`server.logs.rollover`,{dispatch:`server/onLogsRollOver`,...t,params:{application:e}})},serverWebcamsList(e){return "
+      }
+    ],
+    "scope": "Static actual release asset; no new browser scene or UI completion claim."
+  },
+  "controls": {
+    "latestDistinctAnnouncements": 14,
+    "latestRuns": [
+      {
+        "log": "anyraid-announcements-capacity-namespace-controls.log",
+        "tests": 14,
+        "passed": 13,
+        "failed": 1,
+        "reason": "Null catalogue fixture used insert(null), which does not persist a top-level null."
+      },
+      {
+        "log": "anyraid-announcements-null-fixture-correction.log",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "change": "Fixture uses insertBatch and verifies key membership; no runtime change."
+      }
+    ],
+    "singleFinalFourteenPassChain": false,
+    "existingConfiguredAndAuthPassed": 17,
+    "webcamsPassed": 4,
+    "typecheck": "anyraid-announcements-final-typecheck.log",
+    "whitespace": "anyraid-announcements-whitespace.log",
+    "capacityRace": {
+      "before": [
+        31,
+        32,
+        33
+      ],
+      "maximum": 32,
+      "fix": "Reject new trusted registration while a mutation is pending; recheck configured/stored union before durable commit."
+    }
+  },
+  "performance": {
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-announcements-bounded-product",
+      "manifestSha256": "3ff6903111920bef5939c8faea0f0da9415cd083cfb7496bdaef33ddd580e7cf",
+      "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+    },
+    "catalogueBytes": 507354,
+    "a": {
+      "samples": 3200,
+      "medianMs": 0.4153160000000753,
+      "p95Ms": 0.44574599999998554,
+      "maxMs": 0.6582789999999932
+    },
+    "b": {
+      "samples": 3200,
+      "medianMs": 0.41867600000000493,
+      "p95Ms": 0.4765259999999216,
+      "maxMs": 0.9962229999998726
+    },
+    "loop": {
+      "phases": [
+        {
+          "label": "A1",
+          "p99Ms": 1.399807,
+          "maxMs": 1.574911
+        },
+        {
+          "label": "B1",
+          "p99Ms": 3.833855,
+          "maxMs": 4.304895
+        },
+        {
+          "label": "B2",
+          "p99Ms": 3.643391,
+          "maxMs": 4.554751
+        },
+        {
+          "label": "A2",
+          "p99Ms": 1.353727,
+          "maxMs": 1.541119
+        }
+      ],
+      "p99Ms": 3.833855,
+      "maxMs": 4.554751
+    },
+    "budget": {
+      "cachedMedianMs": 2,
+      "cachedP95Ms": 5,
+      "busyRelative": "A*1.2+2ms",
+      "eventLoopP99Ms": 10,
+      "eventLoopMaxMs": 50,
+      "updateMs": 3000,
+      "outerDeadlineSeconds": 60
+    },
+    "allPassed": true,
+    "nativeArtifacts": "Final product explicitly reuses the unchanged eleven native binaries from the first product. Dependencies are an independent copy with matching canonical digest.",
+    "initialFailure": "First run reused disabled event-loop histograms and exceeded max budget. Independent histogram-only control captured the disabled gap. Fresh histogram per phase only; original budgets retained; first and corrected raw results archived.",
+    "scope": "Desktop Node 26.10.0, compiled JS and private database. Not target-board or whole-printing acceptance."
+  },
+  "ordinary": {
+    "code": 1,
+    "tests": 4404,
+    "passed": 4396,
+    "failed": 8,
+    "sourceScope": "One full attempt before final capacity/XML fixes. Captured source unchanged at terminal; not final-source validation.",
+    "failures": [
+      "motion-profile.test.ts SIGSEGV",
+      "native-ufp-descriptor-import.test.ts process exit 1",
+      "print-layer-pause-compiled",
+      "product-build reproducibility",
+      "product-build compiled CLI",
+      "product-client-gateway-compiled",
+      "sd-flash-build",
+      "source-brake.test.ts SIGSEGV"
+    ],
+    "compilerFaultRecords": 4,
+    "commonCause": "unproven",
+    "originalLogSha256": "4ad4acdbf8bb233379c1084e44dfc41f47c75dc1928cc4d363d8e72404118ca5"
+  },
+  "mixed": {
+    "candidate": {
+      "manifestSha256": "31e45e673076d9cc1cf9444263f6945f20efa66380103b19a524a550ad027405",
+      "code": 1,
+      "firstFailure": "Generation 2 recursive cleanup expected printing, actual completed"
+    },
+    "contemporaneousBaseline": {
+      "manifestSha256": "9127984d9e10530023c6c02827202b62ad951c5e768161b459d29b013fabce45",
+      "code": 1,
+      "firstFailure": "Generation 2 recursive cleanup expected printing, actual finishing",
+      "secondaryCleanupFailure": "Undici ReadableStream already closed"
+    },
+    "driverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+    "outerDeadlineSeconds": 90,
+    "originalAssertionsRetained": true,
+    "latestBoundedProductRun": false,
+    "gate": "open",
+    "inference": "Same assertion in both runs does not establish a common cause or absence of regression."
+  },
+  "unresolved": [
+    "Own remote CI",
+    "Complete mixed printing",
+    "Same-package actual Fluidd and Mainsail journey",
+    "Target-board performance and Cycnumbris 500 hardware",
+    "G3 precision",
+    "Complete Moonraker and Python/macro retirement"
+  ],
+  "mergeReady": false,
+  "evidence": {
+    "file": "native-announcements-acceptance.evidence.json.gz",
+    "sha256": "cbf3eb70ac8091789983bc5042fa66445ea973783e5ce2101511fab1dedaeb5a",
+    "uncompressedSha256": "0b598f02510917ce4e6d1ea5b86da83a724897e67c67a216a3816fce51364509",
+    "entries": 65,
+    "uncompressedBytes": 2448042,
+    "compressedBytes": 557938
+  }
+}

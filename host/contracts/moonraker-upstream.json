@@ -16,7 +16,8 @@
     {
       "name": "announcements",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/contracts/native-announcements-acceptance.json binds five REST/RPC routes, private durable catalogue with pinned legacy import, cached entries, bounded fixed-origin RSS Worker, feeds and dismissal/wake notifications. Fourteen distinct latest announcement controls pass across two results; compiled desktop performance passes original budgets. Full ordinary and original mixed printing failures remain preserved and unclosed; own remote CI, full client journey, target-board and integration gates remain pending. Partial candidate, not integrated or complete Moonraker."
     },
     {
       "name": "application",
@@ -243,56 +244,64 @@
       "line": 64,
       "method": "register_endpoint",
       "targetExpression": "\"/server/announcements/list\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/test/announcements.test.ts; host/test/announcements-network.test.ts"
     },
     {
       "file": "moonraker/components/announcements.py",
       "line": 68,
       "method": "register_endpoint",
       "targetExpression": "\"/server/announcements/dismiss\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/test/announcements.test.ts; host/test/announcements-network.test.ts"
     },
     {
       "file": "moonraker/components/announcements.py",
       "line": 72,
       "method": "register_endpoint",
       "targetExpression": "\"/server/announcements/update\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/test/announcements.test.ts; host/test/announcements-network.test.ts"
     },
     {
       "file": "moonraker/components/announcements.py",
       "line": 76,
       "method": "register_endpoint",
       "targetExpression": "\"/server/announcements/feed\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/test/announcements.test.ts; host/test/announcements-network.test.ts"
     },
     {
       "file": "moonraker/components/announcements.py",
       "line": 80,
       "method": "register_endpoint",
       "targetExpression": "\"/server/announcements/feeds\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/test/announcements.test.ts; host/test/announcements-network.test.ts"
     },
     {
       "file": "moonraker/components/announcements.py",
       "line": 84,
       "method": "register_notification",
       "targetExpression": "\"announcements:dismissed\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/test/announcements.test.ts; host/test/announcements-network.test.ts"
     },
     {
       "file": "moonraker/components/announcements.py",
       "line": 87,
       "method": "register_notification",
       "targetExpression": "\"announcements:entries_updated\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/test/announcements.test.ts; host/test/announcements-network.test.ts"
     },
     {
       "file": "moonraker/components/announcements.py",
       "line": 90,
       "method": "register_notification",
       "targetExpression": "\"announcements:dismiss_wake\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/test/announcements.test.ts; host/test/announcements-network.test.ts"
     },
     {
       "file": "moonraker/components/application.py",

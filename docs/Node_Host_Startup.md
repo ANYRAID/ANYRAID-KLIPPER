@@ -72,7 +72,8 @@ Node 26.10.0 的同版本对照。实际合并后全部 15 项检查亦已独立
 
 构建所有者在原编译命令启动前读取入口、包装器、解析器、包元信息、
 当前平台原生编译器候选、所选配置、host 基础配置和锁文件的 SHA-256。
-每个摘要文件限 64 MiB，摘要流读取期限 2 秒，不能读取时记录有限错误码，仍执行
+包元信息限 64 KiB，其他摘要文件限 64 MiB；非阻塞打开后只读取普通文件，
+摘要流读取期限 2 秒。物理包目录发现不隐式解析 exports，不能读取时记录有限错误码，仍执行
 原编译。只有失败时追加 `productCompilerFailure` JSON，记录包装器
 进程的 status、signal 和 spawn 错误码；原失败前缀、编译输出、60 秒
 期限、4 MiB 输出限制和清理逻辑保留，不增加重试或编译选项。
@@ -87,6 +88,11 @@ TypeScript 7 平台包布局，缺失或不兼容时明确记录 unavailable，�
 故障已记录启动前候选摘要及原包装器 status 2／signal null。桌面摘要
 开销 P95 24.00 ms，新编译清单与原 B 包完全一致。全部原日志及限制见
 [编译观测验收](../host/contracts/product-compiler-observation-acceptance.json)。
+随后修复包元信息 FIFO 的无界读取；六项控制通过，桌面摘要 P95 为
+28.70 ms，仍低于原 250 ms 预算。单次本机完整尝试中断，不计通过；
+PR #56 最终头和实际合并头的远程普通 4404／4404 及适用检查成功，见
+[有界读取证据](../host/contracts/product-compiler-metadata-bounds.json)和
+[合并头终态](../host/contracts/develop88-build-terminal.json)。
 
 ## 数据库本机验证与历史参考
 
@@ -3371,3 +3377,64 @@ selected／pending 状态、源绑定校验、缓存撤销及故障恢复边界�
 完整客户端、目标板预算及 G3 未通过。候选默认关闭，不能视作已发布。
 旧程序不支持新 PNG 状态及领取账本，降级须恢复升级前一致的文件／
 元数据／作业副本，不能直接打开新状态或删除字段降级。
+
+## 原生公告候选
+
+标准 ConfiguredMoonraker 在拥有数据库时装配公告组件；无需打印机就绪。
+固定 Fluidd 1.37.6 实际调用 `server.announcements.list` 和
+`server.announcements.dismiss`，该候选补齐五组标准 REST／RPC 接口：
+
+| HTTP 路径 | 方法 | RPC 名称 |
+| --- | --- | --- |
+| /server/announcements/list | GET | server.announcements.list |
+| /server/announcements/dismiss | POST | server.announcements.dismiss |
+| /server/announcements/update | POST | server.announcements.update |
+| /server/announcements/feed | POST／DELETE | server.announcements.post_feed／delete_feed |
+| /server/announcements/feeds | GET | server.announcements.feeds |
+
+它沿用进程数据库、HTTP／WebSocket 鉴权和授权通知分发，独立于设备代际。
+列表默认包含已忽略条目，可传 `include_dismissed=false`；条目按时间倒序。
+忽略请求使用 `entry_id` 和可选整数秒数 `wake_time`，再次忽略为无操作。
+恢复时间持久化；重启时按固定上游规则立即恢复距唤醒不足十秒的条目。
+为限制异常长期计时，单次绝对秒数最多一年，非整数或超限明确拒绝。
+通知为 `notify_announcement_update`、`notify_announcement_dismissed` 和
+`notify_announcement_wake`；仅耐久提交后发布。关闭停止后台工作并等待
+已进入数据库的写入，不能把客户端断开当作写入失败。
+
+`[announcements]` 的 `enable_moonlight` 默认 true，默认订阅
+moonraker、klipper，`subscriptions` 为逗号分隔的附加名称。
+监听成功后开始后台更新，周期三十分钟；网络失败不阻塞就绪、打印或缓存读取。
+订阅名称限 64 位 ASCII 字母／数字／下划线／连字符，首位为字母或数字。
+请求不能提供 URL：只访问固定官方 Moonlight HTTPS 源，拒绝重定向。
+GET 最多五次，间隔 500 ms，单订阅总网络期限十秒；ETag 仅在成功解析和
+持久提交后更新。已存在 GUID 保留原内容和忽略状态；过期条目仅在所属订阅内修剪，
+避免不同源的相同前缀互相删除。错误 XML／DTD／容量超限保留旧缓存。
+
+XML 解析在有两秒期限和内存限制的 Worker 中完成。RSS 限 1 MiB，
+最多 256 条目、32 个订阅和 512 KiB 持久目录，变更等待队列限 16 项。
+受信任组件的新源注册在变更进行中返回 409，提交前再次核对配置与持久订阅
+的联合容量；不能让并发注册绕过上限。XML 命名空间和空字段按固定上游语义区分。
+高频查询只读缓存、返回隔离副本，不访问网络或 SQLite。
+新版本以私有 `native_announcements` 原子目录保存条目、订阅和版本。
+首次启动校验并导入固定上游的 `announcements` 和
+`moonraker.announcements` 记录；原记录完整保留，之后不再作为运行所有者。
+无效记录使启动失败，不静默丢弃或重置。公共数据库接口不能修改这两个公告目录；
+降级应使用迁移前完整备份，不能让两个实现同时写入同一数据库。
+
+`dev_mode=true` 需要受信任装配显式提供绝对
+`announcements.developmentDirectory`，读取该目录的 `<feed>.xml`。
+拒绝符号链接、非普通文件和读取中变化；没有明确目录时启动拒绝，
+不能由请求参数推导开发目录。生产依赖锁定 saxes 6.0.0／xmlchars 2.2.0，
+许可证随编译包保存。公告描述沿用上游文本／HTML 数据，组件不执行 HTML；
+显示端负责内容渲染与净化；该候选的软件检查不替代实际客户端验收。
+
+候选的[封存证据](../host/contracts/native-announcements-acceptance.json)绑定
+源码、固定上游与实际 Fluidd 资源。最新公告控制在两个结果中覆盖 14 个
+不同用例（13 项通过及修正空值夹具后的单项通过），不记为一次完整 14 项通过。
+最新编译包在约 500 KiB 目录下的后台更新并发查询 P95 为 0.477 ms，
+事件循环最大延迟 4.55 ms，通过原有限桌面预算。首轮直方图测量失败和
+独立控制均保留；仅修正停启期间的直方图生命周期，未改变预算。
+修正前源码的完整普通测试为 4396／4404，另有 8 项失败；首版候选与
+同期旧基线均在第二代打印清理重叠断言失败，未证明共同根因或无回归。
+最新容量／XML 修正包的完整混合负载尚未执行，门禁仍未关闭，不能合并。
+实际同包客户端、目标板和 G3 仍待验，不构成完整 Moonraker 或发布完成。
