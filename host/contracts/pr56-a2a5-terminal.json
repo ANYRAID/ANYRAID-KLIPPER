@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "head": "a2a5e673e76a7f8e13923ef91f9700ef95c5cd46",
+  "base": "1f0e11f1bf416ef40abbfcbed54335a3915ddd76",
+  "mergeRef": "d202985f1243485a6b24cebf2f60356ebc380c19",
+  "hostRun": 37900401418,
+  "jobs": [
+    {
+      "id": 113721347196,
+      "name": "sanitizer (asan)",
+      "run": 37900401418,
+      "conclusion": "success"
+    },
+    {
+      "id": 113721347481,
+      "name": "checks",
+      "run": 37900401418,
+      "conclusion": "success"
+    },
+    {
+      "id": 113721347491,
+      "name": "sanitizer (ubsan)",
+      "run": 37900401418,
+      "conclusion": "success"
+    },
+    {
+      "id": 113725371875,
+      "name": "host",
+      "run": 37900401418,
+      "conclusion": "success"
+    },
+    {
+      "id": 113721346797,
+      "name": "build",
+      "run": 37900401273,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4404,
+    "pass": 4404,
+    "fail": 0
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4404,
+      "failed": 0,
+      "passed": 4404,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4404,
+      "suites": 0
+    }
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": false,
+    "reason": "Changed paths are outside the unchanged motion workflow filter; prior develop 1f0 motion evidence retains its original scope and does not count as a current-head run."
+  },
+  "evidence": {
+    "path": "pr56-a2a5-terminal.evidence.json.gz",
+    "sha256": "be8106c3b29e930209015568c004ccf80616c7e55783d1477788edc8529744a1",
+    "bytes": 584859,
+    "entries": 7
+  },
+  "scope": "Exact PR 56 corrected head and merge-ref terminal; all applicable original jobs. Local interrupted attempt and prior failures retained, no motion rerun, target-board or printing acceptance implied.",
+  "actualMerge": {
+    "sha": "88b6826d521d59029261c2a809c49ab815ee3ab3",
+    "parents": [
+      "1f0e11f1bf416ef40abbfcbed54335a3915ddd76",
+      "a2a5e673e76a7f8e13923ef91f9700ef95c5cd46"
+    ],
+    "tree": "b94f66dc749fade1d3912968ed8313fe08f6ff42",
+    "treeEqualsHead": true,
+    "mergedAt": "2026-10-09T11:05:55Z",
+    "integration": {
+      "hostRun": 37921642007,
+      "firmwareRun": 37921642096,
+      "status": "in_progress",
+      "allSuccess": null
+    }
+  }
+}
