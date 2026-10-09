@@ -1,0 +1,491 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "branchBase": "88b6826d521d59029261c2a809c49ab815ee3ab3",
+  "sourceSha256": "d1e37a9181cd1c841841b6759af1fed340bdb09375d72af91450e6d5ccf51cb2",
+  "testSourceSha256": "5daec13d85758389c75cee4f3395cd01e4a44b598da7074575933f651b385b11",
+  "baselineSourceIdenticalAcrossDevelopAndAnnouncement": true,
+  "build": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "sourceBase": "9ceb7ddaea907070f5aaeda676c5422938f09548",
+    "overlaySourceSha256": "d1e37a9181cd1c841841b6759af1fed340bdb09375d72af91450e6d5ccf51cb2",
+    "baseline": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-announcements-bounded-product",
+      "manifestSha256": "3ff6903111920bef5939c8faea0f0da9415cd083cfb7496bdaef33ddd580e7cf",
+      "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+    },
+    "candidate": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-invalidation-fair-composition-product",
+      "manifestSha256": "5f3013f473adf5c9ecba1abbbc5acc849bbbe5d237020e1456179d203a0acc41",
+      "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+    },
+    "changed": [
+      "host/src/moonraker/native-persistent-metadata.js"
+    ],
+    "nativeBytesReused": true,
+    "dependencyBytesCopiedAndHashEqual": true,
+    "scope": "Normal product JS compiler on a private exact-source snapshot plus one priority-admission module. Existing unchanged native bytes and separately copied production dependencies are explicit reuse, not fresh native build/install."
+  },
+  "behavior": {
+    "ordinaryCapacity": 4,
+    "reservedInvalidations": 4,
+    "maxTotalPending": 8,
+    "activeTransactions": 1,
+    "invalidationBurstBeforeReadTurn": 4,
+    "sameFilenameDeduplicated": true,
+    "durableRetirementOrderUnchanged": true
+  },
+  "controls": {
+    "runs": [
+      {
+        "log": "anyraid-invalidation-priority-affected-controls.log",
+        "passed": 70,
+        "failed": 0,
+        "sha256": "b886722000931c3f5e186a96b1403669c9949785cfa39ca7b301fef859230b65"
+      },
+      {
+        "log": "anyraid-invalidation-priority-public-controls.log",
+        "passed": 1,
+        "failed": 1,
+        "sha256": "a4c90dd327386de5d02326de3f3a412fbb9569ad5d773dd79e152cdfb91daad9"
+      },
+      {
+        "log": "anyraid-invalidation-priority-public-control-correction.log",
+        "passed": 1,
+        "failed": 0,
+        "sha256": "cf3638b04bf588980e9748bbc52199188a98aa6f89d2e087eb0523304323b557"
+      }
+    ],
+    "distinctAffectedTests": 72,
+    "scope": "70 passed before the two supplementary public controls. Supplementary controls first had one pass and one REST envelope fixture failure; only the corrected HTTP test was rerun and passed. Not one 72-test chain.",
+    "typecheck": "passed after the test union guard and REST envelope correction",
+    "earlierTypecheckFailure": "anyraid-invalidation-priority-public-typecheck.log",
+    "fixtureFailureSource": "anyraid-invalidation-public-control-first-source.ts"
+  },
+  "compiledSaturation": {
+    "baseline": {
+      "httpStatus": 503,
+      "fileAlreadyDeleted": true,
+      "metadataFaulted": true,
+      "persistedVersion": "selected"
+    },
+    "candidate": {
+      "httpStatus": 200,
+      "fileAlreadyDeleted": true,
+      "metadataFaulted": false,
+      "persistedVersion": "invalidated"
+    },
+    "scope": "One bounded functional HTTP saturation control per compiled arm. A public acquireBinary test gate holds the active read; this synthetic gate checks admission and durable outcome only, and is not a performance measurement, original mixed or frontend acceptance."
+  },
+  "queuedScanObservation": {
+    "comparison": {
+      "file": {
+        "a": [
+          {
+            "phase": "A1",
+            "durationMs": 398.0959270000001,
+            "backgroundCompletedAtDelete": 3
+          },
+          {
+            "phase": "A2",
+            "durationMs": 447.25668700000006,
+            "backgroundCompletedAtDelete": 3
+          }
+        ],
+        "b": [
+          {
+            "phase": "B1",
+            "durationMs": 149.83370999999988,
+            "backgroundCompletedAtDelete": 1
+          },
+          {
+            "phase": "B2",
+            "durationMs": 117.90776299999925,
+            "backgroundCompletedAtDelete": 1
+          }
+        ],
+        "aMeanMs": 422.67630700000007,
+        "bMeanMs": 133.87073649999957,
+        "scope": "Two observations per arm, diagnostic only; not a tail-latency distribution or gate replacement."
+      },
+      "directory": {
+        "a": [
+          {
+            "phase": "A1",
+            "durationMs": 417.67981499999996,
+            "backgroundCompletedAtDelete": 3
+          },
+          {
+            "phase": "A2",
+            "durationMs": 434.2685790000005,
+            "backgroundCompletedAtDelete": 3
+          }
+        ],
+        "b": [
+          {
+            "phase": "B1",
+            "durationMs": 156.7961949999999,
+            "backgroundCompletedAtDelete": 1
+          },
+          {
+            "phase": "B2",
+            "durationMs": 156.8452070000003,
+            "backgroundCompletedAtDelete": 1
+          }
+        ],
+        "aMeanMs": 425.97419700000023,
+        "bMeanMs": 156.8207010000001,
+        "scope": "Two observations per arm, diagnostic only; not a tail-latency distribution or gate replacement."
+      }
+    },
+    "records": 8,
+    "scope": "Eight bounded direct native owner operations using unchanged real file/model/PNG content. Public prototype wrappers record existing promises. This is a discriminating queued-scan condition, not the original mixed printing gate, seven-mode performance closure, HTTP, physical motion or target-board acceptance."
+  },
+  "performance": {
+    "node": "v26.10.0",
+    "plan": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "frozenBudgetSource": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-content-clock-sharp-trial/host/contracts/native-metadata-atomic-heads-acceptance.json",
+        "sha256": "c9e787047be22632d63da4ef6a95fa3fb558e2d3fbc6bac666ced5bcd39c9eca",
+        "modes": {
+          "shared": {
+            "medianMs": 31.324210999999945,
+            "p95Ms": 32.871749600000044
+          },
+          "cold": {
+            "medianMs": 45.426995600000005,
+            "p95Ms": 48.46880359999991
+          },
+          "disk": {
+            "medianMs": 142.44626539999996,
+            "p95Ms": 156.80327720000005
+          },
+          "invalidate": {
+            "medianMs": 280.23895280000005,
+            "p95Ms": 327.13302560000017
+          },
+          "rescan": {
+            "medianMs": 278.0031932,
+            "p95Ms": 333.7013192
+          },
+          "metadata-cold": {
+            "medianMs": 189.69212720000004,
+            "p95Ms": 217.45824920000013
+          },
+          "cached": {
+            "medianMs": 2.185486400000002,
+            "p95Ms": 2.2782116000000316
+          }
+        }
+      },
+      "identities": {
+        "A": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-announcements-bounded-product",
+          "manifestSha256": "3ff6903111920bef5939c8faea0f0da9415cd083cfb7496bdaef33ddd580e7cf",
+          "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+        },
+        "B": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-invalidation-fair-composition-product",
+          "manifestSha256": "5f3013f473adf5c9ecba1abbbc5acc849bbbe5d237020e1456179d203a0acc41",
+          "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+        }
+      },
+      "order": [
+        "A1",
+        "B1",
+        "B2",
+        "A2"
+      ],
+      "input": "/home/dek02/.cache/codex/tmp/disk-import-perf-input-hfiXmb/source.ufp",
+      "inputSha256": "9a388720eb527f8b3e46eb8a5cb5d828fef2f47a91fdc12c83b280e67d40f45e",
+      "modes": [
+        "shared",
+        "cold",
+        "disk",
+        "invalidate",
+        "rescan",
+        "metadata-cold",
+        "cached"
+      ],
+      "warmupsPerPhase": 3,
+      "samplesPerPhase": 16,
+      "budget": {
+        "ratio": 1.2,
+        "absoluteSlackMs": 2
+      },
+      "scripts": {
+        "anyraid-ufp-reuse-storage-perf.mjs": "d5cecd8aba391bb22f8c9969288b94063fdfa8d552a56232256327d26537ce04",
+        "anyraid-disk-ledger-perf-unique.mjs": "c1c6138b93e3a73028b36f55c012a7e96458d524cbf219dc180f135cae808867",
+        "anyraid-metadata-invalidation-perf.mjs": "27494817aa689f8f85b920946ae3e2a28465b95e82bec79edb5edec3b900e3b6"
+      },
+      "scope": "Sequential compiled product ABBA, only native-persistent-metadata differs: four reserved invalidations and bounded priority with one read turn after four invalidations. Existing durable protocol and all original budgets are unchanged. Fixed actual model/PNG and durable filesystem assertions. No observer, no TS, no parallel test/build process. Local desktop; original mixed and target-board gates remain separate."
+    },
+    "modes": {
+      "shared": {
+        "a": {
+          "count": 32,
+          "medianMs": 21.945134999999993,
+          "p95Ms": 22.455120999999963
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 21.558030499999987,
+          "p95Ms": 23.82887599999998
+        },
+        "budget": {
+          "medianMs": 28.334161999999992,
+          "p95Ms": 28.946145199999954
+        },
+        "frozenBudget": {
+          "medianMs": 31.324210999999945,
+          "p95Ms": 32.871749600000044
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true,
+        "medianWithinFrozenBudget": true,
+        "p95WithinFrozenBudget": true
+      },
+      "cold": {
+        "a": {
+          "count": 32,
+          "medianMs": 34.55488249999996,
+          "p95Ms": 36.62078999999994
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 40.17759949999993,
+          "p95Ms": 46.77646199999981
+        },
+        "budget": {
+          "medianMs": 43.46585899999995,
+          "p95Ms": 45.94494799999993
+        },
+        "frozenBudget": {
+          "medianMs": 45.426995600000005,
+          "p95Ms": 48.46880359999991
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": false,
+        "medianWithinFrozenBudget": true,
+        "p95WithinFrozenBudget": true
+      },
+      "disk": {
+        "a": {
+          "count": 32,
+          "medianMs": 116.2663695,
+          "p95Ms": 128.31869599999993
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 109.05178649999993,
+          "p95Ms": 123.14863999999989
+        },
+        "budget": {
+          "medianMs": 141.51964339999998,
+          "p95Ms": 155.9824351999999
+        },
+        "frozenBudget": {
+          "medianMs": 142.44626539999996,
+          "p95Ms": 156.80327720000005
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true,
+        "medianWithinFrozenBudget": true,
+        "p95WithinFrozenBudget": true
+      },
+      "invalidate": {
+        "a": {
+          "count": 32,
+          "medianMs": 165.37584149999986,
+          "p95Ms": 187.10624099999995
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 183.01804700000002,
+          "p95Ms": 210.931282
+        },
+        "budget": {
+          "medianMs": 200.45100979999984,
+          "p95Ms": 226.52748919999993
+        },
+        "frozenBudget": {
+          "medianMs": 280.23895280000005,
+          "p95Ms": 327.13302560000017
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true,
+        "medianWithinFrozenBudget": true,
+        "p95WithinFrozenBudget": true
+      },
+      "rescan": {
+        "a": {
+          "count": 32,
+          "medianMs": 162.4951504999999,
+          "p95Ms": 167.73445400000037
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 177.80033650000007,
+          "p95Ms": 197.19920599999978
+        },
+        "budget": {
+          "medianMs": 196.99418059999988,
+          "p95Ms": 203.28134480000043
+        },
+        "frozenBudget": {
+          "medianMs": 278.0031932,
+          "p95Ms": 333.7013192
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true,
+        "medianWithinFrozenBudget": true,
+        "p95WithinFrozenBudget": true
+      },
+      "metadata-cold": {
+        "a": {
+          "count": 32,
+          "medianMs": 117.1756160000001,
+          "p95Ms": 126.93302399999993
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 120.65473549999979,
+          "p95Ms": 146.15504499999997
+        },
+        "budget": {
+          "medianMs": 142.61073920000013,
+          "p95Ms": 154.31962879999992
+        },
+        "frozenBudget": {
+          "medianMs": 189.69212720000004,
+          "p95Ms": 217.45824920000013
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true,
+        "medianWithinFrozenBudget": true,
+        "p95WithinFrozenBudget": true
+      },
+      "cached": {
+        "a": {
+          "count": 32,
+          "medianMs": 0.14199650000000474,
+          "p95Ms": 0.20834199999995917
+        },
+        "b": {
+          "count": 32,
+          "medianMs": 0.1413569999999993,
+          "p95Ms": 0.3721140000000105
+        },
+        "budget": {
+          "medianMs": 2.170395800000006,
+          "p95Ms": 2.250010399999951
+        },
+        "frozenBudget": {
+          "medianMs": 2.185486400000002,
+          "p95Ms": 2.2782116000000316
+        },
+        "medianWithinBudget": true,
+        "p95WithinBudget": true,
+        "medianWithinFrozenBudget": true,
+        "p95WithinFrozenBudget": true
+      }
+    },
+    "allSevenPassed": false,
+    "failedGates": [
+      "cold comparative P95"
+    ],
+    "allFrozenBudgetsPassed": true,
+    "scope": "One sequential ABBA attempt with 32 measured samples per arm/mode; no unchanged rerun. The failed cold comparative gate is retained and blocks promotion."
+  },
+  "coldImportObservation": {
+    "files": 84,
+    "loadedBytesIdentical": true,
+    "changedQueueModuleLoaded": false,
+    "scope": "Two separate loader-hook startup traces of the original cold benchmark imports: PublishedPrintFiles, extractUfpArchive and sharp. No publication, timed workload, benchmark repetition or result override. All loaded product, dependency and native bytes match and the changed metadata queue is absent. This distinguishes the direct import path only; later dynamic loading, filesystem, runtime and environment causality are not established. The cold gate remains failed."
+  },
+  "mixed": {
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "bundleUnchanged": true
+    },
+    "driverSha256": "4df83f930e74d4a3b9ebfc351b68a2898f1d3990c8f411e78ae78d155c2e21ab",
+    "durationMs": 73604.832559,
+    "originalMovements": 1000,
+    "generations": 2,
+    "recursiveDeletes": 16,
+    "rescans": {
+      "operations": 16,
+      "medianMs": 192.01672299999336,
+      "p95Ms": 334.7064640000008,
+      "duringPrintGenerations": [
+        1,
+        2
+      ],
+      "oldUrlsRevoked": true,
+      "originalModelBytesPreserved": true
+    },
+    "diskImports": {
+      "operations": 16,
+      "rawSettlementMs": [
+        564.5493529999985,
+        608.9559370000006,
+        375.55680500000017,
+        187.79751300000135,
+        215.90288800000053,
+        212.56664699999965,
+        226.37918700000046,
+        216.89245999999912,
+        702.5214859999978,
+        494.1356139999989,
+        473.85813499999495,
+        403.4479300000021,
+        680.4816260000007,
+        522.0030479999987,
+        672.5865399999966,
+        554.9454740000001
+      ],
+      "printingGenerations": [
+        1,
+        2
+      ],
+      "modelAndOriginalPngVerified": true,
+      "originalRemovedAfterPublication": true,
+      "noAutomaticPrinting": true
+    },
+    "firstChangedCandidateRunPassed": true,
+    "scope": "Original unchanged compiled driver, one first-run priority composition, exact B 5f3013f4 and dependencies 7149c1b8. Software assertion pass only; historical failures, target-board performance and G3 remain open.",
+    "queue": {
+      "durableMutations": 64,
+      "printingGenerations": [
+        1,
+        2
+      ]
+    }
+  },
+  "preparationFailures": [
+    "First dependency copy escaped the installed tree through an absolute .bin link; separate corrected product preserved relative links and passed identity.",
+    "Initial static audit attempted the absent legacy TypeScript 7 API. Replaced by load-only native Node hooks; no benchmark repeated.",
+    "Supplementary HTTP test initially asserted action outside the existing result envelope, with a union narrowing typecheck failure; only test code corrected.",
+    "Initial sealer spawnSync git was rejected by the filesystem sandbox; git show was performed through the shell tool and both exact source snapshots were sealed. No workload rerun."
+  ],
+  "promotion": {
+    "draftOnly": true,
+    "mergeAllowed": false,
+    "reasons": [
+      "Cold comparative P95 remains failed.",
+      "Exact priority branch remote CI unrun.",
+      "Target-board, real client, G3 and full Python/macro retirement remain open."
+    ]
+  },
+  "evidence": {
+    "path": "native-metadata-invalidation-admission.evidence.json.gz",
+    "sha256": "8f26f2cfae4fd72c528248a70144cbe9dbb56b7f59569e56a82d6fbd2e651866",
+    "bytes": 1591071,
+    "entries": 126
+  },
+  "scope": "Bounded persistent-metadata admission and fairness candidate on develop; the compiled composition includes unmerged PR #57 and changes only this queue module. No motion math, tolerance, protocol, default entry or physical execution changed."
+}

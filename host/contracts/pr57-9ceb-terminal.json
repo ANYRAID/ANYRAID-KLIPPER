@@ -1,0 +1,216 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "head": "9ceb7ddaea907070f5aaeda676c5422938f09548",
+  "base": "88b6826d521d59029261c2a809c49ab815ee3ab3",
+  "mergeRef": "20150206d1662b2070e1fb2a79c2cedf438cc470",
+  "hostRun": 37932846572,
+  "jobs": [
+    {
+      "id": 113827564635,
+      "name": "checks",
+      "run": 37932846572,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827564890,
+      "name": "sanitizer (ubsan)",
+      "run": 37932846572,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827564997,
+      "name": "sanitizer (asan)",
+      "run": 37932846572,
+      "conclusion": "success"
+    },
+    {
+      "id": 113832452084,
+      "name": "host",
+      "run": 37932846572,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827564582,
+      "name": "build",
+      "run": 37932846614,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827565007,
+      "name": "motion (26.9.0, off, compiled)",
+      "run": 37932846631,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827565089,
+      "name": "motion (26.9.0, default, compiled)",
+      "run": 37932846631,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827565129,
+      "name": "motion (26.10.0, off, source)",
+      "run": 37932846631,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827565138,
+      "name": "motion (26.10.0, off, compiled)",
+      "run": 37932846631,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827565222,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "run": 37932846631,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827565268,
+      "name": "motion (26.9.0, off, source)",
+      "run": 37932846631,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827565271,
+      "name": "motion (26.10.0, default, source)",
+      "run": 37932846631,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827565293,
+      "name": "motion (26.9.0, default, source)",
+      "run": 37932846631,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827565378,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "run": 37932846631,
+      "conclusion": "success"
+    },
+    {
+      "id": 113827565503,
+      "name": "motion (26.10.0, default, compiled)",
+      "run": 37932846631,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4418,
+    "pass": 4418,
+    "fail": 0
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4418,
+      "failed": 0,
+      "passed": 4418,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4418,
+      "suites": 0
+    }
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": true,
+    "jobs": [
+      {
+        "id": 113827565007,
+        "name": "motion (26.9.0, off, compiled)",
+        "run": 37932846631,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113827565089,
+        "name": "motion (26.9.0, default, compiled)",
+        "run": 37932846631,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113827565129,
+        "name": "motion (26.10.0, off, source)",
+        "run": 37932846631,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113827565138,
+        "name": "motion (26.10.0, off, compiled)",
+        "run": 37932846631,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113827565222,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "run": 37932846631,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113827565268,
+        "name": "motion (26.9.0, off, source)",
+        "run": 37932846631,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113827565271,
+        "name": "motion (26.10.0, default, source)",
+        "run": 37932846631,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113827565293,
+        "name": "motion (26.9.0, default, source)",
+        "run": 37932846631,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113827565378,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "run": 37932846631,
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 113827565503,
+        "name": "motion (26.10.0, default, compiled)",
+        "run": 37932846631,
+        "runs": 50,
+        "failures": 0
+      }
+    ],
+    "conditions": 10,
+    "childrenPerCondition": 50,
+    "verifiedChildren": 500,
+    "deadlineMs": 10000,
+    "loops": 16,
+    "scope": "Motion diagnostic crash checks only; not G3 numerical acceptance."
+  },
+  "evidence": {
+    "path": "pr57-9ceb-terminal.evidence.json.gz",
+    "sha256": "ac0f5fd61ebd9e05fa6fe5fb91402630520a595a394f45758037d4795be4c85c",
+    "bytes": 617418,
+    "entries": 18
+  },
+  "scope": "PR #57 精确头 9ceb7dda 的首轮终态；Node 26.11.1 的合成合并检查，不覆盖本机 26.10 失败、原混合负载、物理运动或 G3。"
+}
