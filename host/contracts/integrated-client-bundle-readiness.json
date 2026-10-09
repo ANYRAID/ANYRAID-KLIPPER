@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "date": "2026-10-09",
-  "status": "READ_ONLY_PREPARATION; no client server or scene launched",
+  "date": "2026-10-10",
+  "status": "PARTIAL_ACTUAL_CLIENT_ACCEPTANCE; both authorized scenes consumed and closed",
   "bundle": {
     "path": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
     "manifestSha256": "8deb5fc70d8e3ccff3aa5cad40ee316c055f9e8e4da49cee7bde1c95c27630f3",
@@ -33,7 +33,8 @@
     "productionSourceFiles": 642,
     "everyProductionFileAndLockMatchesBuiltSource": true,
     "nativeAndDependencyBytesReused": true,
-    "noFreshInstallOrNativeBuildClaim": true
+    "noFreshInstallOrNativeBuildClaim": true,
+    "actualDevelop": "e312c17234a5a5db8f2981fc3827661b04187714"
   },
   "launch": {
     "entry": "host/acceptance/client-probe.ts",
@@ -56,10 +57,310 @@
     "history/configuration/queue controlled operations",
     "disconnect/reconnect and explicit recovery"
   ],
-  "authorization": "Loopback downloads authorized for this session. Prior expired-scene restart rejection remains; fresh scene launch still requires the pending explicit authorization.",
+  "authorization": "Explicit user reply allowed exactly two loopback software scenes, each at most 15 minutes including startup, no extension or fixture relaunch. Both were executed. Further official-client scenes require new authorization.",
   "exclusions": [
-    "No actual page acceptance yet",
+    "No complete A exit or full Moonraker compatibility claim",
     "No real hardware or target performance/precision claim",
-    "No historical motion root-cause or G3 closure"
-  ]
+    "No historical motion root-cause or G3 closure",
+    "No fresh product install/native build claim"
+  ],
+  "results": {
+    "bundleAfter": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+      "manifestSha256": "8deb5fc70d8e3ccff3aa5cad40ee316c055f9e8e4da49cee7bde1c95c27630f3",
+      "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+    },
+    "fluidd": {
+      "startUtc": "2026-10-09T16:53:54Z",
+      "closedUtc": "2026-10-09T17:02:58Z",
+      "elapsedSecondsObserved": 545,
+      "fixtureExit": 0,
+      "passed": [
+        "native operator page login",
+        "chooser upload and exact browser download",
+        "page rename/copy/delete",
+        "simulated completed print with history",
+        "slow input page pause/resume",
+        "websocket disconnect/reconnect without fixture restart",
+        "page cancel with backend cancelled state",
+        "explicit Klipper recovery, device generation 2",
+        "page configuration save-and-restart with persisted comment, device generation 3 and both MCU reset/configuration counters"
+      ],
+      "missing": [
+        "queue operation: HTTP404, fixture configuration lacked job_queue",
+        "explicit process-level restart page journey"
+      ],
+      "limits": [
+        "manual G28 refused by the existing typed script boundary; unchanged",
+        "short input finished before first pause; slower input retained separately"
+      ]
+    },
+    "mainsail": {
+      "startUtc": "2026-10-09T17:03:37Z",
+      "maximumEndUtc": "2026-10-09T17:18:37Z",
+      "fixtureExit": 124,
+      "browserExit": 124,
+      "gatewayExit": 124,
+      "passed": [
+        "fresh Chrome protected native login",
+        "official unchanged Mainsail connected after gateway directed at native private listener",
+        "chooser upload and exact browser download",
+        "page Upload & Print",
+        "page pause with paused backend state",
+        "page resume with active printing backend state",
+        "page cancel click with subsequent SHUTDOWN snapshot"
+      ],
+      "missing": [
+        "cancelled backend state not collected before deadline",
+        "explicit recovery after cancel",
+        "rename/copy/delete",
+        "configuration save/restart",
+        "queue page and history page",
+        "disconnect/reconnect"
+      ],
+      "limits": [
+        "initial official IAB connection unauthorized",
+        "IAB login document differed from HTTP response; cache hypothesis unproven",
+        "shared Playwright README and bundled Chromium absent; existing sandboxed Chrome fallback",
+        "same-scene gateway upstream corrected from fixture proxy to native private listener; original deadline unchanged",
+        "no third fixture start or extension"
+      ]
+    },
+    "inputs": {
+      "journeySha256": "859b9d2ce3b7ae5adbb1708cf7c864ba8d70e4eed556f2453fcbab0ce4d13655",
+      "journeyBytes": 19785,
+      "pauseSha256": "12dfa06ce998ed9d72e3107c5fee40141cc51df5c72fed2b0625229c45ab077b",
+      "pauseBytes": 18785,
+      "bothBrowserDownloadsMatchJourney": true
+    },
+    "closure": {
+      "verifiedUtc": "2026-10-09T17:21:37.778Z",
+      "listeningPortsAbsent": [
+        18326,
+        18327,
+        18328,
+        40917
+      ],
+      "mainsailParentAndNativeChildAbsent": [
+        274758,
+        274776
+      ],
+      "timeoutIsSupervisorExitNotProductRegression": true
+    },
+    "fixtureRepair": {
+      "productionSourceChanged": false,
+      "websocket": "forward native authorization headers; never create identity from cookie; rebase Origin to destination",
+      "http": "rebase Host/Origin for the extra loopback hop",
+      "queue": "explicit job_queue with no startup/automatic dispatch and operator_confirmation",
+      "validation": "First blocked by shared missing dependencies; after isolated lock install, 48 tests: 47 pass and 1 test HTTP Host construction failure. Repair then exposed relay Origin mismatch: 1 pass/1 fail. HTTP and websocket origin repair then 2/2 passed. Other 46 unaffected checks not repeated. Final full typecheck and required whitespace passed.",
+      "officialPagesAfterRepair": "not rerun; authorization consumed"
+    },
+    "next": "After normal PR integration, obtain a new bounded scene authorization and verify remaining actual-page gates using this corrected fixture. Continue independent Moonraker software work while physical G3 remains unresolved."
+  },
+  "evidence": {
+    "file": "integrated-client-bundle-acceptance.evidence.gz",
+    "sha256": "03bac92837717f7dbad0b97217317a5d4aab8c98993883457fca42f4c1c07895",
+    "bytes": 1027294,
+    "entries": [
+      {
+        "name": "anyraid-client-oct10-bundle-after.json",
+        "bytes": 250,
+        "sha256": "480453a6e8735c42007a08698fef6e76031334b0b4f603697c0d0fac843be2a2"
+      },
+      {
+        "name": "anyraid-client-proxy-oct10-first.log",
+        "bytes": 2660,
+        "sha256": "9e7d7830d405ed947dd329282724e9ee3411a240632c53433880b5f8ea13a5bb"
+      },
+      {
+        "name": "anyraid-client-proxy-oct10-http-repair.log",
+        "bytes": 1311,
+        "sha256": "b329cd5a25addb31b3e91dec8e0afa9b47df256006e2cdd1534b914cb24843b0"
+      },
+      {
+        "name": "anyraid-client-proxy-oct10-origin-repair.log",
+        "bytes": 374,
+        "sha256": "d1b98333b070f08a7b7ff17d851555b2abddfaa4d2e37d21973c7d7f1e05437f"
+      },
+      {
+        "name": "anyraid-client-proxy-oct10-regression.log",
+        "bytes": 6170,
+        "sha256": "bc67d30ca20201c009fb7ef83729b5bce92ae931c8a9df92b0ef4baef25e014e"
+      },
+      {
+        "name": "anyraid-client-proxy-oct10-typecheck-after-origin.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "anyraid-client-proxy-oct10-typecheck-final.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "anyraid-client-proxy-oct10-typecheck.log",
+        "bytes": 1408,
+        "sha256": "f2459cfdca1cd69d5280a765e7a7f983f8381b00927f997ad6b15aa018f0ccec"
+      },
+      {
+        "name": "anyraid-client-regression-deps-oct10-install.log",
+        "bytes": 143,
+        "sha256": "73eeb332c7af52da1943c0f607e2b75da692c16ac8ecc663e26fecca4e4992f9"
+      },
+      {
+        "name": "anyraid-fluidd-oct10-cancelled.png",
+        "bytes": 56112,
+        "sha256": "712cf63332cfb7b1a7c21cc438481b44e8d8ef6f9900794823c1b2f65ef2ac79"
+      },
+      {
+        "name": "anyraid-fluidd-oct10-config-edit.png",
+        "bytes": 24326,
+        "sha256": "1041b5a3b0954131b66adab245a14765bd6ac3219e806ae7e6fafb7017ce8d24"
+      },
+      {
+        "name": "anyraid-fluidd-oct10-config-persisted.png",
+        "bytes": 25201,
+        "sha256": "a082dec9a6bc960f0f3c3df67918147d7d2ab31d7d021fda51fa218c5201099c"
+      },
+      {
+        "name": "anyraid-fluidd-oct10-history.png",
+        "bytes": 60358,
+        "sha256": "a5061a1f62902c7255109b2af1f8e1eeb4ec140d5a291f25c277501ae0ceeb5b"
+      },
+      {
+        "name": "anyraid-fluidd-oct10-observations.jsonl",
+        "bytes": 16190,
+        "sha256": "8048af8c5a66188ce5daf4f3e72482ba625b9d30bc7d44aea92ce03daf6f8bdd",
+        "originalSha256": "9aa25b997c1e08f80503f034e62b699d6189a7f7899b82176beb5ff433d4a097",
+        "redaction": "ephemeral configuration state_token"
+      },
+      {
+        "name": "anyraid-fluidd-oct10-paused.png",
+        "bytes": 75777,
+        "sha256": "c25a19e92d2ed77a98b1a0608c85e7000068a4726a924af9b2465711cbc86a8f"
+      },
+      {
+        "name": "anyraid-fluidd-oct10-reconnected.png",
+        "bytes": 73580,
+        "sha256": "29dfc24b1b0b5f3efd53050f2a006c981aa1abfcdddf38659b8456f0120011f7"
+      },
+      {
+        "name": "anyraid-fluidd-oct10-scene.log",
+        "bytes": 7150,
+        "sha256": "824031cf90668415ee20ef39c4fd5ffd5c5532b05da3eafe099dc6a6e1f98a24"
+      },
+      {
+        "name": "anyraid-fluidd-oct10-upload.png",
+        "bytes": 36746,
+        "sha256": "de5f2453272944b5bd0d0590341ec5b39d18ab65bcd0c766254778b35c694b06"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-cancel-ui.json",
+        "bytes": 2113,
+        "sha256": "320558cf49583e915524ab826dedf2eb82679d543fcd3beeac0477699a338cb6"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-closure.json",
+        "bytes": 41558,
+        "sha256": "19c45a52ee9fe78b806483d86fd0794996d7c07ccdeced03843719df32da8d81"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-direct-native-connected.png",
+        "bytes": 128936,
+        "sha256": "87637ba3eadfece0ff9fce4388a2effee4aa25733f5abbfa1a4b3324a05c80de"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-downloaded.png",
+        "bytes": 85421,
+        "sha256": "ce923068f8de67b2ce7d5690eba7835193112bf69bfd156a946ff2140bfe2784"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-gateway-direct.log",
+        "bytes": 92,
+        "sha256": "ff17cb4a5439a607b70d20a1e9bdcc89495bfb35aad5059a01131e170a54c4cf"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-gateway.log",
+        "bytes": 92,
+        "sha256": "ff17cb4a5439a607b70d20a1e9bdcc89495bfb35aad5059a01131e170a54c4cf"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-initializing.png",
+        "bytes": 16718,
+        "sha256": "8dd6fda151f041a4944cf376b796d5a8f1c5da08669bbecf6b02257083b77936"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-logged-in.png",
+        "bytes": 30144,
+        "sha256": "d74b077f7dd21451536d07e25bdee7a8b7636efcc4e2e8b0c1262195220e8ef7"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-observations.jsonl",
+        "bytes": 3262,
+        "sha256": "387956da087b05468e6efaf5834938bad1852dc4a2d1970edc659061867455d9",
+        "originalSha256": "ec9666ad12504397f298a5723984b0c63fcd73280c6864907b3c5289c125fd24",
+        "redaction": "ephemeral configuration state_token"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-pause-request.png",
+        "bytes": 131327,
+        "sha256": "d43079c2e895d7e9374fe8401d477af8137ed7e93cf5ca9d7cfbe7636aef04f9"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-paused.png",
+        "bytes": 135000,
+        "sha256": "7d45f36f30c84631a3df74dc0a6c902d703ca8c196f55a0130efbf06e36acd39"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-printing.png",
+        "bytes": 130956,
+        "sha256": "2f369f4709f2cef4e4a2481b1c1298a90633ed57721b4f164461822010ed4669"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-scene.log",
+        "bytes": 2174,
+        "sha256": "c1498283761f5be060c72c7ccf7bbe80f4ef5a35680ee602a779b888c2449f17"
+      },
+      {
+        "name": "anyraid-mainsail-oct10-uploaded.png",
+        "bytes": 74361,
+        "sha256": "b925229e8c249701bc00acd21248c096ea5d753d7bde02e4cb1781fcc0231260"
+      },
+      {
+        "name": "fluidd-oct10-journey.gcode",
+        "bytes": 19785,
+        "sha256": "859b9d2ce3b7ae5adbb1708cf7c864ba8d70e4eed556f2453fcbab0ce4d13655"
+      },
+      {
+        "name": "fluidd-oct10-pause.gcode",
+        "bytes": 18785,
+        "sha256": "12dfa06ce998ed9d72e3107c5fee40141cc51df5c72fed2b0625229c45ab077b"
+      },
+      {
+        "name": "mainsail-oct10-downloaded.gcode",
+        "bytes": 19785,
+        "sha256": "859b9d2ce3b7ae5adbb1708cf7c864ba8d70e4eed556f2453fcbab0ce4d13655"
+      },
+      {
+        "name": "mainsail-oct10-journey.gcode",
+        "bytes": 19785,
+        "sha256": "859b9d2ce3b7ae5adbb1708cf7c864ba8d70e4eed556f2453fcbab0ce4d13655"
+      },
+      {
+        "name": "mainsail-oct10-pause.gcode",
+        "bytes": 18785,
+        "sha256": "12dfa06ce998ed9d72e3107c5fee40141cc51df5c72fed2b0625229c45ab077b"
+      },
+      {
+        "name": "fluidd-oct10-browser-download.gcode",
+        "bytes": 19785,
+        "sha256": "859b9d2ce3b7ae5adbb1708cf7c864ba8d70e4eed556f2453fcbab0ce4d13655"
+      }
+    ],
+    "screenshotsInspected": [
+      "anyraid-mainsail-oct10-paused.png",
+      "anyraid-fluidd-oct10-config-persisted.png"
+    ],
+    "scope": "Original local files except explicit ephemeral configuration-token redaction; exact cancel UI tool result sealed. No auth credentials, JWTs or session cookies."
+  }
 }

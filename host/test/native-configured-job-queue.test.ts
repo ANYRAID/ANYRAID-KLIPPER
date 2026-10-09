@@ -13,10 +13,11 @@ import { PrintController } from '../src/operations/print.ts';
 import { MaintenanceGate } from '../src/operations/maintenance-gate.ts';
 import { NativePrintUploads } from '../src/moonraker/native-print-uploads.ts';
 import { PublishedPrintFiles } from '../src/storage/published-files.ts';
+import { compiledClientMoonrakerConfig } from './helpers/client-proxy.ts';
 
-test('configured process queue shares published files, print admission, history, private identity and authorized notifications', async () => {
+for (const clientFixture of [false, true]) test('configured process queue shares published files, print admission, history, private identity and authorized notifications; clientFixture=' + clientFixture, async () => {
   const root = await mkdtemp(join(tmpdir(), 'configured-native-queue-')), config = join(root, 'moonraker.conf');
-  await writeFile(config, '[server]\nhost=127.0.0.1\nport=0\n[job_queue]\n');
+  await writeFile(config, clientFixture ? compiledClientMoonrakerConfig('[server]\nhost=127.0.0.1\nport=0\n') : '[server]\nhost=127.0.0.1\nport=0\n[job_queue]\n');
   const database = await DatabaseStore.open({ path: join(root, 'moonraker.db') });
   const journal = await PrintJournal.open({ path: join(root, 'prints.db'), deviceId: 'queue-printer' });
   const files = await PublishedPrintFiles.open(join(root, 'files')), gate = new MaintenanceGate();
@@ -47,7 +48,13 @@ test('configured process queue shares published files, print admission, history,
     const information = await call('/server/info'); assert(information.components.includes('job_queue'));
     const added = await call('/server/job_queue/job', 'POST', { filenames: ['one.gcode', 'one.gcode'], request_id: 'add-once' });
     assert.equal(added.queued_jobs.length, 2); assert.equal(commands.length, 0);
-    await call('/server/job_queue/start', 'POST'); assert.equal(controller.state, 'printing');
+    if (clientFixture) {
+      const pending = await call('/server/job_queue/start', 'POST', { request_confirmation: true });
+      assert.equal(controller.state, 'idle'); assert.equal(commands.length, 0);
+      assert.equal(pending.queue_state, 'paused'); assert(pending.transition.state_token);
+      await call('/server/job_queue/start', 'POST', { transition_token: pending.transition.state_token });
+    } else await call('/server/job_queue/start', 'POST');
+    assert.equal(controller.state, 'printing');
     const request = controller.currentRequest!; assert.match(request.requestId, /^queue-/); assert.equal(request.fileId, 'one');
     const queued = await call('/server/job_queue/status'); assert.equal(queued.queued_jobs.length, 1);
     const history = await call('/server/history/list'); assert.equal(history.jobs.length, 1); assert.equal(history.jobs[0].metadata.native_request_id, request.requestId);

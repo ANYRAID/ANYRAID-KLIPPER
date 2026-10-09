@@ -3377,7 +3377,16 @@ node --test --test-concurrency=1 \
 
 源码回归与编译脚本检查只覆盖请求、状态和所有者边界，不等于实际
 浏览器交互验收。静态 `data:` 预览被浏览器协议策略拒绝，未绕过；完整
-客户端夹具仍沿用现有待答授权。原默认入口、实机打印、目标板及 G3
+2026-10-10 两次明确授权的客户端场次已执行关闭，页面结果及未完成
+范围见[同包证据](../host/contracts/integrated-client-bundle-readiness.json)。
+两次均未启用队列，不能计算为队列页面通过。后续夹具显式装配
+`[job_queue]`、`load_on_startup=false`、`automatic_transition=false` 和
+`job_transition_policy=operator_confirmation`，沿用同一进程数据库、
+文件及打印日志；接口回归覆盖实际装配和确认前零打印副作用。
+验收代理保留原生授权头，将 HTTP Host／Origin 及 WebSocket Origin
+对齐私有后端；不从浏览器 cookie 合成授权，凭据仍由网关与原生
+身份所有者校验。修复后官方页面未复验，原两次授权已用完，新的
+页面场次仍须有限授权。原默认入口、实机打印、目标板及 G3
 未关闭。候选尚未发布，不据独立测试或桌面性能宣称消费级交付完成。
 
 ### 原生磁盘 UFP 投递候选

@@ -8,6 +8,7 @@ import {buildProductHost} from '../../scripts/build-product-host.ts';
 import {installProductDependencies} from './product-install.ts';
 import {productMachineFixture} from './product-machine.ts';
 import {simulateClientFirmware} from './client-firmware.ts';
+import {compiledClientMoonrakerConfig} from './client-proxy.ts';
 /** Separate emitted product process. All PTY and test code stays in the parent. */
 export async function startCompiledClientHost(dir:string,signal:AbortSignal,onReady:(base:string)=>void,trustedLoopback=false,session?:{fixture:Awaited<ReturnType<typeof productMachineFixture>>;reuseBuild:boolean}){
  const retained=await externalAcceptanceBundle(),app=retained?.path??join(dir,'app');
@@ -17,11 +18,10 @@ export async function startCompiledClientHost(dir:string,signal:AbortSignal,onRe
  const fixture=session?.fixture??await productMachineFixture(dir,false,'ack');
  const configRoot=join(dir,'config');
  if(!session?.reuseBuild){
-  const printer=await readFile(fixture.config.printerConfig),moonraker=await readFile(fixture.config.moonrakerConfig);await mkdir(join(configRoot,'parts'),{recursive:true});
+  const printer=await readFile(fixture.config.printerConfig),moonraker=await readFile(fixture.config.moonrakerConfig,'utf8');await mkdir(join(configRoot,'parts'),{recursive:true});
   fixture.config.printerConfig=join(configRoot,'printer.cfg');fixture.config.moonrakerConfig=join(configRoot,'moonraker.conf');
-  await writeFile(join(configRoot,'parts','machine.cfg'),printer);await writeFile(fixture.config.printerConfig,'[include parts/machine.cfg]\n');await writeFile(fixture.config.moonrakerConfig,moonraker);await writeFile(fixture.path,JSON.stringify(fixture.config));
+  await writeFile(join(configRoot,'parts','machine.cfg'),printer);await writeFile(fixture.config.printerConfig,'[include parts/machine.cfg]\n');await writeFile(fixture.config.moonrakerConfig,compiledClientMoonrakerConfig(moonraker,trustedLoopback));await writeFile(fixture.path,JSON.stringify(fixture.config));
  }
- if(trustedLoopback&&!session?.reuseBuild)await writeFile(fixture.config.moonrakerConfig,'[server]\nhost: 127.0.0.1\nport: 0\n[authorization]\ntrusted_clients: 127.0.0.1\nforce_logins: false\n');
  const profile=join(dir,'client-machine.mjs'),moduleUrl=(path:string)=>JSON.stringify(pathToFileURL(join(app,path)).href);
  await writeFile(profile,`import {createNativeProductHostFactory} from ${moduleUrl('host/src/runtime/native-product-machine.js')};
 import {DatabaseStore} from ${moduleUrl('host/src/moonraker/database.js')};
