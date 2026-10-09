@@ -29,6 +29,13 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 [接入验收](host/contracts/protected-client-gateway-acceptance.json)，
 装配命令与权限边界见[启动说明](docs/Node_Host_Startup.md#受保护的官方-mainsail-接入候选)。
 完整同包客户端、目标板和 G3 门槛仍未关闭。
+2026-10-10 两次明确授权的同包页面场次已执行并关闭。Fluidd 已验证
+实际选择上传、摘要一致的下载、文件管理、模拟打印、断连恢复及配置
+保存重启；Mainsail 已验证受保护登录、上传下载和模拟暂停恢复，
+取消后仅封存页面 shutdown，恢复与队列等仍待验。夹具补齐授权头及
+第二跳来源转发，并装配需清台确认的队列；接口回归通过，修复后的
+官方页面尚未复验。原失败、期限、缺项及截图见
+[同包页面证据](host/contracts/integrated-client-bundle-readiness.json)。
 受保护入口新增清台确认页面候选，请求确认在旧服务、策略关闭及设备忙
 时保持拒绝，操作和独立包证据见[队列页面验收](host/contracts/product-queue-panel-acceptance.json)。
 实际页面与当前系列验收仍待完成。
@@ -43,6 +50,11 @@ PR #58 和公告组合 PR #57 已正常合入 develop；文件修复合并后检
 组合实际合并后的全部 15 项检查也通过，见[集成终态](host/contracts/develop92-build-terminal.json)。
 软件结果见[回执准备审查](host/contracts/native-publication-authority-preparation.json)
 与[交付计划](docs/Node_Host_Delivery_Plan.md)，实际同包客户端仍待验。
+
+有限滤波边界捕获设施 PR #59 已正常合入 develop `e312c172`，
+精确候选头及实际合并后的全部 15 项检查分别通过，原始日志见
+[合并后终态](host/contracts/develop-e312-terminal.json)。捕获仅为
+诊断准备，历史数值异常、G3、完整客户端和全面 Python 退役仍未完成。
 
 元数据原子版本头候选减少耐久写入成本，同一独立包的磁盘、大图和
 重扫完整混合软件验证已通过。新内容准备组合通过七路原性能预算和

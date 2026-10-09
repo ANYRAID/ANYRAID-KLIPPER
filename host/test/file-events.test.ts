@@ -42,8 +42,11 @@ test('event owner enforces its directory capacity and releases all kernel watch 
 });
 test('worker termination retires the active native event owner without an explicit close',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'file-events-worker-')),module=new URL('../src/moonraker/file-events.'+(import.meta.url.endsWith('.ts')?'ts':'js'),import.meta.url).href;
- const worker=new Worker(`const {parentPort}=require('node:worker_threads');(async()=>{const {open}=await import('node:fs/promises'),{FileEvents}=await import(${JSON.stringify(module)});const directory=await open(${JSON.stringify(dir)},'r'),watcher=new FileEvents(()=>{},()=>{});watcher.add(directory);parentPort.postMessage('ready');setInterval(()=>{},1000);})();`,{eval:true});
- try{const [message]=await once(worker,'message');assert.equal(message,'ready');assert.equal(await worker.terminate(),1);}finally{await worker.terminate();await rm(dir,{recursive:true,force:true});}
+ const descriptors=async()=>{const names=await readdir('/proc/self/fd'),links=await Promise.all(names.map(name=>readlink('/proc/self/fd/'+name).catch(()=>'')));return links.filter(link=>link==='anon_inode:inotify').length;},initial=await descriptors();
+ // The watch borrows the descriptor only during add. Retire the unrelated
+ // FileHandle explicitly while keeping the native event owner active.
+ const worker=new Worker(`const {parentPort}=require('node:worker_threads');(async()=>{const {open}=await import('node:fs/promises'),{FileEvents}=await import(${JSON.stringify(module)});const directory=await open(${JSON.stringify(dir)},'r'),watcher=new FileEvents(events=>{if(events.some(event=>event.name==='active'))parentPort.postMessage('event');},error=>{throw error;});try{watcher.add(directory);}finally{await directory.close();}parentPort.postMessage('ready');setInterval(()=>{},1000);})();`,{eval:true});
+ try{const [message]=await once(worker,'message');assert.equal(message,'ready');assert.equal(await descriptors(),initial+1);const event=once(worker,'message');await writeFile(join(dir,'active'),'active owner');assert.equal((await event)[0],'event');assert.equal(await worker.terminate(),1);assert.equal(await descriptors(),initial);}finally{await worker.terminate();await rm(dir,{recursive:true,force:true});}
 });
 test('directory callbacks retain their owner async context and repeated closes release native descriptors',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'file-events-context-')),root=await open(dir,'r'),storage=new AsyncLocalStorage<string>();
