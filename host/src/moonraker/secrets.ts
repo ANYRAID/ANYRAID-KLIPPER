@@ -18,7 +18,7 @@ const edges=new RegExp(`^[${whitespace}]+|[${whitespace}]+$`,'g'),leading=new Re
 const strip=(value:string)=>value.replace(edges,'');
 // Ordinary small JSON integers need no reviver. Inspect source tokens only
 // when exact integers, overflow exponents or a smaller caller limit require it.
-const needsNumberSource=/(?:^|[\s,:\[])-?\d{16}|[eE][+-]?\d{3,}/;
+const needsNumberSource=/(?:^|[\s,:\[])-?\d{16}|[eE][+-]?\d{3,}|(?:^|[\s,:\[])-0(?=[\s,}\]]|$)/;
 function invalid():never{throw new ConfigurationError('Invalid secrets file format or resource limit');}
 function limits(options:SecretsLimits){
  const maximum={bytes:options.bytes??1024*1024,depth:options.depth??64,items:options.items??65536,integerDigits:options.integerDigits??4096};

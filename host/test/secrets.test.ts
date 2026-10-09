@@ -11,6 +11,7 @@ import {loadSecrets,parseSecretsText,type SecretValue} from '../src/moonraker/se
 const reference=JSON.parse(await readFile(new URL('../contracts/moonraker-secrets-reference.json',import.meta.url),'utf8')) as {cases:{name:string;text:string;type:string;expected:unknown}[]};
 function normalized(value:SecretValue):unknown{
  if(typeof value==='bigint')return {$exactInteger:value.toString()};
+ if(typeof value==='number'&&Object.is(value,-0))return {$negativeZero:true};
  if(Array.isArray(value))return value.map(normalized);
  if(value!==null&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,normalized(item)]));
  return value;
