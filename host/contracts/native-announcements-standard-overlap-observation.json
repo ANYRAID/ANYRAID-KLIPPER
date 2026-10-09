@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "pr": 57,
+  "productSourceHead": "6be88322639c4d2f40c7de08098ce7fe150b83bc",
+  "observationSourceSha256": "ea178c4cc624d2146f1c9cfe6daae09eb2db179c65449138ffaeb1610862edc6",
+  "driver": {
+    "sourceSha256": "ea178c4cc624d2146f1c9cfe6daae09eb2db179c65449138ffaeb1610862edc6",
+    "compiledSha256": "c565e3cd928af3edece4ad9dd609d99545d4b5fe451efef69114fff9169e53ef",
+    "scope": "Standard acceptance source with bounded phase and client-lane observations. Independent JS driver; original program, assertions, polls and deadlines retained. Not product rebuild or acceptance success."
+  },
+  "plan": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-announcements-bounded-product",
+      "manifestSha256": "3ff6903111920bef5939c8faea0f0da9415cd083cfb7496bdaef33ddd580e7cf",
+      "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895"
+    },
+    "driverSha256": "c565e3cd928af3edece4ad9dd609d99545d4b5fe451efef69114fff9169e53ef",
+    "args": [
+      "--test",
+      "--test-isolation=none",
+      "--test-name-pattern=^namespace=true nativeAuthorization=true apiLoad=true load=false spi=false software=false model5160=false model2240=false curved=false probeHome=false safeHome=false bltouch=false tilted=false manualTilt=false kinematics=cartesian temperatureSensor=false hostSensor=false spiSensor=false spiHeater=false sharedSpi=false zEndstop=false max31855=false:",
+      "/home/dek02/.cache/codex/tmp/anyraid-announcements-standard-observer-complete-driver/host/acceptance/product-compiled-journey.test.js"
+    ],
+    "selectedEnvironment": {
+      "TMPDIR": "/home/dek02/.cache/codex/tmp",
+      "ANYRAID_ACCEPTANCE_BUNDLE": "/home/dek02/.cache/codex/tmp/anyraid-announcements-bounded-product",
+      "ANYRAID_ACCEPTANCE_MANIFEST_SHA256": "3ff6903111920bef5939c8faea0f0da9415cd083cfb7496bdaef33ddd580e7cf",
+      "ANYRAID_ACCEPTANCE_DEPENDENCIES_SHA256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895",
+      "ANYRAID_BENCH_METADATA_RESCAN": "on",
+      "ANYRAID_BENCH_UFP_LOAD": "on",
+      "ANYRAID_BENCH_DISK_IMPORT": "on",
+      "ANYRAID_BENCH_UFP_IMAGE": "large",
+      "NODE_OPTIONS": "--no-experimental-strip-types"
+    },
+    "outerDeadlineSeconds": 90,
+    "scope": "One bounded standard acceptance observation including client-lane admission timing and retained original PTY helper with unchanged original program, assertions and deadlines. No added HTTP requests. Not an acceptance pass or unchanged rerun seeking green; prior failures retained. No client scene."
+  },
+  "exit": {
+    "code": 1,
+    "signal": null,
+    "bundleUnchanged": true
+  },
+  "observations": [
+    {
+      "generation": 1,
+      "group": 0,
+      "namespace": {
+        "atMs": 18014.331533,
+        "status": {
+          "mode": "native",
+          "standard_print": true,
+          "pending_compatibility": 0,
+          "state": "printing",
+          "state_token": "00218dd7-7126-43fc-ac4e-768dc9f0ec6f:6",
+          "pause_pending": false,
+          "paused_before_file": false,
+          "request": {
+            "version": 1,
+            "request_id": "complete",
+            "file_id": "authorized-file",
+            "nozzle": 200,
+            "bed": 60,
+            "expires_at": 1791550184932
+          },
+          "pending_device_actions": 0,
+          "safe_stop_pending": false,
+          "failed": false,
+          "closed": false
+        }
+      },
+      "beginMs": 18238.465097,
+      "stage": "checked",
+      "attempts": [
+        {
+          "status": 200,
+          "elapsedMs": 273.50778699999864
+        }
+      ],
+      "idlePolls": 0,
+      "idleStates": [],
+      "copyCompletedMs": 273.7646300000015,
+      "recursive": {
+        "queuedMs": 18512.254268,
+        "admittedMs": 18512.261798,
+        "completedMs": 18793.795886,
+        "attempts": [
+          {
+            "status": 200,
+            "elapsedMs": 281.5325879999982
+          }
+        ],
+        "idlePolls": 0,
+        "idleStates": []
+      },
+      "status": {
+        "mode": "native",
+        "standard_print": true,
+        "pending_compatibility": 0,
+        "state": "completed",
+        "state_token": "00218dd7-7126-43fc-ac4e-768dc9f0ec6f:8",
+        "pause_pending": false,
+        "paused_before_file": false,
+        "request": {
+          "version": 1,
+          "request_id": "complete",
+          "file_id": "authorized-file",
+          "nozzle": 200,
+          "bed": 60,
+          "expires_at": 1791550184932
+        },
+        "pending_device_actions": 0,
+        "safe_stop_pending": false,
+        "failed": false,
+        "closed": false
+      },
+      "totalMs": 558.5479339999983
+    }
+  ],
+  "typecheck": "passed",
+  "preparationFailures": [
+    "Sandbox compiler spawn EPERM; exact input metadata retained.",
+    "Independent config initially omitted existing qoijs declarations: TS7016.",
+    "Corrected import-only compilation omitted PTY C fixture; module loading failed before generation 1.",
+    "After restoring PTY fixture, dynamic database Worker was not emitted; generation 0 failed.",
+    "Final independent config includes existing product sources/scripts and checks Worker entries, preserving the original PTY fixture."
+  ],
+  "outcome": "Observed generation-1 recursive overlap assertion failed: printing at namespace checkpoint, completed after direct-200 cleanup. Copy 273.765 ms, recursive request 281.533 ms, complete cleanup 558.548 ms, client lane wait 0.007530 ms. No 409 or Idle polling in either cleanup. The same assertion category is reproduced, but not the original generation-2 iteration or a common cause.",
+  "secondaryFailure": "Original first-failure diagnostic records overlap assertion; aborted upload is followed by Undici ReadableStream already closed, which remains the test runner terminal error. Both records retained.",
+  "acceptanceGateClosed": false,
+  "originalProgramAssertionsRequestsAndDeadlinesRetained": true,
+  "productionChanged": false,
+  "decision": "Do not rerun the same full mixed workload to seek green. Prioritize measuring direct cleanup and pre-cleanup work against the remaining print window; this sample excludes 409-to-Idle and client mutation queuing for its observed failure only. No inference about other failures, G3 or target hardware.",
+  "evidence": {
+    "path": "native-announcements-standard-overlap-observation.evidence.json.gz",
+    "sha256": "5c18f11706f364bd5a4e2458cff023cac939c68dd67e4582ab3f3e3639bc8ef6",
+    "uncompressedSha256": "c04200d6f2ac5b809ed07a7181196e53e581a7e6ddd584f1c25bcccf6504321f",
+    "bytes": 107825,
+    "entries": 37
+  }
+}

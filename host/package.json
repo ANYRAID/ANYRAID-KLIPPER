@@ -304,7 +304,8 @@
     "bench:native-probe": "node bench/native-probe.ts",
     "build:fatfs": "node scripts/build-fatfs.ts",
     "bench:fatfs": "node bench/fatfs.ts",
-    "bench:moonraker-cors-policy": "node bench/moonraker-cors-policy.ts"
+    "bench:moonraker-cors-policy": "node bench/moonraker-cors-policy.ts",
+    "bench:announcements": "node bench/announcements.mjs"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
@@ -330,6 +331,7 @@
     "pdfkit": "0.20.2",
     "qoijs": "1.0.0",
     "re2-wasm": "1.0.2",
+    "saxes": "6.0.0",
     "sharp": "0.35.5",
     "svg-to-pdfkit": "0.1.8",
     "ws": "8.21.3",
