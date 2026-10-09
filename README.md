@@ -39,7 +39,10 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 [失效准入审查](host/contracts/native-metadata-invalidation-admission.json)。后续候选
 并行准备私有回执与内容目录同步，保留公开回执前的双屏障和五次同步；
 新组合通过七路原预算及原完整混合软件验收，尚未证明冷发布提速。
-当前待新头 CI 和正常集成，见[回执准备审查](host/contracts/native-publication-authority-preparation.json)。
+PR #58 和公告组合 PR #57 已正常合入 develop；文件修复合并后检查通过，
+组合实际合并后的全部 15 项检查也通过，见[集成终态](host/contracts/develop92-build-terminal.json)。
+软件结果见[回执准备审查](host/contracts/native-publication-authority-preparation.json)
+与[交付计划](docs/Node_Host_Delivery_Plan.md)，实际同包客户端仍待验。
 
 元数据原子版本头候选减少耐久写入成本，同一独立包的磁盘、大图和
 重扫完整混合软件验证已通过。新内容准备组合通过七路原性能预算和

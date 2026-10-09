@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "date": "2026-10-09",
+  "head": "87ac5ad7ffd7869f10d268a21af6fc9bd4cf9778",
+  "tree": "86e4cee137550d9407d2b5c24a1d222c6eeb524b",
+  "parents": [
+    "88b6826d521d59029261c2a809c49ab815ee3ab3",
+    "d9dbcfe220d97c332a39323c3d93187058649e93"
+  ],
+  "event": "push",
+  "hostRun": 37946499480,
+  "jobs": [
+    {
+      "id": 113874007946,
+      "name": "sanitizer (asan)",
+      "run": 37946499480,
+      "conclusion": "success"
+    },
+    {
+      "id": 113874008167,
+      "name": "checks",
+      "run": 37946499480,
+      "conclusion": "success"
+    },
+    {
+      "id": 113874008433,
+      "name": "sanitizer (ubsan)",
+      "run": 37946499480,
+      "conclusion": "success"
+    },
+    {
+      "id": 113879502873,
+      "name": "host",
+      "run": 37946499480,
+      "conclusion": "success"
+    },
+    {
+      "id": 113874009301,
+      "name": "build",
+      "run": 37946499975,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4418,
+    "pass": 4418,
+    "fail": 0
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4418,
+      "failed": 0,
+      "passed": 4418,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4418,
+      "suites": 0
+    }
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": false,
+    "reason": "本次合并未命中既有运动路径过滤，历史诊断不计为本头执行。"
+  },
+  "evidence": {
+    "path": "develop87-build-terminal.evidence.json.gz",
+    "sha256": "67563d684ae8242d2c9921ebbb97ee7138111e5dd51b7485aef16f3bdf523fb3",
+    "bytes": 585192,
+    "entries": 9
+  },
+  "scope": "实际 develop 合并头的独立 push 检查终态；不替代客户端、目标板、G3、Python 退役或主线发布。"
+}
