@@ -85,6 +85,12 @@ off。on 只接受 `--case motion --execution source --runs 1 --workers 1`。
 仅文件级测试结果和重放结果均见
 [边界捕获准备](../host/contracts/motion-filter-boundary-capture.json)。
 
+捕获设施经 PR #59 正常合入 develop `e312c172`；精确候选头与
+实际合并后的全部 15 项检查分别核验通过。普通为 4434／4434，
+包含两项新控制；原 sanitizer 清单和运动诊断条件保留。终态见
+[候选记录](../host/contracts/pr59-ea4-terminal.json)与
+[合并后记录](../host/contracts/develop-e312-terminal.json)，不关闭 G3。
+
 证据归档是 gzip JSON；`entries` 含相对路径、原始字节数、SHA-256
 及 base64。校验归档和条目摘要后将 `capture/` 提取到新临时目录，
 无需再次运行运动生成或子进程。保留原历史捕获文件和独立整数模型，

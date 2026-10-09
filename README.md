@@ -44,6 +44,11 @@ PR #58 和公告组合 PR #57 已正常合入 develop；文件修复合并后检
 软件结果见[回执准备审查](host/contracts/native-publication-authority-preparation.json)
 与[交付计划](docs/Node_Host_Delivery_Plan.md)，实际同包客户端仍待验。
 
+有限滤波边界捕获设施 PR #59 已正常合入 develop `e312c172`，
+精确候选头及实际合并后的全部 15 项检查分别通过，原始日志见
+[合并后终态](host/contracts/develop-e312-terminal.json)。捕获仅为
+诊断准备，历史数值异常、G3、完整客户端和全面 Python 退役仍未完成。
+
 元数据原子版本头候选减少耐久写入成本，同一独立包的磁盘、大图和
 重扫完整混合软件验证已通过。新内容准备组合通过七路原性能预算和
 原完整混合负载，已正常合入 develop；实际客户端和目标板门槛仍待收口，见
