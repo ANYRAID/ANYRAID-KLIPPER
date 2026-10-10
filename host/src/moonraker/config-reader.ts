@@ -39,15 +39,18 @@ function clone<T extends Json>(value:T):T{validateJson(value);return structuredC
  * immutable; publication explicitly copies records into the server's snapshot. */
 export class ConfigurationReader {
  readonly source:ConfigurationSource;
- #parsed:ConfigurationSnapshot['parsed']=dict();#warnings=new Set<string>();
+ #parsed:ConfigurationSnapshot['parsed']=dict();#warnings=new Set<string>();#privateOptions=new Map<string,Set<string>>();
  constructor(source:ConfigurationSource,initialSection:string|null='server'){this.source=source;if(initialSection!==null)this.ensure(initialSection);}
  ensure(section:string):void{checkName(section);this.#parsed[section]??=dict();}
  section(name:string,fallback?:string):ConfigSection{this.ensure(name);if(fallback!==undefined)checkName(fallback);return new ConfigSection(this,name,fallback);}
  sections():string[]{return Object.keys(this.source.original).filter(s=>s!=='DEFAULT');}
  hasSection(name:string):boolean{return name!=='DEFAULT'&&Object.hasOwn(this.source.original,name);}
  prefixSections(prefix:string):string[]{return this.sections().filter(s=>s.startsWith(prefix));}
- parsed():ConfigurationSnapshot['parsed']{return structuredClone(this.#parsed);}
- snapshot():ConfigurationSnapshot{return this.source.snapshot(this.parsed());}
+ /** Only public copies are redacted; internal source/getter behavior is intact. */
+ redact(section:string,option:string):void{checkName(section);checkName(option);let names=this.#privateOptions.get(section);if(!names)this.#privateOptions.set(section,names=new Set());names.add(option.toLowerCase());}
+ #redacted<T extends Record<string,Record<string,unknown>>>(values:T):T{for(const [section,names]of this.#privateOptions){if(!Object.hasOwn(values,section))continue;for(const name of names)if(Object.hasOwn(values[section],name))values[section][name]='<redacted>';}return values;}
+ parsed():ConfigurationSnapshot['parsed']{return this.#redacted(structuredClone(this.#parsed));}
+ snapshot():ConfigurationSnapshot{const snapshot=this.source.snapshot(this.parsed());return this.#privateOptions.size?{...snapshot,original:this.#redacted(structuredClone(snapshot.original))}:snapshot;}
  publish(target:ServerConfiguration):void{target.replace(this.snapshot());}
  warnings():readonly string[]{return Object.freeze([...this.#warnings]);}
  warn(message:string):void{this.#warnings.add(message);}

@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "head": "48731115e3d23c3f5e17cb77af6e31f98b3872a6",
+  "base": null,
+  "mergeRef": null,
+  "hostRun": 37978081742,
+  "jobs": [
+    {
+      "id": 113981327127,
+      "name": "checks",
+      "run": 37978081742,
+      "conclusion": "success"
+    },
+    {
+      "id": 113981327244,
+      "name": "sanitizer (asan)",
+      "run": 37978081742,
+      "conclusion": "success"
+    },
+    {
+      "id": 113981327268,
+      "name": "sanitizer (ubsan)",
+      "run": 37978081742,
+      "conclusion": "success"
+    },
+    {
+      "id": 113986410671,
+      "name": "host",
+      "run": 37978081742,
+      "conclusion": "success"
+    },
+    {
+      "id": 113981326346,
+      "name": "build",
+      "run": 37978081601,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4473,
+    "pass": 4473,
+    "fail": 0
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4473,
+      "failed": 0,
+      "passed": 4473,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4473,
+      "suites": 0
+    }
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": false,
+    "reason": "Changed paths are outside the unchanged motion workflow filter; prior develop e312 motion evidence retains its original scope and does not count as a current-head run."
+  },
+  "evidence": {
+    "path": "develop-4873-terminal.evidence.json.gz",
+    "sha256": "bdf6227ec4415b70bad789280c4a27fbe4b11ba514dacbd73b541055aec7cdad",
+    "bytes": 586685,
+    "entries": 7
+  },
+  "scope": "PR #61 实际合并后 develop 48731115 的五项独立规定检查；不替代后续 LDAP 身份本地候选、完整客户端、模板、目录传输、G3 或硬件验收。"
+}

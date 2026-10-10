@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "head": "0c107f160f96bd3f0cda0d18682deb1e5a14632a",
+  "base": "3fcc9c631121e3e7b178f2412b664e9563480988",
+  "mergeRef": null,
+  "hostRun": 37975348927,
+  "jobs": [
+    {
+      "id": 113972137280,
+      "name": "checks",
+      "run": 37975348927,
+      "conclusion": "success"
+    },
+    {
+      "id": 113972137635,
+      "name": "sanitizer (asan)",
+      "run": 37975348927,
+      "conclusion": "success"
+    },
+    {
+      "id": 113972137708,
+      "name": "sanitizer (ubsan)",
+      "run": 37975348927,
+      "conclusion": "success"
+    },
+    {
+      "id": 113977509702,
+      "name": "host",
+      "run": 37975348927,
+      "conclusion": "success"
+    },
+    {
+      "id": 113972137561,
+      "name": "build",
+      "run": 37975348928,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4467,
+    "pass": 4467,
+    "fail": 0
+  },
+  "ordinaryReporter": {
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4467,
+      "failed": 0,
+      "passed": 4467,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4467,
+      "suites": 0
+    }
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "triggered": false,
+    "reason": "Changed paths are outside the unchanged motion workflow filter; prior develop e312 motion evidence retains its original scope and does not count as a current-head run."
+  },
+  "evidence": {
+    "path": "pr61-0c107-terminal.evidence.json.gz",
+    "sha256": "3f8b2558f0d20ef2aad4060d1a6ced54b4184744d4cb16ae271eb23dba4dd7e9",
+    "bytes": 586175,
+    "entries": 7
+  },
+  "scope": "原私密文件所有者候选；仅属于 0c107f1，不能替代后续负零修复头 43cf711。"
+}

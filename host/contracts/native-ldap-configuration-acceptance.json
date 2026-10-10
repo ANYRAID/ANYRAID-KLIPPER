@@ -1,0 +1,202 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "base": "353fada5bf500fe1edabe13e2e29ae7defcf9820",
+  "scope": "Native LDAP standard authorized server configuration/lifetime with explicit rendering dependency; no full generic template owner, real directory, locked-client product update or hardware acceptance.",
+  "sources": {
+    "src/moonraker/ldap-authorization.ts": "ad24b5508c3b97866322b312eacc2e7535bcbfe01ea56340e30306a56f0ae992",
+    "src/moonraker/ldap-config.ts": "e30a0a9409b371e3939c5bdaf606f92795dd5b2008b013fba52b55f8774edef8",
+    "src/moonraker/config-reader.ts": "0d95a8b6c0cfff7823ed654d64f4cbc4d080dec4cccb47c4b4422cd55e681b8e",
+    "src/moonraker/authorization-config.ts": "8b1d58ecebf7f73ae7c91092fb6381c9d618d1554c58ea4b1617d50b984be9fd",
+    "src/moonraker/configured-server.ts": "1ed3461964f50c29ecba0d35c00f33e1b809f02a2d0a99afc5f7c08adfb74085",
+    "test/ldap-config.test.ts": "366bfc9c5a033ae99daadc63040e031a772c0f6a4d2cc829f3484672e9b95dde",
+    "test/configured-ldap.test.ts": "6753aa5d4c9fbe868c327f7e9450699b1f3c2e15b942f174b94b80788d6e3379",
+    "bench/ldap-configuration.ts": "78af6ba8dff70a6822d57075540d05c534971ab815466879fb60cd844732b714",
+    "package.json": "eae7c182b215087a2082045ffae7da54cb6cc8e2a0af146fc64a728ff8f36c9b",
+    "package-lock.json": "b890eff34a349b721afd6013f53d6e2c3fa14538ce8ae6bc0bd580ec328da389"
+  },
+  "behavior": [
+    "Literal [ldap] native owner and default_source policy",
+    "Five private template fields use explicit renderer, total rendering deadline and cancellation",
+    "Public parsed/original copies mask bind_password; raw protected configuration remains privileged",
+    "Lazy LDAP runtime load when configured only",
+    "Pending LDAP close aborts sockets before network/authorization/database drains",
+    "Unknown/invalid/unowned-template and empty-group policies fail closed before directory traffic",
+    "Own-property redaction avoids inherited constructor/prototype traversal"
+  ],
+  "tests": [
+    {
+      "log": "anyraid-ldap-config-first-pure-oct10.log",
+      "actual": "3 file-level successes only",
+      "scope": "case-level output absent; not evidence of 13 cases"
+    },
+    {
+      "log": "anyraid-ldap-config-test-typecheck-oct10.log",
+      "actual": "failed test fixture union annotation",
+      "scope": "fixed test type; no production failure"
+    },
+    {
+      "log": "anyraid-ldap-config-actual-pure-oct10.log",
+      "actual": "13/13 actual cases",
+      "scope": "4 initial new config +2 existing authorization +7 configuration reader"
+    },
+    {
+      "log": "anyraid-ldap-config-first-network-oct10.log",
+      "actual": "6/6 actual cases",
+      "scope": "3 new configured LDAP +3 existing authorized server lifecycle"
+    },
+    {
+      "log": "anyraid-ldap-config-lazy-network-oct10.log",
+      "actual": "6/6 actual cases",
+      "scope": "affected actual server cases after lazy import"
+    },
+    {
+      "log": "anyraid-ldap-config-prototype-first-oct10.log",
+      "actual": "0/1",
+      "scope": "readonly inherited prototype assignment failed; no global mutation"
+    },
+    {
+      "log": "anyraid-ldap-config-prototype-fixed-oct10.log",
+      "actual": "3/3",
+      "scope": "new prototype and affected private configuration controls"
+    },
+    {
+      "log": "anyraid-ldap-config-redaction-network-oct10.log",
+      "actual": "1/1",
+      "scope": "actual standard login/configuration route after prototype repair"
+    },
+    {
+      "log": "anyraid-ldap-config-empty-group-first-oct10.log",
+      "actual": "0/1",
+      "scope": "direct native constructor lacked exception; resolver assertions not reached"
+    },
+    {
+      "log": "anyraid-ldap-config-empty-group-fixed-pure-oct10.log",
+      "actual": "7/7",
+      "scope": "all 6 current config cases +1 affected existing native invalid configuration case"
+    },
+    {
+      "log": "anyraid-ldap-config-empty-group-fixed-network-oct10.log",
+      "actual": "1/1",
+      "scope": "expanded standard config rejection case, caller DB open and zero directory traffic"
+    },
+    {
+      "log": "anyraid-ldap-config-current-typecheck-oct10.log",
+      "actual": "exit 0",
+      "scope": "current final production/test/benchmark source"
+    },
+    {
+      "log": "anyraid-ldap-config-final-whitespace-oct10.log",
+      "actual": "exit 0",
+      "scope": "required project check after current documentation"
+    }
+  ],
+  "testScope": "6 unique new config cases and 3 unique standard server cases verified across distinct stages, not one all-green nine-case command. Full candidate CI pending.",
+  "defaultPathPerformance": {
+    "baselineCommit": "353fada5bf500fe1edabe13e2e29ae7defcf9820",
+    "budget": {
+      "coldRatio": 1.15,
+      "coldAllowanceMs": 5,
+      "queryRatio": 1.1,
+      "queryAllowanceMs": 5
+    },
+    "order": "ABBA; 14 fresh processes per group",
+    "warmups": 2,
+    "samples": 7,
+    "queries": 200,
+    "cold": {
+      "baseline": {
+        "medianMs": 357.630114,
+        "p95Ms": 369.961933
+      },
+      "current": {
+        "medianMs": 356.363866,
+        "p95Ms": 372.050661
+      }
+    },
+    "query": {
+      "baseline": {
+        "medianMs": 89.82330800000005,
+        "p95Ms": 94.64081500000003
+      },
+      "current": {
+        "medianMs": 89.57946500000003,
+        "p95Ms": 93.725254
+      }
+    },
+    "coldPass": true,
+    "queryPass": true,
+    "currentInventorySha256": "72358c5a67be3608105c042d06b18da56f5ba81940b02c387aa3c5c2dc47f3af",
+    "baselineInventorySha256": "d4f8a2da45fd808ed810a0e695900f2a235af9874fcc73daa0d756f2512291cd",
+    "scope": "Exact-source, fresh-process default native authorized server startup including module imports, database open, assembly and localhost listening; warmed actual HTTP server/info queries with API-key authorization. Existing dependency/native bytes reused, not rebuilt. No LDAP login, target-board, printing or G3 claim."
+  },
+  "transportPerformance": {
+    "medianMs": 41.12117699999999,
+    "p95Ms": 42.724419000000125,
+    "eventLoop": [
+      {
+        "p99Ms": 1.771519,
+        "maxMs": 1.822719
+      },
+      {
+        "p99Ms": 1.726463,
+        "maxMs": 2.109439
+      },
+      {
+        "p99Ms": 1.748991,
+        "maxMs": 2.001919
+      },
+      {
+        "p99Ms": 1.736703,
+        "maxMs": 1.767423
+      },
+      {
+        "p99Ms": 1.743871,
+        "maxMs": 1.815551
+      },
+      {
+        "p99Ms": 1.744895,
+        "maxMs": 1.799167
+      },
+      {
+        "p99Ms": 1.736703,
+        "maxMs": 1.938431
+      }
+    ],
+    "budget": {
+      "loginP95Ms": 250,
+      "eventLoopP99Ms": 20,
+      "eventLoopMaxMs": 50
+    },
+    "pass": true,
+    "scope": "Actual TCP LDAP service/anonymous bind, subtree search, user bind and group policy on one synthetic loopback peer. No Python/real-directory/TLS-latency/printing/target-board comparison; cached JWT performance retains its separately fingerprinted identity scope."
+  },
+  "retainedFailures": [
+    "First benchmark baseline missed Unicode runtime contracts before warmup; no timed sample",
+    "Prototype-stage median budgets passed, but cold P95 371.87→597.75 ms and query P95 159.65→197.22 ms increased",
+    "One bounded 4-process phase diagnostic did not reproduce the difference or establish its cause",
+    "Current final-source budget pass does not erase previous tail anomaly"
+  ],
+  "nativeReuse": {
+    "rebuilt": false,
+    "sealedFileSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b"
+  },
+  "previousEvidence": {
+    "identity": "native-ldap-identity-acceptance.json",
+    "transport": "native-ldap-transport-acceptance.json",
+    "immutableArchivesUnchanged": true
+  },
+  "remaining": [
+    "Full generic template/secrets numerical and callable/async-global bridge",
+    "Actual customer directory and TLS latency",
+    "Complete official client missing journeys; see integrated-client-additional-scenes.json",
+    "Cycnumbris 500 target-board print performance and precision/G3",
+    "All Python retirement and normal master PR/release"
+  ],
+  "evidence": {
+    "file": "native-ldap-configuration-acceptance.evidence.json.gz",
+    "sha256": "a59171de893b8d8ce62bac932a8cc423a99092e9b05289b86acf51cd7f636dd3",
+    "bytes": 629513,
+    "entries": 54
+  }
+}

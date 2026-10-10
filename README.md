@@ -40,6 +40,17 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 合并后的五项规定检查分别通过，含普通 4437／4437、协议、Linux MCU、
 精确 324 条 sanitizer 命令及固件，见
 [合并后终态](host/contracts/develop-3fcc-terminal.json)。完整页面与 G3 仍待验。
+私密配置文件所有者 PR #61 已正常合入 develop `48731115`；最新
+候选的五项检查及 4473／4473 通过，见[候选终态](host/contracts/pr61-43cf-terminal.json)。
+实际合并后的五项规定检查独立通过，含 4473／4473、协议、Linux MCU、
+324 条 sanitizer 命令及固件，见[合并后终态](host/contracts/develop-4873-terminal.json)。
+上述 CI 不覆盖后续本地 LDAP 身份候选；模板／LDAP 完整装配和全面 Python 退役未完成。
+LDAP 身份任务分支已补齐独立 LDAP／LDAPS 传输，合成目录协议和
+桌面延迟预算通过，见[传输证据](host/contracts/native-ldap-transport-acceptance.json)。
+标准 `loadAuthorized` 已接入明确配置的 LDAP／LDAPS，拒绝空分组，
+私密绑定密码在公开配置副本中脱敏。配置与关闭控制、原失败及当前
+源码性能见[标准装配证据](host/contracts/native-ldap-configuration-acceptance.json)。
+通用模板、实际用户目录、目标板和全面 Python 退役仍待完成。
 受保护入口新增清台确认页面候选，请求确认在旧服务、策略关闭及设备忙
 时保持拒绝，操作和独立包证据见[队列页面验收](host/contracts/product-queue-panel-acceptance.json)。
 实际页面与当前系列验收仍待完成。
@@ -444,3 +455,12 @@ G-code 调度中验证，按工具暂停回抽及多热端温度快照也已验�
 写入相同失效状态；旧预览撤销、新扫描代次及有序清理仍保留。局部
 性能改善尚不足以通过完整打印门槛，见
 [元数据性能审查](host/contracts/native-metadata-invalidation-acceptance.json)。
+
+2026-10-10 追加有限场次结果与启动失败见
+[追加场次证据](host/contracts/integrated-client-additional-scenes.json)。
+Fluidd 已从实际页面加入队列，未确认时保持 standby／零历史，
+清台勾选确认后模拟打印，页面显示 100% 并产生一条历史。
+后续 553 秒的 Fluidd 有限场次补齐受控进程恢复、历史不重复、
+恢复后摘要一致的页面下载及复制／重命名／删除。文件来自 API 预置，
+选择上传仍返回 `Invalid native filename`；工具长时间未返回、启动
+失败和弹窗时序缺项保留。完整客户端出口未完成，未延期或自动重启。

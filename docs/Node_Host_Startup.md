@@ -3567,3 +3567,99 @@ secrets／模板与 LDAP 契约仍未关闭。默认测试使用实际固定上�
 整数／浮点负零的输入中位为 128.92 ms，逐轮核对符号。新增原始扫描
 成本保留，缓存读取和打印路径没有改变。原性能记录保留在原源码
 范围，不将其摘要改写为当前头结果，也不宣称全面无退化。
+
+## LDAP 身份所有者接入候选
+
+`LocalUserOptions` 新增明确的 `ldap` 目录认证依赖及 `defaultSource`。
+依赖实现 `authenticate(username, password, signal)`，必须执行实际
+目录认证并响应取消；账号所有者负责串行身份操作和持久发布，目录
+客户端的创建及关闭由装配者管理。当前标准配置加载器已接入实际
+目录传输所有者，见后文标准配置；独立注入回调不能证明实际目录、
+TLS、通用模板或完整 LDAP 已完成。
+
+目录首次登录成功后建立 `source=ldap` 的持久身份，密码及盐为空；
+不会将目录密码保存到私有数据库。来源必须匹配已有身份，不支持
+显式创建目录用户或通过本地接口修改目录密码。目录自动建立身份的
+响应仍为 `user_logged_in`，不发布本地用户创建事件。已有 JWT 的
+刷新、退出、删除及重启撤销沿用同一账号所有者；关闭目录登录后，
+已有有效 JWT 的行为与固定上游保持一致，退出或删除仍撤销授权。
+
+目录失败只返回不含凭据的错误；请求取消或所有者关闭后，迟到的
+目录结果不能建立身份。没有自动更改信任网段、开放监听器或启用
+LDAP；`/access/info` 仅按明确注入的可用来源报告策略。
+
+七项新身份控制及一项实际原生 HTTP／WebSocket 控制分别通过；
+首轮测试接法与类型错误、缺少复用插件及沙箱监听失败全部保留，
+不同轮次不拼成一次全绿链，见[身份所有者证据](../host/contracts/native-ldap-identity-acceptance.json)。
+与 `48731115` 原账号源码做七轮 ABBA、每组 14 个样本的对照：
+10 万次缓存 JWT 校验中位 20.69→20.93 ms，本地登录两次为
+30.60→30.82 ms，约增加 1.2%／0.7%。均通过运行前固定的
+1.1 倍加 2 ms 批次桌面预算，不证明目录传输或目标板打印预算。
+复现时先用 `git show 48731115:host/src/moonraker/local-user-authorization.ts`
+导出原源码，再以 Node.js 26 运行 `node host/bench/ldap-identity.ts <原源码路径>`。
+
+## LDAP／LDAPS 传输接入候选
+
+`LdapAuthorization` 实现上述目录依赖，由装配者创建、注入并关闭。
+`LdapOptions` 接受已解析的 `host`、`port`、`secure`、`baseDn`、
+`groupDn`、`bindDn`、`bindPassword`、`userFilter`、`membershipAttribute`、
+`checkDnCase` 及 `activeDirectory`；不自行渲染模板或公开已解析凭据。
+标准 `loadAuthorized` 已装配 `[ldap]` 的实际传输，通用模板和
+实际用户目录验收尚未完成。旧传输证据仍保留原先独立源码范围，
+标准装配结果使用后文的新证据，不改写历史归档。
+
+先绑定服务账号或匿名身份，在基准 DN 下搜索，然后以结果第一项
+DN 绑定用户。默认查询 uid，AD 查询 sAMAccountName；自定义过滤器
+的所有 USERNAME 均替换为 RFC4515 转义值。分组按指定属性校验，
+默认 DN 大小写敏感。重绑失败仅尝试新的用户连接，不透明重连或
+自动重放记忆凭据，不能因会话断开退回匿名搜索。
+
+每次登录独立建立连接。默认总期限 10 秒、响应总量 1 MiB、队列
+32 项、搜索最多 1024 项；超过期限或资源界限拒绝该登录。取消和
+`close()` 关闭实际连接及等待操作，关闭目录所有者后不能再登录。
+数据回调在库解析前检查已取消状态，并隔离解析异常。LDAPS 最低
+TLS 1.2，始终验证 CA 和主机名，DNS 名提供 SNI；`ca` 只允许配置
+在加密传输上，不提供关闭证书校验的选项。错误、状态及对象检查
+不返回绑定密码；不承诺 JavaScript 字符串的即时内存清零。
+
+固定库为 ldapts 9.2.0，安装源码与固定标签 Client Git blob 一致。
+九项不同控制分轮验证，完整类型及规定空白检查通过；合成目录
+登录七轮、每轮八次，P95 42.32 ms，事件循环 P99 最高 1.79 ms。
+预定桌面预算分别为登录 P95 250 ms、事件循环 P99 20 ms／最大
+50 ms。复现：Node.js 26 执行 `node host/bench/ldap-transport.ts`，
+仅在本机合成目录监听 127.0.0.1 并关闭。范围与原始证据见
+[传输验收记录](../host/contracts/native-ldap-transport-acceptance.json)，
+不证明实际用户目录、TLS 延迟、目标板打印或 G3 通过。
+
+## LDAP 标准配置装配候选
+
+`ConfiguredMoonraker.loadAuthorized` 在 `[ldap]` 存在时解析配置，创建
+实际 LDAP／LDAPS 所有者并纳入关闭；未配置时不加载 ldapts。
+`[authorization] default_source=ldap` 要求该所有者存在，默认来源
+仍为 moonraker，不隐式更改登录、信任网段或默认产品入口。
+
+支持固定上游的 `ldap_host`、`ldap_port`、`ldap_secure`、`base_dn`、
+`group_dn`、`bind_dn`、`bind_password`、`user_filter`、
+`membership_attribute`、`check_dn_case` 和 `is_active_directory`。
+未知字段拒绝；空分组 DN 拒绝，避免模板返回空值时取消成员校验。
+绑定 DN 要求绑定密码。字面值直接解析；base、group、bind、password
+和 user_filter 中的模板均须通过显式
+`authorization.ldapConfiguration.render(source, signal)` 所有者渲染。
+这只是依赖契约，不能代替完整通用模板实现或关闭模板兼容门槛。
+
+五个字段共用 10 秒总渲染期限和调用方取消信号；异步迟到结果丢弃，
+错误不附带私密原文。可信同步渲染器仍须执行自身资源限额。自定义
+过滤器保留 USERNAME。TLS 证书仅可由明确的 ca 依赖提供，不能通过
+配置关闭证书或主机名验证。
+
+公开 `ConfigurationReader.parsed()`、`snapshot()` 中的绑定密码
+显示为 `<redacted>`，不遍历继承的 constructor／原型。内部原始源
+和受保护配置文件仍包含配置原文，不据此宣称所有下载文件已脱敏。
+标准服务器关闭先取消目录连接，再等网络、账号与数据库排空；配置
+失败未接管数据库时，调用方数据库保持打开。
+
+实际配置与标准服务器控制、首次失败／受影响修复、配对源码和预算
+见[装配验收](../host/contracts/native-ldap-configuration-acceptance.json)。
+当前中位预算通过；历史尾延迟增加原因未确定，不能用后续正常样本
+消除该记录。完整通用模板、实际目录、目标板打印与 G3、全面 Python
+退役及主线发布仍未完成。
