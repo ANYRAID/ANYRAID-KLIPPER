@@ -22,15 +22,17 @@ async function interceptSync(run:(kind:string,original:()=>Promise<void>)=>Promi
 function pausedPreview(f:Awaited<ReturnType<typeof fixture>>,entered:ReturnType<typeof Promise.withResolvers<void>>,release:ReturnType<typeof Promise.withResolvers<void>>):FileHandle{
  return {stat:()=>f.preview.stat({bigint:true}),read:async(buffer:Buffer,offset:number,length:number,position:number)=>{if(length>8){entered.resolve();await release.promise;}return f.preview.read(buffer,offset,length,position);}} as unknown as FileHandle;
 }
-test('paired content syncs overlap while both directory barriers and receipt sync remain ordered',{timeout:10000},async()=>{
- const f=await fixture(),model=Promise.withResolvers<void>(),preview=Promise.withResolvers<void>(),events:string[]=[];
- const restore=await interceptSync(async(kind,original)=>{events.push(kind+'-start');if(kind==='model'){model.resolve();await preview.promise;}if(kind==='preview'){preview.resolve();await model.promise;}await original();events.push(kind+'-done');});
+test('paired content syncs overlap and private receipt may start before the content directory barrier',{timeout:10000},async()=>{
+ const f=await fixture(),model=Promise.withResolvers<void>(),preview=Promise.withResolvers<void>(),receiptEntered=Promise.withResolvers<void>(),events:string[]=[];let directories=0;
+ // Both private authority barriers run concurrently. Exercise receipt-first
+ // scheduling explicitly; public authority still waits for both to finish.
+ const restore=await interceptSync(async(kind,original)=>{if(kind==='directory'&&++directories===1)await receiptEntered.promise;events.push(kind+'-start');if(kind==='receipt')receiptEntered.resolve();if(kind==='model'){model.resolve();await preview.promise;}if(kind==='preview'){preview.resolve();await model.promise;}await original();events.push(kind+'-done');});
  try{
   const record=await f.store.publish('job','零件.gcode',f.model,signal(),undefined,f.preview);
-  assert.equal(events.filter(x=>x.endsWith('-start')).length,5);const firstDirectory=events.indexOf('directory-start');assert(firstDirectory>events.indexOf('model-done'));assert(firstDirectory>events.indexOf('preview-done'));assert(events.indexOf('receipt-start')>firstDirectory);assert.equal(events.at(-2),'directory-start');assert.equal(events.at(-1),'directory-done');
+  assert.equal(events.filter(x=>x.endsWith('-start')).length,5);const firstDirectory=events.indexOf('directory-start'),receiptStart=events.indexOf('receipt-start');for(const start of [firstDirectory,receiptStart]){assert(start>events.indexOf('model-done'));assert(start>events.indexOf('preview-done'));}assert(receiptStart<firstDirectory);assert(events.lastIndexOf('directory-start')>events.indexOf('directory-done'));assert(events.lastIndexOf('directory-start')>events.indexOf('receipt-done'));assert.equal(events.at(-2),'directory-start');assert.equal(events.at(-1),'directory-done');
   assert.equal(record.sha256,createHash('sha256').update('G1 X1\n').digest('hex'));assert.equal(record.preview?.sha256,createHash('sha256').update(png).digest('hex'));assert.deepEqual((await f.store.readPreview('job',signal()))?.bytes,png);assert.equal(f.store.status.reservedBytes,0);
   await f.store.close();const next=await PublishedPrintFiles.open(f.root);try{assert.deepEqual(await next.inspect('job'),record);}finally{await next.close();}
- }finally{model.resolve();preview.resolve();restore();await f.close();}
+ }finally{model.resolve();preview.resolve();receiptEntered.resolve();restore();await f.close();}
 });
 test('model failure and close drain a preview still reading before releasing publication ownership',{timeout:10000},async()=>{
  const f=await fixture(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>(),modelFailed=Promise.withResolvers<void>();let settled=false,closed=false,notifications=0;

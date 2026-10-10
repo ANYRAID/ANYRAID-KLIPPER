@@ -1,0 +1,375 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "head": "64c12681ad288f430afd3b9ffe00a4584835953c",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "mergeReference": "b2cf2fea6be512fed9873628cbba7b38ad1d7cce",
+  "pullRequest": 68,
+  "status": "CI failed; test-only repair validated locally; new-head CI required",
+  "allSuccess": false,
+  "jobs": [
+    {
+      "id": 114223282009,
+      "name": "sanitizer (asan)",
+      "run": 38055596991,
+      "conclusion": "success"
+    },
+    {
+      "id": 114223282215,
+      "name": "checks",
+      "run": 38055596991,
+      "conclusion": "failure"
+    },
+    {
+      "id": 114223282234,
+      "name": "sanitizer (ubsan)",
+      "run": 38055596991,
+      "conclusion": "success"
+    },
+    {
+      "id": 114226689152,
+      "name": "host",
+      "run": 38055596991,
+      "conclusion": "failure"
+    },
+    {
+      "id": 114223281918,
+      "name": "build",
+      "run": 38055596959,
+      "conclusion": "success"
+    },
+    {
+      "id": 114223282297,
+      "name": "motion (26.9.0, off, compiled)",
+      "run": 38055597018,
+      "conclusion": "success"
+    },
+    {
+      "id": 114223282370,
+      "name": "motion (26.9.0, default, source)",
+      "run": 38055597018,
+      "conclusion": "success"
+    },
+    {
+      "id": 114223282398,
+      "name": "motion (26.10.0, default, compiled)",
+      "run": 38055597018,
+      "conclusion": "success"
+    },
+    {
+      "id": 114223282404,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "run": 38055597018,
+      "conclusion": "success"
+    },
+    {
+      "id": 114223282420,
+      "name": "motion (26.10.0, off, compiled)",
+      "run": 38055597018,
+      "conclusion": "success"
+    },
+    {
+      "id": 114223282422,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "run": 38055597018,
+      "conclusion": "success"
+    },
+    {
+      "id": 114223282431,
+      "name": "motion (26.10.0, default, source)",
+      "run": 38055597018,
+      "conclusion": "success"
+    },
+    {
+      "id": 114223282447,
+      "name": "motion (26.9.0, off, source)",
+      "run": 38055597018,
+      "conclusion": "success"
+    },
+    {
+      "id": 114223282448,
+      "name": "motion (26.9.0, default, compiled)",
+      "run": 38055597018,
+      "conclusion": "success"
+    },
+    {
+      "id": 114223282550,
+      "name": "motion (26.10.0, off, source)",
+      "run": 38055597018,
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "node": "v26.11.1",
+    "tests": 4528,
+    "pass": 4526,
+    "fail": 2,
+    "failures": [
+      {
+        "schema": 1,
+        "node": "v26.11.1",
+        "file": "/home/runner/work/ANYRAID-KLIPPER/ANYRAID-KLIPPER/host/test/native-grid-cancellation.test.ts",
+        "name": "HTTP disconnect during grid seek stops native motion and retains prior mesh",
+        "line": 12,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": "ERR_ASSERTION"
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.11.1",
+        "file": "/home/runner/work/ANYRAID-KLIPPER/ANYRAID-KLIPPER/host/test/published-paired-preparation.test.ts",
+        "name": "paired content syncs overlap while both directory barriers and receipt sync remain ordered",
+        "line": 25,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": "ERR_ASSERTION"
+        },
+        "truncatedFields": []
+      }
+    ],
+    "protocol": "skipped",
+    "linuxMcu": "skipped"
+  },
+  "sanitizers": {
+    "commands": 324,
+    "allStatusZero": true,
+    "exactFrozenLegacyAndExtension": true
+  },
+  "motion": {
+    "groups": 10,
+    "freshProcesses": 500,
+    "failed": 0,
+    "notG3Closure": true
+  },
+  "localFull": {
+    "baseHead": "64c12681ad288f430afd3b9ffe00a4584835953c",
+    "node": "v26.10.0",
+    "tests": 4528,
+    "pass": 4519,
+    "fail": 9,
+    "durationMs": 463173.482048,
+    "outerLimitMs": 900000,
+    "exit": 1,
+    "failures": [
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/native-file-start-accounting-compiled.test.ts",
+        "name": "first file stream accounting runs in an independent compiled product without TS or external tools",
+        "line": 14,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/print-layer-pause-compiled.test.ts",
+        "name": "layer pause ownership, file boundary and failure cleanup run in an independent compiled product",
+        "line": 14,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/product-build.test.ts",
+        "name": "compiled product workers, addons, assets and mathematical output run without TS or Python",
+        "line": 20,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/product-build.test.ts",
+        "name": "product publication is reproducible and preserves prior output on compiler or addon failure",
+        "line": 46,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/product-build.test.ts",
+        "name": "compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports",
+        "line": 59,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/product-client-gateway-compiled.test.ts",
+        "name": "protected client gateway and installed assets run from independent compiled product with unchanged protocol assertions",
+        "line": 14,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/product-native-build.test.ts",
+        "name": "fresh native build uses explicit C and Rust tools without Python, binds sources and preserves existing destinations",
+        "line": 9,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/sd-flash-build.test.ts",
+        "name": "compiled SD CLI and bundled FatFs run without Python, TS loader or source checkout",
+        "line": 11,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/serial-ownership.test.ts",
+        "name": "test/serial-ownership.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGSEGV",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      }
+    ],
+    "rustThreadStackOverride": false,
+    "gridRepairPresent": true,
+    "pairedRepairPresent": false,
+    "sourceTestMutationDuringRun": false,
+    "artifactInventoryFrozen": false,
+    "artifactNote": "The e96 terminal JSON and archive were added during the suite; product builders copy contract JSON. This is not an immutable package inventory or final locked-package acceptance.",
+    "observations": [
+      "Five fresh Rust template build tests failed: multiple SIGSEGV, SIGILL and one rustc symbol unwrap panic",
+      "Two native TypeScript compiler launches reported Go SIGSEGV",
+      "Compiled layer pause child exited SIGILL after six assertions; serial ownership file process exited SIGSEGV",
+      "No common root cause inferred and no precision/performance threshold relaxed"
+    ]
+  },
+  "repair": {
+    "sourceHashes": {
+      "host/test/native-grid-cancellation.test.ts": "5bbc198fd4c916c6ec37bdbac580be4f3363603928c440434dd2ee3b6e08b8bd",
+      "host/test/native-grid-product.test.ts": "e951e04a9035d0c26bf2179bd4f1db39606ee8c711b00346e1a0a7a6cbe96cb1",
+      "host/test/published-paired-preparation.test.ts": "3f8f3b8d1d96ff05a66b5e7e1afef572dba918cba7709b1aabb92b2dceaf05be"
+    },
+    "productionChanged": false,
+    "grid": "Existing dispatch held through a single positive HTTP admission; cancellation releases dispatch after first probe witness and before original second-hit abort",
+    "gridRemoteRootLimit": "Remote busy phase was not captured; controlled clock rejection witness remains independent",
+    "publication": "Deterministically exercise private receipt starting before content directory fsync; both follow content completion and precede final public directory fsync",
+    "originalDeadlinesGeometryHitsTimersAndCoordinateAssertionsRetained": true,
+    "automaticRetry": false,
+    "focused": {
+      "node": "v26.10.0",
+      "tests": 41,
+      "pass": 41,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 20740.020943,
+      "exit": 0,
+      "outerLimitMs": 120000
+    },
+    "typecheck": {
+      "exit": 0
+    },
+    "printingBenchmarkRerun": false,
+    "benchmarkReason": "Only test scheduling/expectations changed; runtime and math unchanged"
+  },
+  "evidence": {
+    "path": "pr68-64-terminal.evidence.json.gz",
+    "sha256": "4c7b5d4247100cf60d11d0e96ad06e983eb7f5acce1359826bf9848985d4c680",
+    "bytes": 1299328,
+    "entries": 29,
+    "scope": "Decoded connector logs with normalized terminal newline plus original/repaired tests and raw local runs; no transport-byte identity claim"
+  },
+  "limits": [
+    "New repair head must pass its own prescribed CI; no develop merge performed",
+    "Historical local toolchain/runtime failures remain unresolved",
+    "No new actual UI scene, hardware validation, target-board performance, G3 closure or Python retirement"
+  ]
+}

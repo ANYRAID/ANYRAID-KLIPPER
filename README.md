@@ -59,6 +59,11 @@ LDAP 身份任务分支已补齐独立 LDAP／LDAPS 传输，合成目录协议�
 完整任意精度整数及目标板尚未验证，见
 [同步模板验收](host/contracts/moonraker-template-sync-acceptance.json)和
 [装配说明](docs/Node_Host_Startup.md#同步私密文本模板候选)。
+后续两个候选头的普通 CI 均有两项失败，协议及 Linux MCU 被跳过；
+网格准入与发布并发顺序的测试修复通过 41 项定向检查和类型检查，
+新头仍须完整 CI。本机常规 Rust 栈完整回归 4528 项中 4519 通过、
+9 项失败，编译器及测试进程异常尚未定位，见
+[当前候选与修复证据](host/contracts/pr68-64-terminal.json)。
 后续默认构建已将模板列为必需插件，从独立 C／Rust 快照生成，绑定
 锁文件与工具链，不再需要手工带入已有插件。桌面启动校验及固定模板
 预算通过；首次打包回归出现 Rust 编译器 SIGSEGV，16 MiB 线程栈条件
