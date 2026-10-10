@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "head": "6fb196804e209751c57ecae8abb6aba1f60baaf6",
+  "kind": "Actual develop merge commit",
+  "jobs": [
+    {
+      "id": 114193750621,
+      "name": "checks",
+      "run": 38045385804,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750769,
+      "name": "sanitizer (asan)",
+      "run": 38045385804,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750801,
+      "name": "sanitizer (ubsan)",
+      "run": 38045385804,
+      "conclusion": "success"
+    },
+    {
+      "id": 114196062335,
+      "name": "host",
+      "run": 38045385804,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750825,
+      "name": "motion (26.10.0, default, source)",
+      "run": 38045385843,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750866,
+      "name": "motion (26.9.0, off, source)",
+      "run": 38045385843,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750878,
+      "name": "motion (26.10.0, off, compiled)",
+      "run": 38045385843,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750881,
+      "name": "motion (26.10.0, off, source)",
+      "run": 38045385843,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750883,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "run": 38045385843,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750884,
+      "name": "motion (26.10.0, default, compiled)",
+      "run": 38045385843,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750894,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "run": 38045385843,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750922,
+      "name": "motion (26.9.0, default, compiled)",
+      "run": 38045385843,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750938,
+      "name": "motion (26.9.0, default, source)",
+      "run": 38045385843,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193750939,
+      "name": "motion (26.9.0, off, compiled)",
+      "run": 38045385843,
+      "conclusion": "success"
+    },
+    {
+      "id": 114193751014,
+      "name": "build",
+      "run": 38045385913,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4499,
+    "pass": 4499,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "conditions": 10,
+    "childrenPerCondition": 50,
+    "verifiedChildren": 500,
+    "tolerancesUnchanged": true,
+    "notG3Closure": true
+  },
+  "evidence": {
+    "path": "develop-6fb-terminal.evidence.json.gz",
+    "sha256": "4250996922bfae47eb1e534a6dbc151d51f5e17ac3588d9541623b2ee1f6a62f",
+    "bytes": 973186,
+    "entries": 17,
+    "logRepresentation": "Decoded connector logs; stored newline normalization retained; no claim of HTTP transport byte identity"
+  },
+  "scope": "PR #62 LDAP integration CI. Does not prove customer directory, latest locked client bundle inclusion, target-board printing performance, full generic templates, G3 motion precision or Python retirement."
+}
