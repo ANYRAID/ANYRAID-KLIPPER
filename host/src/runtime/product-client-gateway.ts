@@ -98,14 +98,16 @@ export class ProductClientGateway {
     }
     throw new GatewayError(405);
    }
-   if(path==='/_client/login'&&request.method==='GET'&&request.url===path&&this.#options.client){await this.#options.client(request,response,AbortSignal.any([abort.signal,this.#lifetime.signal]),false);return;}
+   // The canonical login falls outside the old official worker's navigation
+   // cache. Its original sw.js must remain updateable after session expiry.
+   if(this.#options.client&&request.url===path&&((path==='/_client/login'||path==='/access/client-login')&&request.method==='GET'||path==='/sw.js'&&['GET','HEAD'].includes(request.method??''))){await this.#options.client(request,response,AbortSignal.any([abort.signal,this.#lifetime.signal]),false);return;}
    const session=this.#session(request),token=await this.#token(session);
    if(apiPath(path)){await this.#proxy(request,response,token,AbortSignal.any([abort.signal,this.#lifetime.signal]));return;}
    // Frontend assets require a currently valid native identity, not just a
    // cache entry whose JWT may have been revoked by another native client.
    await this.#identity(session,token);
    if(!this.#options.client)throw new GatewayError(404);await this.#options.client(request,response,AbortSignal.any([abort.signal,this.#lifetime.signal]),true);
-  }catch(error){if(!request.complete&&!response.headersSent)response.setHeader('connection','close');if(error instanceof GatewayError&&error.code===401&&request.method==='GET'&&!apiPath(request.url?.split('?')[0]??'')&&(!request.url?.startsWith('/_client/')||['/_client/control','/_client/queue'].includes(request.url??''))&&request.headers.accept?.includes('text/html')&&!response.headersSent){response.writeHead(303,{location:'/_client/login','cache-control':'no-store'});response.end();}else this.#failure(response,error);}finally{response.off('close',disconnect);if(admitted)this.#active--;if(!request.complete)request.resume();}
+  }catch(error){if(!request.complete&&!response.headersSent)response.setHeader('connection','close');if(error instanceof GatewayError&&error.code===401&&request.method==='GET'&&!apiPath(request.url?.split('?')[0]??'')&&(!request.url?.startsWith('/_client/')||['/_client/control','/_client/queue'].includes(request.url??''))&&request.headers.accept?.includes('text/html')&&!response.headersSent){response.writeHead(303,{location:'/access/client-login','cache-control':'no-store'});response.end();}else this.#failure(response,error);}finally{response.off('close',disconnect);if(admitted)this.#active--;if(!request.complete)request.resume();}
  }
  async #proxy(request:IncomingMessage,response:ServerResponse,token:string,signal:AbortSignal){
   const forwarded=headers(request.headers);for(const h of ['cookie','authorization','x-api-key','x-access-token','forwarded','x-forwarded-for','x-real-ip'])delete forwarded[h];forwarded.authorization='Bearer '+token;forwarded.host=this.#upstream.host;if(forwarded.origin!==undefined)forwarded.origin=this.#upstream.origin;

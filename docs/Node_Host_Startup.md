@@ -3268,8 +3268,16 @@ Mainsail 2.19.0 文件选择、显式启动、单作业完成和历史，预览�
 JWT 授权，不新增打印、文件、历史或运动所有者。默认入口仍为 Python。
 登录成功后打开 `/_client/control`，其 iframe 在 `/` 加载原版 Mainsail；
 官方导航路径返回相同的安装版 index，避免子路径出现空白页面。
-登录、退出、API 和控制台导航始终访问网络；官方 Service Worker 原字节
-由边界包装器加载，不能以缓存前端页面替代会话或 API 响应。
+规范登录入口为 `/access/client-login`，避开旧官方 Service Worker 的
+导航缓存；`/_client/login` 保留兼容。原 `/sw.js` 在未登录或会话失效后
+仍提供不拦截请求的迁移 Worker，立即接管后让全部请求访问网络。
+登录页遇到旧 Worker 时先更新并等待激活，最多五秒；失败不提交凭据，
+提示重新加载。登录、退出、API 和控制台导航不得由缓存代替鉴权。
+官方资源原字节仍保留；不导入旧导航 Worker，不删除用户偏好或存储，
+不强制重新加载其他打印窗口。迁移入口仅公开登录 HTML 和无凭据的
+固定 Worker，其他资源和 API 继续验证原生身份。
+迁移回归、固定包摘要和有限官方页面结果见
+[缓存迁移验收](../host/contracts/product-client-worker-migration-acceptance.json)。
 
 编译包包含 `scripts/product-client.js`。它作为独立的受监督进程运行，
 只监听 127.0.0.1，并要求显式固定的私有原生 Moonraker 回环监听地址：

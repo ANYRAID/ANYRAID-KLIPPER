@@ -97,3 +97,18 @@ test('queue operation page uses the same native identity, login redirect and rev
   },{client});
  }finally{await rm(root,{recursive:true,force:true});}
 });
+
+test('expired browser sessions can update the original worker and reach an uncached login without anonymous API or file access',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'worker-migration-assets-'));
+ try{
+  await writeFile(join(root,'index.html'),'<html>official client</html>');const client=await productClientAssets(root);
+  await fixture(async f=>{
+   for(const method of ['GET','HEAD']){const worker=await f.http('/sw.js',method);assert.equal(worker.code,200);if(method==='GET')assert(worker.raw.includes('self.skipWaiting()'));else assert.equal(worker.raw,'');}
+   for(const path of ['/access/client-login','/_client/login']){const page=await f.http(path,'GET',undefined,undefined,{accept:'text/html'});assert.equal(page.code,200);assert(page.raw.includes('登录账号'));assert(!page.raw.includes(f.alice.token));}
+   for(const path of ['/server/info','/access/user','/index.html','/_client/upstream-worker.js','/_client/control'])assert.equal((await f.http(path)).code,401);
+   for(const path of ['/sw.js','/access/client-login']){assert.equal((await f.http(path,'GET',undefined,undefined,{host:'foreign.example'})).code,403);assert.equal((await f.http(path,'POST',{})).code,401);assert.equal((await f.http(path+'?unexpected=true')).code,401);}
+   const cookie=await f.login();assert.equal((await f.native('/access/logout','POST',{},f.alice.token)).code,200);
+   assert.equal((await f.http('/sw.js','GET',undefined,cookie)).code,200);assert.equal((await f.http('/access/client-login','GET',undefined,cookie)).code,200);assert.equal((await f.http('/server/info','GET',undefined,cookie)).code,401);assert.equal(f.writes(),0);assert.equal(f.gateway.status.websockets,0);
+  },{client});
+ }finally{await rm(root,{recursive:true,force:true});}
+});

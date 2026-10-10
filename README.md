@@ -29,6 +29,14 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 [接入验收](host/contracts/protected-client-gateway-acceptance.json)，
 装配命令与权限边界见[启动说明](docs/Node_Host_Startup.md#受保护的官方-mainsail-接入候选)。
 完整同包客户端、目标板和 G3 门槛仍未关闭。
+受保护入口补齐旧 Service Worker 的缓存迁移。最终锁定包的 Mainsail
+R9 实际登录、选择上传、摘要一致的下载、文件管理、清台确认队列、
+模拟打印历史、断连／进程恢复和配置保存重启已验证；场次含启动
+约 4 分 7 秒后关闭。此前失败和两套客户端的完整出口仍分别保留，见
+[缓存迁移与有限页面验收](host/contracts/product-client-worker-migration-acceptance.json)。
+同包 Fluidd R10 的文件、清台队列、暂停恢复、完成记录及进程恢复
+亦通过，约 4 分 34 秒后关闭；保留 JWT 刷新兼容性缺项。
+最新普通完整回归 4417／4371／46，完整本机门槛仍未通过。
 2026-10-10 两次明确授权的同包页面场次已执行并关闭。Fluidd 已验证
 实际选择上传、摘要一致的下载、文件管理、模拟打印、断连恢复及配置
 保存重启；Mainsail 已验证受保护登录、上传下载和模拟暂停恢复，

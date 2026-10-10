@@ -1,0 +1,873 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "status": "Bounded software increment; actual Mainsail R9 and Fluidd R10 paths verified; full delivery gates remain open",
+  "sourceBase": "9e41363c211621ea4d1c26754ae2c4abda611fb3",
+  "inputFiles": {
+    "host/src/runtime/product-client-assets.ts": "2aa13c1a6634b195468e076f32e5452e4782dc6dd03a512a4b3d137307ae5bb5",
+    "host/src/runtime/product-client-gateway.ts": "3637ea9f736c17affa5dcfcb11b755eb98f4f37399203f4653c29b917921a308",
+    "host/test/product-client-assets.test.ts": "dd6090544b236156e7ae502678ee67fc6fdfd18548fba789fa09a07fb303c9ed",
+    "host/test/product-client-gateway.test.ts": "62ce6f0d6d9562f0c8f2224d084e4b0d8fe2db936c5f1efe6ed4e7beb046f8cf",
+    "host/test/product-client-worker-migration.test.ts": "17d4773dd554f85bf46371f7bc988f9a63924b33973696fa23c497e5de881895",
+    "host/test/product-client-gateway-compiled.test.ts": "cd89ebd0c974f4faa2d6f4d25aeec305d86addd6b92c38f8215a494f954f4c75"
+  },
+  "authorization": {
+    "source": "Standing user authorization in this conversation for new finite loopback client scenes and downloads",
+    "maxElapsedMs": 900000,
+    "includesStartup": true,
+    "loopbackOnly": true,
+    "simulatedMcuOnly": true,
+    "automaticExtensionOrRelaunch": false,
+    "explicitInSceneRecovery": true
+  },
+  "diagnosis": {
+    "sameOrigin": "http://127.0.0.1:18328",
+    "sameFixedDiagnosticHtml": true,
+    "oldLogin": "/_client/login",
+    "oldLoginObserved": "cached Mainsail connection page; no server navigation request",
+    "excludedRoute": "/access/client-cache-diagnostic",
+    "excludedRouteObserved": "diagnostic title and content reached actual HTTP server",
+    "durationMs": 38459,
+    "scope": "Finite static diagnostic, no MCU, no authentication, not a print acceptance",
+    "references": [
+      "https://developer.chrome.com/docs/workbox/reference/workbox-routing",
+      "https://developer.chrome.com/docs/workbox/remove-buggy-service-workers"
+    ]
+  },
+  "behavior": {
+    "canonicalLogin": "/access/client-login",
+    "compatibleLogin": "/_client/login",
+    "publicWorker": "/sw.js",
+    "workerHasNoFetchHandler": true,
+    "loginWorkerDeadlineMs": 5000,
+    "failedUpdateDoesNotSendCredentials": true,
+    "noAutomaticLoginRetry": true,
+    "preferencesPreserved": true,
+    "noReloadOfOtherPrintingWindows": true,
+    "apiFilesAndOtherAssetsRequireNativeIdentity": true,
+    "fixedHostAndOriginPolicyPreserved": true
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-worker-migration-final-product-oct10",
+    "manifestSha256": "32b55c761f4d4175ef9798ed8e5c4081ba8bf99afecc4831cbc0051e49373f89",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444",
+    "freshDefaultCAndRustBuild": true,
+    "normalRustStack": true,
+    "offlineProductionDependencies": true,
+    "lockedOriginalUnchanged": true
+  },
+  "clients": [
+    {
+      "name": "fluidd",
+      "version": "1.37.6",
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fixed-frontends/fluidd-1.37.6",
+      "archiveSha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed456",
+      "assetFiles": 255,
+      "assetTreeSha256": "61769e745cfd4e0c58430052db3cd2df5bcdc5961d6661d059b1b5bdde9647ae",
+      "everyFileMatchesOriginalArchive": true
+    },
+    {
+      "name": "mainsail",
+      "version": "2.19.0",
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fixed-frontends/mainsail-2.19.0",
+      "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
+      "assetFiles": 193,
+      "assetTreeSha256": "c9efdf1e72020aab7b0d2139f7f1d70018e136bd9cb2dde1ca8c3715d05ad1eb",
+      "everyFileMatchesOriginalArchive": true
+    }
+  ],
+  "validation": {
+    "node": "v26.10.0",
+    "focused": {
+      "tests": 23,
+      "passed": 23,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 1701.621907
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "log": "anyraid-worker-migration-final-typecheck-oct11.log"
+    },
+    "compiled": {
+      "tests": 14,
+      "passed": 14,
+      "failed": 0,
+      "outerTests": 1,
+      "externalProgramsDisabled": true,
+      "typeScriptLoadingDisabled": true,
+      "durationMs": 2041.397013
+    },
+    "mixed": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 63522.345659,
+      "originalTestDeadlineMs": 90000,
+      "outerDeadlineMs": 120000,
+      "namespace": true,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "originalAssertionsAndBudgetsPreserved": true,
+      "simulatedMcuCount": 2,
+      "deviceGenerations": 2
+    },
+    "full": {
+      "command": "npm test",
+      "outerDeadlineMs": 900000,
+      "normalRustStack": true,
+      "toolchain": "Rust and Cargo 1.89.0",
+      "firstAttempt": "Pretest cargo ENOENT due to missing explicit configured tool path; ordinary tests not started; original log retained",
+      "configuredAttempt": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "success": false,
+        "counts": {
+          "tests": 4417,
+          "failed": 46,
+          "passed": 4371,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "topLevel": 4417,
+          "suites": 0
+        }
+      },
+      "failures": [
+        {
+          "file": "host/test/api-key-authorization-compiled.test.ts",
+          "name": "compiled native authorization serves HTTP without Python or TypeScript loading",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/configured-cors-compiled.test.ts",
+          "name": "configured CORS HTTP and WebSocket run in an independent compiled product without Python or TS loading",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/dual-carriage-printer.test.ts",
+          "name": "test/dual-carriage-printer.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": 1,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/graph-motion.test.ts",
+          "name": "motion CLI exports three-panel image and exact JSON and rejects invalid invocation",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": "ERR_ASSERTION"
+          }
+        },
+        {
+          "file": "host/test/history-tracker.test.ts",
+          "name": "test/history-tracker.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/manual-delta-preflight.test.ts",
+          "name": "test/manual-delta-preflight.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGTRAP",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/metadata-files.test.ts",
+          "name": "test/metadata-files.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motan-build.test.ts",
+          "name": "Motan builds are reproducible, preserve the last build on failure and refuse unowned or locked destinations",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motan-csv-export.test.ts",
+          "name": "test/motan-csv-export.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGTRAP",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motan-log-writer.test.ts",
+          "name": "test/motan-log-writer.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motan-math-reference.test.ts",
+          "name": "test/motan-math-reference.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motan-python-repr.test.ts",
+          "name": "test/motan-python-repr.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motan-scalar-smooth.test.ts",
+          "name": "test/motan-scalar-smooth.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motan-sos-reference.test.ts",
+          "name": "test/motan-sos-reference.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motan-table.test.ts",
+          "name": "test/motan-table.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motan-wide-json.test.ts",
+          "name": "test/motan-wide-json.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motion-boundary-output.test.ts",
+          "name": "test/motion-boundary-output.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motion-capture.test.ts",
+          "name": "test/motion-capture.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motion-coordinator.test.ts",
+          "name": "test/motion-coordinator.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motion-filters.test.ts",
+          "name": "test/motion-filters.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGTRAP",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/motion-graph-retirement.test.ts",
+          "name": "test/motion-graph-retirement.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/native-file-start-accounting-compiled.test.ts",
+          "name": "first file stream accounting runs in an independent compiled product without TS or external tools",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/native-product-process-lifetime.test.ts",
+          "name": "test/native-product-process-lifetime.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/native-ufp-upload.test.ts",
+          "name": "test/native-ufp-upload.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/node-motion-probe.test.ts",
+          "name": "compiled probe also freezes a complete source control for runtime comparisons",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": "ERR_ASSERTION"
+          }
+        },
+        {
+          "file": "host/test/node-motion-probe.test.ts",
+          "name": "motion runtime probe verifies original reference in bounded fresh Node children and records source hashes",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": "ERR_ASSERTION"
+          }
+        },
+        {
+          "file": "host/test/print-layer-pause-compiled.test.ts",
+          "name": "layer pause ownership, file boundary and failure cleanup run in an independent compiled product",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/product-build.test.ts",
+          "name": "compiled product workers, addons, assets and mathematical output run without TS or Python",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/product-build.test.ts",
+          "name": "product publication is reproducible and preserves prior output on compiler or addon failure",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/product-build.test.ts",
+          "name": "compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/product-client-gateway-compiled.test.ts",
+          "name": "protected client gateway and installed assets run from independent compiled product with unchanged protocol assertions",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/product-host.test.ts",
+          "name": "executable host owns authenticated HTTP and graceful SIGINT shutdown (delta=false)",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/product-machine.test.ts",
+          "name": "read-only preflight CLI validates included topology without journal or MCU acquisition (delta=false)",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": "ERR_ASSERTION"
+          }
+        },
+        {
+          "file": "host/test/product-native-build.test.ts",
+          "name": "fresh native build uses explicit C and Rust tools without Python, binds sources and preserves existing destinations",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/sd-card-mcu.test.ts",
+          "name": "test/sd-card-mcu.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/sd-flash-build.test.ts",
+          "name": "compiled SD CLI and bundled FatFs run without Python, TS loader or source checkout",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/serial-buttons.test.ts",
+          "name": "test/serial-buttons.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/sht3x-hardware.test.ts",
+          "name": "test/sht3x-hardware.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/skew-port.test.ts",
+          "name": "test/skew-port.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/source-brake.test.ts",
+          "name": "test/source-brake.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/step-history.test.ts",
+          "name": "test/step-history.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/step-solver.test.ts",
+          "name": "test/step-solver.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/stepper-executed-counter.test.ts",
+          "name": "commanded pulse position matches actual C through future, partial and wrap (address,undefined)",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": null,
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/tmc-uart-mcu.test.ts",
+          "name": "test/tmc-uart-mcu.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGSEGV",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/upload-rejection.test.ts",
+          "name": "test/upload-rejection.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": null,
+            "signal": "SIGBUS",
+            "causeCode": null
+          }
+        },
+        {
+          "file": "host/test/velocity-limits.test.ts",
+          "name": "test/velocity-limits.test.ts",
+          "error": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "exitCode": 1,
+            "signal": null,
+            "causeCode": null
+          }
+        }
+      ],
+      "scope": "Original ordinary command with explicit CARGO, CARGO_HOME and RUSTUP_HOME; direct rustc was missing from PATH in one build-tool check. Rust/Go compiler faults, a C compile failure and test-file process failures also occurred; no common cause inferred. File-process failures can reduce observed test counts before registration.",
+      "workerSourceCases": "All five new worker migration cases passed within the full run; independent compiled-package test failed during fresh Go TypeScript compiler build before assertions",
+      "historicalFailuresNotCancelled": true
+    }
+  },
+  "performance": {
+    "benchmark": "Original unmodified product-client-gateway benchmark",
+    "node": "v26.10.0",
+    "warmups": 3,
+    "samples": 11,
+    "perSample": {
+      "rest": 200,
+      "http": 200,
+      "websocket": 500,
+      "concurrent": 320,
+      "concurrency": 16
+    },
+    "rawEvidence": "anyraid-worker-migration-gateway-bench-oct10.json",
+    "scope": "Desktop actual REST/HTTP/WebSocket workloads in sequential native/gateway pairs; no frozen timing threshold in this benchmark; not a controlled before/after worker comparison and not target hardware performance proof",
+    "printing": "The exact final bundle complete mixed journey retains all original budgets and assertions"
+  },
+  "scenes": [
+    {
+      "round": 8,
+      "name": "mainsail",
+      "started": "2026-10-10T14:40:38.490Z",
+      "deadline": "2026-10-10T14:55:38.490Z",
+      "closed": "2026-10-10T14:55:33.948Z",
+      "reason": "900-second-deadline",
+      "elapsedMs": 895458,
+      "children": [
+        {
+          "label": "GATEWAY",
+          "pid": 660106,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "label": "PROBE",
+          "pid": 660051,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/anyraid-worker-migration-final-product-oct10",
+      "automaticExtensionOrRelaunch": false
+    },
+    {
+      "round": 9,
+      "name": "mainsail",
+      "started": "2026-10-10T23:02:18.483Z",
+      "deadline": "2026-10-10T23:17:18.483Z",
+      "closed": "2026-10-10T23:06:25.706Z",
+      "reason": "explicit-completion",
+      "elapsedMs": 247223,
+      "children": [
+        {
+          "label": "GATEWAY",
+          "pid": 854852,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "label": "PROBE",
+          "pid": 854746,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/anyraid-worker-migration-final-product-oct10",
+      "automaticExtensionOrRelaunch": false
+    },
+    {
+      "round": 10,
+      "name": "fluidd",
+      "started": "2026-10-10T23:17:59.626Z",
+      "deadline": "2026-10-10T23:32:59.626Z",
+      "closed": "2026-10-10T23:22:33.327Z",
+      "reason": "explicit-completion",
+      "elapsedMs": 273701,
+      "children": [
+        {
+          "label": "GATEWAY",
+          "pid": 886455,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "label": "PROBE",
+          "pid": 886391,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/anyraid-worker-migration-final-product-oct10",
+      "automaticExtensionOrRelaunch": false
+    }
+  ],
+  "correctedToolControl": {
+    "tests": 1,
+    "passed": 0,
+    "failed": 1,
+    "normalRustStack": true,
+    "explicitExistingCargoAndRustc": true,
+    "originalTest": "test/product-native-build.test.ts",
+    "outerDeadlineMs": 180000,
+    "scope": "Only the prior missing-rustc case; does not replace the original failed complete suite"
+  },
+  "mainsailR8": {
+    "actualLogin": true,
+    "pageChooserUpload": true,
+    "download": "No completed proof; download event timeout and browser tool interruption retained",
+    "otherOperations": "not executed",
+    "closedByOriginalDeadline": true
+  },
+  "mainsailR9": {
+    "actualLogin": true,
+    "pageChooserUpload": true,
+    "rename": true,
+    "copy": true,
+    "deleteTemporaryCopy": true,
+    "notificationUpdatedVisibleList": true,
+    "officialAddToQueue": true,
+    "explicitClearanceRequestedAndConfirmed": true,
+    "shortSimulatedPrint": true,
+    "historyVisible": {
+      "jobs": 1,
+      "filename": "anyraid-r9-copy.gcode",
+      "printTimeSeconds": 10,
+      "filamentMm": 0.1
+    },
+    "connectionDropAndReconnect": true,
+    "explicitProcessRecovery": {
+      "processGeneration": 2,
+      "sameBundle": true,
+      "historyPreserved": true
+    },
+    "configuration": {
+      "actualEditor": true,
+      "commentSavedAndReopened": true,
+      "saveAndRestart": true,
+      "deviceGeneration": 2,
+      "simulatedMcuResets": [
+        1,
+        1
+      ],
+      "simulatedMcuConfigurations": [
+        2,
+        2
+      ]
+    },
+    "download": {
+      "source": "anyraid-r9-page-upload.gcode",
+      "renamed": "anyraid-r9-renamed.gcode",
+      "bytes": 222,
+      "sha256": "dbb91e73ba3554a326eee1d2481ab21ece65681ae768eda5de87ce4dc5b6b1c6",
+      "httpStatus": 200,
+      "observedDiskPath": "/home/dek02/Downloads/anyraid-r9-renamed.gcode",
+      "diskMtime": "2026-10-10T23:05:15.607Z",
+      "browserEvent": "Timed out after 9998ms; immediately caught; no kernel reset",
+      "actualPageMenuAction": true,
+      "automaticApprovalRejectionObserved": false
+    },
+    "seededFileExcludedFromPageUploadProof": "client-sample.gcode"
+  },
+  "fluiddR10": {
+    "actualLogin": true,
+    "pageChooserUpload": true,
+    "rename": true,
+    "copy": true,
+    "deleteTemporaryCopy": true,
+    "notificationUpdatedVisibleList": true,
+    "officialAddToQueue": true,
+    "explicitClearanceRequestedAndConfirmed": true,
+    "shortSimulatedPrint": true,
+    "pause": true,
+    "resume": true,
+    "completionVisible": {
+      "progressPercent": 100,
+      "xMm": 10
+    },
+    "historyVisible": {
+      "jobs": 1,
+      "filename": "anyraid-r10-copy.gcode",
+      "totalSeconds": 28,
+      "printSeconds": 11,
+      "filamentMm": 0.1
+    },
+    "connectionDropAndReconnect": true,
+    "explicitProcessRecovery": {
+      "processGeneration": 2,
+      "sameBundle": true,
+      "historyPreserved": true
+    },
+    "download": {
+      "source": "anyraid-r10-page-upload.gcode",
+      "renamed": "anyraid-r10-renamed.gcode",
+      "bytes": 222,
+      "sha256": "dbb91e73ba3554a326eee1d2481ab21ece65681ae768eda5de87ce4dc5b6b1c6",
+      "httpStatus": 200,
+      "browserEventSucceeded": true,
+      "browserReturnedPath": "/home/dek02/Downloads/anyraid-r10-renamed.gcode",
+      "actualPageMenuAction": true
+    },
+    "clientRefreshWarning": {
+      "rpc": "access.refresh_jwt",
+      "code": -32602,
+      "message": "Invalid or expired JWT",
+      "gatewayNativeIdentityAndActualOperationsContinued": true,
+      "causeNotIsolated": true,
+      "retainedAsCompatibilityGap": true
+    }
+  },
+  "remaining": [
+    "Complete same-package dual-client exit: both cancel/fault recovery and full preview scenarios, plus final-package Fluidd configuration save/restart and Mainsail pause/resume",
+    "Fluidd client explicit JWT refresh compatibility warning",
+    "Complete template factory including arbitrary/async globals, UI environment, Python integer range and isolation",
+    "Historical local compiler/runtime failures and current complete suite gate",
+    "Target board performance and precision, G3, actual Cycnumbris 500 hardware acceptance",
+    "Complete Moonraker and Python retirement; default print entry and main release unchanged"
+  ],
+  "evidence": {
+    "path": "product-client-worker-migration-acceptance.evidence.json.gz",
+    "sha256": "0a4f7432ae28ab9903ee8abf280f8d42a8eab04151da288f5927be649aae2457",
+    "bytes": 1265554,
+    "entries": 47,
+    "encoding": "gzip JSON base64 entries with individual SHA256; raw logs and page screenshots retained"
+  }
+}
