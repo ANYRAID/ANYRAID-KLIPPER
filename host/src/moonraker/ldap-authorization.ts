@@ -17,6 +17,7 @@ function options(input:LdapOptions):Readonly<LdapOptions>{
  for(const name of ['secure','checkDnCase','activeDirectory'] as const)if(input[name]!==undefined&&typeof input[name]!=='boolean')throw new ApiError(400,'Invalid LDAP settings');
  for(const name of ['port','timeoutMs','maxResponseBytes'] as const)if(input[name]!==undefined&&(!Number.isSafeInteger(input[name])||input[name]!<1||input[name]!>(name==='port'?65535:name==='timeoutMs'?60000:16*1024*1024)))throw new ApiError(400,'Invalid LDAP resource limit');
  for(const name of ['groupDn','bindDn','bindPassword','userFilter','ca'] as const)if(input[name]!==undefined&&!validText(input[name],name==='ca'?1024*1024:65535,true))throw new ApiError(400,'Invalid LDAP settings');
+ if(input.groupDn!==undefined&&!validText(input.groupDn,65535))throw new ApiError(400,'Invalid LDAP group policy');
  if(input.bindDn&&!input.bindPassword||input.bindPassword&&!input.bindDn||input.ca&&!input.secure||input.userFilter!==undefined&&!input.userFilter.includes('USERNAME')||input.membershipAttribute!==undefined&&!['memberOf','isMemberOf'].includes(input.membershipAttribute))throw new ApiError(400,'Invalid LDAP settings');
  // A host is a host, never a URL containing credentials, a path or a query.
  try{const url=new URL(`ldap://${input.host}:${input.port??389}`);if(!url.hostname||url.username||url.password||url.pathname||url.search||url.hash)throw Error();}catch{throw new ApiError(400,'Invalid LDAP host');}

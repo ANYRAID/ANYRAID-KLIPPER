@@ -1,0 +1,195 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "status": "PARTIAL_ADDITIONAL_ACCEPTANCE; all recorded product scenes closed; no full client or hardware closure",
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+    "manifestSha256": "8deb5fc70d8e3ccff3aa5cad40ee316c055f9e8e4da49cee7bde1c95c27630f3",
+    "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895",
+    "LDAPCandidateNotIncluded": true
+  },
+  "scenes": [
+    {
+      "round": 2,
+      "name": "mainsail",
+      "started": "2026-10-09T20:10:44.640Z",
+      "deadline": "2026-10-09T20:25:44.640Z",
+      "closed": "2026-10-09T20:10:44.919Z",
+      "reason": "child-exit",
+      "elapsedMs": 279,
+      "children": [
+        {
+          "label": "PROBE",
+          "pid": 340968,
+          "code": 1,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+      "automaticExtensionOrRelaunch": false
+    },
+    {
+      "round": 2,
+      "name": "fluidd",
+      "started": "2026-10-09T20:11:20.991Z",
+      "deadline": "2026-10-09T20:26:20.991Z",
+      "closed": "2026-10-09T20:26:21.488Z",
+      "reason": "900-second-deadline",
+      "elapsedMs": 900497,
+      "children": [
+        {
+          "label": "PROBE",
+          "pid": 341082,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+      "automaticExtensionOrRelaunch": false
+    },
+    {
+      "round": 3,
+      "name": "mainsail",
+      "started": "2026-10-10T09:50:54.477Z",
+      "deadline": "2026-10-10T10:05:54.477Z",
+      "closed": "2026-10-10T09:50:54.758Z",
+      "reason": "child-exit",
+      "elapsedMs": 281,
+      "children": [
+        {
+          "label": "PROBE",
+          "pid": 416280,
+          "code": 1,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+      "automaticExtensionOrRelaunch": false
+    },
+    {
+      "round": 3,
+      "name": "fluidd",
+      "started": "2026-10-10T09:52:04.826Z",
+      "deadline": "2026-10-10T10:07:04.826Z",
+      "closed": "2026-10-10T09:52:08.525Z",
+      "reason": "child-exit",
+      "elapsedMs": 3699,
+      "children": [
+        {
+          "label": "GATEWAY",
+          "pid": 416450,
+          "code": 1,
+          "signal": null
+        },
+        {
+          "label": "PROBE",
+          "pid": 416396,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+      "automaticExtensionOrRelaunch": false
+    },
+    {
+      "round": 4,
+      "name": "fluidd",
+      "started": "2026-10-10T09:59:37.520Z",
+      "deadline": "2026-10-10T10:14:37.520Z",
+      "closed": "2026-10-10T10:08:50.554Z",
+      "reason": "explicit-completion",
+      "elapsedMs": 553034,
+      "children": [
+        {
+          "label": "GATEWAY",
+          "pid": 420568,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "label": "PROBE",
+          "pid": 420502,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+      "automaticExtensionOrRelaunch": false
+    }
+  ],
+  "fluiddR2": {
+    "passed": [
+      "Actual operator login and queue component availability",
+      "Page adds API-seeded sample to queue",
+      "Confirmation absent: standby, zero history and disabled confirm button",
+      "Explicit checkbox+confirm submits simulated print; page reaches 100% and one history row"
+    ],
+    "failed": [
+      "Browser chooser upload HTTP400; error body not captured",
+      "Protected in-frame file chooser tool returned after 48664.2578 seconds; server remained bounded and closed independently"
+    ],
+    "timeLimit": "Shutdown initiated at 900s, resource cleanup completed 497ms later; no automatic extension/relaunch"
+  },
+  "startupFailures": [
+    {
+      "round": 2,
+      "client": "mainsail",
+      "reason": "Parent fixture build missing serialqueue.node; no listener ready; fixed by explicit reused locked addons before Fluidd"
+    },
+    {
+      "round": 3,
+      "client": "mainsail",
+      "reason": "Temporary probe selected ws CommonJS index instead of package ESM wrapper; no listener ready; failed temporary source retained"
+    },
+    {
+      "round": 3,
+      "client": "fluidd",
+      "reason": "Auxiliary gateway startup error; probe stopped; static constructor later valid and no persistent port conflict found; original cause unproven"
+    }
+  ],
+  "fluiddR4": {
+    "browser": "Existing sandboxed Chrome/shared Playwright fallback after in-app chooser control failed; fresh context",
+    "elapsedMs": 553034,
+    "passed": [
+      "Protected operator login and unchanged Fluidd page initialization",
+      "API-seeded sample queued through official page",
+      "Native standby/zero history before explicit clearance; disabled confirm button screenshot",
+      "Explicit queue clearance; native complete state, exactly one completed history, queue paused",
+      "Manual in-scene process recovery; new child process and unchanged artifact/MCU configuration; original authenticated raw Fluidd websocket reconnected without page relogin",
+      "After recovery: standby, one same completed history, empty paused queue, no automatic print replay",
+      "Actual page download after recovery equals exact API-seeded input, 19785 bytes SHA256 859b9d2ce3b7ae5adbb1708cf7c864ba8d70e4eed556f2453fcbab0ce4d13655",
+      "Actual page copy and rename verified by server directory; resulting name fluidd-r4-renamed.gcode.gcode retained verbatim",
+      "Actual page delete confirmation removes the disposable copied row; original history remains"
+    ],
+    "failedOrLimited": [
+      "Chooser upload HTTP400 Invalid native filename; original failed input unchanged",
+      "Browser request APIs omit multipart body, fields not available; do not infer exact rejected field",
+      "Rename-dialog wait timed out, later dialog closed; actual persistent file state separately verified",
+      "Process recovery uses stable acceptance proxy with original page JWT; original protected gateway remained bound to old private upstream and is not counted as recovered",
+      "No page-upload proof, no Mainsail additional journey proof, no physical printer or precision result"
+    ],
+    "unexpectedHarnessControls": [
+      "Direct eval containing top-level await rejected; corrected interactive syntax before login",
+      "Before-recovery row locator matched dashboard and file rows; no before-recovery screenshot claimed"
+    ]
+  },
+  "authorization": "Two explicit finite-pair approvals were followed by user authorization for automatically approved new bounded scenes. No expired scene was relaunched or extended. R4 manual process recovery was an explicit in-scene recovery action, not automatic fixture relaunch.",
+  "proofLimits": [
+    "Raw native proxy/state observations, HTTP error responses, exact download and screenshots are archived",
+    "Interactive browser tool transcript is not independently archived; do not present reconstructed messages as raw logs",
+    "In-app expired-page screenshot was auto-review rejected; not bypassed; temporary tabs closed without accessing expired page",
+    "R2 wrapper archive is its repaired version after first Mainsail import failure; do not claim it is the original failed wrapper source"
+  ],
+  "next": [
+    "Isolate actual standard-client upload path rejection using bounded captured request fixture, preserve traversal policy",
+    "Prepare stable protected gateway upstream for explicit process recovery; do not infer private dynamic port survives restart",
+    "Mainsail recovery, file/configuration management, history and queue remain open",
+    "Complete exact-head PR/CI and postmerge checks for LDAP independently"
+  ],
+  "evidence": {
+    "file": "integrated-client-additional-scenes.evidence.json.gz",
+    "sha256": "0baaf0882c65609325648cd1208d43fc13a63b62611a2163e6c3ba6aa7a02c11",
+    "bytes": 623032,
+    "entries": 49
+  }
+}
