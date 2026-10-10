@@ -4,6 +4,7 @@ import {mkdtemp,mkdir,writeFile,readFile,rm,lstat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
+import {inspect} from 'node:util';
 import {installProductDependencies,productInstallCLI} from '../src/runtime/product-install.ts';
 async function fixture(run:(root:string,npm:string)=>Promise<void>){
  const root=await mkdtemp(join(tmpdir(),'product-install-'));
@@ -34,6 +35,25 @@ test('failed install removes partial dependencies and permits a fresh retry',()=
  await assert.rejects(installProductDependencies(root,new AbortController().signal,npm));
  await assert.rejects(lstat(join(root,'node_modules')),{code:'ENOENT'});await assert.rejects(lstat(join(root,'.dependency-install.lock')),{code:'ENOENT'});
  await writeFile(npm,original);await installProductDependencies(root,new AbortController().signal,npm);assert((await lstat(join(root,'node_modules/example'))).isDirectory());
+}));
+test('npm failure retains an actionable category while discarding registry credentials and partial output',()=>fixture(async(root,npm)=>{
+ const original=await readFile(npm,'utf8');
+ for(const [line,expected] of [['npm error code ENOTFOUND','ENOTFOUND'],['npm ERR! code EINTEGRITY','EINTEGRITY'],['npm error code EPRIVATE_SYNTHETIC',null]] as const){
+  await writeFile(npm,"import {mkdir} from 'node:fs/promises';await mkdir('node_modules/partial',{recursive:true});console.error("+JSON.stringify(line+'\nnpm error https://synthetic-user:synthetic-secret@registry.test/private?token=synthetic-token')+");console.log('synthetic-private-output');process.exitCode=9;");
+  await assert.rejects(installProductDependencies(root,new AbortController().signal,npm),error=>{
+   const failure=error as Error&{code:string;exitCode:number;signal:null;npmCode:string|null};assert.equal(failure.code,'ERR_PRODUCT_DEPENDENCY_INSTALL');assert.equal(failure.exitCode,9);assert.equal(failure.signal,null);assert.equal(failure.npmCode,expected);
+   for(const value of [String(failure),JSON.stringify(failure),inspect(failure)])for(const privateText of ['synthetic-user','synthetic-secret','synthetic-token','synthetic-private-output','EPRIVATE_SYNTHETIC'])assert(!value.includes(privateText));return true;
+  });
+  await assert.rejects(lstat(join(root,'node_modules')),{code:'ENOENT'});await assert.rejects(lstat(join(root,'.dependency-install.lock')),{code:'ENOENT'});
+ }
+ await writeFile(npm,original);await installProductDependencies(root,new AbortController().signal,npm);assert((await lstat(join(root,'node_modules/example'))).isDirectory());
+}));
+test('excessive npm diagnostics report an output limit without exposing data or publishing dependencies',()=>fixture(async(root,npm)=>{
+ await writeFile(npm,"import {mkdir} from 'node:fs/promises';import {writeSync} from 'node:fs';await mkdir('node_modules/partial',{recursive:true});writeSync(2,'synthetic-private-output'.repeat(120000));");
+ await assert.rejects(installProductDependencies(root,new AbortController().signal,npm),error=>{
+  const failure=error as Error&{code:string;outputLimit:boolean;timedOut:boolean};assert.equal(failure.code,'ERR_PRODUCT_DEPENDENCY_INSTALL');assert.equal(failure.outputLimit,true);assert.equal(failure.timedOut,false);assert.match(failure.message,/output limit/);assert(!inspect(failure).includes('synthetic-private-output'));return true;
+ });
+ await assert.rejects(lstat(join(root,'node_modules')),{code:'ENOENT'});await assert.rejects(lstat(join(root,'.dependency-install.lock')),{code:'ENOENT'});
 }));
 test('cancelled installer joins its child before removing staging and retrying',()=>fixture(async(root,npm)=>{
  const original=await readFile(npm,'utf8'),controller=new AbortController();

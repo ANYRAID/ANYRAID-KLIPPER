@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "head": "e96c0a36c4ad845c60fa801a6b3a428b0ad53527",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "mergeReference": "fdecc8327ac50fa0843e3afa22b91f26ac80822b",
+  "pullRequest": 68,
+  "status": "Candidate CI failed; no normal integration",
+  "jobs": [
+    {
+      "id": 114220792353,
+      "name": "sanitizer (asan)",
+      "run": 38054747649,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792371,
+      "name": "sanitizer (ubsan)",
+      "run": 38054747649,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792549,
+      "name": "checks",
+      "run": 38054747649,
+      "conclusion": "failure"
+    },
+    {
+      "id": 114224226285,
+      "name": "host",
+      "run": 38054747649,
+      "conclusion": "failure"
+    },
+    {
+      "id": 114220792234,
+      "name": "build",
+      "run": 38054747658,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792294,
+      "name": "motion (26.9.0, off, source)",
+      "run": 38054747647,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792383,
+      "name": "motion (26.10.0, off, compiled)",
+      "run": 38054747647,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792390,
+      "name": "motion (26.10.0, default, source)",
+      "run": 38054747647,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792402,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "run": 38054747647,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792406,
+      "name": "motion (26.9.0, default, source)",
+      "run": 38054747647,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792412,
+      "name": "motion (26.10.0, off, source)",
+      "run": 38054747647,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792421,
+      "name": "motion (26.9.0, off, compiled)",
+      "run": 38054747647,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792422,
+      "name": "motion (26.10.0, default, compiled)",
+      "run": 38054747647,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792437,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "run": 38054747647,
+      "conclusion": "success"
+    },
+    {
+      "id": 114220792454,
+      "name": "motion (26.9.0, default, compiled)",
+      "run": 38054747647,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": false,
+  "ordinary": {
+    "node": "v26.11.1",
+    "tests": 4526,
+    "pass": 4524,
+    "fail": 2,
+    "failures": [
+      {
+        "schema": 1,
+        "node": "v26.11.1",
+        "file": "/home/runner/work/ANYRAID-KLIPPER/ANYRAID-KLIPPER/host/test/native-grid-cancellation.test.ts",
+        "name": "HTTP disconnect during grid seek stops native motion and retains prior mesh",
+        "line": 12,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": "ERR_ASSERTION"
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.11.1",
+        "file": "/home/runner/work/ANYRAID-KLIPPER/ANYRAID-KLIPPER/host/test/native-grid-product.test.ts",
+        "name": "HTTP grid calibration measures, activates, saves and reloads; circular=false",
+        "line": 12,
+        "column": 36,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": "ERR_ASSERTION"
+        },
+        "truncatedFields": []
+      }
+    ],
+    "protocol": "skipped",
+    "linuxMcu": "skipped"
+  },
+  "sanitizers": {
+    "commands": 324,
+    "allStatusZero": true,
+    "exactFrozenLegacyAndExtension": true
+  },
+  "motion": {
+    "groups": 10,
+    "freshProcesses": 500,
+    "failed": 0,
+    "notG3Closure": true
+  },
+  "evidence": {
+    "path": "pr68-e96-terminal.evidence.json.gz",
+    "sha256": "efd4420cab7a0bea316591d82cc10991d80d8b1bfa7430228e175c5c533c2d21",
+    "bytes": 983529,
+    "entries": 19,
+    "scope": "Decoded connector logs with normalized terminal newline and pinned original test sources; no transport-byte identity claim"
+  },
+  "limits": [
+    "CI root failures are grid cancellation expected rejection and rectangular grid HTTP409; actual remote busy phase was not captured",
+    "Historical local installation/compiler/motion failures remain separate",
+    "No actual develop merge, complete client acceptance, physical precision or Python retirement closure"
+  ]
+}

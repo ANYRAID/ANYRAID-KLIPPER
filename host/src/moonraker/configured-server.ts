@@ -57,6 +57,8 @@ import {ApiKeyAuthorization} from './api-key-authorization.ts';
 import {readAuthorizationOptions} from './authorization-config.ts';
 import type {LdapAuthorization} from './ldap-authorization.ts';
 import {readLdapOptions,type LdapConfigurationContext} from './ldap-config.ts';
+import {loadSecrets,type SecretsContext} from './secrets.ts';
+import {MoonrakerTemplateOwner} from './template-owner.ts';
 import {ConfigurationReader} from './config-reader.ts';
 import {ApiError,type RpcContext,JsonRpcDispatcher,type Json} from './rpc.ts';
 import {EndpointRegistry} from './endpoints.ts';
@@ -153,7 +155,7 @@ export interface ConfiguredAuthorizationOptions extends Omit<ConfiguredServerOpt
  /** Persistent database ownership transfers when assembly is constructed. */
  database:DatabaseStore;
  /** Stable externally provisioned origin, independent of an ephemeral listener. */
- authorization:{issuer:string;ldapConfiguration?:LdapConfigurationContext};
+ authorization:{issuer:string;ldapConfiguration?:LdapConfigurationContext;templateSecrets?:SecretsContext};
 }
 /** Device generation only. Process identity, authorization and database remain
  * with the listening server; the caller owns physical startup and cleanup. */
@@ -368,7 +370,15 @@ export class ConfiguredMoonraker {
    authorizeSubscriptionConnection:(source,target)=>owner().networkOptions.authorizeSubscriptionConnection!(source,target)
   };
   const {reader,automatic}=await this.#prepare(filename,resolved);
-  const ldapOptions=reader.hasSection('ldap')?await readLdapOptions(reader,options.authorization.ldapConfiguration):undefined;
+  if(options.authorization.templateSecrets&&options.authorization.ldapConfiguration?.render)throw new ConfigurationError('Choose one LDAP template dependency');
+  let privateSecrets:Awaited<ReturnType<typeof loadSecrets>>|undefined,templateOwner:MoonrakerTemplateOwner|undefined,ldapOptions:Awaited<ReturnType<typeof readLdapOptions>>|undefined;
+  try{
+   const context=options.authorization.ldapConfiguration;
+   if(reader.hasSection('ldap')&&options.authorization.templateSecrets){
+    context?.signal?.throwIfAborted();privateSecrets=await loadSecrets(reader,options.authorization.templateSecrets);context?.signal?.throwIfAborted();templateOwner=new MoonrakerTemplateOwner(privateSecrets);
+   }
+   if(reader.hasSection('ldap'))ldapOptions=await readLdapOptions(reader,templateOwner?{...context,render:(source,signal)=>{signal.throwIfAborted();const template=templateOwner!.createTemplate(source);try{const value=template.render();signal.throwIfAborted();return value;}finally{template.close();}}}:context);
+  }finally{templateOwner?.close();privateSecrets?.close();}
   const ldap=ldapOptions?new (await import('./ldap-authorization.ts')).LdapAuthorization(ldapOptions):undefined;
   let server:ConfiguredMoonraker|undefined;
   try{

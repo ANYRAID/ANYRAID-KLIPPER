@@ -1,4 +1,8 @@
-use minijinja::{syntax::SyntaxConfig, value::ValueKind, Environment, Error, ErrorKind, Value};
+use minijinja::{
+    syntax::SyntaxConfig,
+    value::{Object, ObjectRepr, ValueKind},
+    Environment, Error, ErrorKind, State, Value,
+};
 use napi_derive::napi;
 use num_bigint::{BigInt, BigUint};
 use num_traits::{FromPrimitive, One};
@@ -373,5 +377,172 @@ impl NativeSensorTemplate {
         if let Ok(mut readings) = self.readings.lock() {
             readings.clear();
         }
+    }
+}
+
+// Text rendering has a separate owner; sensor side effects and text output are
+// never conflated. No process environment, filesystem or JS callback is exposed.
+struct PrivateSecrets {
+    values: Value,
+    file: String,
+    format: String,
+}
+impl std::fmt::Debug for PrivateSecrets {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PrivateSecrets <private>")
+    }
+}
+impl Object for PrivateSecrets {
+    fn repr(self: &Arc<Self>) -> ObjectRepr {
+        ObjectRepr::Plain
+    }
+    fn get_value(self: &Arc<Self>, key: &Value) -> Option<Value> {
+        let value = self.values.get_item(key).ok()?;
+        // Jinja catches Python __getitem__ KeyError and returns Undefined,
+        // which prints empty under the pinned default undefined policy.
+        if value.is_undefined() {
+            None
+        } else {
+            Some(value)
+        }
+    }
+    fn call_method(
+        self: &Arc<Self>,
+        _state: &State<'_, '_>,
+        method: &str,
+        args: &[Value],
+    ) -> Result<Value, Error> {
+        match method {
+            "get" => {
+                let (key, default): (String, Option<Value>) = minijinja::value::from_args(args)?;
+                let value = self.values.get_item(&Value::from(key))?;
+                Ok(if value.is_undefined() {
+                    default.unwrap_or(Value::from(()))
+                } else {
+                    value
+                })
+            }
+            "get_type" | "get_secrets_file" if args.is_empty() => {
+                Ok(Value::from(if method == "get_type" {
+                    self.format.clone()
+                } else {
+                    self.file.clone()
+                }))
+            }
+            _ => Err(err("Unsupported secrets method")),
+        }
+    }
+}
+struct TextOutput(Vec<u8>);
+impl io::Write for TextOutput {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        if self.0.len() + bytes.len() > 65536 {
+            return Err(io::Error::other("Template output limit"));
+        }
+        self.0.extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+fn private_error() -> napi::Error {
+    js_err("Private template operation failed")
+}
+#[napi]
+pub struct NativeTextTemplate {
+    environment: Option<Environment<'static>>,
+}
+#[napi]
+impl NativeTextTemplate {
+    #[napi(constructor)]
+    pub fn new(
+        source: String,
+        secrets: String,
+        file: String,
+        format: String,
+    ) -> napi::Result<Self> {
+        if source.len() > 65536
+            || secrets.len() > 1048576
+            || file.len() > 4096
+            || !matches!(format.as_str(), "json" | "ini" | "invalid")
+        {
+            return Err(private_error());
+        }
+        let values = json_value(
+            serde_json::from_str(&secrets).map_err(|_| private_error())?,
+            0,
+        )
+        .map_err(|_| private_error())?;
+        if values.kind() != ValueKind::Map {
+            return Err(private_error());
+        }
+        let mut env = Environment::new();
+        env.set_syntax(
+            SyntaxConfig::builder()
+                .variable_delimiters("{", "}")
+                .build()
+                .map_err(|_| private_error())?,
+        );
+        env.set_fuel(Some(100000));
+        env.set_unknown_method_callback(minijinja_contrib::pycompat::unknown_method_callback);
+        env.add_filter("fromjson", |text: String| -> Result<Value, Error> {
+            if text.len() > 65536 {
+                return Err(err("JSON payload limit"));
+            }
+            json_value(
+                serde_json::from_str(&text).map_err(|_| err("Invalid JSON"))?,
+                0,
+            )
+        });
+        env.add_filter("float", float_filter);
+        env.add_filter("round", round_filter);
+        env.add_global(
+            "secrets",
+            Value::from_object(PrivateSecrets {
+                values,
+                file,
+                format,
+            }),
+        );
+        env.add_function(
+            "raise_error",
+            |_message: String, _code: Option<i64>| -> Result<Value, Error> {
+                Err(err("Template requested error"))
+            },
+        );
+        // Mirrors the default disabled logging.debug sink only. Enabling a real
+        // logger and async/user callables requires the future full factory owner.
+        env.add_function("log_debug", |_message: String| Value::from(()));
+        env.add_template_owned("text".to_owned(), source)
+            .map_err(|_| private_error())?;
+        Ok(Self {
+            environment: Some(env),
+        })
+    }
+    #[napi]
+    pub fn render(&self, context: String) -> napi::Result<String> {
+        if context.len() > 65536 {
+            return Err(private_error());
+        }
+        let env = self.environment.as_ref().ok_or_else(private_error)?;
+        let context = json_value(
+            serde_json::from_str(&context).map_err(|_| private_error())?,
+            0,
+        )
+        .map_err(|_| private_error())?;
+        if context.kind() != ValueKind::Map {
+            return Err(private_error());
+        }
+        let mut output = TextOutput(Vec::new());
+        env.get_template("text")
+            .map_err(|_| private_error())?
+            .render_captured_to(context, &mut output)
+            .map_err(|_| private_error())?;
+        String::from_utf8(output.0).map_err(|_| private_error())
+    }
+    #[napi]
+    pub fn close(&mut self) {
+        self.environment = None;
     }
 }

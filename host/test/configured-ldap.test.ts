@@ -36,3 +36,23 @@ test('LDAP configuration/template rejection retains caller database and sends no
   await writeFile(filename,config(peer.port,'group_dn: \n'));await assert.rejects(ConfiguredMoonraker.loadAuthorized(filename,{information,database:db,authorization}));assert.equal(db.status.closed,false);assert.equal(peer.connections,0);
  }finally{await db.close();await peer.close();await rm(root,{recursive:true,force:true});}
 });
+test('standard LDAP startup reads native private templates, releases startup environments and hides resolved credentials',{timeout:10000},async()=>{
+ const peer=await ldapPeer({handle(packet){if(packet.tag===96){const password=packet.fields[2]!.value.toString();ldapResult(packet,password==='synthetic-file-password'||password==='synthetic-user-private'?0:49);}else{ldapEntry(packet,'uid=printer,dc=test');ldapResult(packet);}}}),root=await mkdtemp(join(tmpdir(),'configured-native-template-')),filename=join(root,'main.conf'),db=await DatabaseStore.open({path:join(root,'users.sqlite')});let server:ConfiguredMoonraker|undefined;
+ try{
+  await writeFile(join(root,'moonraker.secrets'),'{"ldap":{"base":"dc=test","bind":"cn=service,dc=test","password":"synthetic-file-password","filter":"(uid=USERNAME)"},"float":1.0}');
+  await writeFile(filename,config(peer.port).replace('base_dn: dc=test','base_dn: {secrets["ldap"]["base"]}').replace('bind_dn: cn=service,dc=test','bind_dn: {secrets["ldap"]["bind"]}').replace('bind_password: synthetic-config-private','bind_password: {secrets["ldap"]["password"]}')+'user_filter: {secrets["ldap"]["filter"]}\n');
+  server=await ConfiguredMoonraker.loadAuthorized(filename,{information,database:db,authorization:{...authorization,templateSecrets:{dataPath:root}}});assert.equal(peer.connections,0);
+  // A render generation is immutable; login does not reopen the private file.
+  await writeFile(join(root,'moonraker.secrets'),'{"ldap":{"password":"changed-after-startup"}}');
+  const key=server.authorization!.localApiKey(),address=await server.start(),url=`http://127.0.0.1:${address.port}`,response=await fetch(url+'/access/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:'printer',password:'synthetic-user-private'})});assert.equal(response.status,200);await response.arrayBuffer();
+  const settings:any=await(await fetch(url+'/server/config',{headers:{'x-api-key':key}})).json();for(const privateValue of ['synthetic-file-password','changed-after-startup',join(root,'moonraker.secrets')])assert(!JSON.stringify(settings).includes(privateValue));assert(!server.reader.validate().some(value=>value.includes('[secrets]')));
+ }finally{await server?.close();await db.close();await peer.close();await rm(root,{recursive:true,force:true});}
+});
+test('native private template failures retain caller resources and admit no directory traffic',{timeout:10000},async()=>{
+ const peer=await ldapPeer(),root=await mkdtemp(join(tmpdir(),'configured-native-template-failure-')),filename=join(root,'main.conf'),db=await DatabaseStore.open({path:join(root,'users.sqlite')});
+ try{
+  await writeFile(join(root,'moonraker.secrets'),'{"marker":"synthetic-private-error"}');await writeFile(filename,config(peer.port).replace('base_dn: dc=test','base_dn: {raise_error(secrets["marker"])}'));
+  await assert.rejects(ConfiguredMoonraker.loadAuthorized(filename,{information,database:db,authorization:{...authorization,templateSecrets:{dataPath:root}}}),error=>!String(error).includes('synthetic-private-error')&&!(error as Error).cause);assert.equal(db.status.closed,false);assert.equal(peer.connections,0);
+  await assert.rejects(ConfiguredMoonraker.loadAuthorized(filename,{information,database:db,authorization:{...authorization,templateSecrets:{dataPath:root},ldapConfiguration:{render:()=>''}}}),/Choose one LDAP template/);assert.equal(peer.connections,0);
+ }finally{await db.close();await peer.close();await rm(root,{recursive:true,force:true});}
+});

@@ -1,0 +1,329 @@
+{
+  "schema": 1,
+  "status": "draft-candidate-local-gate-incomplete",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "node": "v26.10.0",
+  "rust": "1.89.0",
+  "scope": "Synchronous text/private lexical JSON and explicit LDAP startup dependency only. Does not close the full template factory, same-bundle client delivery, target-board, G3 or Python retirement.",
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "runtime": "3.12.13",
+    "sourceSha256": {
+      "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+      "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+    }
+  },
+  "evidence": {
+    "archive": "moonraker-template-sync-acceptance.evidence.json.gz",
+    "sha256": "ac660bbfbc806746189d6f84eaa7328fd4cf99ac10fc7a76645bbb230dbb1d8e",
+    "bytes": 308764,
+    "entries": 20
+  },
+  "sources": {
+    "host/native/template/src/lib.rs": "85531144df1560fec0a72afd04d78e45eec494b61c6de1063026f9f19076eff9",
+    "host/native/template/Cargo.toml": "af7d4c84ccbb9d3a5eb625847f1ddc2e6696a1586c98f85dc43bd51e12be6778",
+    "host/native/template/Cargo.lock": "d5fa08f87b0c4796387cc2c228c4d4c8c39ebd93e2eaf95ffd47fb7684baeaf0",
+    "host/src/moonraker/secrets.ts": "9874d5b666a956436656541769b111bdf0edd12d335ae52fee4312287bddc48f",
+    "host/src/moonraker/template-owner.ts": "aee40c1a247317d8dd25e7348fbe9de4f2b56af7fbf21bdeced58edacf2493c7",
+    "host/src/moonraker/configured-server.ts": "fb4782e157083602bd14465989059ab86c7c58ce6274451d2004a44f800c0875",
+    "host/scripts/build-template.ts": "124a98a78fd342bb8407233c45980cfbd497ee8b51d86e766940d4a3bdb658be",
+    "host/test/template-sync.test.ts": "83132efa0400936b301a2beb1a1ebf0d21c466195c7b57178ca11e0c5eee93fe",
+    "host/test/configured-ldap.test.ts": "fecf5c9dda39eeeadce3f452c677acd7e844672963898c827427d2339b5e9d93",
+    "host/bench/template-sync.ts": "bd2da2aa41df4e215b37d4c0e07f44801f83ba188b3794ef954c33b701f03a81",
+    "host/contracts/moonraker-template-sync-reference.json": "34c13d8c3779362b77720ec0651086cc40df2dbf22630772dd831e6967b7e7d2",
+    "host/package.json": "08f8f0c0c7a28e845044463c6f4c453389da15453b31bedaf3577e904d53dd6a",
+    ".github/workflows/node-host.yaml": "0ee6d5c9f1f85c5990a2dee0c35e1de210f7bcb754022325f1359308d6600dde"
+  },
+  "checks": {
+    "frozenSyncCases": {
+      "passed": 22,
+      "failed": 0,
+      "note": "Missing item row is named fails in the frozen input, but actual upstream output is empty; native was corrected to that recorded result."
+    },
+    "resourcePrivacySensorChecks": {
+      "passed": 3,
+      "failed": 0
+    },
+    "existingSecrets": {
+      "passed": 36,
+      "failed": 0
+    },
+    "configuredLdap": {
+      "passed": 5,
+      "failed": 0,
+      "scope": "Actual synthetic loopback directory protocol and authorized HTTP login; no real directory."
+    },
+    "ordinary": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "success": false,
+      "counts": {
+        "tests": 4515,
+        "failed": 4,
+        "passed": 4511,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 4515,
+        "suites": 0
+      }
+    },
+    "failures": [
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/api-key-authorization-compiled.test.ts",
+        "name": "compiled native authorization serves HTTP without Python or TypeScript loading",
+        "line": 10,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/product-build.test.ts",
+        "name": "product publication is reproducible and preserves prior output on compiler or addon failure",
+        "line": 45,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/source-brake.test.ts",
+        "name": "test/source-brake.test.ts",
+        "line": 1,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": "SIGSEGV",
+          "causeCode": null
+        },
+        "truncatedFields": []
+      },
+      {
+        "schema": 1,
+        "node": "v26.10.0",
+        "file": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/whitespace.test.ts",
+        "name": "whitespace CLI preserves Python diagnostics, ordering and status including invalid UTF-8 and filenames with spaces",
+        "line": 38,
+        "column": 1,
+        "nesting": 0,
+        "error": {
+          "code": "ERR_TEST_FAILURE",
+          "failureType": "testCodeFailure",
+          "exitCode": null,
+          "signal": null,
+          "causeCode": "ERR_ASSERTION"
+        },
+        "truncatedFields": []
+      }
+    ],
+    "typecheck": "exit 0",
+    "whitespace": "exit 0"
+  },
+  "performance": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "rust": "1.89.0",
+    "engine": "minijinja 2.24.0 via N-API",
+    "upstream": {
+      "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "runtime": "3.12.13",
+      "sourceSha256": {
+        "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+        "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+      }
+    },
+    "repetitions": {
+      "render": 3000,
+      "cold": 100,
+      "parse": 2000,
+      "cached": 1000000
+    },
+    "warmups": 2,
+    "samples": 7,
+    "inputs": {
+      "sourceSha256": "27638a7cfa62cd6abe224907b7af644d9bc857364084462caf61130f24ade37f",
+      "contextSha256": "06abe64bef480f720aca88592a691ba768ab70a21008e7a47e5d7151c80cd25b"
+    },
+    "budgets": {
+      "renderToJinja": 1.5,
+      "coldToJinja": 1.5,
+      "fuelFailureMaxMs": 25,
+      "secretsParseToBaseline": 1.2,
+      "secretsCachedToBaseline": 1.2
+    },
+    "native": {
+      "render": {
+        "samplesMs": [
+          8.074342999999999,
+          7.654608000000053,
+          7.689257999999882,
+          7.739749000000074,
+          7.670667999999978,
+          7.506746000000021,
+          7.543346000000156
+        ],
+        "medianMs": 7.670667999999978,
+        "p95Ms": 8.074342999999999
+      },
+      "cold": {
+        "samplesMs": [
+          3.7379080000000613,
+          3.488234999999804,
+          3.2005710000000818,
+          3.020418999999947,
+          2.75654499999996,
+          2.7189950000001772,
+          2.94084799999996
+        ],
+        "medianMs": 3.020418999999947,
+        "p95Ms": 3.7379080000000613
+      }
+    },
+    "jinja": {
+      "render": {
+        "samplesMs": [
+          22.89301302516833,
+          22.754200996132568,
+          22.90435298345983,
+          23.006984003586695,
+          23.093255993444473,
+          23.27393801533617,
+          22.687359974952415
+        ],
+        "medianMs": 22.90435298345983,
+        "p95Ms": 23.27393801533617
+      },
+      "cold": {
+        "samplesMs": [
+          63.74382501235232,
+          63.82125700474717,
+          63.55453300056979,
+          63.66438401164487,
+          63.10268701054156,
+          63.024956005392596,
+          63.52303200401366
+        ],
+        "medianMs": 63.55453300056979,
+        "p95Ms": 63.82125700474717
+      }
+    },
+    "python": "3.12.13",
+    "ratios": {
+      "render": 0.3349000081137101,
+      "cold": 0.04752483980918982
+    },
+    "fuelFailureMs": 0.25497299999983625,
+    "baseline": {
+      "old": {
+        "parse": {
+          "samplesMs": [
+            64.869999,
+            64.65483699999982,
+            64.30822199999989,
+            66.64123300000006,
+            63.9743390000001,
+            62.20822499999986,
+            60.31202200000007
+          ],
+          "medianMs": 64.30822199999989,
+          "p95Ms": 66.64123300000006
+        },
+        "cached": {
+          "samplesMs": [
+            20.230579000000034,
+            22.64377999999988,
+            19.70331199999987,
+            17.39951199999996,
+            17.442232999999987,
+            18.745290000000068,
+            18.773040000000037
+          ],
+          "medianMs": 18.773040000000037,
+          "p95Ms": 22.64377999999988
+        }
+      },
+      "current": {
+        "parse": {
+          "samplesMs": [
+            63.263128999999935,
+            63.848325999999815,
+            67.48615299999983,
+            61.883862000000136,
+            63.784736000000066,
+            62.359038000000055,
+            61.708868999999595
+          ],
+          "medianMs": 63.263128999999935,
+          "p95Ms": 67.48615299999983
+        },
+        "cached": {
+          "samplesMs": [
+            22.00709199999983,
+            22.061103000000003,
+            19.106414000000314,
+            19.794703000000027,
+            19.602110000000266,
+            19.94079499999998,
+            19.64299200000005
+          ],
+          "medianMs": 19.794703000000027,
+          "p95Ms": 22.061103000000003
+        }
+      },
+      "parseRatio": 0.9837486876872454,
+      "cachedRatio": 1.054421819801161
+    },
+    "scope": "Desktop synchronous private text rendering, compilation and old secrets hot-path regression. No MCU, printing, target-board, async callable or full-template compatibility claim."
+  },
+  "limits": {
+    "sourceContextOutputBytes": 65536,
+    "secretsBytes": 1048576,
+    "jsonDepth": 64,
+    "fuel": 100000,
+    "integers": "signed i128; larger integers fail closed, not coerced to Number",
+    "scope": "Fuel/output bounds are not an intermediate-allocation or realtime execution bound."
+  },
+  "open": [
+    "Arbitrary/async callables, UI syntax environment, enabled debug logging and cancellation/isolation",
+    "Complete Python arbitrary-precision arithmetic beyond i128",
+    "Default product builder still requires explicit template-addon packaging",
+    "Four local ordinary failures; exact candidate CI must pass before normal integration",
+    "Updated locked bundle, complete actual client exit, target-board performance and G3"
+  ],
+  "history": [
+    {
+      "event": "First candidate treated missing secrets item as an error. Frozen upstream produced empty text; native changed to default Undefined."
+    },
+    {
+      "event": "Restricted spawnSync stdin timed out in performance reference; a four-byte minimal probe showed the same timeout, while the authorized unrestricted probe and measurement completed. No benchmark result was taken from the timed-out run."
+    },
+    {
+      "event": "Restricted configured tests could not listen on loopback (EPERM); authorized bounded synthetic tests passed."
+    },
+    {
+      "event": "Full ordinary run retained installation failure, GCC internal segmentation fault, source-brake SIGSEGV and whitespace reference abnormal exit. These paths are unchanged by this task; no baseline-cause or hardware-safety inference."
+    }
+  ]
+}

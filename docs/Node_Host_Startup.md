@@ -924,7 +924,7 @@ node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyrai
 
 运行包包含主机 JS、后台 worker/子进程、JSON 数值与 Unicode 契约、
 字体及许可证、生产依赖清单与锁文件，以及现有原生插件。依赖需要
-单独安装；构建命令不下载依赖，默认从私有源码快照重建 7 个原生插件，
+单独安装；构建命令不下载依赖，默认从私有源码快照重建 9 个原生插件，
 不再复制工作区遗留插件。可在命令末尾通过
 `-- /绝对路径/输出目录` 指定构建目录。
 
@@ -940,6 +940,14 @@ node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyrai
 通过同文件系统 rename 发布完整 node_modules。普通失败和取消会等待
 npm 子进程退出并删除暂存目录，可直接重试；不会发布半成品依赖。
 意外强制终止或断电仍可能留下锁目录，应确认没有安装进程后再清理该锁。
+失败诊断只报告退出码、信号、超时／输出上限及已知 npm 错误类别，
+不转发 npm 原始输出、注册表地址或嵌套命令；例如 ENOTFOUND 表示
+名称解析失败，EINTEGRITY 表示下载摘要不符。类别未知时保持 null，
+不从缺失输出推断网络、缓存或编译器原因。调用方可读取稳定错误码
+ERR_PRODUCT_DEPENDENCY_INSTALL 及 exitCode、signal、npmCode 字段。
+诊断、失败清理及编译 CLI 的有限软件验证见
+[安装诊断记录](../host/contracts/product-install-diagnostics.json)；执行环境
+导致的输出缺失与历史安装／编译失败分别保留，不据此认定故障根因。
 发布后已存在依赖的运行包仍不可原地重装，应准备新的离线运行包。
 此命令不安装 Node、不创建账号、不启停服务，
 也不替代下述默认服务切换门槛。
@@ -3541,8 +3549,60 @@ JSON 安全范围外的整数保留为 BigInt，不经过 JavaScript Number
 或网络端点。关闭只释放本对象的引用，不保证垃圾回收前内存清零，
 已经交给调用者的值仍由调用者负责。
 
-本候选尚未装配到生产模板、LDAP 或标准服务器自动启动路径，完整
-secrets／模板与 LDAP 契约仍未关闭。默认测试使用实际固定上游源码
+### 同步私密文本模板候选
+
+标准 `ConfiguredMoonraker.loadAuthorized` 的授权选项可以显式提供
+`templateSecrets: {dataPath: "/明确的私密数据目录"}`。存在 `[ldap]`
+时，在开始监听与目录连接之前加载私密文件，以原生同步环境渲染
+五个 LDAP 模板字段。完成或失败后关闭全部启动模板和私密代际；
+后续登录使用已经验证的目录配置，不在请求中读取文件。
+已有 `ldapConfiguration.signal` 和 CA 配置继续保留；不能同时指定
+`templateSecrets` 与自定义 `ldapConfiguration.render`。
+
+例如 `bind_password: {secrets["ldap"]["password"]}` 从该文件读取。
+JSON 必须保留原始文本进入原生环境，`1`、`1.0`、`1e0`、`-0.0`
+和安全范围外的整数不经过 JavaScript Number 再编码；INI 值仍为
+字符串。公开配置继续显示模板占位与脱敏密码，不显示解析后的值。
+同步所有者也可以显式通过 `MoonrakerTemplateOwner` 创建可复用
+文本模板；其 `render(context)` 接收 JSON 文本，调用者负责私密输入
+和渲染结果，不能把这些值接入公开日志或接口。
+
+`npm test` 先编译独立 `template.node`；工具链为 Rust 1.89.0，依赖
+锁定在 `host/native/template/Cargo.lock`。`npm run build:template`
+支持指定 `CARGO`、`CARGO_HOME`、`RUSTUP_HOME` 和 `CARGO_TARGET_DIR`，
+隔离工作区必须使用自己的构建目录。默认 `build-product-host.ts` 现将
+模板列为必需插件，从独立源码快照重建；外部原生目录也必须包含该
+插件，缺失时拒绝发布。构建信息绑定 C／Rust 输入、Cargo 锁文件、
+Node 头文件、产物摘要及 Rust／Cargo 1.89.0 版本；其他 Rust 版本
+直接拒绝。产物构建不复用传入的 `CARGO_TARGET_DIR`，而是创建、
+使用并清理自己的输出目录。随机快照路径映射到固定编译路径，
+跨快照的重复构建须保持内容一致。此记录不构成完整工具链签名或
+密闭构建证明，不因测试通过自动替换默认打印入口。
+
+默认打包首批四项用例为三通过／一 Rust 编译器 SIGSEGV；此前
+全量本机四项失败保留。显式 `RUST_MIN_STACK=16777216` 的一次
+有限对照通过两项，不推断栈不足或根因修复，也未将该变量写为
+产品默认值。桌面启动校验和同一固定模板预算通过；编译后的模板
+与 LDAP 在保留包中关闭 TS 加载复验，证据与实际覆盖范围见
+[默认包记录](../host/contracts/moonraker-template-default-package.json)。
+该默认包关闭 TS 加载后通过原 30 项模板／LDAP 断言，并在同一
+锁定产物上通过原完整混合软件旅程；约 61 秒完成，原 90 秒期限、
+输入与预算不变。仅使用模拟 MCU，不计算实际页面或目标板通过。
+性能参考与此前冻结基线的关联见
+[输入关联](../host/contracts/moonraker-template-default-inputs.json)。
+
+当前仅验证同步文本／私密 JSON 路径、默认关闭的 debug 日志行为、
+正负 i128 整数范围及明确的资源拒绝。源、上下文和输出各限 64 KiB，
+私密 JSON 限 1 MiB，JSON 深度限 64，执行使用 100000 fuel；这些
+限制不等于全部中间分配或实时执行预算。任意函数、异步调用与取消、
+UI 双花括号环境、可启用日志及完整 Python 大整数仍待补齐，后续
+须完成隔离执行；目前只允许可信启动配置，不用于打印高频回调。
+原失败、上游参考与桌面预算见
+[同步模板验收](../host/contracts/moonraker-template-sync-acceptance.json)。
+
+私密文件已为上述显式同步 LDAP 启动候选提供依赖；完整模板工厂及
+生产默认入口尚未切换，secrets／模板与 LDAP 完整契约仍未关闭。
+默认测试使用实际固定上游源码
 生成的 24 项原冻结参考及六项负零补充参考，不新增运行时 Python；生成和性能对照只在
 独立临时目录执行一次。失败、后续定向验证和原始性能见
 [私密文件所有者记录](../host/contracts/native-secrets-owner-acceptance.json)。

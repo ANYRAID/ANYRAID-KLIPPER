@@ -1,0 +1,214 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "head": "59167c9d818364ecc67fa7ec4aa319bddef8b966",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "mergeReference": "832f27ccee3c194700105db786279b0be22587a1",
+  "pullRequest": 68,
+  "allSuccess": true,
+  "status": "All 15 candidate CI jobs succeeded; local full-suite failures and actual client acceptance remain open; draft unmerged",
+  "jobs": [
+    {
+      "id": 114228587427,
+      "name": "checks",
+      "run": 38057403085,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587634,
+      "name": "sanitizer (asan)",
+      "run": 38057403085,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587643,
+      "name": "sanitizer (ubsan)",
+      "run": 38057403085,
+      "conclusion": "success"
+    },
+    {
+      "id": 114231467266,
+      "name": "host",
+      "run": 38057403085,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587311,
+      "name": "build",
+      "run": 38057403069,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587459,
+      "name": "motion (26.10.0, off, compiled)",
+      "run": 38057403041,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587584,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "run": 38057403041,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587600,
+      "name": "motion (26.9.0, default, source)",
+      "run": 38057403041,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587607,
+      "name": "motion (26.10.0, off, source)",
+      "run": 38057403041,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587613,
+      "name": "motion (26.9.0, off, compiled)",
+      "run": 38057403041,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587625,
+      "name": "motion (26.9.0, off, source)",
+      "run": 38057403041,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587627,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "run": 38057403041,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587631,
+      "name": "motion (26.10.0, default, source)",
+      "run": 38057403041,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587676,
+      "name": "motion (26.10.0, default, compiled)",
+      "run": 38057403041,
+      "conclusion": "success"
+    },
+    {
+      "id": 114228587697,
+      "name": "motion (26.9.0, default, compiled)",
+      "run": 38057403041,
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "node": "v26.11.1",
+    "tests": 4528,
+    "pass": 4528,
+    "fail": 0,
+    "protocol": "success",
+    "linuxMcu": "success"
+  },
+  "sanitizers": {
+    "commands": 324,
+    "exactFrozenLegacyAndExtension": true,
+    "allStatusZero": true
+  },
+  "motion": {
+    "groups": 10,
+    "freshProcesses": 500,
+    "failed": 0,
+    "notG3Closure": true
+  },
+  "newLockedPackage": {
+    "sourceHead": "59167c9d818364ecc67fa7ec4aa319bddef8b966",
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-template-current-product-oct10",
+    "manifestSha256": "a5ca9b14232729d296ab38b92af8a837af5979cd173f3eeb70ad04dd47f3835a",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444",
+    "freshNativeBuild": true,
+    "rustStackOverride": false,
+    "buildMs": 31788.796623000002,
+    "offlineIndependentDependencies": {
+      "durationMs": 854.6461989999999,
+      "dependencies": 18
+    },
+    "compiledTemplateAndLdap": {
+      "tests": 30,
+      "pass": 30,
+      "fail": 0,
+      "durationMs": 1953.03233
+    },
+    "mixedJourney": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "durationMs": 65867.65146,
+      "outerLimitMs": 90000,
+      "originalInputsAndAssertions": true,
+      "scope": "One original namespace/native-authorization/mixed-load journey with two MCUs and two generations; not all variants or physical acceptance"
+    }
+  },
+  "correction": {
+    "supersedes": "pr68-64-terminal.json localFull.artifactNote and artifactInventoryFrozen rationale only",
+    "previousClaimIncorrect": true,
+    "explanation": "The builder does not copy all contract JSON. TypeScript emits only imported JSON; neither historical terminal report is in the manifest. A fresh normal C/Rust build at 591 has the same manifest and production-dependency identities as the prior diagnostic package. Historical raw failure counts remain unchanged; this does not prove the original suite used an immutable final inventory.",
+    "currentManifestMatchesPreviousDiagnostic": true,
+    "historicalLocalFailuresRemainOpen": true
+  },
+  "clientSceneR7": {
+    "name": "Mainsail 2.19.0",
+    "standingAuthorized": true,
+    "loopbackOnly": true,
+    "maximumIncludesStartupMs": 900000,
+    "closure": {
+      "name": "mainsail",
+      "started": "2026-10-10T14:14:05.405Z",
+      "deadline": "2026-10-10T14:29:05.405Z",
+      "closed": "2026-10-10T14:20:38.916Z",
+      "reason": "explicit-completion",
+      "elapsedMs": 393511,
+      "children": [
+        {
+          "label": "GATEWAY",
+          "pid": 644672,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "label": "PROBE",
+          "pid": 644614,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/anyraid-template-current-product-oct10",
+      "automaticExtensionOrRelaunch": false
+    },
+    "uiResult": "Connection failed at /_client/login; page title Mainsail while direct unauthenticated backend title ANYRAID 打印控制台",
+    "backendDiagnostic": {
+      "at": "2026-10-10T14:16:27.474Z",
+      "url": "http://127.0.0.1:18328/_client/login",
+      "status": 200,
+      "location": null,
+      "title": "ANYRAID 打印控制台",
+      "sha256": "01648116f1ace3d728bd14b9538fb933ed4ea1eec8bfbc2984975f7589f6795b",
+      "bytes": 4633,
+      "scope": "Direct unauthenticated backend response; not UI acceptance"
+    },
+    "actualLoginUploadPrintQueueOrRecoveryAccepted": false,
+    "sampleFile": "Seeded by API, not UI upload",
+    "rootCause": "Unconfirmed",
+    "sharedPlaywrightFallback": "Configured README path absent; browser inventory exposes no Chrome",
+    "portsAfterClose": "18327/18328/36217 have no listeners in elevated read-only ss observation"
+  },
+  "evidence": {
+    "path": "pr68-591-terminal.evidence.json.gz",
+    "sha256": "f3fdf693d887b20dbd24173fbcd757dc54c51094980eb94872b29d87defa4baa",
+    "bytes": 1136232,
+    "entries": 33,
+    "scope": "Decoded connector logs with normalized final newline, software runs, build metadata and bounded client failure; not wire-byte or physical validation"
+  },
+  "limits": [
+    "No develop merge or default Python entry switch",
+    "Historical local compiler/runtime failures unresolved; controlled successes do not establish cause",
+    "Full template functions/UI/big integers/isolated execution, complete same-package clients, target-board performance, G3 and Python retirement remain open"
+  ]
+}

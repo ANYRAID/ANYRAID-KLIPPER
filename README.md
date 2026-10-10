@@ -53,6 +53,28 @@ LDAP 身份任务分支已补齐独立 LDAP／LDAPS 传输，合成目录协议�
 私密绑定密码在公开配置副本中脱敏。配置与关闭控制、原失败及当前
 源码性能见[标准装配证据](host/contracts/native-ldap-configuration-acceptance.json)。
 通用模板、实际用户目录、目标板和全面 Python 退役仍待完成。
+同步文本模板候选已为标准 LDAP 启动提供显式 `templateSecrets` 私密文件
+依赖；保留 JSON 整数／浮点字面类型、关闭环境并脱敏诊断。冻结上游
+参考和桌面预算通过，全量本机检查仍有四项失败；异步函数、UI 环境、
+完整任意精度整数及目标板尚未验证，见
+[同步模板验收](host/contracts/moonraker-template-sync-acceptance.json)和
+[装配说明](docs/Node_Host_Startup.md#同步私密文本模板候选)。
+后续两个候选头的普通 CI 均有两项失败，协议及 Linux MCU 被跳过；
+网格准入与发布并发顺序的测试修复通过 41 项定向检查和类型检查，
+修复头 `59167c9d` 的十五项规定 CI 独立通过，含普通 4528／4528、
+协议、Linux MCU、精确 324 条 sanitizer 命令、固件及 500 个运动
+诊断，见[修复头终态](host/contracts/pr68-591-terminal.json)。
+新建常规 C／Rust 独立锁定包的编译模板／LDAP 30 项及原完整混合
+旅程通过；Mainsail R7 页面连接失败，已在期限内关闭，不计页面验收。
+更正先前证据文件影响产物清单的判断，构建器未复制这些报告；原始
+失败保留。本机常规 Rust 栈完整回归 4528 项中 4519 通过、
+9 项失败，编译器及测试进程异常尚未定位，见
+[当前候选与修复证据](host/contracts/pr68-64-terminal.json)。
+后续默认构建已将模板列为必需插件，从独立 C／Rust 快照生成，绑定
+锁文件与工具链，不再需要手工带入已有插件。桌面启动校验及固定模板
+预算通过；首次打包回归出现 Rust 编译器 SIGSEGV，16 MiB 线程栈条件
+下的有限对照通过，不认定根因修复。原失败、保留包及其软件验收见
+[默认模板包记录](host/contracts/moonraker-template-default-package.json)。
 LDAP PR #62 已正常合入 develop `6fb19680`，候选头与实际合并后的
 全部 15 项检查分别通过，含普通 4499／4499、协议、Linux MCU、
 精确 324 条 sanitizer 命令与十组共 500 个进程诊断，见
