@@ -12,6 +12,22 @@ export interface SecretObject {readonly [name:string]:SecretValue;}
 export interface SecretsLimits {bytes?:number;depth?:number;items?:number;integerDigits?:number;}
 export interface SecretsContext extends SecretsLimits {dataPath:string;}
 type Format='json'|'ini'|'invalid';
+// Private lexical source: Number alone cannot distinguish JSON 1 from 1.0.
+// Weak keys do not retain retired generations. Never attach this to snapshots.
+const templateSources=new WeakMap<SecretObject,string>();
+const templateBindings=new WeakMap<SecretsStore,()=>{source:string;file:string;type:Format}>();
+function templateJson(value:SecretValue):string{
+ if(typeof value==='bigint')return value.toString();
+ if(typeof value==='number'){if(!Number.isFinite(value))invalid();return Object.is(value,-0)?'-0.0':String(value);}
+ if(Array.isArray(value))return '['+value.map(templateJson).join(',')+']';
+ if(value!==null&&typeof value==='object')return '{'+Object.entries(value).map(([key,item])=>JSON.stringify(key)+':'+templateJson(item)).join(',')+'}';
+ return JSON.stringify(value);
+}
+/** Trusted template dependency only. The callback receives a private lexical
+ * snapshot; neither public JSON, inspection nor network routes use this bridge. */
+export function bindSecretsTemplate<T>(store:SecretsStore,consume:(data:{source:string;file:string;type:Format})=>T):T{
+ const binding=templateBindings.get(store);if(!binding)throw new ConfigurationError('Secrets generation is closed');return consume(binding());
+}
 const dictionary=<T>():Record<string,T>=>Object.create(null);
 const whitespace='\\t\\n\\v\\f\\r\\x1c-\\x1f \\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000';
 const edges=new RegExp(`^[${whitespace}]+|[${whitespace}]+$`,'g'),leading=new RegExp(`^[${whitespace}]*`);
@@ -79,20 +95,20 @@ export function parseSecretsText(text:string,options:SecretsLimits={}):{type:'js
   for(const [key,item]of Object.entries(value)){if(!key.isWellFormed())invalid();result[key]=copy(item,depth+1);}
   return Object.freeze(result);
  }
- return {type,values:copy(parsed,0) as SecretObject};
+ const values=copy(parsed,0) as SecretObject;if(type==='json')templateSources.set(values,text);return {type,values};
 }
 /** Process-private immutable generation. Inspection and JSON serialization
  * expose only status; closing drops the owner's references to secret values.
  * JavaScript GC is not a cryptographic zeroization guarantee. */
 export class SecretsStore {
  readonly #file:string;#type:Format;#values:SecretObject;#closed=false;
- constructor(file:string,type:Format,values:SecretObject){this.#file=file;this.#type=type;this.#values=values;}
+ constructor(file:string,type:Format,values:SecretObject){this.#file=file;this.#type=type;this.#values=values;templateBindings.set(this,()=>{this.#assertOpen();return {source:templateSources.get(this.#values)??templateJson(this.#values),file:this.#file,type:this.#type};});}
  getFile():string{return this.#file;}
  getType():Format{return this.#type;}
  get(name:string,defaultValue:SecretValue=null):SecretValue{this.#assertOpen();return Object.hasOwn(this.#values,name)?this.#values[name]:defaultValue;}
  item(name:string):SecretValue{this.#assertOpen();if(!Object.hasOwn(this.#values,name))throw new ConfigurationError('Secrets item is not available');return this.#values[name];}
  #assertOpen():void{if(this.#closed)throw new ConfigurationError('Secrets generation is closed');}
- close():void{this.#closed=true;this.#values=Object.freeze(dictionary<SecretValue>());this.#type='invalid';}
+ close():void{this.#closed=true;templateBindings.delete(this);this.#values=Object.freeze(dictionary<SecretValue>());this.#type='invalid';}
  toJSON():{type:Format;closed:boolean}{return {type:this.#type,closed:this.#closed};}
  [Symbol.for('nodejs.util.inspect.custom')]():string{return 'SecretsStore <private>';}
 }

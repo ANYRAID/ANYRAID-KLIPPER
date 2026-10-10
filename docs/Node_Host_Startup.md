@@ -3541,8 +3541,42 @@ JSON 安全范围外的整数保留为 BigInt，不经过 JavaScript Number
 或网络端点。关闭只释放本对象的引用，不保证垃圾回收前内存清零，
 已经交给调用者的值仍由调用者负责。
 
-本候选尚未装配到生产模板、LDAP 或标准服务器自动启动路径，完整
-secrets／模板与 LDAP 契约仍未关闭。默认测试使用实际固定上游源码
+### 同步私密文本模板候选
+
+标准 `ConfiguredMoonraker.loadAuthorized` 的授权选项可以显式提供
+`templateSecrets: {dataPath: "/明确的私密数据目录"}`。存在 `[ldap]`
+时，在开始监听与目录连接之前加载私密文件，以原生同步环境渲染
+五个 LDAP 模板字段。完成或失败后关闭全部启动模板和私密代际；
+后续登录使用已经验证的目录配置，不在请求中读取文件。
+已有 `ldapConfiguration.signal` 和 CA 配置继续保留；不能同时指定
+`templateSecrets` 与自定义 `ldapConfiguration.render`。
+
+例如 `bind_password: {secrets["ldap"]["password"]}` 从该文件读取。
+JSON 必须保留原始文本进入原生环境，`1`、`1.0`、`1e0`、`-0.0`
+和安全范围外的整数不经过 JavaScript Number 再编码；INI 值仍为
+字符串。公开配置继续显示模板占位与脱敏密码，不显示解析后的值。
+同步所有者也可以显式通过 `MoonrakerTemplateOwner` 创建可复用
+文本模板；其 `render(context)` 接收 JSON 文本，调用者负责私密输入
+和渲染结果，不能把这些值接入公开日志或接口。
+
+`npm test` 先编译独立 `template.node`；工具链为 Rust 1.89.0，依赖
+锁定在 `host/native/template/Cargo.lock`。`npm run build:template`
+支持指定 `CARGO`、`CARGO_HOME`、`RUSTUP_HOME` 和 `CARGO_TARGET_DIR`，
+隔离工作区必须使用自己的构建目录。产物构建仍须显式装配该插件，
+不因测试通过自动替换默认打印入口。
+
+当前仅验证同步文本／私密 JSON 路径、默认关闭的 debug 日志行为、
+正负 i128 整数范围及明确的资源拒绝。源、上下文和输出各限 64 KiB，
+私密 JSON 限 1 MiB，JSON 深度限 64，执行使用 100000 fuel；这些
+限制不等于全部中间分配或实时执行预算。任意函数、异步调用与取消、
+UI 双花括号环境、可启用日志及完整 Python 大整数仍待补齐，后续
+须完成隔离执行；目前只允许可信启动配置，不用于打印高频回调。
+原失败、上游参考与桌面预算见
+[同步模板验收](../host/contracts/moonraker-template-sync-acceptance.json)。
+
+私密文件已为上述显式同步 LDAP 启动候选提供依赖；完整模板工厂及
+生产默认入口尚未切换，secrets／模板与 LDAP 完整契约仍未关闭。
+默认测试使用实际固定上游源码
 生成的 24 项原冻结参考及六项负零补充参考，不新增运行时 Python；生成和性能对照只在
 独立临时目录执行一次。失败、后续定向验证和原始性能见
 [私密文件所有者记录](../host/contracts/native-secrets-owner-acceptance.json)。

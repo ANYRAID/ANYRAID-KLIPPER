@@ -53,6 +53,12 @@ LDAP 身份任务分支已补齐独立 LDAP／LDAPS 传输，合成目录协议�
 私密绑定密码在公开配置副本中脱敏。配置与关闭控制、原失败及当前
 源码性能见[标准装配证据](host/contracts/native-ldap-configuration-acceptance.json)。
 通用模板、实际用户目录、目标板和全面 Python 退役仍待完成。
+同步文本模板候选已为标准 LDAP 启动提供显式 `templateSecrets` 私密文件
+依赖；保留 JSON 整数／浮点字面类型、关闭环境并脱敏诊断。冻结上游
+参考和桌面预算通过，全量本机检查仍有四项失败；异步函数、UI 环境、
+完整任意精度整数及目标板尚未验证，见
+[同步模板验收](host/contracts/moonraker-template-sync-acceptance.json)和
+[装配说明](docs/Node_Host_Startup.md#同步私密文本模板候选)。
 LDAP PR #62 已正常合入 develop `6fb19680`，候选头与实际合并后的
 全部 15 项检查分别通过，含普通 4499／4499、协议、Linux MCU、
 精确 324 条 sanitizer 命令与十组共 500 个进程诊断，见

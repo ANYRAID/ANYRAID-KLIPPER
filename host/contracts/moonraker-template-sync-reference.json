@@ -1,0 +1,148 @@
+{
+  "schema": 1,
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "runtime": "3.12.13",
+    "sourceSha256": {
+      "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+      "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+    }
+  },
+  "scope": "Actual pinned TemplateFactory/JinjaTemplate and Secrets methods. Server/dependency lookup shim only; stdlib JSON fallback and Jinja2 3.1.6. Frozen before native candidate changes. Synchronous text/private JSON bridge only; no arbitrary async callable or hardware claim.",
+  "secrets": "{\"ldap\":{\"base\":\"dc=example,dc=test\",\"password\":\"synthetic-private-template\"},\"i\":1,\"f\":1.0,\"e\":1e0,\"neg\":-0.0,\"large\":9007199254740993,\"bool\":true,\"null\":null,\"__proto__\":\"literal\"}",
+  "file": "/synthetic/moonraker.secrets",
+  "cases": [
+    {
+      "name": "literal and Python strip",
+      "source": "\u001c  example ",
+      "context": "{}",
+      "output": "example"
+    },
+    {
+      "name": "BOM is retained",
+      "source": "﻿example﻿",
+      "context": "{}",
+      "output": "﻿example﻿"
+    },
+    {
+      "name": "nested private item",
+      "source": "{secrets[\"ldap\"][\"base\"]}",
+      "context": "{}",
+      "output": "dc=example,dc=test"
+    },
+    {
+      "name": "private get",
+      "source": "{secrets.get(\"ldap\")[\"password\"]}",
+      "context": "{}",
+      "output": "synthetic-private-template"
+    },
+    {
+      "name": "missing default",
+      "source": "{secrets.get(\"absent\", \"fallback\")}",
+      "context": "{}",
+      "output": "fallback"
+    },
+    {
+      "name": "missing none",
+      "source": "{secrets.get(\"absent\") is none}",
+      "context": "{}",
+      "output": "True"
+    },
+    {
+      "name": "type",
+      "source": "{secrets.get_type()}",
+      "context": "{}",
+      "output": "json"
+    },
+    {
+      "name": "file",
+      "source": "{secrets.get_secrets_file()}",
+      "context": "{}",
+      "output": "/synthetic/moonraker.secrets"
+    },
+    {
+      "name": "integer and float lexical",
+      "source": "{secrets[\"i\"] is integer}/{secrets[\"f\"] is integer}/{secrets[\"e\"] is integer}",
+      "context": "{}",
+      "output": "True/False/False"
+    },
+    {
+      "name": "float string",
+      "source": "{secrets[\"f\"]}/{secrets[\"e\"]}/{secrets[\"neg\"]}",
+      "context": "{}",
+      "output": "1.0/1.0/-0.0"
+    },
+    {
+      "name": "large exact",
+      "source": "{secrets[\"large\"]}",
+      "context": "{}",
+      "output": "9007199254740993"
+    },
+    {
+      "name": "large arithmetic",
+      "source": "{secrets[\"large\"] + 2}",
+      "context": "{}",
+      "output": "9007199254740995"
+    },
+    {
+      "name": "boolean and null",
+      "source": "{secrets[\"bool\"] is boolean}/{secrets[\"null\"] is none}",
+      "context": "{}",
+      "output": "True/True"
+    },
+    {
+      "name": "prototype name literal",
+      "source": "{secrets[\"__proto__\"]}",
+      "context": "{}",
+      "output": "literal"
+    },
+    {
+      "name": "fromjson lexical",
+      "source": "{% set v = payload|fromjson %}{v.i is integer}/{v.f is integer}/{v.large + 1}",
+      "context": "{\"payload\":\"{\\\"i\\\":1,\\\"f\\\":1.0,\\\"large\\\":9007199254740993}\"}",
+      "output": "True/False/9007199254740994"
+    },
+    {
+      "name": "round common",
+      "source": "{secrets[\"f\"]|round(0)}/{2.5|round(0)}/{-2.5|round(0)}",
+      "context": "{}",
+      "output": "1.0/2.0/2.0"
+    },
+    {
+      "name": "context lexical",
+      "source": "{i is integer}/{f is integer}/{large+2}",
+      "context": "{\"i\":1,\"f\":1.0,\"large\":9007199254740993}",
+      "output": "True/False/9007199254740995"
+    },
+    {
+      "name": "do namespace and loop",
+      "source": "{% set ns=namespace(n=0) %}{% for i in range(4) %}{% set ns.n=ns.n+i %}{% endfor %}{% do log_debug(\"synthetic\") %}{ns.n}",
+      "context": "{}",
+      "output": "6"
+    },
+    {
+      "name": "undefined prints empty",
+      "source": "{absent}",
+      "context": "{}",
+      "output": ""
+    },
+    {
+      "name": "missing item fails",
+      "source": "{secrets[\"absent\"]}",
+      "context": "{}",
+      "output": ""
+    },
+    {
+      "name": "raise error is wrapped",
+      "source": "{raise_error(secrets[\"ldap\"][\"password\"])}",
+      "context": "{}",
+      "error": "Error rending Jinja2 Template"
+    },
+    {
+      "name": "unknown callable fails",
+      "source": "{unprovided()}",
+      "context": "{}",
+      "error": "Error rending Jinja2 Template"
+    }
+  ]
+}
