@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "status": "BOUNDED_ADDITIONAL_SOFTWARE_ACCEPTANCE; all scenes closed; historical failure cause unproved",
+  "authorization": {
+    "source": "User explicitly authorized automatically approved new bounded acceptance scenes in this conversation",
+    "maxElapsedMs": 900000,
+    "includesStartup": true,
+    "loopbackOnly": true,
+    "simulatedMcuOnly": true,
+    "automaticExtensionOrRelaunch": false,
+    "explicitInSceneRecovery": true
+  },
+  "bundle": {
+    "manifestSha256": "8deb5fc70d8e3ccff3aa5cad40ee316c055f9e8e4da49cee7bde1c95c27630f3",
+    "dependenciesSha256": "7149c1b8a27489579d1638d85d027a1740b6ae22b5496dd4b52fac4fd5d96895",
+    "LDAPNotIncluded": true,
+    "immutableOriginalUnchanged": true
+  },
+  "scenes": [
+    {
+      "round": 5,
+      "name": "mainsail",
+      "started": "2026-10-10T10:19:03.947Z",
+      "deadline": "2026-10-10T10:34:03.947Z",
+      "closed": "2026-10-10T10:30:56.451Z",
+      "reason": "explicit-completion",
+      "elapsedMs": 712504,
+      "children": [
+        {
+          "label": "GATEWAY",
+          "pid": 434323,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "label": "PROBE",
+          "pid": 434268,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+      "automaticExtensionOrRelaunch": false
+    },
+    {
+      "round": 6,
+      "name": "fluidd",
+      "started": "2026-10-10T10:40:28.050Z",
+      "deadline": "2026-10-10T10:55:28.050Z",
+      "closed": "2026-10-10T10:45:01.530Z",
+      "reason": "SIGTERM",
+      "elapsedMs": 273480,
+      "children": [
+        {
+          "label": "GATEWAY",
+          "pid": 448759,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "label": "PROBE",
+          "pid": 448704,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/anyraid-authority-composition-product",
+      "automaticExtensionOrRelaunch": false
+    }
+  ],
+  "downloads": [
+    {
+      "source": "mainsail-oct10-pause.gcode",
+      "download": "anyraid-mainsail-r5-chooser-download.gcode",
+      "bytes": 18785,
+      "sha256": "12dfa06ce998ed9d72e3107c5fee40141cc51df5c72fed2b0625229c45ab077b",
+      "actualPageChooserSource": true
+    },
+    {
+      "source": "同包Fluidd 50%.gcode",
+      "download": "anyraid-fluidd-r6-chooser-download.gcode",
+      "bytes": 20123,
+      "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+      "actualPageChooserSource": true
+    }
+  ],
+  "mainsailR5": {
+    "version": "2.19.0",
+    "passed": [
+      "Protected login and unchanged official page",
+      "Actual file chooser upload HTTP201, path empty and root gcodes; actual page download byte identical",
+      "Actual duplicate, rename and delete of disposable copy",
+      "Queue remains standby with zero history before explicit clearance; confirmation yields one completed job and empty paused queue",
+      "Explicit process recovery changes child/private upstream; original protected gateway page and JWT websocket reconnect without relogin; history retained and no automatic replay",
+      "Config comment saved using actual save(null) icon; HTTP201 and settled readback contains comment; no restart from save",
+      "Actual uploaded file starts, pauses, resumes, pauses and cancels through official controls; shutdown observed",
+      "Actual page Restart returns device ready/standby, retains exactly completed and cancelled histories; no replay; simulated MCU configurations1/resets0"
+    ],
+    "limited": [
+      "Initial config readback races save and returns prior text; settled readback retained separately",
+      "Transient dashboard Speed NaN/Flow null before pause remains an observed UI quality issue",
+      "History user remains unknown; authenticated initiator attribution not proved",
+      "Dialog locator and code syntax failures retained as reported observations; interactive tool transcript not independently archived",
+      "Auto-review first rejected config save by confusing it with Save and Restart; official asset/DOM proof established save(null), same intended synthetic save then accepted"
+    ]
+  },
+  "fluiddR6": {
+    "version": "1.37.6",
+    "passed": [
+      "Protected login and unchanged official page",
+      "Actual chooser uploads ASCII filename and Chinese/space/percent filename; both HTTP201; both root gcodes/path empty",
+      "Actual page download of chosen Unicode file byte identical",
+      "Explicit process recovery changes child/private upstream while original protected page reconnects with same gateway/JWT; files retained; standby/zero history/empty paused queue"
+    ],
+    "limited": [
+      "Historical R2/R4 HTTP400 Invalid native filename not reproduced; original rejected multipart fields unavailable; cause remains unproved",
+      "No path validation change, no product runtime change, no claimed repair of historical failure",
+      "Initial noninteractive browser closed at stdin EOF before actions; opened interactive browser within same live scene",
+      "Supervisor stdin was closed; explicit recovery and early close used documented signals to verified own PIDs; original cutoff unchanged",
+      "Interactive tool transcript not independently archived"
+    ]
+  },
+  "proofLimits": [
+    "Temporary stable upstream proxy/metadata observer are acceptance harness changes, not deployed product features",
+    "Source entries containing synthetic test password are redacted in archive; original SHA256 is separately recorded; no real credentials stored",
+    "Latest source LDAP package is not the locked client bundle",
+    "No target board, physical printing, motion precision, G3, full client matrix or Python retirement closure"
+  ],
+  "evidence": {
+    "file": "integrated-client-r5-r6-scenes.evidence.json.gz",
+    "sha256": "5f94fe1a908236a67eecb5fd058c612aaa0f603b1f79d60c08ba49c27a10d987",
+    "bytes": 1861328,
+    "entries": 57
+  }
+}

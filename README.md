@@ -36,6 +36,8 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 第二跳来源转发，并装配需清台确认的队列；接口回归通过，修复后的
 官方页面尚未复验。原失败、期限、缺项及截图见
 [同包页面证据](host/contracts/integrated-client-bundle-readiness.json)。
+上述为首批场次范围；恢复及队列的后续验证见
+[R5／R6 证据](host/contracts/integrated-client-r5-r6-scenes.json)。
 夹具修复 PR #60 已正常合入 develop `3fcc9c63`，修复候选和实际
 合并后的五项规定检查分别通过，含普通 4437／4437、协议、Linux MCU、
 精确 324 条 sanitizer 命令及固件，见
@@ -44,16 +46,21 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 候选的五项检查及 4473／4473 通过，见[候选终态](host/contracts/pr61-43cf-terminal.json)。
 实际合并后的五项规定检查独立通过，含 4473／4473、协议、Linux MCU、
 324 条 sanitizer 命令及固件，见[合并后终态](host/contracts/develop-4873-terminal.json)。
-上述 CI 不覆盖后续本地 LDAP 身份候选；模板／LDAP 完整装配和全面 Python 退役未完成。
+上述 CI 属于配置所有者；LDAP 后续实现的检查单独核验。
 LDAP 身份任务分支已补齐独立 LDAP／LDAPS 传输，合成目录协议和
 桌面延迟预算通过，见[传输证据](host/contracts/native-ldap-transport-acceptance.json)。
 标准 `loadAuthorized` 已接入明确配置的 LDAP／LDAPS，拒绝空分组，
 私密绑定密码在公开配置副本中脱敏。配置与关闭控制、原失败及当前
 源码性能见[标准装配证据](host/contracts/native-ldap-configuration-acceptance.json)。
 通用模板、实际用户目录、目标板和全面 Python 退役仍待完成。
+LDAP PR #62 已正常合入 develop `6fb19680`，候选头与实际合并后的
+全部 15 项检查分别通过，含普通 4499／4499、协议、Linux MCU、
+精确 324 条 sanitizer 命令与十组共 500 个进程诊断，见
+[候选终态](host/contracts/pr62-e9d98-terminal.json)和
+[合并后终态](host/contracts/develop-6fb-terminal.json)。诊断成功不关闭 G3。
 受保护入口新增清台确认页面候选，请求确认在旧服务、策略关闭及设备忙
 时保持拒绝，操作和独立包证据见[队列页面验收](host/contracts/product-queue-panel-acceptance.json)。
-实际页面与当前系列验收仍待完成。
+实际页面清台确认已按后续场次验证；完整客户端与当前系列验收仍待完成。
 面向用户的未发布变化见 [版本变化](CHANGELOG.md)。
 
 持久元数据失效准入候选避免读队列满时文件已删除却返回恢复故障，
@@ -456,11 +463,13 @@ G-code 调度中验证，按工具暂停回抽及多热端温度快照也已验�
 性能改善尚不足以通过完整打印门槛，见
 [元数据性能审查](host/contracts/native-metadata-invalidation-acceptance.json)。
 
-2026-10-10 追加有限场次结果与启动失败见
-[追加场次证据](host/contracts/integrated-client-additional-scenes.json)。
-Fluidd 已从实际页面加入队列，未确认时保持 standby／零历史，
-清台勾选确认后模拟打印，页面显示 100% 并产生一条历史。
-后续 553 秒的 Fluidd 有限场次补齐受控进程恢复、历史不重复、
-恢复后摘要一致的页面下载及复制／重命名／删除。文件来自 API 预置，
-选择上传仍返回 `Invalid native filename`；工具长时间未返回、启动
-失败和弹窗时序缺项保留。完整客户端出口未完成，未延期或自动重启。
+2026-10-10 后续 R5／R6 有限场次分别在 713／273 秒内关闭，见
+[新场次证据](host/contracts/integrated-client-r5-r6-scenes.json)。Mainsail
+补齐实际选择上传与摘要一致下载、文件管理、仅保存配置、清台确认
+队列、原受保护页面进程恢复，以及模拟取消后的显式设备恢复。
+Fluidd 真实选择器上传普通及中文／空格／百分号文件名均返回 201，
+页面下载摘要一致，原受保护页面在进程恢复后重连并保留文件。
+两套客户端均未自动重放。旧 R2／R4 的 400 未复现，原因未确定，
+[旧批次](host/contracts/integrated-client-additional-scenes.json)保持原样。
+本批次使用原锁定包，未包含新 LDAP 实现；完整客户端出口、目标板
+和 G3 未关闭，未延期或自动重启。
