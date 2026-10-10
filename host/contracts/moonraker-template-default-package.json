@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "sourceBase": "28e47e2dd5ecb91fdaa03df0e15610a58289f5ba",
+  "sourceFiles": {
+    "host/scripts/build-product-native.ts": "8f4f5232f0b80a3945e24c1607ca480b26f4669416797c27f345091c1e65488c",
+    "host/scripts/build-product-host.ts": "7af7f090ed9fcea43bc5ecd346e32cc4a7cada4cdf9e3da12d940f802869d870",
+    "host/scripts/build-template.ts": "124a98a78fd342bb8407233c45980cfbd497ee8b51d86e766940d4a3bdb658be",
+    "host/test/product-build.test.ts": "a9f3aa1beb60dfa5e49295d9a684f955816d487ccbdb1596d690f9a1a5945f36",
+    "host/test/product-native-build.test.ts": "ddbe50043818ad3769de8aa8dbc2142d5aab2ee7d2346a0d4f8db84b17b99eff",
+    "host/test/helpers/product-build-smoke.ts": "2d78ac483efbcf6cc6528fd013602356be6a1a39d825a717cc28ac33cd2d1a85",
+    "host/test/template-sync.test.ts": "83132efa0400936b301a2beb1a1ebf0d21c466195c7b57178ca11e0c5eee93fe",
+    "host/test/configured-ldap.test.ts": "fecf5c9dda39eeeadce3f452c677acd7e844672963898c827427d2339b5e9d93",
+    "host/acceptance/product-compiled-journey.test.ts": "ea178c4cc624d2146f1c9cfe6daae09eb2db179c65449138ffaeb1610862edc6"
+  },
+  "status": "draft-default-package-local-compiler-failure-retained",
+  "product": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-template-default-product-oct10",
+    "manifestSha256": "dc5fbe9b51abaa0847786d1337dce40788d298be579c3f8126bdea04ebd7b596",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+  },
+  "defaultBuild": {
+    "privateSnapshot": true,
+    "sources": 72,
+    "nodeHeaders": 2810,
+    "rustToolchain": {
+      "cargo": "cargo 1.89.0 (c24e10642 2025-06-23)",
+      "rustc": "rustc 1.89.0 (29483883e 2025-08-04)"
+    },
+    "templateSha256": "c3693c89c755307869eb6d08c0b19ad33eed28c23d6c36dd346d06aa84011ffa",
+    "reproducibleAcrossSnapshots": true,
+    "failedBuildPreservesPrevious": true,
+    "compilerThreadStackBytes": 16777216
+  },
+  "firstLocalBatch": {
+    "tests": 4,
+    "pass": 3,
+    "fail": 1,
+    "durationMs": 148056.984723,
+    "failed": "Compiled CLI: Rust 1.89.0 serde_json SIGSEGV",
+    "compilerStatus": 101,
+    "notRootCauseProof": true
+  },
+  "stackComparison": {
+    "tests": 2,
+    "pass": 2,
+    "fail": 0,
+    "durationMs": 68625.018533,
+    "compilerThreadStackBytes": 16777216,
+    "notRootCauseProof": true,
+    "notProductDefault": true
+  },
+  "toolResolution": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "noCargoOrRustcOverrides": true,
+    "limitedPath": true
+  },
+  "compiled": {
+    "tests": 30,
+    "pass": 30,
+    "fail": 0,
+    "typeStrippingDisabled": true,
+    "externalProgramsUnavailable": true,
+    "loopbackOnly": true
+  },
+  "mixedJourney": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "durationMs": 60928.928786,
+    "originalFixtureDeadlineMs": 90000,
+    "sourcePattern": "^namespace=true nativeAuthorization=true apiLoad=true load=false spi=false ",
+    "sameLockedProduct": true,
+    "originalInputsAndBudgets": true,
+    "simulatedMcuOnly": true,
+    "notPhysicalPrecisionAcceptance": true
+  },
+  "performance": {
+    "passed": true,
+    "reference": {
+      "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "runtime": "3.12.13",
+      "sourceSha256": {
+        "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+        "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+      }
+    },
+    "repetitions": {
+      "render": 3000,
+      "cold": 100,
+      "parse": 2000,
+      "cached": 1000000
+    },
+    "warmups": 2,
+    "samples": 7,
+    "budgets": {
+      "renderToJinja": 1.5,
+      "coldToJinja": 1.5,
+      "fuelFailureMaxMs": 25,
+      "secretsParseToBaseline": 1.2,
+      "secretsCachedToBaseline": 1.2
+    },
+    "ratios": {
+      "render": 0.32550019409268016,
+      "cold": 0.04698386993031655
+    },
+    "fuelFailureMs": 0.2801409999999578,
+    "secretsParseRatio": 0.9957971107848554,
+    "secretsCachedRatio": 0.9755618223710423
+  },
+  "startup": [
+    {
+      "servicePreparation": {
+        "coldProcesses": 11,
+        "warmups": 1,
+        "medianMs": 92.23653300000296,
+        "p95Ms": 102.22610300000088,
+        "scope": "Cold compiled CLI plus SHA-256 verification of all inventoried product files; no machine import or service activation"
+      }
+    },
+    {
+      "startupVerification": {
+        "coldProcesses": 11,
+        "warmups": 1,
+        "medianMs": 91.19029999999475,
+        "p95Ms": 107.6112989999965,
+        "scope": "Compiled pre-start command; no PATH programs, Python, TypeScript loading, machine imports or hardware"
+      }
+    },
+    {
+      "freshBuildMs": 30944.877309,
+      "sourceFiles": 72,
+      "nodeHeaderFiles": 2810,
+      "compiler": "cc (Deepin 12.3.0-17deepin18) 12.3.0",
+      "outputs": {
+        "trapq.node": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+        "stepcompress.node": "255a84728574d1534bad1796883d9232d56cb5089581676fc47c5cb202a9cb95",
+        "serialqueue.node": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac",
+        "unix-peer.node": "86d5ed6b37abf734d89fb4eff9b24bcf6636eab408c94df7e9d96f04cb356248",
+        "sealed-file.node": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+        "file-events.node": "0c0c6bf4d8702b37514da7c0a3b524682c666830fcafabac50d249c18cdd802c",
+        "can-query.node": "33135adc0307937ed196ce305c4b52003dc617ec5a9c1550c21b8c22e00a760a",
+        "ar100-flash.node": "5018b82bbf784653d7a55678ed768e52d5eb3acb8f05702b71ceb8d9627215f9",
+        "template.node": "c3693c89c755307869eb6d08c0b19ad33eed28c23d6c36dd346d06aa84011ffa",
+        "fatfs-helper": "262fccdaeb2d9733f48b4d2b0ec47319bc05ed8f57c61d02e4080478a4c80c7b",
+        "file-write-lease": "38fe07785a44103e1ef1a69412d6a8a93822df3e2373c702f6f1b92522de7355"
+      }
+    }
+  ],
+  "scope": "Default C/Rust product build and this exact retained desktop package only. Original local four full-suite failures and new Rust compiler crash remain. Successful limited stack condition does not establish root cause. Initial PR #68 CI head 28e47 results do not cover this packaging increment; new-head CI, actual develop merge checks, official client scenes on this package, full generic templates, target-board performance and G3 remain required.",
+  "archive": {
+    "path": "moonraker-template-default-package.evidence.json.gz",
+    "sha256": "b5665c0f4bd054aabed577b4b59047b1f93c13cac0b266ce397a296e9ffbae8a",
+    "bytes": 146556,
+    "entries": 24
+  }
+}

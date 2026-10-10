@@ -3562,8 +3562,26 @@ JSON 必须保留原始文本进入原生环境，`1`、`1.0`、`1e0`、`-0.0`
 `npm test` 先编译独立 `template.node`；工具链为 Rust 1.89.0，依赖
 锁定在 `host/native/template/Cargo.lock`。`npm run build:template`
 支持指定 `CARGO`、`CARGO_HOME`、`RUSTUP_HOME` 和 `CARGO_TARGET_DIR`，
-隔离工作区必须使用自己的构建目录。产物构建仍须显式装配该插件，
-不因测试通过自动替换默认打印入口。
+隔离工作区必须使用自己的构建目录。默认 `build-product-host.ts` 现将
+模板列为必需插件，从独立源码快照重建；外部原生目录也必须包含该
+插件，缺失时拒绝发布。构建信息绑定 C／Rust 输入、Cargo 锁文件、
+Node 头文件、产物摘要及 Rust／Cargo 1.89.0 版本；其他 Rust 版本
+直接拒绝。产物构建不复用传入的 `CARGO_TARGET_DIR`，而是创建、
+使用并清理自己的输出目录。随机快照路径映射到固定编译路径，
+跨快照的重复构建须保持内容一致。此记录不构成完整工具链签名或
+密闭构建证明，不因测试通过自动替换默认打印入口。
+
+默认打包首批四项用例为三通过／一 Rust 编译器 SIGSEGV；此前
+全量本机四项失败保留。显式 `RUST_MIN_STACK=16777216` 的一次
+有限对照通过两项，不推断栈不足或根因修复，也未将该变量写为
+产品默认值。桌面启动校验和同一固定模板预算通过；编译后的模板
+与 LDAP 在保留包中关闭 TS 加载复验，证据与实际覆盖范围见
+[默认包记录](../host/contracts/moonraker-template-default-package.json)。
+该默认包关闭 TS 加载后通过原 30 项模板／LDAP 断言，并在同一
+锁定产物上通过原完整混合软件旅程；约 61 秒完成，原 90 秒期限、
+输入与预算不变。仅使用模拟 MCU，不计算实际页面或目标板通过。
+性能参考与此前冻结基线的关联见
+[输入关联](../host/contracts/moonraker-template-default-inputs.json)。
 
 当前仅验证同步文本／私密 JSON 路径、默认关闭的 debug 日志行为、
 正负 i128 整数范围及明确的资源拒绝。源、上下文和输出各限 64 KiB，

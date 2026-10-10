@@ -24,6 +24,7 @@ test('compiled product workers, addons, assets and mathematical output run witho
   for(const [path,hash] of Object.entries(marker.files)){assert(!path.endsWith('.ts'));assert.equal(createHash('sha256').update(await readFile(join(output,path))).digest('hex'),hash,path);}
   assert(marker.files['host/contracts/unicode-lower-15.json']);assert(marker.files['host/assets/fonts/LICENSE-DejaVu.txt']);assert(marker.files['package-lock.json']);assert(marker.files['host/build/serialqueue.node']);
   const native=JSON.parse(await readFile(join(output,'host/build/native-build-info.json'),'utf8'));for(const [name,hash] of Object.entries(native.outputs))assert.equal(marker.files['host/build/'+name],hash);
+  assert(marker.addons.includes('template'));assert(native.sources['host/native/template/Cargo.lock']);assert(native.sources['host/native/template/src/lib.rs']);assert.match(native.rustToolchain.rustc,/^rustc 1\.89\.0\b/);
   await installProductDependencies(output);
   const serviceProfile=join(work,'machine.mjs');await writeFile(serviceProfile,'throw new Error("Service generation must not import the machine");');
   const serviceTimes:number[]=[];let serviceUnit='';
@@ -48,6 +49,7 @@ test('product publication is reproducible and preserves prior output on compiler
   const bad=join(dir,'bad.ts'),config=join(dir,'bad.json');await writeFile(bad,'const invalid:number="text";');await writeFile(config,JSON.stringify({extends:join(root,'host/tsconfig.product-host.json'),include:[bad]}));
   await assert.rejects(buildProductHost(output,config),/TypeScript build failed/);assert.equal(await readFile(join(output,'build-info.json'),'utf8'),before);
   const cc=process.env.CC;try{process.env.CC='/missing-product-compiler';await assert.rejects(buildProductHost(output),/compiler unavailable/);assert.equal(await readFile(join(output,'build-info.json'),'utf8'),before);}finally{if(cc===undefined)delete process.env.CC;else process.env.CC=cc;}
+  const cargo=process.env.CARGO;try{process.env.CARGO='/missing-product-cargo';await assert.rejects(buildProductHost(output),/Rust toolchain unavailable/);assert.equal(await readFile(join(output,'build-info.json'),'utf8'),before);}finally{if(cargo===undefined)delete process.env.CARGO;else process.env.CARGO=cargo;}
   await assert.rejects(buildProductHost(output,undefined,join(dir,'missing')));assert.equal(await readFile(join(output,'build-info.json'),'utf8'),before);
   await mkdir(output+'.lock');await assert.rejects(buildProductHost(output),/locked/);await rm(output+'.lock',{recursive:true});
   const other=join(dir,'unowned');await mkdir(other);await writeFile(join(other,'keep'),'keep');await assert.rejects(buildProductHost(other),/unrecognized/);assert.equal(await readFile(join(other,'keep'),'utf8'),'keep');

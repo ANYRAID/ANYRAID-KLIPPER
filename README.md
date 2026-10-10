@@ -59,6 +59,11 @@ LDAP 身份任务分支已补齐独立 LDAP／LDAPS 传输，合成目录协议�
 完整任意精度整数及目标板尚未验证，见
 [同步模板验收](host/contracts/moonraker-template-sync-acceptance.json)和
 [装配说明](docs/Node_Host_Startup.md#同步私密文本模板候选)。
+后续默认构建已将模板列为必需插件，从独立 C／Rust 快照生成，绑定
+锁文件与工具链，不再需要手工带入已有插件。桌面启动校验及固定模板
+预算通过；首次打包回归出现 Rust 编译器 SIGSEGV，16 MiB 线程栈条件
+下的有限对照通过，不认定根因修复。原失败、保留包及其软件验收见
+[默认模板包记录](host/contracts/moonraker-template-default-package.json)。
 LDAP PR #62 已正常合入 develop `6fb19680`，候选头与实际合并后的
 全部 15 项检查分别通过，含普通 4499／4499、协议、Linux MCU、
 精确 324 条 sanitizer 命令与十组共 500 个进程诊断，见
