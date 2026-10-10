@@ -869,5 +869,22 @@
     "bytes": 1265554,
     "entries": 47,
     "encoding": "gzip JSON base64 entries with individual SHA256; raw logs and page screenshots retained"
-  }
+  },
+  "followups": [
+    {
+      "path": "product-client-r11-acceptance.json",
+      "sourceCommit": "080a1b190a894c082397338c09919dd62be091e4",
+      "scope": "Same final locked package Fluidd config save/restart and cancel/explicit firmware recovery; original R10 JWT failure and full regression failures retained"
+    },
+    {
+      "path": "product-client-r12-acceptance.json",
+      "sourceCommit": "080a1b190a894c082397338c09919dd62be091e4",
+      "scope": "Same final locked package Mainsail pause/resume and cancellation with explicit firmware recovery"
+    },
+    {
+      "path": "pr68-080a-terminal.json",
+      "sourceCommit": "080a1b190a894c082397338c09919dd62be091e4",
+      "scope": "All 15 current candidate CI jobs succeeded; local 46 failures retained"
+    }
+  ]
 }

@@ -3278,6 +3278,16 @@ JWT 授权，不新增打印、文件、历史或运动所有者。默认入口�
 固定 Worker，其他资源和 API 继续验证原生身份。
 迁移回归、固定包摘要和有限官方页面结果见
 [缓存迁移验收](../host/contracts/product-client-worker-migration-acceptance.json)。
+同一锁定包的 Fluidd R11 已通过实际配置保存、重启、重开，以及
+取消后停止、明确固件恢复和新作业完成。新来源没有 JWT 刷新请求，
+不将此有限对照用于关闭原复用来源的兼容性缺项，见
+[R11 补充证据](../host/contracts/product-client-r11-acceptance.json)。
+同一包的 Mainsail R12 已通过实际暂停／恢复至完成、取消后的明确固件
+恢复及新打印完成，见[R12 补充证据](../host/contracts/product-client-r12-acceptance.json)。
+场次包含启动 4 分 31 秒，两个进程正常退出、全部端口释放。初始新作业
+遥测曾短暂显示 NaN／null，完整外部故障恢复、预览及原 JWT 缺项仍保留。
+当前 `080a1b1` 的候选远程检查终态见[15 项 CI 证据](../host/contracts/pr68-080a-terminal.json)，
+不替代完整本机回归、目标板、实机与 G3 门槛。
 
 编译包包含 `scripts/product-client.js`。它作为独立的受监督进程运行，
 只监听 127.0.0.1，并要求显式固定的私有原生 Moonraker 回环监听地址：

@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "sourceCommit": "080a1b190a894c082397338c09919dd62be091e4",
+  "status": "Final locked package Mainsail pause/resume, cancellation, explicit firmware recovery and subsequent new print observed; remaining delivery open",
+  "authorization": {
+    "source": "Standing human authorization in this conversation",
+    "maxElapsedMs": 900000,
+    "includesStartup": true,
+    "loopbackOnly": true,
+    "simulatedMcuOnly": true,
+    "automaticExtensionOrRelaunch": false
+  },
+  "scene": {
+    "round": 12,
+    "origin": "http://127.0.0.1:18348",
+    "proxyPort": 18347,
+    "upstreamPort": 33201,
+    "name": "mainsail",
+    "started": "2026-10-10T23:39:35.185Z",
+    "deadline": "2026-10-10T23:54:35.185Z",
+    "closed": "2026-10-10T23:44:05.846Z",
+    "reason": "explicit-completion",
+    "elapsedMs": 270661,
+    "children": [
+      {
+        "label": "GATEWAY",
+        "pid": 897176,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "label": "PROBE",
+        "pid": 897105,
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "product": "/home/dek02/.cache/codex/tmp/anyraid-worker-migration-final-product-oct10",
+    "automaticExtensionOrRelaunch": false,
+    "portsReleased": true,
+    "supervisorTerminalExitCode": 0
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-worker-migration-final-product-oct10",
+    "manifestSha256": "32b55c761f4d4175ef9798ed8e5c4081ba8bf99afecc4831cbc0051e49373f89",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444",
+    "preflightGuardPassed": true,
+    "postCloseImmutabilityGuardPassed": true
+  },
+  "clients": [
+    {
+      "name": "fluidd",
+      "version": "1.37.6",
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fixed-frontends/fluidd-1.37.6",
+      "archiveSha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed456",
+      "assetFiles": 255,
+      "assetTreeSha256": "61769e745cfd4e0c58430052db3cd2df5bcdc5961d6661d059b1b5bdde9647ae",
+      "everyFileMatchesOriginalArchive": true
+    },
+    {
+      "name": "mainsail",
+      "version": "2.19.0",
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fixed-frontends/mainsail-2.19.0",
+      "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
+      "assetFiles": 193,
+      "assetTreeSha256": "c9efdf1e72020aab7b0d2139f7f1d70018e136bd9cb2dde1ca8c3715d05ad1eb",
+      "everyFileMatchesOriginalArchive": true
+    }
+  ],
+  "observations": {
+    "login": {
+      "actualOfficialClient": true,
+      "nativeOperatorLoginStatus": 200,
+      "freshOrigin": true
+    },
+    "print": {
+      "file": "client-sample.gcode",
+      "fileSeededByApi": true,
+      "pageUploadNotClaimed": true,
+      "firstCompleted": true,
+      "secondPausedAtPercent": 12,
+      "resumeRpcObserved": true,
+      "secondCompleted": true
+    },
+    "cancel": {
+      "thirdJobPausedAtPercent": 25,
+      "actualCancelButton": true,
+      "separateConfirmationDialogNotObserved": true,
+      "nativeCancelRpcObserved": true,
+      "shutdownMessage": "Native printer requires device reinitialization"
+    },
+    "recovery": {
+      "explicitOfficialFirmwareRestartButton": true,
+      "deviceGenerationAfterRecovery": 2,
+      "simulatedMcuResets": [
+        1,
+        1
+      ],
+      "simulatedMcuConfigurations": [
+        2,
+        2
+      ],
+      "pageReturnedToStandby": true,
+      "automaticResumeNotObserved": true,
+      "fourthPrintStartedFromStandby": true,
+      "fourthPrintCompleted": true,
+      "historyRows": 4,
+      "historyPageLabels": [
+        "completed",
+        "cancelled"
+      ],
+      "scope": "Cancellation and explicit firmware reinitialization only; external fault injection and physical hardware not claimed"
+    },
+    "retainedUiObservation": {
+      "initialNewJobSpeed": "NaN mm/s",
+      "initialNewJobFlow": "null mm³/s",
+      "subsequentActiveValues": [
+        "1 mm/s",
+        "0.2 mm³/s"
+      ],
+      "rootCause": "Unconfirmed",
+      "compatibilityNotClosed": true
+    }
+  },
+  "remaining": [
+    "Client preview and complete external fault recovery scenarios",
+    "Reused-origin Fluidd refresh compatibility and initial Mainsail telemetry display",
+    "Original complete local regression 46 failures",
+    "Full template factory, Moonraker coverage and Python retirement",
+    "Target board performance, precision, G3 and physical Cycnumbris 500 acceptance"
+  ],
+  "evidence": {
+    "path": "product-client-r12-acceptance.evidence.json.gz",
+    "sha256": "689395c4cfacde9dc0e1d7b76f0dca9d5c715024300d222c3d5b940146aa3afa",
+    "bytes": 447609,
+    "entries": 13
+  },
+  "driverInputs": {
+    "anyraid-client-authorized-r12-oct11.mjs": "a7ea8109a1283597f3eaafc67806d1b38968ae3cbe431a5a787ba89a6f8c8f00",
+    "anyraid-client-probe-r12-oct11.ts": "ebadb50ac597d3a028a817a0a8d9ddc789953312cd5487ea841aa338cdbd6191"
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "artifactCorrection": {
+    "reason": "R11 copied observer retained the R10 temporary output path; initial sealing failed with ENOENT for the expected R11 path",
+    "actualTemporaryOutput": "anyraid-client-r10-upload-metadata.jsonl",
+    "selectedBy": "R11 explicit started/closed interval",
+    "selectedRecords": 1,
+    "originalR10FrozenArchiveRetained": true,
+    "originalR10EntrySha256": "4c81f8f7c6b6e158e9cfa80cc376189ecfb2fd39e8f116e13660afd84b47a8bd",
+    "scope": "Only artifact routing correction; original page request and HTTP 201 unchanged; no scene restarted"
+  },
+  "schema": 1,
+  "date": "2026-10-11",
+  "sourceCommit": "080a1b190a894c082397338c09919dd62be091e4",
+  "status": "Same final locked bundle finite Fluidd increment; configuration and cancellation recovery verified; full delivery remains open",
+  "authorization": {
+    "source": "Standing human authorization in this conversation",
+    "maxElapsedMs": 900000,
+    "includesStartup": true,
+    "loopbackOnly": true,
+    "simulatedMcuOnly": true,
+    "automaticExtensionOrRelaunch": false,
+    "explicitFirmwareRecoveryWithinScene": true
+  },
+  "scene": {
+    "round": 11,
+    "origin": "http://127.0.0.1:18338",
+    "proxyPort": 18336,
+    "upstreamPort": 41399,
+    "name": "fluidd",
+    "started": "2026-10-10T23:32:18.337Z",
+    "deadline": "2026-10-10T23:47:18.337Z",
+    "closed": "2026-10-10T23:35:49.203Z",
+    "reason": "explicit-completion",
+    "elapsedMs": 210866,
+    "children": [
+      {
+        "label": "GATEWAY",
+        "pid": 893989,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "label": "PROBE",
+        "pid": 893931,
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "product": "/home/dek02/.cache/codex/tmp/anyraid-worker-migration-final-product-oct10",
+    "automaticExtensionOrRelaunch": false,
+    "portsReleased": true,
+    "supervisorTerminalExitCode": 0
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-worker-migration-final-product-oct10",
+    "manifestSha256": "32b55c761f4d4175ef9798ed8e5c4081ba8bf99afecc4831cbc0051e49373f89",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444",
+    "preflightGuardPassed": true,
+    "postCloseImmutabilityGuardPassed": true
+  },
+  "clients": [
+    {
+      "name": "fluidd",
+      "version": "1.37.6",
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fixed-frontends/fluidd-1.37.6",
+      "archiveSha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed456",
+      "assetFiles": 255,
+      "assetTreeSha256": "61769e745cfd4e0c58430052db3cd2df5bcdc5961d6661d059b1b5bdde9647ae",
+      "everyFileMatchesOriginalArchive": true
+    },
+    {
+      "name": "mainsail",
+      "version": "2.19.0",
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fixed-frontends/mainsail-2.19.0",
+      "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
+      "assetFiles": 193,
+      "assetTreeSha256": "c9efdf1e72020aab7b0d2139f7f1d70018e136bd9cb2dde1ca8c3715d05ad1eb",
+      "everyFileMatchesOriginalArchive": true
+    }
+  ],
+  "driverInputs": {
+    "anyraid-client-authorized-r11-oct11.mjs": "21bdfebbf84b0c1dfbd08955fa7dbb3f13e4542fb913db53fa5835b89fdc69ca",
+    "anyraid-client-probe-r11-oct11.ts": "69ec46b42ab1973f4895c25558e830202fc6b83012f92983f3537b235ef2ee93"
+  },
+  "observations": {
+    "configuration": {
+      "actualOfficialEditor": true,
+      "change": "Only appended # R11 finite client acceptance",
+      "includedMachineConfigPreserved": true,
+      "uploadStatus": 201,
+      "saveAndFirmwareRestart": true,
+      "reopenedCommentPersisted": true,
+      "deviceGenerationAfterSave": 2,
+      "simulatedMcuResetsAfterSave": [
+        1,
+        1
+      ],
+      "simulatedMcuConfigurationsAfterSave": [
+        2,
+        2
+      ]
+    },
+    "cancel": {
+      "actualPrintMenu": true,
+      "file": "client-sample.gcode",
+      "fileSeededByApi": true,
+      "pageUploadNotClaimed": true,
+      "pauseRequested": true,
+      "actualCancelButtonAndYesConfirmation": true,
+      "nativeCancelRpcObserved": true,
+      "shutdownMessage": "Native printer requires device reinitialization",
+      "movementControlsDisabledAfterCancel": true,
+      "automaticResumeNotObserved": true
+    },
+    "recovery": {
+      "explicitOfficialFirmwareRestartButton": true,
+      "deviceGenerationAfterRecovery": 3,
+      "simulatedMcuResetsAfterRecovery": [
+        2,
+        2
+      ],
+      "simulatedMcuConfigurationsAfterRecovery": [
+        3,
+        3
+      ],
+      "pageReturnedToReady": true,
+      "newPrintStartedFromReady": true,
+      "newPrintCompleted": true,
+      "twoHistoryRows": true,
+      "historyIconClasses": [
+        "success--text",
+        "error--text"
+      ],
+      "historyTotalSeconds": [
+        14,
+        11
+      ],
+      "scope": "Cancellation shutdown and explicit firmware reinitialization, followed by a new completed simulated job; no external fault injection or physical device"
+    },
+    "jwtComparison": {
+      "changedCondition": "New canonical loopback origin 127.0.0.1:18338 instead of previously reused 127.0.0.1:18328",
+      "freshOriginSentRefreshJwt": false,
+      "originalR10RefreshFailureRetained": true,
+      "originalR10StateNotErased": true,
+      "credentialsNotCollected": true,
+      "scope": "Consistent with retained origin state affecting client initialization; no root cause or all-client compatibility closure"
+    },
+    "otherObservation": {
+      "code": -32601,
+      "message": "Database namespace not found",
+      "during": "First frontend namespace read before official client created it",
+      "retained": true
+    }
+  },
+  "remaining": [
+    "Mainsail final-package pause/resume, cancellation and fault recovery",
+    "Complete preview and external fault recovery scenarios for both clients",
+    "Reused-origin explicit Fluidd refresh compatibility",
+    "Original full local regression 46 failures and compiler/runtime causes",
+    "Complete template factory, Moonraker coverage and Python retirement",
+    "Target board performance, motion precision, G3 and actual Cycnumbris 500 acceptance"
+  ],
+  "evidence": {
+    "path": "product-client-r11-acceptance.evidence.json.gz",
+    "sha256": "4115139b0f7b92007ebb65af20fb09652ddba2523f56731ca6dee2b6a1559607",
+    "bytes": 274964,
+    "entries": 14,
+    "encoding": "gzip JSON with base64 entries and individual SHA256; raw logs and screenshots"
+  }
+}
