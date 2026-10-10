@@ -924,7 +924,7 @@ node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyrai
 
 运行包包含主机 JS、后台 worker/子进程、JSON 数值与 Unicode 契约、
 字体及许可证、生产依赖清单与锁文件，以及现有原生插件。依赖需要
-单独安装；构建命令不下载依赖，默认从私有源码快照重建 7 个原生插件，
+单独安装；构建命令不下载依赖，默认从私有源码快照重建 9 个原生插件，
 不再复制工作区遗留插件。可在命令末尾通过
 `-- /绝对路径/输出目录` 指定构建目录。
 
@@ -940,6 +940,14 @@ node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyrai
 通过同文件系统 rename 发布完整 node_modules。普通失败和取消会等待
 npm 子进程退出并删除暂存目录，可直接重试；不会发布半成品依赖。
 意外强制终止或断电仍可能留下锁目录，应确认没有安装进程后再清理该锁。
+失败诊断只报告退出码、信号、超时／输出上限及已知 npm 错误类别，
+不转发 npm 原始输出、注册表地址或嵌套命令；例如 ENOTFOUND 表示
+名称解析失败，EINTEGRITY 表示下载摘要不符。类别未知时保持 null，
+不从缺失输出推断网络、缓存或编译器原因。调用方可读取稳定错误码
+ERR_PRODUCT_DEPENDENCY_INSTALL 及 exitCode、signal、npmCode 字段。
+诊断、失败清理及编译 CLI 的有限软件验证见
+[安装诊断记录](../host/contracts/product-install-diagnostics.json)；执行环境
+导致的输出缺失与历史安装／编译失败分别保留，不据此认定故障根因。
 发布后已存在依赖的运行包仍不可原地重装，应准备新的离线运行包。
 此命令不安装 Node、不创建账号、不启停服务，
 也不替代下述默认服务切换门槛。
