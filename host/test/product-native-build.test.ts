@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {mkdtemp,mkdir,symlink,readFile,readdir,rm,access} from 'node:fs/promises';
-import {join} from 'node:path';
-import {tmpdir} from 'node:os';
+import {join,resolve} from 'node:path';
+import {tmpdir,homedir} from 'node:os';
 import {constants} from 'node:fs';
 import {buildProductNative,productAddons,productExecutables} from '../scripts/build-product-native.ts';
 test('fresh native build uses explicit C and Rust tools without Python, binds sources and preserves existing destinations',async t=>{
@@ -17,6 +17,10 @@ test('fresh native build uses explicit C and Rust tools without Python, binds so
   const text=await readFile(join(output,'native-build-info.json'),'utf8'),record=JSON.parse(text);
   assert.deepEqual(Object.keys(record.outputs),[...productAddons.map(name=>name+'.node'),...productExecutables]);assert(Object.keys(record.sources).every(name=>!name.endsWith('.py')));assert(record.sources['host/native/trapq.c']);assert(record.sources['klippy/chelper/itersolve.c']);assert(record.sources['host/native/template/Cargo.lock']);assert(record.sources['host/native/template/src/lib.rs']);assert(record.nodeHeaders['node_api.h']);assert.match(record.rustToolchain.rustc,/^rustc 1\.89\.0\b/);
   for(const [name,hash] of Object.entries(record.outputs))assert.equal(createHash('sha256').update(await readFile(join(output,name))).digest('hex'),hash);
+  assert.equal(record.rustRegistryPathRemap,'/anyraid-cargo-registry');
+  const registry=resolve(process.env.CARGO_HOME??join(homedir(),'.cargo'),'registry/src'),template=await readFile(join(output,'template.node'));
+  assert.equal(template.includes(Buffer.from(registry)),false,'template must not encode the local Cargo registry source path');
+  assert.equal(template.includes(Buffer.from('/anyraid-cargo-registry/')),true,'dependency source locations retain a stable diagnostic path');
   await assert.rejects(buildProductNative(output),{code:'EEXIST'});assert.equal(await readFile(join(output,'native-build-info.json'),'utf8'),text);
   t.diagnostic(JSON.stringify({freshBuildMs:performance.now()-begin,sourceFiles:Object.keys(record.sources).length,nodeHeaderFiles:Object.keys(record.nodeHeaders).length,compiler:record.compiler,outputs:record.outputs}));
   process.env.CC='/no-compiler';await assert.rejects(buildProductNative(join(dir,'failed')),/compiler unavailable/);await assert.rejects(access(join(dir,'failed')),{code:'ENOENT'});

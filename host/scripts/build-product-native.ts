@@ -4,6 +4,7 @@ import {mkdir,mkdtemp,readFile,writeFile,readdir,rm,copyFile,lstat} from 'node:f
 import {dirname,join,resolve,relative} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {existsSync} from 'node:fs';
+import {homedir} from 'node:os';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 export const productAddons=['trapq','stepcompress','serialqueue','unix-peer','sealed-file','file-events','can-query','ar100-flash','template'] as const;
 export const productExecutables=['fatfs-helper','file-write-lease'] as const;
@@ -33,11 +34,13 @@ export async function buildProductNative(destination:string):Promise<void>{
   const rustToolchain={cargo:toolVersion(cargo),rustc:toolVersion(rustc)};
   if(!/^cargo 1\.89\.0\b/u.test(rustToolchain.cargo)||!/^rustc 1\.89\.0\b/u.test(rustToolchain.rustc))throw new Error('Product template build requires Rust and Cargo 1.89.0');
   // Each build owns the complete Rust output tree. Remap the random snapshot
-  // path so reproducible publication does not encode its temporary directory.
-  const remap='--remap-path-prefix='+scratch+'=/anyraid-product-build';
-  const rustFlags=process.env.CARGO_ENCODED_RUSTFLAGS!==undefined?{CARGO_ENCODED_RUSTFLAGS:(process.env.CARGO_ENCODED_RUSTFLAGS?process.env.CARGO_ENCODED_RUSTFLAGS+'\x1f':'')+remap}:{RUSTFLAGS:(process.env.RUSTFLAGS??'')+' '+remap};
+  // path and Cargo registry source path. Dependency panic locations otherwise
+  // encode the cache directory even when the project snapshot path is mapped.
+  const registry=resolve(rustEnv.CARGO_HOME??join(homedir(),'.cargo'),'registry/src');
+  const remaps=['--remap-path-prefix='+scratch+'=/anyraid-product-build','--remap-path-prefix='+registry+'=/anyraid-cargo-registry'];
+  const rustFlags=process.env.CARGO_ENCODED_RUSTFLAGS!==undefined?{CARGO_ENCODED_RUSTFLAGS:(process.env.CARGO_ENCODED_RUSTFLAGS?process.env.CARGO_ENCODED_RUSTFLAGS+'\x1f':'')+remaps.join('\x1f')}:{RUSTFLAGS:(process.env.RUSTFLAGS??'')+' '+remaps.join(' ')};
   for(const script of scripts){const result=spawnSync(process.execPath,[join(scratch,'host/scripts',script)],{env:{...rustEnv,...rustFlags,NODE_INCLUDE:join(scratch,'node-headers'),CARGO_TARGET_DIR:join(scratch,'cargo-target'),NODE_PATH:'',NODE_OPTIONS:''},encoding:'utf8',timeout:script==='build-template.ts'?310000:60000,maxBuffer:1024**2});if(result.error||result.status!==0)throw new Error('Fresh native build failed: '+script+'\n'+(result.error?.message??result.stdout+result.stderr));}
   const outputs:Record<string,string>={};for(const name of [...productAddons.map(addon=>addon+'.node'),...productExecutables]){const source=join(scratch,'host/build',name);outputs[name]=digest(await readFile(source));await copyFile(source,join(target,name));}
-  await writeFile(join(target,'native-build-info.json'),JSON.stringify({schema:1,node:process.version,platform:process.platform,arch:process.arch,compiler:version.stdout.trim().split('\n')[0],rustToolchain,rustPathRemap:'/anyraid-product-build',sources,nodeHeaders:headers,outputs,scope:'Private C/Rust source and Node header snapshots with locked Cargo dependencies and independent Rust output directory; toolchains, dependency caches, system headers and libraries are supplied by the build machine. Not a signed or hermetic toolchain attestation.'},null,2)+'\n');
+  await writeFile(join(target,'native-build-info.json'),JSON.stringify({schema:1,node:process.version,platform:process.platform,arch:process.arch,compiler:version.stdout.trim().split('\n')[0],rustToolchain,rustPathRemap:'/anyraid-product-build',rustRegistryPathRemap:'/anyraid-cargo-registry',sources,nodeHeaders:headers,outputs,scope:'Private C/Rust source and Node header snapshots with locked Cargo dependencies and independent Rust output directory; toolchains, dependency caches, system headers and libraries are supplied by the build machine. Not a signed or hermetic toolchain attestation.'},null,2)+'\n');
  }catch(error){await rm(target,{recursive:true,force:true});throw error;}finally{await rm(scratch,{recursive:true,force:true});}
 }
