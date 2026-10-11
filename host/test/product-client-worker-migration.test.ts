@@ -4,22 +4,26 @@ import {mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {runInNewContext} from 'node:vm';
+import {createHash} from 'node:crypto';
 import type {IncomingMessage,ServerResponse} from 'node:http';
 import {productClientAssets} from '../src/runtime/product-client-assets.ts';
+const origin='http://127.0.0.1:18420',suffix=createHash('md5').update(origin).digest('hex');
+const credentialKeys=['user-token-'+suffix,'refresh-token-'+suffix];
 
 async function emitted(path:string){
  const root=await mkdtemp(join(tmpdir(),'login-worker-script-'));
  try{
-  await writeFile(join(root,'index.html'),'fixed client');const client=await productClientAssets(root);let body='';
+  await writeFile(join(root,'index.html'),'fixed client');const client=await productClientAssets(root,origin);let body='';
   await client({url:path,method:'GET'} as IncomingMessage,{setHeader(){},writeHead(){},end(value:string){body=value;}} as unknown as ServerResponse,new AbortController().signal,false);
   return path==='/sw.js'?body:/<script nonce="[^"]+">([\s\S]*?)<\/script>/.exec(body)![1];
  }finally{await rm(root,{recursive:true,force:true});}
 }
-async function browser(serviceWorker:unknown){
+async function browser(serviceWorker:unknown,options:{loginStatus?:number;storageFailure?:boolean}={}){
  let submit:()=>Promise<void>=()=>Promise.reject(Error('Missing submit handler')),requests=0,resets=0;const redirects:string[]=[],timers=new Map<number,()=>void>();let nextTimer=0;
  const button={disabled:false,textContent:''},error={textContent:''},form={querySelector:()=>button,addEventListener(_name:string,handler:(e:unknown)=>Promise<void>){submit=()=>handler({preventDefault(){}});},reset(){resets++;}};
- runInNewContext(await emitted('/access/client-login'),{document:{querySelector:(selector:string)=>selector==='form'?form:error},navigator:{serviceWorker},window:{location:{replace:(url:string)=>redirects.push(url)}},FormData:class {get(name:string){return name==='username'?'fixture-user':'fixture-only';}},fetch:async()=>{requests++;return {ok:true,status:200};},setTimeout:(callback:()=>void,ms:number)=>{assert.equal(ms,5000);const id=++nextTimer;timers.set(id,callback);return id;},clearTimeout:(id:number)=>timers.delete(id)});
- return {submit:()=>submit(),button,error,redirects,timers,requests:()=>requests,resets:()=>resets};
+ const storage=new Map([...credentialKeys.map(key=>[key,'stale-fixture-credential'] as const),['user-token-other-printer','other-fixture-credential'],['refresh-token-other-printer','other-fixture-refresh'],['fluidd-local-instances','fixture-printer-preference'],['theme','dark']]),removed:string[]=[];
+ runInNewContext(await emitted('/access/client-login'),{document:{querySelector:(selector:string)=>selector==='form'?form:error},navigator:{serviceWorker},window:{location:{origin,replace:(url:string)=>redirects.push(url)}},localStorage:{removeItem(key:string){if(options.storageFailure)throw Error('Storage blocked');removed.push(key);storage.delete(key);},clear(){throw Error('Must preserve preferences and other printers');}},FormData:class {get(name:string){return name==='username'?'fixture-user':'fixture-only';}},fetch:async()=>{requests++;const status=options.loginStatus??200;return {ok:status===200,status};},setTimeout:(callback:()=>void,ms:number)=>{assert.equal(ms,5000);const id=++nextTimer;timers.set(id,callback);return id;},clearTimeout:(id:number)=>timers.delete(id)});
+ return {submit:()=>submit(),button,error,redirects,timers,storage,removed,requests:()=>requests,resets:()=>resets};
 }
 test('worker migration never fetches cached content, erases preferences or navigates other printing windows',async()=>{
  const listeners=new Map<string,(event:unknown)=>void>();let skipped=0,claimed=0;const waits:Promise<unknown>[]=[];
@@ -40,4 +44,14 @@ test('stalled worker update reaches the fixed deadline without transmitting logi
 });
 test('fresh browsers without a controlling worker submit through native login without migration delays',async()=>{
  const f=await browser(undefined);await f.submit();assert.equal(f.requests(),1);assert.equal(f.timers.size,0);assert.deepEqual(f.redirects,['/_client/control']);
+});
+test('successful managed login removes only this printer credential pair before client navigation',async()=>{
+ const f=await browser(undefined);await f.submit();assert.deepEqual(f.removed,credentialKeys);for(const key of credentialKeys)assert.equal(f.storage.has(key),false);
+ assert.equal(f.storage.get('user-token-other-printer'),'other-fixture-credential');assert.equal(f.storage.get('refresh-token-other-printer'),'other-fixture-refresh');assert.equal(f.storage.get('fluidd-local-instances'),'fixture-printer-preference');assert.equal(f.storage.get('theme'),'dark');assert.deepEqual(f.redirects,['/_client/control']);
+});
+test('rejected login preserves all existing credentials and preferences without client navigation',async()=>{
+ const f=await browser(undefined,{loginStatus:401});await f.submit();assert.equal(f.requests(),1);assert.deepEqual(f.removed,[]);for(const key of credentialKeys)assert(f.storage.has(key));assert.deepEqual(f.redirects,[]);assert.match(f.error.textContent,/账号或密码/);
+});
+test('unavailable browser storage keeps the official client closed after login instead of reusing stale credentials',async()=>{
+ const f=await browser(undefined,{storageFailure:true});await f.submit();assert.equal(f.requests(),1);assert.equal(f.resets(),1);assert.deepEqual(f.redirects,[]);assert.deepEqual(f.removed,[]);assert.match(f.error.textContent,/旧登录凭据/);assert.equal(f.button.disabled,false);
 });

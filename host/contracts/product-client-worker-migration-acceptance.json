@@ -886,5 +886,333 @@
       "sourceCommit": "080a1b190a894c082397338c09919dd62be091e4",
       "scope": "All 15 current candidate CI jobs succeeded; local 46 failures retained"
     }
-  ]
+  ],
+  "credentialMigrationOct11": {
+    "date": "2026-10-11",
+    "sourceBase": "22324a9319697291f37622d8242dd7813f4018be",
+    "sourceHashes": {
+      "host/src/runtime/product-client-assets.ts": "c1432b87c657941f257f0f2e1398f41131e673fba547812fda08619c45d63847",
+      "scripts/product-client.ts": "418469536a65b160a04fb1024a6c54629165feb291dd9657ec9efded645e2787",
+      "host/test/product-client-worker-migration.test.ts": "7f508bee3ee7f65f9baa2c613a9084f0bc3e7e42eb8eb784b18ee2482d4cdd3a",
+      "host/test/product-client-assets.test.ts": "2fc2bd06d90c78ceb4f56cf80e4da19e365147568ece23b03f71d4c805c690b4",
+      "host/test/product-client-gateway.test.ts": "35e4bb6fa8386f8facd6f3b368415f07b78f1d54b337d088b458490bc8d5ba02",
+      "host/test/product-client-gateway-compiled.test.ts": "a2456de62418ec1882d76ac3797578b0f8e51f89dc18bcf55acd74b76b8f5d44",
+      "host/src/moonraker/rpc.ts": "b9b06c3429cccdfb8696413b77ca219aec35812441f9c98d3dd3d3662b4e3943"
+    },
+    "status": "Finite same-origin credential migration candidate verified; full client and product delivery remain open",
+    "authorization": {
+      "source": "Direct user authorization for finite new scenes in this conversation",
+      "eachMaximumMs": 900000,
+      "startupIncluded": true,
+      "loopbackOnly": true,
+      "simulatedMcuOnly": true,
+      "noAutomaticExtensionOrRelaunch": true
+    },
+    "diagnosis": {
+      "upstreamReference": "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/common.py#L807-L813",
+      "rpc401Mapping": -32602,
+      "pinnedMappingPreserved": true,
+      "fluiddAsset": "assets/index-D-yWxGqL.js",
+      "fluiddAssetSha256": "badaa7dd306015433eaf7f664c33e540a9e11b029f50ba5bb6410edbb8df39f9",
+      "clientKeys": "user-token- and refresh-token- followed by MD5(apiUrl)",
+      "refreshErrorCleanupRequires401": true,
+      "reusedOrigin": "http://127.0.0.1:18328",
+      "baselineRefreshRequestObserved": true,
+      "baselineError": {
+        "code": -32602,
+        "message": "Invalid or expired JWT"
+      },
+      "historicalR10RawCredentialNotInspected": true,
+      "limits": "This controlled reproduction identifies the managed-login storage interaction. The exact historical R10 token was not extracted or independently traced to its issuer or earlier lifetime."
+    },
+    "behavior": {
+      "canonicalOriginExplicit": true,
+      "afterSuccessfulNativeLoginOnly": true,
+      "removeExactlyCurrentOriginCredentialPair": true,
+      "preserveOtherPrinterCredentialsAndPreferences": true,
+      "storageFailureStopsAutomaticClientNavigation": true,
+      "noJwtToBrowserFromGateway": true,
+      "noNativeRefreshValidationChanges": true,
+      "officialAssetsUnmodified": true
+    },
+    "build": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "bundle": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-client-credentials-product-oct11",
+        "manifestSha256": "5116d33b27725c0739f5bf79f997e3761fc8003f10bb3d23ba5c5a64872f7e63",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "installation": {
+        "durationMs": 850.677396,
+        "dependencies": 18
+      },
+      "durationMs": 2401.497608,
+      "changedFiles": [
+        "host/src/runtime/product-client-assets.js",
+        "scripts/product-client.js"
+      ],
+      "nativeProvenance": "Exact retained native outputs from independently built registry-mapped product A; no native source change or rebuild in this login-only slice",
+      "oldBundle": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-registry-mapped-product-a-oct11",
+        "manifestSha256": "779160198c2fdeeae64a48e481244a50bf6029443880faeedd45d2cc3abd95d2",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      }
+    },
+    "validation": {
+      "before": {
+        "tests": 7,
+        "pass": 5,
+        "fail": 2,
+        "scope": "New stale-credential and storage-failure counterexamples against old emitted login"
+      },
+      "source": {
+        "tests": 23,
+        "pass": 23,
+        "fail": 0
+      },
+      "compiled": {
+        "outerTests": 1,
+        "pass": 1,
+        "originalAndAddedAssertions": 17,
+        "independentDependencies": true,
+        "noTypeScriptLoading": true,
+        "noExternalPrograms": true
+      },
+      "typecheck": true,
+      "requiredWhitespace": true
+    },
+    "performance": {
+      "before": {
+        "phase": "before",
+        "node": "v26.10.0",
+        "warmupBatches": 3,
+        "sampleBatches": 11,
+        "requestsPerBatch": 100,
+        "scope": "sequential authenticated gateway to actual compiled native motion_report; idle simulated MCU; desktop, not target board or concurrent printing",
+        "budget": "after median of batch P99 <= before * 1.25 + 0.5ms; set before either phase",
+        "batches": [
+          {
+            "median": 1.0012929999999187,
+            "p99": 2.071145999999999,
+            "max": 2.822975000000042
+          },
+          {
+            "median": 1.1221329999999625,
+            "p99": 3.510304000000019,
+            "max": 4.5575770000000375
+          },
+          {
+            "median": 0.783429999999953,
+            "p99": 3.734226000000035,
+            "max": 7.089838999999984
+          },
+          {
+            "median": 0.8337010000000191,
+            "p99": 1.6705010000000584,
+            "max": 2.067166000000043
+          },
+          {
+            "median": 0.8061099999999897,
+            "p99": 1.7651120000000446,
+            "max": 2.5617520000000695
+          },
+          {
+            "median": 0.8483200000000579,
+            "p99": 3.807467000000088,
+            "max": 5.38812699999994
+          },
+          {
+            "median": 1.2621560000000045,
+            "p99": 6.964005999999927,
+            "max": 12.252981999999975
+          },
+          {
+            "median": 0.7137789999999313,
+            "p99": 1.563848999999891,
+            "max": 1.7499820000000454
+          },
+          {
+            "median": 0.7457790000000841,
+            "p99": 2.732584000000088,
+            "max": 4.489786000000095
+          },
+          {
+            "median": 0.8836310000001504,
+            "p99": 5.308444999999892,
+            "max": 6.2427470000000085
+          },
+          {
+            "median": 0.8521310000000994,
+            "p99": 1.8542130000000725,
+            "max": 1.9133039999999255
+          }
+        ],
+        "median": 0.8483200000000579,
+        "p99": 2.732584000000088
+      },
+      "after": {
+        "phase": "after",
+        "node": "v26.10.0",
+        "warmupBatches": 3,
+        "sampleBatches": 11,
+        "requestsPerBatch": 100,
+        "scope": "sequential authenticated gateway to actual compiled native motion_report; idle simulated MCU; desktop, not target board or concurrent printing",
+        "budget": "after median of batch P99 <= before * 1.25 + 0.5ms; set before either phase",
+        "batches": [
+          {
+            "median": 1.171055000000024,
+            "p99": 2.3833900000000767,
+            "max": 2.730774999999994
+          },
+          {
+            "median": 1.2440650000000915,
+            "p99": 3.355352000000039,
+            "max": 3.5314539999999397
+          },
+          {
+            "median": 0.858820000000037,
+            "p99": 5.677650999999969,
+            "max": 7.570905000000039
+          },
+          {
+            "median": 0.904412000000093,
+            "p99": 3.743456999999921,
+            "max": 7.071158999999966
+          },
+          {
+            "median": 0.8096199999999953,
+            "p99": 1.8275730000000294,
+            "max": 2.006154999999808
+          },
+          {
+            "median": 0.9684520000000703,
+            "p99": 2.934837000000016,
+            "max": 4.028800000000047
+          },
+          {
+            "median": 0.821770000000015,
+            "p99": 2.3250889999999345,
+            "max": 2.351159999999936
+          },
+          {
+            "median": 0.7876500000002125,
+            "p99": 2.2973779999999806,
+            "max": 2.5682819999999538
+          },
+          {
+            "median": 0.7475289999999859,
+            "p99": 1.8867729999999483,
+            "max": 2.0394260000000486
+          },
+          {
+            "median": 0.8553110000000288,
+            "p99": 2.3349500000001626,
+            "max": 3.18482999999992
+          },
+          {
+            "median": 0.862760999999864,
+            "p99": 2.801095000000032,
+            "max": 2.9853180000000066
+          }
+        ],
+        "median": 0.858820000000037,
+        "p99": 2.3833900000000767,
+        "limit": 3.91573000000011,
+        "passed": true
+      },
+      "passed": true,
+      "limits": "Sequential A then B finite desktop batches; no interleaved trials, no statistical acceleration claim, idle simulated device rather than concurrent printing or target hardware. Motion runtime and native outputs unchanged."
+    },
+    "scenes": {
+      "baselineR14": {
+        "name": "fluidd",
+        "started": "2026-10-11T00:26:19.016Z",
+        "deadline": "2026-10-11T00:41:19.016Z",
+        "closed": "2026-10-11T00:27:51.653Z",
+        "reason": "SIGINT",
+        "elapsedMs": 92637,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 927435,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 927377,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/anyraid-registry-mapped-product-a-oct11",
+        "automaticExtensionOrRelaunch": false,
+        "jwtRefreshObserved": true,
+        "jwtErrorObserved": true
+      },
+      "fixedR15": {
+        "name": "fluidd",
+        "started": "2026-10-11T00:27:54.617Z",
+        "deadline": "2026-10-11T00:42:54.617Z",
+        "closed": "2026-10-11T00:30:13.666Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 139049,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 927898,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 927843,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/anyraid-client-credentials-product-oct11",
+        "automaticExtensionOrRelaunch": false,
+        "sameOrigin": true,
+        "jwtRefreshRequests": 0,
+        "nativeOperatorConfirmed": true,
+        "officialClient": "Fluidd 1.37.6",
+        "officialFiles": 255,
+        "originalArchiveUnchanged": true,
+        "simulatedPrintCompleted": true,
+        "historyRecords": 1,
+        "printDurationSeconds": 10,
+        "historyDurationSeconds": 14,
+        "activeTelemetry": {
+          "requestedVelocityMmPerS": 1,
+          "extrusionFlowMm3PerS": 0.2
+        },
+        "connectionDropAndReconnect": true,
+        "explicitProcessRecovery": true,
+        "identifications": 3,
+        "historyPreservedAfterRecovery": true,
+        "remainingRpcErrors": [
+          {
+            "code": -32601,
+            "message": "Database namespace not found",
+            "scope": "Initial optional stored UI settings query; preserved, not silently suppressed"
+          }
+        ],
+        "portsReleased": true
+      }
+    },
+    "limits": [
+      "Only current canonical-origin Fluidd credential pair is migrated; remote printer entries, alias URLs and other clients are not reclassified as passed",
+      "No successful refresh of invalid or revoked JWT is fabricated; native authorization and pinned RPC mapping remain intact",
+      "Full local 46 failures and native compiler crashes, full preview/external fault recovery, complete Moonraker/Python retirement, target board precision/performance and G3 remain open",
+      "Current candidate CI and normal develop integration pending; previous CI does not prove this change"
+    ],
+    "evidence": {
+      "path": "product-client-credential-migration.evidence.json.gz",
+      "sha256": "28124f20ce3b5d90f77b1cf60cb0cbefb5df5627d6b24cd335adfbe9c8952a37",
+      "bytes": 214928,
+      "entries": 27
+    }
+  }
 }

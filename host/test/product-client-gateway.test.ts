@@ -87,7 +87,7 @@ test('gateway close during listener startup joins startup and leaves no live lis
 test('queue operation page uses the same native identity, login redirect and revoked-cookie boundary',async()=>{
  const root=await mkdtemp(join(tmpdir(),'queue-panel-assets-'));
  try{
-  await writeFile(join(root,'index.html'),'<html>unchanged client</html>');const client=await productClientAssets(root);
+  await writeFile(join(root,'index.html'),'<html>unchanged client</html>');const client=await productClientAssets(root,origin);
   await fixture(async f=>{
    assert.equal((await f.http('/_client/queue','GET',undefined,undefined,{accept:'text/html'})).code,303);
    const cookie=await f.login();const page=await f.http('/_client/queue','GET',undefined,cookie,{accept:'text/html'});assert.equal(page.code,200);assert(page.raw.includes('打印台已清空'));assert(!page.raw.includes(f.alice.token));
@@ -101,7 +101,7 @@ test('queue operation page uses the same native identity, login redirect and rev
 test('expired browser sessions can update the original worker and reach an uncached login without anonymous API or file access',async()=>{
  const root=await mkdtemp(join(tmpdir(),'worker-migration-assets-'));
  try{
-  await writeFile(join(root,'index.html'),'<html>official client</html>');const client=await productClientAssets(root);
+  await writeFile(join(root,'index.html'),'<html>official client</html>');const client=await productClientAssets(root,origin);
   await fixture(async f=>{
    for(const method of ['GET','HEAD']){const worker=await f.http('/sw.js',method);assert.equal(worker.code,200);if(method==='GET')assert(worker.raw.includes('self.skipWaiting()'));else assert.equal(worker.raw,'');}
    for(const path of ['/access/client-login','/_client/login']){const page=await f.http(path,'GET',undefined,undefined,{accept:'text/html'});assert.equal(page.code,200);assert(page.raw.includes('登录账号'));assert(!page.raw.includes(f.alice.token));}
