@@ -32,7 +32,7 @@ test('compiled bootstrap and standard RESTART preserve same MCU config, socket a
 import {createNativeProductHostFactory} from ${source('host/src/runtime/native-product-machine.js')};
 import {DatabaseStore} from ${source('host/src/moonraker/database.js')};
 const record=event=>appendFile(${JSON.stringify(trace)},JSON.stringify(event)+'\\n');
-export const createProductHostProfile=createNativeProductHostFactory(${JSON.stringify(f.path)},{filesRoot:${JSON.stringify(join(root,'files'))},metadataRoot:${JSON.stringify(join(root,'metadata'))},standardPrint:{nozzle:0,bed:0},
+export const createProductHostProfile=createNativeProductHostFactory(${JSON.stringify(f.path)},{filesRoot:${JSON.stringify(join(root,'files'))},metadataRoot:${JSON.stringify(join(root,'metadata'))},dataPath:${JSON.stringify(join(root,'private'))},standardPrint:{nozzle:0,bed:0},
 async createProcess(){const database=await DatabaseStore.open({path:${JSON.stringify(auth)}});await record({event:'process-open'});return {server:{information:${JSON.stringify(f.bindings.server.information)},database,authorization:{issuer:'https://compiled-restart.invalid'}},async release(){if(!database.status.closed)await database.close();await record({event:'process-closed'});}};},
 async createAdapter(_c,_s,_g,_p,reload){await record({event:'adapter',reason:reload.reason});return {stops:new Map(['mcu','aux'].map(id=>[id,async()=>record({event:'stop',id})])),output:()=>{},lifecycle:{prepare:async()=>{},start:async()=>{},finishOutputs:async()=>{},stopOutputs:async()=>{}},authorizePrintFile:async()=>{},release:async()=>record({event:'released'})};}});
 `);

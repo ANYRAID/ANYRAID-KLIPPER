@@ -5,6 +5,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {workerEntry} from '../src/runtime/worker-entry.ts';
 import {runProductHost} from '../src/runtime/product-host.ts';
 import {parseProductHostArgs,runProductHostCLI} from '../src/runtime/product-host-cli.ts';
 import {productHostFixture} from './helpers/product-host-profile.ts';
@@ -36,8 +37,8 @@ for(const failedStop of [false,true])test(`runtime hardware fault retains authen
  }finally{abort.abort();await running.catch(()=>{});await f.profile.release();await rm(dir,{recursive:true,force:true});}
 });
 for(const delta of [false,true])for(const termination of ['SIGINT','SIGTERM'] as const)test(`executable host owns authenticated HTTP and graceful ${termination} shutdown (delta=${delta})`,async()=>{
- const dir=await mkdtemp(join(tmpdir(),'host-process-')),script=fileURLToPath(new URL('../../scripts/product-host.ts',import.meta.url)),profile=fileURLToPath(new URL('./helpers/product-host-profile.ts',import.meta.url));
- const child=spawn(process.execPath,[script,'--profile',profile],{env:{...process.env,ANYRAID_TEST_PROFILE_DIR:dir,ANYRAID_TEST_DELTA:delta?'1':'0'},stdio:['ignore','pipe','pipe']});
+ const dir=await mkdtemp(join(tmpdir(),'host-process-')),script=fileURLToPath(workerEntry('./../../scripts/product-host.ts',import.meta.url)),profile=fileURLToPath(workerEntry('./helpers/product-host-profile.ts',import.meta.url));
+ const child=spawn(process.execPath,[...import.meta.url.endsWith('.js')?['--no-experimental-strip-types']:[],script,'--profile',profile],{env:{...process.env,ANYRAID_TEST_PROFILE_DIR:dir,ANYRAID_TEST_DELTA:delta?'1':'0'},stdio:['ignore','pipe','pipe']});
  let stdout='',stderr='',unread='';const again=Promise.withResolvers<{port:number}>();let seenReady=false;const ready=Promise.withResolvers<{address:{port:number}}>();void ready.promise.catch(()=>{});
  child.stdout.on('data',chunk=>{stdout+=chunk;unread+=chunk;for(let at=unread.indexOf('\n');at>=0;at=unread.indexOf('\n')){const line=unread.slice(0,at);unread=unread.slice(at+1);try{const value=JSON.parse(line);if(value.event==='ready'){if(seenReady)again.resolve(value.address);seenReady=true;ready.resolve(value);}}catch{}}});child.stderr.on('data',chunk=>{stderr+=chunk;});
  const ended=new Promise<{code:number|null;signal:NodeJS.Signals|null}>((resolve,reject)=>{child.on('error',reject);child.on('exit',(code,signal)=>{ready.reject(new Error(`Host exited before ready: ${stderr}`));resolve({code,signal});});});

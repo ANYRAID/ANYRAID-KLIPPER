@@ -279,6 +279,7 @@ import {createNativeProductHostFactory} from '/opt/anyraid/host/src/runtime/nati
 import {createProcessResources, createMachineDeviceAdapter} from './board-adapter.mjs';
 
 export const createProductHostProfile = createNativeProductHostFactory('/etc/anyraid/machine.json', {
+  dataPath: '/var/lib/anyraid',
   filesRoot: '/var/lib/anyraid/files',
   metadataRoot: '/var/lib/anyraid/metadata',
   uploads: {stagingRoot: '/var/lib/anyraid/staging'},
@@ -295,6 +296,19 @@ export const createProductHostProfile = createNativeProductHostFactory('/etc/any
 创建函数负责返回前的部分失败；成功返回后，即使启动取消，也由工厂清理。
 不得在这些回调中依赖已退役的设备。Moonraker 配置在进程首次启动时加载，
 设备重建不会重新加载它或改变服务监听配置。
+
+进程模式必须提供 `dataPath` 绝对目录；缺少目录身份或非法路径在取得
+依赖前拒绝。工厂自动向标准服务传入该目录，并加载一份共享模板／
+私密文件代际，无 LDAP 时也一样。`createProcess` 的 `server` 不得再
+提供 `templates` 或 `authorization.templateSecrets`，重复所有者会拒绝
+并清理已返回依赖。普通标准服务的显式接口仍保留。
+
+目录内的 `moonraker.secrets` 沿用既有优先级与有界读取；设备 RESTART
+和配置代际重建不会重新读取私密文件，更新需明确重启服务进程。
+模板资源在最终服务器关闭时释放，之后工厂再关闭其余进程依赖。
+服务信息只声明已装配的 `template`／`secrets`，不公布私密值或解析后的
+目录。这个入口接入不代表通用组件加载器、完整模板语言、异步性能、
+独立原生构建或目标板打印验收已经完成。
 
 `createAdapter(configuration, signal, gate, processServer)` 每轮返回设备侧
 stops、lifecycle、output、authorizePrintFile 和 release；不能再返回 server，

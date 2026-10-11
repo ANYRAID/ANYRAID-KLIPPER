@@ -20,7 +20,7 @@ async function fixture(failure?:'replacement'|'stop',holdReplacement=false){
  let current=await productMachineFixture(root),processOpens=0,processReleases=0,databaseCloses=0,calls=0,key='',db:DatabaseStore|undefined;
  const fixtures=[current],profiles:ProductHostProfile[]=[],addresses:string[]=[],detached=Promise.withResolvers<void>(),replacement=Promise.withResolvers<void>();
  const native=createNativeProductHostFactory(current.path,{
-  filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),standardPrint:{nozzle:200,bed:60},
+  filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),dataPath:join(root,'private'),standardPrint:{nozzle:200,bed:60},
   async createProcess(){
    processOpens++;db=await DatabaseStore.open({path:join(root,'api.db')});const close=db.close.bind(db);db.close=()=>{databaseCloses++;return close();};
    return {server:{information,database:db,authorization:{issuer:'https://process.invalid'}},async release(){processReleases++;if(!db!.status.closed)await db!.close();}};
@@ -177,20 +177,20 @@ for(const failure of ['replacement','stop'] as const)test(`failed ${failure} sta
 });
 test('cancelled late adapter releases device before the one process database and file store',async()=>{
  const root=await mkdtemp(join(tmpdir(),'native-process-cancel-')),f=await productMachineFixture(root),held=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>(),order:string[]=[],db=await DatabaseStore.open({path:join(root,'api.db')});
- const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),async createProcess(){return {server:{information,database:db,authorization:{issuer:'https://process.invalid'}},async release(){order.push('process');await db.close();}};},async createAdapter(){entered.resolve();await held.promise;return {stops:f.bindings.stops,output:f.bindings.print.output,lifecycle:f.bindings.print.lifecycle,async authorizePrintFile(){},async release(){order.push('device');await f.close();}};}});
+ const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),dataPath:join(root,'private'),async createProcess(){return {server:{information,database:db,authorization:{issuer:'https://process.invalid'}},async release(){order.push('process');await db.close();}};},async createAdapter(){entered.resolve();await held.promise;return {stops:f.bindings.stops,output:f.bindings.print.output,lifecycle:f.bindings.print.lifecycle,async authorizePrintFile(){},async release(){order.push('device');await f.close();}};}});
  const opening=factory(new AbortController().signal),rejected=assert.rejects(opening,/closed/);
  try{await entered.promise;const closing=factory.close!();assert.equal(factory.close!(),closing);assert.equal(db.status.closed,false);held.resolve();await rejected;await closing;assert.deepEqual(order,['device','process']);assert.equal(db.status.closed,true);const files=await PublishedPrintFiles.open(join(root,'files'));await files.close();}
  finally{held.resolve();await opening.catch(()=>{});await factory.close!();await f.close();await db.close();await rm(root,{recursive:true,force:true});}
 });
 test('invalid process authorization rejects before device acquisition and final cleanup releases the file lock',async()=>{
  const root=await mkdtemp(join(tmpdir(),'native-process-invalid-')),f=await productMachineFixture(root);let devices=0,releases=0;
- const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),async createProcess(){return {server:{information,authorizeNotification(){}} as any,async release(){releases++;}};},async createAdapter(){devices++;throw Error('Unexpected device acquisition');}});
+ const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),dataPath:join(root,'private'),async createProcess(){return {server:{information,authorizeNotification(){}} as any,async release(){releases++;}};},async createAdapter(){devices++;throw Error('Unexpected device acquisition');}});
  try{await assert.rejects(factory(new AbortController().signal),/authorization callbacks/);assert.equal(devices,0);await factory.close!();assert.equal(releases,1);const files=await PublishedPrintFiles.open(join(root,'files'));await files.close();}
  finally{await factory.close!();await f.close();await rm(root,{recursive:true,force:true});}
 });
 test('process-mode adapter cannot hide a second server owner in its device resources',async()=>{
  const root=await mkdtemp(join(tmpdir(),'native-process-device-')),f=await productMachineFixture(root);let devicesReleased=0,processReleased=0;
- const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),async createProcess(){return {server:{information,authorize(){},authorizeNotification(){}},async release(){processReleased++;}};},async createAdapter(){return {stops:f.bindings.stops,output:f.bindings.print.output,lifecycle:f.bindings.print.lifecycle,async authorizePrintFile(){},server:{information,authorize(){}},async release(){devicesReleased++;}};}});
+ const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),dataPath:join(root,'private'),async createProcess(){return {server:{information,authorize(){},authorizeNotification(){}},async release(){processReleased++;}};},async createAdapter(){return {stops:f.bindings.stops,output:f.bindings.print.output,lifecycle:f.bindings.print.lifecycle,async authorizePrintFile(){},server:{information,authorize(){}},async release(){devicesReleased++;}};}});
  try{await assert.rejects(factory(new AbortController().signal),/only device/);assert.equal(devicesReleased,1);await factory.close!();assert.equal(processReleased,1);}
  finally{await factory.close!();await f.close();await rm(root,{recursive:true,force:true});}
 });

@@ -29,7 +29,7 @@ for(const firmwareRestart of [false,true])test(firmwareRestart?'compiled FIRMWAR
 import {createNativeProductHostFactory} from ${source('host/src/runtime/native-product-machine.js')};
 import {DatabaseStore} from ${source('host/src/moonraker/database.js')};
 const record=value=>appendFile(${JSON.stringify(trace)},JSON.stringify(value)+'\\n');
-export const createProductHostProfile=createNativeProductHostFactory(${JSON.stringify(f.path)},{filesRoot:${JSON.stringify(join(dir,'files'))},metadataRoot:${JSON.stringify(join(dir,'metadata'))},standardPrint:{nozzle:0,bed:0},
+export const createProductHostProfile=createNativeProductHostFactory(${JSON.stringify(f.path)},{filesRoot:${JSON.stringify(join(dir,'files'))},metadataRoot:${JSON.stringify(join(dir,'metadata'))},dataPath:${JSON.stringify(join(dir,'private'))},standardPrint:{nozzle:0,bed:0},
 async createProcess(){const database=await DatabaseStore.open({path:${JSON.stringify(databasePath)}});await record({event:'process-open'});return {server:{information:${JSON.stringify(f.bindings.server.information)},database,authorization:{issuer:'https://compiled-fault.invalid'}},async release(){if(!database.status.closed)await database.close();await record({event:'process-closed'});}};},
 async createAdapter(_c,_s,_g,_p,reload){await record({event:'adapter',reason:reload.reason});return {stops:new Map(['mcu','aux'].map(id=>[id,async()=>record({event:'stop',id})])),output:()=>{},lifecycle:{prepare:async()=>{},start:async()=>{},finishOutputs:async()=>{},stopOutputs:async()=>{}},authorizePrintFile:async()=>{},release:async()=>record({event:'released'})};}});
 `);

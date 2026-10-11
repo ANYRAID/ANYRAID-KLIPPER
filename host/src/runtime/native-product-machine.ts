@@ -56,6 +56,9 @@ export interface NativeProductProcessResources {
  release():Promise<void>;
 }
 export interface NativeProductProcessOptions extends Omit<NativeProductMachineOptions,'fileResources'|'processFiles'|'createAdapter'> {
+ /** Explicit process data directory. Every process server owns one private
+  * template/secrets generation; device restarts do not reload it. */
+ dataPath:string;
  createProcess(configuration:ProductMachineConfiguration,signal:AbortSignal):Promise<NativeProductProcessResources>;
  /** Device resources only. Returning a server would mix the two lifetimes. */
  createAdapter(configuration:ProductMachineConfiguration,signal:AbortSignal,gate:MaintenanceGate,process:Readonly<NativeMachineAdapter['server']>,reload?:HostReloadContext):Promise<Omit<NativeMachineAdapter,'server'>>;
@@ -157,6 +160,8 @@ export function loadNativeProductMachineProfile(path:string,options:NativeProduc
 export function createNativeProductHostFactory(path:string,options:Omit<NativeProductMachineOptions,'fileResources'>|NativeProductProcessOptions):ProductHostFactory{
  if(typeof options.createAdapter!=='function')throw new TypeError('Native machine adapter factory is required');
  if('createProcess' in options&&typeof options.createProcess!=='function')throw new TypeError('Native process resource factory is required');
+ if('createProcess' in options){const dataPath=(options as NativeProductProcessOptions).dataPath;if(typeof dataPath!=='string'||!isAbsolute(dataPath)||!dataPath.isWellFormed()||/[\0\r\n]/u.test(dataPath)||Buffer.byteLength(dataPath)>4096)throw new TypeError('Native process requires an absolute data directory');}
+ else if('dataPath' in options)throw new TypeError('Native process data directory requires process lifetime');
  if(options.configFiles&&!('createProcess' in options))throw new TypeError('Config files require process lifetime');
  if(options.diskImports&&!('createProcess' in options))throw new TypeError('Disk imports require process lifetime');
  storageRoots(options);
@@ -174,6 +179,8 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
   processOpening??=(async()=>{
    processResources=await processOptions!.createProcess(structuredClone(config),s);s.throwIfAborted();
    if(!processResources||typeof processResources.release!=='function')throw new TypeError('Native process resources must own cleanup');
+   if(processResources.server.templates!==undefined||processResources.server.authorization?.templateSecrets!==undefined)throw new TypeError('Native process owns template and secrets configuration');
+   processResources.server={...processResources.server,templates:{dataPath:processOptions!.dataPath}};
    if(snapshot.diskImports&&typeof processResources.diskImportContext!=='function')throw new TypeError('Disk imports require the current process filesystem policy');
    if(processResources.machineControl&&(['retirement','execute','assertDeviceAvailable','close'] as const).some(key=>typeof processResources!.machineControl![key]!=='function'))throw new TypeError('Invalid native machine control capability');
    assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);

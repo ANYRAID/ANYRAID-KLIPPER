@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "baselineCommit": "4e886e50df323046db17d33c3f8d6c9265ffd4a2",
+  "node": "v26.10.0",
+  "maxRatio": 1.5,
+  "warmups": 3,
+  "runs": 11,
+  "queries": 200,
+  "medians": {
+    "startupMs": 339.96619899999996,
+    "queriesMs": 117.741243
+  },
+  "samples": [
+    {
+      "node": "v26.10.0",
+      "startupMs": 342.023167,
+      "queriesMs": 116.28288499999996,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 337.606426,
+      "queriesMs": 119.14333800000003,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 346.845163,
+      "queriesMs": 117.236107,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 342.12046,
+      "queriesMs": 123.464519,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 332.880914,
+      "queriesMs": 115.98026300000004,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 334.040147,
+      "queriesMs": 118.79389600000002,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 341.28887100000003,
+      "queriesMs": 117.741243,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 342.650518,
+      "queriesMs": 118.28161,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 332.539061,
+      "queriesMs": 117.31765899999999,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 336.45540700000004,
+      "queriesMs": 117.81134400000002,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 333.791396,
+      "queriesMs": 116.22474599999998,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 350.767674,
+      "queriesMs": 119.87967799999996,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 339.96619899999996,
+      "queriesMs": 115.99775399999999,
+      "queries": 200,
+      "templatesLoaded": false
+    },
+    {
+      "node": "v26.10.0",
+      "startupMs": 344.447382,
+      "queriesMs": 117.35931,
+      "queries": 200,
+      "templatesLoaded": false
+    }
+  ],
+  "runnerSha256": "a2f56a15c288e8ae42717ef2e921d5e3244a7e9cf706268fa0dc1d59b6e8d9c8",
+  "compiledRunnerSha256": "9339e220215ac4607722f7959159d414fbc69620e02fda1f973d238f68f5ff7d",
+  "compiledOwnerSha256": "b2b0df1643c8dd9f393d88bf7ed06043fcee42de96e77723de28d8834331f354",
+  "scope": "Frozen before component wiring. Independent emitted JavaScript; same cached native addons and dependencies as candidate. Startup includes imports, file owners, journals, listener; steady-state removes config/secrets files. No firmware, hardware or fresh Rust build."
+}

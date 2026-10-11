@@ -32,7 +32,16 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 按物理目标选取。相关源码与独立 JavaScript 各 217 项通过，新增 C 查询
 的 UBSan／ASan 各 38 项通过，三组配置启动预算通过，见
 [配置路径证据](host/contracts/moonraker-config-path-acceptance.json)。
-这些结果不覆盖默认产品装配、完整新包或目标板打印；上一工厂头
+原生产品的进程入口现要求明确的 `dataPath`，普通启动自动加载共享
+模板与私密文件，设备重建保留同一代际；重复所有者拒绝并清理。
+源码组 156 项通过，独立 JavaScript 组先为 152／156，旧 CLI 夹具
+的四项路径失败修正后，受影响的九项源码与 JavaScript 各通过；
+其余运行模块摘要不变。冷启动与 200 次查询的编译比值为
+1.007／0.993，通过原 1.5 预算，见
+[进程组件接入证据](host/contracts/native-process-components-acceptance.json)。
+上一配置路径头 `4e886e50` 十五项 CI 全通过，普通 4660／4660，
+见[该头终态](host/contracts/pr68-4e8-terminal.json)，不覆盖本轮接入。
+配置路径的单独结果不覆盖完整产品装配、新包或目标板打印；上一工厂头
 `4592243d` 的十五项 CI 和普通 4624／4624 独立通过，见
 [该头终态](host/contracts/pr68-459-terminal.json)，新路径提交须自身检查。
 初始运动遥测候选修复已通过源码、独立编译包、原双 MCU 混合旅程
