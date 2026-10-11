@@ -10,6 +10,56 @@ const bytes=await readFile(new URL('../contracts/moonraker-template-async-refere
 assert.equal(createHash('sha256').update(bytes).digest('hex'),'ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a');
 const reference=JSON.parse(bytes.toString()) as {secrets:string;file:string;cases:{name:string;source:string;context:string;ui:boolean;calls:{name:string;args:unknown;kwargs:unknown}[];output?:string;error?:boolean;cancelled?:boolean}[]};
 function fixture(){const parsed=parseSecretsText(reference.secrets),secrets=new SecretsStore(reference.file,parsed.type,parsed.values);return {secrets,owner:new MoonrakerAsyncTemplateOwner(secrets)};}
+test('direct async and UI completion preserves empty, escaped and UTF-8 byte-boundary output',async()=>{
+ const {secrets,owner}=fixture();try{
+  for(const ui of [false,true]){
+   const handle=ui?owner.createUiTemplate('{{text}}'):owner.createTemplate('{text}');
+   for(const value of ['', 'a\0\n"\\😀z'])assert.equal(await handle.renderAsync(JSON.stringify({text:value})),value);
+   const boundary=ui?owner.createUiTemplate("{{'😀'*16384}} "):owner.createTemplate("{'😀'*16384} ");
+   // The output budget is independent of the raw context JSON envelope.
+   // Generate exactly 64 KiB rather than exceeding the context input limit.
+   await assert.rejects(boundary.renderAsync(),/Private asynchronous/);boundary.close();
+   const full=ui?owner.createUiTemplate("{{'😀'*16384}}"):owner.createTemplate("{'😀'*16384}");
+   assert.equal(await full.renderAsync(),'😀'.repeat(16384));full.close();
+   assert.equal(await handle.renderAsync('{"text":"reused"}'),'reused');handle.close();
+  }
+ }finally{owner.close();secrets.close();}
+});
+test('pure async and UI completion cannot overtake caller microtask cancellation',async()=>{
+ const {secrets,owner}=fixture();try{
+  for(const ui of [false,true]){
+   const handle=ui?owner.createUiTemplate('{{3}}'):owner.createTemplate('{3}'),controller=new AbortController(),reason={cancelled:'before completion delivery',ui};
+   const pending=handle.renderAsync('{}',{signal:controller.signal});queueMicrotask(()=>controller.abort(reason));
+   await assert.rejects(pending,error=>error===reason);assert.equal(await handle.renderAsync(),'3');handle.close();
+  }
+ }finally{owner.close();secrets.close();}
+});
+test('late globals copy the template generation without changing an active native render',async()=>{
+ const {secrets,owner}=fixture();let release!:(value:TemplateValue)=>void,entered!:()=>void;
+ try{
+  const handle=owner.createTemplate('{wait()}:{later is defined}'),ready=new Promise<void>(resolve=>entered=resolve);
+  const pending=handle.renderAsync('{}',{callables:new Map([['wait',()=>{entered();return new Promise<TemplateValue>(resolve=>release=resolve);}]])});
+  await ready;owner.addEnvironmentGlobal('later',7n);release('first');assert.equal(await pending,'first:False');
+  assert.equal(await handle.renderAsync('{}',{callables:new Map([['wait',()=> 'next']])}),'next:True');
+  assert.equal(await owner.createUiTemplate('{{later is undefined}}').renderAsync(),'True');
+ }finally{release?.('cleanup');owner.close();secrets.close();}
+});
+test('one owner timer preserves independent active and queued deadlines and cancellation reasons',async()=>{
+ const {secrets,owner}=fixture();try{
+  const handle=owner.createTemplate('{wait()}');let entered!:()=>void,release!:(value:TemplateValue)=>void;
+  const ready=new Promise<void>(resolve=>entered=resolve),controller=new AbortController(),reason={requested:'long frame'};
+  const long=handle.renderAsync('{}',{signal:controller.signal,callables:new Map([['wait',()=>{entered();return new Promise<TemplateValue>(resolve=>release=resolve);}]])});
+  const observedLong=long.catch(error=>error);await ready;
+  const wait=new Map<string,TemplateCallable>([['wait',()=>new Promise<TemplateValue>(()=>{})]]);
+  const medium=handle.renderAsync('{}',{timeoutMs:80,callables:wait}).catch(error=>error);
+  const queued=handle.renderAsync('{}',{timeoutMs:20,callables:wait}).catch(error=>error);
+  assert.match(String(await queued),/deadline|Private asynchronous/);assert.equal(controller.signal.aborted,false);
+  assert.match(String(await medium),/deadline|Private asynchronous/);assert.equal(controller.signal.aborted,false);
+  controller.abort(reason);assert.equal(await observedLong,reason);release('late');
+  assert.equal(await handle.renderAsync('{}',{callables:new Map([['wait',()=>9n]])}),'9');
+  await assert.rejects(handle.renderAsync('{}',{timeoutMs:10,callables:wait}),/deadline|Private asynchronous/);
+ }finally{owner.close();secrets.close();}
+});
 function number(v:TemplateValue|undefined):number{if(typeof v==='bigint')return Number(v);if(v&&typeof v==='object'&&'kind'in v&&v.kind==='float')return v.value;throw Error('unsupported reference scalar');}
 for(const row of reference.cases)test('frozen upstream async/UI: '+row.name,async()=>{
  const {secrets,owner}=fixture(),calls:unknown[]=[];

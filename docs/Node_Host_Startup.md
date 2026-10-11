@@ -3979,6 +3979,19 @@ CONNECT／SUBACK 和 HTTP 监听，模块导入及夹具准备不计入冷启动
 
 ### 共用模板工厂与服务代际
 
+异步所有者与 `template.node` 现在要求 `completionProtocol=1`。
+部署须使用同一构建清单中的 Node 模块和插件；旧插件混配立即拒绝，
+不静默等待期限。原生完成文本直接通过 N-API 传递，调用参数仍用
+原有明确数字类型编码；原始输出超过 64 KiB 时在裁剪空白前拒绝。
+模板环境不可变，晚注册全局只为下一次渲染建立代际，UI 保持隔离。
+每所有者一个截止计时器覆盖最多 32 个帧，较早期限及时重新调度；
+活动工作维持进程存活，空闲计时器 unref，关闭取消全部工作并清理。
+源码及独立 JavaScript 各 179 项通过；工厂固定预算通过，独立 UI
+回调最终 1.781 倍仍失败，全新原生快照遭 regex-automata 编译
+SIGABRT。不得用缓存编译或最好一轮替代完整新包及性能验收。
+当前结果见[异步开销记录](../host/contracts/template-completion-acceptance.json)。
+下面工厂 175 项和原 SIGSEGV 是前序证据，保留原失败。
+
 可信组件通过 `server.templates` 或 `reader.templates()` 取得
 `MoonrakerTemplateFactory`。`createTemplate(source, isAsync)` 与
 `createUiTemplate(source)` 保留原始源；同步／异步模式误用遵循固定

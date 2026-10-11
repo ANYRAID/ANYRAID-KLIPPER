@@ -161,10 +161,14 @@ struct Lane {
     sender: SyncSender<Job>,
     load: Arc<AtomicU32>,
 }
+enum Event {
+    Call(String),
+    Complete(u32, Option<String>),
+}
 struct Runtime {
     closed: Arc<AtomicBool>,
     sender: Mutex<Option<Vec<Lane>>>,
-    callback: ThreadsafeFunction<String, ErrorStrategy::Fatal>,
+    callback: ThreadsafeFunction<Event, ErrorStrategy::Fatal>,
     waiters: Mutex<Waiters>,
     frames: Mutex<HashMap<u32, Arc<AtomicBool>>>,
 }
@@ -222,11 +226,10 @@ impl Frame {
             .map_err(|_| error())?
             .insert((self.id, seq), tx);
         let result = (|| {
-            if self
-                .runtime
-                .callback
-                .call(message, ThreadsafeFunctionCallMode::NonBlocking)
-                != Status::Ok
+            if self.runtime.callback.call(
+                Event::Call(message),
+                ThreadsafeFunctionCallMode::NonBlocking,
+            ) != Status::Ok
             {
                 return Err(error());
             }
@@ -276,7 +279,7 @@ impl Object for Callable {
     }
 }
 struct Job {
-    environment: Environment<'static>,
+    environment: Arc<Environment<'static>>,
     context: Value,
     frame: Arc<Frame>,
     lane_load: Arc<AtomicU32>,
@@ -305,11 +308,13 @@ impl Job {
             .ok()
             .map(|mut m| m.retain(|(id, _), _| *id != self.frame.id));
         self.lane_load.fetch_sub(1, Ordering::AcqRel);
-        let message = match result {
-            Ok(Ok(text)) => json!({"render":self.frame.id,"done":true,"text":text}),
-            _ => json!({"render":self.frame.id,"done":true,"error":true}),
-        }
-        .to_string();
+        let message = Event::Complete(
+            self.frame.id,
+            match result {
+                Ok(Ok(text)) => Some(text),
+                _ => None,
+            },
+        );
         // A single executor-owned channel reports completions as well as
         // calls. Never allocate a new Node TSFN for every render.
         self.frame
@@ -326,11 +331,20 @@ pub struct NativeTemplateExecutor {
 impl NativeTemplateExecutor {
     #[napi(constructor)]
     pub fn new(env: Env, callback: JsFunction) -> napi::Result<Self> {
-        let mut callback: ThreadsafeFunction<String, ErrorStrategy::Fatal> = callback
+        let mut callback: ThreadsafeFunction<Event, ErrorStrategy::Fatal> = callback
             .create_threadsafe_function(
                 32,
-                |ctx: napi::threadsafe_function::ThreadSafeCallContext<String>| {
-                    Ok(vec![ctx.env.create_string(&ctx.value)?])
+                |ctx: napi::threadsafe_function::ThreadSafeCallContext<Event>| {
+                    let (message, id, failed) = match ctx.value {
+                        Event::Call(message) => (message, 0, false),
+                        Event::Complete(id, Some(text)) => (text, id, false),
+                        Event::Complete(id, None) => (String::new(), id, true),
+                    };
+                    Ok(vec![
+                        ctx.env.create_string(&message)?.into_unknown(),
+                        ctx.env.create_uint32(id)?.into_unknown(),
+                        ctx.env.get_boolean(failed)?.into_unknown(),
+                    ])
                 },
             )?;
         callback.unref(&env)?;
@@ -361,6 +375,10 @@ impl NativeTemplateExecutor {
                 frames: Mutex::new(HashMap::new()),
             }),
         })
+    }
+    #[napi(getter)]
+    pub fn completion_protocol(&self) -> u32 {
+        1
     }
     #[napi]
     pub fn create_template(
@@ -445,7 +463,7 @@ impl NativeTemplateExecutor {
             .map_err(|_| private_error())?;
         Ok(NativeAsyncTextTemplate {
             runtime: self.runtime.clone(),
-            environment: Some(env),
+            environment: Some(Arc::new(env)),
             globals: Vec::new(),
             ui,
         })
@@ -509,7 +527,7 @@ struct Global {
 #[napi]
 pub struct NativeAsyncTextTemplate {
     runtime: Arc<Runtime>,
-    environment: Option<Environment<'static>>,
+    environment: Option<Arc<Environment<'static>>>,
     globals: Vec<Global>,
     ui: bool,
 }
@@ -537,6 +555,11 @@ impl NativeAsyncTextTemplate {
             }
             None => None,
         };
+        // Literal globals belong to the immutable environment generation.
+        // Active jobs keep their previous Arc; only a real update copies it.
+        if let Some(value) = &value {
+            Arc::make_mut(env).add_global(name.clone(), value.clone());
+        }
         self.globals.push(Global { name, value });
         Ok(())
     }
@@ -580,35 +603,39 @@ impl NativeAsyncTextTemplate {
             deadline: Instant::now() + Duration::from_millis(timeout_ms.into()),
         });
         for global in &self.globals {
-            let value = global.value.clone().unwrap_or_else(|| {
-                Value::from_object(Callable {
+            if global.value.is_none() {
+                let value = Value::from_object(Callable {
                     frame: frame.clone(),
                     name: global.name.clone(),
-                })
-            });
-            environment.add_global(global.name.clone(), value);
-        }
-        let mut values = context
-            .try_iter()
-            .map_err(|_| private_error())?
-            .map(|k| Ok((k.clone(), context.get_item(&k)?)))
-            .collect::<Result<Vec<_>, Error>>()
-            .map_err(|_| private_error())?;
-        for name in callables {
-            if name.is_empty() || name.len() > 128 {
-                self.runtime.frames.lock().ok().map(|mut m| m.remove(&id));
-                return Err(private_error());
+                });
+                Arc::make_mut(&mut environment).add_global(global.name.clone(), value);
             }
-            values.retain(|(k, _)| k.as_str() != Some(&name));
-            values.push((
-                Value::from(name.clone()),
-                Value::from_object(Callable {
-                    frame: frame.clone(),
-                    name,
-                }),
-            ));
         }
-        context = values.into_iter().collect();
+        // A plain context is already the required map. Rebuilding it only
+        // serves caller-supplied callable overrides.
+        if !callables.is_empty() {
+            let mut values = context
+                .try_iter()
+                .map_err(|_| private_error())?
+                .map(|k| Ok((k.clone(), context.get_item(&k)?)))
+                .collect::<Result<Vec<_>, Error>>()
+                .map_err(|_| private_error())?;
+            for name in callables {
+                if name.is_empty() || name.len() > 128 {
+                    self.runtime.frames.lock().ok().map(|mut m| m.remove(&id));
+                    return Err(private_error());
+                }
+                values.retain(|(k, _)| k.as_str() != Some(&name));
+                values.push((
+                    Value::from(name.clone()),
+                    Value::from_object(Callable {
+                        frame: frame.clone(),
+                        name,
+                    }),
+                ));
+            }
+            context = values.into_iter().collect();
+        }
         let sender = self.runtime.sender.lock().map_err(|_| private_error())?;
         if let Some(lanes) = sender.as_ref() {
             // The lowest load wins; equal empty lanes always choose the first.
