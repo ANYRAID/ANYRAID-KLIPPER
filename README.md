@@ -69,9 +69,16 @@ R16／R17 均在含启动 15 分钟内自动关闭，详见原验收记录的 `p
 这只退役上述验证入口，见[模板参考退役](host/contracts/template-reference-retirement.json)。
 随后五条模板评估／原生传感器消息基准也改用原始固定参考，删除无引用的
 Jinja 准备和数值参考助手。源码与关闭 TS 加载的编译验证通过；三条
-原生基准满足事先固定的 1.5 倍历史中位预算。Unicode 原语转换仍约
-2.64 倍参考，JS 模板候选仍不兼容，见
+原生基准满足事先固定的 1.5 倍历史中位预算。初次 Unicode 原语转换
+为 2.64 倍参考，JS 模板候选仍不兼容，见
 [基准退役与剩余差距](host/contracts/template-benchmark-retirement.json)。
+随后实际数字归一化改用固定 64 KiB BMP 查表及原补充平面范围，
+不缓存输入或改变词法与舍入。相关 89／89 及无 TS／Python 编译验证
+通过，Unicode 原语历史比值降至 1.367，五种原语满足预设 1.5 倍预算；
+六组混合输入交错旧／新对照亦通过，见
+[Unicode 转换优化](host/contracts/config-numeric-unicode-acceptance.json)。
+提交 `430b5fdc` 十五项 CI 全通过，普通 4539／4539，见
+[该提交终态](host/contracts/pr68-430b-terminal.json)；新头仍须自身检查。
 其他传感器差分、完整异步模板、全面 Python 退役及产品门槛继续开放。
 提交 `95984efa` 的普通 CI 4537／4537、主机及固件通过，运动矩阵
 有一项触发原 10 秒子进程期限，14／15 通过，见

@@ -3669,8 +3669,15 @@ UI 双花括号环境、可启用日志及完整 Python 大整数仍待补齐，
 报告差距，`--numeric-adapter --require-compatible` 仍退出 1。
 源码及独立 JavaScript 编译在相同隔离条件下通过，详见
 [基准退役](../host/contracts/template-benchmark-retirement.json)。
-Unicode 原语性能、JS 语法／类型兼容、其他传感器差分、完整模板工厂、
-全面 Python 退役及打印性能门槛未关闭。
+此前 Unicode 原语性能差距已在桌面固定预算下补齐：实际转换使用
+64 KiB BMP 数字查表和原补充平面映射，不缓存输入，不改变数字范围、
+词法或舍入。`template-numbers.ts` 五种原语现在均执行事先固定的
+1.5 倍历史中位预算；独立编译 Unicode 比值为 1.367。新增验证覆盖
+680 个固定数字、跨文字混用、代理对、负零、空白、非法下划线、
+非有限值和配置边界；相关 89／89、完整类型和规定空白通过。
+原失败与交错对照见[Unicode 优化](../host/contracts/config-numeric-unicode-acceptance.json)。
+这不关闭 JS 语法／类型兼容、其他传感器差分、完整模板工厂、全面
+Python 退役及目标板打印性能门槛。
 默认测试使用实际固定上游源码
 生成的 24 项原冻结参考及六项负零补充参考，不新增运行时 Python；生成和性能对照只在
 独立临时目录执行一次。失败、后续定向验证和原始性能见
