@@ -14,6 +14,7 @@ use napi_derive::napi;
 use serde_json::{json, Value as Json};
 use std::{
     collections::HashMap,
+    io::Write,
     panic::{catch_unwind, AssertUnwindSafe},
     sync::{
         atomic::{AtomicBool, AtomicU32, Ordering},
@@ -157,6 +158,30 @@ enum Reply {
     Float(f64),
 }
 type Waiters = HashMap<(u32, u32), SyncSender<Result<Reply, ()>>>;
+fn call_message(
+    render: u32,
+    call: u32,
+    name: &str,
+    args: &[Json],
+    kwargs: &[Json],
+) -> Result<String, Error> {
+    // Serialize borrowed argument trees directly. Constructing a second JSON
+    // object first deep-copies their values and allocates every envelope key.
+    let mut output = TextOutput(Vec::with_capacity(128));
+    write!(
+        output,
+        "{{\"render\":{},\"call\":{},\"name\":",
+        render, call
+    )
+    .map_err(|_| error())?;
+    serde_json::to_writer(&mut output, name).map_err(|_| error())?;
+    output.write_all(b",\"args\":").map_err(|_| error())?;
+    serde_json::to_writer(&mut output, args).map_err(|_| error())?;
+    output.write_all(b",\"kwargs\":").map_err(|_| error())?;
+    serde_json::to_writer(&mut output, kwargs).map_err(|_| error())?;
+    output.write_all(b"}").map_err(|_| error())?;
+    String::from_utf8(output.0).map_err(|_| error())
+}
 struct Lane {
     sender: SyncSender<Job>,
     load: Arc<AtomicU32>,
@@ -213,12 +238,7 @@ impl Frame {
             })
             .collect::<Result<Vec<_>, Error>>()?;
         kwargs.assert_all_used()?;
-        let message =
-            json!({"render":self.id,"call":seq,"name":name,"args":positional,"kwargs":named})
-                .to_string();
-        if message.len() > 65536 {
-            return Err(error());
-        }
+        let message = call_message(self.id, seq, name, &positional, &named)?;
         let (tx, rx) = mpsc::sync_channel(1);
         self.runtime
             .waiters

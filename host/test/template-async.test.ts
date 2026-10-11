@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {inspect} from 'node:util';
+import {createRequire} from 'node:module';
 import {SecretsStore,parseSecretsText} from '../src/moonraker/secrets.ts';
 import {MoonrakerAsyncTemplateOwner,type TemplateCallable,type TemplateInvocation} from '../src/moonraker/template-async-owner.ts';
 import {decodeTemplateCall,encodeTemplateValue,decodeTemplateValue,templateFloatValue,type TemplateValue} from '../src/moonraker/template-wire.ts';
@@ -10,6 +11,57 @@ const bytes=await readFile(new URL('../contracts/moonraker-template-async-refere
 assert.equal(createHash('sha256').update(bytes).digest('hex'),'ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a');
 const reference=JSON.parse(bytes.toString()) as {secrets:string;file:string;cases:{name:string;source:string;context:string;ui:boolean;calls:{name:string;args:unknown;kwargs:unknown}[];output?:string;error?:boolean;cancelled?:boolean}[]};
 function fixture(){const parsed=parseSecretsText(reference.secrets),secrets=new SecretsStore(reference.file,parsed.type,parsed.values);return {secrets,owner:new MoonrakerAsyncTemplateOwner(secrets)};}
+test('native call envelope includes escaped bytes and rejects overflow before invoking a callback',async()=>{
+ const {secrets,owner}=fixture();let calls=0;
+ try{
+  const overhead=Buffer.byteLength(JSON.stringify({render:1,call:1,name:'fetch',args:[['string','']],kwargs:[]})),length=65536-overhead;
+  const capability=new Map<string,TemplateCallable>([['fetch',invocation=>{calls++;assert.equal(Buffer.byteLength(invocation.args[0] as string),length);return 1n;}]]);
+  const exact=owner.createUiTemplate('{{fetch("x"*'+length+')}}');assert.equal(await exact.renderAsync('{}',{callables:capability}),'1');assert.equal(calls,1);exact.close();
+  for(const source of ['{{fetch("x"*'+(length+1)+')}}','{{fetch("\\n"*'+Math.floor(length/2+1)+')}}']){
+   const overflow=owner.createUiTemplate(source);await assert.rejects(overflow.renderAsync('{}',{callables:capability}),/Private asynchronous/);overflow.close();assert.equal(calls,1,'overflow may not cross the capability boundary');
+  }
+ }finally{owner.close();secrets.close();}
+});
+test('bounded callback arguments retain nested map/list kinds, i128 limits, negative zero and Unicode',async()=>{
+ const {secrets,owner}=fixture();try{
+  const handle=owner.createUiTemplate('{{fetch(value, named=value)}}'),value={text:'"\\\n😀',integer:'not numeric',list:[null,true,false,170141183460469231731687303715884105727n]},text='{"value":{"text":"\\\"\\\\\\n😀","integer":"not numeric","list":[null,true,false,170141183460469231731687303715884105727],"minimum":-170141183460469231731687303715884105728,"negative":-0.0,"float":1.0}}';
+  const expected=new Map<TemplateValue,TemplateValue>([['text',value.text],['integer',value.integer],['list',Object.freeze(value.list)],['minimum',-(2n**127n)],['negative',templateFloatValue(-0)],['float',templateFloatValue(1)]]);
+  let count=0;assert.equal(await handle.renderAsync(text,{callables:new Map([['fetch',invocation=>{count++;assert.deepEqual(invocation.args,[expected]);assert.deepEqual(invocation.kwargs,new Map([['named',expected]]));return 'ok';}]])}),'ok');assert.equal(count,1);
+  handle.close();
+ }finally{owner.close();secrets.close();}
+});
+test('native callback responses reject stale, future and duplicate replies across 64 calls',async()=>{
+ const addon=createRequire(import.meta.url)('../build/template.node') as {NativeTemplateExecutor:new(callback:(message:string,id:number,failed:boolean)=>void)=>{createTemplate(source:string,secrets:string,file:string,type:string,ui:boolean):{render(context:string,callables:string[],id:number,timeout:number):void;close():void};respondFloat(id:number,call:number,value:number):boolean;close():void}};
+ const completed=Promise.withResolvers<string>(),seen:number[]=[],expected=Array.from({length:64},(_,i)=>i+'.0').join('/');let native:InstanceType<typeof addon.NativeTemplateExecutor>|undefined;
+ const timer=setTimeout(()=>completed.reject(new Error('Native callback regression timeout')),5000);
+ try{
+  native=new addon.NativeTemplateExecutor((message,id,failed)=>{try{
+   if(id!==0){assert.equal(id,101);assert.equal(failed,false);completed.resolve(message);return;}
+   const row=JSON.parse(message),args=decodeTemplateCall(row.args,row.kwargs);assert.equal(row.render,101);assert.equal(row.call,seen.length+1);assert.equal(row.name,'fetch');
+   assert.equal(args.args[0],BigInt(seen.length));assert.equal(args.kwargs.get('note'),'"\\\n😀');seen.push(row.call);
+   assert.equal(native!.respondFloat(101,row.call+1,999),false,'future response must be refused before current reply');
+   assert.equal(native!.respondFloat(101,row.call-1,999),false,'prior reply must not replace the current reply');
+   assert.equal(native!.respondFloat(999,row.call,999),false,'another frame cannot consume this reply');
+   assert.equal(native!.respondFloat(101,row.call,seen.length-1),true);
+   assert.equal(native!.respondFloat(101,row.call,999),false,'duplicate reply is refused');
+  }catch(error){completed.reject(error);}});
+  const handle=native.createTemplate('{% for i in range(64) %}{{fetch(i, note=note)}}{% if not loop.last %}/{% endif %}{% endfor %}','{}','','json',true);
+  try{handle.render(JSON.stringify({note:'"\\\n😀'}),['fetch'],101,5000);assert.equal(await completed.promise,expected);assert.equal(seen.length,64);}finally{handle.close();}
+ }finally{clearTimeout(timer);native?.close();}
+});
+test('two native lanes isolate sequential typed callbacks from a failed frame',async()=>{
+ const {secrets,owner}=fixture();try{
+  const handle=owner.createUiTemplate('{% for i in range(64) %}{{value(i)}}{% if not loop.last %}/{% endif %}{% endfor %}');
+  const jobs=Array.from({length:8},(_,job)=>{
+   let count=0;const calls=new Map<string,TemplateCallable>([['value',async invocation=>{
+    assert.equal(invocation.args[0],BigInt(count));await new Promise<void>(resolve=>setImmediate(resolve));const index=count++;
+    if(job===3&&index===7)throw new Error('synthetic reply-slot failure');
+    return index%2?templateFloatValue(-0):BigInt(job*100+index);
+   }]]);
+   return handle.renderAsync('{}',{callables:calls}).then(output=>{assert.notEqual(job,3);assert.equal(count,64);assert.equal(output,Array.from({length:64},(_,i)=>i%2?'-0.0':String(job*100+i)).join('/'));},error=>{assert.equal(job,3);assert.equal(count,8);assert.match(String(error),/Private asynchronous/);});
+  });await Promise.all(jobs);assert.equal(await owner.createUiTemplate('{{value()}}').renderAsync('{}',{callables:new Map([['value',()=>9007199254740993n]])}),'9007199254740993');
+ }finally{owner.close();secrets.close();}
+});
 test('direct async and UI completion preserves empty, escaped and UTF-8 byte-boundary output',async()=>{
  const {secrets,owner}=fixture();try{
   for(const ui of [false,true]){
