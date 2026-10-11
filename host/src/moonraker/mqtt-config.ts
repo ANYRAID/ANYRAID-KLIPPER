@@ -6,17 +6,20 @@ import {homedir,hostname} from 'node:os';
 import {isAbsolute} from 'node:path';
 import {ConfigurationError} from './config-source.ts';
 import type {ConfigurationReader} from './config-reader.ts';
+import {MoonrakerRenderableTemplate} from './template-factory.ts';
 import type {MqttSensorOptions,MqttProtocol} from './mqtt-sensors.ts';
 const strip=(value:string)=>value.replace(/^[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/g,'');
 export interface MqttConfigurationContext {
  cwd?:string;home?:string;
- /** Template/secrets ownership remains explicit until the full component is ported. */
+ /** Legacy renderer for an unbound reader. A shared generation owns rendering
+  * when present; mixing both dependencies is rejected. */
  render?:(source:string)=>string|Promise<string>;
 }
-async function credential(source:string|null,context:MqttConfigurationContext):Promise<string|undefined>{
+async function credential(source:string|MoonrakerRenderableTemplate|null,context:MqttConfigurationContext):Promise<string|undefined>{
  if(source===null)return undefined;
- if(!context.render&&/[{}]/u.test(source))throw new ConfigurationError('MQTT credential template renderer is required');
- const value=context.render?await context.render(source):source;
+ if(typeof source==='string'&&!context.render&&/[{}]/u.test(source))throw new ConfigurationError('MQTT credential template renderer is required');
+ // The shared owner implements JinjaTemplate.render(), including output strip.
+ const value=source instanceof MoonrakerRenderableTemplate?source.render():context.render?await context.render(source):strip(source);
  if(typeof value!=='string'||!value.isWellFormed())throw new ConfigurationError('Invalid MQTT credential');
  const result=strip(value);if(Buffer.byteLength(result)>65535)throw new ConfigurationError('MQTT credential exceeds byte limit');return result;
 }
@@ -35,14 +38,17 @@ async function passwordFile(source:string,context:MqttConfigurationContext):Prom
   return strip(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes.subarray(0,length)).replace(/\r\n?/g,'\n'));
  }finally{await file.close();}
 }
-/** Reads connection options only. Invalid MQTT versions fail explicitly;
- * status publication, API transport and instance topics remain separate work. */
+/** Reads connection options only. Broker lifecycle, status publication and API
+ * transport are owned by the caller's transport/server generation. */
 export async function readMqttSensorOptions(reader:ConfigurationReader,context:MqttConfigurationContext={}):Promise<MqttSensorOptions>{
- const section=reader.section('mqtt');
+ reader.redact('mqtt','username');reader.redact('mqtt','password');
+ const section=reader.section('mqtt'),handles:MoonrakerRenderableTemplate[]=[];
+ const loadCredential=(option:string)=>{const value=reader.hasTemplates()?section.getTemplate(option,{defaultValue:null}):section.get(option,{defaultValue:null});if(value instanceof MoonrakerRenderableTemplate)handles.push(value);return value;};
  try{
+  if(reader.hasTemplates()&&context.render)throw new ConfigurationError('Choose one MQTT template dependency');
   const host=section.get('address'),port=section.getInt('port',{defaultValue:1883,minval:1,maxval:65535}),tls=section.getBoolean('enable_tls',{defaultValue:false});
-  const username=await credential(section.get('username',{defaultValue:null}),context);
-  const path=section.get('password_file',{defaultValue:null,deprecate:true}),template=section.get('password',{defaultValue:null});
+  const username=await credential(loadCredential('username'),context);
+  const path=section.get('password_file',{defaultValue:null,deprecate:true}),template=loadCredential('password');
   // Upstream reads the file even when a later template overrides its value.
   let password=path===null?undefined:await passwordFile(path,context);
   if(template!==null)password=await credential(template,context);
@@ -52,4 +58,5 @@ export async function readMqttSensorOptions(reader:ConfigurationReader,context:M
   if(!host||host.length>253||/[\s/\0]/u.test(host)||!clientId.isWellFormed()||Buffer.byteLength(clientId)>65535)throw new ConfigurationError('Invalid MQTT connection options');
   return {host,port,tls,defaultQos,instanceName,...protocol!=='v3.1.1'?{protocol:protocol as MqttProtocol}:{},...username!==undefined?{username}:{},...password!==undefined?{password}:{},...clientId?{clientId}:{}};
  }catch{reader.error('mqtt');throw new ConfigurationError('[mqtt]: Unable to load connection configuration');}
+ finally{for(const handle of handles)handle.close();}
 }

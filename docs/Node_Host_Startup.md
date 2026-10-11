@@ -3887,6 +3887,29 @@ Linux socket 路径容量校验保留。显式 `pathContext` 的旧适配入口�
 全部参考、初始失败、最终来源摘要及预算见
 [配置路径记录](../host/contracts/moonraker-config-path-acceptance.json)。
 
+### MQTT 凭据消费共享模板
+
+`readMqttSensorOptions(reader)` 与 `configureNativeSensorsFromConfig(reader, trackingEnabled)`
+使用 reader 已绑定的共享私密工厂渲染 `[mqtt]` 的 `username` 和
+`password`，例如 `{secrets["mqtt"]["password"]}`。不额外传入
+`context.render`；同时存在两个渲染依赖会拒绝加载。配置 getter
+与上游 JinjaTemplate 均裁剪首尾空白，内部空白保持；模板结果只在
+可信连接选项中流转，公开 original／parsed 配置的凭据来源脱敏。
+
+临时凭据模板在成功或失败后关闭，保留工厂和私密文件代际供其他
+组件使用；私密文件变化不会替换已加载代际。旧未绑定 reader 的字面
+配置和显式渲染器仍可用。`password_file` 仍按上游顺序先读取，即使
+后续模板覆盖密码也不忽略不存在、过大或无效文件。
+
+这条 getter 路径没有自动创建或启动 MQTT 传输；传感器模板仍使用
+独立原生适配器。调用方继续负责 generation 的所有权与清理，完整
+配置自动装配和共享传感器环境尚未交付。复现加载基准使用 Node.js 26
+执行 `node host/bench/mqtt-config.ts`，日常不调用 Python。17 条固定参考
+使用上游真实 JinjaTemplate 包装，源码／编译相关回归各 24 项通过，
+三组加载通过修改前冻结的 1.5 倍桌面预算。初次错误参考及监听 EPERM
+保留；这些结果不证明打印负载、目标板性能或完整新包构建。见
+[MQTT 消费记录](../host/contracts/mqtt-template-components-acceptance.json)。
+
 ### 共用模板工厂与服务代际
 
 可信组件通过 `server.templates` 或 `reader.templates()` 取得

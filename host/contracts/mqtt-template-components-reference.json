@@ -1,0 +1,324 @@
+{
+  "schema": 1,
+  "baseHead": "5324f5e8ec2daa5ef7ca2908213e9ee38b1bb792",
+  "upstream": "1cfb0c41e468645951a371621f06d32777b6107c",
+  "mqttSourceSha256": "b5ffbc08d07158a613e56b09256152f0990de97177858495c67bb2a880011944",
+  "templateSourceSha256": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f",
+  "scope": "Pinned MQTT constructor statements with existing getter harness; gettemplate wraps real Jinja2 in the actual pinned JinjaTemplate class, including rendered output strip. Not a full Moonraker service differential.",
+  "python": "3.12.13",
+  "jinja": "3.1.6",
+  "rows": [
+    {
+      "options": {
+        "address": "localhost"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "mqtt_protocol": "v3.1"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "protocol": "v3.1"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "mqtt_protocol": "v5",
+        "instance_name": "printer"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "printer",
+        "protocol": "v5"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "enable_tls": "yes"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": true,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "port": "٨٨٨٣",
+        "default_qos": "٢",
+        "client_id": "test-client",
+        "username": " user ",
+        "password": " value "
+      },
+      "result": {
+        "host": "localhost",
+        "port": 8883,
+        "tls": false,
+        "defaultQos": 2,
+        "instanceName": "$HOSTNAME",
+        "username": "user",
+        "password": "value",
+        "clientId": "test-client"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "password_file": "$PASSWORD_FILE"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "password": "local-test-value"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "password_file": "$PASSWORD_FILE",
+        "password": " override "
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "password": "override"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "username": "",
+        "password": ""
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "username": "",
+        "password": ""
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "username": "{secrets[\"mqtt\"][\"user\"]}",
+        "password": "{secrets[\"mqtt\"][\"user\"]}"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "username": "fixture-user",
+        "password": "fixture-user"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "username": "{secrets[\"mqtt\"][\"user\"]}",
+        "password": "{secrets[\"mqtt\"][\"padded\"]}"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "username": "fixture-user",
+        "password": "fixture-value"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "username": "{secrets[\"mqtt\"][\"user\"]}",
+        "password": "{\" prefix \" ~ secrets[\"mqtt\"][\"password\"] ~ \" suffix \"}"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "username": "fixture-user",
+        "password": "prefix fixture-password suffix"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "username": "{secrets[\"mqtt\"][\"user\"]}",
+        "password": "{% if secrets[\"mqtt\"][\"flag\"] %}enabled{% endif %}"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "username": "fixture-user",
+        "password": "enabled"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "username": "{secrets[\"mqtt\"][\"user\"]}",
+        "password": "{secrets[\"mqtt\"][\"integer\"]}"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "username": "fixture-user",
+        "password": "9007199254740993"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "username": "{secrets[\"mqtt\"][\"user\"]}",
+        "password": "{\"\\ncontent\\n\"}"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "username": "fixture-user",
+        "password": "content"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "username": "{secrets[\"mqtt\"][\"user\"]}",
+        "password": "{\"\\u0085content\\u0085\"}"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "username": "fixture-user",
+        "password": "content"
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "username": "{secrets[\"mqtt\"][\"user\"]}",
+        "password": "{secrets[\"mqtt\"][\"missing\"]}"
+      },
+      "result": {
+        "host": "localhost",
+        "port": 1883,
+        "tls": false,
+        "defaultQos": 0,
+        "instanceName": "$HOSTNAME",
+        "username": "fixture-user",
+        "password": ""
+      }
+    },
+    {
+      "options": {
+        "address": "localhost",
+        "username": "{secrets[\"mqtt\"][\"user\"]}",
+        "password": "{secrets[\"mqtt\"][\"password\"]"
+      },
+      "error": true
+    }
+  ],
+  "secrets": {
+    "mqtt": {
+      "user": "fixture-user",
+      "password": "fixture-password",
+      "padded": "  fixture-value \n",
+      "flag": true,
+      "integer": "9007199254740993"
+    }
+  },
+  "performance": {
+    "node": "v26.10.0",
+    "loads": 1000,
+    "warmups": 2,
+    "sampleCount": 7,
+    "maxRatio": 1.5,
+    "results": [
+      {
+        "mode": "literal",
+        "times": [
+          4.522034999999995,
+          3.829295000000002,
+          3.841975000000005,
+          3.7766650000000013,
+          3.969957000000001,
+          3.806955000000002,
+          3.929186999999999
+        ],
+        "medianMs": 3.841975000000005
+      },
+      {
+        "mode": "file",
+        "times": [
+          79.539026,
+          77.93751299999997,
+          80.470779,
+          78.16475600000007,
+          94.85139600000002,
+          80.04648199999997,
+          80.8291539999999
+        ],
+        "medianMs": 80.04648199999997
+      },
+      {
+        "mode": "shared",
+        "times": [
+          63.46970400000009,
+          63.87690999999995,
+          63.73241699999994,
+          64.65262099999995,
+          63.147609999999986,
+          63.670506999999816,
+          64.15870399999994
+        ],
+        "medianMs": 63.73241699999994
+      }
+    ]
+  }
+}

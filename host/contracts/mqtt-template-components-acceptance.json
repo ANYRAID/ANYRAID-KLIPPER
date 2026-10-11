@@ -1,0 +1,219 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "baseHead": "5324f5e8ec2daa5ef7ca2908213e9ee38b1bb792",
+  "status": "draft-partial",
+  "scope": "Shared private generation consumed by MQTT credential getters and existing explicit native sensor assembly; removes Python from daily MQTT configuration test/benchmark. Not automatic MQTT component loading or complete Python retirement.",
+  "reference": {
+    "file": "mqtt-template-components-reference.json",
+    "sha256": "c0cc47e7adc1f5fd815a6ddea8289affe190d75a86c7707ec6b7bb5917da5859",
+    "cases": 17,
+    "upstream": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "python": "3.12.13",
+    "jinja": "3.1.6",
+    "semanticCorrection": "Initial harness omitted the upstream JinjaTemplate rendered strip; rejected reference and 15/20 direct failures preserved. Corrected harness executes actual pinned wrapper class after first candidate; performance samples and 1.5 limit unchanged.",
+    "initialRejectedSha256": "867a687e0f7d3e74474ef0ef279cd58c71101467cb95b96cd61a0ac8bb979910"
+  },
+  "functionality": {
+    "source": {
+      "tests": 24,
+      "pass": 24,
+      "fail": 0
+    },
+    "compiled": {
+      "tests": 24,
+      "pass": 24,
+      "fail": 0,
+      "noStripTypes": true,
+      "allChildProcessAPIsForbidden": true,
+      "testIsolation": "none"
+    },
+    "typecheck": "passed",
+    "contracts": [
+      "Shared reader uses getTemplate without a caller renderer; mixed dependencies reject",
+      "Username and password source redacted in public original/parsed snapshots",
+      "Success, malformed-template and password-file failures release temporary handles",
+      "Eighty repeated reads retain one immutable private snapshot without exhausting 64-handle budget",
+      "Actual loopback MQTT CONNECT credentials, SUBACK and 27.125 telemetry through existing native sensor generation",
+      "No connection before explicit transport start; close releases transport, receivers and store, not borrowed factory"
+    ],
+    "nativeAddons": {
+      "template.node": "5a382f0395d58a07424aaffd455b07874b531e6cea1b9fa14833b609c6dd3455",
+      "unix-peer.node": "452966303dbeb2e1bbe1ea7e4183705ac2015958630b88772118e2954d44212e"
+    },
+    "dependencies": {
+      "host/package.json": "08f8f0c0c7a28e845044463c6f4c453389da15453b31bedaf3577e904d53dd6a",
+      "host/package-lock.json": "b890eff34a349b721afd6013f53d6e2c3fa14538ce8ae6bc0bd580ec328da389"
+    },
+    "compiledComparison": {
+      "baselineModules": 41,
+      "candidateModules": 161,
+      "differentCommonModules": [
+        "moonraker/mqtt-config.js"
+      ]
+    },
+    "buildBoundary": "Independent TS export; existing cached Rust/C native addons and dependencies reused. No fresh Rust build or complete product bundle."
+  },
+  "performance": {
+    "node": "v26.10.0",
+    "referenceSha256": "c0cc47e7adc1f5fd815a6ddea8289affe190d75a86c7707ec6b7bb5917da5859",
+    "loads": 1000,
+    "warmups": 2,
+    "sampleCount": 7,
+    "results": [
+      {
+        "mode": "literal",
+        "times": [
+          4.577992999999999,
+          4.171377,
+          4.177917999999998,
+          4.101017000000006,
+          4.195267000000001,
+          4.088196000000011,
+          4.768045999999998
+        ],
+        "medianMs": 4.177917999999998
+      },
+      {
+        "mode": "file",
+        "times": [
+          74.01531899999998,
+          66.52860599999997,
+          72.28884499999998,
+          84.38525100000004,
+          78.53758099999993,
+          76.67270599999995,
+          71.47912399999996
+        ],
+        "medianMs": 74.01531899999998
+      },
+      {
+        "mode": "shared",
+        "times": [
+          66.40526399999999,
+          65.55937200000005,
+          65.7866660000002,
+          67.77641300000005,
+          70.18229700000006,
+          65.23218799999995,
+          64.76334199999997
+        ],
+        "medianMs": 65.7866660000002
+      }
+    ],
+    "budgets": [
+      {
+        "mode": "literal",
+        "baselineMs": 3.841975000000005,
+        "medianMs": 4.177917999999998,
+        "ratio": 1.087440183759653,
+        "limit": 1.5,
+        "passed": true
+      },
+      {
+        "mode": "file",
+        "baselineMs": 80.04648199999997,
+        "medianMs": 74.01531899999998,
+        "ratio": 0.9246542402700472,
+        "limit": 1.5,
+        "passed": true
+      },
+      {
+        "mode": "shared",
+        "baselineMs": 63.73241699999994,
+        "medianMs": 65.7866660000002,
+        "ratio": 1.0322324038016675,
+        "limit": 1.5,
+        "passed": true
+      }
+    ],
+    "scope": "Prepared MQTT connection getters, bounded password file reads and shared private credential rendering. Factory/file setup excluded; no broker, motion or target-board claim.",
+    "baselineFrozenBeforeProductionEdits": true,
+    "budgetFrozenBeforeProductionEdits": true,
+    "interpretation": "Three prepared 1000-load desktop paths pass 1.5 baseline ratio. Sequential samples, no statistical speedup, broker/print hot-path or target-board claim."
+  },
+  "retirement": {
+    "removed": "host/test/helpers/mqtt-config-oracle.ts",
+    "testEntry": "host/test/mqtt-config.test.ts",
+    "benchmarkEntry": "host/bench/mqtt-config.ts",
+    "boundary": "One-time pinned capture remains archival provenance only. Other sensor/protocol references and default Python printing remain."
+  },
+  "failuresRetained": [
+    "Initial reference incorrectly used raw Jinja2 rendering, four whitespace mismatches plus one invalid-template parsed-record assertion failure; corrected against actual upstream wrapper",
+    "Default source child reports file-level failures without inner details; direct execution archived actual failing cases",
+    "Default source/compiled loopback runs failed EPERM; existing user-authorized bounded escalation verified 24/24 without relaxing assertions",
+    "Reference capture first missed cache path; diagnostic traced subsequent stdin timeout to json.load; argv input completed, not asserted a project/runtime root-cause fix"
+  ],
+  "ci": {
+    "previousHead": "5324f5e8ec2daa5ef7ca2908213e9ee38b1bb792",
+    "jobs": 15,
+    "all": "success",
+    "ordinary": {
+      "tests": 4665,
+      "pass": 4665,
+      "fail": 0
+    },
+    "record": "pr68-5324-terminal.json",
+    "currentCandidate": "requires own CI"
+  },
+  "remaining": [
+    "Automatic configuration-owned MQTT transport and full component assembly",
+    "Sensor message templates consuming shared environment with unchanged high-frequency budget",
+    "Complete template language, async/UI performance and fresh native build",
+    "Full same-bundle Fluidd/Mainsail and external fault-recovery acceptance",
+    "All Python retirement, consumer product macros, G3 precision/timing and Cycnumbris 500 target-board acceptance",
+    "Normal develop/mainline integration and release; other machine families last"
+  ],
+  "evidence": {
+    "file": "mqtt-template-components-evidence.json.gz",
+    "sha256": "b5c792f49cc0cd23220062fb7e5c95fd44f0f9c925e5e1883978477ed10f0192",
+    "bytes": 49943,
+    "entries": 32
+  },
+  "bindings": [
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "724c99c84a2a14e5441a39cd4df7db5495608f840dc298a2a959636f9ad7b4c2"
+    },
+    {
+      "path": "README.md",
+      "sha256": "2cf7876297073de5161cccf87b53579a494aaa56de872b4437204401dde6b061"
+    },
+    {
+      "path": "docs/Node_Host_Delivery_Plan.md",
+      "sha256": "e933acd944838d30b2ecb294f4a3d46d7487bd63dd139eff55d073da2cd6025b"
+    },
+    {
+      "path": "docs/Node_Host_Startup.md",
+      "sha256": "f3c462a9cb3333bbe71e10f3c427792c3d6a53a8368eab183e5335dbe592e8aa"
+    },
+    {
+      "path": "host/bench/mqtt-config.ts",
+      "sha256": "d38c7ad9b8863f61dd4ad6458d73a6406837de4855c0e63ee33707e4c89a34ef"
+    },
+    {
+      "path": "host/src/moonraker/mqtt-config.ts",
+      "sha256": "d5c65972133aa4794d0c10f866ed065a023afda5baf58b21b1547158df246c29"
+    },
+    {
+      "path": "host/test/helpers/mqtt-config-oracle.ts",
+      "removed": true
+    },
+    {
+      "path": "host/test/mqtt-config.test.ts",
+      "sha256": "41e2f42c903f30fb7270bd39ac8ac796034ed75ab4091f4a4df3365737f6baab"
+    },
+    {
+      "path": "host/bench/mqtt-template-components.ts",
+      "sha256": "fd0b9bc8feb413af08dfe5b21a9cfcaa8d3286b3f370b309ef93bf6fe216c3ef"
+    },
+    {
+      "path": "host/contracts/mqtt-template-components-reference.json",
+      "sha256": "c0cc47e7adc1f5fd815a6ddea8289affe190d75a86c7707ec6b7bb5917da5859"
+    },
+    {
+      "path": "host/contracts/pr68-5324-terminal.json",
+      "sha256": "2479e217d6438dd179f19aa0aa50f4c0455b7818001cec694187b25b5cc354f4"
+    }
+  ]
+}

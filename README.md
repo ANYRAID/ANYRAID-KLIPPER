@@ -41,6 +41,13 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 [进程组件接入证据](host/contracts/native-process-components-acceptance.json)。
 上一配置路径头 `4e886e50` 十五项 CI 全通过，普通 4660／4660，
 见[该头终态](host/contracts/pr68-4e8-terminal.json)，不覆盖本轮接入。
+进程接入头 `5324f5e8` 的十五项 CI、普通 4665／4665 随后全部通过，
+见[该头终态](host/contracts/pr68-5324-terminal.json)。MQTT 凭据加载现自动
+消费 reader 已绑定的共享私密模板，拒绝竞争渲染器，临时模板始终释放；
+凭据来源在公开配置中脱敏。相关源码与关闭 TS／外部子进程的独立
+JavaScript 各 24 项通过，三组冻结加载预算通过；日常 MQTT 配置回归
+和基准不再启动 Python，见[MQTT 消费证据](host/contracts/mqtt-template-components-acceptance.json)。
+这不覆盖 MQTT 的完整自动装配、传感器共享环境或新产品包；新提交须自身 CI。
 配置路径的单独结果不覆盖完整产品装配、新包或目标板打印；上一工厂头
 `4592243d` 的十五项 CI 和普通 4624／4624 独立通过，见
 [该头终态](host/contracts/pr68-459-terminal.json)，新路径提交须自身检查。
