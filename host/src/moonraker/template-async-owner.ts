@@ -6,14 +6,23 @@ import {bindSecretsTemplate,type SecretsStore} from './secrets.ts';
 import {decodeTemplateCall,encodeTemplateValue,type TemplateCall,type TemplateValue} from './template-wire.ts';
 interface Handle {addGlobal(name:string,value?:string):void;render(context:string,callables:string[],id:number,timeout:number):void;close():void;}
 interface Executor {createTemplate(source:string,secrets:string,file:string,type:string,ui:boolean):Handle;respond(id:number,call:number,value?:string):boolean;respondFloat(id:number,call:number,value:number):boolean;cancel(id:number):void;close():void;}
-export type TemplateCallable=(call:TemplateCall,signal:AbortSignal)=>TemplateValue|Promise<TemplateValue>;
+/** Signal is created on first access and remains valid after the render ends. */
+export interface TemplateInvocation extends TemplateCall {readonly signal:AbortSignal;}
+export type TemplateCallable=(call:TemplateInvocation)=>TemplateValue|Promise<TemplateValue>;
 export interface AsyncTemplateOptions {signal?:AbortSignal;timeoutMs?:number;callables?:ReadonlyMap<string,TemplateCallable>;}
-interface Frame {controller:AbortController|undefined;cancelled:boolean;callables:ReadonlyMap<string,TemplateCallable>;sequence:number;stop:(reason:unknown)=>void;finish:(output?:string)=>void;}
+interface Cancellation {controller?:AbortController;ended:boolean;reason?:unknown;}
+interface Frame {lifetime:Cancellation;cancelled:boolean;callables:ReadonlyMap<string,TemplateCallable>;sequence:number;stop:(reason:unknown)=>void;finish:(output?:string)=>void;}
 const strip=(text:string)=>text.replace(/^[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/g,'');
 const failure=()=>new ConfigurationError('Private asynchronous template operation failed');
 const completedReason=new DOMException('Template render completed','AbortError');
 function text(value:string,limit:number){if(typeof value!=='string'||!value.isWellFormed()||Buffer.byteLength(value)>limit)throw failure();}
 function name(value:string){text(value,128);if(!value.length)throw failure();}
+function end(lifetime:Cancellation,reason:unknown):void{if(lifetime.ended)return;lifetime.ended=true;lifetime.reason=reason;lifetime.controller?.abort(reason);}
+class Invocation implements TemplateInvocation {
+ readonly args:TemplateCall['args'];readonly kwargs:TemplateCall['kwargs'];readonly #lifetime:Cancellation;
+ constructor(call:TemplateCall,lifetime:Cancellation){this.args=call.args;this.kwargs=call.kwargs;this.#lifetime=lifetime;Object.freeze(this);}
+ get signal():AbortSignal{const lifetime=this.#lifetime;if(!lifetime.controller){lifetime.controller=new AbortController();if(lifetime.ended)lifetime.controller.abort(lifetime.reason);}return lifetime.controller.signal;}
+}
 /** Trusted component API. Native computation uses two dedicated threads;
  * callback capabilities remain on the Node event loop and receive cancellation.
  * Explicit close is required. This is not an OS process isolation boundary. */
@@ -56,13 +65,13 @@ export class MoonrakerAsyncTemplateOwner {
   if(!state.ui)for(const [key,value] of this.#globals)if(typeof value==='function')calls.set(key,value);
   const keys:string[]=[];if(options.callables){if(options.callables.size>64)throw failure();for(const [key,fn] of options.callables){name(key);if(typeof fn!=='function')throw failure();calls.set(key,fn);keys.push(key);}}
   if(this.#next===0xffffffff)this.#next=0;const id=++this.#next;if(this.#frames.has(id))throw failure();
-  const controller=calls.size?new AbortController():undefined;let stop!:(reason:unknown)=>void,finish!:(output?:string)=>void;
-  const rendered=new Promise<string>((resolve,reject)=>{stop=reason=>{if(!frame.cancelled){frame.cancelled=true;controller?.abort(reason);executor.cancel(id);reject(reason);}};finish=output=>output===undefined?reject(failure()):resolve(output);});
-  const frame:Frame={controller,cancelled:false,callables:calls,sequence:0,stop,finish};this.#frames.set(id,frame);state.frames.add(id);
+  const lifetime:Cancellation={ended:false};let stop!:(reason:unknown)=>void,finish!:(output?:string)=>void;
+  const rendered=new Promise<string>((resolve,reject)=>{stop=reason=>{if(!frame.cancelled){frame.cancelled=true;end(lifetime,reason);executor.cancel(id);reject(reason);}};finish=output=>output===undefined?reject(failure()):resolve(output);});
+  const frame:Frame={lifetime,cancelled:false,callables:calls,sequence:0,stop,finish};this.#frames.set(id,frame);state.frames.add(id);
   const abort=()=>stop(options.signal!.reason),timer=setTimeout(()=>stop(new ConfigurationError('Template render deadline exceeded')),timeout);
   options.signal?.addEventListener('abort',abort,{once:true});
   try{try{handle.render(context,keys,id,timeout);}catch{stop(failure());}return strip(await rendered);}
-  finally{clearTimeout(timer);options.signal?.removeEventListener('abort',abort);controller?.abort(completedReason);this.#frames.delete(id);state.frames.delete(id);}
+  finally{clearTimeout(timer);options.signal?.removeEventListener('abort',abort);end(lifetime,completedReason);this.#frames.delete(id);state.frames.delete(id);calls.clear();}
  }
  async #dispatch(message:string):Promise<void>{
   let id:number|undefined,call:number|undefined;try{
@@ -72,7 +81,7 @@ export class MoonrakerAsyncTemplateOwner {
    if(row.done===true){if(row.error===true){frame.finish();return;}text(row.text!,65536);frame.finish(row.text);return;}
    text(message,65536);if(!Number.isInteger(row.call)||row.call<1||row.call>64)throw failure();call=row.call;name(row.name);
    if(call!==frame.sequence+1)throw failure();frame.sequence=call;const fn=frame.callables.get(row.name);if(!fn)throw failure();
-   const args=decodeTemplateCall(row.args,row.kwargs),result=await fn(args,frame.controller!.signal);
+   const args=decodeTemplateCall(row.args,row.kwargs),result=await fn(new Invocation(args,frame.lifetime));
    if(this.#frames.get(id)!==frame||frame.cancelled)return;
    if(result&&typeof result==='object'&&'kind'in result&&result.kind==='float'&&'value'in result&&typeof result.value==='number')this.#executor?.respondFloat(id,call,result.value);
    else this.#executor?.respond(id,call,encodeTemplateValue(result));

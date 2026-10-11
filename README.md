@@ -86,6 +86,12 @@ Jinja 准备和数值参考助手。源码与关闭 TS 加载的编译验证通�
 [异步候选及未关闭门槛](host/contracts/moonraker-template-async-acceptance.json)。
 提交 `320c5128` 十五项 CI 全通过，普通 4543／4543，见
 [该提交终态](host/contracts/pr68-320c-terminal.json)；新增异步候选须自身 CI。
+该异步候选头 `a1222cfc` 的十五项 CI 随后全通过，普通 4566／4566，
+见[该提交终态](host/contracts/pr68-a122-terminal.json)。随后按需信号候选
+通过源码／编译各 118 项；固定编译基准的回调 1.424 倍通过，UI
+1.653 倍仍超原 1.5 门限，整组性能未通过。接口改用 `call.signal`，
+晚读取仍保留取消状态；详见[候选证据](host/contracts/moonraker-template-lazy-signal-acceptance.json)。
+新候选须自身 CI，完整工厂和装配仍待完成。
 其他传感器差分、完整模板工厂、全面 Python 退役及产品门槛继续开放。
 提交 `95984efa` 的普通 CI 4537／4537、主机及固件通过，运动矩阵
 有一项触发原 10 秒子进程期限，14／15 通过，见

@@ -1,0 +1,570 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "observedUtc": "2026-10-11T16:37:56.700Z",
+  "base": "a1222cfc015c2a88181ea7e0adb5d4d32fcb30df",
+  "scope": "Trusted asynchronous component candidate: cancellation signal created on first access. No default-entry, public-route, native-code, numeric-kind, motion or tolerance change. Overall performance remains failed.",
+  "node": "v26.10.0",
+  "api": {
+    "callable": "(call: TemplateInvocation) => TemplateValue | Promise<TemplateValue>",
+    "signal": "call.signal: readonly native AbortSignal; same render identity, different render independence, first cancellation reason retained, late first access observes ended state",
+    "compatibility": "Unreleased API changed from a second eager signal parameter. Current consumers are internal tests and benchmark; standard component factory remains open."
+  },
+  "functionality": {
+    "source": {
+      "tests": 118,
+      "passed": 118,
+      "failed": 0
+    },
+    "compiled": {
+      "tests": 118,
+      "passed": 118,
+      "failed": 0
+    },
+    "compiledNoJsChildProcess": {
+      "tests": 58,
+      "passed": 58,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "nativeAddonSha256": "d23fad9a571cfbf9531533426292a7d216e76c11abbd5f5fb99435c6e9e1553d",
+    "nativeScope": "Same unchanged native source and local addon as the a122 candidate. This turn does not claim a new independent product snapshot build.",
+    "checks": [
+      "Exactly once real function side effects and frozen upstream output/transcripts",
+      "Native signal event delivery and immutable invocation surface",
+      "Signal identity within one render and independence across renders",
+      "Late first access after successful completion",
+      "Late first access after cancellation with non-Error original reason",
+      "Late first access after per-template and owner close",
+      "Already-aborted input invokes no capability",
+      "Callback AbortError retained by late signal access",
+      "Existing deadline, queue, file IO, private output and exact typed numeric cases"
+    ],
+    "nodePermissionScope": "Four compiled files run in-process with TS loading and JS child processes denied, read access and native addons explicitly allowed. This is not OS process isolation."
+  },
+  "diagnostics": {
+    "rawVersusOwner": {
+      "node": "v26.10.0",
+      "scope": "Alternating raw/native versus public owner, fixed integer 2 only. Raw control omits lifecycle and typed validation deliberately to estimate owner overhead, never a product replacement or acceptance proof.",
+      "results": [
+        {
+          "name": "pure",
+          "iterations": 500,
+          "pairs": [
+            {
+              "rawMs": 6.730502999999985,
+              "ownerMs": 6.434798999999998
+            },
+            {
+              "rawMs": 6.280167000000006,
+              "ownerMs": 6.5918419999999855
+            },
+            {
+              "rawMs": 6.108826000000022,
+              "ownerMs": 7.088177000000002
+            },
+            {
+              "rawMs": 6.749363000000017,
+              "ownerMs": 7.897016999999977
+            },
+            {
+              "rawMs": 11.652263000000005,
+              "ownerMs": 7.442701999999997
+            },
+            {
+              "rawMs": 5.295745000000011,
+              "ownerMs": 6.728923000000009
+            },
+            {
+              "rawMs": 5.620468999999986,
+              "ownerMs": 6.375738999999982
+            }
+          ],
+          "rawMedianMs": 6.280167000000006,
+          "ownerMedianMs": 6.728923000000009,
+          "referenceMedianMs": 6.315300997812301
+        },
+        {
+          "name": "callback",
+          "iterations": 500,
+          "pairs": [
+            {
+              "rawMs": 11.38089100000002,
+              "ownerMs": 16.069297000000006
+            },
+            {
+              "rawMs": 11.161567999999988,
+              "ownerMs": 15.816315000000031
+            },
+            {
+              "rawMs": 11.141477000000009,
+              "ownerMs": 15.979727000000025
+            },
+            {
+              "rawMs": 13.42841599999997,
+              "ownerMs": 16.11309799999998
+            },
+            {
+              "rawMs": 11.43062100000003,
+              "ownerMs": 23.908254
+            },
+            {
+              "rawMs": 13.333334000000036,
+              "ownerMs": 21.287532
+            },
+            {
+              "rawMs": 12.09290900000002,
+              "ownerMs": 15.975256000000002
+            }
+          ],
+          "rawMedianMs": 11.43062100000003,
+          "ownerMedianMs": 16.069297000000006,
+          "referenceMedianMs": 9.619439020752907
+        },
+        {
+          "name": "ui",
+          "iterations": 500,
+          "pairs": [
+            {
+              "rawMs": 11.016895999999974,
+              "ownerMs": 15.515280999999959
+            },
+            {
+              "rawMs": 13.239312999999925,
+              "ownerMs": 15.160147000000052
+            },
+            {
+              "rawMs": 11.154357000000005,
+              "ownerMs": 14.960174000000052
+            },
+            {
+              "rawMs": 11.18230799999992,
+              "ownerMs": 15.337327999999957
+            },
+            {
+              "rawMs": 11.152436999999964,
+              "ownerMs": 15.32173899999998
+            },
+            {
+              "rawMs": 17.653846999999928,
+              "ownerMs": 15.15648699999997
+            },
+            {
+              "rawMs": 16.068938000000003,
+              "ownerMs": 17.22249199999999
+            }
+          ],
+          "rawMedianMs": 11.18230799999992,
+          "ownerMedianMs": 15.32173899999998,
+          "referenceMedianMs": 8.285223972052336
+        }
+      ]
+    },
+    "paired": {
+      "node": "v26.10.0",
+      "scope": "Alternating eager and class-based lazy signal candidates using same frozen original inputs and same native addon. Diagnostic only, no replacement of strict acceptance benchmark.",
+      "results": [
+        {
+          "name": "pure",
+          "pairs": [
+            {
+              "oldMs": 8.450273999999979,
+              "newMs": 12.87787800000001
+            },
+            {
+              "oldMs": 8.406723,
+              "newMs": 7.879317000000015
+            },
+            {
+              "oldMs": 7.154117999999983,
+              "newMs": 8.954430000000002
+            },
+            {
+              "oldMs": 8.153089999999992,
+              "newMs": 7.7818650000000105
+            },
+            {
+              "oldMs": 6.931375000000003,
+              "newMs": 8.746897000000018
+            },
+            {
+              "oldMs": 7.225918999999976,
+              "newMs": 7.267809
+            },
+            {
+              "oldMs": 9.124442000000016,
+              "newMs": 7.007715999999988
+            }
+          ],
+          "oldMedianMs": 8.153089999999992,
+          "newMedianMs": 7.879317000000015,
+          "ratio": 0.966420952056217,
+          "oldHistoricalRatio": 1.291005765651443,
+          "newHistoricalRatio": 1.247655021150933
+        },
+        {
+          "name": "callback",
+          "pairs": [
+            {
+              "oldMs": 23.48343799999998,
+              "newMs": 16.962188000000026
+            },
+            {
+              "oldMs": 21.256530999999995,
+              "newMs": 14.336145999999985
+            },
+            {
+              "oldMs": 17.526695000000018,
+              "newMs": 14.530718999999976
+            },
+            {
+              "oldMs": 19.682772,
+              "newMs": 16.589992999999993
+            },
+            {
+              "oldMs": 16.508482000000015,
+              "newMs": 18.164993000000038
+            },
+            {
+              "oldMs": 25.961418999999978,
+              "newMs": 22.570946999999933
+            },
+            {
+              "oldMs": 16.948568000000023,
+              "newMs": 15.507990000000063
+            }
+          ],
+          "oldMedianMs": 19.682772,
+          "newMedianMs": 16.589992999999993,
+          "ratio": 0.8428687280429805,
+          "oldHistoricalRatio": 2.046145514050927,
+          "newHistoricalRatio": 1.7246320668189552
+        },
+        {
+          "name": "ui",
+          "pairs": [
+            {
+              "oldMs": 15.383579000000054,
+              "newMs": 14.010281999999961
+            },
+            {
+              "oldMs": 21.920908999999938,
+              "newMs": 14.275615000000016
+            },
+            {
+              "oldMs": 21.769556999999963,
+              "newMs": 22.204482999999982
+            },
+            {
+              "oldMs": 20.621122999999898,
+              "newMs": 20.502381000000014
+            },
+            {
+              "oldMs": 20.794044999999983,
+              "newMs": 19.192316000000005
+            },
+            {
+              "oldMs": 21.894619000000034,
+              "newMs": 19.267426
+            },
+            {
+              "oldMs": 23.72130100000004,
+              "newMs": 20.623103000000015
+            }
+          ],
+          "oldMedianMs": 21.769556999999963,
+          "newMedianMs": 19.267426,
+          "ratio": 0.8850628425741522,
+          "oldHistoricalRatio": 2.627515812901726,
+          "newHistoricalRatio": 2.3255166142753363
+        }
+      ]
+    },
+    "scope": "Raw control omits production lifecycle/type work and is not an acceptance candidate. Eager/lazy control alternates seven pairs with the same addon, frozen inputs and setImmediate callback. Profiling and pair medians are diagnostic only; no target-board claim."
+  },
+  "performance": {
+    "status": "failed-open",
+    "fixedBudget": 1.5,
+    "compiled": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+      "results": [
+        {
+          "name": "pure",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            6.450851999999998,
+            6.094344999999997,
+            5.911599999999993,
+            6.118175000000008,
+            5.96723200000001,
+            5.968890999999999,
+            6.0636439999999965
+          ],
+          "medianMs": 6.0636439999999965,
+          "referenceMedianMs": 6.315300997812301,
+          "ratio": 0.9601512266953734,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "callback",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            14.201393999999993,
+            14.685464000000024,
+            13.646590000000003,
+            13.653521000000012,
+            13.695101999999991,
+            15.501061000000021,
+            13.639531000000005
+          ],
+          "medianMs": 13.695101999999991,
+          "referenceMedianMs": 9.619439020752907,
+          "ratio": 1.4236902973712167,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "ui",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            13.672471000000002,
+            13.694621999999981,
+            13.742003000000011,
+            13.531268000000011,
+            13.528017999999975,
+            13.805214000000035,
+            13.77268399999997
+          ],
+          "medianMs": 13.694621999999981,
+          "referenceMedianMs": 8.285223972052336,
+          "ratio": 1.65289701837809,
+          "maximumMedianRatio": 1.5,
+          "pass": false
+        }
+      ],
+      "pass": false
+    },
+    "preservedEarlierCandidates": [
+      {
+        "name": "object-literal lazy accessor",
+        "result": {
+          "schema": 1,
+          "node": "v26.10.0",
+          "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+          "results": [
+            {
+              "name": "pure",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                10.384758000000005,
+                7.695733999999987,
+                7.525903000000028,
+                7.612912999999992,
+                7.807155999999992,
+                8.079820000000012,
+                7.668863999999985
+              ],
+              "medianMs": 7.695733999999987,
+              "referenceMedianMs": 6.315300997812301,
+              "ratio": 1.218585464519567,
+              "maximumMedianRatio": 1.5,
+              "pass": true
+            },
+            {
+              "name": "callback",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                17.284302000000025,
+                16.16177799999997,
+                16.734126000000003,
+                16.545253000000002,
+                33.15398799999997,
+                24.521740999999963,
+                15.80796399999997
+              ],
+              "medianMs": 16.734126000000003,
+              "referenceMedianMs": 9.619439020752907,
+              "ratio": 1.739615580898005,
+              "maximumMedianRatio": 1.5,
+              "pass": false
+            },
+            {
+              "name": "ui",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                15.914866000000018,
+                17.14400999999998,
+                17.423523999999986,
+                15.781824000000029,
+                16.556984,
+                15.85277400000001,
+                15.329829000000018
+              ],
+              "medianMs": 15.914866000000018,
+              "referenceMedianMs": 8.285223972052336,
+              "ratio": 1.9208733588475027,
+              "maximumMedianRatio": 1.5,
+              "pass": false
+            }
+          ],
+          "pass": false
+        }
+      },
+      {
+        "name": "class lazy accessor first source observation",
+        "result": {
+          "schema": 1,
+          "node": "v26.10.0",
+          "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+          "results": [
+            {
+              "name": "pure",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                7.688454000000007,
+                8.888379,
+                6.688862,
+                8.512104999999991,
+                6.404999000000004,
+                6.285236999999995,
+                6.020294000000007
+              ],
+              "medianMs": 6.688862,
+              "referenceMedianMs": 6.315300997812301,
+              "ratio": 1.0591517335938707,
+              "maximumMedianRatio": 1.5,
+              "pass": true
+            },
+            {
+              "name": "callback",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                21.081268999999992,
+                21.16472999999999,
+                19.912744000000004,
+                21.614716000000044,
+                16.85422699999998,
+                15.217556000000002,
+                14.869081999999992
+              ],
+              "medianMs": 19.912744000000004,
+              "referenceMedianMs": 9.619439020752907,
+              "ratio": 2.0700525214662098,
+              "maximumMedianRatio": 1.5,
+              "pass": false
+            },
+            {
+              "name": "ui",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                14.682309999999973,
+                14.121172999999999,
+                13.854741000000047,
+                14.70808999999997,
+                14.006952000000013,
+                14.502308000000028,
+                13.85636999999997
+              ],
+              "medianMs": 14.121172999999999,
+              "referenceMedianMs": 8.285223972052336,
+              "ratio": 1.7043803580486718,
+              "maximumMedianRatio": 1.5,
+              "pass": false
+            }
+          ],
+          "pass": false
+        }
+      }
+    ],
+    "decision": "Retain class candidate for measured wrapper reduction and verified cancellation semantics. UI still exceeds unchanged 1.5 budget; do not count overall template performance as passed."
+  },
+  "preservedFailures": [
+    {
+      "log": "template-async-lazy-source-final-oct12.log",
+      "scope": "Sandbox output reported only nine files, no contained cases; excluded from acceptance."
+    },
+    {
+      "log": "template-async-lazy-source-actual-oct12.log",
+      "scope": "Same incomplete sandbox observation without test-timeout; excluded from acceptance."
+    },
+    {
+      "log": "template-lazy-compiled-test-oct12.log",
+      "scope": "112 cases passed, one module loading failure: initial temporary link omitted ldapts. Corrected to actual current dependency tree, no installation or dependency version change."
+    },
+    {
+      "log": "template-lazy-compiled-process-denied-oct12.log",
+      "scope": "Test-runner subprocess denied by Node permissions before cases. Final check uses test-isolation=none without granting subprocess permission."
+    }
+  ],
+  "sources": [
+    {
+      "name": "host/src/moonraker/template-async-owner.ts",
+      "sha256": "f3c37ab76990cd28d9f42f437154e10aadda7572c413938d48a61d5446009533"
+    },
+    {
+      "name": "host/src/moonraker/template-wire.ts",
+      "sha256": "f78738448bf5ae587c02dbff4e8c6f2e6a1fbe867bbb2a762074ec5c7327c4fd"
+    },
+    {
+      "name": "host/test/template-async.test.ts",
+      "sha256": "f3d0ad2cf7ba875c44496bc7f4701c2cb65588532ce0331e7b6fd624ceb5686e"
+    },
+    {
+      "name": "host/bench/template-async.ts",
+      "sha256": "700c5127f7437e40c883d1d0cbeabca9f5610753aad6a402dfd396648f291030"
+    },
+    {
+      "name": "host/native/template/src/async_text.rs",
+      "sha256": "78fee302d0a373b744c7ef6f4698aee75f52f934f9cd50aca1d0051762baa72e"
+    },
+    {
+      "name": "host/contracts/moonraker-template-async-reference.json",
+      "sha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a"
+    }
+  ],
+  "evidence": {
+    "file": "moonraker-template-lazy-signal-acceptance.evidence.json.gz",
+    "sha256": "43d87350f7fdd20aca8ba1642f050e270a8cf4d144598c15e582fa94531c03d9",
+    "bytes": 71567,
+    "entries": 33
+  },
+  "currentCi": {
+    "head": "a1222cfc015c2a88181ea7e0adb5d4d32fcb30df",
+    "file": "pr68-a122-terminal.json",
+    "jobs": "15/15",
+    "ordinary": "4566/4566",
+    "scope": "Previous committed native asynchronous candidate only; this lazy-signal candidate needs its own CI."
+  },
+  "openGates": [
+    "UI and whole asynchronous template performance budget",
+    "Full sync/async template factory and configured component ownership",
+    "Arbitrary precision integer operations beyond i128 and process/heap isolation",
+    "Full Python retirement and all Moonraker contracts",
+    "Full local/compiler failure root causes",
+    "Original motion precision/timing G3, target-board and print-speed evidence",
+    "Cycnumbris 500 assembly, consumer macro delivery and complete same-bundle clients",
+    "Normal develop/master PR release"
+  ]
+}

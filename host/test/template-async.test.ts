@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {inspect} from 'node:util';
 import {SecretsStore,parseSecretsText} from '../src/moonraker/secrets.ts';
-import {MoonrakerAsyncTemplateOwner,type TemplateCallable} from '../src/moonraker/template-async-owner.ts';
+import {MoonrakerAsyncTemplateOwner,type TemplateCallable,type TemplateInvocation} from '../src/moonraker/template-async-owner.ts';
 import {decodeTemplateCall,encodeTemplateValue,decodeTemplateValue,templateFloatValue,type TemplateValue} from '../src/moonraker/template-wire.ts';
 const bytes=await readFile(new URL('../contracts/moonraker-template-async-reference.json',import.meta.url));
 assert.equal(createHash('sha256').update(bytes).digest('hex'),'ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a');
@@ -15,7 +15,7 @@ for(const row of reference.cases)test('frozen upstream async/UI: '+row.name,asyn
  const {secrets,owner}=fixture(),calls:unknown[]=[];
  try{owner.addEnvironmentGlobal('custom','private-global');owner.addEnvironmentGlobal('fetch',()=>templateFloatValue(77));
   const handle=row.ui?owner.createUiTemplate(row.source):owner.createTemplate(row.source);
-  const fetch:TemplateCallable=async call=>{calls.push({name:'fetch',...call});await new Promise<void>(resolve=>setImmediate(resolve));return templateFloatValue(number(call.args[0])*(call.kwargs.has('scale')?number(call.kwargs.get('scale')):1));};
+  const fetch:TemplateCallable=async call=>{calls.push({name:'fetch',args:call.args,kwargs:call.kwargs});await new Promise<void>(resolve=>setImmediate(resolve));return templateFloatValue(number(call.args[0])*(call.kwargs.has('scale')?number(call.kwargs.get('scale')):1));};
   const callables=new Map<string,TemplateCallable>([['fetch',fetch],['fail',async()=>{throw Error('synthetic-private-template');}],['cancel',async()=>{throw new DOMException('cancel-source','AbortError');}]]);
   if(row.error)await assert.rejects(handle.renderAsync(row.context,{callables}),/Private asynchronous template operation failed/);
   else if(row.cancelled)await assert.rejects(handle.renderAsync(row.context,{callables}),{name:'AbortError',message:'cancel-source'});
@@ -41,17 +41,52 @@ test('globals update existing configuration templates and stay outside UI realm'
 test('cancellation reaches the real function once and late completion is ignored',async()=>{
  const {secrets,owner}=fixture(),controller=new AbortController(),reason=new DOMException('requested cancellation','AbortError');let count=0,signal!:AbortSignal,release!:(value:TemplateValue)=>void;
  try{const handle=owner.createTemplate('{wait()}');let entered!:()=>void;const ready=new Promise<void>(resolve=>entered=resolve);
-  const pending=handle.renderAsync('{}',{signal:controller.signal,callables:new Map([['wait',(_call,got)=>{count++;signal=got;entered();return new Promise(resolve=>release=resolve);} ]])});
+  const pending=handle.renderAsync('{}',{signal:controller.signal,callables:new Map([['wait',call=>{count++;signal=call.signal;entered();return new Promise(resolve=>release=resolve);} ]])});
   await ready;controller.abort(reason);await assert.rejects(pending,error=>error===reason);assert.equal(signal.reason,reason);assert.equal(count,1);release('late-private');
   assert.equal(await handle.renderAsync('{}',{callables:new Map([['wait',()=>9n]])}),'9');
  }finally{owner.close();secrets.close();}
 });
 test('deadline and per-template close cancel live callbacks and retain privacy',async()=>{
  const {secrets,owner}=fixture();try{const handle=owner.createTemplate('{slow()}');let got!:AbortSignal,entered!:()=>void;const ready=new Promise<void>(resolve=>entered=resolve);
-  const pending=handle.renderAsync('{}',{timeoutMs:30,callables:new Map([['slow',(_call,signal)=>{got=signal;entered();return new Promise<TemplateValue>(()=>{});} ]])});
+  const pending=handle.renderAsync('{}',{timeoutMs:30,callables:new Map([['slow',call=>{got=call.signal;entered();return new Promise<TemplateValue>(()=>{});} ]])});
   await ready;await assert.rejects(pending,/deadline|Private asynchronous/);assert(got.aborted);
   const active=handle.renderAsync('{}',{callables:new Map([['slow',()=>new Promise<TemplateValue>(()=>{})]])});handle.close();await assert.rejects(active,/closed/);await assert.rejects(handle.renderAsync(),/closed/);
   for(const object of [owner,handle])for(const privateText of ['synthetic-private-template','/synthetic','slow()'])assert(!inspect(object).includes(privateText)&&!JSON.stringify(object).includes(privateText));
+ }finally{owner.close();secrets.close();}
+});
+test('invocation signals share one render lifetime and remain native AbortSignals',async()=>{
+ const {secrets,owner}=fixture();try{const handle=owner.createTemplate('{value()}/{value()}'),signals:AbortSignal[]=[];let events=0;
+  const callables=new Map<string,TemplateCallable>([['value',call=>{assert(Object.isFrozen(call));assert.throws(()=>Object.assign(call,{signal:new AbortController().signal}));const signal=call.signal;assert(signal instanceof AbortSignal);assert.equal(call.signal,signal);assert.equal(signal.aborted,false);signals.push(signal);signal.addEventListener('abort',()=>events++,{once:true});return 7n;}]]);
+  assert.equal(await handle.renderAsync('{}',{callables}),'7/7');assert.equal(signals[0],signals[1]);assert.equal(events,2);assert.equal(signals[0]!.aborted,true);
+  assert.throws(()=>signals[0]!.throwIfAborted(),{name:'AbortError',message:'Template render completed'});
+  assert.equal(await handle.renderAsync('{}',{callables}),'7/7');assert.notEqual(signals[0],signals[2]);assert.equal(signals[2],signals[3]);assert.equal(events,4);
+ }finally{owner.close();secrets.close();}
+});
+test('first signal access after successful completion observes the ended lifetime',async()=>{
+ const {secrets,owner}=fixture();let invocation!:TemplateInvocation;
+ try{assert.equal(await owner.createTemplate('{value()}').renderAsync('{}',{callables:new Map([['value',call=>{invocation=call;return 8n;}]])}),'8');
+  const signal=invocation.signal;assert(signal instanceof AbortSignal);assert.equal(invocation.signal,signal);assert.equal(signal.aborted,true);assert.throws(()=>signal.throwIfAborted(),{name:'AbortError',message:'Template render completed'});
+ }finally{owner.close();secrets.close();}
+});
+test('first signal access after cancellation preserves the original reason and ignores late output',async()=>{
+ const {secrets,owner}=fixture(),controller=new AbortController(),reason={requested:true};let invocation!:TemplateInvocation,release!:(value:TemplateValue)=>void,entered!:()=>void;
+ const ready=new Promise<void>(resolve=>entered=resolve);
+ try{const handle=owner.createTemplate('{value()}'),pending=handle.renderAsync('{}',{signal:controller.signal,callables:new Map([['value',call=>{invocation=call;entered();return new Promise(resolve=>release=resolve);}]])});
+  await ready;controller.abort(reason);await assert.rejects(pending,error=>error===reason);assert.equal(invocation.signal.reason,reason);assert.throws(()=>invocation.signal.throwIfAborted(),error=>error===reason);
+  release('late');assert.equal(await handle.renderAsync('{}',{callables:new Map([['value',()=>9n]])}),'9');assert.equal(invocation.signal.reason,reason);
+ }finally{release?.('cleanup');owner.close();secrets.close();}
+});
+for(const closeOwner of [false,true])test('first signal access after '+(closeOwner?'owner':'template')+' close observes cancellation',async()=>{
+ const {secrets,owner}=fixture();let invocation!:TemplateInvocation,release!:(value:TemplateValue)=>void,entered!:()=>void;const ready=new Promise<void>(resolve=>entered=resolve);
+ try{const handle=owner.createTemplate('{wait()}'),pending=handle.renderAsync('{}',{callables:new Map([['wait',call=>{invocation=call;entered();return new Promise(resolve=>release=resolve);}]])});
+  await ready;if(closeOwner)owner.close();else handle.close();await assert.rejects(pending,/closed/);assert(invocation.signal.aborted);assert.throws(()=>invocation.signal.throwIfAborted(),/closed/);
+ }finally{release?.('late');owner.close();secrets.close();}
+});
+test('already aborted render never invokes a capability; callback cancellation reaches late signal access',async()=>{
+ const {secrets,owner}=fixture(),controller=new AbortController(),reason=new DOMException('callback cancellation','AbortError');let calls=0,invocation!:TemplateInvocation;
+ try{const handle=owner.createTemplate('{value()}'),callables=new Map<string,TemplateCallable>([['value',call=>{calls++;invocation=call;throw reason;}]]);controller.abort(reason);
+  await assert.rejects(handle.renderAsync('{}',{signal:controller.signal,callables}),error=>error===reason);assert.equal(calls,0);
+  await assert.rejects(handle.renderAsync('{}',{callables}),error=>error===reason);assert.equal(calls,1);assert.equal(invocation.signal.reason,reason);
  }finally{owner.close();secrets.close();}
 });
 test('queue bounds reject excess work; blocked native callbacks leave event loop and file IO usable',async()=>{

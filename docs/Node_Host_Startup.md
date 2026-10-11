@@ -3599,7 +3599,11 @@ JSON 安全范围外的整数保留为 BigInt，不经过 JavaScript Number
 这两个 API 是独立候选，尚未作为标准组件工厂或公开接口启用。
 
 `options.callables` 是 `ReadonlyMap<string, TemplateCallable>`。真实函数
-收到 `{args, kwargs}` 和取消信号，返回 `TemplateValue` 或其 Promise。
+收到只读的 `{args, kwargs, signal}` 调用上下文，返回 `TemplateValue`
+或其 Promise。取消信号通过 `call.signal` 读取，首次读取才创建原生
+`AbortSignal`；同一渲染内的调用共用信号，不同渲染各自独立。即使首次
+读取发生在完成、取消或关闭之后，也能观察已经结束的生命周期和原因。
+这是尚未发布的组件 API 调整，原来的第二个信号参数不再提供。
 整数用 BigInt，浮点用 `templateFloatValue(number)`，普通 JS Number
 拒绝隐式转换；负零和非有限浮点保留种类。当前原生整数运算仍限于
 有符号 i128，范围外拒绝，完整 Python 任意精度整数继续开发。
@@ -3618,6 +3622,10 @@ JSON 安全范围外的整数保留为 BigInt，不经过 JavaScript Number
 函数／UI 路径仍未满足 1.5 倍原参考门限。不能据此切换默认打印入口。
 中间分配与进程隔离、完整模板工厂及标准装配仍开放，详见
 [候选证据](../host/contracts/moonraker-template-async-acceptance.json)。
+随后按需信号候选通过源码／独立编译各 118 项相关检查；固定编译基准
+纯模板、函数、UI 比值为 0.960／1.424／1.653，UI 仍使整组失败。
+相同输入交错旧／新对照与此前失败保留，详见
+[按需信号候选](../host/contracts/moonraker-template-lazy-signal-acceptance.json)。
 运行新基准可使用 `node host/bench/template-async.ts`；其参考摘要固定，
 不会启动 Python，性能缺项时退出 1。构建工具链和默认打包要求沿用
 下面的同步候选说明，独立 Rust 快照包含 `src/async_text.rs`。
