@@ -2,6 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TrapQueue} from '../src/motion/trap-queue.ts';
 import {sampleTrapMotion,liveMotionStatus} from '../src/motion/live-status.ts';
+test('configured live queues report zero requested velocity before their first motion phase',()=>{
+ using xyz=new TrapQueue();using e=new TrapQueue();
+ const routes=[{queue:xyz},{queue:e,extrusionAxis:3}];
+ assert.deepEqual(liveMotionStatus(routes,9,3),{live_position:null,live_velocity:0,live_extruder_velocity:0});
+ xyz.appendRaw(new Float64Array([10,1,1,1,2,3,4,.6,.8,0,0,10,10]));
+ e.appendRaw(new Float64Array([10,1,1,1,7,0,0,1,0,0,0,-2,-2]));
+ const before=routes.map(route=>route.queue.extract(20,0,100));
+ assert.deepEqual(liveMotionStatus(routes,9,3),{live_position:null,live_velocity:0,live_extruder_velocity:0});
+ // Mainsail's speed/flow getters require numbers, even before execution.
+ const status=liveMotionStatus(routes,9,3);
+ assert.equal(Math.abs(Number(status.live_velocity!.toFixed(0))),0);
+ assert.equal(((1.75/2)**2*Math.PI*status.live_extruder_velocity!).toFixed(1),'0.0');
+ assert.deepEqual(routes.map(route=>route.queue.extract(20,0,100)),before);
+ assert.deepEqual(liveMotionStatus([],9,3),{live_position:null,live_velocity:null,live_extruder_velocity:null});
+ assert.equal(liveMotionStatus(routes,9,4).live_extruder_velocity,null);
+});
 test('live motion samples acceleration, cruise, deceleration and idle from native phases',t=>{
  using xyz=new TrapQueue();using e=new TrapQueue();using second=new TrapQueue();
  // 1 s acceleration 0 -> 10, 1 s cruise, 1 s deceleration: distance 20.

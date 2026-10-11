@@ -22,6 +22,10 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+初始运动遥测候选修复已通过源码、独立编译包、原双 MCU 混合旅程
+和有限 Mainsail 打印复验；请求速度、打印负载指标与未关闭门槛见
+[速度兼容性证据](host/contracts/live-motion-velocity-acceptance.json)。
+该独立包的 Rust 模板输出另有摘要差异，原因尚未确定，构建复现门槛仍开放。
 原生文件通知的候选修复已补齐提交与预览失效顺序，并用实际 Fluidd
 重命名、复制及非空目录删除复验，见[预览通知验收](host/contracts/native-file-preview-notification-acceptance.json)。
 官方 Mainsail 的受保护接入候选提供原生账号登录与独立浏览器入口，

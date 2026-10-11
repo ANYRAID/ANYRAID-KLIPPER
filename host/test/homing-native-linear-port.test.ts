@@ -14,6 +14,9 @@ test('real G28 port rebases, seeks, grants homing and drains subsequent guarded 
   t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock:Number(clock)});
  },1);
  try{
+  const packets=t.f.fw.outputs.length,initial=t.port.motionReport(serialClock.now());
+  assert.equal(initial.live_velocity,0);assert.equal(initial.live_extruder_velocity,0);
+  assert.equal(t.f.fw.outputs.length,packets);
   assert.throws(()=>t.port.move([51,0,0,2],10),/home/i);
   await t.command.home([0],signal());assert(sent);assert.equal(t.kinematics.status.homedAxes,'x');assert.deepEqual(t.port.position(),[51,0,0,2]);assert.deepEqual(t.coordinates.state.position,[51,0,0,2]);
   assert.throws(()=>t.port.move([51,0,0,3],10),/temperature/);
@@ -21,7 +24,7 @@ test('real G28 port rebases, seeks, grants homing and drains subsequent guarded 
  }finally{clearInterval(timer);await t.close();}
 });
 test('missing G28 trigger fences the native port and revokes homing authority',async()=>{
- const t=await fixture();try{await assert.rejects(t.command.home([0],signal()),/No trigger/);assert.equal(t.port.status.failed,true);assert.equal(t.kinematics.status.homedAxes,'');assert.equal(t.f.stops,1);assert.throws(()=>t.port.move([51,0,0,2],10),/stopped/);}finally{await t.close();}
+ const t=await fixture();try{await assert.rejects(t.command.home([0],signal()),/No trigger/);assert.equal(t.port.status.failed,true);assert.equal(t.kinematics.status.homedAxes,'');assert.equal(t.f.stops,1);assert.throws(()=>t.port.move([51,0,0,2],10),/stopped/);assert.deepEqual(t.port.motionReport(serialClock.now()),{live_position:null,live_velocity:null,live_extruder_velocity:null});}finally{await t.close();}
 });
 test('cancellation during native G28 cannot publish a healthy late generation',async()=>{
  const t=await fixture(),a=new AbortController();const timer=setTimeout(()=>a.abort(new Error('cancel native G28')),25);
