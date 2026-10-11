@@ -92,6 +92,14 @@ Jinja 准备和数值参考助手。源码与关闭 TS 加载的编译验证通�
 1.653 倍仍超原 1.5 门限，整组性能未通过。接口改用 `call.signal`，
 晚读取仍保留取消状态；详见[候选证据](host/contracts/moonraker-template-lazy-signal-acceptance.json)。
 新候选须自身 CI，完整工厂和装配仍待完成。
+随后同步真实函数候选通过源码／独立 JavaScript 各 139 项，14 组
+上游冻结调用和原数值用例保持；纯模板、上下文函数、环境函数的
+编译比值 0.397／0.964／0.955 满足固定 1.5 倍桌面预算。
+旧缓存读取基准 1.250 倍超原 1.2 门限，独立原生快照再次遇到 Rust
+SIGSEGV；异步／UI 预算仍失败。该候选继续作为草稿，详见
+[同步真实调用与剩余门槛](host/contracts/moonraker-template-sync-functions-acceptance.json)。
+按需信号头 `f0fc3169` 的十五项 CI 全通过，普通 4572／4572，见
+[该提交终态](host/contracts/pr68-f0fc-terminal.json)；不覆盖上述新改动。
 其他传感器差分、完整模板工厂、全面 Python 退役及产品门槛继续开放。
 提交 `95984efa` 的普通 CI 4537／4537、主机及固件通过，运动矩阵
 有一项触发原 10 秒子进程期限，14／15 通过，见

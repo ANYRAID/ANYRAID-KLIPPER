@@ -1,9 +1,11 @@
 mod async_text;
+mod sync_functions;
 use minijinja::{
     syntax::SyntaxConfig,
     value::{Object, ObjectRepr, ValueKind},
     Environment, Error, ErrorKind, State, Value,
 };
+use napi::Env;
 use napi_derive::napi;
 use num_bigint::{BigInt, BigUint};
 use num_traits::{FromPrimitive, One};
@@ -452,7 +454,12 @@ fn private_error() -> napi::Error {
 }
 #[napi]
 pub struct NativeTextTemplate {
-    environment: Option<Environment<'static>>,
+    state: Mutex<Option<TextEnvironment>>,
+}
+struct TextEnvironment {
+    environment: Environment<'static>,
+    callables: Vec<String>,
+    globals: usize,
 }
 #[napi]
 impl NativeTextTemplate {
@@ -479,6 +486,16 @@ impl NativeTextTemplate {
             return Err(private_error());
         }
         let mut env = Environment::new();
+        env.set_formatter(|out, state, value| {
+            if value.kind() == ValueKind::Number
+                && !value.is_integer()
+                && f64::try_from(value.clone())?.is_nan()
+            {
+                minijinja::escape_formatter(out, state, &Value::from("nan"))
+            } else {
+                minijinja::escape_formatter(out, state, value)
+            }
+        });
         env.set_syntax(
             SyntaxConfig::builder()
                 .variable_delimiters("{", "}")
@@ -518,7 +535,11 @@ impl NativeTextTemplate {
         env.add_template_owned("text".to_owned(), source)
             .map_err(|_| private_error())?;
         Ok(Self {
-            environment: Some(env),
+            state: Mutex::new(Some(TextEnvironment {
+                environment: env,
+                callables: Vec::new(),
+                globals: 0,
+            })),
         })
     }
     #[napi]
@@ -526,7 +547,8 @@ impl NativeTextTemplate {
         if context.len() > 65536 {
             return Err(private_error());
         }
-        let env = self.environment.as_ref().ok_or_else(private_error)?;
+        let state = self.state.lock().map_err(|_| private_error())?;
+        let env = &state.as_ref().ok_or_else(private_error)?.environment;
         let context = json_value(
             serde_json::from_str(&context).map_err(|_| private_error())?,
             0,
@@ -543,7 +565,69 @@ impl NativeTextTemplate {
         String::from_utf8(output.0).map_err(|_| private_error())
     }
     #[napi]
-    pub fn close(&mut self) {
-        self.environment = None;
+    pub fn add_global(&self, name: String, value: Option<String>) -> napi::Result<()> {
+        if name.is_empty() || name.len() > 128 {
+            return Err(private_error());
+        }
+        let mut state = self.state.lock().map_err(|_| private_error())?;
+        let state = state.as_mut().ok_or_else(private_error)?;
+        if state.globals >= 64 || state.environment.globals().any(|(key, _)| key == name) {
+            return Err(private_error());
+        }
+        let value = match value {
+            Some(text) => {
+                if text.len() > 65536 {
+                    return Err(private_error());
+                }
+                async_text::unwire(
+                    &serde_json::from_str(&text).map_err(|_| private_error())?,
+                    0,
+                )
+                .map_err(|_| private_error())?
+            }
+            None => {
+                state.callables.push(name.clone());
+                Value::UNDEFINED
+            }
+        };
+        state.environment.add_global(name, value);
+        state.globals += 1;
+        Ok(())
+    }
+    #[napi]
+    pub fn render_with_functions(
+        &self,
+        env: Env,
+        context: String,
+        names: Vec<String>,
+        callback: napi::JsFunction,
+    ) -> napi::Result<String> {
+        if context.len() > 65536 {
+            return Err(private_error());
+        }
+        let context = json_value(
+            serde_json::from_str(&context).map_err(|_| private_error())?,
+            0,
+        )
+        .map_err(|_| private_error())?;
+        if context.kind() != ValueKind::Map {
+            return Err(private_error());
+        }
+        let (environment, globals) = {
+            let state = self.state.lock().map_err(|_| private_error())?;
+            let state = state.as_ref().ok_or_else(private_error)?;
+            (state.environment.clone(), state.callables.clone())
+        };
+        let result = sync_functions::render(env, environment, context, globals, names, callback)?;
+        if self.state.lock().map_err(|_| private_error())?.is_none() {
+            return Err(private_error());
+        }
+        Ok(result)
+    }
+    #[napi]
+    pub fn close(&self) {
+        if let Ok(mut state) = self.state.lock() {
+            *state = None;
+        }
     }
 }

@@ -1,0 +1,1137 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "observedUtc": "2026-10-11T17:05:44.865Z",
+  "base": "f0fc3169dd9cada432c3e106b33b3547600adeaa",
+  "scope": "Trusted synchronous real callable candidate; full factory, configured persistent component assembly, Python replacement and printer/board acceptance are not claimed.",
+  "reference": {
+    "file": "moonraker-template-sync-functions-reference.json",
+    "sha256": "2e9660b536d78469ac909b7667c7cfbb9eb3c264f4c714e279fb2666b6592b02",
+    "cases": 14,
+    "upstream": {
+      "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "runtime": "3.12.13",
+      "sourceSha256": {
+        "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+        "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+      }
+    },
+    "capture": "One-time actual pinned TemplateFactory/JinjaTemplate before candidate changes; immutable exclusive-create reference. Routine tests and benchmarks do not start Python.",
+    "globalWorkload": "Frozen global function benchmark records typed transcripts; candidate does the same. Context callback benchmark does not record transcripts on either side."
+  },
+  "api": {
+    "callable": "SyncTemplateCallable = (call: TemplateCall) => TemplateValue",
+    "render": "template.render(rawJsonContext, {callables: ReadonlyMap<string, SyncTemplateCallable>})",
+    "global": "owner.addEnvironmentGlobal(name, TemplateValue | SyncTemplateCallable)",
+    "numeric": "Explicit bigint and templateFloatValue; boolean, null, strings and nested containers. i128 integer range only. Promise and ordinary Number rejected.",
+    "ownership": "Current Node thread native call scope only. Thread-local frame stores Env/JsFunction and is released on render exit; template callable stores scope ID/thread/name only. Native mutex released before JS. Nested scopes independent; close during callbacks rejects later effects and output.",
+    "limits": {
+      "callsPerRender": 64,
+      "activeNestedRenders": 16,
+      "templates": 64,
+      "customGlobals": 64,
+      "sourceContextOutputMessageBytes": 65536,
+      "fuel": 100000,
+      "callbackDeadlineMs": 10000
+    },
+    "deadlineBoundary": "Checked before and after JS invocation; cannot interrupt arbitrary synchronous JS or bound all intermediate allocations."
+  },
+  "functionality": {
+    "source": {
+      "tests": 139,
+      "passed": 139,
+      "failed": 0
+    },
+    "compiled": {
+      "tests": 139,
+      "passed": 139,
+      "failed": 0
+    },
+    "compiledJsChildProcessDenied": {
+      "tests": 80,
+      "passed": 80,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "nativeAddonSha256": "1a4f4f7617a12e632b3866d837d453bd60ffbd5a11696ebc58a6d57b01234063",
+    "checks": [
+      "14 frozen actual upstream outputs and typed callback transcripts",
+      "Keyword ordering, context shadows environment global, do side effects",
+      "Global additions affect existing templates; duplicate/builtin names rejected",
+      "Same template nested render and frame cleanup after failure",
+      "Close inside callbacks stops later calls and output publication",
+      "Private callback exceptions consumed by raw N-API and template remains usable",
+      "Promise rejection handled without unhandled rejection or replay",
+      "Negative zero, NaN, infinity, large exact integer and i128 rejection",
+      "64 call and 16 active nested-frame limits without repeated side effects"
+    ],
+    "permissionScope": "Five compiled test files run in-process with TypeScript loading and JS child-process permission denied, filesystem reads and native addons explicitly allowed. Not OS/process isolation."
+  },
+  "build": {
+    "localAddon": "Pinned cached Cargo release build succeeded after N-API Env type fix. Not an independent product snapshot.",
+    "snapshot": "failed-open",
+    "log": "template-sync-functions-product-build-oct12.log",
+    "failure": "Pinned Rust 1.89.0 compiler SIGSEGV in cold memchr dependency during standard independent source snapshot build. No retry, stack-flag workaround or budget change.",
+    "sourceManifest": "New src/sync_functions.rs explicitly included and manifest assertion added; complete fresh snapshot build not proved."
+  },
+  "performance": {
+    "status": "failed-open",
+    "newSyncFunctions": {
+      "source": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "referenceSha256": "2e9660b536d78469ac909b7667c7cfbb9eb3c264f4c714e279fb2666b6592b02",
+        "results": [
+          {
+            "name": "pure",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              2.385754999999989,
+              1.3068590000000029,
+              1.4738020000000063,
+              1.494431999999989,
+              1.7713760000000036,
+              1.2767779999999789,
+              1.2656690000000026
+            ],
+            "medianMs": 1.4738020000000063,
+            "referenceMedianMs": 3.7188270362094045,
+            "ratio": 0.3963082944299154,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          {
+            "name": "callback",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.918102000000005,
+              4.034519000000017,
+              3.968968000000018,
+              4.806080000000009,
+              3.8621960000000115,
+              9.885354999999976,
+              6.194711000000012
+            ],
+            "medianMs": 4.806080000000009,
+            "referenceMedianMs": 4.0488329832442105,
+            "ratio": 1.1870284647180083,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          {
+            "name": "global",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.306512999999995,
+              6.027978000000019,
+              3.860527000000019,
+              4.287862999999987,
+              4.27792199999999,
+              4.377104000000003,
+              3.9128270000000214
+            ],
+            "medianMs": 4.287862999999987,
+            "referenceMedianMs": 4.486010002437979,
+            "ratio": 0.9558300132344096,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          }
+        ],
+        "pass": true
+      },
+      "compiled": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "referenceSha256": "2e9660b536d78469ac909b7667c7cfbb9eb3c264f4c714e279fb2666b6592b02",
+        "results": [
+          {
+            "name": "pure",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              1.6988239999999948,
+              2.2614730000000023,
+              1.4235100000000003,
+              1.6002030000000005,
+              1.296799,
+              1.3346489999999989,
+              1.4759310000000028
+            ],
+            "medianMs": 1.4759310000000028,
+            "referenceMedianMs": 3.7188270362094045,
+            "ratio": 0.3968807867720617,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          {
+            "name": "callback",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              3.9485269999999915,
+              3.902776000000003,
+              3.9470859999999988,
+              3.904857000000007,
+              3.8009739999999965,
+              3.8647260000000045,
+              3.9270860000000027
+            ],
+            "medianMs": 3.904857000000007,
+            "referenceMedianMs": 4.0488329832442105,
+            "ratio": 0.964440127849176,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          {
+            "name": "global",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.282942000000006,
+              4.375793000000002,
+              4.117958999999999,
+              3.9762070000000023,
+              4.15907,
+              5.421738000000005,
+              4.639585999999994
+            ],
+            "medianMs": 4.282942000000006,
+            "referenceMedianMs": 4.486010002437979,
+            "ratio": 0.9547330473343543,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          }
+        ],
+        "pass": true
+      },
+      "status": "passed within fixed desktop workload only"
+    },
+    "legacySync": {
+      "result": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "rust": "1.89.0",
+        "engine": "minijinja 2.24.0 via N-API",
+        "upstream": {
+          "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+          "runtime": "3.12.13",
+          "sourceSha256": {
+            "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+            "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+          }
+        },
+        "repetitions": {
+          "render": 3000,
+          "cold": 100,
+          "parse": 2000,
+          "cached": 1000000
+        },
+        "warmups": 2,
+        "samples": 7,
+        "inputs": {
+          "sourceSha256": "27638a7cfa62cd6abe224907b7af644d9bc857364084462caf61130f24ade37f",
+          "contextSha256": "06abe64bef480f720aca88592a691ba768ab70a21008e7a47e5d7151c80cd25b"
+        },
+        "budgets": {
+          "renderToJinja": 1.5,
+          "coldToJinja": 1.5,
+          "fuelFailureMaxMs": 25,
+          "secretsParseToBaseline": 1.2,
+          "secretsCachedToBaseline": 1.2
+        },
+        "native": {
+          "render": {
+            "samplesMs": [
+              8.634193999999994,
+              9.636059000000003,
+              8.420832000000004,
+              8.71961499999999,
+              8.510202000000007,
+              8.354579999999984,
+              8.208027999999985
+            ],
+            "medianMs": 8.510202000000007,
+            "p95Ms": 9.636059000000003
+          },
+          "cold": {
+            "samplesMs": [
+              3.9008560000000045,
+              3.746813000000003,
+              4.696347000000003,
+              3.344969000000006,
+              2.9662819999999925,
+              2.8469910000000027,
+              2.8721020000000124
+            ],
+            "medianMs": 3.344969000000006,
+            "p95Ms": 4.696347000000003
+          }
+        },
+        "jinja": {
+          "render": {
+            "samplesMs": [
+              22.89301302516833,
+              22.754200996132568,
+              22.90435298345983,
+              23.006984003586695,
+              23.093255993444473,
+              23.27393801533617,
+              22.687359974952415
+            ],
+            "medianMs": 22.90435298345983,
+            "p95Ms": 23.27393801533617
+          },
+          "cold": {
+            "samplesMs": [
+              63.74382501235232,
+              63.82125700474717,
+              63.55453300056979,
+              63.66438401164487,
+              63.10268701054156,
+              63.024956005392596,
+              63.52303200401366
+            ],
+            "medianMs": 63.55453300056979,
+            "p95Ms": 63.82125700474717
+          }
+        },
+        "frozenPythonRuntime": "3.12.13",
+        "referenceEvidence": {
+          "archive": "moonraker-template-sync-acceptance.evidence.json.gz",
+          "sha256": "ac660bbfbc806746189d6f84eaa7328fd4cf99ac10fc7a76645bbb230dbb1d8e",
+          "bytes": 308764,
+          "entries": 20
+        },
+        "comparison": "Historical frozen reference; no Python process and no same-run comparison",
+        "ratios": {
+          "render": 0.37155391405928695,
+          "cold": 0.05263147791472273
+        },
+        "fuelFailureMs": 0.25762399999999275,
+        "baseline": {
+          "old": {
+            "parse": {
+              "samplesMs": [
+                64.869999,
+                64.65483699999982,
+                64.30822199999989,
+                66.64123300000006,
+                63.9743390000001,
+                62.20822499999986,
+                60.31202200000007
+              ],
+              "medianMs": 64.30822199999989,
+              "p95Ms": 66.64123300000006
+            },
+            "cached": {
+              "samplesMs": [
+                20.230579000000034,
+                22.64377999999988,
+                19.70331199999987,
+                17.39951199999996,
+                17.442232999999987,
+                18.745290000000068,
+                18.773040000000037
+              ],
+              "medianMs": 18.773040000000037,
+              "p95Ms": 22.64377999999988
+            }
+          },
+          "current": {
+            "parse": {
+              "samplesMs": [
+                63.36763100000002,
+                64.720371,
+                64.93389300000001,
+                64.61772900000005,
+                65.97787900000003,
+                62.67885100000001,
+                61.77399700000001
+              ],
+              "medianMs": 64.61772900000005,
+              "p95Ms": 65.97787900000003
+            },
+            "cached": {
+              "samplesMs": [
+                25.169390999999962,
+                26.880995999999982,
+                25.493876,
+                23.474857000000043,
+                23.144422000000077,
+                22.716767000000004,
+                23.187493000000018
+              ],
+              "medianMs": 23.474857000000043,
+              "p95Ms": 26.880995999999982
+            }
+          },
+          "parseRatio": 1.0048128682519035,
+          "cachedRatio": 1.250455813230036
+        },
+        "scope": "Desktop synchronous private text rendering, compilation and old secrets hot-path regression. No MCU, printing, target-board, async callable or full-template compatibility claim."
+      },
+      "status": "failed-open",
+      "failure": "Cached secret lookup historical ratio exceeds unchanged 1.2 budget; render, cold, fuel and parse pass."
+    },
+    "asyncRegression": {
+      "result": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+        "results": [
+          {
+            "name": "pure",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              6.4743799999999965,
+              6.347729000000001,
+              6.0553740000000005,
+              5.985782999999998,
+              6.088615000000004,
+              5.916192999999993,
+              5.987763000000001
+            ],
+            "medianMs": 6.0553740000000005,
+            "referenceMedianMs": 6.315300997812301,
+            "ratio": 0.9588417087479532,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          {
+            "name": "callback",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              15.539706999999993,
+              14.025644999999997,
+              17.634726,
+              15.561017000000021,
+              14.940147999999994,
+              13.886443000000014,
+              14.820396000000017
+            ],
+            "medianMs": 14.940147999999994,
+            "referenceMedianMs": 9.619439020752907,
+            "ratio": 1.5531205060677893,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          },
+          {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              14.421380999999997,
+              13.903493999999966,
+              13.723881000000006,
+              14.077696000000003,
+              14.057896000000028,
+              13.736830999999995,
+              13.746952000000022
+            ],
+            "medianMs": 13.903493999999966,
+            "referenceMedianMs": 8.285223972052336,
+            "ratio": 1.6781071998655852,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          }
+        ],
+        "pass": false
+      },
+      "status": "failed-open",
+      "failure": "Callback and UI exceed unchanged 1.5 budget; pure passes."
+    },
+    "nativeBudgetRegressions": [
+      {
+        "name": "native-template",
+        "result": {
+          "node": "v26.10.0",
+          "engine": "minijinja-2.24.0 via N-API",
+          "rust": "1.89.0",
+          "renders": 3000,
+          "warmup": 2,
+          "samples": 7,
+          "scope": "Original Moonraker Shelly syntax, native typed JSON/filters/readings versus Jinja2; no MQTT or SensorStore",
+          "native": {
+            "samplesMs": [
+              26.962535000000003,
+              26.343886999999995,
+              26.40163800000002,
+              26.417647000000017,
+              26.512819000000007,
+              26.285346000000004,
+              26.27050600000001
+            ],
+            "medianMs": 26.40163800000002,
+            "p95Ms": 26.962535000000003
+          },
+          "frozenPython": {
+            "samplesMs": [
+              32.241357024759054,
+              32.008150999899954,
+              32.17986598610878,
+              32.231196004431695,
+              32.04640204785392,
+              32.15026395628229,
+              32.46409201528877
+            ],
+            "medianMs": 32.17986598610878,
+            "p95Ms": 32.46409201528877
+          },
+          "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+          "medianBudget": 1.5,
+          "medianRatio": 0.8204396504136136
+        }
+      },
+      {
+        "name": "native-round",
+        "result": {
+          "node": "v26.10.0",
+          "renders": 4000,
+          "warmup": 2,
+          "samples": 7,
+          "scope": "Mixed integer, boolean and binary64 round inside native/Jinja templates; excludes MQTT, storage and printing",
+          "native": {
+            "samplesMs": [
+              15.904361000000002,
+              16.223426000000003,
+              15.709418,
+              16.044213,
+              15.756458999999992,
+              15.755659000000009,
+              15.695348999999993
+            ],
+            "medianMs": 15.756458999999992,
+            "p95Ms": 16.223426000000003
+          },
+          "frozenPython": {
+            "samplesMs": [
+              44.0673180273734,
+              44.055767997633666,
+              44.031917001120746,
+              43.92025398556143,
+              43.95725502399728,
+              43.941904965322465,
+              43.59365697018802
+            ],
+            "medianMs": 43.95725502399728,
+            "p95Ms": 44.0673180273734
+          },
+          "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+          "medianBudget": 1.5,
+          "medianRatio": 0.35844956632069447
+        }
+      },
+      {
+        "name": "native-sensor",
+        "result": {
+          "node": "v26.10.0",
+          "frames": 10000,
+          "warmup": 2,
+          "samples": 7,
+          "scope": "Byte decoding, original template syntax, typed JSON and four callbacks, SensorStore and average history; excludes MQTT and printing",
+          "native": {
+            "samplesMs": [
+              110.097872,
+              108.38381799999996,
+              108.53039999999999,
+              108.70939199999998,
+              109.88975800000003,
+              108.42612799999995,
+              108.21296499999994
+            ],
+            "medianMs": 108.53039999999999,
+            "p95Ms": 110.097872
+          },
+          "frozenPython": {
+            "samplesMs": [
+              149.81284399982542,
+              152.6231609750539,
+              153.70535699184984,
+              153.73078698758036,
+              151.24121500412002,
+              150.63378104241565,
+              151.9443319994025
+            ],
+            "medianMs": 151.9443319994025,
+            "p95Ms": 153.73078698758036
+          },
+          "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+          "medianBudget": 1.5,
+          "medianRatio": 0.7142773841700576
+        }
+      }
+    ],
+    "decision": "Retain verified bounded synchronous functionality as draft. Do not declare overall performance, new independent bundle, target print speed or default entry acceptance."
+  },
+  "diagnostic": {
+    "secretsControl": {
+      "schema": 1,
+      "hypothesis": "Unchanged SecretsStore item hot path also varies independently of native/template-owner loading; separate fresh JS-only processes distinguish it from new synchronous callback machinery.",
+      "node": "v26.10.0",
+      "hashes": {
+        "before": "71b289c54ca24982ab3dc99f6e14c5c29f62fa145f500ab29a340a0e77fa4fa2",
+        "candidate": "71b289c54ca24982ab3dc99f6e14c5c29f62fa145f500ab29a340a0e77fa4fa2"
+      },
+      "repetitions": {
+        "parse": 2000,
+        "cached": 1000000
+      },
+      "warmups": 2,
+      "samples": 7,
+      "pairs": [
+        {
+          "pair": 0,
+          "order": [
+            "before",
+            "candidate"
+          ],
+          "before": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                63.246542000000005,
+                63.86904100000004,
+                63.611707000000024,
+                63.040749000000005,
+                63.386964000000035,
+                63.925171999999975,
+                62.260538
+              ],
+              "medianMs": 63.386964000000035
+            },
+            "cached": {
+              "samplesMs": [
+                21.654972000000043,
+                20.059279000000004,
+                21.351407999999992,
+                18.018610999999964,
+                18.051232000000027,
+                18.006481000000008,
+                18.05090199999995
+              ],
+              "medianMs": 18.051232000000027
+            }
+          },
+          "candidate": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                62.923888000000005,
+                63.94866200000001,
+                64.18858600000004,
+                63.380044000000055,
+                63.113680000000045,
+                63.49726600000008,
+                61.71868099999995
+              ],
+              "medianMs": 63.380044000000055
+            },
+            "cached": {
+              "samplesMs": [
+                25.96334200000001,
+                24.974527999999964,
+                24.267458000000033,
+                21.629632000000015,
+                22.09420799999998,
+                22.383102000000008,
+                21.692912999999976
+              ],
+              "medianMs": 22.383102000000008
+            }
+          }
+        },
+        {
+          "pair": 1,
+          "order": [
+            "candidate",
+            "before"
+          ],
+          "candidate": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                65.603205,
+                65.577695,
+                71.08568199999996,
+                66.08926199999996,
+                65.69493599999998,
+                67.04324500000007,
+                64.09183400000006
+              ],
+              "medianMs": 65.69493599999998
+            },
+            "cached": {
+              "samplesMs": [
+                21.58854100000002,
+                21.461348999999984,
+                24.315848999999957,
+                18.024151000000074,
+                18.06039199999998,
+                18.043841999999927,
+                18.064572
+              ],
+              "medianMs": 18.064572
+            }
+          },
+          "before": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                63.685967999999974,
+                64.38545800000003,
+                64.20968499999998,
+                63.66763800000001,
+                63.95701199999996,
+                65.26169000000004,
+                62.98810900000001
+              ],
+              "medianMs": 63.95701199999996
+            },
+            "cached": {
+              "samplesMs": [
+                21.601770999999985,
+                21.412788999999975,
+                21.396049000000005,
+                17.996850999999992,
+                17.661305999999968,
+                18.051412000000028,
+                18.588469000000032
+              ],
+              "medianMs": 18.588469000000032
+            }
+          }
+        },
+        {
+          "pair": 2,
+          "order": [
+            "before",
+            "candidate"
+          ],
+          "before": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                62.816925999999995,
+                63.62536699999998,
+                63.54730600000005,
+                62.78724599999998,
+                63.145669999999996,
+                63.66537800000003,
+                61.494257999999945
+              ],
+              "medianMs": 63.145669999999996
+            },
+            "cached": {
+              "samplesMs": [
+                22.992770000000007,
+                23.09742200000005,
+                22.88280900000001,
+                29.020084999999995,
+                28.94253399999991,
+                28.933882999999923,
+                28.92325299999993
+              ],
+              "medianMs": 28.92325299999993
+            }
+          },
+          "candidate": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                64.26812700000002,
+                65.844068,
+                65.12665800000002,
+                64.14305499999995,
+                64.7434219999999,
+                62.90495800000008,
+                62.27296899999999
+              ],
+              "medianMs": 64.26812700000002
+            },
+            "cached": {
+              "samplesMs": [
+                21.23244599999998,
+                21.477540000000033,
+                21.59901099999996,
+                17.484743999999978,
+                17.986401,
+                15.385733999999957,
+                18.134371999999985
+              ],
+              "medianMs": 18.134371999999985
+            }
+          }
+        },
+        {
+          "pair": 3,
+          "order": [
+            "candidate",
+            "before"
+          ],
+          "candidate": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                63.77869899999999,
+                64.29015700000002,
+                64.57739100000003,
+                63.21097100000003,
+                63.39220399999999,
+                64.15355499999998,
+                62.105005000000006
+              ],
+              "medianMs": 63.77869899999999
+            },
+            "cached": {
+              "samplesMs": [
+                21.68134200000003,
+                21.24595599999998,
+                21.54537099999999,
+                18.000450999999998,
+                18.01083099999994,
+                18.051242000000002,
+                17.988421000000017
+              ],
+              "medianMs": 18.051242000000002
+            }
+          },
+          "before": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                63.67481799999999,
+                64.002523,
+                64.49184899999995,
+                63.582847000000015,
+                63.470275000000015,
+                64.81779300000005,
+                62.56045199999994
+              ],
+              "medianMs": 63.67481799999999
+            },
+            "cached": {
+              "samplesMs": [
+                20.941632000000027,
+                22.645076000000017,
+                21.22232600000001,
+                17.662915999999996,
+                18.04180199999996,
+                18.02691200000004,
+                17.87306000000001
+              ],
+              "medianMs": 18.04180199999996
+            }
+          }
+        },
+        {
+          "pair": 4,
+          "order": [
+            "before",
+            "candidate"
+          ],
+          "before": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                62.826896000000005,
+                63.60234699999995,
+                63.743829000000005,
+                62.98504800000006,
+                63.40925400000003,
+                63.43852400000003,
+                61.63577899999996
+              ],
+              "medianMs": 63.40925400000003
+            },
+            "cached": {
+              "samplesMs": [
+                27.67463600000002,
+                25.426124999999956,
+                26.31916700000005,
+                23.564278999999942,
+                24.29452900000001,
+                25.144100999999978,
+                23.40271699999994
+              ],
+              "medianMs": 25.144100999999978
+            }
+          },
+          "candidate": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                63.77556899999999,
+                64.74111299999998,
+                64.17296499999998,
+                63.66995800000001,
+                63.482086000000095,
+                65.37265100000002,
+                62.23652800000002
+              ],
+              "medianMs": 63.77556899999999
+            },
+            "cached": {
+              "samplesMs": [
+                25.222401999999988,
+                23.80872199999999,
+                26.299506000000008,
+                31.36469699999998,
+                31.344637000000034,
+                31.335927000000083,
+                31.36622699999998
+              ],
+              "medianMs": 31.335927000000083
+            }
+          }
+        },
+        {
+          "pair": 5,
+          "order": [
+            "candidate",
+            "before"
+          ],
+          "candidate": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                63.134949999999975,
+                63.942132000000015,
+                63.75588899999997,
+                63.70290799999998,
+                63.01088800000002,
+                63.84909000000005,
+                62.21048700000006
+              ],
+              "medianMs": 63.70290799999998
+            },
+            "cached": {
+              "samplesMs": [
+                24.683174000000008,
+                24.858756000000028,
+                24.86097699999999,
+                31.37516800000003,
+                31.385748000000035,
+                31.37482799999998,
+                31.362557000000038
+              ],
+              "medianMs": 31.362557000000038
+            }
+          },
+          "before": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                63.75776899999997,
+                64.340597,
+                64.45651800000002,
+                63.831579999999974,
+                64.057413,
+                65.09683800000005,
+                62.58511299999998
+              ],
+              "medianMs": 64.057413
+            },
+            "cached": {
+              "samplesMs": [
+                34.787443999999994,
+                26.66689199999996,
+                26.979646000000002,
+                23.939204000000018,
+                24.65390400000001,
+                23.336085000000026,
+                24.03369500000008
+              ],
+              "medianMs": 24.65390400000001
+            }
+          }
+        },
+        {
+          "pair": 6,
+          "order": [
+            "before",
+            "candidate"
+          ],
+          "before": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                63.486615,
+                64.17695400000002,
+                63.938492,
+                63.92210200000005,
+                63.727397999999994,
+                64.54386,
+                62.5098210000001
+              ],
+              "medianMs": 63.92210200000005
+            },
+            "cached": {
+              "samplesMs": [
+                28.76903199999998,
+                28.75266099999999,
+                37.83285699999999,
+                25.831140000000005,
+                26.5471,
+                26.270117000000027,
+                24.853966000000014
+              ],
+              "medianMs": 26.5471
+            }
+          },
+          "candidate": {
+            "node": "v26.10.0",
+            "parse": {
+              "samplesMs": [
+                63.461903999999976,
+                64.36992700000002,
+                63.781429,
+                63.510204999999985,
+                63.59679700000004,
+                64.32837600000005,
+                62.20385699999997
+              ],
+              "medianMs": 63.59679700000004
+            },
+            "cached": {
+              "samplesMs": [
+                21.775484000000006,
+                20.82940100000002,
+                21.444429000000014,
+                17.99920099999997,
+                17.597556000000054,
+                17.734688000000006,
+                19.188136999999983
+              ],
+              "medianMs": 19.188136999999983
+            }
+          }
+        }
+      ],
+      "cachedMedianRatio": 1.0005232293315292,
+      "scope": "Diagnostic paired comparison only, no native module or template owner imported. Does not overwrite or close the failed original historical budget."
+    },
+    "sourceSha256": "9874d5b666a956436656541769b111bdf0edd12d335ae52fee4312287bddc48f",
+    "decision": "Secrets source and compiled JS unchanged. Seven alternating pairs load no native/owner and give near-equal paired median with substantial sample variation. No evidence attributing the historical-budget failure to callback code, but original failure and root cause remain open."
+  },
+  "preservedFailures": [
+    {
+      "log": "template-sync-functions-native-first-oct12.log",
+      "scope": "N-API derive does not recognize qualified napi::Env as injected argument. Fixed import Env, cached native compilation succeeds."
+    },
+    {
+      "log": "template-sync-functions-source-final-oct12.log",
+      "scope": "139 cases, 138 pass and raw native test import fails from wrong fixture-relative module path. Same failure retained in compiled and restricted logs; corrected path verified in actual tests."
+    },
+    {
+      "log": "template-sync-functions-product-build-oct12.log",
+      "scope": "Standard fresh native snapshot failed; compiler root cause not closed."
+    },
+    {
+      "log": "template-sync-functions-old-sync-performance-oct12.log",
+      "scope": "Original cached lookup budget failed, never replaced by diagnostics."
+    },
+    {
+      "log": "template-sync-functions-async-regression-oct12.log",
+      "scope": "Original strict async/UI benchmark failed."
+    }
+  ],
+  "sources": [
+    {
+      "name": "host/native/template/src/lib.rs",
+      "sha256": "cb532c7e23a4f8586beed6cc2b2b55b5c4af8e54003776328bbadfedab40ea56"
+    },
+    {
+      "name": "host/native/template/src/sync_functions.rs",
+      "sha256": "89ea21f0dc74f8f3bf54c494a5384f1dacbca6168cb6663dfc1e00ed7ec7f864"
+    },
+    {
+      "name": "host/native/template/src/async_text.rs",
+      "sha256": "93213386fef3538225da580cdb2016a26dbfd93d2eede2cb2df84207faf5abb0"
+    },
+    {
+      "name": "host/native/template/Cargo.toml",
+      "sha256": "af7d4c84ccbb9d3a5eb625847f1ddc2e6696a1586c98f85dc43bd51e12be6778"
+    },
+    {
+      "name": "host/native/template/Cargo.lock",
+      "sha256": "d5fa08f87b0c4796387cc2c228c4d4c8c39ebd93e2eaf95ffd47fb7684baeaf0"
+    },
+    {
+      "name": "host/scripts/build-product-native.ts",
+      "sha256": "7905409ecec96593651872099e8d3ff92513d7588e50e1b20a8feda421b7b6a7"
+    },
+    {
+      "name": "host/src/moonraker/template-owner.ts",
+      "sha256": "5f5a24fdab755945a622750972e5c18659a84b31857f3d0372951a31a932852f"
+    },
+    {
+      "name": "host/src/moonraker/template-wire.ts",
+      "sha256": "f78738448bf5ae587c02dbff4e8c6f2e6a1fbe867bbb2a762074ec5c7327c4fd"
+    },
+    {
+      "name": "host/src/moonraker/secrets.ts",
+      "sha256": "9874d5b666a956436656541769b111bdf0edd12d335ae52fee4312287bddc48f"
+    },
+    {
+      "name": "host/test/template-sync-functions.test.ts",
+      "sha256": "d279497559c73d7fd3fb4aa01107f0fc4798b69446daf97e2e97d947e9bc47e5"
+    },
+    {
+      "name": "host/test/product-native-build.test.ts",
+      "sha256": "f9e0ab0d9f39909ff5721ddf41916240eff28a59e447077da2e3d5b4ab62e97e"
+    },
+    {
+      "name": "host/bench/template-sync-functions.ts",
+      "sha256": "04c87818ca93ce1cd4b729ae46d4dfcdfd027b0fde41040110511a7849d45323"
+    },
+    {
+      "name": "host/bench/template-sync.ts",
+      "sha256": "fb6ecb8c7a5afb2a76705af1762b0b79fd93ffb9e70a349120cba3e4c7b86e00"
+    },
+    {
+      "name": "host/contracts/moonraker-template-sync-functions-reference.json",
+      "sha256": "2e9660b536d78469ac909b7667c7cfbb9eb3c264f4c714e279fb2666b6592b02"
+    },
+    {
+      "name": "host/contracts/pr68-f0fc-terminal.json",
+      "sha256": "e43b69902af924aeef4f789347dbed1661d8fc8d0a11ed560b31a3b9527a5435"
+    }
+  ],
+  "evidence": {
+    "file": "moonraker-template-sync-functions-acceptance.evidence.json.gz",
+    "sha256": "4bebb822bcd0c483b31cbfcaecb300fe36af696a794943a7c366411b75232592",
+    "bytes": 70887,
+    "entries": 55
+  },
+  "ci": {
+    "head": "f0fc3169dd9cada432c3e106b33b3547600adeaa",
+    "file": "pr68-f0fc-terminal.json",
+    "jobs": "15/15",
+    "ordinary": "4572/4572",
+    "scope": "Previous committed lazy-signal head only; synchronous callable changes need their own CI."
+  },
+  "openGates": [
+    "Full synchronous/asynchronous/UI factory with configured component-generation ownership and enableable logging",
+    "Arbitrary precision integer semantics beyond i128, attribute/iterable contracts and heap/process isolation",
+    "Async/UI and original cache performance gaps; target-board and actual printing performance",
+    "Fresh product source-snapshot compiler failure and historical full-local failures",
+    "Full Moonraker delivery and removal of all project Python",
+    "Original G3 precision/timing, Cycnumbris 500 assembly, consumer macro delivery and complete same-bundle client journeys",
+    "Normal develop/master PR integration and release"
+  ]
+}

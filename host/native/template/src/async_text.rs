@@ -29,11 +29,11 @@ fn error() -> Error {
         "Private asynchronous template operation failed",
     )
 }
-struct Budget {
-    items: usize,
-    bytes: usize,
+pub(super) struct Budget {
+    pub(super) items: usize,
+    pub(super) bytes: usize,
 }
-fn wire(value: &Value, depth: usize, budget: &mut Budget) -> Result<Json, Error> {
+pub(super) fn wire(value: &Value, depth: usize, budget: &mut Budget) -> Result<Json, Error> {
     budget.items += 1;
     if depth > 64 || budget.items > 65536 {
         return Err(error());
@@ -87,7 +87,7 @@ fn wire(value: &Value, depth: usize, budget: &mut Budget) -> Result<Json, Error>
         _ => return Err(error()),
     })
 }
-fn unwire(value: &Json, depth: usize) -> Result<Value, Error> {
+pub(super) fn unwire(value: &Json, depth: usize) -> Result<Value, Error> {
     if depth > 64 {
         return Err(error());
     }

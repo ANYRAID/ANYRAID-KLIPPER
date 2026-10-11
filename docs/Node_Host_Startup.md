@@ -3648,6 +3648,31 @@ JSON 必须保留原始文本进入原生环境，`1`、`1.0`、`1e0`、`-0.0`
 文本模板；其 `render(context)` 接收 JSON 文本，调用者负责私密输入
 和渲染结果，不能把这些值接入公开日志或接口。
 
+同步真实函数候选新增 `render(context, {callables})`，`callables` 为
+`ReadonlyMap<string, SyncTemplateCallable>`。函数接收 `TemplateCall`
+的只读位置参数和关键字 Map，返回 `TemplateValue`；整数显式使用
+`bigint`，浮点使用 `templateFloatValue(number)`，不接受普通 Number
+或 Promise。输入和返回值保留整数／浮点区别、负零和非有限浮点。
+`addEnvironmentGlobal(name, value)` 可以注册环境值或同步函数，影响
+已经创建的模板；同名原始上下文或显式上下文函数优先。拒绝重复名称
+和覆盖环境内置名称。这里只支持可信函数，不接入公开模板接口。
+
+调用留在当前 Node 线程，原生模板不保存 Node 环境或函数引用；
+嵌套渲染使用独立作用域，调用中关闭模板或所有者后停止后续副作用
+并丢弃输出。每次最多 64 次调用，最多 16 层活动渲染、64 个模板和
+64 个自定义全局，源／上下文／输出和调用消息各限 64 KiB。
+原生侧在函数前后检查 10 秒期限；不能中断任意同步 JavaScript。
+完整中间分配、任意精度整数、可启用日志和系统隔离仍待完成。
+该新增模块 `src/sync_functions.rs` 已纳入产品源码快照清单；本机
+独立快照构建在依赖 `memchr` 编译时 SIGSEGV，未计作构建通过。
+固定函数基准可运行 `node host/bench/template-sync-functions.ts`，
+日常只读取摘要锁定的上游参考，不启动 Python。环境函数参考包含
+类型化调用记录，上下文函数参考不记录；两侧保留各自原工作量。
+源码／独立 JavaScript 各 139 项通过，禁止 JS 子进程的编译检查
+80 项通过；原生模块明确允许，不等于系统隔离。新同步函数预算
+通过，但旧缓存读取和异步／UI 预算失败，不能用于默认入口切换。
+详细失败和对照见[同步真实调用证据](../host/contracts/moonraker-template-sync-functions-acceptance.json)。
+
 `npm test` 先编译独立 `template.node`；工具链为 Rust 1.89.0，依赖
 锁定在 `host/native/template/Cargo.lock`。`npm run build:template`
 支持指定 `CARGO`、`CARGO_HOME`、`RUSTUP_HOME` 和 `CARGO_TARGET_DIR`，
@@ -3679,9 +3704,10 @@ Node 头文件、产物摘要及 Rust／Cargo 1.89.0 版本；其他 Rust 版本
 当前仅验证同步文本／私密 JSON 路径、默认关闭的 debug 日志行为、
 正负 i128 整数范围及明确的资源拒绝。源、上下文和输出各限 64 KiB，
 私密 JSON 限 1 MiB，JSON 深度限 64，执行使用 100000 fuel；这些
-限制不等于全部中间分配或实时执行预算。任意函数、异步调用与取消、
-UI 双花括号环境、可启用日志及完整 Python 大整数仍待补齐，后续
-须完成隔离执行；目前只允许可信启动配置，不用于打印高频回调。
+限制不等于全部中间分配或实时执行预算。同步函数及独立异步／UI
+候选已分别推进；完整工厂装配、可启用日志及完整 Python 大整数仍
+待补齐，后续须完成隔离执行。目前只允许可信启动配置和明确的
+开发候选，不用于默认打印高频回调。
 原失败、上游参考与桌面预算见
 [同步模板验收](../host/contracts/moonraker-template-sync-acceptance.json)。
 

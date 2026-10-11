@@ -1,0 +1,397 @@
+{
+  "schema": 1,
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "runtime": "3.12.13",
+    "sourceSha256": {
+      "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+      "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+    }
+  },
+  "secrets": "{\"ldap\":{\"base\":\"dc=example,dc=test\",\"password\":\"synthetic-private-template\"},\"i\":1,\"f\":1.0,\"e\":1e0,\"neg\":-0.0,\"large\":9007199254740993,\"bool\":true,\"null\":null,\"__proto__\":\"literal\"}",
+  "file": "/synthetic/moonraker.secrets",
+  "cases": [
+    {
+      "name": "keywords",
+      "source": "{fetch(1, scale=2.0)}",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": [
+            [
+              "scale",
+              [
+                "float",
+                "2.0"
+              ]
+            ]
+          ]
+        }
+      ],
+      "output": "2.0"
+    },
+    {
+      "name": "keyword order",
+      "source": "{fetch(1, b=2, a=1)}",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": [
+            [
+              "b",
+              [
+                "integer",
+                "2"
+              ]
+            ],
+            [
+              "a",
+              [
+                "integer",
+                "1"
+              ]
+            ]
+          ]
+        }
+      ],
+      "output": "1.0"
+    },
+    {
+      "name": "ordered calls",
+      "source": "{fetch(1)}:{fetch(2)}",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": []
+        },
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "2"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "1.0:2.0"
+    },
+    {
+      "name": "typed arguments",
+      "source": "{fetch(1,1.0,-0.0,9007199254740993,true,none)}",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ],
+            [
+              "float",
+              "1.0"
+            ],
+            [
+              "float",
+              "-0"
+            ],
+            [
+              "integer",
+              "9007199254740993"
+            ],
+            [
+              "boolean",
+              true
+            ],
+            [
+              "none"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "1.0"
+    },
+    {
+      "name": "container arguments",
+      "source": "{fetch([1,1.0],{\"x\":-0.0})}",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "list",
+              [
+                [
+                  "integer",
+                  "1"
+                ],
+                [
+                  "float",
+                  "1.0"
+                ]
+              ]
+            ],
+            [
+              "map",
+              [
+                [
+                  [
+                    "string",
+                    "x"
+                  ],
+                  [
+                    "float",
+                    "-0"
+                  ]
+                ]
+              ]
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "error": true
+    },
+    {
+      "name": "float result",
+      "source": "{fetch(1) is integer}/{fetch(1)}",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": []
+        },
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "False/1.0"
+    },
+    {
+      "name": "registered callable",
+      "source": "{fetch(1)}",
+      "context": "{}",
+      "useGlobal": true,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "77.0"
+    },
+    {
+      "name": "context shadows global",
+      "source": "{fetch(1)}",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "1.0"
+    },
+    {
+      "name": "private and global",
+      "source": "{secrets[\"ldap\"][\"base\"]}/{custom}",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [],
+      "output": "dc=example,dc=test/private-global"
+    },
+    {
+      "name": "fromjson exact",
+      "source": "{% set v=payload|fromjson %}{fetch(v.i,v.f,v.large)}",
+      "context": "{\"payload\":\"{\\\"i\\\":1,\\\"f\\\":1.0,\\\"large\\\":9007199254740993}\"}",
+      "useGlobal": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ],
+            [
+              "float",
+              "1.0"
+            ],
+            [
+              "integer",
+              "9007199254740993"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "1.0"
+    },
+    {
+      "name": "do side effect",
+      "source": "{% do fetch(1) %}done",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "done"
+    },
+    {
+      "name": "private function error",
+      "source": "{fail()}",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [],
+      "error": true
+    },
+    {
+      "name": "nan return",
+      "source": "{nan()} is {nan() is integer}",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [],
+      "output": "nan is False"
+    },
+    {
+      "name": "signed zero return",
+      "source": "{zero()} is {zero() is integer}",
+      "context": "{}",
+      "useGlobal": false,
+      "calls": [],
+      "output": "-0.0 is False"
+    }
+  ],
+  "benchmarks": [
+    {
+      "name": "pure",
+      "source": "{i+1}",
+      "context": "{\"i\":2}",
+      "useGlobal": false,
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "output": "3",
+      "sampleMs": [
+        3.68881702888757,
+        3.7140280473977327,
+        3.7162670050747693,
+        3.7319579860195518,
+        3.7247479776851833,
+        3.770789015106857,
+        3.7188270362094045
+      ],
+      "medianMs": 3.7188270362094045,
+      "maximumMedianRatio": 1.5
+    },
+    {
+      "name": "callback",
+      "source": "{fetch(i)}",
+      "context": "{\"i\":2}",
+      "useGlobal": false,
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "output": "2.0",
+      "sampleMs": [
+        4.093033028766513,
+        4.037312988657504,
+        3.997952037025243,
+        4.0488329832442105,
+        4.038632963784039,
+        4.076752986293286,
+        4.134114016778767
+      ],
+      "medianMs": 4.0488329832442105,
+      "maximumMedianRatio": 1.5
+    },
+    {
+      "name": "global",
+      "source": "{fetch(i)}",
+      "context": "{\"i\":2}",
+      "useGlobal": true,
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "output": "77.0",
+      "sampleMs": [
+        4.9247260321863,
+        4.460019990801811,
+        4.528959980234504,
+        4.4768190127797425,
+        4.639051971025765,
+        4.486010002437979,
+        4.483940021600574
+      ],
+      "medianMs": 4.486010002437979,
+      "maximumMedianRatio": 1.5
+    }
+  ],
+  "scope": "Actual fixed TemplateFactory/JinjaTemplate synchronous functions. One-time capture before candidate code changes; no routine Python execution, arbitrary precision or hardware claim."
+}

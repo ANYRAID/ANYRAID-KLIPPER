@@ -18,7 +18,7 @@ export async function buildProductNative(destination:string):Promise<void>{
   const capture=async(path:string)=>{const source=join(root,path),info=await lstat(source);if(!info.isFile()||info.isSymbolicLink())throw new Error('Invalid native source: '+path);const bytes=await readFile(source),to=join(scratch,path);await mkdir(dirname(to),{recursive:true});await writeFile(to,bytes);sources[path]=digest(bytes);};
   for(const directory of ['host/native','klippy/chelper','lib/fatfs'])for(const name of (await readdir(join(root,directory))).sort())if(/\.(?:c|h|inc)$/.test(name))await capture(directory+'/'+name);
   await capture('lib/fatfs/LICENSE.txt');await capture('src/compiler.h');for(const name of scripts)await capture('host/scripts/'+name);
-  for(const name of ['Cargo.toml','Cargo.lock','build.rs','src/lib.rs','src/async_text.rs'])await capture('host/native/template/'+name);
+  for(const name of ['Cargo.toml','Cargo.lock','build.rs','src/lib.rs','src/async_text.rs','src/sync_functions.rs'])await capture('host/native/template/'+name);
   await writeFile(join(scratch,'package.json'),' {"type":"module"}\n');
   const include=resolve(process.env.NODE_INCLUDE??join(dirname(process.execPath),'../include/node'));
   // Snapshot all Node headers too, so compilation and recorded hashes describe
