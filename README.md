@@ -22,11 +22,20 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+当前提交 `fff160bf` 的十五项 CI、普通 4736／4736 全部通过。
+一次只将 Cargo 并行度设为 1 的全新原生对照及完整产品打包通过，
+新包独立安装锁定生产依赖，禁用 TS 加载及 PATH 程序的冒烟通过。
+覆盖工作进程、原生队列、同步／异步／UI 模板及取消；不证明实机。
+默认并行捕获仍在 num-bigint 的 LLVM 优化路径 SIGSEGV，两次固定
+单命令重放均成功，增大栈未给出区别，根因和并行稳定性继续开放。
+新包独立 UI 回调 1.801 倍仍超过原 1.5 门限；原失败不撤销。
+见[构建对照与新包证据](host/contracts/native-build-investigation.json)
+及[该提交 CI 终态](host/contracts/pr68-fff-terminal.json)。
 异步模板候选现直接传递完成文本，共用不可变原生环境和一个进程内
 截止计时器；源码与关闭 TS／JavaScript 子进程的编译组合各 179 项
 通过，包含并发／排队超时、晚注册全局、取消及 64 KiB 输出。
 工厂三条固定预算通过，但独立 UI 回调最终单轮 1.781 倍仍失败；
-三组交错对照也保留超限，不宣称性能门槛已关闭。全新原生快照再次
+三组交错对照也保留超限，不宣称性能门槛已关闭。此前默认并行快照
 失败，本次为 regex-automata 编译报告异常巨大内存分配并 SIGABRT；
 缓存项目编译成功不能覆盖它。见
 [异步开销记录](host/contracts/template-completion-acceptance.json)。
