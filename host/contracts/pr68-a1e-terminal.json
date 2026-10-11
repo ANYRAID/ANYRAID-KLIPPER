@@ -1,0 +1,736 @@
+{
+  "schema": 1,
+  "head": "a1e4aed61b2f3045e854d6ea3021a8ea44807def",
+  "pullRequest": 68,
+  "scope": "Exact preceding MQTT configuration assembly head; does not cover subsequent shared sensor edits or close local/hardware/retirement gates",
+  "ordinary": {
+    "job": 114555104199,
+    "tests": 4696,
+    "pass": 4696,
+    "fail": 0
+  },
+  "workflows": [
+    {
+      "id": 38168207901,
+      "name": "Node host",
+      "head": "a1e4aed61b2f3045e854d6ea3021a8ea44807def",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38168207901",
+      "jobs": [
+        {
+          "id": 114555104199,
+          "name": "checks",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned native template toolchain",
+              "conclusion": "success"
+            },
+            {
+              "name": "Select native template toolchain",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install PDF regression reader and renderer",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check source whitespace with Node",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run typecheck",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm test",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run test:protocol-native",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build Linux MCU with Node command generator",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114555104375,
+          "name": "sanitizer (ubsan)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build ordinary native prerequisites",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run test:native-sanitized -- --mode=ubsan",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114555104399,
+          "name": "sanitizer (asan)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build ordinary native prerequisites",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run test:native-sanitized -- --mode=asan",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114558209655,
+          "name": "host",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Require every host check and sanitizer mode",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 38168207918,
+      "name": "Node motion diagnostics",
+      "head": "a1e4aed61b2f3045e854d6ea3021a8ea44807def",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38168207918",
+      "jobs": [
+        {
+          "id": 114555104167,
+          "name": "motion (26.10.0, off, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114555104317,
+          "name": "motion (26.10.0, jitless, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114555104346,
+          "name": "motion (26.9.0, off, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114555104353,
+          "name": "motion (26.9.0, default, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114555104365,
+          "name": "motion (26.9.0, off, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114555104379,
+          "name": "motion (26.10.0, off, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114555104401,
+          "name": "motion (26.9.0, default, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114555104402,
+          "name": "motion (26.10.0, default, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114555104420,
+          "name": "motion (26.10.0, default, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114555104480,
+          "name": "motion (26.9.0, jitless, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 38168207898,
+      "name": "Build test",
+      "head": "a1e4aed61b2f3045e854d6ea3021a8ea44807def",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38168207898",
+      "jobs": [
+        {
+          "id": 114555104168,
+          "name": "build",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Setup cache",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare tests",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test",
+              "conclusion": "success"
+            },
+            {
+              "name": "Upload micro-controller data dictionaries",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Setup cache",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

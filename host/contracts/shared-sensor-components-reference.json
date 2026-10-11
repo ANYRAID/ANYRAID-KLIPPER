@@ -1,0 +1,22 @@
+{
+  "mode": "baseline",
+  "node": "v26.10.0",
+  "frames": 10000,
+  "warmup": 2,
+  "samples": [
+    111.15428700000001,
+    110.08132800000004,
+    110.90706499999999,
+    110.50001199999997,
+    110.28636000000006,
+    109.88069700000005,
+    109.78212600000006
+  ],
+  "median": 110.28636000000006,
+  "limit": 1.5,
+  "template": "{% set d=payload|fromjson %}{set_result(\"power\",d.power|float)}{set_result(\"voltage\",d.voltage|float)}{set_result(\"current\",d.current|float)}{set_result(\"energy\",d.energy|float * 0.000001)}",
+  "payload": "{\"power\":25.5,\"voltage\":230.0,\"current\":0.125,\"energy\":1200}",
+  "scope": "Byte decode, four typed callbacks, SensorStore and average history; imports, setup, MQTT and motion excluded",
+  "baseHead": "a1e4aed61b2f3045e854d6ea3021a8ea44807def",
+  "frozenBeforeProductionEdits": true
+}

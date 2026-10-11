@@ -4,7 +4,8 @@ import {createRequire} from 'node:module';
 import {ConfigurationError} from './config-source.ts';
 import {bindSecretsTemplate,type SecretsStore} from './secrets.ts';
 import {decodeTemplateCall,encodeTemplateValue,type TemplateCall,type TemplateValue} from './template-wire.ts';
-interface Handle {render(context:string):string;renderWithFunctions(context:string,names:string[],callback:(message:string)=>string|undefined):string;addGlobal(name:string,value?:string):void;close():void;}
+import type {NativeReading} from './native-template.ts';
+interface Handle {render(context:string):string;renderWithFunctions(context:string,names:string[],callback:(message:string)=>string|undefined):string;renderSensor(payload:string):NativeReading[];renderSensorWithFunctions(payload:string,names:string[],callback:(message:string)=>string|undefined):NativeReading[];addGlobal(name:string,value?:string):void;close():void;}
 export type SyncTemplateCallable=(call:TemplateCall)=>TemplateValue;
 export interface SyncTemplateOptions {callables?:ReadonlyMap<string,SyncTemplateCallable>;}
 const failure=()=>new ConfigurationError('Error rendering private template');
@@ -29,6 +30,18 @@ export class MoonrakerTemplateOwner {
   this.#validation??=this.#native('');this.#validation.addGlobal(key,encoded);
   for(const handle of this.#handles)handle.addGlobal(key,encoded);this.#globals.set(key,value);
  }
+ #calls(created:Handle,options:SyncTemplateOptions){
+  const calls=new Map<string,SyncTemplateCallable>();for(const [key,value] of this.#globals)if(typeof value==='function')calls.set(key,value);
+  const keys:string[]=[];if(options.callables){if(options.callables.size>64)throw failure();for(const [key,fn] of options.callables){name(key);if(typeof fn!=='function')throw failure();calls.set(key,fn);keys.push(key);}}
+  let sequence=0;
+  return {calls,keys,callback:(message:string):string|undefined=>{
+   try{this.#check();if(!this.#handles.has(created))throw failure();if(typeof message!=='string'||!message.isWellFormed()||Buffer.byteLength(message)>65536)throw failure();
+    const row=JSON.parse(message) as {call:number;name:string;args:unknown;kwargs:unknown};name(row.name);if(row.call!==sequence+1||row.call>64)throw failure();sequence=row.call;
+    const fn=calls.get(row.name);if(!fn)throw failure();const result=fn(decodeTemplateCall(row.args,row.kwargs));
+    if(result instanceof Promise){void result.catch(()=>{});throw failure();}return encodeTemplateValue(result);
+   }catch{return undefined;}
+  }};
+ }
  createTemplate(source:string):MoonrakerTextTemplate{
   if(!this.#secrets)throw new ConfigurationError('Template owner is closed');
   if(typeof source!=='string'||!source.isWellFormed()||Buffer.byteLength(source)>65536)throw new ConfigurationError('Invalid template source or resource limit');
@@ -42,18 +55,15 @@ export class MoonrakerTemplateOwner {
    // Check the borrowed generation without exposing/copying its private data.
    this.#secrets.getType();bindSecretsTemplate(this.#secrets,()=>undefined);
    if(typeof context!=='string'||!context.isWellFormed()||Buffer.byteLength(context)>65536)throw new ConfigurationError('Invalid template context or resource limit');
-   const calls=new Map<string,SyncTemplateCallable>();for(const [key,value] of this.#globals)if(typeof value==='function')calls.set(key,value);
-   const keys:string[]=[];if(options.callables){if(options.callables.size>64)throw failure();for(const [key,fn] of options.callables){name(key);if(typeof fn!=='function')throw failure();calls.set(key,fn);keys.push(key);}}
-   let sequence=0;
-   try{const output=calls.size?created.renderWithFunctions(context,keys,message=>{
-    try{this.#check();if(!this.#handles.has(created))throw failure();if(typeof message!=='string'||!message.isWellFormed()||Buffer.byteLength(message)>65536)throw failure();
-     const row=JSON.parse(message) as {call:number;name:string;args:unknown;kwargs:unknown};name(row.name);if(row.call!==sequence+1||row.call>64)throw failure();sequence=row.call;
-     const fn=calls.get(row.name);if(!fn)throw failure();const result=fn(decodeTemplateCall(row.args,row.kwargs));
-     if(result instanceof Promise){void result.catch(()=>{});throw failure();}return encodeTemplateValue(result);
-    }catch{return undefined;}
-   }):created.render(context);this.#check();if(!this.#handles.has(created))throw failure();return strip(output);
+   const {calls,keys,callback}=this.#calls(created,options);
+   try{const output=calls.size?created.renderWithFunctions(context,keys,callback):created.render(context);this.#check();if(!this.#handles.has(created))throw failure();return strip(output);
    }catch{throw failure();}finally{calls.clear();}
-  },()=>{created.close();this.#handles.delete(created);});
+  },()=>{created.close();this.#handles.delete(created);},(payload,options)=>{
+   this.#check();if(!this.#handles.has(created)||typeof payload!=='string'||!payload.isWellFormed()||Buffer.byteLength(payload)>65536||options.callables?.has('set_result'))throw failure();
+   const {calls,keys,callback}=this.#calls(created,options);
+   try{const result=calls.size?created.renderSensorWithFunctions(payload,keys,callback):created.renderSensor(payload);this.#check();if(!this.#handles.has(created))throw failure();return result;}
+   catch{throw failure();}finally{calls.clear();}
+  });
  }
  close():void{for(const handle of this.#handles)handle.close();this.#handles.clear();this.#validation?.close();this.#validation=undefined;this.#globals.clear();this.#secrets=undefined;}
  toJSON(){return {closed:this.#secrets===undefined,templates:this.#handles.size};}
@@ -63,9 +73,11 @@ export class MoonrakerTemplateOwner {
  * not pass through JSON.stringify(Number). No context is retained per render. */
 export class MoonrakerTextTemplate {
  #render:((context:string,options:SyncTemplateOptions)=>string)|undefined;#release:(()=>void)|undefined;
- constructor(render:(context:string,options:SyncTemplateOptions)=>string,release:()=>void){this.#render=render;this.#release=release;}
+ #sensor:((payload:string,options:SyncTemplateOptions)=>NativeReading[])|undefined;
+ constructor(render:(context:string,options:SyncTemplateOptions)=>string,release:()=>void,sensor:(payload:string,options:SyncTemplateOptions)=>NativeReading[]){this.#render=render;this.#release=release;this.#sensor=sensor;}
  render(context='{}',options:SyncTemplateOptions={}):string{if(!this.#render)throw new ConfigurationError('Template is closed');return this.#render(context,options);}
- close():void{this.#release?.();this.#release=undefined;this.#render=undefined;}
+ renderSensor(payload:string,options:SyncTemplateOptions={}):NativeReading[]{if(!this.#sensor)throw new ConfigurationError('Template is closed');return this.#sensor(payload,options);}
+ close():void{this.#release?.();this.#release=undefined;this.#render=undefined;this.#sensor=undefined;}
  toJSON(){return {closed:this.#render===undefined};}
  [Symbol.for('nodejs.util.inspect.custom')](){return 'MoonrakerTextTemplate <private>';}
 }

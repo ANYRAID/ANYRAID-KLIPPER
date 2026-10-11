@@ -24,7 +24,7 @@ test('compiled product workers, addons, assets and mathematical output run witho
   for(const [path,hash] of Object.entries(marker.files)){assert(!path.endsWith('.ts'));assert.equal(createHash('sha256').update(await readFile(join(output,path))).digest('hex'),hash,path);}
   assert(marker.files['host/contracts/unicode-lower-15.json']);assert(marker.files['host/assets/fonts/LICENSE-DejaVu.txt']);assert(marker.files['package-lock.json']);assert(marker.files['host/build/serialqueue.node']);
   const native=JSON.parse(await readFile(join(output,'host/build/native-build-info.json'),'utf8'));for(const [name,hash] of Object.entries(native.outputs))assert.equal(marker.files['host/build/'+name],hash);
-  assert(marker.addons.includes('template'));assert(native.sources['host/native/template/Cargo.lock']);assert(native.sources['host/native/template/src/lib.rs']);assert.match(native.rustToolchain.rustc,/^rustc 1\.89\.0\b/);
+  assert(marker.addons.includes('template'));assert(native.sources['host/native/template/Cargo.lock']);assert(native.sources['host/native/template/src/lib.rs']);assert(native.sources['host/native/template/src/sensor_text.rs']);assert.match(native.rustToolchain.rustc,/^rustc 1\.89\.0\b/);
   await installProductDependencies(output);
   const serviceProfile=join(work,'machine.mjs');await writeFile(serviceProfile,'throw new Error("Service generation must not import the machine");');
   const serviceTimes:number[]=[];let serviceUnit='';

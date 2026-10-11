@@ -3913,7 +3913,25 @@ getter 本身不启动传输。标准 `ConfiguredMoonraker.load`／`loadAuthoriz
 匹配的 `history`，且不得已有 `auxiliary`／`auxiliaryTotals`；任务
 启动、暂停、恢复和结束经真实 HistoryRuntime 门控。原生产品历史
 日志尚不支持这些字段，配置此组合会明确拒绝，不能据此宣称完整历史。
-传感器消息模板仍使用独立原生适配器，共享传感器环境继续开放。
+reader 绑定共享工厂时，传感器消息现持有该代际的一份同步句柄；
+未绑定的显式旧路径继续使用独立原生适配器。传感器渲染可读取同一
+secrets 校准数据与全局值，调用可信 Node 同步函数；消息内的 payload
+和 set_result 覆盖同名环境全局。异步传感器模板拒绝。
+
+Rust 在私密 text 环境内批量收集 set_result，不逐参数调用 JS；输出、
+燃料、参数和安全数值边界保持，失败不发布部分测量值或历史。基于
+当前环境唯一模板的静态变量依赖，未使用的函数不创建帧绑定；不存在
+外部模板加载器。后注册的被引用函数立即使该句柄走同步回调路径；
+宏、函数别名和嵌套调用分别验证。自定义函数仍须控制自身同步耗时，
+不能由同步 JS 强制抢占。关闭传感器只释放句柄，最终服务关闭释放工厂。
+
+高频基准为 `node host/bench/shared-sensor-components.ts`，可追加
+`--unused-globals=32` 或 `--unused-globals=64` 复现共享环境压力。
+每批 1 万帧含 UTF-8 解码、四个类型化结果、存储与平均历史；两轮预热
+及七样本，原生独立路径基线在改动前冻结，默认及两种压力通过原 1.5
+倍桌面门限。原 JS 逐参数回调和初版 32 函数超限均保留。此预算不含
+模块／文件初始化、MQTT、实际打印或任意用户函数，见
+[共享传感器记录](../host/contracts/shared-sensor-components-acceptance.json)。
 
 复现装配基准使用 Node.js 26 执行
 `node host/bench/configured-mqtt-components.ts`，其冻结参考为之前手工

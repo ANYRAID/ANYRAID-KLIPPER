@@ -8,6 +8,7 @@ import {SensorStore} from './sensors.ts';
 import {NativeTemplateCandidate} from './native-template.ts';
 import {MqttSensors,type MqttSensorOptions} from './mqtt-sensors.ts';
 import {readMqttSensorOptions,type MqttConfigurationContext} from './mqtt-config.ts';
+import {MoonrakerRenderableTemplate} from './template-factory.ts';
 
 /** Explicit candidate entry using both [mqtt] and [sensor ...] configuration. */
 export async function configureNativeSensorsFromConfig(reader:ConfigurationReader,trackingEnabled:(excludePaused:boolean)=>boolean,context:MqttConfigurationContext={}){
@@ -24,14 +25,26 @@ export class NativeSensorMessages extends SensorMessages {
  override close():void{super.close();this.#template.close();}
 }
 
+/** Owns one synchronous handle borrowed from the process's shared environment.
+ * Rust batches set_result values; SensorMessages publishes a complete frame. */
+export class SharedSensorMessages extends SensorMessages {
+ readonly #template:MoonrakerRenderableTemplate;
+ constructor(store:SensorStore,id:string,template:MoonrakerRenderableTemplate){
+  if(!(template instanceof MoonrakerRenderableTemplate)||template.isAsync)throw new ConfigurationError('Sensor template requires a synchronous shared owner');
+  try{super(store,id,context=>{for(const value of template.renderSensor(context.payload))context.setResult(value.name,value.numberType==='boolean'?value.booleanValue!:value.numberValue!,value.numberType==='boolean'?undefined:value.numberType);});}catch(error){template.close();throw error;}
+  this.#template=template;
+ }
+ override close():void{super.close();this.#template.close();}
+}
+
 /** Caller owns the returned generation until transferring its store and
  * transport to ConfiguredMoonraker. Failed assembly releases every template. */
 export function configureNativeSensors(reader:ConfigurationReader,trackingEnabled:(excludePaused:boolean)=>boolean,options:MqttSensorOptions){
- const generation=configureSensors(reader,trackingEnabled),receivers:NativeSensorMessages[]=[];
+ const generation=configureSensors(reader,trackingEnabled),receivers:(NativeSensorMessages|SharedSensorMessages)[]=[];
  try{
   const bindings=generation.sources.map(({sensor,mqtt})=>{
-   let receiver:NativeSensorMessages;
-   try{receiver=new NativeSensorMessages(generation.store,sensor.id,mqtt.template);}
+   let receiver:NativeSensorMessages|SharedSensorMessages;
+   try{receiver=reader.hasTemplates()?new SharedSensorMessages(generation.store,sensor.id,reader.templates().createTemplate(mqtt.template)):new NativeSensorMessages(generation.store,sensor.id,mqtt.template);}
    catch(error){reader.error(sensor.historyProvider!);throw new ConfigurationError(`[${sensor.historyProvider}]: Invalid sensor template`,{cause:error});}
    receivers.push(receiver);return {topic:mqtt.topic,qos:mqtt.qos as 0|1|2|null,receiver};
   });

@@ -7,6 +7,7 @@ import {loadSecrets,type SecretsContext,type SecretsStore} from './secrets.ts';
 import {MoonrakerTemplateOwner,type MoonrakerTextTemplate,type SyncTemplateCallable,type SyncTemplateOptions} from './template-owner.ts';
 import {MoonrakerAsyncTemplateOwner,type MoonrakerAsyncTextTemplate,type TemplateCallable,type AsyncTemplateOptions} from './template-async-owner.ts';
 import type {TemplateCall,TemplateValue} from './template-wire.ts';
+import type {NativeReading} from './native-template.ts';
 export interface TemplateFactoryOptions {debug?:(call:TemplateCall)=>void;}
 export type FactoryTemplateCallable=(call:TemplateCall&{readonly signal?:AbortSignal})=>TemplateValue|Promise<TemplateValue>;
 const failure=()=>new ApiError(500,'Error rending Jinja2 Template');
@@ -67,7 +68,10 @@ export class MoonrakerTemplateFactory {
     // them directly; do not attach another shared abort listener per render.
     return await (handle as MoonrakerAsyncTextTemplate).renderAsync(context,calls?{...options,callables:calls as ReadonlyMap<string,TemplateCallable>}:options);
    }catch(error){if(this.#shutdown.signal.aborted&&error===this.#shutdown.signal.reason)throw error;if(options.signal?.aborted&&error===options.signal.reason)throw error;throw failure();}
-  },()=>{handle.close();this.#templates.delete(template);});this.#templates.add(template);return template;
+  },()=>{handle.close();this.#templates.delete(template);},(payload,options)=>{
+   try{this.#check();if(isAsync)throw failure();const calls=this.#debug('{}',options,ui);return (handle as MoonrakerTextTemplate).renderSensor(payload,calls?{...options,callables:calls as ReadonlyMap<string,SyncTemplateCallable>}:options);}
+   catch{if(!this.#configured)throw new ConfigurationError('Error rending Jinja2 Template');throw failure();}
+  });this.#templates.add(template);return template;
  }
  close():void{if(!this.#secrets)return;this.#shutdown.abort(new DOMException('Template component is closing','AbortError'));this.#async?.close(this.#shutdown.signal.reason);this.#async=undefined;for(const template of this.#templates)template.close();this.#sync?.close();this.#sync=undefined;this.#globals.clear();delete this.#options.debug;this.#dataPath=undefined;this.#releaseReader();this.#releaseReader=()=>{};this.#secrets.close();this.#secrets=undefined;}
  toJSON(){return {closed:this.#secrets===undefined,templates:this.#templates.size,asyncInitialized:this.#async!==undefined};}
@@ -79,11 +83,13 @@ export class MoonrakerRenderableTemplate {
  readonly isAsync:boolean;#source:string|undefined;
  #sync:((context:string,options:SyncTemplateOptions)=>string)|undefined;
  #async:((context:string,options:AsyncTemplateOptions)=>Promise<string>)|undefined;#release:(()=>void)|undefined;
- constructor(source:string,isAsync:boolean,sync:(context:string,options:SyncTemplateOptions)=>string,async:(context:string,options:AsyncTemplateOptions)=>Promise<string>,release:()=>void){this.#source=source;this.isAsync=isAsync;this.#sync=sync;this.#async=async;this.#release=release;}
+ #sensor:((payload:string,options:SyncTemplateOptions)=>NativeReading[])|undefined;
+ constructor(source:string,isAsync:boolean,sync:(context:string,options:SyncTemplateOptions)=>string,async:(context:string,options:AsyncTemplateOptions)=>Promise<string>,release:()=>void,sensor:(payload:string,options:SyncTemplateOptions)=>NativeReading[]){this.#source=source;this.isAsync=isAsync;this.#sync=sync;this.#async=async;this.#release=release;this.#sensor=sensor;}
  toString():string{if(this.#source===undefined)throw new ConfigurationError('Template is closed');return this.#source;}
  render(context='{}',options:SyncTemplateOptions={}):string{if(!this.#sync)throw new ConfigurationError('Template is closed');if(this.isAsync)throw new ApiError(400,'Cannot render async templates with the render() method, use render_async()');return this.#sync(context,options);}
  renderAsync(context='{}',options:AsyncTemplateOptions={}):Promise<string>{if(!this.#async)return Promise.reject(new ConfigurationError('Template is closed'));if(!this.isAsync)return Promise.reject(failure());return this.#async(context,options);}
- close():void{this.#release?.();this.#release=undefined;this.#source=undefined;this.#sync=undefined;this.#async=undefined;}
+ renderSensor(payload:string,options:SyncTemplateOptions={}):NativeReading[]{if(!this.#sensor)throw new ConfigurationError('Template is closed');if(this.isAsync)throw new ApiError(400,'Sensor template must be synchronous');return this.#sensor(payload,options);}
+ close():void{this.#release?.();this.#release=undefined;this.#source=undefined;this.#sync=undefined;this.#async=undefined;this.#sensor=undefined;}
  toJSON(){return {closed:this.#source===undefined,isAsync:this.isAsync};}
  [Symbol.for('nodejs.util.inspect.custom')](){return 'MoonrakerRenderableTemplate <private>';}
 }

@@ -58,10 +58,10 @@ test('configured native sensor transport sends shared credentials and receives r
  try{
   await writeFile(join(dir,'moonraker.secrets'),JSON.stringify(reference.secrets));
   const config=new ConfigurationReader(new ConfigurationSource('/config/main.conf',{DEFAULT:{},server:{},mqtt:{address:'127.0.0.1',port:String(peer.port),username:'{secrets["mqtt"]["user"]}',password:'{secrets["mqtt"]["password"]}'},'sensor room':{type:'MQTT',state_topic:'room/telemetry',state_response_template:'{set_result("t", payload | float)}'}},[]));factory=await MoonrakerTemplateFactory.load(config,{dataPath:dir});
-  generation=await configureNativeSensorsFromConfig(config,()=>false);assert.equal(peer.packets.length,0);assert.equal(factory.toJSON().templates,0);
+  generation=await configureNativeSensorsFromConfig(config,()=>false);assert.equal(peer.packets.length,0);assert.equal(factory.toJSON().templates,1);
   await generation.sensorTransport.start();const connect=peer.packets.find(packet=>packet.cmd==='connect');assert(connect&&connect.cmd==='connect');assert.equal(connect.username,'fixture-user');assert.equal(connect.password?.toString(),'fixture-password');
   peer.publish('room/telemetry','27.125');const deadline=performance.now()+1000;while(generation.receivers[0].status.accepted===0&&performance.now()<deadline)await delay(5);assert.equal(generation.receivers[0].status.accepted,1);assert.equal(generation.sensors.info('room').values.t,27.125);
-  await generation.close();assert.equal(generation.sensorTransport.status.closed,true);assert.equal(generation.receivers[0].status.closed,true);assert.equal(factory.toJSON().closed,false);
+  await generation.close();assert.equal(generation.sensorTransport.status.closed,true);assert.equal(generation.receivers[0].status.closed,true);assert.equal(factory.toJSON().templates,0);assert.equal(factory.toJSON().closed,false);
  }finally{await generation?.close();factory?.close();await peer.close();await rm(dir,{recursive:true,force:true});}
 });
 test('MQTT config rejects malformed, unsupported and oversized inputs without disclosing credentials',async()=>{

@@ -1,4 +1,5 @@
 mod async_text;
+mod sensor_text;
 mod sync_functions;
 use minijinja::{
     syntax::SyntaxConfig,
@@ -10,6 +11,7 @@ use napi_derive::napi;
 use num_bigint::{BigInt, BigUint};
 use num_traits::{FromPrimitive, One};
 use std::{
+    collections::HashSet,
     io,
     sync::{Arc, Mutex},
 };
@@ -472,6 +474,28 @@ struct TextEnvironment {
     environment: Environment<'static>,
     callables: Vec<String>,
     globals: usize,
+    sensor_variables: Option<HashSet<String>>,
+    sensor_functions: bool,
+}
+impl TextEnvironment {
+    fn sensor_uses_functions(&mut self, names: &[String]) -> napi::Result<bool> {
+        if self.sensor_variables.is_none() {
+            // This environment owns only this template and has no external
+            // loader. Includes cannot introduce unseen template dependencies.
+            let variables = self
+                .environment
+                .get_template("text")
+                .map_err(|_| private_error())?
+                .undeclared_variables(false);
+            self.sensor_functions = self
+                .callables
+                .iter()
+                .any(|name| name != "payload" && name != "set_result" && variables.contains(name));
+            self.sensor_variables = Some(variables);
+        }
+        let variables = self.sensor_variables.as_ref().ok_or_else(private_error)?;
+        Ok(self.sensor_functions || names.iter().any(|name| variables.contains(name)))
+    }
 }
 #[napi]
 impl NativeTextTemplate {
@@ -557,6 +581,8 @@ impl NativeTextTemplate {
                 environment: env,
                 callables: Vec::new(),
                 globals: 0,
+                sensor_variables: None,
+                sensor_functions: false,
             })),
         })
     }
@@ -583,6 +609,73 @@ impl NativeTextTemplate {
         String::from_utf8(output.0).map_err(|_| private_error())
     }
     #[napi]
+    pub fn render_sensor(&self, payload: String) -> napi::Result<Vec<TypedReading>> {
+        if payload.len() > 65536 {
+            return Err(private_error());
+        }
+        let mut state = self.state.lock().map_err(|_| private_error())?;
+        let state = state.as_mut().ok_or_else(private_error)?;
+        if state.sensor_uses_functions(&[])? {
+            return Err(private_error());
+        }
+        let frame = sensor_text::SensorFrame::new();
+        state
+            .environment
+            .get_template("text")
+            .map_err(|_| private_error())?
+            .render_captured_to(frame.context(payload), &mut BoundedOutput(0))
+            .map_err(|_| private_error())?;
+        frame.finish()
+    }
+    #[napi]
+    pub fn render_sensor_with_functions(
+        &self,
+        env: Env,
+        payload: String,
+        names: Vec<String>,
+        callback: napi::JsFunction,
+    ) -> napi::Result<Vec<TypedReading>> {
+        if payload.len() > 65536 || names.iter().any(|name| name == "set_result") {
+            return Err(private_error());
+        }
+        let prepared = {
+            let mut state = self.state.lock().map_err(|_| private_error())?;
+            let state = state.as_mut().ok_or_else(private_error)?;
+            state.sensor_uses_functions(&names)?.then(|| {
+                let globals = state
+                    .callables
+                    .iter()
+                    .filter(|name| {
+                        name.as_str() != "payload"
+                            && name.as_str() != "set_result"
+                            && state
+                                .sensor_variables
+                                .as_ref()
+                                .is_some_and(|variables| variables.contains(name.as_str()))
+                    })
+                    .cloned()
+                    .collect();
+                (state.environment.clone(), globals)
+            })
+        };
+        let Some((environment, globals)) = prepared else {
+            return self.render_sensor(payload);
+        };
+        let frame = sensor_text::SensorFrame::new();
+        sync_functions::render(
+            env,
+            environment,
+            frame.context(payload),
+            globals,
+            names,
+            callback,
+        )?;
+        if self.state.lock().map_err(|_| private_error())?.is_none() {
+            return Err(private_error());
+        }
+        frame.finish()
+    }
+    #[napi]
     pub fn add_global(&self, name: String, value: Option<String>) -> napi::Result<()> {
         if name.is_empty() || name.len() > 128 {
             return Err(private_error());
@@ -604,6 +697,15 @@ impl NativeTextTemplate {
                 .map_err(|_| private_error())?
             }
             None => {
+                if name != "payload"
+                    && name != "set_result"
+                    && state
+                        .sensor_variables
+                        .as_ref()
+                        .is_some_and(|variables| variables.contains(&name))
+                {
+                    state.sensor_functions = true;
+                }
                 state.callables.push(name.clone());
                 Value::UNDEFINED
             }

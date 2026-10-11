@@ -28,7 +28,7 @@ test('standard configuration owns private MQTT, sensors, HTTP publication and co
   const info=await(await fetch(base+'/server/info',{headers:{'x-api-key':'fixture'}})).json() as any;for(const name of ['template','secrets','mqtt','sensor'])assert(info.result.components.includes(name));assert.equal(info.result.klippy_connected,false);
   const values=await(await fetch(base+'/server/sensors/info?sensor=room',{headers:{'x-api-key':'fixture'}})).json() as any;assert.equal(values.result.values.t,27.125);
   const settings=await(await fetch(base+'/server/config',{headers:{'x-api-key':'fixture'}})).text();for(const privateValue of ['fixture-user','fixture-password','secrets['])assert(!settings.includes(privateValue));
-  assert.equal(owner.toJSON().templates,0);await service.close();assert.equal(owner.toJSON().closed,true);assert.equal(service.sensorStatus?.closed,true);assert.equal(service.sensorTransportStatus?.closed,true);assert.equal(service.rpc.has('server.mqtt.publish'),false);await until(()=>peer.sockets.size===0);
+  assert.equal(owner.toJSON().templates,1);await service.close();assert.equal(owner.toJSON().closed,true);assert.equal(owner.toJSON().templates,0);assert.equal(service.sensorStatus?.closed,true);assert.equal(service.sensorTransportStatus?.closed,true);assert.equal(service.rpc.has('server.mqtt.publish'),false);await until(()=>peer.sockets.size===0);
  }finally{await service.close();}
 }));
 test('MQTT without sensor bindings still owns presence and authenticated publish routes',()=>fixture(async(root,file,peer,config)=>{
@@ -40,7 +40,7 @@ test('MQTT without sensor bindings still owns presence and authenticated publish
 }));
 for(const [name,extra] of [['unknown sensor','[sensor room]\ntype: HTTP\n'],['malformed template',sensor.replace('payload | float','{%')],['missing history owner',sensor+'history_field_temperature:\n  parameter=t\n  strategy=average\n'],['broker API without policy','enable_moonraker_api: true\n'],['invalid status interval','status_interval: .1\n']] as const)test(`automatic preparation rejects ${name} before broker access`,()=>fixture(async(root,file,peer,config)=>{
  await config(extra);await assert.rejects(ConfiguredMoonraker.load(file,{information,authorize:()=>{},templates:{dataPath:root}}));assert.equal(peer.packets.length,0);
- await config();const recovered=await ConfiguredMoonraker.load(file,{information,authorize:()=>{},templates:{dataPath:root}});assert.equal(recovered.templates?.toJSON().templates,0);await recovered.close();assert.equal(peer.packets.length,0);
+ await config();const recovered=await ConfiguredMoonraker.load(file,{information,authorize:()=>{},templates:{dataPath:root}}),owner=recovered.templates!;assert.equal(owner.toJSON().templates,1);await recovered.close();assert.equal(owner.toJSON().templates,0);assert.equal(owner.toJSON().closed,true);assert.equal(peer.packets.length,0);
 }));
 test('partial external sensor ownership is rejected without consuming the caller store',()=>fixture(async(root,file)=>{
  const sensors=new SensorStore();try{await assert.rejects(ConfiguredMoonraker.load(file,{information,authorize:()=>{},templates:{dataPath:root},sensors}),/Choose configured/);assert.equal(sensors.closed,false);}finally{sensors.close();}
