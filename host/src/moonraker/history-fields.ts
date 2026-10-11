@@ -30,18 +30,32 @@ export class HistoryField {
 /** One registry per HistoryRuntime. Register providers in its auxiliary factory;
  * snapshots feed the existing ingress capture and atomic persistence path. */
 export class HistoryFields {
+ #sealed=false;
+ seal():void{this.#sealed=true;}
+ /** Assembly rollback removes only registrations introduced by this attempt.
+  * Existing provider objects and their tracked values stay untouched. */
+ registrationRollback():()=>void{
+  if(this.#sealed)throw new ApiError(409,'History field registration is sealed');
+  const previous=new Map(this.#fields);let restored=false;
+  return ()=>{if(restored)return;restored=true;this.#fields.clear();for(const [key,field] of previous)this.#fields.set(key,field);};
+ }
  readonly #fields=new Map<string,HistoryField>();readonly #enabled:(excludePaused:boolean)=>boolean;
  constructor(trackingEnabled:(excludePaused:boolean)=>boolean){if(typeof trackingEnabled!=='function')throw new ApiError(400,'Invalid history tracking gate');this.#enabled=trackingEnabled;}
  register(options:HistoryFieldOptions):HistoryField{
   return this.registerBatch([options])[0];
  }
  registerBatch(options:readonly HistoryFieldOptions[]):HistoryField[]{
+  if(this.#sealed)throw new ApiError(409,'History field registration is sealed');
   if(!Array.isArray(options)||this.#fields.size+options.length>64)throw new ApiError(413,'History field capacity exceeded');
   const keys=new Set(this.#fields.keys()),pending=options.map(option=>{const field=new HistoryField(option,this.#enabled),c=field.configuration,key=JSON.stringify([c.provider,c.field]);if(keys.has(key))throw new ApiError(409,'History field already registered');keys.add(key);return {key,field};});
   for(const {key,field} of pending)this.#fields.set(key,field);return pending.map(item=>item.field);
  }
  get configuration(){return [...this.#fields.values()].map(field=>field.configuration);}
- reset():void{for(const field of this.#fields.values())field.tracker.reset();}
+ reset():void{HistoryTracker.stageReset([...this.#fields.values()].map(field=>field.tracker));}
+ stageReset():{snapshot:HistoryAuxiliarySnapshot;rollback:()=>void}{
+  const rollback=HistoryTracker.stageReset([...this.#fields.values()].map(field=>field.tracker));
+  try{return {snapshot:this.snapshot(),rollback};}catch(error){rollback();throw error;}
+ }
  snapshot():HistoryAuxiliarySnapshot{
   const data:Json[]=[],totals:HistoryAuxiliaryUpdate[]=[];for(const field of this.#fields.values()){const value=field.snapshot();data.push(value.data);if(value.total)totals.push(value.total);}return {data,totals};
  }

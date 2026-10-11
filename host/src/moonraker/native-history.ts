@@ -5,9 +5,10 @@ import type {NativePrintUploads} from './native-print-uploads.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 import {historyInteger,historyTime,historyUid,historyBoolean} from './history-api.ts';
 import {ApiError,type Json} from './rpc.ts';
+import type {HistoryAuxiliaryUpdate} from './history-repository.ts';
 /** Read the authoritative journal. No replica import, request deletion, or
  * synthetic timestamps; journal row IDs are stable because requests never erase. */
-export function registerNativeHistory(registry:EndpointRegistry,source:PrintController|PrintJournal,files:NativePrintUploads,notify?:(event:Json)=>void|Promise<void>,current?:()=>PrintController|undefined){
+export function registerNativeHistory(registry:EndpointRegistry,source:PrintController|PrintJournal,files:NativePrintUploads,notify?:(event:Json)=>void|Promise<void>,current?:()=>PrintController|undefined,resetFields?:()=>HistoryAuxiliaryUpdate[]){
  const release:(()=>void)[]=[];
  const lifetime=new AbortController();let pending=0,dropped=0,error:string|null=null,closed=false,tail=Promise.resolve();
  const status=()=>({pending,dropped,error,closed});
@@ -37,7 +38,7 @@ export function registerNativeHistory(registry:EndpointRegistry,source:PrintCont
    for(const record of records)jobs.push(await prepare(record,context.signal));return {count:jobs.length,jobs};
   })));
   release.push(registry.register({endpoint:'/server/history/totals',methods:['GET']},async()=>read(async()=>await source.historyTotals() as unknown as Json)));
-  release.push(registry.register({endpoint:'/server/history/reset_totals',methods:['POST']},async(_params,_verb,context)=>read(async()=>{context.signal.throwIfAborted();return await source.historyResetTotals() as unknown as Json;})));
+  release.push(registry.register({endpoint:'/server/history/reset_totals',methods:['POST']},async(_params,_verb,context)=>read(async()=>{context.signal.throwIfAborted();return await ('currentRequest' in source?source.historyResetTotals():source.historyResetTotals(resetFields?.())) as unknown as Json;})));
  }catch(error){cleanup();throw error;}
  return cleanup;
 }

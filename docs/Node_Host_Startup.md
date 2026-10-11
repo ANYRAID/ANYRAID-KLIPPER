@@ -3909,10 +3909,23 @@ getter 本身不启动传输。标准 `ConfiguredMoonraker.load`／`loadAuthoriz
 竞争所有者。直接调用 generation 工具时仍由调用方负责转移及清理。
 
 `enable_moonraker_api` 要求明确的 `mqttAuthorize`，不会从 HTTP 权限
-推断 broker 请求权限。无该策略时缺省关闭。传感器历史字段须提供
-匹配的 `history`，且不得已有 `auxiliary`／`auxiliaryTotals`；任务
-启动、暂停、恢复和结束经真实 HistoryRuntime 门控。原生产品配置
-尚未接入这些字段的状态门控，此组合会明确拒绝，不能宣称完整历史。
+推断 broker 请求权限。无该策略时缺省关闭。旧 Klippy 组合的传感器
+历史字段须提供匹配的 `history`，且不得已有 `auxiliary`／
+`auxiliaryTotals`；任务状态仍由 HistoryRuntime 门控。
+原生产品有匹配的持久日志时自动接线，普通配置传感器无需再提供
+旧 `history`。配置传感器与 `nativeHistoryAuxiliary(fields)` 中注册
+的进程字段共享同一注册表；该回调必须同步、返回 void，只注册
+HistoryFields 提供者，不转移或关闭其外部资源。提供者资源仍由
+进程 `createProcess`／`release` 所有者管理，在控制器退休后释放。
+全表上限 64 项、身份唯一，监听前封存；异步回调、重复身份、
+非持久控制器及与旧历史竞争的组合明确拒绝。
+原生控制器在持久预约确认后打开累计；失败／重复预约回滚重置。
+pausing 保持此前打印态，resuming 保持此前暂停态，收到设备确认
+后才切换 exclude_paused 门控。终态快照在数据库等待前冻结，
+故障先冻结再安全停止；快照失败仍停止设备并拒绝持久确认。
+设备重建使用同一字段表和 MQTT 连接，旧控制器确认退休后释放
+借用；恢复只确认原始日志，不采入新代际遥测。累计重置仍需要
+原鉴权和日志空闲检查，只清理声明字段，历史快照不变。
 原生打印日志已提供可选辅助快照接口：`reserve(request, snapshot)`、
 `transition(id, revision, state, statistics, snapshot)` 与
 `historyResetTotals(fields)`。辅助捕获在入队前完成，首次结果在同一
@@ -3920,8 +3933,10 @@ SQLite 事务中更新快照、累计和基础统计；失败确认及恢复不�
 原快照。历史 HTTP／RPC 与通知返回持久的辅助数据，旧任务保持空值。
 日志格式第 1 至 5 版在身份检查的同一事务内升级到第 6 版；不适用
 旧程序直接读取新日志，回退必须保留升级前数据库副本。当前未切换
-生产入口，只用临时数据库验收。普通产品配置传感器仍需接入原生
-任务／暂停门控及辅助提供者组合，原拒绝条件保持。
+生产入口，只用临时数据库验收。自动门控及提供者组合见上，
+源码／独立 JavaScript 各 381 项，产品／真实进程恢复各 24 项通过；
+范围与冻结性能记录见
+[接线验收](../host/contracts/native-history-fields-acceptance.json)。
 普通 `get(id)`、`active()` 及恢复扫描保持请求元数据范围，避免高频
 状态查询解码整份历史；完整快照由 `get(id, true)` 和历史列表／详情
 接口显式读取。辅助表采用 WITHOUT ROWID，维持原最小日志容量；

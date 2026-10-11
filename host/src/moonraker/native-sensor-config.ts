@@ -9,10 +9,11 @@ import {NativeTemplateCandidate} from './native-template.ts';
 import {MqttSensors,type MqttSensorOptions} from './mqtt-sensors.ts';
 import {readMqttSensorOptions,type MqttConfigurationContext} from './mqtt-config.ts';
 import {MoonrakerRenderableTemplate} from './template-factory.ts';
+import type {HistoryFields} from './history-fields.ts';
 
 /** Explicit candidate entry using both [mqtt] and [sensor ...] configuration. */
-export async function configureNativeSensorsFromConfig(reader:ConfigurationReader,trackingEnabled:(excludePaused:boolean)=>boolean,context:MqttConfigurationContext={}){
- return configureNativeSensors(reader,trackingEnabled,await readMqttSensorOptions(reader,context));
+export async function configureNativeSensorsFromConfig(reader:ConfigurationReader,trackingEnabled:(excludePaused:boolean)=>boolean,context:MqttConfigurationContext={},registry?:HistoryFields){
+ return configureNativeSensors(reader,trackingEnabled,await readMqttSensorOptions(reader,context),registry);
 }
 
 export class NativeSensorMessages extends SensorMessages {
@@ -39,8 +40,9 @@ export class SharedSensorMessages extends SensorMessages {
 
 /** Caller owns the returned generation until transferring its store and
  * transport to ConfiguredMoonraker. Failed assembly releases every template. */
-export function configureNativeSensors(reader:ConfigurationReader,trackingEnabled:(excludePaused:boolean)=>boolean,options:MqttSensorOptions){
- const generation=configureSensors(reader,trackingEnabled),receivers:(NativeSensorMessages|SharedSensorMessages)[]=[];
+export function configureNativeSensors(reader:ConfigurationReader,trackingEnabled:(excludePaused:boolean)=>boolean,options:MqttSensorOptions,registry?:HistoryFields){
+ const rollback=registry?.registrationRollback();
+ const generation=configureSensors(reader,trackingEnabled,registry),receivers:(NativeSensorMessages|SharedSensorMessages)[]=[];
  try{
   const bindings=generation.sources.map(({sensor,mqtt})=>{
    let receiver:NativeSensorMessages|SharedSensorMessages;
@@ -51,5 +53,5 @@ export function configureNativeSensors(reader:ConfigurationReader,trackingEnable
   const sensorTransport=new MqttSensors(options,bindings);
   return {sensors:generation.store,fields:generation.fields,sources:generation.sources,receivers,sensorTransport,
    async close(){try{await sensorTransport.close();}finally{generation.store.close();}}};
- }catch(error){for(const receiver of receivers)receiver.close();generation.store.close();throw error;}
+ }catch(error){rollback?.();for(const receiver of receivers)receiver.close();generation.store.close();throw error;}
 }

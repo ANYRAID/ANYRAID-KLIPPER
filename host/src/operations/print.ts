@@ -2,6 +2,8 @@ import {randomUUID} from 'node:crypto';
 import {ExtrusionAccounting} from '../gcode/extrusion-accounting.ts';
 import {PrintStateStream} from './print-state-stream.ts';
 import {MaintenanceGate} from './maintenance-gate.ts';
+import {HistoryFields} from '../moonraker/history-fields.ts';
+import type {HistoryAuxiliarySnapshot} from '../moonraker/history-repository.ts';
 import type { PrintJournal, JournalRecord } from './print-journal.ts';
 import { printDeadline } from './print-deadline.ts';
 /** Product-facing print lifecycle; adapters enforce limits again at the device boundary. */
@@ -82,7 +84,22 @@ interface PrintRecord {
 // A journal represents one persistent printer owner within this process.
 // Release only after permanent retirement has drained all writes and actions.
 const journalOwners = new WeakSet<PrintJournal>();
+const historyFieldOwners=new WeakSet<HistoryFields>();
 export class PrintController {
+  #historyFields:HistoryFields|undefined;#historyTracking=false;#historyPaused=false;
+  #terminalAuxiliary:HistoryAuxiliarySnapshot|undefined;#historyFailure:unknown;
+  /** Trusted composition borrows a single process registry. It never owns or
+   * closes the providers. Attach only before a job or restored interruption. */
+  bindHistoryFields(fields:HistoryFields):void{
+    if(!(fields instanceof HistoryFields)||historyFieldOwners.has(fields)||!this.#journal||this.#historyFields||this.#retirement||!['idle','interrupted'].includes(this.#state)||this.#active||this.#restoringMetadata)throw new Error('Native history fields require an unbound durable print owner');
+    fields.seal();this.#historyFields=fields;historyFieldOwners.add(fields);
+  }
+  historyTrackingEnabled(excludePaused:boolean):boolean{return this.#historyTracking&&!(excludePaused&&this.#historyPaused);}
+  #freezeAuxiliary():void{
+    if(!this.#historyTracking)return;
+    this.#historyTracking=false;
+    try{this.#terminalAuxiliary=this.#historyFields?.snapshot();}catch(error){this.#historyFailure=error;}
+  }
   #beforeStart:(()=>void)|undefined;
   #beforeResume:(()=>void)|undefined;
   #extrusionAccounting:ExtrusionAccounting|undefined;
@@ -112,6 +129,7 @@ export class PrintController {
       // User-visible cancellation/fault observations may still update state.
       await Promise.allSettled([cancelled,this.#faultStop]);
       if(errors.length)throw new AggregateError([...new Set(errors)],'Print retirement failed');
+      if(this.#historyFields){historyFieldOwners.delete(this.#historyFields);this.#historyFields=undefined;}
       if(this.#journal)journalOwners.delete(this.#journal);
     })().then(done.resolve,done.reject);
     return done.promise;
@@ -157,7 +175,7 @@ export class PrintController {
   historyGet(id:string){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyGet(id);}
   historyDelete(id:string,all=false){if(this.#retirement)throw new Error('Print controller retired');if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyDelete(id,all);}
   historyTotals(){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyTotals();}
-  historyResetTotals(){if(this.#retirement)throw new Error('Print controller retired');if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyResetTotals();}
+  historyResetTotals(){if(this.#retirement)throw new Error('Print controller retired');if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyResetTotals(this.#historyFields?.snapshot().totals);}
   get durable():boolean{return !!this.#journal;}
   usesJournal(journal:PrintJournal):boolean{return this.#journal===journal;}
   usesMaintenanceGate(gate:MaintenanceGate):boolean{return this.#maintenanceGate===gate;}
@@ -218,6 +236,12 @@ export class PrintController {
   get totalDuration():number|null{return this.#durationStart===undefined?this.#duration:Math.max(0,(performance.now()-this.#durationStart)/1000);}
   #changeState(state:PrintState,renew=false):void{
     if(this.#state===state&&!renew)return;
+    // Transient pause/resume states retain the last acknowledged pause. A
+    // device fault freezes the auxiliary snapshot before asynchronous cleanup.
+    if(state==='paused')this.#historyPaused=true;
+    else if(state==='printing'||state==='preparing')this.#historyPaused=false;
+    else if(state==='failed')this.#freezeAuxiliary();
+    else if(state==='idle'||state==='interrupted'){this.#historyTracking=false;this.#historyPaused=false;this.#terminalAuxiliary=undefined;this.#historyFailure=undefined;}
     if(state==='preparing'){if(this.#state!=='preparing')this.#extrusionAccounting?.begin();}
     else if(state==='idle')this.#extrusionAccounting?.reset();
     else if(state==='interrupted')this.#extrusionAccounting?.restoreUnknown();
@@ -400,10 +424,12 @@ export class PrintController {
       () => this.#preparedHold ? 'paused' : 'printing',
       async (signal) => {
         if (this.#journal) {
-          const reservation = await this.#journal.reserve(this.#start!);
-          if (!reservation.created)
-            throw new Error('Persisted print request requires reconciliation');
-          this.#journalRecord = reservation.record;
+          const staged=this.#historyFields?.stageReset();
+          try{
+            const reservation = await this.#journal.reserve(this.#start!,staged?.snapshot);
+            if (!reservation.created)throw new Error('Persisted print request requires reconciliation');
+            this.#journalRecord = reservation.record;this.#terminalAuxiliary=staged?.snapshot;this.#historyPaused=false;this.#historyTracking=!!this.#historyFields&&this.#state==='preparing'&&!signal.aborted&&!this.#faultStop;
+          }catch(error){staged?.rollback();throw error;}
           signal.throwIfAborted();
         }
         // Durable reservation must finish before the first device effect. A
@@ -611,7 +637,8 @@ export class PrintController {
   async #persist(state: 'started' | 'completed' | 'cancelled' | 'failed'): Promise<void> {
     // Device acknowledgement precedes this write. Freeze once, so durable and
     // live terminal statistics agree and do not include database commit latency.
-    if(state!=='started')this.#freezeStatistics();
+    if(state!=='started'){this.#freezeStatistics();this.#freezeAuxiliary();}
+    if(this.#historyFailure)throw this.#historyFailure;
     if (this.#journalWrite) {
       await this.#journalWrite;
       return this.#persist(state);
@@ -623,7 +650,7 @@ export class PrintController {
     if (['completed', 'cancelled'].includes(record.state)||record.state===state) return;
     if(record.state==='failed'&&state!=='cancelled')return;
     const write = this.#journal
-      .transition(record.request.requestId, record.revision, state,state==='started'?undefined:{totalDuration:this.totalDuration,printDuration:this.printDuration,filamentUsed:this.filamentUsed})
+      .transition(record.request.requestId, record.revision, state,state==='started'?undefined:{totalDuration:this.totalDuration,printDuration:this.printDuration,filamentUsed:this.filamentUsed},state==='started'?undefined:this.#terminalAuxiliary)
       .then((updated) => {
         this.#journalRecord = updated;
       });

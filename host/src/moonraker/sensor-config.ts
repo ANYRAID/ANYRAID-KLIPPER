@@ -35,7 +35,8 @@ export function readSensorConfiguration(reader:ConfigurationReader):SensorSource
 }
 /** Build a new owned generation; failures never mutate an existing store or
  * registry. The caller supplies the history runtime's per-instance gate. */
-export function configureSensors(reader:ConfigurationReader,trackingEnabled:(excludePaused:boolean)=>boolean){
- const sources=readSensorConfiguration(reader),store=new SensorStore(),fields=new HistoryFields(trackingEnabled);
- try{for(const {sensor} of sources)store.register(sensor,fields);return {store,fields,sources};}catch(error){store.close();throw error;}
+export function configureSensors(reader:ConfigurationReader,trackingEnabled:(excludePaused:boolean)=>boolean,registry?:HistoryFields){
+ const sources=readSensorConfiguration(reader),store=new SensorStore(),fields=registry??new HistoryFields(trackingEnabled);
+ const rollback=fields.registrationRollback();
+ try{for(const {sensor} of sources)store.register(sensor,fields);return {store,fields,sources};}catch(error){rollback();store.close();throw error;}
 }

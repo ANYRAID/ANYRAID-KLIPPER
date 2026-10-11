@@ -24,6 +24,8 @@ import {readMqttStatusOptions} from './mqtt-status.ts';
 import type {StatusView} from './subscription-status.ts';
 import {MqttSensors} from './mqtt-sensors.ts';
 import {configureNativeSensorsFromConfig} from './native-sensor-config.ts';
+import {NativeHistoryFields} from './native-history-fields.ts';
+import type {HistoryFields} from './history-fields.ts';
 import {MqttMacroPublisher} from './mqtt-macros.ts';
 import {registerMqttPublish,registerMqttSubscribe} from './mqtt-api.ts';
 import {SensorStore,registerSensors} from './sensors.ts';
@@ -114,6 +116,9 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
   * files, and the process factory closes the authoritative journal afterwards. */
  nativeProcessFiles?:NativePrintUploads;
  nativeProcessHistory?:PrintJournal;
+ /** Register process providers alongside configured sensor fields, once before
+  * listening. Updates use the same native print gate and atomic journal. */
+ nativeHistoryAuxiliary?:(fields:HistoryFields)=>void;
  nativePrinterIdentity?:NativePrinterIdentity;
  productPrintCompatibility?:NativePrintCompatibility;
  productHostControl?:ProductHostControl;
@@ -217,6 +222,7 @@ export class ConfiguredMoonraker {
  #sensors:SensorStore|undefined;#sensorTimer:ReturnType<typeof setInterval>|undefined;#sensorError:string|null=null;#sensorSamples=0;#sensorNotifications=notificationMetrics();
  #nativeUploads:NativePrintUploads|undefined;#configFiles:NativeConfigFiles|undefined;
  #nativeProcessFiles:NativePrintUploads|undefined;#nativeProcessHistory:PrintJournal|undefined;#nativeController:PrintController|undefined;
+ #nativeHistoryFields:NativeHistoryFields|undefined;
  #printApi:PrintApi|ProductPrintApi|undefined;
  #nativeQueue:NativeJobQueue|undefined;#releaseNativeQueue=()=>{};
  #queueNotifications=notificationMetrics();
@@ -287,7 +293,7 @@ export class ConfiguredMoonraker {
   const releaseHostControl=options.productHostControl?registerProductHostControl(this.endpoints,options.productHostControl):()=>{};
   let releasePrint=this.#printApi instanceof ProductPrintApi?registerProductPrintApi(this.endpoints,this.#printApi):this.#printApi?registerPrintApi(this.endpoints,this.#printApi):this.#registerDetachedNativeRoutes();
   const releaseHistoryIdle=this.#historyRuntime?this.maintenanceGate.registerIdle(()=>!this.#historyRuntime!.status.awaitingPrintStart):()=>{};
-  let releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):(options.productPrint&&this.#nativeUploads||this.#nativeProcessHistory&&this.#nativeProcessFiles)?(this.#nativeHistory=registerNativeHistory(this.endpoints,(this.#nativeProcessHistory??options.productPrint)!, (this.#nativeProcessFiles??this.#nativeUploads)!,event=>{if(!this.#stopping)this.#broadcastTracked('notify_history_changed',[event],this.#historyNotifications);},this.#nativeProcessHistory?()=>this.#nativeController:undefined)):()=>{};
+  let releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):(options.productPrint&&this.#nativeUploads||this.#nativeProcessHistory&&this.#nativeProcessFiles)?(this.#nativeHistory=registerNativeHistory(this.endpoints,(this.#nativeProcessHistory??options.productPrint)!, (this.#nativeProcessFiles??this.#nativeUploads)!,event=>{if(!this.#stopping)this.#broadcastTracked('notify_history_changed',[event],this.#historyNotifications);},this.#nativeProcessHistory?()=>this.#nativeController:undefined,()=>this.#nativeHistoryFields?.fields.snapshot().totals??[])):()=>{};
   const releaseMaintenance=this.#database?registerDatabaseMaintenance(this.endpoints,this.#database,()=>this.#requireDatabaseIdle(),options.onDatabaseRestore?()=>{this.#databaseRestart.requested=true;void Promise.resolve().then(options.onDatabaseRestore).catch(error=>{this.#databaseRestart.error=error instanceof Error?error.message:'Database restart failed';});}:undefined,()=>this.maintenanceGate):()=>{};
   const releaseTemperature=this.#temperatureStore?registerTemperatureStore(this.endpoints,this.#temperatureStore.store):()=>{};
   if(options.systemInformation)this.#systemInformation=new SystemInformation(options.systemInformation.source,network=>{if(!this.#stopping)this.#broadcastTracked('notify_net_state_changed',[network],this.#systemNotifications);});
@@ -359,28 +365,34 @@ export class ConfiguredMoonraker {
   const templates=options.templates?await MoonrakerTemplateFactory.load(reader,options.templates):undefined;
   let mqtt:Awaited<ReturnType<typeof configureNativeSensorsFromConfig>>|undefined;
   try{const automatic=options.klippy?{...await readKlippyBinding(reader,options.klippy.pathContext,options.klippy.retryDelayMs),initialization:options.klippy.initialization??{}}:undefined;
+   const native=!!options.nativeProcessHistory||!!options.productPrint?.durable;
+   if(options.nativeHistoryAuxiliary!==undefined&&(!native||options.history||typeof options.nativeHistoryAuxiliary!=='function'))throw new ConfigurationError('Native auxiliary providers require a durable native print owner');
+   const nativeHistory=native?new NativeHistoryFields():undefined;
    let configuredOptions=options;
    // Explicit sources keep their existing owner. Otherwise configuration owns
    // one process generation; constructing it never starts a broker connection.
    if(!options.sensorTransport&&(reader.hasSection('mqtt')||reader.prefixSections('sensor ').length)){
     if(options.sensors)throw new ConfigurationError('Choose configured MQTT sensors or an explicit sensor owner');
     let trackingEnabled:(excludePaused:boolean)=>boolean=()=>false;
-    mqtt=await configureNativeSensorsFromConfig(reader,exclude=>trackingEnabled(exclude));
+    mqtt=await configureNativeSensorsFromConfig(reader,exclude=>trackingEnabled(exclude),{},nativeHistory?.fields);
     const fields=mqtt.fields;
-    if(fields.configuration.length&&(!options.history||options.history.auxiliary||options.history.auxiliaryTotals))throw new ConfigurationError('Configured sensor history fields require their matching history auxiliary owner');
-    const history=fields.configuration.length?{...options.history!,auxiliary:(gate:(excludePaused:boolean)=>boolean)=>{trackingEnabled=gate;return fields;}}:options.history;
+    if(fields.configuration.length&&!nativeHistory&&(!options.history||options.history.auxiliary||options.history.auxiliaryTotals))throw new ConfigurationError('Configured sensor history fields require their matching history auxiliary owner');
+    const history=fields.configuration.length&&!nativeHistory?{...options.history!,auxiliary:(gate:(excludePaused:boolean)=>boolean)=>{trackingEnabled=gate;return fields;}}:options.history;
     configuredOptions={...options,sensors:mqtt.sensors,sensorTransport:mqtt.sensorTransport,...history?{history}:{}};
     // Fail before constructing other service resources or admitting a broker.
     const api=reader.section('mqtt').getBoolean('enable_moonraker_api',{defaultValue:!!options.mqttAuthorize});
     if(api&&!options.mqttAuthorize)throw new ConfigurationError('MQTT API requires explicit broker authorization');
     readMqttStatusOptions(reader);
    }
-   return {reader,automatic,templates,mqtt,configuredOptions};
+   const returned=options.nativeHistoryAuxiliary?.(nativeHistory!.fields);
+   if(returned!==undefined){if(returned&&typeof (returned as {then?:unknown}).then==='function')void Promise.resolve(returned).catch(()=>{});throw new ConfigurationError('Native auxiliary provider registration must be synchronous and return no owner');}
+   nativeHistory?.fields.seal();
+   return {reader,automatic,templates,mqtt,configuredOptions,nativeHistory};
   }catch(error){try{await mqtt?.close();}finally{templates?.close();}throw error;}
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
-  const {reader,automatic,templates,mqtt,configuredOptions}=await this.#prepare(filename,options);let server:ConfiguredMoonraker|undefined;
-  try{server=new ConfiguredMoonraker(reader,configuredOptions,automatic);server.#templates=templates;server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);await server.#initializeNativeQueue();templates?.markConfigured();return server;}
+  const {reader,automatic,templates,mqtt,configuredOptions,nativeHistory}=await this.#prepare(filename,options);let server:ConfiguredMoonraker|undefined;
+  try{server=new ConfiguredMoonraker(reader,configuredOptions,automatic);server.#templates=templates;server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);await server.#initializeNativeQueue();server.#nativeHistoryFields=nativeHistory;if(options.productPrint)nativeHistory?.bind(options.productPrint);templates?.markConfigured();return server;}
   catch(error){try{if(server)await server.close();else{try{await mqtt?.close();}finally{templates?.close();}}}catch(cleanup){throw new AggregateError([error,cleanup],'Queue initialization and server cleanup failed');}throw error;}
  }
  /** Configuration-owned native authorization; does not listen or switch any
@@ -398,7 +410,7 @@ export class ConfiguredMoonraker {
   if(options.templates&&options.authorization.templateSecrets)throw new ConfigurationError('Choose one private template generation');
   const templateContext=options.templates??options.authorization.templateSecrets;
   if(templateContext&&options.authorization.ldapConfiguration?.render)throw new ConfigurationError('Choose one LDAP template dependency');
-  const {reader,automatic,templates,mqtt,configuredOptions}=await this.#prepare(filename,{...resolved,templates:templateContext});
+  const {reader,automatic,templates,mqtt,configuredOptions,nativeHistory}=await this.#prepare(filename,{...resolved,templates:templateContext});
   let server:ConfiguredMoonraker|undefined,ldap:LdapAuthorization|undefined;
   try{
    const context=options.authorization.ldapConfiguration;
@@ -410,7 +422,7 @@ export class ConfiguredMoonraker {
    server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);
    auth=await ApiKeyAuthorization.open(options.database,policy);server.#authorization=auth;
    server.#releaseAuthorization=auth.register(server.endpoints,server);
-   await server.#initializeNativeQueue();templates?.markConfigured();server.setInformation({...server.#base,components:[...new Set([...server.#base.components,'authorization'])]});return server;
+   await server.#initializeNativeQueue();server.#nativeHistoryFields=nativeHistory;if(options.productPrint)nativeHistory?.bind(options.productPrint);templates?.markConfigured();server.setInformation({...server.#base,components:[...new Set([...server.#base.components,'authorization'])]});return server;
   }catch(error){try{if(server)await server.close();else{try{await mqtt?.close();}finally{templates?.close();await ldap?.close();}}}catch(cleanup){throw new AggregateError([error,cleanup],'Authorization initialization and cleanup failed');}throw error;}
  }
  async #initializeNativeQueue():Promise<void>{
@@ -615,7 +627,7 @@ export class ConfiguredMoonraker {
      if(!this.#nativeProcessFiles){this.#releaseFileChanges=uploads.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications));this.#nativeReleases.push(this.#releaseFileChanges);}
     }
     // Product-specific routes register synchronously before readiness publication.
-    prepare?.();
+    prepare?.();this.#nativeHistoryFields?.bind(controller);
     this.#nativeTemperatureObjects=objects;this.#temperatureStore!.readyNative(objects);
     this.#startupAbort.signal.throwIfAborted();const fresh=readNativeHostStatus(host);scope.signal.throwIfAborted();
     if(gate.status.closed||gate.status.activities||gate.status.maintenance||fresh.group_state!=='ready'||fresh.hardware_state!=='ready'||fresh.closing||fresh.admission_closed||fresh.maintenance||fresh.mcus.some(m=>m.state!=='ready')||fresh.print_state!==controller.state||!['idle','interrupted'].includes(controller.state)||controller.pendingDeviceActions||controller.safeStopPending)throw new ApiError(409,'New native hardware changed during attachment');

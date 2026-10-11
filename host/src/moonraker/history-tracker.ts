@@ -33,6 +33,15 @@ function finite(value:number):number{if(!Number.isFinite(value))throw new ApiErr
 /** Per-field, per-runtime state; no process-global history singleton. Updates
  * do no I/O. JSON ownership and a 64 KiB retained-value limit bound snapshots. */
 export class HistoryTracker {
+ /** Stage a job boundary without losing the prior job on rejected durable
+  * admission. Reset callbacks remain synchronous and all fields roll back if
+  * any callback fails. The caller settles the returned rollback once. */
+ static stageReset(trackers:readonly HistoryTracker[]):()=>void{
+  if(!Array.isArray(trackers)||trackers.length>64||trackers.some(tracker=>!(tracker instanceof HistoryTracker))||new Set(trackers).size!==trackers.length)throw new ApiError(400,'Invalid history reset batch');
+  const undo=trackers.map(tracker=>tracker.#checkpoint());let restored=false;
+  const rollback=()=>{if(restored)return;restored=true;for(const restore of undo)restore();};
+  try{for(const tracker of trackers)tracker.reset();}catch(error){rollback();throw error;}return rollback;
+ }
  /** Sensor frames update several fields atomically. Ordinary single-field
   * updates keep their allocation-free numeric path. */
  static updateBatch(updates:readonly {tracker:HistoryTracker;value:Json;numberType?:HistoryNumberType}[]):void{
