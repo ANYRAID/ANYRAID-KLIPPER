@@ -3901,9 +3901,29 @@ Linux socket 路径容量校验保留。显式 `pathContext` 的旧适配入口�
 配置和显式渲染器仍可用。`password_file` 仍按上游顺序先读取，即使
 后续模板覆盖密码也不忽略不存在、过大或无效文件。
 
-这条 getter 路径没有自动创建或启动 MQTT 传输；传感器模板仍使用
-独立原生适配器。调用方继续负责 generation 的所有权与清理，完整
-配置自动装配和共享传感器环境尚未交付。复现加载基准使用 Node.js 26
+getter 本身不启动传输。标准 `ConfiguredMoonraker.load`／`loadAuthorized`
+及普通原生产品入口现读取 `[mqtt]`／`[sensor ...]` 并创建一份连接和
+传感器代际，凭据消费同一私密工厂；`start()` 才连接，设备配置重建
+保留连接，服务退出或启动失败清理。调用方已提供完整 `sensors`／
+`sensorTransport` 时保留显式装配路径；仅提供 sensor store 则拒绝
+竞争所有者。直接调用 generation 工具时仍由调用方负责转移及清理。
+
+`enable_moonraker_api` 要求明确的 `mqttAuthorize`，不会从 HTTP 权限
+推断 broker 请求权限。无该策略时缺省关闭。传感器历史字段须提供
+匹配的 `history`，且不得已有 `auxiliary`／`auxiliaryTotals`；任务
+启动、暂停、恢复和结束经真实 HistoryRuntime 门控。原生产品历史
+日志尚不支持这些字段，配置此组合会明确拒绝，不能据此宣称完整历史。
+传感器消息模板仍使用独立原生适配器，共享传感器环境继续开放。
+
+复现装配基准使用 Node.js 26 执行
+`node host/bench/configured-mqtt-components.ts`，其冻结参考为之前手工
+装配同一私密工厂、传输和传感器的路径。计时含配置加载、真实
+CONNECT／SUBACK 和 HTTP 监听，模块导入及夹具准备不计入冷启动。
+另组混合 1000 条消息与 100 次鉴权查询，均通过原 1.5 倍桌面预算；
+不是完整产品包、打印或目标板证明，见
+[配置装配记录](../host/contracts/configured-mqtt-components-acceptance.json)。
+
+复现凭据加载基准使用 Node.js 26
 执行 `node host/bench/mqtt-config.ts`，日常不调用 Python。17 条固定参考
 使用上游真实 JinjaTemplate 包装，源码／编译相关回归各 24 项通过，
 三组加载通过修改前冻结的 1.5 倍桌面预算。初次错误参考及监听 EPERM

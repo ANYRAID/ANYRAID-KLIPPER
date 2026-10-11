@@ -23,6 +23,7 @@ import {MqttStatusRuntime} from './mqtt-status-runtime.ts';
 import {readMqttStatusOptions} from './mqtt-status.ts';
 import type {StatusView} from './subscription-status.ts';
 import {MqttSensors} from './mqtt-sensors.ts';
+import {configureNativeSensorsFromConfig} from './native-sensor-config.ts';
 import {MqttMacroPublisher} from './mqtt-macros.ts';
 import {registerMqttPublish,registerMqttSubscribe} from './mqtt-api.ts';
 import {SensorStore,registerSensors} from './sensors.ts';
@@ -356,14 +357,31 @@ export class ConfiguredMoonraker {
   if(options.klippy!==undefined&&(!options.klippy||typeof options.klippy!=='object'||Array.isArray(options.klippy)))throw new ConfigurationError('Invalid Klippy configuration owner');
   const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));
   const templates=options.templates?await MoonrakerTemplateFactory.load(reader,options.templates):undefined;
+  let mqtt:Awaited<ReturnType<typeof configureNativeSensorsFromConfig>>|undefined;
   try{const automatic=options.klippy?{...await readKlippyBinding(reader,options.klippy.pathContext,options.klippy.retryDelayMs),initialization:options.klippy.initialization??{}}:undefined;
-   return {reader,automatic,templates};
-  }catch(error){templates?.close();throw error;}
+   let configuredOptions=options;
+   // Explicit sources keep their existing owner. Otherwise configuration owns
+   // one process generation; constructing it never starts a broker connection.
+   if(!options.sensorTransport&&(reader.hasSection('mqtt')||reader.prefixSections('sensor ').length)){
+    if(options.sensors)throw new ConfigurationError('Choose configured MQTT sensors or an explicit sensor owner');
+    let trackingEnabled:(excludePaused:boolean)=>boolean=()=>false;
+    mqtt=await configureNativeSensorsFromConfig(reader,exclude=>trackingEnabled(exclude));
+    const fields=mqtt.fields;
+    if(fields.configuration.length&&(!options.history||options.history.auxiliary||options.history.auxiliaryTotals))throw new ConfigurationError('Configured sensor history fields require their matching history auxiliary owner');
+    const history=fields.configuration.length?{...options.history!,auxiliary:(gate:(excludePaused:boolean)=>boolean)=>{trackingEnabled=gate;return fields;}}:options.history;
+    configuredOptions={...options,sensors:mqtt.sensors,sensorTransport:mqtt.sensorTransport,...history?{history}:{}};
+    // Fail before constructing other service resources or admitting a broker.
+    const api=reader.section('mqtt').getBoolean('enable_moonraker_api',{defaultValue:!!options.mqttAuthorize});
+    if(api&&!options.mqttAuthorize)throw new ConfigurationError('MQTT API requires explicit broker authorization');
+    readMqttStatusOptions(reader);
+   }
+   return {reader,automatic,templates,mqtt,configuredOptions};
+  }catch(error){try{await mqtt?.close();}finally{templates?.close();}throw error;}
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
-  const {reader,automatic,templates}=await this.#prepare(filename,options);let server:ConfiguredMoonraker|undefined;
-  try{server=new ConfiguredMoonraker(reader,options,automatic);server.#templates=templates;server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);await server.#initializeNativeQueue();templates?.markConfigured();return server;}
-  catch(error){try{if(server)await server.close();else templates?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Queue initialization and server cleanup failed');}throw error;}
+  const {reader,automatic,templates,mqtt,configuredOptions}=await this.#prepare(filename,options);let server:ConfiguredMoonraker|undefined;
+  try{server=new ConfiguredMoonraker(reader,configuredOptions,automatic);server.#templates=templates;server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);await server.#initializeNativeQueue();templates?.markConfigured();return server;}
+  catch(error){try{if(server)await server.close();else{try{await mqtt?.close();}finally{templates?.close();}}}catch(cleanup){throw new AggregateError([error,cleanup],'Queue initialization and server cleanup failed');}throw error;}
  }
  /** Configuration-owned native authorization; does not listen or switch any
   * printer entry point. Failed initialization closes transferred resources. */
@@ -380,7 +398,7 @@ export class ConfiguredMoonraker {
   if(options.templates&&options.authorization.templateSecrets)throw new ConfigurationError('Choose one private template generation');
   const templateContext=options.templates??options.authorization.templateSecrets;
   if(templateContext&&options.authorization.ldapConfiguration?.render)throw new ConfigurationError('Choose one LDAP template dependency');
-  const {reader,automatic,templates}=await this.#prepare(filename,{...resolved,templates:templateContext});
+  const {reader,automatic,templates,mqtt,configuredOptions}=await this.#prepare(filename,{...resolved,templates:templateContext});
   let server:ConfiguredMoonraker|undefined,ldap:LdapAuthorization|undefined;
   try{
    const context=options.authorization.ldapConfiguration;
@@ -388,12 +406,12 @@ export class ConfiguredMoonraker {
    const ldapOptions=reader.hasSection('ldap')?await readLdapOptions(reader,templates?{...context,render:(source,signal)=>{signal.throwIfAborted();const template=templates.createTemplate(source);try{const value=template.render();signal.throwIfAborted();return value;}finally{template.close();}}}:context):undefined;
    ldap=ldapOptions?new (await import('./ldap-authorization.ts')).LdapAuthorization(ldapOptions):undefined;
    const {cors,...policy}=readAuthorizationOptions(reader,options.authorization.issuer,ldap);
-   server=new ConfiguredMoonraker(reader,{...resolved,...cors?{cors}:{}},automatic);server.#ldap=ldap;server.#templates=templates;
+   server=new ConfiguredMoonraker(reader,{...configuredOptions,...cors?{cors}:{}},automatic);server.#ldap=ldap;server.#templates=templates;
    server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);
    auth=await ApiKeyAuthorization.open(options.database,policy);server.#authorization=auth;
    server.#releaseAuthorization=auth.register(server.endpoints,server);
    await server.#initializeNativeQueue();templates?.markConfigured();server.setInformation({...server.#base,components:[...new Set([...server.#base.components,'authorization'])]});return server;
-  }catch(error){try{if(server)await server.close();else{templates?.close();await ldap?.close();}}catch(cleanup){throw new AggregateError([error,cleanup],'Authorization initialization and cleanup failed');}throw error;}
+  }catch(error){try{if(server)await server.close();else{try{await mqtt?.close();}finally{templates?.close();await ldap?.close();}}}catch(cleanup){throw new AggregateError([error,cleanup],'Authorization initialization and cleanup failed');}throw error;}
  }
  async #initializeNativeQueue():Promise<void>{
   if(!this.reader.hasSection('job_queue'))return;
@@ -685,6 +703,7 @@ export class ConfiguredMoonraker {
  setInformation(snapshot:InformationSnapshot):void{
   if(this.#stopping)throw new Error('Configured server is stopping');
   if(this.#templates)snapshot={...snapshot,components:[...new Set([...snapshot.components,'template','secrets'])]};
+  if(this.#sensorTransport)snapshot={...snapshot,components:[...new Set([...snapshot.components,'mqtt',...this.#sensors?.status.sensors?['sensor']:[]])]};
   const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);const faulted=this.#metadataMonitor?.status.phase==='faulted';this.#information.replace({...copy,directories:[...new Set([...copy.directories,...this.#nativeProcessFiles||this.#nativeUploads?['gcodes']:[],...this.#configFiles?['config']:[]])],components:[...new Set([...copy.components,...this.#database?['database']:[],...this.#authorization?['authorization']:[],...this.#ldap?['ldap']:[],...this.#webcams?['webcam']:[],...this.#announcements?['announcements']:[],...this.#procStats?['proc_stats']:[],...this.#nativeHistory||this.#historyRuntime?['history']:[],...this.#metadataMonitor?['metadata_monitor']:[]])],failedComponents:[...new Set([...copy.failedComponents,...faulted?['metadata_monitor']:[],...this.#historyRuntime?.status.failure?['history']:[],...this.#sensorError?['sensor']:[]])],warnings:[...new Set([...copy.warnings,...this.#historyRuntime?.status.failure?['History persistence failed; tracking requires restart']:[],...this.#sensorError?['Sensor sampling failed; restart required']:[],...faulted?['File metadata monitoring failed; cached file metadata is unavailable']:[],...this.reader.warnings(),...this.klippyRemoteMethodFailures.map(f=>`Klippy remote method registration failed: ${f.name}`)])]});this.#base=copy;
  }
  start():Promise<AddressInfo>{

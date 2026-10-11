@@ -1,5 +1,5 @@
-/** Explicit native-template candidate assembly. Does not enable the candidate
- * in the production configuration loader or start a broker connection. */
+/** Native sensor assembly used by the configured server and explicit callers.
+ * Constructing a generation does not start a broker connection. */
 import {ConfigurationReader} from './config-reader.ts';
 import {ConfigurationError} from './config-source.ts';
 import {configureSensors} from './sensor-config.ts';

@@ -8,6 +8,7 @@ import {createNativeProductHostFactory,type NativeProductProcessOptions} from '.
 import {ProductHostControl} from '../src/runtime/product-host-control.ts';
 import {PublishedPrintFiles} from '../src/storage/published-files.ts';
 import {productMachineFixture} from './helpers/product-machine.ts';
+import {mqttPeer} from './helpers/mqtt-peer.ts';
 const signal=()=>new AbortController().signal;
 async function fixture(){
  const root=await mkdtemp(join(tmpdir(),'native-components-')),machine=await productMachineFixture(root),dataPath=join(root,'private'),control=new ProductHostControl();await mkdir(dataPath);
@@ -43,4 +44,11 @@ test('private file startup failure releases process owners and never acquires a 
 for(const alias of ['templates','templateSecrets'] as const)test(`process rejects competing ${alias} owner and cleans the returned dependency`,async()=>{
  const f=await fixture();const create=f.options.createProcess;f.options.createProcess=async(config,s)=>{const resources=await create(config,s);if(alias==='templates')resources.server.templates={dataPath:join(f.root,'other')};else resources.server={...resources.server,authorization:{issuer:'https://invalid.test',templateSecrets:{dataPath:join(f.root,'other')}}} as any;return resources;};const factory=createNativeProductHostFactory(f.machine.path,f.options);
  try{await assert.rejects(factory.bootstrap!(signal(),f.control),/owns template and secrets/);assert.equal(f.counts.devices,0);await factory.close!();assert.equal(f.counts.releases,1);}finally{await factory.close!();await f.close();}
+});
+test('product bootstrap owns configured MQTT across device profile replacement',async()=>{
+ const f=await fixture(),peer=await mqttPeer();await writeFile(f.machine.config.moonrakerConfig,`[server]\nhost: 127.0.0.1\nport: 0\n[mqtt]\naddress: 127.0.0.1\nport: ${peer.port}\nusername: {secrets["username"]}\n`);await writeFile(join(f.dataPath,'moonraker.secrets'),'{"username":"fixture-product-user"}');const factory=createNativeProductHostFactory(f.machine.path,f.options);let server:Awaited<ReturnType<NonNullable<typeof factory.bootstrap>>>['server']|undefined,profile:Awaited<ReturnType<typeof factory>>|undefined;
+ try{server=(await factory.bootstrap!(signal(),f.control)).server;assert.equal(f.counts.devices,0);await server.start();assert.equal(server.sensorTransportStatus?.connections,1);const owner=server.templates!;
+  for(let i=0;i<2;i++){profile=await factory(signal());await profile.release();profile=undefined;assert.equal(server.sensorTransportStatus?.closed,false);assert.equal(server.sensorTransportStatus?.connections,1);assert.equal(server.templates,owner);}assert.deepEqual(f.counts,{opens:1,devices:2,releases:0});
+  await server.close();assert.equal(server.sensorTransportStatus?.closed,true);assert.equal(owner.toJSON().closed,true);await factory.close!();assert.equal(f.counts.releases,1);
+ }finally{await profile?.release();await server?.close();await factory.close!();await peer.close();await f.close();}
 });

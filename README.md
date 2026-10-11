@@ -47,7 +47,14 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 凭据来源在公开配置中脱敏。相关源码与关闭 TS／外部子进程的独立
 JavaScript 各 24 项通过，三组冻结加载预算通过；日常 MQTT 配置回归
 和基准不再启动 Python，见[MQTT 消费证据](host/contracts/mqtt-template-components-acceptance.json)。
-这不覆盖 MQTT 的完整自动装配、传感器共享环境或新产品包；新提交须自身 CI。
+凭据消费头 `9aea5294` 的十五项 CI、普通 4684／4684 已全部通过，
+见[该头终态](host/contracts/pr68-9aea-terminal.json)。标准加载器和普通产品
+启动现按配置拥有 MQTT／传感器；真实消息、鉴权 HTTP、任务历史门控、
+设备重建及失败清理的独立 JavaScript 回归共 64 项通过。
+冻结的装配启动／1000 消息混合查询比值 1.010／1.024，通过原 1.5
+桌面预算，见[配置装配证据](host/contracts/configured-mqtt-components-acceptance.json)。
+传感器共享环境、原生历史日志辅助字段、新产品包与目标板仍未完成；
+新装配提交须自身 CI。
 配置路径的单独结果不覆盖完整产品装配、新包或目标板打印；上一工厂头
 `4592243d` 的十五项 CI 和普通 4624／4624 独立通过，见
 [该头终态](host/contracts/pr68-459-terminal.json)，新路径提交须自身检查。
