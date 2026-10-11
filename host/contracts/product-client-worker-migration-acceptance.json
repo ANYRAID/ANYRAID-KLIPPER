@@ -1326,7 +1326,6 @@
     "productSourceChanged": false,
     "performance": "No product behavior or native binary changed in this evidence-only increment; previous package-bound budgets remain separately scoped",
     "remaining": [
-      "Fluidd equivalent preview",
       "Mainsail downloaded content hash",
       "Both-client full preview and external fault recovery",
       "Latest motion CI deadline failure",
@@ -1339,6 +1338,95 @@
       "bytes": 961218,
       "entries": 22,
       "allEntryHashesVerified": true
+    },
+    "r18": {
+      "sourceHead": "822e60d6cc36b542c3b294d448d9efa28595582d",
+      "client": "Official Fluidd 1.37.6",
+      "origin": "http://127.0.0.1:18388",
+      "bundle": {
+        "manifestSha256": "5116d33b27725c0739f5bf79f997e3761fc8003f10bb3d23ba5c5a64872f7e63",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "closure": {
+        "name": "fluidd",
+        "started": "2026-10-11T13:40:35.996Z",
+        "deadline": "2026-10-11T13:55:35.996Z",
+        "closed": "2026-10-11T13:50:20.125Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 584129,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1046361,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1046303,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/anyraid-client-credentials-product-oct11",
+        "automaticExtensionOrRelaunch": false
+      },
+      "upload": {
+        "actualChooser": true,
+        "httpStatus": 201,
+        "metadataLog": "anyraid-client-r16-upload-metadata.jsonl",
+        "metadataLogInheritedName": true,
+        "at": "2026-10-11T13:47:38.059Z",
+        "fields": {
+          "path": "",
+          "root": "gcodes"
+        }
+      },
+      "preview": {
+        "fromServerFile": true,
+        "filename": "anyraid-preview-layered-oct11.gcode",
+        "totalLayers": 2,
+        "selectedLayers": [
+          {
+            "layer": 1,
+            "height": 0.2,
+            "completedMoves": 6
+          },
+          {
+            "layer": 2,
+            "height": 0.4,
+            "completedMoves": 4
+          }
+        ],
+        "squareTrajectoryVisible": true,
+        "thumbnailHttpStatus": 200,
+        "objectHeight": 0.4,
+        "layerHeight": 0.2,
+        "filamentMm": 2,
+        "estimatedSeconds": 6
+      },
+      "download": {
+        "actualMenuAndBrowserDownload": true,
+        "sourceBytes": 944,
+        "downloadedBytes": 944,
+        "sha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f",
+        "byteIdentical": true
+      },
+      "optionalUiNamespaceErrorRetained": {
+        "code": -32601,
+        "message": "Database namespace not found"
+      },
+      "printStarted": false,
+      "allSessionPortsReleased": true,
+      "automaticExtensionOrRelaunch": false,
+      "scope": "Synthetic two-layer client parsing/rendering and native file transfer; no real motion, slicing, precision, performance or full hardware claim",
+      "evidence": {
+        "path": "product-client-fluidd-preview-r18.evidence.json.gz",
+        "sha256": "171e4e22a6793dfab96763107f96c7fa6296992e560aca05c42a77081c4c0dec",
+        "entries": 9,
+        "bytes": 75480,
+        "allEntryHashesVerified": true
+      }
     }
   }
 }
