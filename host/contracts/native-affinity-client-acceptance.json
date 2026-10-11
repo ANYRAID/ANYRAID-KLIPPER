@@ -1,0 +1,460 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "head": "997417d4ba7444cfa253bef2f5d1a486690772b6",
+  "status": "controlled-new-bundle-built-client-journeys-partial-performance-and-native-root-cause-open",
+  "compilerControls": {
+    "hypothesis": "Core and concurrent-load sensitivity of a fixed previously failed compiler command",
+    "sequential": {
+      "runs": 6,
+      "eachCoreOnce": true,
+      "allSucceeded": true
+    },
+    "concurrent": {
+      "runs": 6,
+      "singleBatch": true,
+      "allSucceeded": true
+    },
+    "inputsUnchanged": true,
+    "librarySHA256": "fe605ed8cfefb1f85ed9b949c45758d02f65c80989fc575300d5d35022f032ef",
+    "metadataSHA256": "95ff6af157feed7a96e10adaa39b32679513dffa63faa1aedbca46f136289a72",
+    "conclusion": "All twelve fixed compiler results have identical library and metadata bytes. No observed core/concurrent-load correlation; original failures remain unexplained, not waived."
+  },
+  "newProduct": {
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-997-cpu0-oct12",
+      "manifestSha256": "29595440edfd2e11908ea38809ecff571e40816aab4e64b4ef74873dda851377",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "sourceFiles": 75,
+    "nodeHeaders": 2810,
+    "inventoryFiles": 684,
+    "nativeOutputs": {
+      "trapq.node": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+      "stepcompress.node": "255a84728574d1534bad1796883d9232d56cb5089581676fc47c5cb202a9cb95",
+      "serialqueue.node": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac",
+      "unix-peer.node": "452966303dbeb2e1bbe1ea7e4183705ac2015958630b88772118e2954d44212e",
+      "sealed-file.node": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+      "file-events.node": "0c0c6bf4d8702b37514da7c0a3b524682c666830fcafabac50d249c18cdd802c",
+      "can-query.node": "33135adc0307937ed196ce305c4b52003dc617ec5a9c1550c21b8c22e00a760a",
+      "ar100-flash.node": "5018b82bbf784653d7a55678ed768e52d5eb3acb8f05702b71ceb8d9627215f9",
+      "template.node": "59162ac46f8db0a03591b925a50c1154b293f7d7d7fa1811dba825eeabd483f4",
+      "fatfs-helper": "262fccdaeb2d9733f48b4d2b0ec47319bc05ed8f57c61d02e4080478a4c80c7b",
+      "file-write-lease": "38fe07785a44103e1ef1a69412d6a8a93822df3e2373c702f6f1b92522de7355"
+    },
+    "buildCondition": "Full current-source TypeScript plus private C/Rust snapshots; offline locked Rust 1.89.0; single Cargo job; whole build process pinned to CPU 0. Application run was not pinned and product defaults were not changed.",
+    "buildSuccess": true,
+    "productionDependencies": 18,
+    "download": {
+      "name": "anyraid-product-host-997-cpu0-oct12.tar.gz",
+      "bytes": 22039003,
+      "sha256": "13851995cf77456c98809801e1e44efab1cb6cef8637f07d42212fb9a22f61bf"
+    },
+    "scope": "Desktop acceptance artifact, not default scheduling stability, reproducibility, signed release or target-board acceptance"
+  },
+  "performance": {
+    "originalAsync": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+      "results": [
+        {
+          "name": "pure",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            4.9945260000000005,
+            4.988095999999999,
+            4.517212999999998,
+            4.588763,
+            4.5902829999999994,
+            4.508972,
+            4.833645000000004
+          ],
+          "medianMs": 4.5902829999999994,
+          "referenceMedianMs": 6.315300997812301,
+          "ratio": 0.7268510244547537,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "callback",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            12.298198999999983,
+            12.088268,
+            12.23348900000002,
+            12.179618000000005,
+            12.145827999999995,
+            12.444019999999995,
+            11.949826999999999
+          ],
+          "medianMs": 12.179618000000005,
+          "referenceMedianMs": 9.619439020752907,
+          "ratio": 1.2661463910446116,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "ui",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            12.042968000000002,
+            11.974866999999989,
+            11.978185999999994,
+            11.966466999999966,
+            12.049837000000025,
+            11.952526999999975,
+            11.890986000000055
+          ],
+          "medianMs": 11.974866999999989,
+          "referenceMedianMs": 8.285223972052336,
+          "ratio": 1.4453280973928446,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    "originalFactory": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+      "results": [
+        {
+          "name": "sync",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            1.494691000000003,
+            0.8943069999999977,
+            0.9705670000000026,
+            1.0620979999999989,
+            1.1221080000000043,
+            0.8533660000000012,
+            0.8566160000000025
+          ],
+          "medianMs": 0.9705670000000026,
+          "referenceMedianMs": 3.5718820290639997,
+          "ratio": 0.2717242596767219,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "async",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            6.541316999999992,
+            4.6635339999999985,
+            4.68896500000001,
+            4.629613000000006,
+            4.614924000000002,
+            7.2054430000000025,
+            4.627583999999999
+          ],
+          "medianMs": 4.6635339999999985,
+          "referenceMedianMs": 4.101527971215546,
+          "ratio": 1.1370235757816602,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "ui",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            4.651752999999999,
+            4.654143000000005,
+            7.624286000000012,
+            6.495497,
+            6.706698999999986,
+            6.717129,
+            7.25910300000001
+          ],
+          "medianMs": 6.706698999999986,
+          "referenceMedianMs": 3.2580499537289143,
+          "ratio": 2.058500973051077,
+          "maximumMedianRatio": 1.5,
+          "pass": false
+        }
+      ],
+      "pass": false,
+      "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+    },
+    "scope": "One original frozen run on a byte-identical copy of the new package; original warmups/samples/inputs/1.5 budgets unchanged. Factory UI 2.058500973051077 fails; all previous negatives retained."
+  },
+  "clientSessions": {
+    "plan": {
+      "head": "997417d4ba7444cfa253bef2f5d1a486690772b6",
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-997-cpu0-oct12",
+        "manifestSha256": "29595440edfd2e11908ea38809ecff571e40816aab4e64b4ef74873dda851377",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "buildControl": "Private full build from current sources, offline locked Rust, CARGO_BUILD_JOBS=1, whole build process fixed to CPU 0. No tuning or root-cause claim.",
+      "nativeSources": 75,
+      "nodeHeaders": 2810,
+      "productFiles": 684,
+      "sessions": [
+        {
+          "id": "r20",
+          "client": "mainsail",
+          "port": 18420,
+          "gatewayPort": 18422
+        },
+        {
+          "id": "r21",
+          "client": "fluidd",
+          "port": 18424,
+          "gatewayPort": 18426
+        }
+      ],
+      "maximumEachMs": 900000,
+      "includeStartup": true,
+      "automaticExpiryExtensionOrRelaunch": false,
+      "scope": "Temporary localhost only, same locked package and simulated MCU/PTYS; no physical device, heating, production switch or hardware acceptance"
+    },
+    "mainsail": {
+      "closure": {
+        "name": "mainsail",
+        "started": "2026-10-11T23:00:38.401Z",
+        "deadline": "2026-10-11T23:15:38.401Z",
+        "closed": "2026-10-11T23:15:26.852Z",
+        "reason": "900-second-deadline",
+        "elapsedMs": 888451,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1289173,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1289116,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-997-cpu0-oct12",
+        "automaticExtensionOrRelaunch": false
+      },
+      "login": "UI passed",
+      "fileList": "UI passed",
+      "uiUpload": "unverified; upload tool call waited 2088.2219 seconds and returned only after scene expiry; no upload request was recorded during the live window",
+      "preview": "unverified",
+      "recovery": "not executed",
+      "toolWaitCause": "not returned; do not infer a permission rejection or product cause"
+    },
+    "fluidd": {
+      "closure": {
+        "name": "fluidd",
+        "started": "2026-10-11T23:38:57.456Z",
+        "deadline": "2026-10-11T23:53:57.456Z",
+        "closed": "2026-10-11T23:49:48.539Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 651083,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1301991,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1301935,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-997-cpu0-oct12",
+        "automaticExtensionOrRelaunch": false
+      },
+      "login": "UI passed",
+      "input": "Two-layer synthetic file seeded through authenticated API, not UI upload",
+      "preview": "UI showed two layers and height 0.2",
+      "download": {
+        "status": "passed",
+        "transport": "Authenticated localhost API; not a browser download action",
+        "bytes": 944,
+        "sha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f",
+        "equalsOriginal": true
+      },
+      "socketDrop": "explicit 1012 reconnect; client re-identified/subscribed",
+      "processRecovery": "explicit graceful product-child restart inside live scene; CLIENT_PROCESS_READY 2, unchanged package and dependencies; not SIGKILL fault acceptance",
+      "fileListAfterRecovery": "UI passed",
+      "queueAfterRecovery": "UI addition observed and server.job_queue.post_job trace retained",
+      "configAfterRecovery": "UI displayed [include parts/machine.cfg]; HTTP200 retained; no config write",
+      "uiUpload": "not executed",
+      "uiDownload": "not executed",
+      "simulatedPrint": "not executed"
+    }
+  },
+  "exactHeadCI": {
+    "schema": 1,
+    "date": "2026-10-12",
+    "head": "997417d4ba7444cfa253bef2f5d1a486690772b6",
+    "checkout": "234d92fe6089416c938b0bddd3bdd7c1fd33eca4",
+    "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+    "status": "all-current-head-ci-success",
+    "workflowRuns": [
+      {
+        "id": 38181252875,
+        "head": "997417d4ba7444cfa253bef2f5d1a486690772b6",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38181252875"
+      },
+      {
+        "id": 38181252842,
+        "head": "997417d4ba7444cfa253bef2f5d1a486690772b6",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38181252842"
+      },
+      {
+        "id": 38181252778,
+        "head": "997417d4ba7444cfa253bef2f5d1a486690772b6",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38181252778"
+      }
+    ],
+    "jobs": [
+      {
+        "runId": 38181252875,
+        "jobId": 114594095691,
+        "name": "sanitizer (asan)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252875,
+        "jobId": 114594095904,
+        "name": "sanitizer (ubsan)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252875,
+        "jobId": 114594095969,
+        "name": "checks",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252875,
+        "jobId": 114597653882,
+        "name": "host",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252842,
+        "jobId": 114594095713,
+        "name": "build",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252778,
+        "jobId": 114594095457,
+        "name": "motion (26.9.0, default, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252778,
+        "jobId": 114594095620,
+        "name": "motion (26.9.0, default, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252778,
+        "jobId": 114594095638,
+        "name": "motion (26.10.0, default, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252778,
+        "jobId": 114594095666,
+        "name": "motion (26.9.0, off, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252778,
+        "jobId": 114594095673,
+        "name": "motion (26.9.0, off, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252778,
+        "jobId": 114594095679,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252778,
+        "jobId": 114594095680,
+        "name": "motion (26.10.0, off, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252778,
+        "jobId": 114594095688,
+        "name": "motion (26.10.0, default, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252778,
+        "jobId": 114594095718,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38181252778,
+        "jobId": 114594095798,
+        "name": "motion (26.10.0, off, source)",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "ordinary": {
+      "tests": 4740,
+      "pass": 4740,
+      "fail": 0
+    },
+    "rawLog": "pr68-997-checks-oct12.log",
+    "scope": "Exact bounded-message implementation head and actual merge checkout. Does not close local native compiler anomalies, frozen UI budgets, incomplete clients, G3 or Python retirement."
+  },
+  "open": [
+    "Factory/small-UI performance and native compiler root cause/default build stability",
+    "Complete Mainsail preview/recovery and actual UI upload/download, queue persistence/fault and complete simulated print journeys",
+    "Complete Moonraker/components/template language and all Python retirement",
+    "Consumer macros, G3 precision/timing, Cycnumbris 500 target hardware and normal integration/release; other machines last"
+  ],
+  "evidence": {
+    "path": "native-affinity-client-evidence.json.gz",
+    "entries": 77,
+    "bytes": 579277,
+    "sha256": "0a7c4f085d321ece73f751ceedb8f971d4793a04cd1721100b409f5cc90f6102"
+  }
+}
