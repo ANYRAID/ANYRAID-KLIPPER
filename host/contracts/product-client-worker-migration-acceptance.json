@@ -1214,5 +1214,131 @@
       "bytes": 214928,
       "entries": 27
     }
+  },
+  "previewOct11": {
+    "sourceHead": "95984efa780d8a433525e11aeebf7c246a5a7ce2",
+    "status": "Partial software preview acceptance; full dual-client exit remains open",
+    "bundle": {
+      "manifestSha256": "5116d33b27725c0739f5bf79f997e3761fc8003f10bb3d23ba5c5a64872f7e63",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "authorization": {
+      "standingInThisConversation": true,
+      "includesStartup": true,
+      "maxElapsedMs": 900000,
+      "loopbackOnly": true,
+      "simulatedMcuOnly": true,
+      "automaticExtensionOrRelaunch": false
+    },
+    "r16": {
+      "closure": {
+        "name": "fluidd",
+        "started": "2026-10-11T00:37:14.933Z",
+        "deadline": "2026-10-11T00:52:14.933Z",
+        "closed": "2026-10-11T00:52:10.398Z",
+        "reason": "900-second-deadline",
+        "elapsedMs": 895465,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 932696,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 932642,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/anyraid-client-credentials-product-oct11",
+        "automaticExtensionOrRelaunch": false
+      },
+      "uploadResult": "File chooser tool was interrupted; no page-upload result is proven",
+      "previewPassed": false
+    },
+    "r17": {
+      "client": "Official Mainsail 2.19.0",
+      "origin": "http://127.0.0.1:18378",
+      "closure": {
+        "name": "mainsail",
+        "started": "2026-10-11T13:02:29.043Z",
+        "deadline": "2026-10-11T13:17:29.043Z",
+        "closed": "2026-10-11T13:17:24.469Z",
+        "reason": "900-second-deadline",
+        "elapsedMs": 895426,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1031731,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1031674,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/anyraid-client-credentials-product-oct11",
+        "automaticExtensionOrRelaunch": false
+      },
+      "upload": {
+        "actualChooser": true,
+        "httpStatus": 201,
+        "filename": "anyraid-preview-layered-oct11.gcode",
+        "sourceBytes": 944,
+        "sourceSha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f"
+      },
+      "metadata": {
+        "objectHeight": 0.4,
+        "layerHeight": 0.2,
+        "filamentMm": 2,
+        "estimatedSeconds": 6,
+        "slicer": "PrusaSlicer 2.8.0",
+        "thumbnailVisible": true,
+        "thumbnailHttpStatus": 200
+      },
+      "viewer": {
+        "fromServerFile": true,
+        "filenameVisible": true,
+        "renderedSquareTrajectory": true,
+        "completeBytePosition": 944,
+        "exactRenderedLayerCountVerified": false
+      },
+      "explicitRecovery": {
+        "processGeneration": 2,
+        "reidentified": true,
+        "fileAndThumbnailPersisted": true,
+        "revalidatedGcodeStatus": 304
+      },
+      "download": {
+        "menuClicked": true,
+        "waitToolFailed": true,
+        "hashComparisonCompleted": false
+      },
+      "printStarted": false,
+      "scope": "Synthetic two-layer input; screenshots do not prove motion precision, target-board performance or real slicer compatibility"
+    },
+    "allSessionPortsReleased": true,
+    "productSourceChanged": false,
+    "performance": "No product behavior or native binary changed in this evidence-only increment; previous package-bound budgets remain separately scoped",
+    "remaining": [
+      "Fluidd equivalent preview",
+      "Mainsail downloaded content hash",
+      "Both-client full preview and external fault recovery",
+      "Latest motion CI deadline failure",
+      "Local full regression failures",
+      "G3 and real machine acceptance"
+    ],
+    "evidence": {
+      "path": "product-client-preview-terminal.evidence.json.gz",
+      "sha256": "5c13cec229b49e38b2d003902c2d856f23d1bb6b95240575ea6887f0df323242",
+      "bytes": 961218,
+      "entries": 22,
+      "allEntryHashesVerified": true
+    }
   }
 }

@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "head": "95984efa780d8a433525e11aeebf7c246a5a7ce2",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "mergeReference": "49bbee6af20188b4ede72c9e363e7203ab4f77f7",
+  "pullRequest": 68,
+  "allSuccess": false,
+  "jobSummary": {
+    "total": 15,
+    "success": 14,
+    "failure": 1
+  },
+  "runs": [
+    {
+      "id": 38098806378,
+      "name": "Build test",
+      "conclusion": "success"
+    },
+    {
+      "id": 38098806397,
+      "name": "Node host",
+      "conclusion": "success"
+    },
+    {
+      "id": 38098806382,
+      "name": "Node motion diagnostics",
+      "conclusion": "failure"
+    }
+  ],
+  "failedJob": {
+    "id": 114350234577,
+    "name": "motion (26.10.0, off, source)",
+    "artifactId": 11686133690,
+    "archiveSha256": "1458e06fa85d41f56ac7f583dd5e5ad1083c5e696a0ebe6735fdeca9c6131cea",
+    "reason": "Per-child original 10000ms deadline; SIGKILL requested at 10002.963ms",
+    "completedProcesses": 40,
+    "failedProcess": {
+      "index": 40,
+      "pid": 2803,
+      "elapsedMs": 10015.512243000005,
+      "verifiedIterations": 13,
+      "lastProgress": {
+        "run": 13,
+        "stage": "plots",
+        "elapsedMs": 9529.113714,
+        "userCPUTime": 9525740,
+        "systemCPUTime": 77079
+      },
+      "plotsMedianMs": 699.2429530000009
+    },
+    "adjacentProcess39PlotsMedianMs": 246.1710920000005,
+    "mismatchFiles": 0,
+    "coreFiles": 0,
+    "stderr": "",
+    "interpretation": "The saved run continued computing and used CPU until deadline; neither a numerical mismatch nor an infrastructure-only root cause is established",
+    "rootCauseUnresolved": true,
+    "deadlineUnchanged": true,
+    "noManualRerun": true
+  },
+  "openGates": [
+    "Motion CI failed; draft remains unmerged",
+    "Original local full regression failures remain unresolved",
+    "G3 real motion and default switching prohibited",
+    "Full client preview and external fault recovery incomplete"
+  ],
+  "evidenceArchive": "product-client-preview-terminal.evidence.json.gz",
+  "validation": {
+    "ordinary": {
+      "tests": 4537,
+      "passed": 4537,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 969018.528269
+    },
+    "typecheck": "success",
+    "protocolNative": "success",
+    "linuxMcu": "success",
+    "asan": "success",
+    "ubsan": "success"
+  }
+}
