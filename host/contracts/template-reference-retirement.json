@@ -1,0 +1,597 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "baseHead": "4b6561e799c452e520f96590dd6bcec9fd57f86b",
+  "scope": "Retires Python execution in four template validation entries. No product runtime or native Rust change; full Python retirement and full template factory remain open.",
+  "sources": {
+    "host/test/template-numbers.test.ts": "4ed197d8b7fc9fd678be75f638038b8f19d57fb9e94712acdcd48b282a28614a",
+    "host/test/helpers/template-numeric-reference.ts": "0a48fefb0ee358e90e8e90981bb10ba802a710469f06a90a2bff4379388f53be",
+    "host/bench/native-template-check.ts": "11418d618ebac8630085a0e1869f79c159653125bb612e9c68068f25849d2818",
+    "host/bench/native-template-integers.ts": "5292d76409650f29715959ad802db8376d298c7c76328a0325ce987ff5b31e26",
+    "host/bench/template-sync.ts": "fb6ecb8c7a5afb2a76705af1762b0b79fd93ffb9e70a349120cba3e4c7b86e00",
+    "host/contracts/template-numeric-reference.json.gz": "1014bdd1a41268f9fee7c98c08196d9b6c73338bfaf1ad48bedd3abded66ce4f",
+    "host/contracts/template-sync-performance-reference.json": "d599fa25d7da01ad9973bbdfb1980e134c30a9bd7596237b564fca0a8cae130e"
+  },
+  "numeric": {
+    "sha256": "1014bdd1a41268f9fee7c98c08196d9b6c73338bfaf1ad48bedd3abded66ce4f",
+    "oracleSourceSha256": "cc483a676ae0ebdf614c0896ba659a01035f7df05d115dbc50dd59bc05b2e53a",
+    "capture": {
+      "runtime": "3.12.13",
+      "jinja": "3.1.6",
+      "oneShot": true,
+      "inputSha256": "8cb2abfb31faeebfeed0155e29cb6683b9086d0dff63d6b41b9d2f08385aa3cd",
+      "outputSha256": "cf5e4d05644b9a15c7937f057bf08980eb139c20fc9d281a531bf1d0a44f3666",
+      "generatorSha256": "627ddcb6aae9157bd28a0399f912b35db618773559bd2f47c2d7e84a3d2fe336"
+    },
+    "counts": {
+      "conversions": 17,
+      "rounds": 42744,
+      "nativeCases": 7,
+      "integerCases": 5424,
+      "floats": 1293
+    },
+    "bitPatterns": true,
+    "negativeZeroPreserved": true,
+    "missingOrCorruptReference": "Hard failure; no Python fallback"
+  },
+  "validation": {
+    "node": "v26.10.0",
+    "compiler": "7.0.2",
+    "relatedOrdinary": {
+      "total": 64,
+      "passed": 64,
+      "failed": 0
+    },
+    "sourceNumericAndCompiledNumeric": {
+      "unitTests": 3,
+      "rounds": 42744,
+      "integers": 5424,
+      "floatConversions": 1293,
+      "nativeCases": 7,
+      "passed": true,
+      "overlappingCoverage": true
+    },
+    "isolatedExecution": {
+      "path": "/nonexistent",
+      "python": "/nonexistent",
+      "nodePermission": true,
+      "allowChildProcess": false,
+      "allowAddons": true,
+      "compiledTypeScriptLoading": false,
+      "nativeSandboxClaim": false
+    },
+    "typecheck": true,
+    "whitespace": true,
+    "nativeAddon": {
+      "rebuilt": false,
+      "sha256": "b4ba54aaf6abfa26bea46e2b60bc95d2529c2430f87bbde56e47300943feb20e"
+    },
+    "preservedFailures": [
+      {
+        "file": "template-retirement-related-oct11.log",
+        "passed": 63,
+        "failed": 1,
+        "reason": "Node fs.symlink requires full file read and write grants; ordinary filesystem conditions subsequently passed all original 64 tests without changing cases."
+      },
+      {
+        "file": "template-retirement-compiled-tests-oct11.log",
+        "reason": "Test entry not discovered when original source cwd was outside the allowed compiled read root; no tests ran. Same compiled files from their own cwd subsequently passed."
+      }
+    ]
+  },
+  "performance": {
+    "source": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "rust": "1.89.0",
+      "engine": "minijinja 2.24.0 via N-API",
+      "upstream": {
+        "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+        "runtime": "3.12.13",
+        "sourceSha256": {
+          "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+          "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+        }
+      },
+      "repetitions": {
+        "render": 3000,
+        "cold": 100,
+        "parse": 2000,
+        "cached": 1000000
+      },
+      "warmups": 2,
+      "samples": 7,
+      "inputs": {
+        "sourceSha256": "27638a7cfa62cd6abe224907b7af644d9bc857364084462caf61130f24ade37f",
+        "contextSha256": "06abe64bef480f720aca88592a691ba768ab70a21008e7a47e5d7151c80cd25b"
+      },
+      "budgets": {
+        "renderToJinja": 1.5,
+        "coldToJinja": 1.5,
+        "fuelFailureMaxMs": 25,
+        "secretsParseToBaseline": 1.2,
+        "secretsCachedToBaseline": 1.2
+      },
+      "native": {
+        "render": {
+          "samplesMs": [
+            7.982171000000008,
+            7.898751000000004,
+            8.015560999999991,
+            7.915251000000012,
+            7.841970000000003,
+            7.65356700000001,
+            7.669448000000017
+          ],
+          "medianMs": 7.898751000000004,
+          "p95Ms": 8.015560999999991
+        },
+        "cold": {
+          "samplesMs": [
+            3.8895750000000078,
+            3.755943000000002,
+            3.062455,
+            3.2341969999999947,
+            2.732451999999995,
+            2.6671910000000025,
+            2.8653130000000147
+          ],
+          "medianMs": 3.062455,
+          "p95Ms": 3.8895750000000078
+        }
+      },
+      "jinja": {
+        "render": {
+          "samplesMs": [
+            22.89301302516833,
+            22.754200996132568,
+            22.90435298345983,
+            23.006984003586695,
+            23.093255993444473,
+            23.27393801533617,
+            22.687359974952415
+          ],
+          "medianMs": 22.90435298345983,
+          "p95Ms": 23.27393801533617
+        },
+        "cold": {
+          "samplesMs": [
+            63.74382501235232,
+            63.82125700474717,
+            63.55453300056979,
+            63.66438401164487,
+            63.10268701054156,
+            63.024956005392596,
+            63.52303200401366
+          ],
+          "medianMs": 63.55453300056979,
+          "p95Ms": 63.82125700474717
+        }
+      },
+      "frozenPythonRuntime": "3.12.13",
+      "referenceEvidence": {
+        "archive": "moonraker-template-sync-acceptance.evidence.json.gz",
+        "sha256": "ac660bbfbc806746189d6f84eaa7328fd4cf99ac10fc7a76645bbb230dbb1d8e",
+        "bytes": 308764,
+        "entries": 20
+      },
+      "comparison": "Historical frozen reference; no Python process and no same-run comparison",
+      "ratios": {
+        "render": 0.34485807155102854,
+        "cold": 0.04818625604522252
+      },
+      "fuelFailureMs": 0.26339300000000776,
+      "baseline": {
+        "old": {
+          "parse": {
+            "samplesMs": [
+              64.869999,
+              64.65483699999982,
+              64.30822199999989,
+              66.64123300000006,
+              63.9743390000001,
+              62.20822499999986,
+              60.31202200000007
+            ],
+            "medianMs": 64.30822199999989,
+            "p95Ms": 66.64123300000006
+          },
+          "cached": {
+            "samplesMs": [
+              20.230579000000034,
+              22.64377999999988,
+              19.70331199999987,
+              17.39951199999996,
+              17.442232999999987,
+              18.745290000000068,
+              18.773040000000037
+            ],
+            "medianMs": 18.773040000000037,
+            "p95Ms": 22.64377999999988
+          }
+        },
+        "current": {
+          "parse": {
+            "samplesMs": [
+              63.51009799999997,
+              63.90646200000003,
+              63.73717999999997,
+              63.143843999999945,
+              64.55735100000004,
+              64.760762,
+              64.50972999999999
+            ],
+            "medianMs": 63.90646200000003,
+            "p95Ms": 64.760762
+          },
+          "cached": {
+            "samplesMs": [
+              21.849020999999993,
+              21.21174300000007,
+              21.697789000000057,
+              17.943655000000035,
+              19.192469999999958,
+              17.996126000000004,
+              17.94934599999999
+            ],
+            "medianMs": 19.192469999999958,
+            "p95Ms": 21.849020999999993
+          }
+        },
+        "parseRatio": 0.9937525873441213,
+        "cachedRatio": 1.0223421459710265
+      },
+      "scope": "Desktop synchronous private text rendering, compilation and old secrets hot-path regression. No MCU, printing, target-board, async callable or full-template compatibility claim."
+    },
+    "compiledFirst": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "rust": "1.89.0",
+      "engine": "minijinja 2.24.0 via N-API",
+      "upstream": {
+        "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+        "runtime": "3.12.13",
+        "sourceSha256": {
+          "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+          "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+        }
+      },
+      "repetitions": {
+        "render": 3000,
+        "cold": 100,
+        "parse": 2000,
+        "cached": 1000000
+      },
+      "warmups": 2,
+      "samples": 7,
+      "inputs": {
+        "sourceSha256": "27638a7cfa62cd6abe224907b7af644d9bc857364084462caf61130f24ade37f",
+        "contextSha256": "06abe64bef480f720aca88592a691ba768ab70a21008e7a47e5d7151c80cd25b"
+      },
+      "budgets": {
+        "renderToJinja": 1.5,
+        "coldToJinja": 1.5,
+        "fuelFailureMaxMs": 25,
+        "secretsParseToBaseline": 1.2,
+        "secretsCachedToBaseline": 1.2
+      },
+      "native": {
+        "render": {
+          "samplesMs": [
+            8.111373,
+            7.789719000000005,
+            8.025902000000002,
+            8.002622000000002,
+            7.898240000000001,
+            7.598177000000007,
+            7.574977000000004
+          ],
+          "medianMs": 7.898240000000001,
+          "p95Ms": 8.111373
+        },
+        "cold": {
+          "samplesMs": [
+            4.231739000000005,
+            3.7990139999999997,
+            3.5788710000000066,
+            3.4865900000000067,
+            3.163907000000009,
+            2.861922000000007,
+            2.831582999999995
+          ],
+          "medianMs": 3.4865900000000067,
+          "p95Ms": 4.231739000000005
+        }
+      },
+      "jinja": {
+        "render": {
+          "samplesMs": [
+            22.89301302516833,
+            22.754200996132568,
+            22.90435298345983,
+            23.006984003586695,
+            23.093255993444473,
+            23.27393801533617,
+            22.687359974952415
+          ],
+          "medianMs": 22.90435298345983,
+          "p95Ms": 23.27393801533617
+        },
+        "cold": {
+          "samplesMs": [
+            63.74382501235232,
+            63.82125700474717,
+            63.55453300056979,
+            63.66438401164487,
+            63.10268701054156,
+            63.024956005392596,
+            63.52303200401366
+          ],
+          "medianMs": 63.55453300056979,
+          "p95Ms": 63.82125700474717
+        }
+      },
+      "frozenPythonRuntime": "3.12.13",
+      "referenceEvidence": {
+        "archive": "moonraker-template-sync-acceptance.evidence.json.gz",
+        "sha256": "ac660bbfbc806746189d6f84eaa7328fd4cf99ac10fc7a76645bbb230dbb1d8e",
+        "bytes": 308764,
+        "entries": 20
+      },
+      "comparison": "Historical frozen reference; no Python process and no same-run comparison",
+      "ratios": {
+        "render": 0.34483576138141264,
+        "cold": 0.054859816214348524
+      },
+      "fuelFailureMs": 0.28307399999999916,
+      "baseline": {
+        "old": {
+          "parse": {
+            "samplesMs": [
+              64.869999,
+              64.65483699999982,
+              64.30822199999989,
+              66.64123300000006,
+              63.9743390000001,
+              62.20822499999986,
+              60.31202200000007
+            ],
+            "medianMs": 64.30822199999989,
+            "p95Ms": 66.64123300000006
+          },
+          "cached": {
+            "samplesMs": [
+              20.230579000000034,
+              22.64377999999988,
+              19.70331199999987,
+              17.39951199999996,
+              17.442232999999987,
+              18.745290000000068,
+              18.773040000000037
+            ],
+            "medianMs": 18.773040000000037,
+            "p95Ms": 22.64377999999988
+          }
+        },
+        "current": {
+          "parse": {
+            "samplesMs": [
+              64.02639399999998,
+              65.295929,
+              66.48245200000002,
+              65.62105199999996,
+              66.79645600000003,
+              63.31861600000002,
+              62.663339000000065
+            ],
+            "medianMs": 65.295929,
+            "p95Ms": 66.79645600000003
+          },
+          "cached": {
+            "samplesMs": [
+              24.60830199999998,
+              24.122986999999966,
+              26.282042000000047,
+              19.747315999999955,
+              20.13791100000003,
+              19.38335200000006,
+              20.06799000000001
+            ],
+            "medianMs": 20.13791100000003,
+            "p95Ms": 26.282042000000047
+          }
+        },
+        "parseRatio": 1.0153589536342664,
+        "cachedRatio": 1.072703781593178
+      },
+      "scope": "Desktop synchronous private text rendering, compilation and old secrets hot-path regression. No MCU, printing, target-board, async callable or full-template compatibility claim."
+    },
+    "compiledFinal": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "rust": "1.89.0",
+      "engine": "minijinja 2.24.0 via N-API",
+      "upstream": {
+        "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+        "runtime": "3.12.13",
+        "sourceSha256": {
+          "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+          "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+        }
+      },
+      "repetitions": {
+        "render": 3000,
+        "cold": 100,
+        "parse": 2000,
+        "cached": 1000000
+      },
+      "warmups": 2,
+      "samples": 7,
+      "inputs": {
+        "sourceSha256": "27638a7cfa62cd6abe224907b7af644d9bc857364084462caf61130f24ade37f",
+        "contextSha256": "06abe64bef480f720aca88592a691ba768ab70a21008e7a47e5d7151c80cd25b"
+      },
+      "budgets": {
+        "renderToJinja": 1.5,
+        "coldToJinja": 1.5,
+        "fuelFailureMaxMs": 25,
+        "secretsParseToBaseline": 1.2,
+        "secretsCachedToBaseline": 1.2
+      },
+      "native": {
+        "render": {
+          "samplesMs": [
+            8.133212999999998,
+            7.719258999999994,
+            7.917160999999993,
+            7.707689000000002,
+            7.515246000000005,
+            7.6504480000000115,
+            7.651157999999995
+          ],
+          "medianMs": 7.707689000000002,
+          "p95Ms": 8.133212999999998
+        },
+        "cold": {
+          "samplesMs": [
+            4.099857,
+            3.714191999999997,
+            3.3639379999999903,
+            3.0421249999999986,
+            2.996784000000005,
+            2.7103309999999965,
+            2.838152000000008
+          ],
+          "medianMs": 3.0421249999999986,
+          "p95Ms": 4.099857
+        }
+      },
+      "jinja": {
+        "render": {
+          "samplesMs": [
+            22.89301302516833,
+            22.754200996132568,
+            22.90435298345983,
+            23.006984003586695,
+            23.093255993444473,
+            23.27393801533617,
+            22.687359974952415
+          ],
+          "medianMs": 22.90435298345983,
+          "p95Ms": 23.27393801533617
+        },
+        "cold": {
+          "samplesMs": [
+            63.74382501235232,
+            63.82125700474717,
+            63.55453300056979,
+            63.66438401164487,
+            63.10268701054156,
+            63.024956005392596,
+            63.52303200401366
+          ],
+          "medianMs": 63.55453300056979,
+          "p95Ms": 63.82125700474717
+        }
+      },
+      "frozenPythonRuntime": "3.12.13",
+      "referenceEvidence": {
+        "archive": "moonraker-template-sync-acceptance.evidence.json.gz",
+        "sha256": "ac660bbfbc806746189d6f84eaa7328fd4cf99ac10fc7a76645bbb230dbb1d8e",
+        "bytes": 308764,
+        "entries": 20
+      },
+      "comparison": "Historical frozen reference; no Python process and no same-run comparison",
+      "ratios": {
+        "render": 0.3365163384255403,
+        "cold": 0.04786637327620242
+      },
+      "fuelFailureMs": 0.27139300000001754,
+      "baseline": {
+        "old": {
+          "parse": {
+            "samplesMs": [
+              64.869999,
+              64.65483699999982,
+              64.30822199999989,
+              66.64123300000006,
+              63.9743390000001,
+              62.20822499999986,
+              60.31202200000007
+            ],
+            "medianMs": 64.30822199999989,
+            "p95Ms": 66.64123300000006
+          },
+          "cached": {
+            "samplesMs": [
+              20.230579000000034,
+              22.64377999999988,
+              19.70331199999987,
+              17.39951199999996,
+              17.442232999999987,
+              18.745290000000068,
+              18.773040000000037
+            ],
+            "medianMs": 18.773040000000037,
+            "p95Ms": 22.64377999999988
+          }
+        },
+        "current": {
+          "parse": {
+            "samplesMs": [
+              63.30850600000002,
+              64.01457399999998,
+              64.91858399999995,
+              64.85129299999994,
+              65.76362400000005,
+              62.301675000000046,
+              61.397163999999975
+            ],
+            "medianMs": 64.01457399999998,
+            "p95Ms": 65.76362400000005
+          },
+          "cached": {
+            "samplesMs": [
+              20.717687000000012,
+              49.613359,
+              16.406837999999993,
+              23.35981800000002,
+              17.09977600000002,
+              17.605171999999925,
+              17.166097000000036
+            ],
+            "medianMs": 17.605171999999925,
+            "p95Ms": 49.613359
+          }
+        },
+        "parseRatio": 0.9954337409608385,
+        "cachedRatio": 0.9377901501301809
+      },
+      "scope": "Desktop synchronous private text rendering, compilation and old secrets hot-path regression. No MCU, printing, target-board, async callable or full-template compatibility claim."
+    },
+    "comparison": "Original historical frozen Jinja and secrets baseline; unchanged workload, warmups, samples and budgets; no same-run or target-board performance claim"
+  },
+  "remainingPythonTemplateEntries": [
+    "host/bench/template-candidate.ts",
+    "host/bench/template-numbers.ts",
+    "host/bench/native-template.ts",
+    "host/bench/native-template-round.ts",
+    "host/bench/native-sensor-messages.ts",
+    "host/scripts/ensure-jinja-reference.ts",
+    "host/test/helpers/template-number-oracle.ts"
+  ],
+  "openGates": [
+    "Full asynchronous, UI and callable template factory",
+    "Full Python runtime, tools and validation retirement",
+    "Local compiler/process and motion precision root cause",
+    "Original local full regression failures",
+    "G3, target-board and actual Cycnumbris 500 acceptance",
+    "Normal develop integration and master release"
+  ],
+  "evidence": {
+    "path": "template-reference-retirement.evidence.json.gz",
+    "sha256": "54ea7e1287d99bdf4a6e460fd426be3d0b4b853619f4c4cfc1161fd6c49c2843",
+    "entries": 42,
+    "bytes": 534937
+  }
+}

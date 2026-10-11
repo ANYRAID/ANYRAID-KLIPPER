@@ -3647,6 +3647,18 @@ UI 双花括号环境、可启用日志及完整 Python 大整数仍待补齐，
 
 私密文件已为上述显式同步 LDAP 启动候选提供依赖；完整模板工厂及
 生产默认入口尚未切换，secrets／模板与 LDAP 完整契约仍未关闭。
+默认 `template-numbers.test.ts`、`native-template-check.ts` 和
+`native-template-integers.ts` 现读取固定摘要的
+`template-numeric-reference.json.gz`，不启动 Python 或回退在线生成。
+原 42744 组逐位舍入、5424 组整数／布尔及 1293 组转换用例保持；
+参考保留原 JSON 文本到读取时，避免重编码丢失 `-0.0`。缺失、损坏
+或输入集合变化立即失败。`node host/bench/template-sync.ts` 无需
+`JINJA_REFERENCE`、`MOONRAKER_REFERENCE` 或 `SECRETS_BASELINE`，
+使用原封存性能参考和同一输入／次数／预算，不属于同轮 Python 对照。
+本轮源码与独立编译 JavaScript 均在外部程序不可用、Node 未授予
+子进程权限时通过；原生插件另获显式加载许可，不据此宣称原生沙箱。
+其他历史评估与传感器性能入口仍含 Python 调用；原失败及完整范围见
+[参考退役证据](../host/contracts/template-reference-retirement.json)。
 默认测试使用实际固定上游源码
 生成的 24 项原冻结参考及六项负零补充参考，不新增运行时 Python；生成和性能对照只在
 独立临时目录执行一次。失败、后续定向验证和原始性能见

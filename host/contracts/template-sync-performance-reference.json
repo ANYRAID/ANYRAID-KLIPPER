@@ -1,0 +1,166 @@
+{
+  "schema": 1,
+  "scope": "Unmodified historical performance capture; not a fresh or same-run Python comparison",
+  "originalEvidence": {
+    "archive": "moonraker-template-sync-acceptance.evidence.json.gz",
+    "sha256": "ac660bbfbc806746189d6f84eaa7328fd4cf99ac10fc7a76645bbb230dbb1d8e",
+    "bytes": 308764,
+    "entries": 20
+  },
+  "performance": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "rust": "1.89.0",
+    "engine": "minijinja 2.24.0 via N-API",
+    "upstream": {
+      "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "runtime": "3.12.13",
+      "sourceSha256": {
+        "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+        "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+      }
+    },
+    "repetitions": {
+      "render": 3000,
+      "cold": 100,
+      "parse": 2000,
+      "cached": 1000000
+    },
+    "warmups": 2,
+    "samples": 7,
+    "inputs": {
+      "sourceSha256": "27638a7cfa62cd6abe224907b7af644d9bc857364084462caf61130f24ade37f",
+      "contextSha256": "06abe64bef480f720aca88592a691ba768ab70a21008e7a47e5d7151c80cd25b"
+    },
+    "budgets": {
+      "renderToJinja": 1.5,
+      "coldToJinja": 1.5,
+      "fuelFailureMaxMs": 25,
+      "secretsParseToBaseline": 1.2,
+      "secretsCachedToBaseline": 1.2
+    },
+    "native": {
+      "render": {
+        "samplesMs": [
+          8.074342999999999,
+          7.654608000000053,
+          7.689257999999882,
+          7.739749000000074,
+          7.670667999999978,
+          7.506746000000021,
+          7.543346000000156
+        ],
+        "medianMs": 7.670667999999978,
+        "p95Ms": 8.074342999999999
+      },
+      "cold": {
+        "samplesMs": [
+          3.7379080000000613,
+          3.488234999999804,
+          3.2005710000000818,
+          3.020418999999947,
+          2.75654499999996,
+          2.7189950000001772,
+          2.94084799999996
+        ],
+        "medianMs": 3.020418999999947,
+        "p95Ms": 3.7379080000000613
+      }
+    },
+    "jinja": {
+      "render": {
+        "samplesMs": [
+          22.89301302516833,
+          22.754200996132568,
+          22.90435298345983,
+          23.006984003586695,
+          23.093255993444473,
+          23.27393801533617,
+          22.687359974952415
+        ],
+        "medianMs": 22.90435298345983,
+        "p95Ms": 23.27393801533617
+      },
+      "cold": {
+        "samplesMs": [
+          63.74382501235232,
+          63.82125700474717,
+          63.55453300056979,
+          63.66438401164487,
+          63.10268701054156,
+          63.024956005392596,
+          63.52303200401366
+        ],
+        "medianMs": 63.55453300056979,
+        "p95Ms": 63.82125700474717
+      }
+    },
+    "python": "3.12.13",
+    "ratios": {
+      "render": 0.3349000081137101,
+      "cold": 0.04752483980918982
+    },
+    "fuelFailureMs": 0.25497299999983625,
+    "baseline": {
+      "old": {
+        "parse": {
+          "samplesMs": [
+            64.869999,
+            64.65483699999982,
+            64.30822199999989,
+            66.64123300000006,
+            63.9743390000001,
+            62.20822499999986,
+            60.31202200000007
+          ],
+          "medianMs": 64.30822199999989,
+          "p95Ms": 66.64123300000006
+        },
+        "cached": {
+          "samplesMs": [
+            20.230579000000034,
+            22.64377999999988,
+            19.70331199999987,
+            17.39951199999996,
+            17.442232999999987,
+            18.745290000000068,
+            18.773040000000037
+          ],
+          "medianMs": 18.773040000000037,
+          "p95Ms": 22.64377999999988
+        }
+      },
+      "current": {
+        "parse": {
+          "samplesMs": [
+            63.263128999999935,
+            63.848325999999815,
+            67.48615299999983,
+            61.883862000000136,
+            63.784736000000066,
+            62.359038000000055,
+            61.708868999999595
+          ],
+          "medianMs": 63.263128999999935,
+          "p95Ms": 67.48615299999983
+        },
+        "cached": {
+          "samplesMs": [
+            22.00709199999983,
+            22.061103000000003,
+            19.106414000000314,
+            19.794703000000027,
+            19.602110000000266,
+            19.94079499999998,
+            19.64299200000005
+          ],
+          "medianMs": 19.794703000000027,
+          "p95Ms": 22.061103000000003
+        }
+      },
+      "parseRatio": 0.9837486876872454,
+      "cachedRatio": 1.054421819801161
+    },
+    "scope": "Desktop synchronous private text rendering, compilation and old secrets hot-path regression. No MCU, printing, target-board, async callable or full-template compatibility claim."
+  }
+}
