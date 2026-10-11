@@ -2,7 +2,7 @@ mod async_text;
 mod sync_functions;
 use minijinja::{
     syntax::SyntaxConfig,
-    value::{Object, ObjectRepr, ValueKind},
+    value::{Kwargs, Object, ObjectRepr, Rest, ValueKind},
     Environment, Error, ErrorKind, State, Value,
 };
 use napi::Env;
@@ -452,6 +452,18 @@ impl io::Write for TextOutput {
 fn private_error() -> napi::Error {
     js_err("Private template operation failed")
 }
+// An inactive logging.debug validates message binding but does not format it.
+fn disabled_log_debug(args: Rest<Value>, kwargs: Kwargs) -> Result<Value, Error> {
+    let named = kwargs.args().any(|name| name == "msg");
+    if args.0.is_empty() && !named || !args.0.is_empty() && named {
+        return Err(err("Invalid debug message binding"));
+    }
+    for name in kwargs.args() {
+        let _: Value = kwargs.get(name)?;
+    }
+    kwargs.assert_all_used()?;
+    Ok(Value::from(()))
+}
 #[napi]
 pub struct NativeTextTemplate {
     state: Mutex<Option<TextEnvironment>>,
@@ -487,7 +499,15 @@ impl NativeTextTemplate {
         }
         let mut env = Environment::new();
         env.set_formatter(|out, state, value| {
-            if value.kind() == ValueKind::Number
+            if value.kind() == ValueKind::None {
+                minijinja::escape_formatter(out, state, &Value::from("None"))
+            } else if value.kind() == ValueKind::Bool {
+                minijinja::escape_formatter(
+                    out,
+                    state,
+                    &Value::from(if value.is_true() { "True" } else { "False" }),
+                )
+            } else if value.kind() == ValueKind::Number
                 && !value.is_integer()
                 && f64::try_from(value.clone())?.is_nan()
             {
@@ -529,9 +549,7 @@ impl NativeTextTemplate {
                 Err(err("Template requested error"))
             },
         );
-        // Mirrors the default disabled logging.debug sink only. Enabling a real
-        // logger and async/user callables requires the future full factory owner.
-        env.add_function("log_debug", |_message: String| Value::from(()));
+        env.add_function("log_debug", disabled_log_debug);
         env.add_template_owned("text".to_owned(), source)
             .map_err(|_| private_error())?;
         Ok(Self {

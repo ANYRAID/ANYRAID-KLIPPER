@@ -57,8 +57,8 @@ import {ApiKeyAuthorization} from './api-key-authorization.ts';
 import {readAuthorizationOptions} from './authorization-config.ts';
 import type {LdapAuthorization} from './ldap-authorization.ts';
 import {readLdapOptions,type LdapConfigurationContext} from './ldap-config.ts';
-import {loadSecrets,type SecretsContext} from './secrets.ts';
-import {MoonrakerTemplateOwner} from './template-owner.ts';
+import type {SecretsContext} from './secrets.ts';
+import {MoonrakerTemplateFactory} from './template-factory.ts';
 import {ConfigurationReader} from './config-reader.ts';
 import {ApiError,type RpcContext,JsonRpcDispatcher,type Json} from './rpc.ts';
 import {EndpointRegistry} from './endpoints.ts';
@@ -141,6 +141,8 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  /** Service owner must reopen all database-dependent components after restore. */
  onDatabaseRestore?:()=>void|Promise<void>;
  configurationLimits?:ConfigurationLimits;
+ /** Owns a private template/secrets generation until server shutdown. */
+ templates?:SecretsContext;
  /** Transfers admission-layer lifetime on successful load. Restore selected
   * metadata before listening; close files on shutdown, but not its dependencies. */
  metadataFiles?:MetadataFiles;
@@ -184,6 +186,9 @@ export class ConfiguredMoonraker {
  #announcements:Announcements|undefined;#announcementNotifications=notificationMetrics();
  #authorization:ApiKeyAuthorization|undefined;#releaseAuthorization:()=>void=()=>{};
  #ldap:LdapAuthorization|undefined;
+ #templates:MoonrakerTemplateFactory|undefined;
+ /** Trusted component lookup only; never serialized as resolved values. */
+ get templates(){return this.#templates;}
  /** Local provisioning only; never serialized into server information. */
  get authorization(){return this.#authorization;}
  readonly reader:ConfigurationReader;readonly binding:NetworkBinding;
@@ -350,12 +355,15 @@ export class ConfiguredMoonraker {
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
   if(options.klippy!==undefined&&(!options.klippy||typeof options.klippy!=='object'||Array.isArray(options.klippy)))throw new ConfigurationError('Invalid Klippy configuration owner');
   const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));
-  const automatic=options.klippy?{...await readKlippyBinding(reader,options.klippy.pathContext,options.klippy.retryDelayMs),initialization:options.klippy.initialization??{}}:undefined;
-  return {reader,automatic};
+  const templates=options.templates?await MoonrakerTemplateFactory.load(reader,options.templates):undefined;
+  try{const automatic=options.klippy?{...await readKlippyBinding(reader,options.klippy.pathContext,options.klippy.retryDelayMs),initialization:options.klippy.initialization??{}}:undefined;
+   return {reader,automatic,templates};
+  }catch(error){templates?.close();throw error;}
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
-  const {reader,automatic}=await this.#prepare(filename,options),server=new ConfiguredMoonraker(reader,options,automatic);server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);
-  try{await server.#initializeNativeQueue();return server;}catch(error){try{await server.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Queue initialization and server cleanup failed');}throw error;}
+  const {reader,automatic,templates}=await this.#prepare(filename,options);let server:ConfiguredMoonraker|undefined;
+  try{server=new ConfiguredMoonraker(reader,options,automatic);server.#templates=templates;server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);await server.#initializeNativeQueue();templates?.markConfigured();return server;}
+  catch(error){try{if(server)await server.close();else templates?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Queue initialization and server cleanup failed');}throw error;}
  }
  /** Configuration-owned native authorization; does not listen or switch any
   * printer entry point. Failed initialization closes transferred resources. */
@@ -369,26 +377,23 @@ export class ConfiguredMoonraker {
    authorizeNotification:(method,params,context)=>owner().networkOptions.authorizeNotification!(method,params,context),
    authorizeSubscriptionConnection:(source,target)=>owner().networkOptions.authorizeSubscriptionConnection!(source,target)
   };
-  const {reader,automatic}=await this.#prepare(filename,resolved);
-  if(options.authorization.templateSecrets&&options.authorization.ldapConfiguration?.render)throw new ConfigurationError('Choose one LDAP template dependency');
-  let privateSecrets:Awaited<ReturnType<typeof loadSecrets>>|undefined,templateOwner:MoonrakerTemplateOwner|undefined,ldapOptions:Awaited<ReturnType<typeof readLdapOptions>>|undefined;
+  if(options.templates&&options.authorization.templateSecrets)throw new ConfigurationError('Choose one private template generation');
+  const templateContext=options.templates??options.authorization.templateSecrets;
+  if(templateContext&&options.authorization.ldapConfiguration?.render)throw new ConfigurationError('Choose one LDAP template dependency');
+  const {reader,automatic,templates}=await this.#prepare(filename,{...resolved,templates:templateContext});
+  let server:ConfiguredMoonraker|undefined,ldap:LdapAuthorization|undefined;
   try{
    const context=options.authorization.ldapConfiguration;
-   if(reader.hasSection('ldap')&&options.authorization.templateSecrets){
-    context?.signal?.throwIfAborted();privateSecrets=await loadSecrets(reader,options.authorization.templateSecrets);context?.signal?.throwIfAborted();templateOwner=new MoonrakerTemplateOwner(privateSecrets);
-   }
-   if(reader.hasSection('ldap'))ldapOptions=await readLdapOptions(reader,templateOwner?{...context,render:(source,signal)=>{signal.throwIfAborted();const template=templateOwner!.createTemplate(source);try{const value=template.render();signal.throwIfAborted();return value;}finally{template.close();}}}:context);
-  }finally{templateOwner?.close();privateSecrets?.close();}
-  const ldap=ldapOptions?new (await import('./ldap-authorization.ts')).LdapAuthorization(ldapOptions):undefined;
-  let server:ConfiguredMoonraker|undefined;
-  try{
+   context?.signal?.throwIfAborted();
+   const ldapOptions=reader.hasSection('ldap')?await readLdapOptions(reader,templates?{...context,render:(source,signal)=>{signal.throwIfAborted();const template=templates.createTemplate(source);try{const value=template.render();signal.throwIfAborted();return value;}finally{template.close();}}}:context):undefined;
+   ldap=ldapOptions?new (await import('./ldap-authorization.ts')).LdapAuthorization(ldapOptions):undefined;
    const {cors,...policy}=readAuthorizationOptions(reader,options.authorization.issuer,ldap);
-   server=new ConfiguredMoonraker(reader,{...resolved,...cors?{cors}:{}},automatic);server.#ldap=ldap;
+   server=new ConfiguredMoonraker(reader,{...resolved,...cors?{cors}:{}},automatic);server.#ldap=ldap;server.#templates=templates;
    server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);
    auth=await ApiKeyAuthorization.open(options.database,policy);server.#authorization=auth;
    server.#releaseAuthorization=auth.register(server.endpoints,server);
-   await server.#initializeNativeQueue();server.setInformation({...server.#base,components:[...new Set([...server.#base.components,'authorization'])]});return server;
-  }catch(error){try{if(server)await server.close();else await ldap?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Authorization initialization and cleanup failed');}throw error;}
+   await server.#initializeNativeQueue();templates?.markConfigured();server.setInformation({...server.#base,components:[...new Set([...server.#base.components,'authorization'])]});return server;
+  }catch(error){try{if(server)await server.close();else{templates?.close();await ldap?.close();}}catch(cleanup){throw new AggregateError([error,cleanup],'Authorization initialization and cleanup failed');}throw error;}
  }
  async #initializeNativeQueue():Promise<void>{
   if(!this.reader.hasSection('job_queue'))return;
@@ -679,6 +684,7 @@ export class ConfiguredMoonraker {
  /** Lifecycle owners may replace real state; serving HTTP never implies Klippy ready. */
  setInformation(snapshot:InformationSnapshot):void{
   if(this.#stopping)throw new Error('Configured server is stopping');
+  if(this.#templates)snapshot={...snapshot,components:[...new Set([...snapshot.components,'template','secrets'])]};
   const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);const faulted=this.#metadataMonitor?.status.phase==='faulted';this.#information.replace({...copy,directories:[...new Set([...copy.directories,...this.#nativeProcessFiles||this.#nativeUploads?['gcodes']:[],...this.#configFiles?['config']:[]])],components:[...new Set([...copy.components,...this.#database?['database']:[],...this.#authorization?['authorization']:[],...this.#ldap?['ldap']:[],...this.#webcams?['webcam']:[],...this.#announcements?['announcements']:[],...this.#procStats?['proc_stats']:[],...this.#nativeHistory||this.#historyRuntime?['history']:[],...this.#metadataMonitor?['metadata_monitor']:[]])],failedComponents:[...new Set([...copy.failedComponents,...faulted?['metadata_monitor']:[],...this.#historyRuntime?.status.failure?['history']:[],...this.#sensorError?['sensor']:[]])],warnings:[...new Set([...copy.warnings,...this.#historyRuntime?.status.failure?['History persistence failed; tracking requires restart']:[],...this.#sensorError?['Sensor sampling failed; restart required']:[],...faulted?['File metadata monitoring failed; cached file metadata is unavailable']:[],...this.reader.warnings(),...this.klippyRemoteMethodFailures.map(f=>`Klippy remote method registration failed: ${f.name}`)])]});this.#base=copy;
  }
  start():Promise<AddressInfo>{
@@ -722,6 +728,7 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
+  this.#templates?.close();this.#templates=undefined;
   const ldapClosed=this.#ldap?.close()??Promise.resolve();
   this.#releaseNativeQueue();const queueClosed=this.#nativeQueue?.close();
   this.#nativeScope?.retire();

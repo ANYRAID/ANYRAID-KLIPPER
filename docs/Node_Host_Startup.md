@@ -3633,10 +3633,12 @@ JSON 安全范围外的整数保留为 BigInt，不经过 JavaScript Number
 ### 同步私密文本模板候选
 
 标准 `ConfiguredMoonraker.loadAuthorized` 的授权选项可以显式提供
-`templateSecrets: {dataPath: "/明确的私密数据目录"}`。存在 `[ldap]`
-时，在开始监听与目录连接之前加载私密文件，以原生同步环境渲染
-五个 LDAP 模板字段。完成或失败后关闭全部启动模板和私密代际；
-后续登录使用已经验证的目录配置，不在请求中读取文件。
+`templateSecrets: {dataPath: "/明确的私密数据目录"}`。当前由标准服务
+持有私密模板代际；也可在 `load` 或 `loadAuthorized` 的通用选项中
+提供 `templates: {dataPath: "/明确的私密数据目录"}`，无 LDAP 时也加载。
+两个入口不能同时提供。存在 `[ldap]` 时，在监听与目录连接之前渲染
+五个 LDAP 字段，每个启动模板随后关闭，私密代际保留至服务关闭。
+后续登录使用已验证的目录配置，不在请求中重新读取私密文件。
 已有 `ldapConfiguration.signal` 和 CA 配置继续保留；不能同时指定
 `templateSecrets` 与自定义 `ldapConfiguration.render`。
 
@@ -3705,14 +3707,15 @@ Node 头文件、产物摘要及 Rust／Cargo 1.89.0 版本；其他 Rust 版本
 正负 i128 整数范围及明确的资源拒绝。源、上下文和输出各限 64 KiB，
 私密 JSON 限 1 MiB，JSON 深度限 64，执行使用 100000 fuel；这些
 限制不等于全部中间分配或实时执行预算。同步函数及独立异步／UI
-候选已分别推进；完整工厂装配、可启用日志及完整 Python 大整数仍
-待补齐，后续须完成隔离执行。目前只允许可信启动配置和明确的
+候选已分别推进；共用工厂及显式标准代际装配见下文。完整语言、
+通用组件加载、完整 Python 大整数仍待补齐，后续须完成隔离执行。
+目前只允许可信启动配置和明确的
 开发候选，不用于默认打印高频回调。
 原失败、上游参考与桌面预算见
 [同步模板验收](../host/contracts/moonraker-template-sync-acceptance.json)。
 
-私密文件已为上述显式同步 LDAP 启动候选提供依赖；完整模板工厂及
-生产默认入口尚未切换，secrets／模板与 LDAP 完整契约仍未关闭。
+私密文件已为上述显式标准模板候选提供依赖；通用组件默认装配及
+生产入口尚未切换，secrets／模板与 LDAP 完整契约仍未关闭。
 默认 `template-numbers.test.ts`、`native-template-check.ts` 和
 `native-template-integers.ts` 现读取固定摘要的
 `template-numeric-reference.json.gz`，不启动 Python 或回退在线生成。
@@ -3834,6 +3837,40 @@ TLS 1.2，始终验证 CA 和主机名，DNS 名提供 SNI；`ca` 只允许配�
 不证明实际用户目录、TLS 延迟、目标板打印或 G3 通过。
 
 ## LDAP 标准配置装配候选
+
+### 共用模板工厂与服务代际
+
+可信组件通过 `server.templates` 或 `reader.templates()` 取得
+`MoonrakerTemplateFactory`。`createTemplate(source, isAsync)` 与
+`createUiTemplate(source)` 保留原始源；同步／异步模式误用遵循固定
+上游错误阶段。配置模板共用环境全局，异步执行器在首次异步／UI
+使用时创建；UI 使用双花括号，不继承配置全局或 secrets。
+`getTemplate` 保留缺省值并记录首次来源，`loadTemplate` 额外编译
+字符串缺省值。显式 `toString()` 供可信来源记录；JSON／对象检查
+不公开原文。模板关闭丢弃来源和闭包，服务关闭取消活动调用、清理
+全局和私密代际、解除 reader 绑定；外部取消与关闭竞态保留首次理由。
+
+直接创建工厂时，`MoonrakerTemplateFactory.load(reader, context,
+{debug: call => ...})` 可提供明确的可信日志接收器，参数保持类型和
+关键字顺序。异步日志接收器拒绝，失败不公开私密异常。服务的该入口
+尚未接入通用日志配置，不据此宣称完整日志兼容。当前禁用日志处理
+补齐上游 `msg` 绑定，布尔／None 文本保持 Python 形式。
+
+源码与关闭 TS 加载的独立 JavaScript 各 175 项通过；六文件进程内
+111 项通过，JS 子进程禁止，原生插件、数据库 worker、文件和网络
+明确允许，实际网络仅使用 localhost，不能作为系统隔离证明。
+事先固定的 500 次、两轮预热、七样本工厂预算中，同步比值 0.328
+通过，异步／UI 1.569／1.935 超原 1.5 门限。原独立异步 UI 比值
+1.655 仍失败；当前缓存预算通过，不消除此前 1.250 失败的根因。
+原标准无 LDAP／无私密模板选项服务器的启动／鉴权查询预算通过，
+不证明新增私密工厂冷启动或目标板打印速度。当前独立产品原生快照
+在 minijinja 编译时 Rust SIGSEGV，完整新包未通过，不重试覆盖。
+固定参考、回退节夹具 KeyError 诊断及全部失败见
+[共用工厂记录](../host/contracts/moonraker-template-factory-acceptance.json)。
+复现固定渲染预算使用 Node.js 26 执行
+`node host/bench/template-factory.ts`，超限时退出 1。
+getpath、动态可变全局对象、属性／可迭代对象、完整大整数、通用
+组件加载和默认产品装配继续开放；默认 Python 打印入口未切换。
 
 `ConfiguredMoonraker.loadAuthorized` 在 `[ldap]` 存在时解析配置，创建
 实际 LDAP／LDAPS 所有者并纳入关闭；未配置时不加载 ldapts。

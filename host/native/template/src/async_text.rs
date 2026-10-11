@@ -380,7 +380,15 @@ impl NativeTemplateExecutor {
         }
         let mut env = Environment::new();
         env.set_formatter(|out, state, value| {
-            if value.kind() == minijinja::value::ValueKind::Number
+            if value.kind() == minijinja::value::ValueKind::None {
+                minijinja::escape_formatter(out, state, &Value::from("None"))
+            } else if value.kind() == minijinja::value::ValueKind::Bool {
+                minijinja::escape_formatter(
+                    out,
+                    state,
+                    &Value::from(if value.is_true() { "True" } else { "False" }),
+                )
+            } else if value.kind() == minijinja::value::ValueKind::Number
                 && !value.is_integer()
                 && f64::try_from(value.clone())?.is_nan()
             {
@@ -431,7 +439,7 @@ impl NativeTemplateExecutor {
                 "raise_error",
                 |_message: String, _code: Option<i64>| -> Result<Value, Error> { Err(error()) },
             );
-            env.add_function("log_debug", |_message: String| Value::from(()));
+            env.add_function("log_debug", super::disabled_log_debug);
         }
         env.add_template_owned("text", source)
             .map_err(|_| private_error())?;

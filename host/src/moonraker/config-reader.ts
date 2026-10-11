@@ -2,6 +2,7 @@
 import {ConfigurationError,ConfigurationSource} from './config-source.ts';
 import {ServerConfiguration,type ConfigurationSnapshot} from './metadata.ts';
 import {validateJson,type Json} from './rpc.ts';
+import {MoonrakerRenderableTemplate,type MoonrakerTemplateFactory} from './template-factory.ts';
 export interface ReadOptions<D extends Json=never>{defaultValue?:D;deprecate?:boolean;}
 export interface NumericOptions<D extends Json=never> extends ReadOptions<D>{above?:number;below?:number;minval?:number;maxval?:number;}
 export type ListType='string'|'int'|'float';
@@ -50,12 +51,15 @@ function clone<T extends Json>(value:T):T{validateJson(value);return structuredC
 export class ConfigurationReader {
  readonly source:ConfigurationSource;
  #parsed:ConfigurationSnapshot['parsed']=dict();#warnings=new Set<string>();#privateOptions=new Map<string,Set<string>>();
+ #templates:MoonrakerTemplateFactory|undefined;
  constructor(source:ConfigurationSource,initialSection:string|null='server'){this.source=source;if(initialSection!==null)this.ensure(initialSection);}
  ensure(section:string):void{checkName(section);this.#parsed[section]??=dict();}
  section(name:string,fallback?:string):ConfigSection{this.ensure(name);if(fallback!==undefined)checkName(fallback);return new ConfigSection(this,name,fallback);}
  sections():string[]{return Object.keys(this.source.original).filter(s=>s!=='DEFAULT');}
  hasSection(name:string):boolean{return name!=='DEFAULT'&&Object.hasOwn(this.source.original,name);}
  prefixSections(prefix:string):string[]{return this.sections().filter(s=>s.startsWith(prefix));}
+ bindTemplates(factory:MoonrakerTemplateFactory):()=>void{if(this.#templates)throw new ConfigurationError('Template component already bound');this.#templates=factory;return ()=>{if(this.#templates===factory)this.#templates=undefined;};}
+ templates():MoonrakerTemplateFactory{if(!this.#templates)throw new ConfigurationError('Failed to load template component');return this.#templates;}
  /** Only public copies are redacted; internal source/getter behavior is intact. */
  redact(section:string,option:string):void{checkName(section);checkName(option);let names=this.#privateOptions.get(section);if(!names)this.#privateOptions.set(section,names=new Set());names.add(option.toLowerCase());}
  #redacted<T extends Record<string,Record<string,unknown>>>(values:T):T{for(const [section,names]of this.#privateOptions){if(!Object.hasOwn(values,section))continue;for(const name of names)if(Object.hasOwn(values[section],name))values[section][name]='<redacted>';}return values;}
@@ -78,13 +82,13 @@ export class ConfigSection {
  hasOption(option:string):boolean{return Object.hasOwn(this.#reader.source.original[this.name]??{},option.toLowerCase());}
  options():Readonly<Record<string,string>>{return this.#reader.source.original[this.name]??Object.freeze({});}
  section(name:string,fallback?:string):ConfigSection{return this.#reader.section(name,fallback);}
- #get<T extends Json,D extends Json>(option:string,parse:(value:string)=>T,options:ReadOptions<D>,bounds?:NumericOptions<D>):T|D{
+ #get<T,D>(option:string,parse:(value:string)=>T,options:{defaultValue?:D;deprecate?:boolean},bounds?:Pick<NumericOptions,'above'|'below'|'minval'|'maxval'>,serialize:(value:T|D)=>Json=value=>{validateJson(value);return value;}):T|D{
   checkName(option);let section=this.name;const source=this.#reader.source.original;
   const fallback=!Object.hasOwn(source,section)&&this.fallback!==undefined;if(fallback)section=this.fallback!;
-  const exists=Object.hasOwn(source[section]??{},option.toLowerCase());let value:T|D;
+  const exists=Object.hasOwn(source[section]??{},option.toLowerCase());let value:T|D,record:Json;
   try{
    if(exists)value=parse(source[section][option.toLowerCase()]);
-   else{if(!Object.hasOwn(options,'defaultValue'))throw new ConfigurationError('Required configuration option is missing');value=options.defaultValue!;section=this.name;validateJson(value);}
+   else{if(!Object.hasOwn(options,'defaultValue'))throw new ConfigurationError('Required configuration option is missing');value=options.defaultValue!;section=this.name;}record=serialize(value);
   }catch(error){this.#reader.error(this.name);throw new ConfigurationError(`[${this.name}]: Unable to parse option '${option}'`,{cause:error});}
   if(exists){
    if(options.deprecate)this.#reader.warn(`[${this.name}]: Option '${option}' is deprecated, see the configuration documentation at https://moonraker.readthedocs.io/en/latest/configuration/`);
@@ -94,9 +98,13 @@ export class ConfigSection {
     if(bounds.above!==undefined&&value<=bounds.above||bounds.below!==undefined&&value>=bounds.below||bounds.minval!==undefined&&value<bounds.minval||bounds.maxval!==undefined&&value>bounds.maxval)throw new ConfigurationError(`[${this.name}]: Option '${option}' is outside its permitted range`);
    }
   }
-  this.#reader.record(section,option,value);return value;
+  this.#reader.record(section,option,record);return value;
  }
  get<D extends Json=never>(option:string,options:ReadOptions<D>={}):string|D{return this.#get(option,v=>v,options);}
+ getTemplate<D extends Json|MoonrakerRenderableTemplate=never>(option:string,options:{defaultValue?:D;isAsync?:boolean;deprecate?:boolean}={}):MoonrakerRenderableTemplate|D{
+  const factory=this.#reader.templates();return this.#get(option,value=>factory.createTemplate(strip(value),options.isAsync??false),options,undefined,value=>{if(value instanceof MoonrakerRenderableTemplate)return value.toString();validateJson(value);return value;});
+ }
+ loadTemplate(option:string,options:ReadOptions<string>&{isAsync?:boolean}={}):MoonrakerRenderableTemplate{const value=this.getTemplate(option,options);return typeof value==='string'?this.#reader.templates().createTemplate(strip(value),options.isAsync??false):value;}
  getInt<D extends Json=never>(option:string,options:NumericOptions<D>={}):number|D{if(typeof options.defaultValue==='number'&&!Number.isSafeInteger(options.defaultValue))throw new ConfigurationError('Integer default must be a safe integer');return this.#get(option,v=>convert('int',v) as number,options,options);}
  getFloat<D extends Json=never>(option:string,options:NumericOptions<D>={}):number|D{return this.#get(option,v=>convert('float',v) as number,options,options);}
  getBoolean<D extends Json=never>(option:string,options:ReadOptions<D>={}):boolean|D{return this.#get(option,v=>{const value=booleans.get(v.toLowerCase());if(value===undefined)throw new ConfigurationError('Invalid boolean');return value;},options);}

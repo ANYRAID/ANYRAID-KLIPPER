@@ -1,0 +1,364 @@
+{
+  "schema": 1,
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "runtime": "3.12.13",
+    "sourceSha256": {
+      "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+      "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f",
+      "confighelper": "a85c50d2df2f52aade591f396e1d87818d3d6bcdbda193213e9fe7417c3b3e68"
+    }
+  },
+  "secrets": "{\"ldap\":{\"base\":\"dc=example,dc=test\",\"password\":\"synthetic-private-template\"},\"i\":1,\"f\":1.0,\"e\":1e0,\"neg\":-0.0,\"large\":9007199254740993,\"bool\":true,\"null\":null,\"__proto__\":\"literal\"}",
+  "file": "/synthetic/moonraker.secrets",
+  "cases": [
+    {
+      "name": "sync source",
+      "kind": "sync",
+      "method": "render",
+      "source": "  {i+1}  ",
+      "context": "{\"i\":2}",
+      "originalSource": "  {i+1}  ",
+      "output": "3"
+    },
+    {
+      "name": "sync async forbidden",
+      "kind": "sync",
+      "method": "render_async",
+      "source": "{i+1}",
+      "context": "{\"i\":2}",
+      "originalSource": "{i+1}",
+      "error": true,
+      "code": 500,
+      "message": "Error rending Jinja2 Template"
+    },
+    {
+      "name": "async sync forbidden",
+      "kind": "async",
+      "method": "render",
+      "source": "{i+1}",
+      "context": "{\"i\":2}",
+      "originalSource": "{i+1}",
+      "error": true,
+      "code": 400,
+      "message": "Cannot render async templates with the render() method, use render_async()"
+    },
+    {
+      "name": "async global",
+      "kind": "async",
+      "method": "render_async",
+      "source": "{fetch(i)}:{custom}",
+      "context": "{\"i\":2}",
+      "originalSource": "{fetch(i)}:{custom}",
+      "output": "2:global"
+    },
+    {
+      "name": "sync global",
+      "kind": "sync",
+      "method": "render",
+      "source": "{fetch(i)}:{custom}",
+      "context": "{\"i\":2}",
+      "originalSource": "{fetch(i)}:{custom}",
+      "output": "2:global"
+    },
+    {
+      "name": "ui global isolation",
+      "kind": "ui",
+      "method": "render_async",
+      "source": "{{secrets is defined}}/{{custom is defined}}",
+      "context": "{}",
+      "originalSource": "{{secrets is defined}}/{{custom is defined}}",
+      "output": "False/False"
+    },
+    {
+      "name": "boolean none text",
+      "kind": "sync",
+      "method": "render",
+      "source": "{true}:{false}:{none}",
+      "context": "{}",
+      "originalSource": "{true}:{false}:{none}",
+      "output": "True:False:None"
+    },
+    {
+      "name": "async boolean none",
+      "kind": "async",
+      "method": "render_async",
+      "source": "{true}:{none}",
+      "context": "{}",
+      "originalSource": "{true}:{none}",
+      "output": "True:None"
+    },
+    {
+      "name": "ui boolean none",
+      "kind": "ui",
+      "method": "render_async",
+      "source": "{{false}}:{{none}}",
+      "context": "{}",
+      "originalSource": "{{false}}:{{none}}",
+      "output": "False:None"
+    },
+    {
+      "name": "debug disabled kwargs",
+      "kind": "sync",
+      "method": "render",
+      "source": "{% do log_debug(msg=\"synthetic\",extra=\"ignored\") %}done",
+      "context": "{}",
+      "originalSource": "{% do log_debug(msg=\"synthetic\",extra=\"ignored\") %}done",
+      "output": "done"
+    },
+    {
+      "name": "debug disabled posargs",
+      "kind": "async",
+      "method": "render_async",
+      "source": "{% do log_debug(\"synthetic\", 1, missing=true) %}done",
+      "context": "{}",
+      "originalSource": "{% do log_debug(\"synthetic\", 1, missing=true) %}done",
+      "output": "done"
+    },
+    {
+      "name": "debug no message",
+      "kind": "sync",
+      "method": "render",
+      "source": "{log_debug()}",
+      "context": "{}",
+      "originalSource": "{log_debug()}",
+      "error": true,
+      "code": null,
+      "message": "Error rending Jinja2 Template"
+    },
+    {
+      "name": "debug repeated message",
+      "kind": "async",
+      "method": "render_async",
+      "source": "{log_debug(\"a\",msg=\"b\")}",
+      "context": "{}",
+      "originalSource": "{log_debug(\"a\",msg=\"b\")}",
+      "error": true,
+      "code": 500,
+      "message": "Error rending Jinja2 Template"
+    },
+    {
+      "name": "private creation stage",
+      "kind": "sync",
+      "method": "render",
+      "source": "{raise_error(secrets[\"ldap\"][\"password\"])}",
+      "context": "{}",
+      "originalSource": "{raise_error(secrets[\"ldap\"][\"password\"])}",
+      "error": true,
+      "code": null,
+      "message": "Error rending Jinja2 Template"
+    },
+    {
+      "name": "configured render stage",
+      "kind": "sync",
+      "method": "render",
+      "source": "{raise_error(\"synthetic\")}",
+      "context": "{}",
+      "originalSource": "{raise_error(\"synthetic\")}",
+      "error": true,
+      "code": 500,
+      "message": "Error rending Jinja2 Template"
+    }
+  ],
+  "configuration": [
+    {
+      "name": "option source",
+      "section": "server",
+      "fallback": null,
+      "method": "gettemplate",
+      "option": "value",
+      "default": null,
+      "isAsync": false,
+      "parsed": {
+        "server": {
+          "value": "{i+1}"
+        }
+      },
+      "warningCount": 0,
+      "kind": "template",
+      "source": "{i+1}",
+      "templateAsync": false
+    },
+    {
+      "name": "async option",
+      "section": "server",
+      "fallback": null,
+      "method": "gettemplate",
+      "option": "value",
+      "default": null,
+      "isAsync": true,
+      "parsed": {
+        "server": {
+          "value": "{i+1}"
+        }
+      },
+      "warningCount": 0,
+      "kind": "template",
+      "source": "{i+1}",
+      "templateAsync": true
+    },
+    {
+      "name": "missing null",
+      "section": "server",
+      "fallback": null,
+      "method": "gettemplate",
+      "option": "absent",
+      "default": null,
+      "isAsync": false,
+      "parsed": {
+        "server": {
+          "absent": null
+        }
+      },
+      "warningCount": 0,
+      "kind": "default",
+      "source": null,
+      "templateAsync": null
+    },
+    {
+      "name": "missing string unchanged",
+      "section": "server",
+      "fallback": null,
+      "method": "gettemplate",
+      "option": "absent",
+      "default": "  {i+1}  ",
+      "isAsync": false,
+      "parsed": {
+        "server": {
+          "absent": "  {i+1}  "
+        }
+      },
+      "warningCount": 0,
+      "kind": "default",
+      "source": "  {i+1}  ",
+      "templateAsync": null
+    },
+    {
+      "name": "default loaded string",
+      "section": "server",
+      "fallback": null,
+      "method": "load_template",
+      "option": "absent",
+      "default": "  {i+1}  ",
+      "isAsync": false,
+      "parsed": {
+        "server": {
+          "absent": "  {i+1}  "
+        }
+      },
+      "warningCount": 0,
+      "kind": "template",
+      "source": "{i+1}",
+      "templateAsync": false
+    },
+    {
+      "name": "fallback",
+      "section": "new",
+      "fallback": "old",
+      "method": "gettemplate",
+      "option": "value",
+      "default": null,
+      "isAsync": false,
+      "parsed": {
+        "new": {}
+      },
+      "warningCount": 2,
+      "error": true
+    },
+    {
+      "name": "invalid source",
+      "section": "server",
+      "fallback": null,
+      "method": "gettemplate",
+      "option": "bad",
+      "default": null,
+      "isAsync": false,
+      "parsed": {
+        "server": {
+          "__CONFIG_ERROR__": true
+        }
+      },
+      "warningCount": 0,
+      "error": true
+    },
+    {
+      "name": "required absent",
+      "section": "server",
+      "fallback": null,
+      "method": "gettemplate",
+      "option": "absent",
+      "default": "REQUIRED",
+      "isAsync": false,
+      "parsed": {
+        "server": {
+          "__CONFIG_ERROR__": true
+        }
+      },
+      "warningCount": 0,
+      "error": true
+    }
+  ],
+  "benchmarks": [
+    {
+      "name": "sync",
+      "kind": "sync",
+      "source": "{i+1}",
+      "context": "{\"i\":2}",
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "sampleMs": [
+        3.5776730510406196,
+        3.5907530109398067,
+        3.5718820290639997,
+        3.578683012165129,
+        3.556152048986405,
+        3.4437620197422802,
+        3.4495110157877207
+      ],
+      "medianMs": 3.5718820290639997,
+      "maximumMedianRatio": 1.5
+    },
+    {
+      "name": "async",
+      "kind": "async",
+      "source": "{i+1}",
+      "context": "{\"i\":2}",
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "sampleMs": [
+        4.101527971215546,
+        4.193237982690334,
+        4.0821669972501695,
+        4.076006996911019,
+        4.148987994994968,
+        4.129548033233732,
+        4.081736959051341
+      ],
+      "medianMs": 4.101527971215546,
+      "maximumMedianRatio": 1.5
+    },
+    {
+      "name": "ui",
+      "kind": "ui",
+      "source": "{{i+1}}",
+      "context": "{\"i\":2}",
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "sampleMs": [
+        3.2490500016137958,
+        3.228418994694948,
+        3.2580499537289143,
+        3.2503900001756847,
+        3.286939987447113,
+        3.284280013758689,
+        3.298330004326999
+      ],
+      "medianMs": 3.2580499537289143,
+      "maximumMedianRatio": 1.5
+    }
+  ],
+  "scope": "Actual pinned TemplateFactory/JinjaTemplate and ConfigHelper methods; server/dependency shims only. One-time capture before factory candidate changes; no target hardware or complete language compatibility claim."
+}

@@ -90,8 +90,8 @@ export class MoonrakerAsyncTemplateOwner {
    else if(id!==undefined&&call!==undefined)this.#executor?.respond(id,call);
   }
  }
- #release(handle:Handle):void{const state=this.#handles.get(handle);if(!state)return;for(const id of state.frames)this.#frames.get(id)?.stop(new ConfigurationError('Template is closed'));handle.close();this.#handles.delete(handle);}
- close():void{for(const handle of this.#handles.keys())this.#release(handle);this.#validation?.close();this.#validation=undefined;this.#executor?.close();this.#executor=undefined;this.#secrets=undefined;this.#globals.clear();}
+ #release(handle:Handle,reason:unknown=new ConfigurationError('Template is closed')):void{const state=this.#handles.get(handle);if(!state)return;for(const id of state.frames)this.#frames.get(id)?.stop(reason);handle.close();this.#handles.delete(handle);}
+ close(reason:unknown=new ConfigurationError('Template is closed')):void{for(const handle of this.#handles.keys())this.#release(handle,reason);this.#validation?.close();this.#validation=undefined;this.#executor?.close();this.#executor=undefined;this.#secrets=undefined;this.#globals.clear();}
  toJSON(){return {closed:this.#executor===undefined,templates:this.#handles.size,renders:this.#frames.size};}
  [Symbol.for('nodejs.util.inspect.custom')](){return 'MoonrakerAsyncTemplateOwner <private>';}
 }
