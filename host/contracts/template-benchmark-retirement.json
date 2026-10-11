@@ -1,0 +1,1311 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "baseHead": "430b5fdc2a25d0cef627cc9897f4d0bb4f9c53eb",
+  "scope": "Retires Python execution in five original benchmark entries and removes the unreferenced Jinja wheel preparation and numeric oracle helpers. Product runtime, native addon and workload unchanged; full Python retirement and complete templates remain open.",
+  "sources": {
+    "host/bench/native-template.ts": "fd59abd1eb8d9285e1c066d4b502de4c7491836282e87371c74377cae8cc7dbf",
+    "host/bench/native-template-round.ts": "a1001f21492694a9b7295fcd653f7fc5c59d4fb1467042cf9c801b17ba2aaf5c",
+    "host/bench/native-sensor-messages.ts": "2391a55b242f9c9e50219354a25c75d3db8357857ed540718060983bf2e5817f",
+    "host/bench/template-numbers.ts": "75d3aab9696d21ec1279e7e1ed730c2d68391c24d0f3fa3e3262ee3383d0007e",
+    "host/bench/template-candidate.ts": "11ef9171d244c794ec991357b0a4ea575e5b7b708fababe9a8b1635f1d5ff125",
+    "host/bench/template-benchmark-reference.ts": "ac20020ead9d9e1f8a289c623fcda948761c19431aead731bde9284321591250",
+    "host/contracts/template-benchmark-reference.json.gz": "80dafe21e1baed64206db4ae98a1542868fc2f15da497af19fff802bac2305a0",
+    "host/test/template-benchmark-reference.test.ts": "e523e3c5589f579500e5f0ab1b9b2f20223a350718c74e9c3350707877bc8ffa"
+  },
+  "reference": {
+    "runtime": "3.12.13",
+    "jinja": "3.1.6",
+    "oneShotPerOriginalEntry": true,
+    "regeneratedAfterCandidate": false,
+    "entries": {
+      "native-template": {
+        "inputSha256": "b591fe28b5064a6863662b8cae371565f59b03d94a10e52ddbaeaef82b083a8a",
+        "legacyScriptSha256": "40b7f336833784f089ab0ef52a13980768c07ca3b20dbbd966e788b3731536ab",
+        "originalReferenceCodeSha256": "24064055c7c251249afe022db2014e81bde52bfb9b36bb156b3eb09de69c469f",
+        "captureWrapperSha256": "aab3f16814e17b21a0448a13a3219791f4c754d9cda0b533e3f5377d5dbf3f07",
+        "rawOutputSha256": "9f7ae0906c15f3c926010952854f205278cf52062194ba9c384216ad3b7f5837"
+      },
+      "native-template-round": {
+        "inputSha256": "d34e2d24784507386628cd6e17b8801f3a1373f1a11c0b1eacbfdcf93f833e48",
+        "legacyScriptSha256": "60789f39aff39c89fe4dd3911e7ac3754421fa36bd7a747050bea13bb3a11d46",
+        "originalReferenceCodeSha256": "cbaf563b583ebe577072c848d2481d29d05b68df9552588a70e665ec614160d2",
+        "captureWrapperSha256": "caf539d6561e4e6fada94d007c280fc5d4dd91183a960681fa4d2ef67e91b1e2",
+        "rawOutputSha256": "d356dbf017914ce26456bac490da1279bc0d7cfe7742cb2b5a041fe7b2f626bd"
+      },
+      "template-candidate": {
+        "inputSha256": "44d36345bccf3d096eaab6a43c0f965275ccc864555fcb029ca6ba7cd4ba179c",
+        "legacyScriptSha256": "ba376a3a6de5cdab3ee41cb9638eca047582532ac76bfc89b65ff681e3ce5a3e",
+        "originalReferenceCodeSha256": "e871a6a84ba0e1704b96f96a6f0a4b19561323f19739dc54b70109b018815bb9",
+        "captureWrapperSha256": "8989d4c13ac05ce68a090dfbd85ab5f97b6d390dea52c6421c9576e3e9a5cb4e",
+        "rawOutputSha256": "dfbc23e9160ade4273188fc0cd87c88b71872f90644036045429787c81ddda60"
+      },
+      "template-numbers": {
+        "inputSha256": "6414b2ca3d732ab4e2cc79252e0d64e98b15898b8cb2274df0a0a67d720451dd",
+        "legacyScriptSha256": "91338ca5b6eff6a919d50d47720ee8b3105bb9a45e370debab41c06e0db98b24",
+        "originalReferenceCodeSha256": "beaf35918b51898f62e9c7b54f963e014333d1d43081dd9c0f407163c45149fd",
+        "captureWrapperSha256": "1ba69038bf6a44303e52ae8325ce6ed76472eee837d84086c5c4e1ee78e588a0",
+        "rawOutputSha256": "5881a2e7c40a8269ba9f438d643551d056f6bf5cee27484c0300919ad9872e4a"
+      },
+      "native-sensor-messages": {
+        "inputSha256": "db518d215d02fcc6cacecbfe2718061e631668ae5e2661cba0514d0cc4caf038",
+        "legacyScriptSha256": "3180ddd091485bf96ceda7f3943b7d72e14ee25eebda1b6d8cbeb699696c0f5b",
+        "originalReferenceCodeSha256": "a91d286b7a042839001cff42c40c92213b3111e05efe437151a317f03f9d3e7d",
+        "captureWrapperSha256": "e40f160e1ddbe039a98ac2f7b7996cc17034d16a5cc9c89eb3210059b804774e",
+        "rawOutputSha256": "16e1fca872846d80f8c9a29958b4784ccf3611141bdd52e2170b1eb6ab2e7710"
+      }
+    }
+  },
+  "validation": {
+    "node": "v26.10.0",
+    "compiler": "7.0.2",
+    "sourceAndCompiledTests": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "overlappingCoverage": true
+    },
+    "typecheck": true,
+    "whitespace": true,
+    "isolatedExecution": {
+      "path": "/nonexistent",
+      "python": "/nonexistent",
+      "nodePermission": true,
+      "allowChildProcess": false,
+      "allowAddons": true,
+      "compiledTypeScriptLoading": false,
+      "nativeSandboxClaim": false
+    },
+    "nativeAddon": {
+      "rebuilt": false,
+      "sha256": "b4ba54aaf6abfa26bea46e2b60bc95d2529c2430f87bbde56e47300943feb20e"
+    },
+    "preservedFailures": [
+      {
+        "files": [
+          "native-sensor-messages-retired-source-oct11.log",
+          "template-candidate-retired-source-oct11.log"
+        ],
+        "exit": 1,
+        "reason": "Node file permission initially omitted the actual shared dependency directory behind package symlinks. No benchmark ran. Adding only that read directory allowed the unchanged benchmark entries to execute; no child process permission was added."
+      },
+      {
+        "files": [
+          "template-candidate-retired-source-adapter-oct11.log",
+          "template-candidate-retired-compiled-adapter-oct11.log"
+        ],
+        "exit": 1,
+        "reason": "Original --require-compatible gate still rejects the JS candidate: direct Moonraker syntax and JSON/callback float types remain incompatible. This is an open product compatibility gate, not an accepted expected-success test."
+      }
+    ],
+    "captureControl": "Spy executions exited 1 with REFERENCE_CAPTURED_ONLY to extract original fixed calls without Python execution. One subsequent Python capture per entry succeeded; controls are archived separately from product validation."
+  },
+  "performance": {
+    "source": {
+      "native-template": {
+        "node": "v26.10.0",
+        "engine": "minijinja-2.24.0 via N-API",
+        "rust": "1.89.0",
+        "renders": 3000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Original Moonraker Shelly syntax, native typed JSON/filters/readings versus Jinja2; no MQTT or SensorStore",
+        "native": {
+          "samplesMs": [
+            26.132265000000004,
+            26.022523000000007,
+            26.09671399999999,
+            26.44461100000001,
+            27.181615000000022,
+            26.54016200000001,
+            26.116364999999973
+          ],
+          "medianMs": 26.132265000000004,
+          "p95Ms": 27.181615000000022
+        },
+        "frozenPython": {
+          "samplesMs": [
+            32.241357024759054,
+            32.008150999899954,
+            32.17986598610878,
+            32.231196004431695,
+            32.04640204785392,
+            32.15026395628229,
+            32.46409201528877
+          ],
+          "medianMs": 32.17986598610878,
+          "p95Ms": 32.46409201528877
+        },
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "medianBudget": 1.5,
+        "medianRatio": 0.8120687951677807
+      },
+      "native-template-round": {
+        "node": "v26.10.0",
+        "renders": 4000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Mixed integer, boolean and binary64 round inside native/Jinja templates; excludes MQTT, storage and printing",
+        "native": {
+          "samplesMs": [
+            15.545124000000001,
+            15.821789999999993,
+            15.751137999999997,
+            15.461532000000005,
+            15.282599000000005,
+            15.660357000000005,
+            15.39842200000001
+          ],
+          "medianMs": 15.545124000000001,
+          "p95Ms": 15.821789999999993
+        },
+        "frozenPython": {
+          "samplesMs": [
+            44.0673180273734,
+            44.055767997633666,
+            44.031917001120746,
+            43.92025398556143,
+            43.95725502399728,
+            43.941904965322465,
+            43.59365697018802
+          ],
+          "medianMs": 43.95725502399728,
+          "p95Ms": 44.0673180273734
+        },
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "medianBudget": 1.5,
+        "medianRatio": 0.3536418275325327
+      },
+      "native-sensor-messages": {
+        "node": "v26.10.0",
+        "frames": 10000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Byte decoding, original template syntax, typed JSON and four callbacks, SensorStore and average history; excludes MQTT and printing",
+        "native": {
+          "samplesMs": [
+            112.13237600000002,
+            110.11301800000001,
+            109.57370900000001,
+            109.17117100000007,
+            109.81582300000002,
+            109.137831,
+            108.43629599999997
+          ],
+          "medianMs": 109.57370900000001,
+          "p95Ms": 112.13237600000002
+        },
+        "frozenPython": {
+          "samplesMs": [
+            149.81284399982542,
+            152.6231609750539,
+            153.70535699184984,
+            153.73078698758036,
+            151.24121500412002,
+            150.63378104241565,
+            151.9443319994025
+          ],
+          "medianMs": 151.9443319994025,
+          "p95Ms": 153.73078698758036
+        },
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "medianBudget": 1.5,
+        "medianRatio": 0.7211437738949742
+      },
+      "template-numbers": {
+        "node": "v26.10.0",
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "iterations": 100000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Primitive numeric filters including loop/dispatch, with exact aggregate comparison; excludes typed bridge and templates",
+        "results": [
+          {
+            "mode": "float",
+            "node": {
+              "samplesMs": [
+                7.665134999999992,
+                9.083731999999998,
+                9.792294999999996,
+                7.621163999999993,
+                7.549092999999999,
+                7.51841300000001,
+                7.460860999999994
+              ],
+              "medianMs": 7.621163999999993,
+              "p95Ms": 9.792294999999996
+            },
+            "frozenPython": {
+              "samplesMs": [
+                23.63060205243528,
+                23.332553973887116,
+                24.369038990698755,
+                23.284304013941437,
+                23.33805395755917,
+                23.30838399939239,
+                23.75991496955976
+              ],
+              "medianMs": 23.33805395755917,
+              "p95Ms": 24.369038990698755
+            },
+            "medianRatio": 0.3265552480879198
+          },
+          {
+            "mode": "unicode",
+            "node": {
+              "samplesMs": [
+                71.04803599999997,
+                81.51383299999998,
+                83.223366,
+                71.44259299999999,
+                71.41177200000004,
+                69.93585300000007,
+                69.34549300000003
+              ],
+              "medianMs": 71.41177200000004,
+              "p95Ms": 83.223366
+            },
+            "frozenPython": {
+              "samplesMs": [
+                26.676883979234844,
+                27.630436001345515,
+                26.69212396722287,
+                26.621063007041812,
+                26.627342973370105,
+                27.050073025748134,
+                26.790165982674807
+              ],
+              "medianMs": 26.69212396722287,
+              "p95Ms": 27.630436001345515
+            },
+            "medianRatio": 2.6753873947120717
+          },
+          {
+            "mode": "round",
+            "node": {
+              "samplesMs": [
+                17.566373,
+                18.62430299999994,
+                18.22746499999994,
+                18.215614000000073,
+                18.10267299999998,
+                18.085042000000044,
+                18.473619999999983
+              ],
+              "medianMs": 18.215614000000073,
+              "p95Ms": 18.62430299999994
+            },
+            "frozenPython": {
+              "samplesMs": [
+                51.84035201091319,
+                51.52806401019916,
+                51.887673034798354,
+                51.54968495480716,
+                51.82746099308133,
+                51.54141300590709,
+                52.265331032685935
+              ],
+              "medianMs": 51.82746099308133,
+              "p95Ms": 52.265331032685935
+            },
+            "medianRatio": 0.351466455252974
+          },
+          {
+            "mode": "ceil",
+            "node": {
+              "samplesMs": [
+                18.62161200000014,
+                18.706574000000046,
+                18.592791999999918,
+                18.51861000000008,
+                18.76026499999989,
+                18.603642000000036,
+                18.48495899999989
+              ],
+              "medianMs": 18.603642000000036,
+              "p95Ms": 18.76026499999989
+            },
+            "frozenPython": {
+              "samplesMs": [
+                41.57280700746924,
+                40.730037027969956,
+                41.36905196355656,
+                40.67462601233274,
+                41.03943501831964,
+                41.02249402785674,
+                40.656164987012744
+              ],
+              "medianMs": 41.02249402785674,
+              "p95Ms": 41.57280700746924
+            },
+            "medianRatio": 0.45349856074979367
+          },
+          {
+            "mode": "floor",
+            "node": {
+              "samplesMs": [
+                19.31693599999994,
+                18.716974000000164,
+                18.34232699999984,
+                18.366637999999966,
+                19.0731209999999,
+                18.37639799999988,
+                18.242285000000038
+              ],
+              "medianMs": 18.37639799999988,
+              "p95Ms": 19.31693599999994
+            },
+            "frozenPython": {
+              "samplesMs": [
+                42.00655804015696,
+                41.43848398234695,
+                41.12556600011885,
+                41.998667002189904,
+                41.466985014267266,
+                41.691470018122345,
+                41.353021981194615
+              ],
+              "medianMs": 41.466985014267266,
+              "p95Ms": 42.00655804015696
+            },
+            "medianRatio": 0.44315732126840757
+          }
+        ]
+      },
+      "template-candidate": {
+        "node": "v26.10.0",
+        "candidate": "minijinja-js@2.24.0",
+        "frozenPython": "Jinja2@3.1.6",
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "productionEnabled": false,
+        "numericAdapter": false,
+        "compatible": false,
+        "directMoonrakerSyntax": false,
+        "results": [
+          {
+            "name": "integer literal",
+            "expression": "1 is integer",
+            "python": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "float literal",
+            "expression": "1.0 is float",
+            "python": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "Python decimal rounding",
+            "expression": "2.675|round(2)",
+            "python": {
+              "ok": true,
+              "rendered": "2.67"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "2.68"
+            },
+            "equivalent": false
+          },
+          {
+            "name": "negative tie rounding",
+            "expression": "(-2.675)|round(2)",
+            "python": {
+              "ok": true,
+              "rendered": "-2.67"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "-2.68"
+            },
+            "equivalent": false
+          },
+          {
+            "name": "integer intermediate cancellation",
+            "expression": "9007199254740993 - 9007199254740992",
+            "python": {
+              "ok": true,
+              "rendered": "1"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "1"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "JSON integer type",
+            "expression": "(payload|fromjson).i is integer",
+            "python": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "JSON float type",
+            "expression": "(payload|fromjson).f is float",
+            "python": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "False"
+            },
+            "equivalent": false
+          },
+          {
+            "name": "callback float type",
+            "expression": "kind(1.0)",
+            "python": {
+              "ok": true,
+              "rendered": "float"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "integer"
+            },
+            "equivalent": false
+          },
+          {
+            "name": "Unicode float conversion",
+            "expression": "\"١_٢.５\"|float",
+            "python": {
+              "ok": true,
+              "rendered": "12.5"
+            },
+            "candidate": {
+              "ok": false
+            },
+            "equivalent": false
+          },
+          {
+            "name": "round result float type",
+            "expression": "(1.0|round(0)) is float",
+            "python": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "negative floor division",
+            "expression": "(-5)//2",
+            "python": {
+              "ok": true,
+              "rendered": "-3"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "-3"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "Python dictionary method",
+            "expression": "(payload|fromjson).keys()|list|length",
+            "python": {
+              "ok": true,
+              "rendered": "6"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "6"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "undefined attribute",
+            "expression": "missing.child.value",
+            "python": {
+              "ok": false
+            },
+            "candidate": {
+              "ok": false
+            },
+            "equivalent": true
+          }
+        ],
+        "performance": {
+          "renders": 3000,
+          "warmup": 2,
+          "samples": 7,
+          "scope": "Explicitly adapted Shelly template; JSON decode and four numeric callbacks; no MQTT, storage or native typed binding",
+          "node": {
+            "samplesMs": [
+              45.34029700000002,
+              44.98403000000002,
+              44.32099800000003,
+              43.89747999999997,
+              43.63459499999999,
+              43.76264800000001,
+              43.62659499999995
+            ],
+            "medianMs": 43.89747999999997,
+            "p95Ms": 45.34029700000002
+          },
+          "python": {
+            "samplesMs": [
+              31.457388016860932,
+              31.70755400788039,
+              31.714843993540853,
+              31.772405956871808,
+              31.767705047968775,
+              31.793684989679605,
+              31.83426702162251
+            ],
+            "medianMs": 31.767705047968775,
+            "p95Ms": 31.83426702162251
+          }
+        }
+      }
+    },
+    "compiled": {
+      "native-template": {
+        "node": "v26.10.0",
+        "engine": "minijinja-2.24.0 via N-API",
+        "rust": "1.89.0",
+        "renders": 3000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Original Moonraker Shelly syntax, native typed JSON/filters/readings versus Jinja2; no MQTT or SensorStore",
+        "native": {
+          "samplesMs": [
+            26.738691000000003,
+            26.33517300000001,
+            26.060857999999996,
+            25.883276000000023,
+            26.137910000000005,
+            26.077909000000005,
+            27.297950999999983
+          ],
+          "medianMs": 26.137910000000005,
+          "p95Ms": 27.297950999999983
+        },
+        "frozenPython": {
+          "samplesMs": [
+            32.241357024759054,
+            32.008150999899954,
+            32.17986598610878,
+            32.231196004431695,
+            32.04640204785392,
+            32.15026395628229,
+            32.46409201528877
+          ],
+          "medianMs": 32.17986598610878,
+          "p95Ms": 32.46409201528877
+        },
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "medianBudget": 1.5,
+        "medianRatio": 0.8122442154135467
+      },
+      "native-template-round": {
+        "node": "v26.10.0",
+        "renders": 4000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Mixed integer, boolean and binary64 round inside native/Jinja templates; excludes MQTT, storage and printing",
+        "native": {
+          "samplesMs": [
+            26.177811000000005,
+            16.702439999999996,
+            15.546529000000007,
+            18.667035,
+            18.180067000000008,
+            15.411906999999985,
+            22.40433300000001
+          ],
+          "medianMs": 18.180067000000008,
+          "p95Ms": 26.177811000000005
+        },
+        "frozenPython": {
+          "samplesMs": [
+            44.0673180273734,
+            44.055767997633666,
+            44.031917001120746,
+            43.92025398556143,
+            43.95725502399728,
+            43.941904965322465,
+            43.59365697018802
+          ],
+          "medianMs": 43.95725502399728,
+          "p95Ms": 44.0673180273734
+        },
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "medianBudget": 1.5,
+        "medianRatio": 0.4135851292369164
+      },
+      "native-sensor-messages": {
+        "node": "v26.10.0",
+        "frames": 10000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Byte decoding, original template syntax, typed JSON and four callbacks, SensorStore and average history; excludes MQTT and printing",
+        "native": {
+          "samplesMs": [
+            107.481742,
+            106.29408099999995,
+            106.34589199999994,
+            106.82651099999998,
+            106.87292100000002,
+            106.28596099999993,
+            105.87904300000002
+          ],
+          "medianMs": 106.34589199999994,
+          "p95Ms": 107.481742
+        },
+        "frozenPython": {
+          "samplesMs": [
+            149.81284399982542,
+            152.6231609750539,
+            153.70535699184984,
+            153.73078698758036,
+            151.24121500412002,
+            150.63378104241565,
+            151.9443319994025
+          ],
+          "medianMs": 151.9443319994025,
+          "p95Ms": 153.73078698758036
+        },
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "medianBudget": 1.5,
+        "medianRatio": 0.699900355614569
+      },
+      "template-numbers": {
+        "node": "v26.10.0",
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "iterations": 100000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Primitive numeric filters including loop/dispatch, with exact aggregate comparison; excludes typed bridge and templates",
+        "results": [
+          {
+            "mode": "float",
+            "node": {
+              "samplesMs": [
+                8.176997,
+                9.455939999999998,
+                8.933321000000007,
+                7.869230999999999,
+                7.813631000000001,
+                7.718358000000009,
+                7.750050000000002
+              ],
+              "medianMs": 7.869230999999999,
+              "p95Ms": 9.455939999999998
+            },
+            "frozenPython": {
+              "samplesMs": [
+                23.63060205243528,
+                23.332553973887116,
+                24.369038990698755,
+                23.284304013941437,
+                23.33805395755917,
+                23.30838399939239,
+                23.75991496955976
+              ],
+              "medianMs": 23.33805395755917,
+              "p95Ms": 24.369038990698755
+            },
+            "medianRatio": 0.3371845405066931
+          },
+          {
+            "mode": "unicode",
+            "node": {
+              "samplesMs": [
+                70.11005,
+                71.42539399999998,
+                70.336814,
+                70.32279399999999,
+                70.77432199999998,
+                70.48691599999995,
+                70.481266
+              ],
+              "medianMs": 70.481266,
+              "p95Ms": 71.42539399999998
+            },
+            "frozenPython": {
+              "samplesMs": [
+                26.676883979234844,
+                27.630436001345515,
+                26.69212396722287,
+                26.621063007041812,
+                26.627342973370105,
+                27.050073025748134,
+                26.790165982674807
+              ],
+              "medianMs": 26.69212396722287,
+              "p95Ms": 27.630436001345515
+            },
+            "medianRatio": 2.640526699431971
+          },
+          {
+            "mode": "round",
+            "node": {
+              "samplesMs": [
+                17.702507999999966,
+                18.42894100000001,
+                16.992365000000063,
+                17.15670900000009,
+                17.062266000000022,
+                17.006805999999983,
+                17.167697999999973
+              ],
+              "medianMs": 17.15670900000009,
+              "p95Ms": 18.42894100000001
+            },
+            "frozenPython": {
+              "samplesMs": [
+                51.84035201091319,
+                51.52806401019916,
+                51.887673034798354,
+                51.54968495480716,
+                51.82746099308133,
+                51.54141300590709,
+                52.265331032685935
+              ],
+              "medianMs": 51.82746099308133,
+              "p95Ms": 52.265331032685935
+            },
+            "medianRatio": 0.33103510515960666
+          },
+          {
+            "mode": "ceil",
+            "node": {
+              "samplesMs": [
+                17.786949999999933,
+                17.85192100000006,
+                17.8428100000001,
+                17.566565999999966,
+                17.54349500000012,
+                17.421002999999928,
+                17.66289699999993
+              ],
+              "medianMs": 17.66289699999993,
+              "p95Ms": 17.85192100000006
+            },
+            "frozenPython": {
+              "samplesMs": [
+                41.57280700746924,
+                40.730037027969956,
+                41.36905196355656,
+                40.67462601233274,
+                41.03943501831964,
+                41.02249402785674,
+                40.656164987012744
+              ],
+              "medianMs": 41.02249402785674,
+              "p95Ms": 41.57280700746924
+            },
+            "medianRatio": 0.43056614227320655
+          },
+          {
+            "mode": "floor",
+            "node": {
+              "samplesMs": [
+                19.023812000000135,
+                19.006221000000096,
+                18.95213100000001,
+                18.873269000000164,
+                19.69828399999983,
+                19.62985300000014,
+                18.91306899999995
+              ],
+              "medianMs": 19.006221000000096,
+              "p95Ms": 19.69828399999983
+            },
+            "frozenPython": {
+              "samplesMs": [
+                42.00655804015696,
+                41.43848398234695,
+                41.12556600011885,
+                41.998667002189904,
+                41.466985014267266,
+                41.691470018122345,
+                41.353021981194615
+              ],
+              "medianMs": 41.466985014267266,
+              "p95Ms": 42.00655804015696
+            },
+            "medianRatio": 0.4583458622193235
+          }
+        ]
+      },
+      "template-candidate": {
+        "node": "v26.10.0",
+        "candidate": "minijinja-js@2.24.0",
+        "frozenPython": "Jinja2@3.1.6",
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "productionEnabled": false,
+        "numericAdapter": false,
+        "compatible": false,
+        "directMoonrakerSyntax": false,
+        "results": [
+          {
+            "name": "integer literal",
+            "expression": "1 is integer",
+            "python": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "float literal",
+            "expression": "1.0 is float",
+            "python": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "Python decimal rounding",
+            "expression": "2.675|round(2)",
+            "python": {
+              "ok": true,
+              "rendered": "2.67"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "2.68"
+            },
+            "equivalent": false
+          },
+          {
+            "name": "negative tie rounding",
+            "expression": "(-2.675)|round(2)",
+            "python": {
+              "ok": true,
+              "rendered": "-2.67"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "-2.68"
+            },
+            "equivalent": false
+          },
+          {
+            "name": "integer intermediate cancellation",
+            "expression": "9007199254740993 - 9007199254740992",
+            "python": {
+              "ok": true,
+              "rendered": "1"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "1"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "JSON integer type",
+            "expression": "(payload|fromjson).i is integer",
+            "python": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "JSON float type",
+            "expression": "(payload|fromjson).f is float",
+            "python": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "False"
+            },
+            "equivalent": false
+          },
+          {
+            "name": "callback float type",
+            "expression": "kind(1.0)",
+            "python": {
+              "ok": true,
+              "rendered": "float"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "integer"
+            },
+            "equivalent": false
+          },
+          {
+            "name": "Unicode float conversion",
+            "expression": "\"١_٢.５\"|float",
+            "python": {
+              "ok": true,
+              "rendered": "12.5"
+            },
+            "candidate": {
+              "ok": false
+            },
+            "equivalent": false
+          },
+          {
+            "name": "round result float type",
+            "expression": "(1.0|round(0)) is float",
+            "python": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "True"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "negative floor division",
+            "expression": "(-5)//2",
+            "python": {
+              "ok": true,
+              "rendered": "-3"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "-3"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "Python dictionary method",
+            "expression": "(payload|fromjson).keys()|list|length",
+            "python": {
+              "ok": true,
+              "rendered": "6"
+            },
+            "candidate": {
+              "ok": true,
+              "rendered": "6"
+            },
+            "equivalent": true
+          },
+          {
+            "name": "undefined attribute",
+            "expression": "missing.child.value",
+            "python": {
+              "ok": false
+            },
+            "candidate": {
+              "ok": false
+            },
+            "equivalent": true
+          }
+        ],
+        "performance": {
+          "renders": 3000,
+          "warmup": 2,
+          "samples": 7,
+          "scope": "Explicitly adapted Shelly template; JSON decode and four numeric callbacks; no MQTT, storage or native typed binding",
+          "node": {
+            "samplesMs": [
+              45.665367,
+              45.64355699999999,
+              44.65679900000001,
+              44.37590399999999,
+              43.641561000000024,
+              43.47327799999999,
+              43.468628000000024
+            ],
+            "medianMs": 44.37590399999999,
+            "p95Ms": 45.665367
+          },
+          "python": {
+            "samplesMs": [
+              31.457388016860932,
+              31.70755400788039,
+              31.714843993540853,
+              31.772405956871808,
+              31.767705047968775,
+              31.793684989679605,
+              31.83426702162251
+            ],
+            "medianMs": 31.767705047968775,
+            "p95Ms": 31.83426702162251
+          }
+        }
+      }
+    },
+    "adapter": {
+      "node": "v26.10.0",
+      "candidate": "minijinja-js@2.24.0",
+      "frozenPython": "Jinja2@3.1.6",
+      "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+      "productionEnabled": false,
+      "numericAdapter": true,
+      "compatible": false,
+      "directMoonrakerSyntax": false,
+      "results": [
+        {
+          "name": "integer literal",
+          "expression": "1 is integer",
+          "python": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "float literal",
+          "expression": "1.0 is float",
+          "python": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "Python decimal rounding",
+          "expression": "2.675|round(2)",
+          "python": {
+            "ok": true,
+            "rendered": "2.67"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "2.67"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "negative tie rounding",
+          "expression": "(-2.675)|round(2)",
+          "python": {
+            "ok": true,
+            "rendered": "-2.67"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "-2.67"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "integer intermediate cancellation",
+          "expression": "9007199254740993 - 9007199254740992",
+          "python": {
+            "ok": true,
+            "rendered": "1"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "1"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "JSON integer type",
+          "expression": "(payload|fromjson).i is integer",
+          "python": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "JSON float type",
+          "expression": "(payload|fromjson).f is float",
+          "python": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "False"
+          },
+          "equivalent": false
+        },
+        {
+          "name": "callback float type",
+          "expression": "kind(1.0)",
+          "python": {
+            "ok": true,
+            "rendered": "float"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "integer"
+          },
+          "equivalent": false
+        },
+        {
+          "name": "Unicode float conversion",
+          "expression": "\"١_٢.５\"|float",
+          "python": {
+            "ok": true,
+            "rendered": "12.5"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "12.5"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "round result float type",
+          "expression": "(1.0|round(0)) is float",
+          "python": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "False"
+          },
+          "equivalent": false
+        },
+        {
+          "name": "negative floor division",
+          "expression": "(-5)//2",
+          "python": {
+            "ok": true,
+            "rendered": "-3"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "-3"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "Python dictionary method",
+          "expression": "(payload|fromjson).keys()|list|length",
+          "python": {
+            "ok": true,
+            "rendered": "6"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "6"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "undefined attribute",
+          "expression": "missing.child.value",
+          "python": {
+            "ok": false
+          },
+          "candidate": {
+            "ok": false
+          },
+          "equivalent": true
+        }
+      ],
+      "performance": {
+        "renders": 3000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Explicitly adapted Shelly template; JSON decode and four numeric callbacks; no MQTT, storage or native typed binding",
+        "node": {
+          "samplesMs": [
+            50.448722000000004,
+            50.29567,
+            49.45739499999996,
+            49.25446100000005,
+            49.085418000000004,
+            48.93417499999998,
+            48.879264999999975
+          ],
+          "medianMs": 49.25446100000005,
+          "p95Ms": 50.448722000000004
+        },
+        "python": {
+          "samplesMs": [
+            31.457388016860932,
+            31.70755400788039,
+            31.714843993540853,
+            31.772405956871808,
+            31.767705047968775,
+            31.793684989679605,
+            31.83426702162251
+          ],
+          "medianMs": 31.767705047968775,
+          "p95Ms": 31.83426702162251
+        }
+      }
+    },
+    "comparison": "Historical frozen original Python/Jinja samples, no same-run speedup or target-board claim",
+    "nativeMedianBudget": {
+      "ratio": 1.5,
+      "fixedBeforeCurrentNativeMeasurements": true,
+      "basis": "Same ratio as the original synchronous template acceptance gate; added to these three benchmark entries without changing input or work counts."
+    },
+    "unicodePrimitiveGap": {
+      "sourceRatio": 2.6753873947120717,
+      "compiledRatio": 2.640526699431971,
+      "closed": false
+    }
+  },
+  "remainingPythonDependencies": [
+    "Other sensor differential tests and sensor benchmark still use host/test/helpers/sensor-oracle.ts",
+    "Other host validation and tools still launch Python",
+    "Default Klipper runtime and klippy Python modules remain"
+  ],
+  "openGates": [
+    "Unicode primitive conversion performance gap",
+    "Direct syntax and typed JSON/callback incompatibilities in minijinja-js evaluation",
+    "Complete asynchronous, callable and UI template factory",
+    "Full Moonraker integration and complete Python retirement",
+    "Local compiler/process and motion precision root cause; original full local regression failures",
+    "G3, target-board and actual Cycnumbris 500 acceptance",
+    "Normal develop integration and master release"
+  ],
+  "evidence": {
+    "path": "template-benchmark-retirement.evidence.json.gz",
+    "sha256": "6535f40916b46c16006a50aa0cff5436e9ee2f288bb494ac69dffe789bb7ce24",
+    "bytes": 79017,
+    "entries": 78
+  }
+}

@@ -66,8 +66,13 @@ R16／R17 均在含启动 15 分钟内自动关闭，详见原验收记录的 `p
 固定摘要的参考数据，日常执行不再启动 Python。保留原 42744 组浮点
 舍入、5424 组整数／布尔舍入、1293 组转换及负零；源码与关闭 TS
 加载的独立 JavaScript 验证通过，相关回归 64／64、原性能门限通过。
-这只退役上述验证入口，其他模板评估／传感器基准、完整异步模板及
-产品门槛仍开放，见[模板参考退役](host/contracts/template-reference-retirement.json)。
+这只退役上述验证入口，见[模板参考退役](host/contracts/template-reference-retirement.json)。
+随后五条模板评估／原生传感器消息基准也改用原始固定参考，删除无引用的
+Jinja 准备和数值参考助手。源码与关闭 TS 加载的编译验证通过；三条
+原生基准满足事先固定的 1.5 倍历史中位预算。Unicode 原语转换仍约
+2.64 倍参考，JS 模板候选仍不兼容，见
+[基准退役与剩余差距](host/contracts/template-benchmark-retirement.json)。
+其他传感器差分、完整异步模板、全面 Python 退役及产品门槛继续开放。
 提交 `95984efa` 的普通 CI 4537／4537、主机及固件通过，运动矩阵
 有一项触发原 10 秒子进程期限，14／15 通过，见
 [该提交终态](host/contracts/pr68-959-terminal.json)。失败现场已封存，

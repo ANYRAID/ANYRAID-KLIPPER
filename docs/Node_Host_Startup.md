@@ -3657,8 +3657,20 @@ UI 双花括号环境、可启用日志及完整 Python 大整数仍待补齐，
 使用原封存性能参考和同一输入／次数／预算，不属于同轮 Python 对照。
 本轮源码与独立编译 JavaScript 均在外部程序不可用、Node 未授予
 子进程权限时通过；原生插件另获显式加载许可，不据此宣称原生沙箱。
-其他历史评估与传感器性能入口仍含 Python 调用；原失败及完整范围见
+上述四条入口的原失败及范围见
 [参考退役证据](../host/contracts/template-reference-retirement.json)。
+随后 `native-template.ts`、`native-template-round.ts`、
+`native-sensor-messages.ts`、`template-numbers.ts` 与
+`template-candidate.ts` 也使用 `template-benchmark-reference.json.gz`，
+输入、原始输出及压缩文件摘要均校验。原两轮预热、七样本和工作量
+保持，不再准备 Jinja wheel 或启动 Python；原准备及数值助手已删除。
+直接运行 `node host/bench/<上述名称>` 即可；原生入口仍须模板插件。
+三条原生基准增加事先固定的 1.5 倍历史中位预算；原语和 JS 候选只
+报告差距，`--numeric-adapter --require-compatible` 仍退出 1。
+源码及独立 JavaScript 编译在相同隔离条件下通过，详见
+[基准退役](../host/contracts/template-benchmark-retirement.json)。
+Unicode 原语性能、JS 语法／类型兼容、其他传感器差分、完整模板工厂、
+全面 Python 退役及打印性能门槛未关闭。
 默认测试使用实际固定上游源码
 生成的 24 项原冻结参考及六项负零补充参考，不新增运行时 Python；生成和性能对照只在
 独立临时目录执行一次。失败、后续定向验证和原始性能见

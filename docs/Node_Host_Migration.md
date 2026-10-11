@@ -14561,14 +14561,14 @@ fromjson 经现有安全 JSON 解析器桥接。
 复现命令（Node 26 在 PATH 中）：
 
 ```sh
-node host/scripts/ensure-jinja-reference.ts
+# 固定参考随仓库提供，无需准备 Jinja wheel
 node host/bench/template-candidate.ts
 node host/bench/template-candidate.ts --require-compatible
 ```
 
-准备脚本下载固定 Jinja2/MarkupSafe wheel 并核对预置 SHA-256，仅解压
-到忽略的 `host/node_modules/.cache/jinja-reference`，不依赖 pip/venv，
-不修改系统 Python。当前基准在 Linux x86_64/Python 3.12 验证。普通
+原准备脚本曾下载固定 Jinja2/MarkupSafe wheel 并核对预置 SHA-256。
+现在该入口使用原一次封存的 Jinja2 3.1.6／Python 3.12.13 参考，
+准备脚本已删除，日常评估不启动 Python。普通
 评估命令输出结果；`--require-compatible` 当前必须返回 1，不能将它
 记作兼容门禁通过。既有完整主机测试与此候选门禁是两件事。
 
@@ -14685,7 +14685,7 @@ Moonraker 全局接口、完整 Jinja 兼容性和配置自动装配仍未实现
 
 ```sh
 node host/scripts/build-template.ts
-node host/scripts/ensure-jinja-reference.ts
+# 固定参考随仓库提供，无需准备 Jinja wheel
 node host/bench/native-template-check.ts
 node host/bench/native-template.ts
 ```
