@@ -3590,6 +3590,38 @@ JSON 安全范围外的整数保留为 BigInt，不经过 JavaScript Number
 或网络端点。关闭只释放本对象的引用，不保证垃圾回收前内存清零，
 已经交给调用者的值仍由调用者负责。
 
+### 独立异步与 UI 模板候选
+
+`MoonrakerAsyncTemplateOwner` 借用一个明确的 `SecretsStore` 代际。
+`createTemplate(source)` 使用单花括号配置语法，`createUiTemplate(source)`
+使用双花括号 UI 语法；返回模板以 `renderAsync(rawJson, options)` 渲染。
+原始 JSON 保留整数／浮点词法，不能先经过普通 `JSON.stringify(Number)`。
+这两个 API 是独立候选，尚未作为标准组件工厂或公开接口启用。
+
+`options.callables` 是 `ReadonlyMap<string, TemplateCallable>`。真实函数
+收到 `{args, kwargs}` 和取消信号，返回 `TemplateValue` 或其 Promise。
+整数用 BigInt，浮点用 `templateFloatValue(number)`，普通 JS Number
+拒绝隐式转换；负零和非有限浮点保留种类。当前原生整数运算仍限于
+有符号 i128，范围外拒绝，完整 Python 任意精度整数继续开发。
+`addEnvironmentGlobal` 会更新已有配置模板并检查名称冲突，UI 模板
+不继承这些全局对象或 secrets；调用者显式传入的 UI 上下文仍可使用。
+
+每个所有者有两个专用计算线程，至多 32 个活跃渲染、64 个模板与
+64 个自定义全局对象，每次渲染至多 64 次真实调用。默认期限 10 秒，
+`timeoutMs` 可缩短至 1—10000 ms；source、context、output 各最多
+64 KiB。取消、关闭与期限使原生等待停止，晚到结果被丢弃，不重试
+有副作用的函数。函数必须协作处理信号；不能强制抢占任意 JS 函数。
+渲染完成也会结束函数信号的生命周期。模板和所有者都必须明确 `close()`；
+私密代际先关闭时拒绝后续渲染。错误不暴露源文、文件路径或私密结果。
+
+源码／编译相关回归和独立快照构建通过，纯模板满足固定桌面预算；
+函数／UI 路径仍未满足 1.5 倍原参考门限。不能据此切换默认打印入口。
+中间分配与进程隔离、完整模板工厂及标准装配仍开放，详见
+[候选证据](../host/contracts/moonraker-template-async-acceptance.json)。
+运行新基准可使用 `node host/bench/template-async.ts`；其参考摘要固定，
+不会启动 Python，性能缺项时退出 1。构建工具链和默认打包要求沿用
+下面的同步候选说明，独立 Rust 快照包含 `src/async_text.rs`。
+
 ### 同步私密文本模板候选
 
 标准 `ConfiguredMoonraker.loadAuthorized` 的授权选项可以显式提供

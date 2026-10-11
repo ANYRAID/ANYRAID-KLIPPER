@@ -79,7 +79,14 @@ Jinja 准备和数值参考助手。源码与关闭 TS 加载的编译验证通�
 [Unicode 转换优化](host/contracts/config-numeric-unicode-acceptance.json)。
 提交 `430b5fdc` 十五项 CI 全通过，普通 4539／4539，见
 [该提交终态](host/contracts/pr68-430b-terminal.json)；新头仍须自身检查。
-其他传感器差分、完整异步模板、全面 Python 退役及产品门槛继续开放。
+新增独立异步／UI 模板候选，真实函数调用、取消、UI 私密全局隔离及
+数值类型通过源码／编译各 112 项相关回归；独立原生源码快照构建通过。
+纯模板满足固定桌面预算，编译函数／UI 路径仍为参考的 1.79／1.85 倍，
+不计性能验收通过，也未启用公开接口或替换默认打印入口。见
+[异步候选及未关闭门槛](host/contracts/moonraker-template-async-acceptance.json)。
+提交 `320c5128` 十五项 CI 全通过，普通 4543／4543，见
+[该提交终态](host/contracts/pr68-320c-terminal.json)；新增异步候选须自身 CI。
+其他传感器差分、完整模板工厂、全面 Python 退役及产品门槛继续开放。
 提交 `95984efa` 的普通 CI 4537／4537、主机及固件通过，运动矩阵
 有一项触发原 10 秒子进程期限，14／15 通过，见
 [该提交终态](host/contracts/pr68-959-terminal.json)。失败现场已封存，

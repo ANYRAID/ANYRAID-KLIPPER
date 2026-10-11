@@ -16,6 +16,7 @@ test('fresh native build uses explicit C and Rust tools without Python, binds so
   process.env.PATH=bin;process.env.CC=join(bin,'cc');const begin=performance.now();await buildProductNative(output);
   const text=await readFile(join(output,'native-build-info.json'),'utf8'),record=JSON.parse(text);
   assert.deepEqual(Object.keys(record.outputs),[...productAddons.map(name=>name+'.node'),...productExecutables]);assert(Object.keys(record.sources).every(name=>!name.endsWith('.py')));assert(record.sources['host/native/trapq.c']);assert(record.sources['klippy/chelper/itersolve.c']);assert(record.sources['host/native/template/Cargo.lock']);assert(record.sources['host/native/template/src/lib.rs']);assert(record.nodeHeaders['node_api.h']);assert.match(record.rustToolchain.rustc,/^rustc 1\.89\.0\b/);
+  assert(record.sources['host/native/template/src/async_text.rs']);
   for(const [name,hash] of Object.entries(record.outputs))assert.equal(createHash('sha256').update(await readFile(join(output,name))).digest('hex'),hash);
   assert.equal(record.rustRegistryPathRemap,'/anyraid-cargo-registry');
   const registry=resolve(process.env.CARGO_HOME??join(homedir(),'.cargo'),'registry/src'),template=await readFile(join(output,'template.node'));

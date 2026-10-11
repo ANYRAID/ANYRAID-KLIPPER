@@ -1,3 +1,4 @@
+mod async_text;
 use minijinja::{
     syntax::SyntaxConfig,
     value::{Object, ObjectRepr, ValueKind},

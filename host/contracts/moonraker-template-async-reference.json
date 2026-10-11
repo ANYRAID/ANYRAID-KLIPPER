@@ -1,0 +1,368 @@
+{
+  "schema": 1,
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "runtime": "3.12.13",
+    "sourceSha256": {
+      "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+      "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+    }
+  },
+  "secrets": "{\"ldap\":{\"base\":\"dc=example,dc=test\",\"password\":\"synthetic-private-template\"},\"i\":1,\"f\":1.0,\"e\":1e0,\"neg\":-0.0,\"large\":9007199254740993,\"bool\":true,\"null\":null,\"__proto__\":\"literal\"}",
+  "file": "/synthetic/moonraker.secrets",
+  "cases": [
+    {
+      "name": "await and keyword",
+      "source": "{fetch(1, scale=2.0)}",
+      "context": "{}",
+      "ui": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": [
+            [
+              "scale",
+              [
+                "float",
+                "2.0"
+              ]
+            ]
+          ]
+        }
+      ],
+      "output": "2.0"
+    },
+    {
+      "name": "two ordered side effects",
+      "source": "{fetch(1)}:{fetch(2)}",
+      "context": "{}",
+      "ui": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": []
+        },
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "2"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "1.0:2.0"
+    },
+    {
+      "name": "typed arguments",
+      "source": "{fetch(1, 1.0, -0.0, 9007199254740993, true, none)}",
+      "context": "{}",
+      "ui": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ],
+            [
+              "float",
+              "1.0"
+            ],
+            [
+              "float",
+              "-0"
+            ],
+            [
+              "integer",
+              "9007199254740993"
+            ],
+            [
+              "boolean",
+              true
+            ],
+            [
+              "none"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "1.0"
+    },
+    {
+      "name": "container arguments",
+      "source": "{fetch([1, 1.0], {\"x\":-0.0})}",
+      "context": "{}",
+      "ui": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "list",
+              [
+                [
+                  "integer",
+                  "1"
+                ],
+                [
+                  "float",
+                  "1.0"
+                ]
+              ]
+            ],
+            [
+              "map",
+              [
+                [
+                  [
+                    "string",
+                    "x"
+                  ],
+                  [
+                    "float",
+                    "-0"
+                  ]
+                ]
+              ]
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "error": true
+    },
+    {
+      "name": "float result type",
+      "source": "{fetch(1) is integer}/{fetch(1)}",
+      "context": "{}",
+      "ui": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": []
+        },
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "False/1.0"
+    },
+    {
+      "name": "context callable shadows global",
+      "source": "{fetch(1)}",
+      "context": "{}",
+      "ui": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "1.0"
+    },
+    {
+      "name": "async error redacted",
+      "source": "{fail()}",
+      "context": "{}",
+      "ui": false,
+      "calls": [],
+      "error": true
+    },
+    {
+      "name": "cancel is propagated",
+      "source": "{cancel()}",
+      "context": "{}",
+      "ui": false,
+      "calls": [],
+      "cancelled": true
+    },
+    {
+      "name": "private async",
+      "source": "{secrets[\"ldap\"][\"base\"]}",
+      "context": "{}",
+      "ui": false,
+      "calls": [],
+      "output": "dc=example,dc=test"
+    },
+    {
+      "name": "async raw types",
+      "source": "{i is integer}/{f is integer}/{large+2}",
+      "context": "{\"i\":1,\"f\":1.0,\"large\":9007199254740993}",
+      "ui": false,
+      "calls": [],
+      "output": "True/False/9007199254740995"
+    },
+    {
+      "name": "async strip",
+      "source": "\u001c  {fetch(1)} ",
+      "context": "{}",
+      "ui": false,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "1"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "1.0"
+    },
+    {
+      "name": "UI double braces",
+      "source": "{{fetch(2)}}",
+      "context": "{}",
+      "ui": true,
+      "calls": [
+        {
+          "name": "fetch",
+          "args": [
+            [
+              "integer",
+              "2"
+            ]
+          ],
+          "kwargs": []
+        }
+      ],
+      "output": "2.0"
+    },
+    {
+      "name": "UI single brace literal",
+      "source": "{fetch(2)}",
+      "context": "{}",
+      "ui": true,
+      "calls": [],
+      "output": "{fetch(2)}"
+    },
+    {
+      "name": "UI excludes private globals",
+      "source": "{{secrets is undefined}}/{{custom is undefined}}/{{raise_error is undefined}}/{{log_debug is undefined}}",
+      "context": "{}",
+      "ui": true,
+      "calls": [],
+      "output": "True/True/True/True"
+    },
+    {
+      "name": "UI typed fromjson",
+      "source": "{% set v=payload|fromjson %}{{v.i is integer}}/{{v.f is integer}}/{{v.large+1}}",
+      "context": "{\"payload\":\"{\\\"i\\\":1,\\\"f\\\":1.0,\\\"large\\\":9007199254740993}\"}",
+      "ui": true,
+      "calls": [],
+      "output": "True/False/9007199254740994"
+    },
+    {
+      "name": "UI explicit context",
+      "source": "{{secrets}}/{{custom}}",
+      "context": "{\"secrets\":\"explicit\",\"custom\":\"context\"}",
+      "ui": true,
+      "calls": [],
+      "output": "explicit/context"
+    }
+  ],
+  "benchmarks": [
+    {
+      "name": "pure",
+      "source": "{i+1}",
+      "context": "{\"i\":2}",
+      "ui": false,
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "output": "3",
+      "sampleMs": [
+        6.338551000226289,
+        6.3264420023187995,
+        6.315300997812301,
+        6.310051016043872,
+        6.324211019091308,
+        6.302741006948054,
+        6.3017409993335605
+      ],
+      "medianMs": 6.315300997812301,
+      "maximumMedianRatio": 1.5
+    },
+    {
+      "name": "callback",
+      "source": "{fetch(i)}",
+      "context": "{\"i\":2}",
+      "ui": false,
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "output": "2.0",
+      "sampleMs": [
+        9.619439020752907,
+        9.57808701787144,
+        9.627469000406563,
+        9.624667989555746,
+        9.7615200211294,
+        9.57950804149732,
+        9.568917972501367
+      ],
+      "medianMs": 9.619439020752907,
+      "maximumMedianRatio": 1.5
+    },
+    {
+      "name": "ui",
+      "source": "{{fetch(i)}}",
+      "context": "{\"i\":2}",
+      "ui": true,
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "output": "2.0",
+      "sampleMs": [
+        8.343943976797163,
+        8.31238302635029,
+        8.285223972052336,
+        8.265702985227108,
+        8.290402998682112,
+        8.263093011919409,
+        8.229263010434806
+      ],
+      "medianMs": 8.285223972052336,
+      "maximumMedianRatio": 1.5
+    }
+  ],
+  "scope": "Pinned original TemplateFactory and JinjaTemplate, dependency lookup shim only; one-time capture before native async measurements. UI separation, real coroutine calls and Python typed transcripts. No full template language, arbitrary bigint, isolation or hardware claim."
+}
