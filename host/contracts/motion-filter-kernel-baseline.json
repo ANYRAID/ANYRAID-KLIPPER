@@ -1,0 +1,342 @@
+{
+  "sourceSha256": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+  "dataDescription": "1201 exact binary samples with alternating 2^40 and fractions of 1/8; second input cycles signed zero and subnormal/near-normal powers of two",
+  "results": [
+    {
+      "filter": "average",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "sha256": "d7ef42bcf1c22ba5f25f36e8977e0ae7d18b0df1c24a359d752082b8ed3bd516",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "average",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "sha256": "a6d8c57b8aa554e858ab724726faed1c08b926df2a400c96c7f147bee36b3588",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "average",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "sha256": "488d4e71cc06f86d26fd2a8f0e50c634561f4a6b76bc38a9d013179de9f39653",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "smooth",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "sha256": "166facf25bbe8df9443d14538e36b01e2f868fdcb4766fec4281f2bd35f5698f",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "smooth",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "sha256": "b0d1c52958ea9143a6fdf03e890ef45d078843dbdaa0ab41e87ca5a4195bbf04",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "smooth",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "sha256": "c365c799b7df63817fece5f8772de05bc6a1a30d803a64dadf5caca2e6546979",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "sha256": "166facf25bbe8df9443d14538e36b01e2f868fdcb4766fec4281f2bd35f5698f",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "sha256": "ceb203bd6818d1ce6efdabdba4e6e5808003117940cb6bc2b4effdcd632c2e66",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "sha256": "87911906f612d363b535bf8949572cc5535a168f7520fb3344831a131493eaec",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted2",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "sha256": "7a980818bee3e1b4f6a41da8eeeef7ddbb74e848051cda0d14d8624eb9235416",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted2",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "sha256": "0b986d68b8e8f571f368d4ff99b9193f19df5a11962258d18e5e979ac52d7a00",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted2",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "sha256": "9782f70225e5a7095b9fa439a998cffcf17fd204cc1b3b215b852b25919f4798",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted3",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "sha256": "166facf25bbe8df9443d14538e36b01e2f868fdcb4766fec4281f2bd35f5698f",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted3",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "sha256": "fc4f5477d78d1e9ccf565e5c79d4ef5474a74e97f3859c1aa320e0e51bdc7fb7",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted3",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "sha256": "b081451fbab11846db4afe81d3c5fbf3e85bd964fcf7f2c7b948fd0481942ba4",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted4",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "sha256": "7a19446b9edc9bb3e1080a51f3f7c59677f64652410e66a3f706ea3c71f5f458",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted4",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "sha256": "dccbaa517db291f1f276841d2d1de6ab152002f29ede7fd5af26bea8f8d847f9",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "weighted4",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "sha256": "fff5e6fa933af252966d4c058a72ab7bac3c2b3930b8ab7a05e6207fa99075cb",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "spring_raw",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "sha256": "59ade3c3d908044015d968ae76e76db38e05776e5aa7ef2615e8f1468bd3c0ce",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "spring_raw",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "sha256": "59ade3c3d908044015d968ae76e76db38e05776e5aa7ef2615e8f1468bd3c0ce",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "spring_raw",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "sha256": "59ade3c3d908044015d968ae76e76db38e05776e5aa7ef2615e8f1468bd3c0ce",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "spring_double_weighted",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "sha256": "59ade3c3d908044015d968ae76e76db38e05776e5aa7ef2615e8f1468bd3c0ce",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "spring_double_weighted",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "sha256": "83d35a72c188ce2899e5cebf9c29e2bb808a6433f48151fbbe9673bf8765659a",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "spring_double_weighted",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "sha256": "b5d9ebcf4efb7e488fb6ea8db190303ee22bb732a362607768634f8e8ec12bd7",
+      "dataCase": "large-and-small"
+    },
+    {
+      "filter": "average",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "7ead6ebb14f0a931555e7ad966c9771539b086169e4672757aace95e7291e5f7"
+    },
+    {
+      "filter": "average",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "7ead6ebb14f0a931555e7ad966c9771539b086169e4672757aace95e7291e5f7"
+    },
+    {
+      "filter": "average",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "0f695d7de1f2336499e23c960af751753012225bb02161f9359166b417d27de8"
+    },
+    {
+      "filter": "smooth",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "d9d017107852110d15d4a5915fa1f371abe9b22928feb6ca1672095a1606e8a4"
+    },
+    {
+      "filter": "smooth",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "dde5c02be11cd8bcfcae5daa0150bd002c9471635d03247e614783361be25d58"
+    },
+    {
+      "filter": "smooth",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "0de681a0a59c92cd3ac81d1f392531cbe6fb3cdf1a38fbe300b9dd21b782270a"
+    },
+    {
+      "filter": "weighted",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "d9d017107852110d15d4a5915fa1f371abe9b22928feb6ca1672095a1606e8a4"
+    },
+    {
+      "filter": "weighted",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "19ef928681091bdbb58a03e6008fefaf4479d6993de4375fe9a0541ff8694361"
+    },
+    {
+      "filter": "weighted",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "ceeb616ba78bac29a81260c386bf6a1a56af04b5b2c18969d5bfa0d9daaec3b1"
+    },
+    {
+      "filter": "weighted2",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "0430083a2cbca9b75b111f20c8ba0ab91b48430abbf77d876435cc02c306cb6d"
+    },
+    {
+      "filter": "weighted2",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "511f8dfa56e0e110f971b6d9755831e98d16051523ab5466eb53cfc932535eba"
+    },
+    {
+      "filter": "weighted2",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "959a46ae7618d8a9da2ee1b7012a667a9c7a52a3fa7a6487585035dec656c8a8"
+    },
+    {
+      "filter": "weighted3",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "d9d017107852110d15d4a5915fa1f371abe9b22928feb6ca1672095a1606e8a4"
+    },
+    {
+      "filter": "weighted3",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "3b8523ed9c20389e445d56497d2fd27dfb0a061c4db3b55641c158d77a26f30b"
+    },
+    {
+      "filter": "weighted3",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "805be69e0329fdff662119083706b6f338a1988b2b93382a680a4c28e644a4d7"
+    },
+    {
+      "filter": "weighted4",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "54e7680551d4714e9951e75436a3671fa8968c68bde1014340f1e47e6b8f194a"
+    },
+    {
+      "filter": "weighted4",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "d93865e18be0b17b7efe98a7ed92031b822d44ee643f88622b238a2a7918ba71"
+    },
+    {
+      "filter": "weighted4",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "289828d7dd60d8af41e912864bd88503f9cbddedba8c99d4adc4881cd82455d3"
+    },
+    {
+      "filter": "spring_raw",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "2e7af38423100095e04fe6ee2c1d1daad18d0b74e59628ab422bc4b71c6ff7e9"
+    },
+    {
+      "filter": "spring_raw",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "2e7af38423100095e04fe6ee2c1d1daad18d0b74e59628ab422bc4b71c6ff7e9"
+    },
+    {
+      "filter": "spring_raw",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "2e7af38423100095e04fe6ee2c1d1daad18d0b74e59628ab422bc4b71c6ff7e9"
+    },
+    {
+      "filter": "spring_double_weighted",
+      "smoothTime": 0.0002,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "2e7af38423100095e04fe6ee2c1d1daad18d0b74e59628ab422bc4b71c6ff7e9"
+    },
+    {
+      "filter": "spring_double_weighted",
+      "smoothTime": 0.016666666666666666,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "d608083536aea7d4074e3972f3b2f4ee27a5926ba8a33c23b6b132aea4be872b"
+    },
+    {
+      "filter": "spring_double_weighted",
+      "smoothTime": 0.1,
+      "length": 1201,
+      "dataCase": "signed-zero-and-subnormal",
+      "sha256": "99dc0dac52ee1a4dc12b29ae3bb7603ad4add146f4912ca02bfe98298c31137c"
+    }
+  ]
+}

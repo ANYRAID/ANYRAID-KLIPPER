@@ -1326,7 +1326,6 @@
     "productSourceChanged": false,
     "performance": "No product behavior or native binary changed in this evidence-only increment; previous package-bound budgets remain separately scoped",
     "remaining": [
-      "Mainsail downloaded content hash",
       "Both-client full preview and external fault recovery",
       "Latest motion CI deadline failure",
       "Local full regression failures",
@@ -1425,6 +1424,128 @@
         "sha256": "171e4e22a6793dfab96763107f96c7fa6296992e560aca05c42a77081c4c0dec",
         "entries": 9,
         "bytes": 75480,
+        "allEntryHashesVerified": true
+      }
+    },
+    "r19": {
+      "sourceHead": "9a7e493c4256483172a3ba68b4e5d5bdc68992f0",
+      "client": "Official Mainsail 2.19.0",
+      "origin": "http://127.0.0.1:18378",
+      "bundle": {
+        "manifestSha256": "5116d33b27725c0739f5bf79f997e3761fc8003f10bb3d23ba5c5a64872f7e63",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "closure": {
+        "name": "mainsail",
+        "started": "2026-10-11T14:04:44.830Z",
+        "deadline": "2026-10-11T14:19:44.830Z",
+        "closed": "2026-10-11T14:11:06.767Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 381937,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1055387,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1055333,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/anyraid-client-credentials-product-oct11",
+        "automaticExtensionOrRelaunch": false
+      },
+      "uploads": [
+        {
+          "at": "2026-10-11T14:05:28.565Z",
+          "filename": "anyraid-preview-layered-oct11.gcode",
+          "fields": {
+            "root": "gcodes",
+            "path": ""
+          },
+          "actualChooser": true,
+          "httpStatus": 201
+        },
+        {
+          "at": "2026-10-11T14:08:35.065Z",
+          "filename": "anyraid-preview-layered-r19-oct11.gcode",
+          "fields": {
+            "root": "gcodes",
+            "path": ""
+          },
+          "actualChooser": true,
+          "httpStatus": 201
+        }
+      ],
+      "preview": {
+        "fromServerFile": true,
+        "filename": "anyraid-preview-layered-oct11.gcode",
+        "completedBytes": 944,
+        "totalBytes": 944,
+        "squareTrajectoryVisible": true,
+        "objectHeight": 0.4,
+        "layerHeight": 0.2,
+        "renderedLayerCountVerified": false
+      },
+      "downloads": {
+        "actualMenuAndBrowserDownloads": true,
+        "sourceBytes": 944,
+        "sourceSha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f",
+        "allThreeByteIdentical": true,
+        "results": [
+          {
+            "size": 944,
+            "mtime": "2026-10-11T14:05:53.184Z",
+            "sha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f",
+            "byteEqual": true,
+            "file": "anyraid-mainsail-preview-r19-cached-downloaded-oct11.gcode"
+          },
+          {
+            "size": 944,
+            "mtime": "2026-10-11T14:08:57.773Z",
+            "sha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f",
+            "byteEqual": true,
+            "file": "anyraid-mainsail-preview-r19-fresh-downloaded-oct11.gcode"
+          },
+          {
+            "size": 944,
+            "mtime": "2026-10-11T14:10:38.671Z",
+            "sha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f",
+            "byteEqual": true,
+            "afterExplicitRecovery": true,
+            "file": "anyraid-mainsail-preview-r19-recovered-downloaded-oct11.gcode"
+          }
+        ],
+        "httpStatuses": [
+          304,
+          200,
+          304
+        ],
+        "eventObservation": {
+          "first": "Timed out after 9998ms waiting for download",
+          "freshPath": "Timed out after 9995ms waiting for download",
+          "independentlyVerifiedCreatedFiles": true,
+          "timeoutIsNotProductFailure": true
+        }
+      },
+      "recovery": {
+        "explicit": true,
+        "productProcessGeneration": 2,
+        "bothUploadedFilesAndMetadataRetained": true,
+        "downloadAfterRecoveryVerified": true,
+        "fullExternalFaultRecovery": false
+      },
+      "printStarted": false,
+      "allSessionPortsReleased": true,
+      "evidence": {
+        "path": "product-client-mainsail-preview-r19.evidence.json.gz",
+        "sha256": "fc597093560014bdb807e2b2d7ad0540ee9b38c2f6e8ba9ae17bf1f31075cb95",
+        "entries": 13,
+        "bytes": 127550,
         "allEntryHashesVerified": true
       }
     }
