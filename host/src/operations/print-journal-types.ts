@@ -1,4 +1,5 @@
 import type { StartPrint } from './print.ts';
+import type {HistoryAuxiliarySnapshot} from '../moonraker/history-repository.ts';
 export type JournalState =
   'reserved' | 'started' | 'completed' | 'cancelled' | 'failed' | 'interrupted';
 export interface JournalRecord {
@@ -6,6 +7,7 @@ export interface JournalRecord {
   state: JournalState;
   revision: number;
   statistics?:PrintStatistics;
+  auxiliary?:HistoryAuxiliarySnapshot;
   timestamps?:{reservedAt:number|null;startedAt:number|null;endedAt:number|null};
 }
 export interface JournalPage {records:JournalRecord[];nextAfter:string|null;}

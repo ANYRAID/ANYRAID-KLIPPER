@@ -3911,8 +3911,22 @@ getter 本身不启动传输。标准 `ConfiguredMoonraker.load`／`loadAuthoriz
 `enable_moonraker_api` 要求明确的 `mqttAuthorize`，不会从 HTTP 权限
 推断 broker 请求权限。无该策略时缺省关闭。传感器历史字段须提供
 匹配的 `history`，且不得已有 `auxiliary`／`auxiliaryTotals`；任务
-启动、暂停、恢复和结束经真实 HistoryRuntime 门控。原生产品历史
-日志尚不支持这些字段，配置此组合会明确拒绝，不能据此宣称完整历史。
+启动、暂停、恢复和结束经真实 HistoryRuntime 门控。原生产品配置
+尚未接入这些字段的状态门控，此组合会明确拒绝，不能宣称完整历史。
+原生打印日志已提供可选辅助快照接口：`reserve(request, snapshot)`、
+`transition(id, revision, state, statistics, snapshot)` 与
+`historyResetTotals(fields)`。辅助捕获在入队前完成，首次结果在同一
+SQLite 事务中更新快照、累计和基础统计；失败确认及恢复不会替换
+原快照。历史 HTTP／RPC 与通知返回持久的辅助数据，旧任务保持空值。
+日志格式第 1 至 5 版在身份检查的同一事务内升级到第 6 版；不适用
+旧程序直接读取新日志，回退必须保留升级前数据库副本。当前未切换
+生产入口，只用临时数据库验收。普通产品配置传感器仍需接入原生
+任务／暂停门控及辅助提供者组合，原拒绝条件保持。
+普通 `get(id)`、`active()` 及恢复扫描保持请求元数据范围，避免高频
+状态查询解码整份历史；完整快照由 `get(id, true)` 和历史列表／详情
+接口显式读取。辅助表采用 WITHOUT ROWID，维持原最小日志容量；
+累计项用显式序号保留注册顺序，不依赖数据表物理 rowid。
+
 reader 绑定共享工厂时，传感器消息现持有该代际的一份同步句柄；
 未绑定的显式旧路径继续使用独立原生适配器。传感器渲染可读取同一
 secrets 校准数据与全局值，调用可信 Node 同步函数；消息内的 payload

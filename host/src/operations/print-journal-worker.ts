@@ -3,6 +3,9 @@ import { DatabaseSync } from 'node:sqlite';
 import { closeSync, openSync, lstatSync } from 'node:fs';
 import { isAbsolute } from 'node:path';
 import {emptyHistoryTotals,decodeHistoryTotals,addHistoryTotals,historyTotalsView} from './print-history-totals.ts';
+import {encodeJournalAuxiliary,decodeJournalAuxiliary,captureJournalAuxiliary} from './print-history-auxiliary.ts';
+import {roundHistoryDecimal} from '../moonraker/history-round.ts';
+import type {HistoryAuxiliaryTotal,HistoryAuxiliaryUpdate,HistoryAuxiliarySnapshot} from '../moonraker/history-repository.ts';
 import {
   JournalError,
   journalRequest,
@@ -20,13 +23,34 @@ const statisticsSchema='CREATE TABLE request_statistics (id TEXT PRIMARY KEY,sta
 const timesSchema='CREATE TABLE request_times (id TEXT PRIMARY KEY,reserved_at REAL CHECK(reserved_at>=0),started_at REAL CHECK(started_at>=0),ended_at REAL CHECK(ended_at>=0)) STRICT;';
 const hiddenSchema='CREATE TABLE history_hidden (id TEXT PRIMARY KEY) STRICT;';
 const totalsSchema='CREATE TABLE history_totals (id INTEGER PRIMARY KEY CHECK(id=1),value TEXT NOT NULL CHECK(length(value)<=2048)) STRICT;CREATE TABLE history_counted (id TEXT PRIMARY KEY) STRICT;';
+const auxiliarySchema='CREATE TABLE request_auxiliary (id TEXT PRIMARY KEY,snapshot BLOB NOT NULL CHECK(length(snapshot)<=1048576)) STRICT, WITHOUT ROWID;CREATE TABLE history_auxiliary_totals (provider TEXT NOT NULL,field TEXT NOT NULL,maximum REAL,total REAL,ordinal INTEGER NOT NULL,PRIMARY KEY(provider,field)) STRICT, WITHOUT ROWID;';
 const visibleHistory='NOT EXISTS (SELECT 1 FROM history_hidden WHERE history_hidden.id=requests.id)';
-const recordQuery="SELECT requests.*,printf('%06X',requests.rowid) AS history_id,request_statistics.statistics,request_times.id AS timed_id,reserved_at,started_at,ended_at FROM requests LEFT JOIN request_statistics USING(id) LEFT JOIN request_times USING(id)";
+const metadataQuery="SELECT requests.*,printf('%06X',requests.rowid) AS history_id,request_statistics.statistics,request_times.id AS timed_id,reserved_at,started_at,ended_at FROM requests LEFT JOIN request_statistics USING(id) LEFT JOIN request_times USING(id)";
+const recordQuery="SELECT requests.*,printf('%06X',requests.rowid) AS history_id,request_statistics.statistics,request_times.id AS timed_id,reserved_at,started_at,ended_at,request_auxiliary.snapshot AS auxiliary FROM requests LEFT JOIN request_statistics USING(id) LEFT JOIN request_times USING(id) LEFT JOIN request_auxiliary USING(id)";
+function auxiliaryTotals():HistoryAuxiliaryTotal[]{
+ return db!.prepare('SELECT provider,field,maximum,total FROM history_auxiliary_totals ORDER BY ordinal').all().map(row=>{
+  if(typeof row.provider!=='string'||!row.provider||row.provider==='history'||typeof row.field!=='string'||!row.field||[row.maximum,row.total].some(value=>value!==null&&(typeof value!=='number'||!Number.isFinite(value))))throw new JournalError('CORRUPT','Invalid persisted auxiliary history total');
+  return row as unknown as HistoryAuxiliaryTotal;
+ });
+}
+function updateAuxiliaryTotals(fields:HistoryAuxiliaryUpdate[],reset=false):void{
+ const read=db!.prepare('SELECT maximum,total,ordinal FROM history_auxiliary_totals WHERE provider=? AND field=?'),write=db!.prepare('INSERT INTO history_auxiliary_totals VALUES(?,?,?,?,?) ON CONFLICT(provider,field) DO UPDATE SET maximum=excluded.maximum,total=excluded.total');
+ for(const field of fields){
+  const prior=read.get(field.provider,field.field),precision=field.precision??null;
+  try{
+   const maximum=!field.report_maximum?null:reset?0:roundHistoryDecimal(prior?Math.max(Number(prior.maximum??0),field.value):field.value,precision);
+   const total=!field.report_total?null:reset?0:roundHistoryDecimal(prior?Number(prior.total??0)+field.value:field.value,precision);
+   const ordinal=prior?.ordinal??db!.prepare('SELECT COALESCE(MAX(ordinal),0)+1 AS next FROM history_auxiliary_totals').get()!.next;
+   write.run(field.provider,field.field,maximum,total,ordinal);
+  }catch(error){if(error instanceof RangeError)throw new JournalError('INVALID','Auxiliary history total overflow');throw error;}
+ }
+}
 function wallTime():number{const value=Date.now()/1000;if(!Number.isFinite(value)||value<0)throw new JournalError('CLOCK','Invalid wall clock');return value;}
 function totalsState(){const row=db!.prepare('SELECT value FROM history_totals WHERE id=1').get();if(!row)throw new JournalError('CORRUPT','Missing history totals');return decodeHistoryTotals(String(row.value));}
 function countOutcome(value:JournalRecord):boolean{
   if(db!.prepare('SELECT id FROM history_counted WHERE id=?').get(value.request.requestId))return false;
   const totals=totalsState();addHistoryTotals(totals,value.statistics);
+  if(value.auxiliary)updateAuxiliaryTotals(value.auxiliary.totals);
   db!.prepare('INSERT INTO history_counted(id) VALUES(?)').run(value.request.requestId);
   db!.prepare('UPDATE history_totals SET value=? WHERE id=1').run(JSON.stringify(totals));return true;
 }
@@ -64,6 +88,7 @@ const errorData = (error: unknown) => ({
 });
 function record(
   row: Record<string, unknown> | undefined,
+  includeAuxiliary=true,
 ): JournalRecord | null {
   if (!row) return null;
   try {
@@ -79,28 +104,31 @@ function record(
     )
       throw new JournalError('CORRUPT', 'Invalid persisted print record');
     const statistics=row.statistics==null?undefined:printStatistics(JSON.parse(String(row.statistics)));
+    const auxiliary=!includeAuxiliary||row.auxiliary==null?undefined:decodeJournalAuxiliary(row.auxiliary);
     if(statistics&&JSON.stringify(statistics)!==row.statistics)throw new JournalError('CORRUPT','Invalid persisted print statistics');
     const timestamps=row.timed_id==null?undefined:{reservedAt:row.reserved_at as number|null,startedAt:row.started_at as number|null,endedAt:row.ended_at as number|null};
     if(timestamps&&Object.values(timestamps).some(value=>value!==null&&(typeof value!=='number'||!Number.isFinite(value)||value<0)))throw new JournalError('CORRUPT','Invalid persisted print timestamps');
-    return { request, state, revision,...statistics?{statistics}:{},...timestamps?{timestamps}:{} };
+    return { request, state, revision,...statistics?{statistics}:{},...timestamps?{timestamps}:{},...auxiliary?{auxiliary}:{} };
   } catch {
     throw new JournalError('CORRUPT', 'Invalid persisted print record');
   }
 }
-function lookup(id: string) {
+function lookup(id: string,includeAuxiliary=true) {
   return record(
     db!
-      .prepare(recordQuery+' WHERE requests.id=?')
+      .prepare((includeAuxiliary?recordQuery:metadataQuery)+' WHERE requests.id=?')
       .get(id),
+    includeAuxiliary,
   );
 }
-function active() {
+function active(includeAuxiliary=true) {
   return record(
     db!
       .prepare(
-        recordQuery+" WHERE state NOT IN ('completed','cancelled')",
+        (includeAuxiliary?recordQuery:metadataQuery)+" WHERE state NOT IN ('completed','cancelled')",
       )
       .get(),
+    includeAuxiliary,
   );
 }
 function transaction<T>(action: () => T): T {
@@ -160,11 +188,11 @@ function initialize() {
     .all();
   if (!(
     (app === 0 && version === 0 && tables.length === 0) ||
-    (app === 0x4152504a && (version >=1&&version<=5))
+    (app === 0x4152504a && (version >=1&&version<=6))
   ))
     throw new JournalError('SCHEMA', 'Unknown print journal schema');
   if (version >=1) {
-    const expected = (schema+(version>=2?statisticsSchema:'')+(version>=3?timesSchema:'')+(version>=4?hiddenSchema:'')+(version>=5?totalsSchema:''))
+    const expected = (schema+(version>=2?statisticsSchema:'')+(version>=3?timesSchema:'')+(version>=4?hiddenSchema:'')+(version>=5?totalsSchema:'')+(version>=6?auxiliarySchema:''))
         .split(';')
         .map((s) => normalized(s))
         .filter(Boolean)
@@ -195,6 +223,7 @@ function initialize() {
       db!.exec(totalsSchema+' PRAGMA user_version=5;');
       db!.prepare('INSERT INTO history_totals VALUES(1,?)').run(JSON.stringify(emptyHistoryTotals()));
     }
+    if(version<6)db!.exec(auxiliarySchema+' PRAGMA user_version=6;');
     if (db!.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok')
       throw new JournalError('CORRUPT', 'Print journal integrity check failed');
     const identity = db!
@@ -206,6 +235,7 @@ function initialize() {
     // legacy records remain uncounted until their terminal acknowledgement.
     if(version<5)for(const row of db!.prepare(recordQuery+" WHERE state IN ('completed','cancelled','failed') OR (state='interrupted' AND statistics IS NOT NULL) ORDER BY requests.rowid").iterate())countOutcome(record(row)!);
     totalsState();
+    auxiliaryTotals();
     const existing = active();
     if (existing && existing.state !== 'interrupted')
       db!
@@ -242,12 +272,13 @@ function dispatch(method: string, args: unknown[]): unknown {
     db!.close();
     return null;
   }
-  if (method === 'active') return active();
-  if(method==='historyTotals')return historyTotalsView(totalsState());
+  if (method === 'active') return active(false);
+  if(method==='historyTotals')return historyTotalsView(totalsState(),auxiliaryTotals());
   if(method==='historyResetTotals')return transaction(()=>{
     if(db!.prepare("SELECT id FROM requests WHERE state IN ('reserved','started','interrupted') LIMIT 1").get())throw new JournalError('STATE','Cannot reset totals during an unfinished print');
-    const previous=historyTotalsView(totalsState());db!.prepare('UPDATE history_totals SET value=? WHERE id=1').run(JSON.stringify(emptyHistoryTotals()));
-    return {last_totals:previous.job_totals,last_auxiliary_totals:[],last_native_unknown:previous.native_unknown,last_native_overflow:previous.native_overflow};
+    const fields=captureJournalAuxiliary({data:[],totals:(args[0]??[]) as HistoryAuxiliaryUpdate[]}).totals;
+    const previous=historyTotalsView(totalsState(),auxiliaryTotals());db!.prepare('UPDATE history_totals SET value=? WHERE id=1').run(JSON.stringify(emptyHistoryTotals()));updateAuxiliaryTotals(fields,true);
+    return {last_totals:previous.job_totals,last_auxiliary_totals:previous.auxiliary_totals,last_native_unknown:previous.native_unknown,last_native_overflow:previous.native_overflow};
   });
   if(method==='historyGet'){
     const id=args[0];if(typeof id!=='string'||!/^[0-9a-fA-F]{1,16}$/.test(id)||BigInt('0x'+id)<1n||BigInt('0x'+id)>(1n<<63n)-1n)throw new JournalError('INVALID','Invalid history uid');
@@ -282,17 +313,19 @@ function dispatch(method: string, args: unknown[]): unknown {
   if(method==='scan'){
     const [after,limit]=args;
     if(after!==undefined&&!validJournalId(after)||!Number.isSafeInteger(limit)||Number(limit)<1||Number(limit)>256)throw new JournalError('INVALID','Invalid journal page');
-    const records=db!.prepare(recordQuery+' WHERE requests.id>? ORDER BY requests.id LIMIT ?').all(after===undefined?'':String(after),Number(limit)).map(row=>record(row)!);
+    const records=db!.prepare(metadataQuery+' WHERE requests.id>? ORDER BY requests.id LIMIT ?').all(after===undefined?'':String(after),Number(limit)).map(row=>record(row,false)!);
     return {records,nextAfter:records.length===limit?records.at(-1)!.request.requestId:null};
   }
   if (method === 'get') {
     if (!validJournalId(args[0]))
       throw new JournalError('INVALID', 'Invalid request identity');
-    return lookup(args[0]);
+    const includeAuxiliary=args[1]??false;if(typeof includeAuxiliary!=='boolean')throw new JournalError('INVALID','Invalid request detail option');
+    return lookup(args[0],includeAuxiliary);
   }
   if (method === 'reserve') {
     const request = journalRequest(args[0]),
       json = JSON.stringify(request);
+    const auxiliary=args[1]===undefined?undefined:encodeJournalAuxiliary(args[1] as HistoryAuxiliarySnapshot);
     return transaction(() => {
       const prior = lookup(request.requestId);
       if (prior) {
@@ -318,13 +351,16 @@ function dispatch(method: string, args: unknown[]): unknown {
         .prepare("INSERT INTO requests VALUES(?,?,'reserved',1)")
         .run(request.requestId, json);
       db!.prepare('INSERT INTO request_times(id,reserved_at) VALUES(?,?)').run(request.requestId,wallTime());
+      if(auxiliary)db!.prepare('INSERT INTO request_auxiliary VALUES(?,?)').run(request.requestId,auxiliary);
       captureHistory('added',request.requestId);return { created: true, record: lookup(request.requestId)! };
     });
   }
   if (method === 'transition') {
-    const [id, revision, state, rawStatistics] = args;
+    const [id, revision, state, rawStatistics,rawAuxiliary] = args;
     const statistics=rawStatistics===undefined?undefined:printStatistics(rawStatistics);
     if(statistics&&!['completed','cancelled','failed'].includes(String(state)))throw new JournalError('INVALID','Statistics require a terminal outcome');
+    const auxiliary=rawAuxiliary===undefined?undefined:encodeJournalAuxiliary(rawAuxiliary as HistoryAuxiliarySnapshot);
+    if(auxiliary&&!['completed','cancelled','failed'].includes(String(state)))throw new JournalError('INVALID','Auxiliary snapshot requires a terminal outcome');
     if (
       !validJournalId(id) ||
       !Number.isSafeInteger(revision) ||
@@ -348,6 +384,9 @@ function dispatch(method: string, args: unknown[]): unknown {
       // Preserve the first frozen outcome through failure acknowledgement and
       // restart reconciliation; do not replace known values with missing data.
       if(statistics)db!.prepare('INSERT INTO request_statistics(id,statistics) VALUES(?,?) ON CONFLICT(id) DO NOTHING').run(id,JSON.stringify(statistics));
+      // Freeze only the first outcome. Recovery ACK cannot replace a prior
+      // snapshot or attach later telemetry to an interrupted job.
+      if(auxiliary&&['reserved','started'].includes(prior.state))db!.prepare('INSERT INTO request_auxiliary VALUES(?,?) ON CONFLICT(id) DO UPDATE SET snapshot=excluded.snapshot').run(id,auxiliary);
       const field=state==='started'?'started_at':'ended_at';
       // Reconciliation cannot establish when an interrupted job actually ended.
       // Keep an existing end time, but never substitute the recovery ACK time.

@@ -1,8 +1,9 @@
 // Moonraker history.py persistence semantics. GPL-3.0-or-later.
 // Original Copyright (C) 2024 Eric Callahan.
 import {DatabaseStore} from './database.ts';
-import {ApiError,validateJson,type Json} from './rpc.ts';
-import {boundedJsonBytes} from './json-size.ts';
+import {ApiError,type Json} from './rpc.ts';
+import {validateHistoryAuxiliaryUpdates} from './history-auxiliary.ts';
+export {captureHistoryAuxiliary} from './history-auxiliary.ts';
 import {encodeDatabaseRecord,decodeDatabaseRecord} from './database-record.ts';
 import type {SqlOperation,SqlValue,SqlResult} from './database-sql.ts';
 export const historyTables=[
@@ -50,12 +51,10 @@ function auxiliaryTotals(result:SqlResult):HistoryAuxiliaryTotal[]{return result
  return {provider,field,maximum:maximum as number|null,total:total as number|null};
 });}
 function auxiliaryUpdates(input:HistoryAuxiliaryUpdate[],key:SqlValue):SqlOperation[]{
- if(!Array.isArray(input)||input.length>64)throw new ApiError(400,'Invalid auxiliary history fields');
- const seen=new Set<string>();
+ validateHistoryAuxiliaryUpdates(input);
  return input.map(item=>{
   const provider=text(item.provider),field=text(item.field),precision=item.precision??null;
   if(!provider||provider==='history'||!field||typeof item.value!=='number'||!Number.isFinite(item.value)||typeof item.report_total!=='boolean'||typeof item.report_maximum!=='boolean'||!item.report_total&&!item.report_maximum||precision!==null&&!Number.isSafeInteger(precision))throw new ApiError(400,'Invalid auxiliary history update');
-  const identity=JSON.stringify([provider,field]);if(seen.has(identity))throw new ApiError(400,'Duplicate auxiliary history field');seen.add(identity);
   const value:SqlValue={real:item.value};
   // Round only the final sum. Rounding an INSERT candidate before conflict
   // handling can overflow even when the existing total cancels that increment.
@@ -64,13 +63,6 @@ function auxiliaryUpdates(input:HistoryAuxiliaryUpdate[],key:SqlValue):SqlOperat
    params:[provider,field,instance,provider,field,Number(item.report_maximum),value,value,precision,Number(item.report_total),value,value,precision,instance,key,instance],
   };
  });
-}
-/** Capture at event ingress, before later provider updates or resets. */
-export function captureHistoryAuxiliary(input:HistoryAuxiliarySnapshot):{snapshot:HistoryAuxiliarySnapshot;bytes:number}{
- if(!input||!Array.isArray(input.data)||!Array.isArray(input.totals))throw new ApiError(400,'Invalid auxiliary history snapshot');
- auxiliaryUpdates(input.totals,1);
- const result={data:input.data,totals:input.totals.map(field=>({...field,precision:field.precision??null}))};
- validateJson(result);const bytes=boundedJsonBytes(result,1024*1024);return {snapshot:structuredClone(result),bytes};
 }
 export class HistoryRepository {
  readonly #db:DatabaseStore;

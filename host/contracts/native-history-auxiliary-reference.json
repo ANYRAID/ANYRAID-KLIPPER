@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "baseHead": "fb7abf088baf1d76e36076ab0c58419b43daba39",
+  "node": "v26.10.0",
+  "jobs": 100,
+  "warmup": 2,
+  "runs": 7,
+  "samples": [
+    7323.548778000002,
+    7129.775143999999,
+    6928.036027999999,
+    7503.021657999998,
+    6699.162462,
+    6976.7572199999995,
+    7349.226316
+  ],
+  "starts": [
+    38.163902000000235,
+    41.71831399999792,
+    41.58244199999899,
+    39.44054100000358,
+    35.97256899999775,
+    41.59145200000057,
+    35.78837599999679
+  ],
+  "queries": [
+    7.708693000000494,
+    6.862192000000505,
+    8.700687999997172,
+    7.412979000000632,
+    7.223615999995673,
+    6.794149000001198,
+    6.89303099999961
+  ],
+  "median": 7129.775143999999,
+  "startupMedian": 39.44054100000358,
+  "queryMedian": 7.223615999995673,
+  "limit": 1.5,
+  "scope": "Separate real SQLite DELETE/EXTRA files, worker IPC, reserve/start/completed commits and 100 reads; no auxiliary fields, controller, motion or target board.",
+  "frozenBeforeProductionEdits": true
+}

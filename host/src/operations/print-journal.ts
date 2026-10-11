@@ -18,6 +18,8 @@ import {
 } from './print-journal-types.ts';
 import type { StartPrint } from './print.ts';
 import type {NativeHistoryTotals,NativeHistoryReset} from './print-history-totals.ts';
+import {captureJournalAuxiliary} from './print-history-auxiliary.ts';
+import type {HistoryAuxiliarySnapshot,HistoryAuxiliaryUpdate} from '../moonraker/history-repository.ts';
 export { JournalError } from './print-journal-types.ts';
 export type {
   JournalOptions,
@@ -173,6 +175,7 @@ export class PrintJournal {
   }
   reserve(
     input: StartPrint,
+    auxiliary?:HistoryAuxiliarySnapshot,
   ): Promise<{ created: boolean; record: JournalRecord }> {
     let request: StartPrint;
     try {
@@ -180,17 +183,18 @@ export class PrintJournal {
     } catch (error) {
       return Promise.reject(error);
     }
-    return this.#call('reserve', [request]) as Promise<{
+    let snapshot:HistoryAuxiliarySnapshot|undefined;try{if(auxiliary!==undefined)snapshot=captureJournalAuxiliary(auxiliary);}catch(error){return Promise.reject(error);}
+    return this.#call('reserve', [request,snapshot]) as Promise<{
       created: boolean;
       record: JournalRecord;
     }>;
   }
-  get(requestId: string): Promise<JournalRecord | null> {
-    if (!validJournalId(requestId))
+  get(requestId: string,includeAuxiliary=false): Promise<JournalRecord | null> {
+    if (!validJournalId(requestId)||typeof includeAuxiliary!=='boolean')
       return Promise.reject(
         new JournalError('INVALID', 'Invalid request identity'),
       );
-    return this.#call('get', [requestId]) as Promise<JournalRecord | null>;
+    return this.#call('get', [requestId,includeAuxiliary]) as Promise<JournalRecord | null>;
   }
   active(): Promise<JournalRecord | null> {
     return this.#call('active', []) as Promise<JournalRecord | null>;
@@ -205,12 +209,15 @@ export class PrintJournal {
   historyGet(id:string):Promise<JournalHistoryRecord|null>{return this.#call('historyGet',[id]) as Promise<JournalHistoryRecord|null>;}
   historyDelete(id:string,all=false):Promise<{deleted_jobs:string[]}>{return this.#call('historyDelete',[id,all]) as Promise<{deleted_jobs:string[]}>;}
   historyTotals():Promise<NativeHistoryTotals>{return this.#call('historyTotals',[]) as Promise<NativeHistoryTotals>;}
-  historyResetTotals():Promise<NativeHistoryReset>{return this.#call('historyResetTotals',[]) as Promise<NativeHistoryReset>;}
+  historyResetTotals(fields:HistoryAuxiliaryUpdate[]=[]):Promise<NativeHistoryReset>{
+    try{const captured=captureJournalAuxiliary({data:[],totals:fields});return this.#call('historyResetTotals',[captured.totals]) as Promise<NativeHistoryReset>;}catch(error){return Promise.reject(error);}
+  }
   transition(
     requestId: string,
     revision: number,
     state: JournalState,
     statistics?:PrintStatistics,
+    auxiliary?:HistoryAuxiliarySnapshot,
   ): Promise<JournalRecord> {
     if (
       !validJournalId(requestId) ||
@@ -229,11 +236,13 @@ export class PrintJournal {
         new JournalError('INVALID', 'Invalid journal transition'),
       );
     let snapshot:PrintStatistics|undefined;try{if(statistics!==undefined)snapshot=printStatistics(statistics);}catch(error){return Promise.reject(error);}
+    let captured:HistoryAuxiliarySnapshot|undefined;try{if(auxiliary!==undefined)captured=captureJournalAuxiliary(auxiliary);}catch(error){return Promise.reject(error);}
     return this.#call('transition', [
       requestId,
       revision,
       state,
       snapshot,
+      captured,
     ]) as Promise<JournalRecord>;
   }
   close(): Promise<void> {
