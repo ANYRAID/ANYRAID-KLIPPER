@@ -3,6 +3,7 @@ import {ConfigurationError,ConfigurationSource} from './config-source.ts';
 import {ServerConfiguration,type ConfigurationSnapshot} from './metadata.ts';
 import {validateJson,type Json} from './rpc.ts';
 import {MoonrakerRenderableTemplate,type MoonrakerTemplateFactory} from './template-factory.ts';
+import {resolveConfigurationPath} from './config-path.ts';
 export interface ReadOptions<D extends Json=never>{defaultValue?:D;deprecate?:boolean;}
 export interface NumericOptions<D extends Json=never> extends ReadOptions<D>{above?:number;below?:number;minval?:number;maxval?:number;}
 export type ListType='string'|'int'|'float';
@@ -60,6 +61,7 @@ export class ConfigurationReader {
  prefixSections(prefix:string):string[]{return this.sections().filter(s=>s.startsWith(prefix));}
  bindTemplates(factory:MoonrakerTemplateFactory):()=>void{if(this.#templates)throw new ConfigurationError('Template component already bound');this.#templates=factory;return ()=>{if(this.#templates===factory)this.#templates=undefined;};}
  templates():MoonrakerTemplateFactory{if(!this.#templates)throw new ConfigurationError('Failed to load template component');return this.#templates;}
+ hasTemplates():boolean{return this.#templates!==undefined;}
  /** Only public copies are redacted; internal source/getter behavior is intact. */
  redact(section:string,option:string):void{checkName(section);checkName(option);let names=this.#privateOptions.get(section);if(!names)this.#privateOptions.set(section,names=new Set());names.add(option.toLowerCase());}
  #redacted<T extends Record<string,Record<string,unknown>>>(values:T):T{for(const [section,names]of this.#privateOptions){if(!Object.hasOwn(values,section))continue;for(const name of names)if(Object.hasOwn(values[section],name))values[section][name]='<redacted>';}return values;}
@@ -105,6 +107,13 @@ export class ConfigSection {
   const factory=this.#reader.templates();return this.#get(option,value=>factory.createTemplate(strip(value),options.isAsync??false),options,undefined,value=>{if(value instanceof MoonrakerRenderableTemplate)return value.toString();validateJson(value);return value;});
  }
  loadTemplate(option:string,options:ReadOptions<string>&{isAsync?:boolean}={}):MoonrakerRenderableTemplate{const value=this.getTemplate(option,options);return typeof value==='string'?this.#reader.templates().createTemplate(strip(value),options.isAsync??false):value;}
+ /** Path values use absolute strings in TS. Missing defaults retain identity,
+  * including unresolved strings; parsed metadata records template source only. */
+ getPath<D extends Json|MoonrakerRenderableTemplate=never>(option:string,options:{defaultValue?:D;deprecate?:boolean}={}):string|D{
+  const value=this.getTemplate(option,options);if(!(value instanceof MoonrakerRenderableTemplate))return value;
+  try{return resolveConfigurationPath(value.render(JSON.stringify({data_path:this.#reader.templates().configurationDataPath()})));}
+  finally{if(value!==options.defaultValue)value.close();}
+ }
  getInt<D extends Json=never>(option:string,options:NumericOptions<D>={}):number|D{if(typeof options.defaultValue==='number'&&!Number.isSafeInteger(options.defaultValue))throw new ConfigurationError('Integer default must be a safe integer');return this.#get(option,v=>convert('int',v) as number,options,options);}
  getFloat<D extends Json=never>(option:string,options:NumericOptions<D>={}):number|D{return this.#get(option,v=>convert('float',v) as number,options,options);}
  getBoolean<D extends Json=never>(option:string,options:ReadOptions<D>={}):boolean|D{return this.#get(option,v=>{const value=booleans.get(v.toLowerCase());if(value===undefined)throw new ConfigurationError('Invalid boolean');return value;},options);}

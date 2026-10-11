@@ -1,0 +1,323 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "baseHead": "4592243da72584ebf65ffd68ae8849dac05b80f6",
+  "status": "draft-partial",
+  "scope": "Shared configuration getPath, standard explicit-template Klippy path and legacy Secrets physical resolution. Absolute TS strings represent Path results; default identity remains. Not default product component assembly or complete Python retirement.",
+  "reference": {
+    "file": "moonraker-config-path-reference.json",
+    "sha256": "1acad838310da914e1f8766eb9e8cf1799cf919f2ef063cf6aed26045d9d813d",
+    "frozenBeforeCandidate": true,
+    "pathCases": 24,
+    "defaults": 5,
+    "budgetFrozenBeforeCandidate": true,
+    "legacyProbe": {
+      "file": "moonraker-secrets-path-probe.json",
+      "sha256": "cb052a4df87a99def13e56c845fb0507ac6735b0feacace3b743ddda5f24d257",
+      "selectedFile": "$ROOT/legacy.secrets"
+    },
+    "homeProbe": {
+      "file": "moonraker-config-path-home-probe.json",
+      "sha256": "cacfd42cea6ccc19ea885f496b72593704b2166130b470ecd5dfd6d8bc359147",
+      "cases": 9,
+      "boundary": "Independent pinned-output probe after first candidate; old fixed matrix and budgets not regenerated."
+    }
+  },
+  "functionality": {
+    "source": {
+      "tests": 217,
+      "pass": 217,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "compiled": {
+      "tests": 217,
+      "pass": 217,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "ubsan": {
+      "tests": 38,
+      "pass": 38,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "asan": {
+      "tests": 38,
+      "pass": 38,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "typecheck": "passed",
+    "contracts": [
+      "synchronous template context contains explicit application data_path",
+      "configured options record stripped source; missing JSON defaults retain identity and stay unresolved",
+      "real and dangling symlinks followed before parent; sixty-link valid chain and repeated link cache",
+      "self/mutual loops, missing named users and NUL paths reject with private errors",
+      "HOME and system NSS named/current-user expansion without a process or Python; empty HOME means root",
+      "render failures release temporary handles; caller-owned default templates remain open",
+      "standard Klippy binding uses factory by default, preserves absent socket default and Linux pathname bounds",
+      "legacy Secrets resolves physical fallback without a template-loading cycle",
+      "standard load owns private generation and retains source-only parsed metadata"
+    ],
+    "compiledArtifacts": {
+      "files": 191,
+      "sha256": "9779e934f3af22969383b57bfbfa6556b3df07e71d4bdff1476716476a95f6d9",
+      "entry": "compiled-artifacts.json"
+    },
+    "nativeAddons": {
+      "unix-peer.node": "452966303dbeb2e1bbe1ea7e4183705ac2015958630b88772118e2954d44212e",
+      "unix-peer-ubsan.node": "7a8d3c1f818dd8c7f11f2b4ec97321c911005129b1684e977c4a147cc091c31e",
+      "unix-peer-asan.node": "59269418a0d9f0bf39140ecb00a315201695c0fb2d508d79dd8cbdb5edb68127",
+      "template.node": "5a382f0395d58a07424aaffd455b07874b531e6cea1b9fa14833b609c6dd3455"
+    },
+    "buildBoundary": "Existing pinned Rust template and other build outputs/dependencies reused. Unix addon rebuilt from current C with -O2 -Wall -Wextra -Werror; independent JS export. Not a newly assembled complete product bundle or target-board validation."
+  },
+  "performance": {
+    "source": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "referenceSha256": "1acad838310da914e1f8766eb9e8cf1799cf919f2ef063cf6aed26045d9d813d",
+      "results": [
+        {
+          "name": "relative",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            21.137291000000005,
+            21.026209999999992,
+            21.033761,
+            20.80883,
+            21.003780000000006,
+            20.708020000000005,
+            21.252881000000002
+          ],
+          "medianMs": 21.026209999999992,
+          "referenceMedianMs": 97.094559983816,
+          "ratio": 0.2165539449738966,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "symlink parent",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            26.349661000000026,
+            26.33738999999997,
+            26.311410999999964,
+            26.023000000000025,
+            26.359571000000017,
+            25.85842100000002,
+            25.824979999999982
+          ],
+          "medianMs": 26.311410999999964,
+          "referenceMedianMs": 104.58146996097639,
+          "ratio": 0.25158769531369013,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "named user",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            33.38997500000005,
+            33.0085939999999,
+            32.26118299999996,
+            32.43132300000002,
+            32.853853999999956,
+            32.674343999999905,
+            33.61194499999999
+          ],
+          "medianMs": 32.853853999999956,
+          "referenceMedianMs": 112.1890539652668,
+          "ratio": 0.2928436673525329,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        }
+      ],
+      "pass": true,
+      "scope": "Desktop startup configuration getter only: new template compile/render, physical path resolution and NSS lookup; not print throughput, target-board timing or complete default assembly."
+    },
+    "compiled": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "referenceSha256": "1acad838310da914e1f8766eb9e8cf1799cf919f2ef063cf6aed26045d9d813d",
+      "results": [
+        {
+          "name": "relative",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            21.360462999999996,
+            22.01304300000001,
+            21.423032000000006,
+            22.021833000000015,
+            21.034222,
+            21.251072000000022,
+            21.400182
+          ],
+          "medianMs": 21.400182,
+          "referenceMedianMs": 97.094559983816,
+          "ratio": 0.22040557167741473,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "symlink parent",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            26.67600299999998,
+            26.351642999999967,
+            27.106734000000017,
+            26.029840999999976,
+            26.054752000000008,
+            25.940942000000007,
+            26.383072000000027
+          ],
+          "medianMs": 26.351642999999967,
+          "referenceMedianMs": 104.58146996097639,
+          "ratio": 0.2519723906140623,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "named user",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            35.60035099999993,
+            45.31895999999995,
+            39.177697999999964,
+            32.59877499999993,
+            32.585744999999974,
+            32.047092999999904,
+            31.359882999999968
+          ],
+          "medianMs": 32.59877499999993,
+          "referenceMedianMs": 112.1890539652668,
+          "ratio": 0.29057001416637634,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        }
+      ],
+      "pass": true,
+      "scope": "Desktop startup configuration getter only: new template compile/render, physical path resolution and NSS lookup; not print throughput, target-board timing or complete default assembly."
+    },
+    "boundary": "Three original 500-getter batches, two warmups, seven samples, fixed 1.5 ratio. Includes compile/render, path filesystem and named-user NSS work. Startup configuration only; no claim about steady printing, target-board timing or full opt-in service startup."
+  },
+  "permissionCheck": {
+    "result": {
+      "tests": 35,
+      "pass": 1,
+      "fail": 34,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "status": "failed-fixture",
+    "reason": "Node 26 fs.symlink requires full read/write permission; all 34 graph-dependent cases stopped at fixture creation. One NSS case passed. JS child processes were denied but native addons/workers/network explicitly allowed; no isolation or Python-retirement proof claimed. Scope was not broadened to erase failure."
+  },
+  "preservedFailures": [
+    "first capture used prior object shim instead of actual RenderableTemplate ABC; replaced with pinned abstract class before capturing reference, first failure retained",
+    "second capture missing enum import; corrected before successful freeze, no candidate code or reference existed yet",
+    "first 108-case source run: 105 passed; fixture private data directory and metadata assertion fixed; legacy symlink expected source contradicted actual pinned Secrets physical target",
+    "restricted run 35/1/34 stopped at Node symlink fixture permission; no broader permission retry",
+    "initial 217 passes included an incorrect self-written empty-HOME assertion; independent upstream HOME probe exposed 35/34/1 before candidate correction; old source, test and samples retained"
+  ],
+  "ci": {
+    "head": "4592243da72584ebf65ffd68ae8849dac05b80f6",
+    "file": "pr68-459-terminal.json",
+    "jobs": "15/15",
+    "ordinary": "4624/4624",
+    "scope": "Preceding shared-factory head. Current path code requires its own CI."
+  },
+  "sources": [
+    {
+      "name": "host/native/unix-peer.c",
+      "sha256": "27e692d5ddcd98e7d47e6a5fc530b848190e43782a9be76e008ad231b7dcaaea"
+    },
+    {
+      "name": "host/src/moonraker/config-path.ts",
+      "sha256": "74f174243dbe32d46ea4d67567ca2d9a026ddef5544ca563008018dec5c06cab"
+    },
+    {
+      "name": "host/src/moonraker/config-reader.ts",
+      "sha256": "497820f4133675eac0b1f182b9ed4011488a1305e505adaeaa66822a7620d7e4"
+    },
+    {
+      "name": "host/src/moonraker/klippy-config.ts",
+      "sha256": "b13983f499cbf1eb1037937ed39814ff5183bec73b247a9142ae3c572cff3e8f"
+    },
+    {
+      "name": "host/src/moonraker/secrets.ts",
+      "sha256": "84b436de783722c6ac5f4dacc0ef28e7638da98a0ba0cf2cd752794639d590ed"
+    },
+    {
+      "name": "host/src/moonraker/template-factory.ts",
+      "sha256": "957068dc7618ba7c038d066f55050f02cda3c862e7f822b64b67fc2515c8c544"
+    },
+    {
+      "name": "host/src/moonraker/unix-peer.ts",
+      "sha256": "72d8018e5fa9e1a9af249ab1b38bb04176c3d25d4352ce358080033e4852440d"
+    },
+    {
+      "name": "host/test/config-path.test.ts",
+      "sha256": "cbde176f1a652f76d09f0166041222c69b8d953d4c9ee5ce2bc53d1cc741a143"
+    },
+    {
+      "name": "host/test/secrets.test.ts",
+      "sha256": "fdadaa4fe84c2deb30e744b52d497673c0bfd40fb4b1b7a438e84f779322b89a"
+    },
+    {
+      "name": "host/test/unix-peer.test.ts",
+      "sha256": "b41a1752c99afb7bd17bc1bdddacdf1a815e09f9fc4e160e6966d7231f2e56fe"
+    },
+    {
+      "name": "host/bench/moonraker-config-path.ts",
+      "sha256": "0de026515d0c531a982494067e79c399fb9f7ccf94aaa7e3282b58db63101a74"
+    },
+    {
+      "name": "host/contracts/moonraker-config-path-reference.json",
+      "sha256": "1acad838310da914e1f8766eb9e8cf1799cf919f2ef063cf6aed26045d9d813d"
+    },
+    {
+      "name": "host/contracts/moonraker-secrets-path-probe.json",
+      "sha256": "cb052a4df87a99def13e56c845fb0507ac6735b0feacace3b743ddda5f24d257"
+    },
+    {
+      "name": "host/contracts/moonraker-config-path-home-probe.json",
+      "sha256": "cacfd42cea6ccc19ea885f496b72593704b2166130b470ecd5dfd6d8bc359147"
+    },
+    {
+      "name": "host/contracts/pr68-459-terminal.json",
+      "sha256": "0a3ff1f4fbb3ddd9ce38616f5df42bc95d23ab2703acf1effeebd0a55d381c95"
+    }
+  ],
+  "evidence": {
+    "file": "moonraker-config-path-evidence.json.gz",
+    "sha256": "2de586b77dfd8b33faef8071ce6f40a651d21edcef981ab90b5e07769acbe43d",
+    "bytes": 72614,
+    "entries": 57
+  },
+  "openGates": [
+    "Default product private context and general component loader; remaining component path getter consumers",
+    "Full template language, dynamic mutable globals, arbitrary precision and isolation",
+    "Previously measured factory async/UI performance failures and old cache failure cause",
+    "Full independent product build SIGSEGV and historical full local failures",
+    "Current same-bundle complete Fluidd/Mainsail journeys and external fault recovery",
+    "Complete Moonraker and all Python retirement, including default printing entry",
+    "Cycnumbris 500 target board print performance/precision, G3, consumer macros and normal develop/master release"
+  ]
+}

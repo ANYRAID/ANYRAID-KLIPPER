@@ -16,12 +16,12 @@ export class MoonrakerTemplateFactory {
  #secrets:SecretsStore|undefined;#sync:MoonrakerTemplateOwner|undefined;#async:MoonrakerAsyncTemplateOwner|undefined;
  #configured=false;#releaseReader:()=>void=()=>{};readonly #shutdown=new AbortController();
  readonly #globals=new Map<string,TemplateValue|FactoryTemplateCallable>();readonly #templates=new Set<MoonrakerRenderableTemplate>();
- readonly #options:TemplateFactoryOptions;
- private constructor(secrets:SecretsStore,options:TemplateFactoryOptions){this.#secrets=secrets;this.#sync=new MoonrakerTemplateOwner(secrets);this.#options={...options};}
+ readonly #options:TemplateFactoryOptions;#dataPath:string|undefined;
+ private constructor(secrets:SecretsStore,context:SecretsContext,options:TemplateFactoryOptions){this.#secrets=secrets;this.#sync=new MoonrakerTemplateOwner(secrets);this.#options={...options};this.#dataPath=context.dataPath;}
  static async load(reader:ConfigurationReader,context:SecretsContext,options:TemplateFactoryOptions={}):Promise<MoonrakerTemplateFactory>{
   if(options.debug!==undefined&&typeof options.debug!=='function')throw new ConfigurationError('Invalid trusted template logger');
   const secrets=await loadSecrets(reader,context);let factory:MoonrakerTemplateFactory|undefined;
-  try{factory=new MoonrakerTemplateFactory(secrets,options);factory.#releaseReader=reader.bindTemplates(factory);return factory;}
+  try{factory=new MoonrakerTemplateFactory(secrets,context,options);factory.#releaseReader=reader.bindTemplates(factory);return factory;}
   catch{factory?.close();secrets.close();throw new ConfigurationError('Unable to load private template component');}
  }
  #check():MoonrakerTemplateOwner{if(!this.#sync||!this.#secrets)throw new ConfigurationError('Template component is closed');return this.#sync;}
@@ -32,6 +32,8 @@ export class MoonrakerTemplateFactory {
   }return this.#async;
  }
  markConfigured():void{this.#check();this.#configured=true;}
+ /** Trusted application context for configuration getters, never serialized. */
+ configurationDataPath():string{this.#check();return this.#dataPath!;}
  addEnvironmentGlobal(key:string,value:TemplateValue|FactoryTemplateCallable):void{
   const sync=this.#check();sync.addEnvironmentGlobal(key,value as TemplateValue|SyncTemplateCallable);
   try{this.#async?.addEnvironmentGlobal(key,value);this.#globals.set(key,value);}
@@ -67,7 +69,7 @@ export class MoonrakerTemplateFactory {
    }catch(error){if(this.#shutdown.signal.aborted&&error===this.#shutdown.signal.reason)throw error;if(options.signal?.aborted&&error===options.signal.reason)throw error;throw failure();}
   },()=>{handle.close();this.#templates.delete(template);});this.#templates.add(template);return template;
  }
- close():void{if(!this.#secrets)return;this.#shutdown.abort(new DOMException('Template component is closing','AbortError'));this.#async?.close(this.#shutdown.signal.reason);this.#async=undefined;for(const template of this.#templates)template.close();this.#sync?.close();this.#sync=undefined;this.#globals.clear();delete this.#options.debug;this.#releaseReader();this.#releaseReader=()=>{};this.#secrets.close();this.#secrets=undefined;}
+ close():void{if(!this.#secrets)return;this.#shutdown.abort(new DOMException('Template component is closing','AbortError'));this.#async?.close(this.#shutdown.signal.reason);this.#async=undefined;for(const template of this.#templates)template.close();this.#sync?.close();this.#sync=undefined;this.#globals.clear();delete this.#options.debug;this.#dataPath=undefined;this.#releaseReader();this.#releaseReader=()=>{};this.#secrets.close();this.#secrets=undefined;}
  toJSON(){return {closed:this.#secrets===undefined,templates:this.#templates.size,asyncInitialized:this.#async!==undefined};}
  [Symbol.for('nodejs.util.inspect.custom')](){return 'MoonrakerTemplateFactory <private>';}
 }

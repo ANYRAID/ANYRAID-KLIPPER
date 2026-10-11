@@ -33,6 +33,11 @@ export async function resolveKlippyPath(source:string,context:KlippyPathContext=
 }
 export async function readKlippyBinding(reader:ConfigurationReader,context:KlippyPathContext={},retryDelayMs=250){
  if(!Number.isSafeInteger(retryDelayMs)||retryDelayMs<1||retryDelayMs>60000)throw new ConfigurationError('Invalid Klippy retry delay');
+ if(reader.hasTemplates()&&context.cwd===undefined&&context.home===undefined&&context.render===undefined){
+  const path=reader.section('server').getPath('klippy_uds_address',{defaultValue:'/tmp/klippy_uds'});
+  if(!isAbsolute(path)||path.includes('\0')||Buffer.byteLength(path)>107)throw new ConfigurationError('Invalid Klippy Unix socket path');
+  return Object.freeze({path,retryDelayMs});
+ }
  const section=reader.section('server'),source=section.get('klippy_uds_address',{defaultValue:'/tmp/klippy_uds'});
  // Upstream getpath returns its Path default without rendering or resolving it.
  return Object.freeze({path:section.hasOption('klippy_uds_address')?await resolveKlippyPath(source,context):source,retryDelayMs});

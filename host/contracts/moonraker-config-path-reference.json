@@ -1,0 +1,485 @@
+{
+  "schema": 1,
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "runtime": "3.12.13",
+    "sourceSha256": {
+      "confighelper": "a85c50d2df2f52aade591f396e1d87818d3d6bcdbda193213e9fe7417c3b3e68",
+      "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f",
+      "common": "3fc12fc52c5d9c2a7e878f3babcd63904df3c37e8161a47814de15a8feb02b75"
+    }
+  },
+  "graph": {
+    "directories": [
+      "real/nested",
+      "home"
+    ],
+    "files": [
+      "regular"
+    ],
+    "symlinks": {
+      "link": "real/nested",
+      "dangling": "absent/nested",
+      "absolute": "$ROOT/real/nested",
+      "loop": "loop",
+      "a": "b",
+      "b": "a",
+      "again": "real",
+      "chain0": "chain1",
+      "chain1": "chain2",
+      "chain2": "chain3",
+      "chain3": "chain4",
+      "chain4": "chain5",
+      "chain5": "chain6",
+      "chain6": "chain7",
+      "chain7": "chain8",
+      "chain8": "chain9",
+      "chain9": "chain10",
+      "chain10": "chain11",
+      "chain11": "chain12",
+      "chain12": "chain13",
+      "chain13": "chain14",
+      "chain14": "chain15",
+      "chain15": "chain16",
+      "chain16": "chain17",
+      "chain17": "chain18",
+      "chain18": "chain19",
+      "chain19": "chain20",
+      "chain20": "chain21",
+      "chain21": "chain22",
+      "chain22": "chain23",
+      "chain23": "chain24",
+      "chain24": "chain25",
+      "chain25": "chain26",
+      "chain26": "chain27",
+      "chain27": "chain28",
+      "chain28": "chain29",
+      "chain29": "chain30",
+      "chain30": "chain31",
+      "chain31": "chain32",
+      "chain32": "chain33",
+      "chain33": "chain34",
+      "chain34": "chain35",
+      "chain35": "chain36",
+      "chain36": "chain37",
+      "chain37": "chain38",
+      "chain38": "chain39",
+      "chain39": "chain40",
+      "chain40": "chain41",
+      "chain41": "chain42",
+      "chain42": "chain43",
+      "chain43": "chain44",
+      "chain44": "chain45",
+      "chain45": "chain46",
+      "chain46": "chain47",
+      "chain47": "chain48",
+      "chain48": "chain49",
+      "chain49": "chain50",
+      "chain50": "chain51",
+      "chain51": "chain52",
+      "chain52": "chain53",
+      "chain53": "chain54",
+      "chain54": "chain55",
+      "chain55": "chain56",
+      "chain56": "chain57",
+      "chain57": "chain58",
+      "chain58": "chain59",
+      "chain59": "real/nested"
+    }
+  },
+  "cases": [
+    {
+      "name": "relative",
+      "source": "child",
+      "parsed": {
+        "server": {
+          "path": "child"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/child"
+    },
+    {
+      "name": "data path",
+      "source": "{data_path}/comms/api.sock",
+      "parsed": {
+        "server": {
+          "path": "{data_path}/comms/api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/data/comms/api.sock"
+    },
+    {
+      "name": "empty rendered",
+      "source": "{absent}",
+      "parsed": {
+        "server": {
+          "path": "{absent}"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT"
+    },
+    {
+      "name": "strip option",
+      "source": "\u001c  child ",
+      "parsed": {
+        "server": {
+          "path": "child"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/child"
+    },
+    {
+      "name": "preserve rendered spaces",
+      "source": "{\"  child  \"}",
+      "parsed": {
+        "server": {
+          "path": "{\"  child  \"}"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/child"
+    },
+    {
+      "name": "bom retained",
+      "source": "﻿child",
+      "parsed": {
+        "server": {
+          "path": "﻿child"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/﻿child"
+    },
+    {
+      "name": "link before parent",
+      "source": "link/../api.sock",
+      "parsed": {
+        "server": {
+          "path": "link/../api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/real/api.sock"
+    },
+    {
+      "name": "absolute link parent",
+      "source": "absolute/../api.sock",
+      "parsed": {
+        "server": {
+          "path": "absolute/../api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/real/api.sock"
+    },
+    {
+      "name": "dangling link parent",
+      "source": "dangling/../api.sock",
+      "parsed": {
+        "server": {
+          "path": "dangling/../api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/absent/api.sock"
+    },
+    {
+      "name": "nonexistent parent",
+      "source": "absent/../api.sock",
+      "parsed": {
+        "server": {
+          "path": "absent/../api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/api.sock"
+    },
+    {
+      "name": "regular file child",
+      "source": "regular/child/../api.sock",
+      "parsed": {
+        "server": {
+          "path": "regular/child/../api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/regular/api.sock"
+    },
+    {
+      "name": "repeated link",
+      "source": "again/../again/nested/../api.sock",
+      "parsed": {
+        "server": {
+          "path": "again/../again/nested/../api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/real/api.sock"
+    },
+    {
+      "name": "chain sixty",
+      "source": "chain0/../api.sock",
+      "parsed": {
+        "server": {
+          "path": "chain0/../api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/real/api.sock"
+    },
+    {
+      "name": "self loop",
+      "source": "loop/api.sock",
+      "parsed": {
+        "server": {
+          "path": "loop/api.sock"
+        }
+      },
+      "warningCount": 0,
+      "error": "RuntimeError"
+    },
+    {
+      "name": "mutual loop",
+      "source": "a/api.sock",
+      "parsed": {
+        "server": {
+          "path": "a/api.sock"
+        }
+      },
+      "warningCount": 0,
+      "error": "RuntimeError"
+    },
+    {
+      "name": "home",
+      "source": "~/api.sock",
+      "parsed": {
+        "server": {
+          "path": "~/api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/home/api.sock"
+    },
+    {
+      "name": "home only",
+      "source": "~",
+      "parsed": {
+        "server": {
+          "path": "~"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/home"
+    },
+    {
+      "name": "root user",
+      "source": "~root/api.sock",
+      "parsed": {
+        "server": {
+          "path": "~root/api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "/root/api.sock"
+    },
+    {
+      "name": "named missing",
+      "source": "~anyraid_missing_user_7281/api.sock",
+      "parsed": {
+        "server": {
+          "path": "~anyraid_missing_user_7281/api.sock"
+        }
+      },
+      "warningCount": 0,
+      "error": "RuntimeError"
+    },
+    {
+      "name": "double root",
+      "source": "//tmp//api.sock",
+      "parsed": {
+        "server": {
+          "path": "//tmp//api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "/tmp/api.sock"
+    },
+    {
+      "name": "root parents",
+      "source": "/../../api.sock",
+      "parsed": {
+        "server": {
+          "path": "/../../api.sock"
+        }
+      },
+      "warningCount": 0,
+      "output": "/api.sock"
+    },
+    {
+      "name": "embedded null",
+      "source": "{\"a\" ~ \"\\u0000\" ~ \"b\"}",
+      "parsed": {
+        "server": {
+          "path": "{\"a\" ~ \"\\u0000\" ~ \"b\"}"
+        }
+      },
+      "warningCount": 0,
+      "error": "ValueError"
+    },
+    {
+      "name": "private value",
+      "source": "{secrets[\"ldap\"][\"password\"]}/file",
+      "parsed": {
+        "server": {
+          "path": "{secrets[\"ldap\"][\"password\"]}/file"
+        }
+      },
+      "warningCount": 0,
+      "output": "$ROOT/synthetic-private-template/file"
+    },
+    {
+      "name": "render failure",
+      "source": "{raise_error(\"synthetic\")}",
+      "parsed": {
+        "server": {
+          "path": "{raise_error(\"synthetic\")}"
+        }
+      },
+      "warningCount": 0,
+      "error": "ValueError"
+    }
+  ],
+  "defaults": [
+    {
+      "name": "null",
+      "default": null,
+      "output": null,
+      "sameIdentity": true,
+      "parsed": {
+        "server": {
+          "missing": null
+        }
+      }
+    },
+    {
+      "name": "unresolved string",
+      "default": "  {data_path}/../~/file  ",
+      "output": "  {data_path}/../~/file  ",
+      "sameIdentity": true,
+      "parsed": {
+        "server": {
+          "missing": "  {data_path}/../~/file  "
+        }
+      }
+    },
+    {
+      "name": "number",
+      "default": 3,
+      "output": 3,
+      "sameIdentity": true,
+      "parsed": {
+        "server": {
+          "missing": 3
+        }
+      }
+    },
+    {
+      "name": "array",
+      "default": [
+        "relative"
+      ],
+      "output": [
+        "relative"
+      ],
+      "sameIdentity": true,
+      "parsed": {
+        "server": {
+          "missing": [
+            "relative"
+          ]
+        }
+      }
+    },
+    {
+      "name": "dict",
+      "default": {
+        "value": "relative"
+      },
+      "output": {
+        "value": "relative"
+      },
+      "sameIdentity": true,
+      "parsed": {
+        "server": {
+          "missing": {
+            "value": "relative"
+          }
+        }
+      }
+    }
+  ],
+  "benchmarks": [
+    {
+      "name": "relative",
+      "source": "child",
+      "output": "$ROOT/child",
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "sampleMs": [
+        97.094559983816,
+        97.23685105564073,
+        96.86271502869204,
+        97.09902002941817,
+        97.15881000738591,
+        96.89979598624632,
+        97.01608802424744
+      ],
+      "medianMs": 97.094559983816,
+      "maximumMedianRatio": 1.5
+    },
+    {
+      "name": "symlink parent",
+      "source": "link/../api.sock",
+      "output": "$ROOT/real/api.sock",
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "sampleMs": [
+        104.83130504144356,
+        104.11546402610838,
+        104.355746996589,
+        104.42279803100973,
+        104.58146996097639,
+        109.0285429963842,
+        104.92640704615042
+      ],
+      "medianMs": 104.58146996097639,
+      "maximumMedianRatio": 1.5
+    },
+    {
+      "name": "named user",
+      "source": "~root/api.sock",
+      "output": "/root/api.sock",
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "sampleMs": [
+        112.2997659840621,
+        112.01938102021813,
+        112.07998200552538,
+        112.1890539652668,
+        112.32825694605708,
+        112.46635799761862,
+        111.5109339589253
+      ],
+      "medianMs": 112.1890539652668,
+      "maximumMedianRatio": 1.5
+    }
+  ],
+  "scope": "One-time capture of actual pinned ConfigHelper.getpath, TemplateFactory and RenderableTemplate ABC before candidate path edits; CPython pathlib, system user lookup, real symlinks; source and parsed records retained. Root placeholder only, no printing/hardware claim."
+}

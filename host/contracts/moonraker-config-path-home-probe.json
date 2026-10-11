@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+  "runtime": "3.12.13",
+  "cases": [
+    {
+      "name": "empty ~",
+      "home": "",
+      "source": "~",
+      "output": "/"
+    },
+    {
+      "name": "empty ~/child",
+      "home": "",
+      "source": "~/child",
+      "output": "/child"
+    },
+    {
+      "name": "empty ./~/child",
+      "home": "",
+      "source": "./~/child",
+      "output": "/child"
+    },
+    {
+      "name": "relative ~",
+      "home": "relative",
+      "source": "~",
+      "output": "$ROOT/relative"
+    },
+    {
+      "name": "relative ~/child",
+      "home": "relative",
+      "source": "~/child",
+      "output": "$ROOT/relative/child"
+    },
+    {
+      "name": "relative ./~/child",
+      "home": "relative",
+      "source": "./~/child",
+      "output": "$ROOT/relative/child"
+    },
+    {
+      "name": "unset ~",
+      "home": null,
+      "source": "~",
+      "output": "$USER_HOME"
+    },
+    {
+      "name": "unset ~/child",
+      "home": null,
+      "source": "~/child",
+      "output": "$USER_HOME/child"
+    },
+    {
+      "name": "unset ./~/child",
+      "home": null,
+      "source": "./~/child",
+      "output": "$USER_HOME/child"
+    }
+  ],
+  "scope": "Independent actual pinned getpath probe for empty, relative and unset HOME. Fixed system-home placeholder for cross-account replay; not regeneration of the pre-code path matrix/budgets."
+}

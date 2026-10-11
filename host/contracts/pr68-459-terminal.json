@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "head": "4592243da72584ebf65ffd68ae8849dac05b80f6",
+  "scope": "Exact preceding shared factory head only. Current configuration path candidate requires independent CI; prior failures and G3 remain open.",
+  "runs": [
+    {
+      "id": 38161343882,
+      "name": "Build test",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 229,
+      "jobs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343882/jobs",
+      "logs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343882/logs",
+      "workflow_id": 372156043
+    },
+    {
+      "id": 38161343864,
+      "name": "Node motion diagnostics",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 80,
+      "jobs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/jobs",
+      "logs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/logs",
+      "workflow_id": 372156042
+    },
+    {
+      "id": 38161343874,
+      "name": "Node host",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 229,
+      "jobs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343874/jobs",
+      "logs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343874/logs",
+      "workflow_id": 372156049
+    }
+  ],
+  "jobs": [
+    {
+      "id": 114534724875,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343882,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343882/job/114534724875"
+    },
+    {
+      "id": 114534724989,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343864,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/job/114534724989"
+    },
+    {
+      "id": 114534725153,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343864,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/job/114534725153"
+    },
+    {
+      "id": 114534725179,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343864,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/job/114534725179"
+    },
+    {
+      "id": 114534725188,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343864,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/job/114534725188"
+    },
+    {
+      "id": 114534725195,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343864,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/job/114534725195"
+    },
+    {
+      "id": 114534725196,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343864,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/job/114534725196"
+    },
+    {
+      "id": 114534725218,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343864,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/job/114534725218"
+    },
+    {
+      "id": 114534725246,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343864,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/job/114534725246"
+    },
+    {
+      "id": 114534725470,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343864,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/job/114534725470"
+    },
+    {
+      "id": 114534725472,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343864,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343864/job/114534725472"
+    },
+    {
+      "id": 114534724830,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343874,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343874/job/114534724830"
+    },
+    {
+      "id": 114534724953,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343874,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343874/job/114534724953"
+    },
+    {
+      "id": 114534724974,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343874,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343874/job/114534724974"
+    },
+    {
+      "id": 114538465327,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38161343874,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343874/job/114538465327"
+    }
+  ],
+  "ordinary": {
+    "job": 114534724830,
+    "node": "v26.11.1",
+    "tests": 4624,
+    "pass": 4624,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "observedLines": [
+      "2026-10-11T18:08:53.5733899Z ℹ tests 4624",
+      "2026-10-11T18:08:53.5735117Z ℹ pass 4624",
+      "2026-10-11T18:08:53.5735477Z ℹ fail 0",
+      "2026-10-11T18:08:53.5735844Z ℹ cancelled 0",
+      "2026-10-11T18:08:53.5736149Z ℹ skipped 0"
+    ],
+    "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38161343874/job/114534724830"
+  },
+  "fullObservationEntry": "config-path-459-ci-full-oct12.json in moonraker-config-path-evidence.json.gz"
+}

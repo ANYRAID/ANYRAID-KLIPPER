@@ -2,10 +2,10 @@
 // Original Copyright (C) 2021 Eric Callahan. GPL-3.0-or-later.
 import {constants} from 'node:fs';
 import {open,stat} from 'node:fs/promises';
-import {homedir} from 'node:os';
-import {isAbsolute,join,resolve} from 'node:path';
+import {isAbsolute,join} from 'node:path';
 import {ConfigurationReader} from './config-reader.ts';
 import {ConfigurationError} from './config-source.ts';
+import {resolveConfigurationPath} from './config-path.ts';
 
 export type SecretValue=null|boolean|string|number|bigint|readonly SecretValue[]|SecretObject;
 export interface SecretObject {readonly [name:string]:SecretValue;}
@@ -112,7 +112,7 @@ export class SecretsStore {
  toJSON():{type:Format;closed:boolean}{return {type:this.#type,closed:this.#closed};}
  [Symbol.for('nodejs.util.inspect.custom')]():string{return 'SecretsStore <private>';}
 }
-const expand=(path:string)=>resolve(path==='~'||path.startsWith('~/')?join(homedir(),path.slice(2)):path);
+const expand=resolveConfigurationPath;
 async function regular(path:string):Promise<boolean>{try{return (await stat(path)).isFile();}catch(error){if(['ENOENT','ENOTDIR'].includes((error as NodeJS.ErrnoException).code??''))return false;throw new ConfigurationError('Unable to inspect secrets file');}}
 /** Explicit dependency assembly for template/configuration owners. No public
  * snapshot, database namespace, network endpoint, watcher or per-request I/O.

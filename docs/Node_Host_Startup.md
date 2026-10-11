@@ -3838,6 +3838,41 @@ TLS 1.2，始终验证 CA 和主机名，DNS 名提供 SNI；`ca` 只允许配�
 
 ## LDAP 标准配置装配候选
 
+### 配置路径与共享模板
+
+`reader.section(name).getPath(option, {defaultValue, deprecate})` 使用绑定
+工厂同步渲染，上下文包含该私密代际明确的 `data_path`。TS 中用绝对
+字符串表示路径结果；选项不存在时，缺省 JSON 值保持原值与身份，
+包括不展开的模板字符串。解析记录保留模板来源，不能拿解析后的
+私密路径替换它。临时选项模板在成功或失败后关闭；调用方提供的
+缺省模板仍由调用方持有。缺少工厂时，即使选项有缺省也会拒绝。
+
+路径逐段跟随真实或悬空符号链接，然后处理 `..`；不先做词法折叠。
+有效六十层链可用，自引用／互相引用循环拒绝。`~` 使用 `HOME` 或
+当前用户的系统目录；空 `HOME` 展开为根目录，相对 `HOME` 保持相对
+于工作目录的语义。`~用户名` 通过现有 Unix 原生插件的 libc NSS 查询，
+不启动 `getent` 或 Python，也不限于手工读取 `/etc/passwd`。这些同步
+文件／用户查询仅供配置加载；实际远程 NSS 提供者尚未验收。
+
+标准服务提供 `templates: {dataPath: ...}` 和 `klippy: {}` 时，
+`klippy_uds_address: {data_path}/comms/klippy.sock` 会由共用工厂展开，
+无需再传 `pathContext.render`。未配置 socket 的缺省仍为 `/tmp/klippy_uds`，
+Linux socket 路径容量校验保留。显式 `pathContext` 的旧适配入口仍可用；
+它不等于完整通用组件加载。私密文件旧 `secrets_path` 回退复用物理
+路径解析，加载 secrets 不反向依赖模板，避免组件启动循环。
+
+固定上游 24 条路径、5 条缺省及独立 9 条 HOME 输出与 legacy 文件
+探针保留。源码／关闭 TS 加载的 JavaScript 相关回归各 217／217；
+新 C 查询的 UBSan／ASan 各 38／38。三组每批 500 次、两轮预热、
+七样本的原 1.5 倍桌面预算通过，编译比值为 0.220／0.252／0.291。
+复现使用 `node host/bench/moonraker-config-path.ts`。这不证明打印吞吐、
+目标板或完整私密服务冷启动。禁止 JS 子进程的补充检查有 34 条在
+符号链接夹具创建处被 Node 权限模型拒绝，不能计作隔离通过；未扩大
+权限重跑抹除失败。最初错误的空 HOME 断言已由上游探针反证并修复。
+独立 JavaScript 复用已有 Rust 插件与依赖，不宣称完整新产品构建。
+全部参考、初始失败、最终来源摘要及预算见
+[配置路径记录](../host/contracts/moonraker-config-path-acceptance.json)。
+
 ### 共用模板工厂与服务代际
 
 可信组件通过 `server.templates` 或 `reader.templates()` 取得
@@ -3869,7 +3904,8 @@ TLS 1.2，始终验证 CA 和主机名，DNS 名提供 SNI；`ca` 只允许配�
 [共用工厂记录](../host/contracts/moonraker-template-factory-acceptance.json)。
 复现固定渲染预算使用 Node.js 26 执行
 `node host/bench/template-factory.ts`，超限时退出 1。
-getpath、动态可变全局对象、属性／可迭代对象、完整大整数、通用
+共享配置 `getPath` 已补齐，见“配置路径与共享模板”；动态可变全局对象、属性／可迭代对象、
+完整大整数、通用
 组件加载和默认产品装配继续开放；默认 Python 打印入口未切换。
 
 `ConfiguredMoonraker.loadAuthorized` 在 `[ldap]` 存在时解析配置，创建

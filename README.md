@@ -27,6 +27,14 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 异步／UI 固定性能预算和当前独立产品构建仍失败，完整模板语言、
 默认组件装配与 Python 退役继续开放，见
 [共用工厂证据](host/contracts/moonraker-template-factory-acceptance.json)。
+配置 `getPath` 已接入共享模板、用户目录及物理符号链接解析；标准服务
+的显式模板代际可展开 Klippy 的 `{data_path}` 路径，旧私密文件回退同样
+按物理目标选取。相关源码与独立 JavaScript 各 217 项通过，新增 C 查询
+的 UBSan／ASan 各 38 项通过，三组配置启动预算通过，见
+[配置路径证据](host/contracts/moonraker-config-path-acceptance.json)。
+这些结果不覆盖默认产品装配、完整新包或目标板打印；上一工厂头
+`4592243d` 的十五项 CI 和普通 4624／4624 独立通过，见
+[该头终态](host/contracts/pr68-459-terminal.json)，新路径提交须自身检查。
 初始运动遥测候选修复已通过源码、独立编译包、原双 MCU 混合旅程
 和有限 Mainsail 打印复验；请求速度、打印负载指标与未关闭门槛见
 [速度兼容性证据](host/contracts/live-motion-velocity-acceptance.json)。
