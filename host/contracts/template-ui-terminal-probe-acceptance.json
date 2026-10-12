@@ -4719,5 +4719,1558 @@
       "scope": "Exact previous UI-probe regression head terminal; merge checkout does not mean merged into develop, does not cover following metadata tests or close UI/native-build/G3/hardware gates."
     },
     "next": "Separate native queue wait, message preparation, Node callback handoff, response delivery/wakeup and completion with instrumented controls before another runtime optimization; keep original 1.5 and motion precision gates."
+  },
+  "nativePhaseProfile": {
+    "baseHead": "f8001ec068421edc7158d57141247c5a5bc6b4e0",
+    "status": "diagnostic-only-not-integrated",
+    "baseline": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-cors-domain-owner-oct13",
+      "manifestSha256": "c086b3565d54374b9cca71288b1ea0bf9d4b8ab49fa7a767ab3201402252c9f9",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "identities": {
+      "originalRust": "87132b7a1331fcf08a381e9a4ca29b33923a39e44ed4fbaeedf0cd472b6f0dcd",
+      "originalOwner": "d264f82e171aa8b195794a568e06096ed0492e0e2c132a6e3899a6395035e90a",
+      "measuredOwner": "320a5b057b4416d9f5cacdcf811236e90bf4748f07a27c7ce0345f6dfa164b96",
+      "v1Rust": "f218dfa38a57c350808b3e0afe1055e50760244f57ef697a418ef5c0c27d2949",
+      "cpuRust": "961e41b3dbcaa4d6afafc5d3b5f39eaf447ecf993e0a73798e89214b5c7be73d",
+      "v1Addon": "62ad7320ae5b5ed91b9927f2e437c88fa751886083872606f8f5fa6cf2669d62",
+      "cpuAddon": "64f74387d11065f495c262c4f36052a5985abd56ace8480b174d9c4bdb82950e"
+    },
+    "input": {
+      "references": {
+        "async": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+        "factory": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0"
+      },
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "cases": "Original direct pure/callback/UI and factory async/UI; factory UI has no callable message"
+    },
+    "controls": {
+      "versions": 2,
+      "processes": 18,
+      "caseGroups": 90,
+      "rawRowsPerVersion": 157500,
+      "timedNativeRowsPerVersion": 52500,
+      "pilotRows": 17500,
+      "orders": [
+        [
+          "original",
+          "off",
+          "on"
+        ],
+        [
+          "on",
+          "off",
+          "original"
+        ],
+        [
+          "original",
+          "off",
+          "on"
+        ]
+      ],
+      "originalBudgetReplaced": false
+    },
+    "functional": {
+      "v1": 121,
+      "cpu": 121,
+      "scope": "Independent installed private component overlays only, not full product/native rebuild acceptance"
+    },
+    "build": {
+      "fresh": {
+        "status": 101,
+        "component": "napi-derive-backend",
+        "kind": "rustc internal compiler error",
+        "detail": "metadata index len31/index16777236; failure retained"
+      },
+      "dependencyIdentity": {
+        "compared": 20,
+        "allIdentical": true,
+        "scope": "Same on-disk corresponding syn/proc_macro2/quote/convert_case/once_cell/regex/semver artifacts; does not establish every dependency or in-memory cause"
+      },
+      "followingV1": {
+        "status": 0,
+        "seconds": 28.95,
+        "scope": "Copied verified target to independent target; Cargo actually recompiled dependencies. Preserve first failure, not a pristine build pass."
+      },
+      "cpuIncrement": {
+        "status": 0,
+        "seconds": 16.96,
+        "scope": "Only component recompiled on that diagnostic target; Linux read-only sched_getcpu, no affinity/priority/governor changes"
+      },
+      "sandboxTest": {
+        "status": 1,
+        "error": "127.0.0.1 listen EPERM",
+        "authorizedV1": 121,
+        "authorizedCpu": 121
+      }
+    },
+    "cpuCohorts": [
+      {
+        "pair": 0,
+        "kind": "direct",
+        "name": "pure",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3454,
+            "medianUs": 2.44,
+            "p95Us": 3.07
+          },
+          "completion/sameL3": {
+            "rows": 3453,
+            "medianUs": 3.32,
+            "p95Us": 4.04
+          },
+          "completion/sameLogical": {
+            "rows": 47,
+            "medianUs": 6.791,
+            "p95Us": 9.07
+          },
+          "queue/sameLogical": {
+            "rows": 46,
+            "medianUs": 2.33,
+            "p95Us": 5.87
+          }
+        }
+      },
+      {
+        "pair": 0,
+        "kind": "direct",
+        "name": "callback",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3066,
+            "medianUs": 2.46,
+            "p95Us": 3.04
+          },
+          "call/sameL3": {
+            "rows": 3066,
+            "medianUs": 3.44,
+            "p95Us": 3.78
+          },
+          "reply/sameL3": {
+            "rows": 3066,
+            "medianUs": 2.441,
+            "p95Us": 2.82
+          },
+          "completion/sameL3": {
+            "rows": 3066,
+            "medianUs": 3.33,
+            "p95Us": 3.62
+          },
+          "queue/differentL3": {
+            "rows": 434,
+            "medianUs": 3.85,
+            "p95Us": 4.44
+          },
+          "call/differentL3": {
+            "rows": 434,
+            "medianUs": 5.08,
+            "p95Us": 5.66
+          },
+          "reply/differentL3": {
+            "rows": 434,
+            "medianUs": 3.79,
+            "p95Us": 4.39
+          },
+          "completion/differentL3": {
+            "rows": 434,
+            "medianUs": 4.94,
+            "p95Us": 5.48
+          }
+        }
+      },
+      {
+        "pair": 0,
+        "kind": "direct",
+        "name": "ui",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 1388,
+            "medianUs": 2.47,
+            "p95Us": 2.64
+          },
+          "call/sameL3": {
+            "rows": 1388,
+            "medianUs": 3.43,
+            "p95Us": 3.72
+          },
+          "reply/sameL3": {
+            "rows": 1387,
+            "medianUs": 2.45,
+            "p95Us": 2.53
+          },
+          "completion/sameL3": {
+            "rows": 1387,
+            "medianUs": 3.34,
+            "p95Us": 3.61
+          },
+          "reply/differentL3": {
+            "rows": 2113,
+            "medianUs": 3.86,
+            "p95Us": 4.36
+          },
+          "completion/differentL3": {
+            "rows": 2113,
+            "medianUs": 4.91,
+            "p95Us": 5.48
+          },
+          "queue/differentL3": {
+            "rows": 2112,
+            "medianUs": 3.85,
+            "p95Us": 4.31
+          },
+          "call/differentL3": {
+            "rows": 2112,
+            "medianUs": 5.021,
+            "p95Us": 5.55
+          }
+        }
+      },
+      {
+        "pair": 0,
+        "kind": "factory",
+        "name": "async",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3500,
+            "medianUs": 2.43,
+            "p95Us": 2.56
+          },
+          "completion/sameL3": {
+            "rows": 3500,
+            "medianUs": 3.36,
+            "p95Us": 3.66
+          }
+        }
+      },
+      {
+        "pair": 0,
+        "kind": "factory",
+        "name": "ui",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3500,
+            "medianUs": 2.42,
+            "p95Us": 2.57
+          },
+          "completion/sameL3": {
+            "rows": 3500,
+            "medianUs": 3.31,
+            "p95Us": 3.581
+          }
+        }
+      },
+      {
+        "pair": 1,
+        "kind": "direct",
+        "name": "pure",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3500,
+            "medianUs": 2.42,
+            "p95Us": 2.59
+          },
+          "completion/sameL3": {
+            "rows": 3500,
+            "medianUs": 3.36,
+            "p95Us": 3.91
+          }
+        }
+      },
+      {
+        "pair": 1,
+        "kind": "direct",
+        "name": "callback",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3488,
+            "medianUs": 2.45,
+            "p95Us": 2.88
+          },
+          "call/sameL3": {
+            "rows": 3487,
+            "medianUs": 3.51,
+            "p95Us": 3.92
+          },
+          "reply/sameL3": {
+            "rows": 3488,
+            "medianUs": 2.43,
+            "p95Us": 2.74
+          },
+          "completion/sameL3": {
+            "rows": 3488,
+            "medianUs": 3.39,
+            "p95Us": 3.69
+          },
+          "queue/sameLogical": {
+            "rows": 12,
+            "medianUs": 2.55,
+            "p95Us": 1009.738
+          },
+          "call/sameLogical": {
+            "rows": 13,
+            "medianUs": 3.34,
+            "p95Us": 674.031
+          },
+          "reply/sameLogical": {
+            "rows": 12,
+            "medianUs": 2.32,
+            "p95Us": 2.8
+          },
+          "completion/sameLogical": {
+            "rows": 12,
+            "medianUs": 4.43,
+            "p95Us": 5.011
+          }
+        }
+      },
+      {
+        "pair": 1,
+        "kind": "direct",
+        "name": "ui",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3500,
+            "medianUs": 2.431,
+            "p95Us": 2.82
+          },
+          "call/sameL3": {
+            "rows": 3500,
+            "medianUs": 3.471,
+            "p95Us": 3.73
+          },
+          "reply/sameL3": {
+            "rows": 3500,
+            "medianUs": 2.43,
+            "p95Us": 2.73
+          },
+          "completion/sameL3": {
+            "rows": 3500,
+            "medianUs": 3.37,
+            "p95Us": 3.63
+          }
+        }
+      },
+      {
+        "pair": 1,
+        "kind": "factory",
+        "name": "async",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3500,
+            "medianUs": 2.46,
+            "p95Us": 2.86
+          },
+          "completion/sameL3": {
+            "rows": 3500,
+            "medianUs": 3.371,
+            "p95Us": 3.89
+          }
+        }
+      },
+      {
+        "pair": 1,
+        "kind": "factory",
+        "name": "ui",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3500,
+            "medianUs": 2.46,
+            "p95Us": 2.7
+          },
+          "completion/sameL3": {
+            "rows": 3500,
+            "medianUs": 3.3,
+            "p95Us": 3.56
+          }
+        }
+      },
+      {
+        "pair": 2,
+        "kind": "direct",
+        "name": "pure",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameLogical": {
+            "rows": 41,
+            "medianUs": 2.21,
+            "p95Us": 4.73
+          },
+          "completion/sameLogical": {
+            "rows": 42,
+            "medianUs": 7.54,
+            "p95Us": 8.87
+          },
+          "queue/sameL3": {
+            "rows": 3459,
+            "medianUs": 2.42,
+            "p95Us": 2.75
+          },
+          "completion/sameL3": {
+            "rows": 3458,
+            "medianUs": 3.321,
+            "p95Us": 3.95
+          }
+        }
+      },
+      {
+        "pair": 2,
+        "kind": "direct",
+        "name": "callback",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3471,
+            "medianUs": 2.47,
+            "p95Us": 2.71
+          },
+          "call/sameL3": {
+            "rows": 3471,
+            "medianUs": 3.43,
+            "p95Us": 3.7
+          },
+          "reply/sameL3": {
+            "rows": 3471,
+            "medianUs": 2.49,
+            "p95Us": 2.64
+          },
+          "completion/sameL3": {
+            "rows": 3471,
+            "medianUs": 3.32,
+            "p95Us": 3.54
+          },
+          "queue/sameLogical": {
+            "rows": 29,
+            "medianUs": 2.51,
+            "p95Us": 5.93
+          },
+          "call/sameLogical": {
+            "rows": 29,
+            "medianUs": 3.36,
+            "p95Us": 8.72
+          },
+          "reply/sameLogical": {
+            "rows": 29,
+            "medianUs": 2.34,
+            "p95Us": 2.75
+          },
+          "completion/sameLogical": {
+            "rows": 29,
+            "medianUs": 4.61,
+            "p95Us": 5.65
+          }
+        }
+      },
+      {
+        "pair": 2,
+        "kind": "direct",
+        "name": "ui",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3500,
+            "medianUs": 2.46,
+            "p95Us": 2.62
+          },
+          "call/sameL3": {
+            "rows": 3499,
+            "medianUs": 3.47,
+            "p95Us": 3.66
+          },
+          "reply/sameL3": {
+            "rows": 3499,
+            "medianUs": 2.47,
+            "p95Us": 2.58
+          },
+          "completion/sameL3": {
+            "rows": 3500,
+            "medianUs": 3.33,
+            "p95Us": 3.53
+          },
+          "reply/sameLogical": {
+            "rows": 1,
+            "medianUs": 536.83,
+            "p95Us": 536.83
+          },
+          "call/sameLogical": {
+            "rows": 1,
+            "medianUs": 1683.889,
+            "p95Us": 1683.889
+          }
+        }
+      },
+      {
+        "pair": 2,
+        "kind": "factory",
+        "name": "async",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3500,
+            "medianUs": 2.44,
+            "p95Us": 2.55
+          },
+          "completion/sameL3": {
+            "rows": 3500,
+            "medianUs": 3.35,
+            "p95Us": 3.59
+          }
+        }
+      },
+      {
+        "pair": 2,
+        "kind": "factory",
+        "name": "ui",
+        "rows": 3500,
+        "cohorts": {
+          "queue/sameL3": {
+            "rows": 3500,
+            "medianUs": 2.44,
+            "p95Us": 2.54
+          },
+          "completion/sameL3": {
+            "rows": 3500,
+            "medianUs": 3.31,
+            "p95Us": 3.51
+          }
+        }
+      }
+    ],
+    "cacheDomains": [
+      {
+        "cpu": 0,
+        "index": "index3",
+        "level": "3",
+        "type": "Unified",
+        "shared": "0-2",
+        "id": "0"
+      },
+      {
+        "cpu": 1,
+        "index": "index3",
+        "level": "3",
+        "type": "Unified",
+        "shared": "0-2",
+        "id": "0"
+      },
+      {
+        "cpu": 2,
+        "index": "index3",
+        "level": "3",
+        "type": "Unified",
+        "shared": "0-2",
+        "id": "0"
+      },
+      {
+        "cpu": 3,
+        "index": "index3",
+        "level": "3",
+        "type": "Unified",
+        "shared": "3-5",
+        "id": "1"
+      },
+      {
+        "cpu": 4,
+        "index": "index3",
+        "level": "3",
+        "type": "Unified",
+        "shared": "3-5",
+        "id": "1"
+      },
+      {
+        "cpu": 5,
+        "index": "index3",
+        "level": "3",
+        "type": "Unified",
+        "shared": "3-5",
+        "id": "1"
+      }
+    ],
+    "observations": {
+      "snapshots": 36,
+      "classifiedOverlap": 0,
+      "scope": "Does not prove complete OS quiet or historical cause"
+    },
+    "decision": "Call encoding about0.5us is smaller than four mandatory handoffs. Same-process direct-UI pair0 L3-domain cohorts: sameL3 2.47/3.43/2.45/3.34us versus differentL3 3.85/5.021/3.86/4.91us for queue/call/reply/completion. Factory UI has no call message. Keep all slow samples, do not pin CPU or raise budgets; reduce necessary handoffs under full semantics. Cohort association is not historical causality; no runtime proposal accepted.",
+    "limitations": "Instrumentation adds clocks, locks and observer work. Per-render distributions exclude retrieval and do not replace original median-batch budgets; tiny timestamp/CPU observation gap remains. Two worker lanes/full types/limits retained. No full Python/Moonraker/Jinja/G3/macro/hardware closure.",
+    "archive": {
+      "path": "host/contracts/template-native-phase-evidence.json.gz",
+      "sha256": "d448abc6a844d4a662bb98e7c8fa6f85291258418b0bf1015b634810a1382933",
+      "entries": 160,
+      "uncompressedBytes": 111875824,
+      "compressedBytes": 19087776
+    },
+    "redactions": [],
+    "ciObservation": {
+      "schema": 1,
+      "head": "f8001ec068421edc7158d57141247c5a5bc6b4e0",
+      "observedAt": "2026-10-12T22:52:53.677Z",
+      "jobs": [
+        {
+          "id": 115038753528,
+          "name": "sanitizer (ubsan)",
+          "status": "in_progress",
+          "conclusion": null,
+          "run_id": 38317878882,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Run npm ci --ignore-scripts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Build ordinary native prerequisites",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Run npm run test:native-sanitized -- --mode=ubsan",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 7
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 13
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "pending",
+              "conclusion": null,
+              "number": 14
+            }
+          ]
+        },
+        {
+          "id": 115038753649,
+          "name": "checks",
+          "status": "in_progress",
+          "conclusion": null,
+          "run_id": 38317878882,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Install pinned native template toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Select native template toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Install PDF regression reader and renderer",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Check source whitespace with Node",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Run npm ci --ignore-scripts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Run npm run typecheck",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Run npm test",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 11
+            },
+            {
+              "name": "Run npm run test:protocol-native",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12
+            },
+            {
+              "name": "Build Linux MCU with Node command generator",
+              "status": "pending",
+              "conclusion": null,
+              "number": 13
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "pending",
+              "conclusion": null,
+              "number": 24
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 25
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "pending",
+              "conclusion": null,
+              "number": 26
+            }
+          ]
+        },
+        {
+          "id": 115038753778,
+          "name": "sanitizer (asan)",
+          "status": "in_progress",
+          "conclusion": null,
+          "run_id": 38317878882,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Run npm ci --ignore-scripts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Build ordinary native prerequisites",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Run npm run test:native-sanitized -- --mode=asan",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 7
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 13
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "pending",
+              "conclusion": null,
+              "number": 14
+            }
+          ]
+        },
+        {
+          "id": 115038753703,
+          "name": "build",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38317878887,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Setup cache",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Prepare tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Test",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Upload micro-controller data dictionaries",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Post Setup cache",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            }
+          ]
+        },
+        {
+          "id": 115038753893,
+          "name": "motion (26.9.0, off, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38317878881,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        },
+        {
+          "id": 115038754053,
+          "name": "motion (26.9.0, default, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38317878881,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        },
+        {
+          "id": 115038754069,
+          "name": "motion (26.9.0, default, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38317878881,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 4
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        },
+        {
+          "id": 115038754109,
+          "name": "motion (26.10.0, jitless, compiled)",
+          "status": "in_progress",
+          "conclusion": null,
+          "run_id": 38317878881,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12
+            }
+          ]
+        },
+        {
+          "id": 115038754121,
+          "name": "motion (26.10.0, off, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38317878881,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        },
+        {
+          "id": 115038754134,
+          "name": "motion (26.9.0, jitless, compiled)",
+          "status": "in_progress",
+          "conclusion": null,
+          "run_id": 38317878881,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "status": "in_progress",
+              "conclusion": null,
+              "number": 5
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "status": "pending",
+              "conclusion": null,
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "pending",
+              "conclusion": null,
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "pending",
+              "conclusion": null,
+              "number": 12
+            }
+          ]
+        },
+        {
+          "id": 115038754135,
+          "name": "motion (26.10.0, off, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38317878881,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 4
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        },
+        {
+          "id": 115038754161,
+          "name": "motion (26.10.0, default, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38317878881,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 4
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        },
+        {
+          "id": 115038754170,
+          "name": "motion (26.9.0, off, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38317878881,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 4
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        },
+        {
+          "id": 115038754213,
+          "name": "motion (26.10.0, default, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38317878881,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install pinned compiler for JavaScript control",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Verify original motion reference in fresh processes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Preserve diagnostic evidence even on failure",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Post Run actions/checkout@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            }
+          ]
+        }
+      ],
+      "scope": "Verified live prior-head jobs; not terminal or develop merge acceptance."
+    }
   }
 }
