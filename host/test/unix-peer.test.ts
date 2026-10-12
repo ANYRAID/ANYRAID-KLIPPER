@@ -9,7 +9,11 @@ import {tmpdir,userInfo} from 'node:os';
 import {spawn} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {unixPeerCredentials} from '../src/moonraker/unix-peer.ts';
-const native=createRequire(import.meta.url)(process.env.ANYRAID_UNIX_PEER_ADDON??'../build/unix-peer.node') as {credentials(fd:unknown):unknown;userHome(name?:unknown):string|null};
+const native=createRequire(import.meta.url)(process.env.ANYRAID_UNIX_PEER_ADDON??'../build/unix-peer.node') as {credentials(fd:unknown):unknown;userHome(name?:unknown):string|null;reverseFqdn(address:unknown):string};
+test('native reverse NSS validates addresses and owns bounded result buffers',()=>{
+ for(const address of [null,1,{},'printer.example','127.1','127.0.0.1\0other','::1%lo'])assert.throws(()=>native.reverseFqdn(address),/numeric peer address/);
+ for(let i=0;i<100;i++)for(const address of ['127.0.0.1','::1']){const name=native.reverseFqdn(address);assert.equal(typeof name,'string');assert(name.length>0&&name.length<=4096);}
+});
 test('native NSS lookup owns and frees its buffers; invalid names never reach libc',()=>{
  const info=userInfo();assert.equal(native.userHome(),info.homedir);assert.equal(native.userHome(info.username),info.homedir);assert.equal(native.userHome(''),null);assert.equal(native.userHome('anyraid_missing_user_7281'),null);
  for(const value of [null,1,{},[],true,'root\0other'])assert.throws(()=>native.userHome(value),/Invalid Unix user name/);

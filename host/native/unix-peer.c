@@ -10,6 +10,8 @@
 #include <stdint.h>
 #include <pwd.h>
 #include <unistd.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #define CHECK(expr) do { if ((expr)!=napi_ok) { napi_throw_error(env,NULL,"Node-API failure"); return NULL; } } while (0)
 static napi_value failure(napi_env env,const char *operation){char text[256];snprintf(text,sizeof(text),"%s: %s",operation,strerror(errno));napi_throw_error(env,NULL,text);return NULL;}
 static napi_value credentials(napi_env env,napi_callback_info info){
@@ -51,8 +53,28 @@ static napi_value user_home(napi_env env,napi_callback_info info){
  napi_status status=found?napi_create_string_utf8(env,found->pw_dir,NAPI_AUTO_LENGTH,&result):napi_get_null(env,&result);
  free(buffer);CHECK(status);return result;
 }
+/* socket.getfqdn(socket peer) semantics: libc NSS, canonical name followed by
+ * aliases, first dotted name. Called only in the bounded lookup child. */
+static napi_value reverse_fqdn(napi_env env,napi_callback_info info){
+ size_t count=1,length=0;napi_value args[1],result;char address[INET6_ADDRSTRLEN];
+ CHECK(napi_get_cb_info(env,info,&count,args,NULL,NULL));
+ if(count!=1||napi_get_value_string_utf8(env,args[0],address,sizeof(address),&length)!=napi_ok||length>=sizeof(address)||strlen(address)!=length){napi_throw_type_error(env,NULL,"Invalid numeric peer address");return NULL;}
+ unsigned char bytes[16];int family=AF_INET;size_t width=4;
+ if(inet_pton(family,address,bytes)!=1){family=AF_INET6;width=16;if(inet_pton(family,address,bytes)!=1){napi_throw_type_error(env,NULL,"Invalid numeric peer address");return NULL;}}
+ size_t size=1024;char *buffer=NULL;struct hostent entry,*found=NULL;int code,host_error;
+ for(;;){char *next=realloc(buffer,size);if(!next){free(buffer);napi_throw_error(env,NULL,"Host lookup allocation failed");return NULL;}buffer=next;
+  code=gethostbyaddr_r(bytes,width,family,&entry,buffer,size,&found,&host_error);
+  if(code!=ERANGE||size>=1024*1024)break;
+  size*=2;
+ }
+ const char *name=address;
+ if(!code&&found&&found->h_name){name=found->h_name;if(!strchr(name,'.')&&found->h_aliases)for(char **alias=found->h_aliases;*alias;alias++)if(strchr(*alias,'.')){name=*alias;break;}}
+ if(strlen(name)>4096){free(buffer);napi_throw_error(env,NULL,"Host lookup result exceeds limit");return NULL;}
+ napi_status status=napi_create_string_utf8(env,name,NAPI_AUTO_LENGTH,&result);free(buffer);CHECK(status);return result;
+}
 static napi_value init(napi_env env,napi_value exports){napi_property_descriptor methods[]={
  {"credentials",NULL,credentials,NULL,NULL,NULL,napi_default,NULL},
- {"userHome",NULL,user_home,NULL,NULL,NULL,napi_default,NULL}
- };CHECK(napi_define_properties(env,exports,2,methods));return exports;}
+ {"userHome",NULL,user_home,NULL,NULL,NULL,napi_default,NULL},
+ {"reverseFqdn",NULL,reverse_fqdn,NULL,NULL,NULL,napi_default,NULL}
+ };CHECK(napi_define_properties(env,exports,3,methods));return exports;}
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)

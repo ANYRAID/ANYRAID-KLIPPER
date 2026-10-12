@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "head": "68aeffa809e3ef2258642a1db226b62d617737fb",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "mergeCheckout": "7586b98c6c8da4668abfa2aeed64ddae17a2fea7",
+  "jobs": [
+    {
+      "id": 114975901908,
+      "run_id": 38298667414,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975901788,
+      "run_id": 38298667385,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975902001,
+      "run_id": 38298667385,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975902030,
+      "run_id": 38298667385,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114981278315,
+      "run_id": 38298667385,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975902629,
+      "run_id": 38298667382,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975902878,
+      "run_id": 38298667382,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975902897,
+      "run_id": 38298667382,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975902980,
+      "run_id": 38298667382,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975902984,
+      "run_id": 38298667382,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975902986,
+      "run_id": 38298667382,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975903002,
+      "run_id": 38298667382,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975903005,
+      "run_id": 38298667382,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975903029,
+      "run_id": 38298667382,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 114975903038,
+      "run_id": 38298667382,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "tests": 5063,
+    "pass": 5063,
+    "fail": 0,
+    "skipped": 0
+  },
+  "scope": "Exact documentation/evidence head before hostname implementation. Not the new implementation CI, hardware precision closure or develop/master integration."
+}

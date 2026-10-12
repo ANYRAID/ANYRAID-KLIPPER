@@ -1,4 +1,4 @@
-import {TrustedClients} from './trusted-clients.ts';
+import {TrustedClients,type TrustedClientOptions} from './trusted-clients.ts';
 // Native API-key subset of pinned Moonraker authorization.py; GPL-3.0-or-later.
 import {createHash,randomBytes,timingSafeEqual} from 'node:crypto';
 import type {IncomingMessage} from 'node:http';
@@ -11,13 +11,13 @@ import {ApiError,type Json,type AuthorizedUser,type RpcContext} from './rpc.ts';
 import {anonymousThumbnailGet,authorizationAddress,LoginAttempts,OneShotTokens} from './authorization-policy.ts';
 import type {DeliveryReport} from './notifications.ts';
 export interface AuthorizationEvents {broadcast(method:string,params:readonly Json[]):Promise<DeliveryReport>;}
-export interface AuthorizationOptions extends LocalUserOptions {trustedClients?:readonly string[];maxLoginAttempts?:number;enableApiKey?:boolean;monotonicNow?:()=>number;}
+export interface AuthorizationOptions extends LocalUserOptions {trustedClients?:readonly string[];trustedClientOptions?:TrustedClientOptions;maxLoginAttempts?:number;enableApiKey?:boolean;monotonicNow?:()=>number;}
 interface UserSession {token:string;username:string;kid:string;}
 type Principal=number|UserSession|'trusted';
 const namespace='native_authorization',identity=Object.freeze({username:'_API_KEY_USER_'});
 const digest=(key:string)=>createHash('sha256').update(key).digest();
 /** One owner per DatabaseStore; credentials never enter the public namespace API.
- * Address admission requires explicit numeric trustedClients configuration. */
+ * Address admission requires explicit trustedClients configuration. */
 export class ApiKeyAuthorization {
  readonly #trusted:TrustedClients;
  readonly #database:DatabaseStore;readonly #store:DatabaseNamespace;
@@ -32,7 +32,7 @@ export class ApiKeyAuthorization {
  get eventStatus(){return {...this.#eventTotals,pending:this.#eventTickets.size};}
 
  #key:string;#digest:Buffer;#generation=0;#closed=false;#rotation:Promise<string>|undefined;
- private constructor(database:DatabaseStore,store:DatabaseNamespace,key:string,options?:AuthorizationOptions){this.#trusted=new TrustedClients(options?.trustedClients);this.#attempts=new LoginAttempts(options?.maxLoginAttempts);this.#oneShots=new OneShotTokens(options?.monotonicNow);this.#enableApiKey=options?.enableApiKey??true;this.#database=database;this.#store=store;this.#key=key;this.#digest=digest(key);}
+ private constructor(database:DatabaseStore,store:DatabaseNamespace,key:string,options?:AuthorizationOptions){this.#trusted=new TrustedClients(options?.trustedClients,options?.trustedClientOptions);this.#attempts=new LoginAttempts(options?.maxLoginAttempts);this.#oneShots=new OneShotTokens(options?.monotonicNow);this.#enableApiKey=options?.enableApiKey??true;this.#database=database;this.#store=store;this.#key=key;this.#digest=digest(key);}
  static async open(database:DatabaseStore,options?:AuthorizationOptions){
   if(options?.enableApiKey!==undefined&&typeof options.enableApiKey!=='boolean')throw new ApiError(400,'Invalid API key policy');new LoginAttempts(options?.maxLoginAttempts);new TrustedClients(options?.trustedClients);
   const store=await database.registerLocalNamespace(namespace,{forbidden:true,parseKeys:false});
@@ -78,6 +78,15 @@ export class ApiKeyAuthorization {
   if(['forwarded','x-forwarded-for','x-real-ip'].some(name=>request.headers[name]!==undefined))return false;
   return this.#trusted.matches(request.socket.remoteAddress);
  }
+ /** Numeric/cached admission retains the synchronous hot path. A domain miss
+  * can consult NSS only at the original network boundary, then runs the full
+  * credential/session and current force-login policy again. */
+ #networkAuthorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization):AuthorizedUser|undefined|Promise<AuthorizedUser|undefined>{
+  try{return this.authorize(method,params,context);}catch(error){
+   if(!(error instanceof ApiError)||error.status!==401||!['Unauthorized','Trusted client authorization no longer available'].includes(error.message)||!this.#trusted.hasDomains||this.#users?.forceLogins&&this.#users.count>0||['forwarded','x-forwarded-for','x-real-ip'].some(name=>context.request.headers[name]!==undefined))throw error;
+   return this.#trusted.resolve(context.request.socket.remoteAddress,context.signal).then(()=>this.authorize(method,params,context));
+  }
+ }
  /** Process-only print authority for an explicitly armed queue. Capture the
   * authenticated principal, never a username supplied by a request or saved
   * catalogue. Revalidate key generation/JWT expiry and revocation each time;
@@ -107,9 +116,9 @@ export class ApiKeyAuthorization {
   return Object.freeze({transport:context.transport,signal,user,nativeGenerationSignal:context.nativeGenerationSignal,nativeGenerationRetiredAtAdmission:context.nativeGenerationRetiredAtAdmission,authorize});
  }
  readonly networkOptions:Pick<MoonrakerNetworkOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'>={
-  authorize:(method,params,context)=>this.authorize(method,params,context),
+  authorize:(method,params,context)=>this.#networkAuthorize(method,params,context),
   authorizeNotification:(method,params,context)=>{
-   try{this.authorize('notification',{},context);}catch(error){
+   const denied=(error:unknown)=>{
     // A committed revocation may deliver only its own terminal event to the
     // old session. This grant never authorizes RPCs or other notifications.
     if(!(error instanceof ApiError)||error.status!==401)throw error;
@@ -118,9 +127,14 @@ export class ApiKeyAuthorization {
      for(const event of this.#eventGrants)if(event.kind!=='user_created'&&method==='notify_'+event.kind&&event.username===session.username&&event.revokedKid===session.kid)return;
     }
     throw error;
-   }
+   };
+   try{const grant=this.#networkAuthorize('notification',{},context);if(grant instanceof Promise)return grant.then(()=>{},denied);}catch(error){return denied(error);}
   },
-  authorizeSubscriptionConnection:(source,target)=>{const from=this.authorize('subscription',{},source),to=this.authorize('subscription',{},target);if(!from||from.username!==to?.username)throw new ApiError(403,'Subscription identity mismatch');}
+  authorizeSubscriptionConnection:(source,target)=>{
+   const from=this.#networkAuthorize('subscription',{},source),to=this.#networkAuthorize('subscription',{},target);
+   const check=(a:AuthorizedUser|undefined,b:AuthorizedUser|undefined)=>{if(!a||a.username!==b?.username)throw new ApiError(403,'Subscription identity mismatch');};
+   if(from instanceof Promise||to instanceof Promise)return Promise.all([from,to]).then(([a,b])=>check(a,b));return check(from,to);
+  }
  };
  rotate():Promise<string>{
   this.#active();if(this.#rotation)throw new ApiError(409,'API key rotation in progress');
@@ -153,7 +167,11 @@ export class ApiKeyAuthorization {
     this.#active();const request=this.#requests.get(ctx.signal),principal=this.#principals.get(ctx.signal);if(!request||principal===undefined)throw new ApiError(401,'Authenticated request context required');return this.#oneShots.issue(authorizationAddress(request.socket.remoteAddress),principal);
    }));
    // Trusted-network policy is not implicitly enabled.
-   remove.push(endpoints.register({endpoint:'/access/info',methods:['GET'],transports:['http','websocket']},(_params,_verb,ctx)=>{this.#active();return {default_source:this.#users?.defaultSource??'moonraker',available_sources:[...(this.#users?.availableSources??[])],login_required:!!this.#users?.forceLogins&&this.#users.count>0,trusted:this.#trusted.matches(this.#requests.get(ctx.signal)?.socket.remoteAddress)};}));
+   remove.push(endpoints.register({endpoint:'/access/info',methods:['GET'],transports:['http','websocket']},(_params,_verb,ctx)=>{
+    this.#active();const address=this.#requests.get(ctx.signal)?.socket.remoteAddress;
+    const result=()=>{this.#active();ctx.signal.throwIfAborted();return {default_source:this.#users?.defaultSource??'moonraker',available_sources:[...(this.#users?.availableSources??[])],login_required:!!this.#users?.forceLogins&&this.#users.count>0,trusted:this.#trusted.matches(address)};};
+    if(this.#trusted.hasDomains)return this.#trusted.resolve(address,ctx.signal).then(result);return result();
+   }));
    const users=this.#users;
    if(users){
     const login=async(params:Readonly<Record<string,Json>>,ctx:RpcContext,create=false)=>{const operation=()=>this.#mutation(ctx,create?delivery:undefined,committed=>users.login(params,ctx.signal,create,committed));const result=await (create?operation():this.#attempts.run(this.#attempts.enabled?authorizationAddress(this.#requests.get(ctx.signal)?.socket.remoteAddress):'',ctx.signal,operation));this.#active();ctx.signal.throwIfAborted();const request=this.#requests.get(ctx.signal);if(request&&ctx.transport==='websocket'&&!create)this.#connections.set(request,{token:result.token,username:result.username,kid:JSON.parse(Buffer.from(result.token.split('.')[0],'base64url').toString()).kid});return result;};
@@ -171,5 +189,5 @@ export class ApiKeyAuthorization {
    return ()=>{for(const dispose of remove.reverse())dispose();};
   }catch(error){for(const dispose of remove.reverse())dispose();throw error;}
  }
- async close(){this.#closed=true;this.#attempts.close();this.#oneShots.close();await this.#rotation;await this.#users?.close();for(const release of this.#eventTickets)release();await Promise.all(this.#eventTasks);this.#eventGrants.clear();}
+ async close(){this.#closed=true;this.#attempts.close();this.#oneShots.close();await this.#trusted.close();await this.#rotation;await this.#users?.close();for(const release of this.#eventTickets)release();await Promise.all(this.#eventTasks);this.#eventGrants.clear();}
 }

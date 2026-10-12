@@ -428,7 +428,7 @@ export class ConfiguredMoonraker {
   let auth:ApiKeyAuthorization|undefined;
   const owner=()=>{if(!auth)throw new ApiError(503,'Authorization is not initialized');return auth;};
   const resolved:ConfiguredServerOptions={...options,
-   authorize:(method,params,context)=>owner().authorize(method,params,context),
+   authorize:(method,params,context)=>owner().networkOptions.authorize!(method,params,context),
    authorizeNotification:(method,params,context)=>owner().networkOptions.authorizeNotification!(method,params,context),
    authorizeSubscriptionConnection:(source,target)=>owner().networkOptions.authorizeSubscriptionConnection!(source,target)
   };
