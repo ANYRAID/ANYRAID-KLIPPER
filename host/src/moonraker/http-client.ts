@@ -12,6 +12,7 @@ import type {IncomingMessage} from 'node:http';
 import type {Transform} from 'node:stream';
 import {ApiError} from './rpc.ts';
 import {parseExactJson,stringifyExactJson,type ExactJson,type ExactJsonOptions} from './json-exact.ts';
+import {decodeJsonBytes} from './json-bytes.ts';
 const MAX_BODY=512*1024**2;
 export interface HttpRequestOptions {
  body?:string|Uint8Array|ExactJson[]|Record<string,ExactJson>|null;headers?:Record<string,string>;
@@ -38,7 +39,7 @@ export class HttpResponse {
  get encoding(){return this.#encoding;}
  set encoding(value:string){this.#encoding=value;}
  get text(){const encoding=this.#encoding.toLowerCase().replaceAll('_','-');if(['latin-1','latin1','iso-8859-1'].includes(encoding))return this.#body.toString('latin1');if(['ascii','us-ascii'].includes(encoding)){if(this.#body.some(byte=>byte>127))throw new TypeError('Invalid ASCII response');return this.#body.toString('ascii');}return new TextDecoder(this.#encoding,{fatal:true,ignoreBOM:true}).decode(this.#body);}
- json(options:ExactJsonOptions={}):ExactJson{return parseExactJson(new TextDecoder('utf-8',{fatal:true}).decode(this.#body),options);}
+ json(options:ExactJsonOptions={}):ExactJson{return parseExactJson(decodeJsonBytes(this.#body),options);}
  isCachable(){return this.lastModified!==null||this.etag!==null;}
  hasError(){return this.error!==null;}
  raiseForStatus(message?:string){if(this.error)throw new ApiError(this.error instanceof StatusError?this.statusCode:500,message??(this.error instanceof StatusError?this.error.message:'HTTP Request Error'));}
