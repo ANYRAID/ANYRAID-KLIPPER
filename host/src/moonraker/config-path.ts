@@ -7,16 +7,24 @@ import {unixUserHome} from './unix-peer.ts';
 const invalid=()=>new ConfigurationError('Unable to resolve configuration path');
 const append=(base:string,part:string)=>base?(base==='/'?'/'+part:base+'/'+part):part;
 type Step={part:string}|{link:string};
+/** pathlib.Path.expanduser(), without resolving symlinks or parent components.
+ * Used by raw file consumers too; braces and whitespace are literal here. */
+export function expandConfigurationUserPath(source:string,homeOverride?:string):string{
+ try{
+  if(typeof source!=='string'||source.includes('\0'))throw invalid();
+  let prefix=source.startsWith('/')?(source.startsWith('//')&&!source.startsWith('///')?'//':'/'):'',parts=source.split('/').filter(part=>part&&part!=='.');
+  if(!prefix&&parts[0]?.startsWith('~')){
+   const user=parts.shift()!.slice(1),home=user?unixUserHome(user):homeOverride??process.env.HOME??unixUserHome();
+   if(home===null)throw invalid();const expanded=home||'/';prefix=expanded.startsWith('/')?'/':'';parts=[...expanded.split('/').filter(part=>part&&part!=='.'),...parts];
+  }
+  return prefix+parts.join('/')||'.';
+ }catch{throw invalid();}
+}
 /** Startup only. Resolved values are private: errors never expose them. Missing
  * and inaccessible components remain paths, as upstream strict=False does. */
 export function resolveConfigurationPath(source:string):string{
  try{
-  if(typeof source!=='string'||source.includes('\0'))throw invalid();
-  let absolute=source.startsWith('/'),parts=source.split('/').filter(part=>part&&part!=='.');
-  if(!absolute&&parts[0]?.startsWith('~')){
-   const user=parts.shift()!.slice(1),home=user?unixUserHome(user):process.env.HOME??unixUserHome();
-   if(home===null)throw invalid();const expanded=home||'/';absolute=expanded.startsWith('/');parts=[...expanded.split('/').filter(part=>part&&part!=='.'),...parts];
-  }
+  const expanded=expandConfigurationUserPath(source),absolute=expanded.startsWith('/'),parts=expanded.split('/').filter(part=>part&&part!=='.');
   let current=absolute?'/':'';const seen=new Map<string,string|null>(),steps:Step[]=parts.reverse().map(part=>({part}));
   while(steps.length){const step=steps.pop()!;
    if('link'in step){seen.set(step.link,current);continue;}

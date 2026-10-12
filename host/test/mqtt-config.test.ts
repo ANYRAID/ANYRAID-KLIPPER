@@ -1,9 +1,9 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,rm,mkdir,readFile} from 'node:fs/promises';
+import {mkdtemp,writeFile,rm,mkdir,readFile,symlink} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {join} from 'node:path';
-import {tmpdir,hostname} from 'node:os';
+import {join,relative} from 'node:path';
+import {tmpdir,hostname,userInfo} from 'node:os';
 import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
 import {ConfigurationSource} from '../src/moonraker/config-source.ts';
 import {readMqttSensorOptions} from '../src/moonraker/mqtt-config.ts';
@@ -15,6 +15,22 @@ const referenceBytes=await readFile(new URL('../contracts/mqtt-template-componen
 assert.equal(createHash('sha256').update(referenceBytes).digest('hex'),'c0cc47e7adc1f5fd815a6ddea8289affe190d75a86c7707ec6b7bb5917da5859');
 const reference=JSON.parse(referenceBytes.toString());
 const reader=(options:Record<string,string>)=>new ConfigurationReader(new ConfigurationSource('/config/main.conf',{DEFAULT:{},server:{},mqtt:options},[]));
+test('MQTT raw password paths expand named users and preserve braces, parent traversal and private errors',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'mqtt-path-')),info=userInfo(),home=process.env.HOME;let factory:MoonrakerTemplateFactory|undefined;
+ try{
+  await mkdir(join(dir,'real','nested'),{recursive:true});await symlink('real/nested',join(dir,'link'));await writeFile(join(dir,'real','{password}'),'physical\n');await writeFile(join(dir,'{password}'),'lexical\n');await writeFile(join(dir,'credential'),'synthetic-home\n');
+  process.env.HOME=dir;
+  const named='~'+info.username+'/'+relative(info.homedir,dir)+'/credential';
+  for(const path of [named,'./~//credential'])assert.equal((await readMqttSensorOptions(reader({address:'localhost',password_file:path}))).password,'synthetic-home');
+  assert.equal((await readMqttSensorOptions(reader({address:'localhost',password_file:named}),{home:'/wrong'})).password,'synthetic-home');
+  const config=reader({address:'localhost',password_file:'link/../{password}'});factory=await MoonrakerTemplateFactory.load(config,{dataPath:dir});
+  assert.equal((await readMqttSensorOptions(config,{cwd:dir})).password,'physical');assert.equal(config.parsed().mqtt.password_file,'link/../{password}');assert.equal(factory.toJSON().templates,0);
+  process.env.HOME='relative';await mkdir(join(dir,'relative'));await writeFile(join(dir,'relative','credential'),'relative-home\n');assert.equal((await readMqttSensorOptions(reader({address:'localhost',password_file:'./~/credential'}),{cwd:dir})).password,'relative-home');
+  process.env.HOME='';const fromRoot='~/'+join(dir,'credential').slice(1);assert.equal((await readMqttSensorOptions(reader({address:'localhost',password_file:fromRoot}))).password,'synthetic-home');
+  delete process.env.HOME;assert.equal((await readMqttSensorOptions(reader({address:'localhost',password_file:'~/'+relative(info.homedir,dir)+'/credential'}))).password,'synthetic-home');
+  for(const path of ['~anyraid_missing_user_7281/credential','\0invalid']){const rejected=reader({address:'localhost',password_file:path,password:'override'});await assert.rejects(readMqttSensorOptions(rejected),error=>error instanceof Error&&error.message==='[mqtt]: Unable to load connection configuration');assert.equal(rejected.parsed().mqtt.__CONFIG_ERROR__,true);}
+ }finally{factory?.close();if(home===undefined)delete process.env.HOME;else process.env.HOME=home;await rm(dir,{recursive:true,force:true});}
+});
 test('MQTT connection configuration matches pinned upstream defaults and password precedence',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'mqtt-config-'));
  try{

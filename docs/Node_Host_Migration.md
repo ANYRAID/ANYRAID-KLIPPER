@@ -6060,6 +6060,27 @@ ready 动态拥有者 17.700 / 19.238 ms，shutdown 动态拥有者
 
 ### 配置驱动的 Klippy 连接启动（2026-09-20）
 
+本节以下为初次接线的历史记录。2026-10-12 的路径消费者增量已
+替代其中“命名用户拒绝”“超过 40 次链接拒绝”和绑定配置时要求
+外部 renderer 的限制：共享私密模板保留其所有者，显式 cwd／home
+可与之共存，额外 renderer 与共享所有者同时存在时拒绝。空的
+共享模板输出按上游 Path 空串解析到 cwd；缺失默认仍保持原样。
+命名用户走现有 libc NSS，不调用 Python、shell 或用户查询程序。
+MQTT 密码文件则只 expanduser／absolute，花括号保持字面量，
+文件读取及后续密码模板覆盖次序不变；不把它改为 getpath。
+
+当前源码和禁止 TS／外部子进程的独立编译闭包各 137 项通过，
+覆盖冻结真实上游的 24 路径案例与凭据／文件边界。初版冷导入
+2.818 倍退化已撤回，最终冷导入 1.325 倍、三组路径对照最高
+1.321 倍；原 MQTT 基线一轮 1.504 倍超限照常保留。完整共享
+Klippy 绑定的源码／编译三项均通过原 getpath 1.5 桌面预算。
+当前 `npm --prefix host run bench:klippy-config` 使用冻结参考，
+移除了 Python／AST 与 `MOONRAKER_SOURCE`，测量 compile／render、
+路径展开、物理解析及 socket 容量校验。它与下面旧 raw-path
+51 样本对照的范围不同，不能据此声称旧 3.9 倍差异已消除。
+详细原始样本及负面证据见
+[路径消费者记录](../host/contracts/moonraker-path-consumers-acceptance.json)。
+
 调用 `ConfiguredMoonraker.load` 时传入 `klippy: {}` 可由配置服务拥有连接。
 load 读取 `[server] klippy_uds_address`，完成路径与重试间隔校验，尚不连接；
 start 成功监听网络后启用已有自动管理器，close 取消并等待连接任务。

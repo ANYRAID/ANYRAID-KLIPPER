@@ -2,9 +2,10 @@
 // Original Copyright (C) 2021 Eric Callahan.
 import {open} from 'node:fs/promises';
 import {constants} from 'node:fs';
-import {homedir,hostname} from 'node:os';
+import {hostname} from 'node:os';
 import {isAbsolute} from 'node:path';
 import {ConfigurationError} from './config-source.ts';
+import {expandConfigurationUserPath} from './config-path.ts';
 import type {ConfigurationReader} from './config-reader.ts';
 import {MoonrakerRenderableTemplate} from './template-factory.ts';
 import type {MqttSensorOptions,MqttProtocol} from './mqtt-sensors.ts';
@@ -24,9 +25,8 @@ async function credential(source:string|MoonrakerRenderableTemplate|null,context
  const result=strip(value);if(Buffer.byteLength(result)>65535)throw new ConfigurationError('MQTT credential exceeds byte limit');return result;
 }
 async function passwordFile(source:string,context:MqttConfigurationContext):Promise<string>{
- let path=source;
- if(path==='~'||path.startsWith('~/')){const home=context.home??homedir();if(!isAbsolute(home))throw new ConfigurationError('MQTT home directory must be absolute');path=home+path.slice(1);}
- else if(path.startsWith('~'))throw new ConfigurationError('Named-user MQTT password paths are not implemented');
+ if(source.split('/').find(part=>part&&part!=='.')==='~'&&context.home!==undefined&&!isAbsolute(context.home))throw new ConfigurationError('MQTT home directory must be absolute');
+ let path=expandConfigurationUserPath(source,context.home);
  if(!isAbsolute(path)){const cwd=context.cwd??process.cwd();if(!isAbsolute(cwd))throw new ConfigurationError('MQTT working directory must be absolute');path=cwd+'/'+path;}
  const file=await open(path,constants.O_RDONLY|constants.O_NONBLOCK);
  try{
