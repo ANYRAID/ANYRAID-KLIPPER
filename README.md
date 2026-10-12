@@ -22,15 +22,15 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
-标准上传及可选 OctoPrint 切片器接口现复用原文件、打印和持久队列。
-明确 print 意图在设备忙碌／离线时可入队，锁定刚发布的文件身份并
-重新鉴权；已进入控制器后的不确定回执不再次排队。离线准入不转到
-后来恢复的设备，重建暂停并保留原任务，自动续打仍遵守新操作确认。
-相关源码、独立 JS、实际包各 225 项通过，三组队列性能保持原门限。
-见[上传队列验收](host/contracts/upload-queue-intent-acceptance.json)及
-[切片器兼容证据](host/contracts/octoprint-compat-acceptance.json)。前序
-ff5b29be 十五项 CI、5044／5044 通过，本修复须自身新头 CI；Cura
-插件页面、完整客户端、实机与完整迁移仍待验。
+标准上传目录现接受客户端的根相对 `path="/"`，保留穿越拒绝、
+逐级鉴权、原发布／打印／队列与配置写入所有者。源码、独立 JS、
+实际包各 118 项通过，三组原上传预算最高 0.995 倍，保持 1.5 门限。
+Fluidd 新包页面完成两份真实文件选择上传和打印、队列及同包进程
+重建、新确认后的第三份打印、配置注释编辑保存，605 秒关闭。
+Mainsail 同包旅程、忙碌页面上传、故障恢复及完整迁移仍待验。
+见[目录与页面证据](host/contracts/client-upload-path-acceptance.json)及
+[上传队列软件证据](host/contracts/upload-queue-intent-acceptance.json)。
+前序 3d9f439a 十五项 CI、5060／5060 通过，本修复须自身新头 CI。
 
 Fluidd G28 已与原空闲时钟维护共用调度所有者，等待后保留权限、
 代际、空闲和维护检查，原 120 秒包含等待。源码／独立 JS／实际包

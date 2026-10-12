@@ -299,10 +299,13 @@ export class NativePrintUploads {
    finally{request.unpipe(limiter);request.removeListener('error',failed);}
    signal.throwIfAborted();if(!filename||!fileTask)throw new ApiError(400,'Upload file is missing');
    if(octoprint&&(fields.root!==undefined&&fields.root!=='gcodes'||fields.select!==undefined&&!['false','0','','true'].includes(fields.select)||!octoprint.enableUfp&&/\.ufp$/i.test(filename)))throw new ApiError(400,'Invalid OctoPrint upload configuration or selection');
+   // Client upload directories are root-relative, including the root spelling
+   // "/". Strip only boundary separators; retain canonical segment validation.
+   const uploadPath=fields.path?.replace(/^\/+|\/+$/gu,'')??'',visibleDirectory=uploadPath?nativeFilename(uploadPath):'';
    if(fields.root==='config'&&configFiles){
     if(fields.file_id!==undefined||fields.print!==undefined&&!['false','0',''].includes(fields.print)||fields.checksum!==undefined&&(!/^[a-fA-F0-9]{64}$/.test(fields.checksum)||fields.checksum.toLowerCase()!==hash.digest('hex')))throw new ApiError(422,'Invalid config upload fields or checksum');
     if(bytes>configFiles.status.maxFileBytes)throw new ApiError(413,'Config size limit exceeded');const content=Buffer.alloc(bytes);let at=0;while(at<bytes){signal.throwIfAborted();const r=await file.read(content,at,Math.min(65536,bytes-at),at);if(!r.bytesRead)throw new ApiError(400,'Config staging truncated');at+=r.bytesRead;}
-    const name=fields.path?fields.path+'/'+filename:filename;const condition=request.headers['if-match'];if(condition!==undefined&&typeof condition!=='string')throw new ApiError(400,'Expected one config version digest');
+    const name=visibleDirectory?visibleDirectory+'/'+filename:filename;const condition=request.headers['if-match'];if(condition!==undefined&&typeof condition!=='string')throw new ApiError(400,'Expected one config version digest');
     releaseDevice?.();releaseDevice=undefined;release();return await configFiles.save(name,content,condition?.replace(/^"|"$/g,''),context);
    }
    if(!/\.(gcode|gco|g|ufp)$/i.test(filename))throw new ApiError(400,'Expected one named G-code or UFP file');
@@ -310,7 +313,7 @@ export class NativePrintUploads {
    const id=fields.file_id??randomUUID();let sha256=hash.digest('hex');if(!validId(id))throw new ApiError(400,'Invalid upload file ID');
    // Explicit legacy IDs without a path retain their already issued addresses.
    // Standard multipart clients publish the actual filename in the visible tree.
-   const visibleDirectory=fields.path?nativeFilename(fields.path):'';let visible=fields.file_id!==undefined&&fields.path===undefined?undefined:nativeFilename((visibleDirectory?visibleDirectory+'/':'')+filename);
+   let visible=fields.file_id!==undefined&&fields.path===undefined?undefined:nativeFilename((visibleDirectory?visibleDirectory+'/':'')+filename);
    if(fields.checksum!==undefined&&(!/^[a-fA-F0-9]{64}$/.test(fields.checksum)||fields.checksum.toLowerCase()!==sha256))throw new ApiError(422,'Upload checksum mismatch');
    await this.#authorize(context,{root:'gcodes',filename,...visible?{path:visible}:{},file_id:id,size:bytes,sha256},signal);signal.throwIfAborted();
    if(/\.ufp$/i.test(filename)){
