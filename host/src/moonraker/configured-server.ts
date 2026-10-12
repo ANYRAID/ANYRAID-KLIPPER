@@ -442,13 +442,14 @@ export class ConfiguredMoonraker {
   if(confirmationTimeout*1000<1||confirmationTimeout*1000>900000)throw new ConfigurationError('Native queue confirmation timeout must be between 0.001 and 900 seconds');
   if((automatic||policy==='operator_confirmation')&&!this.#authorization)throw new ConfigurationError('Native automatic queue and operator confirmation require the process authorization owner');
   if(delay*1000>2147483647)throw new ConfigurationError('Native queue transition delay exceeds timer capacity');
+  const deviceAvailable=()=>!this.#stopping&&this.#printApi instanceof ProductPrintApi&&this.#printApi.status.standard_print&&!!this.#nativeController&&['idle','completed','cancelled'].includes(this.#nativeController.state)&&this.#maintenanceGate.available;
   this.#nativeQueue=await NativeJobQueue.open({database:this.#database,journal:this.#nativeProcessHistory,
    automaticTransition:automatic,transitionDelayMs:delay*1000,
    confirmClearance:policy==='operator_confirmation',confirmationTimeoutMs:confirmationTimeout*1000,
    captureAuthority:(context,lifetime)=>this.#authorization!.capturePrintAuthority(context,lifetime),
    activePrint:()=>{const controller=this.#nativeController,request=controller?.currentRequest;return !this.#stopping&&this.#printApi instanceof ProductPrintApi&&this.#printApi.status.standard_print&&request&&['preparing','printing','pausing','paused','resuming','finishing'].includes(controller.state)?{requestId:request.requestId}:undefined;},
    resolveFile:(filename,signal)=>this.#nativeProcessFiles!.resolveQueuedFile(filename,signal),
-   canStart:()=>!this.#stopping&&this.#printApi instanceof ProductPrintApi&&this.#printApi.status.standard_print&&!!this.#nativeController&&['idle','completed','cancelled'].includes(this.#nativeController.state),
+   canStart:deviceAvailable,clearanceAvailable:deviceAvailable,
    start:async(job,requestId,context)=>{context.nativeGenerationSignal?.throwIfAborted();if(this.#stopping||!(this.#printApi instanceof ProductPrintApi))throw new ApiError(503,'Native queue device unavailable');await this.#printApi.startQueued(job,requestId,context);},
    notify:event=>{if(!this.#stopping)this.#broadcastTracked('notify_job_queue_changed',[event],this.#queueNotifications);}
   });

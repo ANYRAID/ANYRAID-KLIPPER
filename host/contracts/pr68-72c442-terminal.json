@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "head": "72c442e32334c9676df5c4aa450a6a0b0a47c2b4",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "mergeCheckout": "97668364ce2b9ed299ecc68a109e27d010ffce61",
+  "jobs": [
+    {
+      "runId": 38214635357,
+      "id": 114696395775,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214635357,
+      "id": 114696395940,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214635357,
+      "id": 114696395968,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214635357,
+      "id": 114700957542,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214635468,
+      "id": 114696396370,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214638013,
+      "id": 114696406016,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214638013,
+      "id": 114696406235,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214638013,
+      "id": 114696406246,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214638013,
+      "id": 114696406260,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214638013,
+      "id": 114696406296,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214638013,
+      "id": 114696406331,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214638013,
+      "id": 114696406360,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214638013,
+      "id": 114696406380,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214638013,
+      "id": 114696406426,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38214638013,
+      "id": 114696406684,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "tests": 4807,
+    "pass": 4807,
+    "fail": 0
+  },
+  "scope": "Exact preceding head and PR merge checkout; not new readiness-fix coverage, hardware or develop/master integration"
+}

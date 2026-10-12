@@ -35,6 +35,9 @@ export interface NativeJobQueueOptions {
   resolveFile(filename: string, signal: AbortSignal): Promise<string>;
   /** Current device availability. A queued item grants no device authority. */
   canStart(): boolean;
+  /** Optional side-effect-free view of the same device owner. This is a UI
+   * hint only; start still rechecks its authority and device admission. */
+  clearanceAvailable?(): boolean;
   /** Must use the existing print controller/journal, honor the immutable file
    * identity and reauthorize printer.print.start; never retry a device action.
    * Resolution means journal reservation, not physical print completion. */
@@ -144,6 +147,7 @@ export class NativeJobQueue {
     if (options.automaticTransition && (typeof options.captureAuthority !== 'function' || typeof options.activePrint !== 'function')) throw new TypeError('Automatic queue requires explicit print authority and controller');
     if (options.confirmClearance !== undefined && typeof options.confirmClearance !== 'boolean' || options.confirmationTimeoutMs !== undefined && (!Number.isFinite(options.confirmationTimeoutMs) || options.confirmationTimeoutMs < 1 || options.confirmationTimeoutMs > 900000)) throw new TypeError('Invalid queue confirmation policy');
     if (options.confirmClearance && typeof options.captureAuthority !== 'function') throw new TypeError('Queue confirmation requires explicit print authority');
+    if (options.clearanceAvailable !== undefined && typeof options.clearanceAvailable !== 'function') throw new TypeError('Invalid queue clearance availability provider');
     if (owners.has(options.database)) throw new TypeError('Job queue database already owned');
     owners.add(options.database);
     try {
@@ -161,10 +165,14 @@ export class NativeJobQueue {
   }
   get status() {
     const now = Date.now() / 1000;
+    let available = false;
+    if (this.#options.confirmClearance && this.#options.clearanceAvailable) {
+      try { available = !this.#closing && !this.#storageFailed && !this.#dispatch && !this.#catalogue.claim && this.#state === 'paused' && this.#catalogue.jobs.length > 0 && this.#options.clearanceAvailable() === true; } catch { /* A failed observation grants no page readiness. */ }
+    }
     return {
       queued_jobs: this.#catalogue.jobs.map(job => ({ filename: job.filename, job_id: job.job_id, time_added: job.time_added, time_in_queue: Math.max(0, now - job.time_added) })),
       queue_state: this.#state,
-      ...this.#options.confirmClearance ? { transition: this.#clearance ? {
+      ...this.#options.confirmClearance ? { ...this.#options.clearanceAvailable ? { transition_available: available } : {}, transition: this.#clearance ? {
         version: 1, phase: 'awaiting_confirmation', state_token: this.#clearance.token,
         job_id: this.#clearance.job.job_id, filename: this.#clearance.job.filename,
         completed_request_id: this.#clearance.completedRequestId, expires_at: this.#clearance.expiresAt,

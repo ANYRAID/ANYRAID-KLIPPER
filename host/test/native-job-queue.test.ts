@@ -40,6 +40,32 @@ const automatic = {
 };
 const automaticContext = (): RpcContext => ({ ...context(), nativeGenerationSignal: new AbortController().signal });
 
+test('clearance availability is an optional read-only hint, fails closed and grants no print admission', async () => {
+  let available = true, fail = false, admissionChecks = 0;
+  const f = await fixture({ ...automatic, confirmClearance: true, activePrint: () => undefined,
+    canStart: () => { admissionChecks++; return true; },
+    clearanceAvailable: () => { if (fail) throw Error('Observer unavailable'); return available; },
+  });
+  try {
+    assert.equal(f.queue.status.transition_available, false);
+    await f.queue.add(['one.gcode'], false, automaticContext());
+    assert.equal(f.queue.status.transition_available, true); assert.equal(admissionChecks, 0); assert.equal(f.calls.length, 0);
+    available = false; assert.equal(f.queue.status.transition_available, false);
+    available = true; fail = true; assert.equal(f.queue.status.transition_available, false);
+    fail = false; await f.queue.close(); assert.equal(f.queue.status.transition_available, false);
+    assert.equal(admissionChecks, 0); assert.equal(f.calls.length, 0);
+  } finally { await f.close(); }
+});
+
+test('an unconfigured queue view keeps its original DTO and rejects an invalid availability provider', async () => {
+  const f = await fixture();
+  try {
+    assert.equal(Object.hasOwn(f.queue.status, 'transition_available'), false);
+    await assert.rejects(NativeJobQueue.open({ ...f.options, clearanceAvailable: true as unknown as () => boolean }), /availability provider/);
+    assert.equal(f.calls.length, 0);
+  } finally { await f.close(); }
+});
+
 test('clearance cannot be bypassed when the device becomes idle during queue start', async () => {
   let checks = 0;
   const f = await fixture({ ...automatic, confirmClearance: true, activePrint: () => undefined, canStart: () => ++checks > 1 });

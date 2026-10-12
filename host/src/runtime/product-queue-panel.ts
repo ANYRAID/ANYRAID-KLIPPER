@@ -14,16 +14,16 @@ export function queuePanelBrowser(win: Window & typeof globalThis): void {
   const error = element('queue-error');
   type Job = { job_id: string; filename: string };
   type Confirmation = { version: number; phase: string; state_token: string; job_id: string; filename: string; expires_at: number };
-  type Status = { queue_state: string; queued_jobs: Job[]; transition?: Confirmation | null };
+  type Status = { queue_state: string; queued_jobs: Job[]; transition?: Confirmation | null; transition_available?: boolean };
   let status: Status | undefined, busy = false, stopped = false, sequence = 0, listing = '', mutationWarning = false;
   let reading: AbortController | undefined;
   const showError = (message: string) => { error.textContent = message; error.hidden = false; };
   const revoke = () => { cleared.checked = false; confirm.disabled = true; cleared.disabled = true; };
   function buttons(): void {
     const configured = !!status && Object.hasOwn(status, 'transition');
-    cleared.disabled = busy || stopped || doc.visibilityState === 'hidden' || !configured || !status?.transition;
+    cleared.disabled = busy || stopped || doc.visibilityState === 'hidden' || !configured || status?.transition_available !== true || !status?.transition;
     confirm.disabled = cleared.disabled || !cleared.checked;
-    prepare.disabled = busy || stopped || !configured || !status?.queued_jobs.length || status.queue_state !== 'paused' || !!status.transition;
+    prepare.disabled = busy || stopped || !configured || status?.transition_available !== true || !status?.queued_jobs.length || status.queue_state !== 'paused' || !!status.transition;
     pause.disabled = busy || stopped || !status || !status.queued_jobs.length && !status.transition;
     refresh.disabled = busy || stopped;
     element('queue-operation').setAttribute('aria-busy', String(busy));
@@ -31,6 +31,7 @@ export function queuePanelBrowser(win: Window & typeof globalThis): void {
   function parse(value: unknown): Status {
     const candidate = (value as { result?: Status })?.result;
     if (!candidate || !['paused', 'ready', 'loading', 'starting'].includes(candidate.queue_state) || !Array.isArray(candidate.queued_jobs) || candidate.queued_jobs.length > 128 || candidate.queued_jobs.some(job => !job || typeof job.job_id !== 'string' || typeof job.filename !== 'string' || job.filename.length > 4096)) throw Error('Invalid queue response');
+    if (candidate.transition_available !== undefined && typeof candidate.transition_available !== 'boolean') throw Error('Invalid queue readiness');
     if (candidate.transition !== undefined && candidate.transition !== null) {
       const c = candidate.transition, head = candidate.queued_jobs[0];
       if (c.version !== 1 || c.phase !== 'awaiting_confirmation' || !/^[a-f0-9]{32}$/.test(c.state_token) || !Number.isFinite(c.expires_at) || !head || c.job_id !== head.job_id || c.filename !== head.filename) throw Error('Invalid queue confirmation');
@@ -38,13 +39,14 @@ export function queuePanelBrowser(win: Window & typeof globalThis): void {
     return candidate;
   }
   function render(next: Status): void {
-    if (!status || status.transition?.state_token !== next.transition?.state_token || status.queued_jobs[0]?.job_id !== next.queued_jobs[0]?.job_id) revoke();
+    if (!status || next.transition_available !== true || status.transition?.state_token !== next.transition?.state_token || status.queued_jobs[0]?.job_id !== next.queued_jobs[0]?.job_id) revoke();
     status = next;
     const configured = Object.hasOwn(next, 'transition'), pending = next.transition;
     const labels: Record<string, string> = { paused: '队列已暂停', ready: '等待当前打印结束', loading: '正在准备打印', starting: '正在提交打印' };
-    element('queue-state').textContent = pending ? '等待清台确认' : labels[next.queue_state];
+    const unavailable = configured && next.queued_jobs.length > 0 && next.transition_available !== true;
+    element('queue-state').textContent = unavailable ? '等待打印机就绪' : pending ? '等待清台确认' : labels[next.queue_state];
     element('queue-file').textContent = next.queued_jobs[0]?.filename ?? '暂无下一份打印';
-    element('queue-guidance').textContent = !configured ? '当前设备未启用逐份清台确认，请联系设备管理员。' : pending ? '取走成品及残留材料，确认打印台已准备好。' : next.queued_jobs.length ? next.queue_state === 'paused' ? '请求本次确认后，核对文件并清空打印台。此步骤不会开始打印。' : '当前作业结束后，再确认下一份打印。' : '加入新的文件后，再请求清台确认。';
+    element('queue-guidance').textContent = !configured ? '当前设备未启用逐份清台确认，请联系设备管理员。' : unavailable ? '打印机尚未准备好，请先在控制台确认状态。' : pending ? '取走成品及残留材料，确认打印台已准备好。' : next.queued_jobs.length ? next.queue_state === 'paused' ? '请求本次确认后，核对文件并清空打印台。此步骤不会开始打印。' : '当前作业结束后，再确认下一份打印。' : '加入新的文件后，再请求清台确认。';
     element('queue-expiry').hidden = !pending;
     element('queue-expiry').textContent = pending ? '本次确认有效至 ' + new Date(pending.expires_at).toLocaleTimeString('zh-CN') + '，过期后需重新请求。' : '';
     const signature = JSON.stringify(next.queued_jobs.map(job => [job.job_id, job.filename]));

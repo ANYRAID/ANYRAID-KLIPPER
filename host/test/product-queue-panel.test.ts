@@ -16,8 +16,8 @@ class Element {
   fire(name: string) { for (const callback of this.listeners.get(name) ?? []) callback(); }
   set innerHTML(_value: string) { throw new Error('User data must never become HTML'); }
 }
-type Queue = { queue_state: string; queued_jobs: { job_id: string; filename: string }[]; transition?: object | null };
-const queue = (token?: string, filename = '零件 % 01.gcode'): Queue => ({ queue_state: 'paused', queued_jobs: [{ job_id: 'ONE', filename }], transition: token ? { version: 1, phase: 'awaiting_confirmation', state_token: token, job_id: 'ONE', filename, expires_at: Date.now() + 300000 } : null });
+type Queue = { queue_state: string; queued_jobs: { job_id: string; filename: string }[]; transition?: object | null; transition_available?: boolean };
+const queue = (token?: string, filename = '零件 % 01.gcode'): Queue => ({ queue_state: 'paused', queued_jobs: [{ job_id: 'ONE', filename }], transition_available: true, transition: token ? { version: 1, phase: 'awaiting_confirmation', state_token: token, job_id: 'ONE', filename, expires_at: Date.now() + 300000 } : null });
 const first = 'a'.repeat(32), second = 'b'.repeat(32);
 const reply = (status: number, value?: unknown) => ({ status, ok: status >= 200 && status < 300, async json() { return JSON.parse(JSON.stringify(value)); } });
 async function settle() { for (let i = 0; i < 5; i++) await setImmediate(); }
@@ -33,6 +33,32 @@ function fixture(fetch: (path: string, init: RequestInit) => Promise<ReturnType<
   runInNewContext(queuePanelScript(), { window, AbortController, AbortSignal });
   return { elements, requests, redirects, async poll() { polling?.(); await settle(); }, async visibility(value: string) { document.visibilityState = value; for (const fn of documentEvents.get('visibilitychange') ?? []) fn(); await settle(); }, async event(name: string, value = {}) { for (const fn of windowEvents.get(name) ?? []) fn(value); await settle(); }, reloads: () => reloads };
 }
+
+test('busy device hints disable clearance, revoke a checked token and require a fresh checkbox after readiness returns', async () => {
+  let state = queue(first);
+  const f = fixture(async () => reply(200, { result: state }));
+  await settle(); f.elements['queue-cleared'].checked = true; f.elements['queue-cleared'].fire('change');
+  assert.equal(f.elements['queue-confirm'].disabled, false);
+  state = { ...queue(first), transition_available: false }; await f.poll();
+  assert.equal(f.elements['queue-cleared'].checked, false); assert.equal(f.elements['queue-cleared'].disabled, true);
+  assert.equal(f.elements['queue-confirm'].disabled, true); assert.equal(f.elements['queue-prepare'].disabled, true);
+  assert.equal(f.elements['queue-state'].textContent, '等待打印机就绪');
+  assert.equal(f.elements['queue-guidance'].textContent.includes('取走成品'), false);
+  f.elements['queue-confirm'].fire('click'); f.elements['queue-prepare'].fire('click'); await settle();
+  assert.equal(f.requests.filter(r => r.init.method === 'POST').length, 0);
+  state = queue(first); await f.poll();
+  assert.equal(f.elements['queue-cleared'].disabled, false); assert.equal(f.elements['queue-cleared'].checked, false);
+  assert.equal(f.elements['queue-confirm'].disabled, true);
+});
+
+test('missing or malformed readiness cannot enable the shipped queue controls', async () => {
+  let state = queue(); delete state.transition_available;
+  const f = fixture(async () => reply(200, { result: state })); await settle();
+  assert.equal(f.elements['queue-prepare'].disabled, true);
+  state = { ...queue(first), transition_available: 'true' as unknown as boolean }; await f.poll();
+  assert.equal(f.elements['queue-cleared'].disabled, true); assert.equal(f.elements['queue-confirm'].disabled, true);
+  assert.equal(f.elements['queue-error'].hidden, false); assert.equal(f.requests.filter(r => r.init.method === 'POST').length, 0);
+});
 
 test('shipped browser script only starts after explicit clearance and blocks double activation', async () => {
   let state = queue(), admissions = 0;

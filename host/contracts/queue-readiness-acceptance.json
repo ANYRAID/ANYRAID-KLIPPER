@@ -1,0 +1,643 @@
+{
+  "schema": 1,
+  "baseHead": "72c442e32334c9676df5c4aa450a6a0b0a47c2b4",
+  "sourceSha256": {
+    "host/src/moonraker/native-job-queue.ts": "98dd43122c01fffcc378a0020029462a70f326f7525ca4992f85ce3e514f5c4c",
+    "host/src/moonraker/configured-server.ts": "3557856636029f1a3cf1a49eac37a50d3422389216b0322c0b34784cc46728fb",
+    "host/src/runtime/product-queue-panel.ts": "c110c0a5bd457a4b59e791c49eaa8b5def503f06364cb13da68c350946bb00f5",
+    "host/test/native-job-queue.test.ts": "78f2484bdbe0dd001564e9c62a594c65afc9ccc77b76bb41695028cf60e31f9f",
+    "host/test/native-configured-job-queue.test.ts": "d6b96122e9a8cd4205876bac9d4689a6a117b126d676670645dce55b7994a71d",
+    "host/test/product-queue-panel.test.ts": "5d8a0498d1afd3a38d41c0d2f8824ac5865c761e0fac0235d09adb882fbdc64d",
+    "host/bench/native-job-queue.ts": "6e472d71e28df66d8ad6cfe1ec67792ae5b70ce86fca07865080f0b32440727f"
+  },
+  "implementation": {
+    "problem": "The original manual queue page immediately offered clearance for the next file after the first admission, without observing whether the existing device owner was busy.",
+    "readiness": "Configured queue supplies a side-effect-free observer of the same print owner and maintenance gate. transition_available is a scoped view hint, never a grant; queue start retains authority/token/generation rechecks. Missing/failing observation grants no page readiness.",
+    "page": "Busy or unknown readiness disables clearance request, checkbox and submit; a false view revokes a checked token. Readiness returning still requires explicit checkbox confirmation. The page directs the user to the control console instead of instructing bed clearing while busy.",
+    "unchanged": "No new device controller, authority, automatic replay, native/math algorithm or template protocol. Original queue DTO is unchanged without the optional confirmation observer."
+  },
+  "validation": {
+    "source": 70,
+    "independentJs": 70,
+    "fail": 0,
+    "typescriptLoading": false,
+    "guard": "No TS/Python or arbitrary JS programs; only the inventoried Node thumbnail child with original 64MiB/8MiB,2-thread IPC invocation is allowed. JS workers and that child also load the guard. Native libraries remain original product components.",
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "preparationFailures": [
+      "Initial independent closure omitted dynamic PrintJournal Worker; retained, corrected explicit worker entries.",
+      "The old HTTP-only no-child guard rejected the existing isolated Node thumbnail processor. A bounded streaming diagnostic identified it; explicit child entry/hash/invocation allowlist added for this queue scope. Failed roots were identity-checked before stopping.",
+      "Earlier performance batches overlapping tests/typecheck are retained as pressure observations, not the final isolated-process comparison.",
+      "First full build stopped at Rust discovery before native compilation; explicit installed Rust/Cargo1.89 homes fixed preparation. Default native-build stability remains open."
+    ]
+  },
+  "performance": {
+    "rows": [
+      {
+        "pair": 0,
+        "mode": "baseline",
+        "result": {
+          "runtime": "v26.10.0",
+          "automaticTransition": false,
+          "confirmClearance": true,
+          "scope": "Durable queue catalogue and concurrent status reads on this desktop filesystem; no target-board, compiled-product or motion-performance claim",
+          "filesystem": 61267,
+          "jobs": 128,
+          "durableMutations": 64,
+          "fullCatalogueReadMs": {
+            "count": 10000,
+            "median": 0.0017100000000027649,
+            "p95": 0.001890000000003056,
+            "p99": 0.0047700000000077125,
+            "max": 0.0906310000000019
+          },
+          "concurrentReadMs": {
+            "count": 1358592,
+            "median": 0.00011999999998124622,
+            "p95": 0.0012800000000083855,
+            "p99": 0.0021100000000160435,
+            "max": 0.19000200000004952
+          },
+          "mutationMs": {
+            "count": 64,
+            "median": 9.831642999999985,
+            "p95": 13.144317000000001,
+            "p99": 19.93740699999995,
+            "max": 19.93740699999995
+          },
+          "eventLoopMs": {
+            "p99": 4.067327,
+            "max": 6.418431
+          },
+          "budgetsMs": {
+            "queryP99": 50,
+            "eventLoopP99": 50,
+            "eventLoopMax": 100
+          },
+          "reopenCatalogueVerified": true
+        }
+      },
+      {
+        "pair": 0,
+        "mode": "candidate",
+        "result": {
+          "runtime": "v26.10.0",
+          "automaticTransition": false,
+          "confirmClearance": true,
+          "scope": "Durable queue catalogue and concurrent status reads on this desktop filesystem; no target-board, compiled-product or motion-performance claim",
+          "filesystem": 61267,
+          "jobs": 128,
+          "durableMutations": 64,
+          "fullCatalogueReadMs": {
+            "count": 10000,
+            "median": 0.0018099999999776628,
+            "p95": 0.002849999999995134,
+            "p99": 0.006690000000020291,
+            "max": 0.18620200000000864
+          },
+          "concurrentReadMs": {
+            "count": 1182976,
+            "median": 0.00016000000005078618,
+            "p95": 0.0013900000000148793,
+            "p99": 0.002240000000000464,
+            "max": 0.2871430000000146
+          },
+          "mutationMs": {
+            "count": 64,
+            "median": 9.959723999999994,
+            "p95": 11.64752199999998,
+            "p99": 13.396069000000011,
+            "max": 13.396069000000011
+          },
+          "eventLoopMs": {
+            "p99": 3.731455,
+            "max": 4.624383
+          },
+          "budgetsMs": {
+            "queryP99": 50,
+            "eventLoopP99": 50,
+            "eventLoopMax": 100
+          },
+          "reopenCatalogueVerified": true
+        }
+      },
+      {
+        "pair": 1,
+        "mode": "candidate",
+        "result": {
+          "runtime": "v26.10.0",
+          "automaticTransition": false,
+          "confirmClearance": true,
+          "scope": "Durable queue catalogue and concurrent status reads on this desktop filesystem; no target-board, compiled-product or motion-performance claim",
+          "filesystem": 61267,
+          "jobs": 128,
+          "durableMutations": 64,
+          "fullCatalogueReadMs": {
+            "count": 10000,
+            "median": 0.0018100000000060845,
+            "p95": 0.002709999999979118,
+            "p99": 0.006750000000010914,
+            "max": 0.11378100000001723
+          },
+          "concurrentReadMs": {
+            "count": 1154816,
+            "median": 0.0001700000000255386,
+            "p95": 0.0013999999999896318,
+            "p99": 0.002089999999952852,
+            "max": 0.22538200000002462
+          },
+          "mutationMs": {
+            "count": 64,
+            "median": 10.02944500000001,
+            "p95": 11.567250000000058,
+            "p99": 13.022106000000008,
+            "max": 13.022106000000008
+          },
+          "eventLoopMs": {
+            "p99": 3.977215,
+            "max": 4.485119
+          },
+          "budgetsMs": {
+            "queryP99": 50,
+            "eventLoopP99": 50,
+            "eventLoopMax": 100
+          },
+          "reopenCatalogueVerified": true
+        }
+      },
+      {
+        "pair": 1,
+        "mode": "baseline",
+        "result": {
+          "runtime": "v26.10.0",
+          "automaticTransition": false,
+          "confirmClearance": true,
+          "scope": "Durable queue catalogue and concurrent status reads on this desktop filesystem; no target-board, compiled-product or motion-performance claim",
+          "filesystem": 61267,
+          "jobs": 128,
+          "durableMutations": 64,
+          "fullCatalogueReadMs": {
+            "count": 10000,
+            "median": 0.001700999999997066,
+            "p95": 0.0020199999999874763,
+            "p99": 0.005940000000009604,
+            "max": 0.18382200000002058
+          },
+          "concurrentReadMs": {
+            "count": 1432832,
+            "median": 0.00012000000003808964,
+            "p95": 0.0013000000000147338,
+            "p99": 0.0019499999999652573,
+            "max": 0.14570200000002842
+          },
+          "mutationMs": {
+            "count": 64,
+            "median": 9.636019999999974,
+            "p95": 12.008455000000026,
+            "p99": 12.933435000000031,
+            "max": 12.933435000000031
+          },
+          "eventLoopMs": {
+            "p99": 3.854335,
+            "max": 5.201919
+          },
+          "budgetsMs": {
+            "queryP99": 50,
+            "eventLoopP99": 50,
+            "eventLoopMax": 100
+          },
+          "reopenCatalogueVerified": true
+        }
+      },
+      {
+        "pair": 2,
+        "mode": "baseline",
+        "result": {
+          "runtime": "v26.10.0",
+          "automaticTransition": false,
+          "confirmClearance": true,
+          "scope": "Durable queue catalogue and concurrent status reads on this desktop filesystem; no target-board, compiled-product or motion-performance claim",
+          "filesystem": 61267,
+          "jobs": 128,
+          "durableMutations": 64,
+          "fullCatalogueReadMs": {
+            "count": 10000,
+            "median": 0.0016900000000248383,
+            "p95": 0.0018600000000219552,
+            "p99": 0.0028200000000140335,
+            "max": 0.09727100000000632
+          },
+          "concurrentReadMs": {
+            "count": 1311872,
+            "median": 0.00012000000003808964,
+            "p95": 0.0012600000000020373,
+            "p99": 0.0018600000000787986,
+            "max": 0.1987219999999752
+          },
+          "mutationMs": {
+            "count": 64,
+            "median": 8.924532999999997,
+            "p95": 12.635631999999987,
+            "p99": 17.03880700000002,
+            "max": 17.03880700000002
+          },
+          "eventLoopMs": {
+            "p99": 4.093951,
+            "max": 4.923391
+          },
+          "budgetsMs": {
+            "queryP99": 50,
+            "eventLoopP99": 50,
+            "eventLoopMax": 100
+          },
+          "reopenCatalogueVerified": true
+        }
+      },
+      {
+        "pair": 2,
+        "mode": "candidate",
+        "result": {
+          "runtime": "v26.10.0",
+          "automaticTransition": false,
+          "confirmClearance": true,
+          "scope": "Durable queue catalogue and concurrent status reads on this desktop filesystem; no target-board, compiled-product or motion-performance claim",
+          "filesystem": 61267,
+          "jobs": 128,
+          "durableMutations": 64,
+          "fullCatalogueReadMs": {
+            "count": 10000,
+            "median": 0.0017600000000186355,
+            "p95": 0.003270000000014761,
+            "p99": 0.006650000000007594,
+            "max": 0.11628099999998653
+          },
+          "concurrentReadMs": {
+            "count": 1184128,
+            "median": 0.0001700000000255386,
+            "p95": 0.0014000000000464752,
+            "p99": 0.0023400000000037835,
+            "max": 0.1655319999999847
+          },
+          "mutationMs": {
+            "count": 64,
+            "median": 9.985355000000027,
+            "p95": 13.443321000000083,
+            "p99": 14.757093999999938,
+            "max": 14.757093999999938
+          },
+          "eventLoopMs": {
+            "p99": 3.876863,
+            "max": 4.747263
+          },
+          "budgetsMs": {
+            "queryP99": 50,
+            "eventLoopP99": 50,
+            "eventLoopMax": 100
+          },
+          "reopenCatalogueVerified": true
+        }
+      }
+    ],
+    "pairs": [
+      {
+        "pair": 0,
+        "fullReadMedianRatio": 1.0584795321489686,
+        "candidateReadP99": 0.002240000000000464,
+        "candidateEventLoopP99": 3.731455,
+        "candidateEventLoopMax": 4.624383
+      },
+      {
+        "pair": 1,
+        "fullReadMedianRatio": 1.0640799529742544,
+        "candidateReadP99": 0.002089999999952852,
+        "candidateEventLoopP99": 3.977215,
+        "candidateEventLoopMax": 4.485119
+      },
+      {
+        "pair": 2,
+        "fullReadMedianRatio": 1.0414201183389162,
+        "candidateReadP99": 0.0023400000000037835,
+        "candidateEventLoopP99": 3.876863,
+        "candidateEventLoopMax": 4.747263
+      }
+    ],
+    "originalBudgets": {
+      "queryP99Ms": 50,
+      "eventLoopP99Ms": 50,
+      "eventLoopMaxMs": 100
+    },
+    "scope": "Same compiled 128-job,64-durable-mutation workload,3 alternating process pairs; original absolute budgets enforced by each unchanged benchmark. Ratios diagnostic, no invented relative gate or physical/target-print performance claim."
+  },
+  "package": {
+    "manifestSha256": "04842d3cc22396a09f69065c42cb489ff0c5319bf0cfb5c37ad3b9de6b851276",
+    "files": 686,
+    "dependencies": 18,
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444",
+    "changedFiles": [
+      "host/src/moonraker/configured-server.js",
+      "host/src/moonraker/native-job-queue.js",
+      "host/src/runtime/product-queue-panel.js"
+    ],
+    "allNativeAndOtherFilesByteIdentical": true,
+    "build": "Fresh private source/Node header snapshots, locked offline Rust1.89,CPU0/single Cargo build only; application affinity unchanged"
+  },
+  "scenes": [
+    {
+      "id": "r31",
+      "receipt": {
+        "name": "fluidd",
+        "started": "2026-10-12T07:06:47.380Z",
+        "deadline": "2026-10-12T07:21:47.380Z",
+        "closed": "2026-10-12T07:20:02.210Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 794830,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1481675,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1481615,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-home-candidate-oct12",
+        "automaticExtensionOrRelaunch": false
+      },
+      "stages": {
+        "prepared-first": {
+          "stage": "prepared-first",
+          "at": "2026-10-12T07:11:33.641Z",
+          "queue_state": "paused",
+          "queued_jobs": [
+            {
+              "job_id": "D54E475A26544FBE",
+              "filename": "client-sample.gcode"
+            },
+            {
+              "job_id": "25103406A0C256EE",
+              "filename": "client-layered-r31.gcode"
+            }
+          ],
+          "transition": {
+            "phase": "awaiting_confirmation",
+            "job_id": "D54E475A26544FBE",
+            "filename": "client-sample.gcode",
+            "expires_at": 1791789306380,
+            "tokenSha256": "07ed03ff2d4c2986fc84db5c0cada4966d03873cea59c38f17f9360255d745c9"
+          },
+          "printer_state": "ready",
+          "jobs": [],
+          "scope": "Read-only corroboration of explicit queue-page interactions; state token hashed, login credentials never recorded; simulated MCU only"
+        },
+        "first-completed": {
+          "stage": "first-completed",
+          "at": "2026-10-12T07:17:05.998Z",
+          "queue_state": "paused",
+          "queued_jobs": [
+            {
+              "job_id": "25103406A0C256EE",
+              "filename": "client-layered-r31.gcode"
+            }
+          ],
+          "transition": null,
+          "printer_state": "ready",
+          "jobs": [
+            {
+              "filename": "client-sample.gcode",
+              "status": "completed",
+              "job_id": "000001",
+              "native_request_id": "queue-e7e68d21-5637-47ad-89c4-7600660caca9"
+            }
+          ],
+          "scope": "Read-only corroboration of explicit queue-page interactions; state token hashed, login credentials never recorded; simulated MCU only"
+        },
+        "prepared-second": {
+          "stage": "prepared-second",
+          "at": "2026-10-12T07:18:16.073Z",
+          "queue_state": "paused",
+          "queued_jobs": [
+            {
+              "job_id": "25103406A0C256EE",
+              "filename": "client-layered-r31.gcode"
+            }
+          ],
+          "transition": {
+            "phase": "awaiting_confirmation",
+            "job_id": "25103406A0C256EE",
+            "filename": "client-layered-r31.gcode",
+            "expires_at": 1791789777144,
+            "tokenSha256": "ec056836f5fca46daa6b5e53a82c9734075b6ad0297eff142de7d7d724437c61"
+          },
+          "printer_state": "ready",
+          "jobs": [
+            {
+              "filename": "client-sample.gcode",
+              "status": "completed",
+              "job_id": "000001",
+              "native_request_id": "queue-e7e68d21-5637-47ad-89c4-7600660caca9"
+            }
+          ],
+          "scope": "Read-only corroboration of explicit queue-page interactions; state token hashed, login credentials never recorded; simulated MCU only"
+        },
+        "second-completed": {
+          "stage": "second-completed",
+          "at": "2026-10-12T07:19:58.694Z",
+          "queue_state": "paused",
+          "queued_jobs": [],
+          "transition": null,
+          "printer_state": "ready",
+          "jobs": [
+            {
+              "filename": "client-layered-r31.gcode",
+              "status": "completed",
+              "job_id": "000002",
+              "native_request_id": "queue-7c40749d-aa79-4f13-939a-bf6e60438a51"
+            },
+            {
+              "filename": "client-sample.gcode",
+              "status": "completed",
+              "job_id": "000001",
+              "native_request_id": "queue-e7e68d21-5637-47ad-89c4-7600660caca9"
+            }
+          ],
+          "scope": "Read-only corroboration of explicit queue-page interactions; state token hashed, login credentials never recorded; simulated MCU only"
+        }
+      }
+    },
+    {
+      "id": "r32",
+      "receipt": {
+        "name": "fluidd",
+        "started": "2026-10-12T08:16:44.527Z",
+        "deadline": "2026-10-12T08:31:44.527Z",
+        "closed": "2026-10-12T08:26:47.875Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 603348,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1517857,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1517767,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-queue-readiness-oct12",
+        "automaticExtensionOrRelaunch": false
+      },
+      "stages": {
+        "prepared-first": {
+          "stage": "prepared-first",
+          "at": "2026-10-12T08:19:59.134Z",
+          "queue_state": "paused",
+          "transition_available": true,
+          "queued_jobs": [
+            {
+              "job_id": "55348AA07CF9053E",
+              "filename": "client-busy-r32.gcode"
+            },
+            {
+              "job_id": "E55B0106BC3FBB73",
+              "filename": "client-layered-r32.gcode"
+            }
+          ],
+          "transition": {
+            "phase": "awaiting_confirmation",
+            "job_id": "55348AA07CF9053E",
+            "filename": "client-busy-r32.gcode",
+            "expires_at": 1791793472145,
+            "tokenSha256": "148ecafa219eb006ebab3b17bdf9359dd855dc39b2da2ea873e1863ff73c0627"
+          },
+          "printer_state": "ready",
+          "jobs": [],
+          "scope": "Read-only corroboration of explicit queue-page interactions; state token hashed, login credentials never recorded; simulated MCU only"
+        },
+        "first-completed": {
+          "stage": "first-completed",
+          "at": "2026-10-12T08:23:16.099Z",
+          "queue_state": "paused",
+          "transition_available": true,
+          "queued_jobs": [
+            {
+              "job_id": "E55B0106BC3FBB73",
+              "filename": "client-layered-r32.gcode"
+            }
+          ],
+          "transition": null,
+          "printer_state": "ready",
+          "jobs": [
+            {
+              "filename": "client-busy-r32.gcode",
+              "status": "completed",
+              "job_id": "000001",
+              "native_request_id": "queue-7994eea7-692c-40d2-8012-517d0c90b222"
+            }
+          ],
+          "scope": "Read-only corroboration of explicit queue-page interactions; state token hashed, login credentials never recorded; simulated MCU only"
+        },
+        "prepared-second": {
+          "stage": "prepared-second",
+          "at": "2026-10-12T08:24:12.558Z",
+          "queue_state": "paused",
+          "transition_available": true,
+          "queued_jobs": [
+            {
+              "job_id": "E55B0106BC3FBB73",
+              "filename": "client-layered-r32.gcode"
+            }
+          ],
+          "transition": {
+            "phase": "awaiting_confirmation",
+            "job_id": "E55B0106BC3FBB73",
+            "filename": "client-layered-r32.gcode",
+            "expires_at": 1791793726300,
+            "tokenSha256": "b67dda58040f14eba4a8715b453be0ee9362c0077b88178137a6d11dfccbabc2"
+          },
+          "printer_state": "ready",
+          "jobs": [
+            {
+              "filename": "client-busy-r32.gcode",
+              "status": "completed",
+              "job_id": "000001",
+              "native_request_id": "queue-7994eea7-692c-40d2-8012-517d0c90b222"
+            }
+          ],
+          "scope": "Read-only corroboration of explicit queue-page interactions; state token hashed, login credentials never recorded; simulated MCU only"
+        },
+        "second-completed": {
+          "stage": "second-completed",
+          "at": "2026-10-12T08:26:18.337Z",
+          "queue_state": "paused",
+          "transition_available": false,
+          "queued_jobs": [],
+          "transition": null,
+          "printer_state": "ready",
+          "jobs": [
+            {
+              "filename": "client-layered-r32.gcode",
+              "status": "completed",
+              "job_id": "000002",
+              "native_request_id": "queue-881e228c-5cd5-44e1-b70c-1e2d14bae123"
+            },
+            {
+              "filename": "client-busy-r32.gcode",
+              "status": "completed",
+              "job_id": "000001",
+              "native_request_id": "queue-7994eea7-692c-40d2-8012-517d0c90b222"
+            }
+          ],
+          "scope": "Read-only corroboration of explicit queue-page interactions; state token hashed, login credentials never recorded; simulated MCU only"
+        }
+      }
+    }
+  ],
+  "busyObservation": {
+    "api": {
+      "stage": "first-running",
+      "at": "2026-10-12T08:20:30.121Z",
+      "queue_state": "paused",
+      "transition_available": false,
+      "queued_jobs": [
+        {
+          "job_id": "E55B0106BC3FBB73",
+          "filename": "client-layered-r32.gcode"
+        }
+      ],
+      "transition": null,
+      "printer_state": "ready",
+      "jobs": [
+        {
+          "filename": "client-busy-r32.gcode",
+          "status": "in_progress",
+          "job_id": "000001",
+          "native_request_id": "queue-7994eea7-692c-40d2-8012-517d0c90b222"
+        }
+      ],
+      "scope": "Read-only corroboration of explicit queue-page interactions; state token hashed, login credentials never recorded; simulated MCU only"
+    },
+    "ui": "Tool-return DOM snapshot immediately after the first R32 confirmation showed next-file guidance to view the console and all three clearance controls disabled; no busy screenshot was captured before completion. The file named after-first-page is explicitly completion-state evidence, not a busy image."
+  },
+  "priorCi": "pr68-72c442-terminal.json: exact preceding head 15 success,4807/4807,merge97668364; new code requires its own CI",
+  "open": [
+    "new fix CI and develop/master integration",
+    "full client file-picker upload,configuration editing,post-cancel next print and SIGKILL/queue failure recovery",
+    "remaining Moonraker and all Python retirement,consumer macro scenarios",
+    "original UI/default build/G3/target Cycnumbris500 precision and print-speed gates; other models last"
+  ],
+  "evidence": {
+    "path": "queue-readiness-evidence.json.gz",
+    "sha256": "9c2185cfd8e7827eefe60dd03f0c428aed836f243ced2f7a335f2b7cf1a0cdb3",
+    "bytes": 1202888,
+    "entries": 316
+  }
+}

@@ -49,6 +49,12 @@ for (const clientFixture of [false, true]) test('configured process queue shares
     const added = await call('/server/job_queue/job', 'POST', { filenames: ['one.gcode', 'one.gcode'], request_id: 'add-once' });
     assert.equal(added.queued_jobs.length, 2); assert.equal(commands.length, 0);
     if (clientFixture) {
+      assert.equal(added.transition_available, true);
+      const maintenance = gate.acquire();
+      try { assert.equal((await call('/server/job_queue/status')).transition_available, false); }
+      finally { maintenance(); }
+    }
+    if (clientFixture) {
       const pending = await call('/server/job_queue/start', 'POST', { request_confirmation: true });
       assert.equal(controller.state, 'idle'); assert.equal(commands.length, 0);
       assert.equal(pending.queue_state, 'paused'); assert(pending.transition.state_token);
@@ -57,6 +63,7 @@ for (const clientFixture of [false, true]) test('configured process queue shares
     assert.equal(controller.state, 'printing');
     const request = controller.currentRequest!; assert.match(request.requestId, /^queue-/); assert.equal(request.fileId, 'one');
     const queued = await call('/server/job_queue/status'); assert.equal(queued.queued_jobs.length, 1);
+    if (clientFixture) assert.equal(queued.transition_available, false);
     const history = await call('/server/history/list'); assert.equal(history.jobs.length, 1); assert.equal(history.jobs[0].metadata.native_request_id, request.requestId);
     await call('/server/job_queue/pause', 'POST'); assert.equal(controller.state, 'printing');
     assert.equal((await fetch(base + '/server/database/item?namespace=native_job_queue&key=catalogue', { headers })).status, 403);
