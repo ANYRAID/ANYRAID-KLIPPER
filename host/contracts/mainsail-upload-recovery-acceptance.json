@@ -1,0 +1,193 @@
+{
+  "schema": 1,
+  "head": "81e9a21dfbae1e1e6544a177944fb88d7c9d85eb",
+  "client": "Mainsail 2.19.0",
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/product-host-client-upload-path-oct13",
+    "manifestSha256": "53a55d480e35a941d8c28ece409227eab673f5527dabf3947fa90d53b1e9dc69",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+  },
+  "samePackageAsFluiddR39": true,
+  "fixedPorts": [
+    18432,
+    18434
+  ],
+  "fixtureSourceHashes": {
+    "prepare-mainsail-r40-oct13.mjs": "fbc5832a32abb3ec94e03dcb0330351d0c2d75e1520c89813d81568321df68f9",
+    "prepare-mainsail-r41-oct13.mjs": "518c40d4cfb4129145cbeb685a8c919782144ce09c8146d4b0e4703412f26fad",
+    "anyraid-client-authorized-r40-oct13.mjs": "0e0d998a1a2a12b5d224fd78f65fc0d9105aed3f7486871a337d04e29a7d8e54",
+    "anyraid-client-authorized-r41-oct13.mjs": "09ac1340767a4a7e1bf7586e05e61ee447a757ee712ec89ab5234f777a95003d",
+    "anyraid-client-probe-r40-oct13.ts": "e2cbb8f711afc7572ffe436d0812d82b61d46f30b43f51302b4d4c4b4cad5d3b",
+    "anyraid-client-probe-r41-oct13.ts": "5e50e39b589520e73941d380e09d98b44f62a16fb44e3f71464fad736fbbb456",
+    "read-client-upload-r41-oct13.mjs": "07dce394048d112f7e2b954a768703512a98416324e1f3abf0f80039063c710f"
+  },
+  "verified": {
+    "ordinaryFileChooserUploads": [
+      {
+        "filename": "client-browser-long-r41-oct13.gcode",
+        "size": 18785,
+        "sha256": "12dfa06ce998ed9d72e3107c5fee40141cc51df5c72fed2b0625229c45ab077b"
+      },
+      {
+        "filename": "client-browser-upload-r41-oct13.gcode",
+        "size": 944,
+        "sha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f"
+      }
+    ],
+    "noAutomaticPrintOrQueueAfterOrdinaryUpload": true,
+    "explicitPagePrintCompleted": [
+      {
+        "filename": "client-browser-long-r41-oct13.gcode",
+        "status": "completed",
+        "job_id": "000001",
+        "request_id": "compat-13a3fefc-8e30-4a86-bd93-d6a245846737",
+        "total_duration": 104.15830933000002,
+        "print_duration": 100.25741171900003
+      }
+    ],
+    "busyPageFileMenuQueued": {
+      "state": "paused",
+      "jobs": [
+        {
+          "job_id": "EE9FE5DC913AEA9B",
+          "filename": "client-browser-upload-r41-oct13.gcode"
+        }
+      ],
+      "transitionPhase": null,
+      "transition_available": false
+    },
+    "busyQueueConfirmationDisabled": true,
+    "gracefulSamePackageProcessRebuild": {
+      "completedJobs": [
+        {
+          "filename": "client-browser-long-r41-oct13.gcode",
+          "status": "completed",
+          "job_id": "000001",
+          "request_id": "compat-13a3fefc-8e30-4a86-bd93-d6a245846737",
+          "total_duration": 104.15830933000002,
+          "print_duration": 100.25741171900003
+        }
+      ],
+      "queue": {
+        "state": "paused",
+        "jobs": [
+          {
+            "job_id": "EE9FE5DC913AEA9B",
+            "filename": "client-browser-upload-r41-oct13.gcode"
+          }
+        ],
+        "transitionPhase": null,
+        "transition_available": true
+      },
+      "originalFilesPreserved": true,
+      "automaticReplay": false
+    },
+    "pageCommentOnlyConfigSave": {
+      "content": "[include parts/machine.cfg]\n# R41 本机有限验收注释",
+      "bytes": 58,
+      "sha256": "89a27fd29a0c05843e1b8a907495d9b24b8622a8d92c4ebef66e3fa6b548f095"
+    },
+    "browser": {
+      "name": "Google Chrome 153.0.8010.36",
+      "playwright": "1.62.1",
+      "chromiumSandbox": true,
+      "isolatedProfileRemoved": true
+    },
+    "closure": {
+      "name": "mainsail",
+      "started": "2026-10-12T19:13:10.261Z",
+      "deadline": "2026-10-12T19:28:10.261Z",
+      "closed": "2026-10-12T19:27:58.939Z",
+      "reason": "900-second-deadline",
+      "elapsedMs": 888678,
+      "children": [
+        {
+          "label": "GATEWAY",
+          "pid": 1762577,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "label": "PROBE",
+          "pid": 1762522,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/product-host-client-upload-path-oct13",
+      "automaticExtensionOrRelaunch": false
+    }
+  },
+  "retainedFailures": {
+    "r40": {
+      "tool": "IAB filechooser.setFiles",
+      "reportedToolElapsedSeconds": 3573.3719,
+      "uploadRequestObserved": false,
+      "closure": {
+        "name": "mainsail",
+        "started": "2026-10-12T18:04:22.392Z",
+        "deadline": "2026-10-12T18:19:22.392Z",
+        "closed": "2026-10-12T18:19:10.854Z",
+        "reason": "900-second-deadline",
+        "elapsedMs": 888462,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1742121,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1742052,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-client-upload-path-oct13",
+        "automaticExtensionOrRelaunch": false
+      },
+      "cause": "Undetermined tool wait; no evidence of product upload rejection or approval denial"
+    },
+    "r41": {
+      "firstUploads": [
+        409,
+        409
+      ],
+      "cause": "Attempt preceded read-only confirmation that homing had completed; original response bodies not captured, exact cause unconfirmed",
+      "successfulRetryAfterConfirmedHome": [
+        201,
+        201
+      ],
+      "staleFileRowLocator": "Explicit print automatically navigated Dashboard; subsequent locator for previous Files view timed out",
+      "freshQueueConfirmation": "Request clicked shortly before deadline. Immediate snapshot shows controls disabled; no checkbox submission or second completed job was captured. Remains unverified."
+    }
+  },
+  "ci": {
+    "contract": "host/contracts/pr68-81e9a21-terminal.json",
+    "head": "81e9a21dfbae1e1e6544a177944fb88d7c9d85eb",
+    "mergeCheckout": "7ac9a1f912e48f62561974b2b0c757b6866e7e59",
+    "jobs": 15,
+    "ordinary": {
+      "tests": 5063,
+      "pass": 5063,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "evidence": {
+    "path": "host/contracts/mainsail-upload-recovery-evidence.json.gz",
+    "sha256": "760f1fd17e3d7d2d54892851b28bc9f0df1983dcdcdffe1cf95412aeaa75e0f4",
+    "bytes": 887021,
+    "entries": 64,
+    "privacy": "No credentials, auth tokens or transition tokens retained; login-value snapshots and credential-bearing fixture sources omitted, source digests retained."
+  },
+  "scope": "Real Chrome browser actions with sandbox enabled, authorized fallback after IAB upload tool exceeded finite scene deadline. Same immutable Node package and simulated MCU. Read-only API only corroborates page actions; no API upload/config-write/start substitute. Graceful process rebuild is not SIGKILL/crash/hardware proof.",
+  "remaining": [
+    "Mainsail post-rebuild fresh clearance and second completed print on same package",
+    "Busy Upload-and-Print paths, SIGKILL/crash/fault journeys, complete clients and Cura GUI",
+    "Full Python retirement, complete Moonraker/Jinja/msgspec/consumer macros",
+    "Original UI and native compiler budgets, G3 precision, Cycnumbris500 target throughput/hardware/release",
+    "New documentation/evidence head CI and task -> develop -> master integration; other models last"
+  ]
+}
