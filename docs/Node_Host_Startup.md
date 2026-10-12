@@ -1,5 +1,14 @@
 # Node 主机启动与机器集成
 
+内部 HTTP 的 `json()` 返回可包含 BigInt 的组件值；请求对象／数组
+同样支持 BigInt 数值 token，不转换为字符串或舍入 Number。
+默认整数容量 4096 位，响应可显式传入 `integerDigits`。普通整数
+保持 Number，浮点保持 binary64；负零及缓存原字节保持。
+该类型不等于公共 RPC `Json`，不得据此把 BigInt 自动转为 Number
+或授予运动指令权限；公共解析／验证保护未改。私密文件继续保存
+原始模板词法与不可变代际。源码／独立 JS 各 136 项及原桌面预算
+通过，初版退化保留，见[精确 JSON 记录](../host/contracts/http-exact-json-acceptance.json)。
+
 标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
 通过内部 `httpClient` 接口供组件借用，`server.info` 发现该组件。
 它不增加供外部调用者传入任意 URL／目标路径的公共端点，也不改变

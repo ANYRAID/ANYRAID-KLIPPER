@@ -10,11 +10,11 @@ import {tmpdir} from 'node:os';
 import {setTimeout as pause} from 'node:timers/promises';
 import type {IncomingMessage} from 'node:http';
 import type {Transform} from 'node:stream';
-import {ApiError,validateJson,type Json} from './rpc.ts';
-import {parseRequestJson} from './json.ts';
+import {ApiError} from './rpc.ts';
+import {parseExactJson,stringifyExactJson,type ExactJson,type ExactJsonOptions} from './json-exact.ts';
 const MAX_BODY=512*1024**2;
 export interface HttpRequestOptions {
- body?:string|Uint8Array|Json[]|Record<string,Json>|null;headers?:Record<string,string>;
+ body?:string|Uint8Array|ExactJson[]|Record<string,ExactJson>|null;headers?:Record<string,string>;
  connectTimeout?:number;requestTimeout?:number;attempts?:number;retryPauseTime?:number;
  enableCache?:boolean;sendEtag?:boolean;sendIfModifiedSince?:boolean;
  basicAuthUser?:string;basicAuthPass?:string;signal?:AbortSignal;
@@ -38,7 +38,7 @@ export class HttpResponse {
  get encoding(){return this.#encoding;}
  set encoding(value:string){this.#encoding=value;}
  get text(){const encoding=this.#encoding.toLowerCase().replaceAll('_','-');if(['latin-1','latin1','iso-8859-1'].includes(encoding))return this.#body.toString('latin1');if(['ascii','us-ascii'].includes(encoding)){if(this.#body.some(byte=>byte>127))throw new TypeError('Invalid ASCII response');return this.#body.toString('ascii');}return new TextDecoder(this.#encoding,{fatal:true,ignoreBOM:true}).decode(this.#body);}
- json():Json{return parseRequestJson(new TextDecoder('utf-8',{fatal:true}).decode(this.#body)) as Json;}
+ json(options:ExactJsonOptions={}):ExactJson{return parseExactJson(new TextDecoder('utf-8',{fatal:true}).decode(this.#body),options);}
  isCachable(){return this.lastModified!==null||this.etag!==null;}
  hasError(){return this.error!==null;}
  raiseForStatus(message?:string){if(this.error)throw new ApiError(this.error instanceof StatusError?this.statusCode:500,message??(this.error instanceof StatusError?this.error.message:'HTTP Request Error'));}
@@ -89,7 +89,7 @@ export class MoonrakerHttpClient {
   return this.#admit(options.signal,async signal=>{
    address(url);method=method.toUpperCase();if(!/^[A-Z]+$/.test(method))throw new TypeError('Invalid HTTP method');const attempts=count(options.attempts??1,1,100),max=count(options.maxBodyBytes??MAX_BODY,1,MAX_BODY),retry=options.retryPauseTime??.1;if(!Number.isFinite(retry)||retry<0||retry>3600)throw new RangeError('Invalid HTTP retry pause');
    const key=url.split('?',1)[0],cached=options.enableCache?this.#cache.get(key):undefined,headers=new Headers(options.headers);if(!headers.has('user-agent'))headers.set('user-agent','Moonraker');if(!headers.has('accept-encoding'))headers.set('accept-encoding','gzip, deflate, br');
-   let body:Buffer|undefined;if(options.body!==undefined&&options.body!==null){if(typeof options.body==='string'||options.body instanceof Uint8Array){if(typeof options.body==='string'&&!options.body.isWellFormed())throw new TypeError('Invalid HTTP body encoding');body=Buffer.from(options.body);}else{validateJson(options.body);const raw=(JSON as typeof JSON&{rawJSON(value:string):object}).rawJSON;body=Buffer.from(JSON.stringify(options.body,(_key,value:unknown)=>typeof value==='number'&&Object.is(value,-0)?raw('-0.0'):value));headers.set('content-type','application/json');}}
+   let body:Buffer|undefined;if(options.body!==undefined&&options.body!==null){if(typeof options.body==='string'||options.body instanceof Uint8Array){if(typeof options.body==='string'&&!options.body.isWellFormed())throw new TypeError('Invalid HTTP body encoding');body=Buffer.from(options.body);}else{body=Buffer.from(stringifyExactJson(options.body));headers.set('content-type','application/json');}}
    if(body&&body.length>max)throw new ApiError(413,'HTTP request body exceeds capacity');
    // Upstream gates both conditionals under send_etag, and generated headers
    // take precedence over caller values. Keep this surprising frozen behavior.

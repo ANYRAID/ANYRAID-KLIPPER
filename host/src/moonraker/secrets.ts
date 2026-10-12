@@ -6,6 +6,7 @@ import {isAbsolute,join} from 'node:path';
 import {ConfigurationReader} from './config-reader.ts';
 import {ConfigurationError} from './config-source.ts';
 import {resolveConfigurationPath} from './config-path.ts';
+import {parseExactJson} from './json-exact.ts';
 
 export type SecretValue=null|boolean|string|number|bigint|readonly SecretValue[]|SecretObject;
 export interface SecretObject {readonly [name:string]:SecretValue;}
@@ -32,9 +33,6 @@ const dictionary=<T>():Record<string,T>=>Object.create(null);
 const whitespace='\\t\\n\\v\\f\\r\\x1c-\\x1f \\x85\\xa0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000';
 const edges=new RegExp(`^[${whitespace}]+|[${whitespace}]+$`,'g'),leading=new RegExp(`^[${whitespace}]*`);
 const strip=(value:string)=>value.replace(edges,'');
-// Ordinary small JSON integers need no reviver. Inspect source tokens only
-// when exact integers, overflow exponents or a smaller caller limit require it.
-const needsNumberSource=/(?:^|[\s,:\[])-?\d{16}|[eE][+-]?\d{3,}|(?:^|[\s,:\[])-0(?=[\s,}\]]|$)/;
 function invalid():never{throw new ConfigurationError('Invalid secrets file format or resource limit');}
 function limits(options:SecretsLimits){
  const maximum={bytes:options.bytes??1024*1024,depth:options.depth??64,items:options.items??65536,integerDigits:options.integerDigits??4096};
@@ -74,16 +72,8 @@ export function parseSecretsText(text:string,options:SecretsLimits={}):{type:'js
  const maximum=limits(options);if(typeof text!=='string'||Buffer.byteLength(text)>maximum.bytes)invalid();
  let parsed:unknown,type:'json'|'ini'='json';
  try{
-  const revive=(_:string,value:unknown,context?:{source?:string})=>{
-   if(typeof value==='number'){
-    const token=context?.source;if(!token)invalid();
-    if(/^-?\d+$/.test(token)){if(token.length>maximum.integerDigits+Number(token.startsWith('-')))invalid();const exact=BigInt(token);return exact>=BigInt(Number.MIN_SAFE_INTEGER)&&exact<=BigInt(Number.MAX_SAFE_INTEGER)?Number(exact):exact;}
-    if(!Number.isFinite(value))invalid();
-   }
-   return value;
-  };
-  parsed=maximum.integerDigits<16||needsNumberSource.test(text)?JSON.parse(text,revive):JSON.parse(text);
- }catch(error){if(!(error instanceof SyntaxError))throw error;type='ini';parsed=parseIni(text);}
+  parsed=parseExactJson(text,{integerDigits:maximum.integerDigits});
+ }catch(error){if(!(error instanceof SyntaxError))invalid();type='ini';parsed=parseIni(text);}
  if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))invalid();
  let count=0;
  function copy(value:unknown,depth:number):SecretValue{
