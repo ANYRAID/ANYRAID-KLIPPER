@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "head": "2bdf89ac7f8f6eb59f374f426dabd0cc5a1a7e24",
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/product-host-2bdf-cpu0-oct12",
+    "manifestSha256": "edb879ba57801bef29a22a045c64fcec0158af9795a4b2f99c0833ad1fad2d91",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444",
+    "productFiles": 686,
+    "nativeSources": 75,
+    "nodeHeaders": 2810,
+    "productionDependencies": 18,
+    "archive": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-product-host-2bdf-cpu0-oct12.tar.gz",
+      "bytes": 22097458,
+      "sha256": "cee5b70a4aacbf4d80d5824f8f8cef1cede138d507d7111a22c4b58243ed908d"
+    }
+  },
+  "build": "Offline locked Rust 1.89; CPU 0 build only, CARGO_BUILD_JOBS=1; runtime defaults unchanged",
+  "ci": {
+    "reference": "pr68-2bdf-terminal.json",
+    "jobs": 15,
+    "success": 15,
+    "ordinary": {
+      "tests": 4801,
+      "pass": 4801,
+      "fail": 0
+    }
+  },
+  "smoke": {
+    "passed": true,
+    "typescriptLoading": false,
+    "pathExternalPrograms": false,
+    "steps": 1000,
+    "exactHttp": "POST/GET/304 beyond i128, negative integer and negative zero passed",
+    "math": "Fixed source-versus-compiled spectrum and shaper equality; not independent upstream reference or G3",
+    "harnessFailures": [
+      "First sharp entry assumption invalid; resolved from installed package manifest",
+      "Initial new HTTP smoke used an extra body wrapper; corrected call signature",
+      "Reused smoke database correctly returned interrupted reservation; final run uses new private data"
+    ],
+    "productSourceChangesDuringSmoke": false
+  },
+  "journey": {
+    "started": "2026-10-12T02:18:26.038Z",
+    "elapsedMs": 60927,
+    "head": "2bdf89ac7f8f6eb59f374f426dabd0cc5a1a7e24",
+    "bundle": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-2bdf-cpu0-oct12",
+      "manifestSha256": "edb879ba57801bef29a22a045c64fcec0158af9795a4b2f99c0833ad1fad2d91",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "args": [
+      "--test",
+      "--test-isolation=none",
+      "--test-concurrency=1",
+      "--test-name-pattern=^namespace=true nativeAuthorization=true apiLoad=true load=false spi=false ",
+      "host/acceptance/product-compiled-journey.test.ts"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "spawnError": null,
+    "scope": "Original fixed mixed API/queue/file/history/config/ADC fault journey on simulated MCU; no target-board throughput or browser proof",
+    "tests": 1,
+    "passed": 1,
+    "failed": 0,
+    "statusP99Ms": 4.657882999999856,
+    "minimumStepLeadMs": 82.805,
+    "uploads": 16,
+    "downloads": 16
+  },
+  "performance": {
+    "maximumRatio": 1.5,
+    "async": [
+      {
+        "name": "pure",
+        "ratio": 0.7462166889008943,
+        "pass": true
+      },
+      {
+        "name": "callback",
+        "ratio": 1.3298812927033574,
+        "pass": true
+      },
+      {
+        "name": "ui",
+        "ratio": 2.0602763495084604,
+        "pass": false
+      }
+    ],
+    "factory": [
+      {
+        "name": "sync",
+        "ratio": 0.28867526743883043,
+        "pass": true
+      },
+      {
+        "name": "async",
+        "ratio": 1.2060376120107266,
+        "pass": true
+      },
+      {
+        "name": "ui",
+        "ratio": 1.5061144149689358,
+        "pass": false
+      }
+    ],
+    "pass": false,
+    "repeatedToObtainPass": false,
+    "scope": "Original frozen desktop references on current complete package; both UI budgets failed and remain open"
+  },
+  "fluidd": {
+    "session": "r22",
+    "closure": {
+      "name": "fluidd",
+      "started": "2026-10-12T02:18:30.002Z",
+      "deadline": "2026-10-12T02:33:30.002Z",
+      "closed": "2026-10-12T02:33:18.492Z",
+      "reason": "900-second-deadline",
+      "elapsedMs": 888490,
+      "children": [
+        {
+          "label": "GATEWAY",
+          "pid": 1367679,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "label": "PROBE",
+          "pid": 1367614,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/product-host-2bdf-cpu0-oct12",
+      "automaticExtensionOrRelaunch": false
+    },
+    "login": true,
+    "fileList": true,
+    "browserUpload": false,
+    "uploadRequestObserved": false,
+    "toolWallSeconds": 6295.0417,
+    "requestedTimeoutMs": 20000,
+    "fileChooserTimeoutMs": 5000,
+    "errorReasonReturned": false,
+    "scope": "UI login and list only; tool returned after expiration without a result. No permission-rejection or product-failure cause inferred"
+  },
+  "mainsail": {
+    "session": "r23",
+    "preparedOnly": true,
+    "started": false
+  },
+  "ports": {
+    "reference": "client-acceptance-ports.json",
+    "fixed": true,
+    "freeBindCheck": "stable-client-ports-free-oct12.json",
+    "nextFluidd": "r24 prepared only; stable existing origin, not launched"
+  },
+  "open": [
+    "UI upload/download and full same-package Fluidd/Mainsail journeys",
+    "Original async/factory UI performance budgets",
+    "Default native build stability and original G3 precision",
+    "Complete Moonraker and Python retirement",
+    "Consumer macros, Cycnumbris 500 hardware, develop/master delivery"
+  ],
+  "evidence": {
+    "path": "current-bundle-2bdf-evidence.json.gz",
+    "sha256": "016dec70c0f4b7bd6c0cfdb14f505a5cc035759509625d9806045a3dc351828f",
+    "bytes": 488108,
+    "entries": 33
+  }
+}
