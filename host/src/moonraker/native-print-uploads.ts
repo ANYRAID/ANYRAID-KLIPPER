@@ -20,6 +20,7 @@ export interface NativeOfflineFileMutations {
  readonly available:boolean;
  beginFileMutations(fileIds:readonly string[]):()=>void;
 }
+interface UploadQueueBinding {closed:boolean;admit:(file:{filename:string;file_id:string},requestId:string,context:RpcContext,signal:AbortSignal)=>Promise<void>;}
 export type NativeUploadOptions={stagingRoot?:string;maxFileBytes?:number;maxUploads?:number;maxDownloads?:number;maxDownloadBytes?:number};
 import type {ThumbnailDownload} from './thumbnail-download.ts';
 export type NativeFileDownload=Awaited<ReturnType<PublishedPrintFiles['acquireBinary']>>;
@@ -39,7 +40,7 @@ export class NativePrintUploads {
  #closed=false;#published=0;
  #draining:Promise<void>|undefined;
  #print:PrintController|undefined;
- #printApi:ProductPrintApi|undefined;
+ #printApi:ProductPrintApi|undefined;#uploadQueue:UploadQueueBinding|undefined;
  #ufpValidator:Promise<ThumbnailProcessor>|undefined;
  #offlineFiles:NativeOfflineFileMutations|undefined;
  #offlineReady:(()=>boolean)|undefined;
@@ -201,11 +202,18 @@ export class NativePrintUploads {
   void pending.then(()=>this.#authorizing.delete(pending),()=>this.#authorizing.delete(pending));
   await new Promise<void>((resolve,reject)=>{const aborted=()=>reject(signal.reason);signal.addEventListener('abort',aborted,{once:true});if(signal.aborted)aborted();void pending.then(value=>{try{authorizedContext(context,value);resolve();}catch(error){reject(error);}},reject).finally(()=>signal.removeEventListener('abort',aborted));});signal.throwIfAborted();
  }
+ /** Bind only the process-owned queue. Captured requests retain this exact
+  * binding; retirement never redirects them into a later queue owner. */
+ bindUploadQueue(admit:UploadQueueBinding['admit']):()=>void{
+  if(this.#closed||this.#metadataOwner||this.#uploadQueue||typeof admit!=='function')throw new Error('Invalid upload queue owner');
+  const binding:UploadQueueBinding={closed:false,admit};this.#uploadQueue=binding;
+  return ()=>{binding.closed=true;if(this.#uploadQueue===binding)this.#uploadQueue=undefined;};
+ }
  /** Capture device ownership at HTTP admission, before the network work queue. */
- captureUpload(configFiles?:NativeConfigFiles,octoprint?:{enableUfp:boolean}){const binding=this.#deviceFiles;return (request:IncomingMessage,context:RpcContext)=>this.#receiveOwned(request,context,binding,configFiles,octoprint);}
- receive(request:IncomingMessage,context:RpcContext):Promise<Json>{return this.#receiveOwned(request,context,this.#deviceFiles);}
- #receiveOwned(request:IncomingMessage,context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined,configFiles?:NativeConfigFiles,octoprint?:{enableUfp:boolean}):Promise<Json>{
-  return this.#admitUpload(context,binding,(signal,deviceGate,printOwner,api)=>this.#receive(request,context,signal,deviceGate,configFiles,printOwner,api,octoprint));
+ captureUpload(configFiles?:NativeConfigFiles,octoprint?:{enableUfp:boolean}){const binding=this.#deviceFiles,queue=this.#uploadQueue;return (request:IncomingMessage,context:RpcContext)=>this.#receiveOwned(request,context,binding,configFiles,octoprint,queue);}
+ receive(request:IncomingMessage,context:RpcContext):Promise<Json>{return this.#receiveOwned(request,context,this.#deviceFiles,undefined,undefined,this.#uploadQueue);}
+ #receiveOwned(request:IncomingMessage,context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined,configFiles?:NativeConfigFiles,octoprint?:{enableUfp:boolean},queue?:UploadQueueBinding):Promise<Json>{
+  return this.#admitUpload(context,binding,(signal,deviceGate,printOwner,api)=>this.#receive(request,context,signal,deviceGate,configFiles,printOwner,api,octoprint,queue));
  }
  #admitUpload(context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined,work:(signal:AbortSignal,deviceGate:MaintenanceGate|undefined,printOwner:Pick<PrintController,'beginFileMutation'>|undefined,api:ProductPrintApi|undefined)=>Promise<Json>):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native uploads are closed'));
@@ -260,7 +268,7 @@ export class NativePrintUploads {
    if(errors.length)throw new AggregateError([...primary===undefined?[]:[primary],...errors],'Disk import staging cleanup failed',{cause:primary});
   }
  }
- async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate,configFiles?:NativeConfigFiles,printOwner?:Pick<PrintController,'beginFileMutation'>,api?:ProductPrintApi,octoprint?:{enableUfp:boolean}):Promise<Json>{
+ async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate,configFiles?:NativeConfigFiles,printOwner?:Pick<PrintController,'beginFileMutation'>,api?:ProductPrintApi,octoprint?:{enableUfp:boolean},queue?:UploadQueueBinding):Promise<Json>{
   signal.throwIfAborted();let release:()=>void;
   try{release=this.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks file uploads');}
   let releaseDevice:(()=>void)|undefined;try{if(deviceGate&&deviceGate!==this.#gate)releaseDevice=deviceGate.activity();}catch{release();throw new ApiError(409,'Maintenance blocks file uploads');}
@@ -333,6 +341,13 @@ export class NativePrintUploads {
      return {...receipt,print_started:true,print_request_id:requestId};
     }catch(error){
      if(signal.aborted)throw signal.reason;
+     if(queue&&(!api||api.isUnadmittedPublished(error,requestId))&&!(error instanceof ApiError&&[401,403,499].includes(error.status))){
+      try{
+       if(queue.closed)throw new ApiError(503,'Upload queue owner retired');
+       await queue.admit({filename:visibleFilePath(record),file_id:record.id},requestId,context,signal);signal.throwIfAborted();
+       return {...receipt,print_queued:true,print_request_id:requestId};
+      }catch(queueError){if(signal.aborted)throw signal.reason;error=queueError;}
+     }
      // Publication is durable. A failed print admission cannot roll it back,
      // replay the intent or pretend the controller accepted the operation.
      return {...receipt,print_request_id:requestId,print_error:{code:error instanceof ApiError?error.status:503,message:error instanceof ApiError?error.message:'Uploaded file could not be admitted; query print request state'}};

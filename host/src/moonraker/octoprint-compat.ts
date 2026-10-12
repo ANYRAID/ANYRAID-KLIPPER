@@ -51,7 +51,7 @@ export class OctoprintCompatibility {
    return {};
   }
   if(path==='/api/files/moonraker'){
-   context.nativeGenerationSignal?.throwIfAborted();
+   if(!context.nativeGenerationRetiredAtAdmission)context.nativeGenerationSignal?.throwIfAborted();
    if(params.command!=='select')throw new ApiError(400,'Unsupported Command');
    if(typeof params.relative_path!=='string')throw new ApiError(400,'Missing relative_path');
    const relative=params.relative_path.replace(/^\/+|\/+$/g,''),at=relative.indexOf('/');if(at<1)throw new ApiError(400,'Expected file root and path');

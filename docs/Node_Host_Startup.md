@@ -1,5 +1,42 @@
 # Node 主机启动与机器集成
 
+明确的上传打印意图现接入原持久队列。`[file_manager]` 的
+`queue_gcode_uploads=true` 必须同时装配 `[job_queue]`，缺省关闭。
+标准上传与 OctoPrint 上传／选择在设备忙碌或新请求到来时已离线的
+情况下，可以将刚发布的不可变文件加入同一队列；普通上传不排队。
+逐次核验原网络身份、队列及打印权限，入队前后核对文件身份。
+已进入打印控制器后的异常或丢失回执不回落排队，避免重复打印。
+上传与选择绑定原设备代际；离线准入不能启动后来恢复的代际。
+
+队列重建保持暂停及原文件／任务身份，不自动重放。启用操作确认
+策略时，自动续打仍等待实际完成后的新清台确认。相关源码、独立
+JavaScript 及实际产品包各 225 项通过；三组既有队列及新增不可变
+文件准入预算通过，保留原 1.5 与 50／50／100 ms 门限。
+仅本机模拟软件证据，未覆盖目标板打印吞吐、运动精度或完整页面。
+见[上传队列验收](../host/contracts/upload-queue-intent-acceptance.json)。
+
+前序 ff5b29be 十五项 CI、5044／5044 通过，真实合并检出 8e5b0f1c，
+见[精确头终态](../host/contracts/pr68-ff5b29-terminal.json)。本队列修复
+须自身新头 CI；全量 Python、完整 Moonraker／消费级宏、完整客户端、
+原 UI／原生构建／G3／Cycnumbris 500 和正常集成仍开放，其他机型最后。
+
+候选配置：
+
+```ini
+[file_manager]
+queue_gcode_uploads=true
+
+[job_queue]
+job_transition_policy=operator_confirmation
+```
+
+入队回执含 `print_queued=true` 和 `print_request_id`；发布成功而打印／
+队列被拒绝时保留文件，并返回明确 `print_error`，调用者先查询原任务
+状态，不自动重试打印。设备动作开始后的准备失败仍属于原任务。
+
+以下为前序切片器兼容的锁定记录；其中上传队列软件缺项由上方证据
+补齐，Cura 插件页面和完整客户端旅程继续开放。
+
 可选 OctoPrint 切片器兼容入口已接入当前 Node 产品。配置
 `[octoprint_compat]` 后，9 个静态状态／命令接口与文件选择接口
 仅开放 HTTP，沿原网络鉴权直接返回上游 JSON，选择但不打印返回
