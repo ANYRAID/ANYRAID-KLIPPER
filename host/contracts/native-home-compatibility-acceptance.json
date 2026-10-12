@@ -402,5 +402,128 @@
     "sha256": "b755e67c8e23c6b194b1900212e25441057e840d76e32ec213063277de622f79",
     "bytes": 1595327,
     "entries": 282
+  },
+  "clientFollowUp": {
+    "head": "d782761f2d1c53c2e4f4f3ae4543b252544f7801",
+    "ci": "pr68-d782-terminal.json",
+    "manifestSha256": "9816177cc56d3e6c3733995c60640905ff4cce65a9f5446bb61abc8c5163b69b",
+    "runtimeSourcesUnchanged": true,
+    "productFiles": 686,
+    "scenes": [
+      {
+        "id": "r29",
+        "client": "fluidd",
+        "receipt": {
+          "name": "fluidd",
+          "started": "2026-10-12T06:15:15.658Z",
+          "deadline": "2026-10-12T06:30:15.658Z",
+          "closed": "2026-10-12T06:29:12.125Z",
+          "reason": "explicit-completion",
+          "elapsedMs": 836467,
+          "children": [
+            {
+              "label": "GATEWAY",
+              "pid": 1455699,
+              "code": 0,
+              "signal": null
+            },
+            {
+              "label": "PROBE",
+              "pid": 1455644,
+              "code": 0,
+              "signal": null
+            }
+          ],
+          "product": "/home/dek02/.cache/codex/tmp/product-host-home-candidate-oct12",
+          "automaticExtensionOrRelaunch": false
+        }
+      },
+      {
+        "id": "r30",
+        "client": "mainsail",
+        "receipt": {
+          "name": "mainsail",
+          "started": "2026-10-12T06:30:25.219Z",
+          "deadline": "2026-10-12T06:45:25.219Z",
+          "closed": "2026-10-12T06:38:02.726Z",
+          "reason": "explicit-completion",
+          "elapsedMs": 457507,
+          "children": [
+            {
+              "label": "GATEWAY",
+              "pid": 1464893,
+              "code": 0,
+              "signal": null
+            },
+            {
+              "label": "PROBE",
+              "pid": 1464833,
+              "code": 0,
+              "signal": null
+            }
+          ],
+          "product": "/home/dek02/.cache/codex/tmp/product-host-home-candidate-oct12",
+          "automaticExtensionOrRelaunch": false
+        }
+      }
+    ],
+    "downloads": [
+      {
+        "id": "r29",
+        "name": "client-layered-r29.gcode",
+        "source": "anyraid-preview-layered-r20-oct12.gcode",
+        "bytes": 944,
+        "sha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f",
+        "toolWallSeconds": 515.6422,
+        "method": "Fluidd menu Download with waitForEvent(download) returned actual path; tool far exceeded its configured 10s event/5s path/20s call waits. Reason not returned.",
+        "path": "/home/dek02/Downloads/client-layered-r29.gcode",
+        "created": "2026-10-12T06:28:52.955Z",
+        "modified": "2026-10-12T06:28:52.956Z",
+        "completedWithinScene": true
+      },
+      {
+        "id": "r30",
+        "name": "client-cancel-r30.gcode",
+        "source": "client-cancel-r30.gcode",
+        "bytes": 18785,
+        "sha256": "12dfa06ce998ed9d72e3107c5fee40141cc51df5c72fed2b0625229c45ab077b",
+        "toolWallSeconds": 0.4674,
+        "method": "Mainsail menu Download clicked; disk creation and authorized GET 200 confirmed. No page download event was used for the new-window download.",
+        "path": "/home/dek02/Downloads/client-cancel-r30.gcode",
+        "created": "2026-10-12T06:36:22.079Z",
+        "modified": "2026-10-12T06:36:22.080Z",
+        "completedWithinScene": true
+      }
+    ],
+    "cancellation": {
+      "fluidd": "UI Cancel -> Yes stopped the active test print; shutdown/reinitialization protection and red cancelled-history icon observed. Standard Firmware Restart actually reset/reconfigured both simulated MCUs and restored the page. No separate API history snapshot was captured for R29.",
+      "mainsail": "UI Pause at 25% -> Stop persisted cancelled. Original request/job/durations retained through standard Firmware Restart; read-only corroboration changes printer shutdown to ready with one unchanged cancelled journal entry.",
+      "mcuRecovery": "Both scenes actual original simulators report resets=1/configurations=2 each, native generation 2; no replacement simulator or automatic replay.",
+      "policy": "Current cancellation performs the original coordinated safety stop and requires explicit device reinitialization. Observed recovery is not seamless cancellation or proof of recovery followed by another print."
+    },
+    "inventoryCorrection": {
+      "components": [
+        "job_queue",
+        "ldap",
+        "secrets",
+        "sensor"
+      ],
+      "status": "partial",
+      "reason": "Source and committed scoped evidence already exist; previous not-implemented labels were stale. Queue HTTP/RPC/notification entries corrected separately; legacy remote methods remain not-implemented. No full component closure or new runtime functionality claimed."
+    },
+    "remaining": [
+      "UI file-picker upload and Monaco edited-content save",
+      "Mainsail layered preview and configuration edits",
+      "post-cancel homing and next-print acceptance",
+      "SIGKILL and complete queue/consumer macro journeys",
+      "original UI/build/G3/target motion and printing-performance gates",
+      "full Moonraker/Python retirement and develop/master integration"
+    ],
+    "evidence": {
+      "path": "client-cancel-download-evidence.json.gz",
+      "sha256": "87a2e27466cf4fc0914737b867616fdbfb92ca352c462738900bd7536363716f",
+      "bytes": 602336,
+      "entries": 37
+    }
   }
 }
