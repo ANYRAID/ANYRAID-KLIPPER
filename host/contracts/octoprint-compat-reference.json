@@ -1,0 +1,5771 @@
+{
+  "schema": 1,
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "runtime": "3.12.13",
+    "sourceSha256": {
+      "components/octoprint_compat.py": "2c1516cf9fc03b0c97a74f9495f3ba12bc032ed95085f05502a291ffed874c75",
+      "common.py": "3fc12fc52c5d9c2a7e878f3babcd63904df3c37e8161a47814de15a8feb02b75",
+      "components/application.py": "def768fef23065ce807a2a34de7f23b62f25f077407757b7b765f463798b0188"
+    }
+  },
+  "cases": [
+    {
+      "name": "disconnected/standby/api/server",
+      "path": "/api/server",
+      "state": "disconnected",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "disconnected/standby/api/job",
+      "path": "/api/job",
+      "state": "disconnected",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "disconnected/standby/api/printer",
+      "path": "/api/printer",
+      "state": "disconnected",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "disconnected/printing/api/server",
+      "path": "/api/server",
+      "state": "disconnected",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "disconnected/printing/api/job",
+      "path": "/api/job",
+      "state": "disconnected",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "disconnected/printing/api/printer",
+      "path": "/api/printer",
+      "state": "disconnected",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "disconnected/paused/api/server",
+      "path": "/api/server",
+      "state": "disconnected",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "disconnected/paused/api/job",
+      "path": "/api/job",
+      "state": "disconnected",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "disconnected/paused/api/printer",
+      "path": "/api/printer",
+      "state": "disconnected",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "disconnected/complete/api/server",
+      "path": "/api/server",
+      "state": "disconnected",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "disconnected/complete/api/job",
+      "path": "/api/job",
+      "state": "disconnected",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "disconnected/complete/api/printer",
+      "path": "/api/printer",
+      "state": "disconnected",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "disconnected/cancelled/api/server",
+      "path": "/api/server",
+      "state": "disconnected",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "disconnected/cancelled/api/job",
+      "path": "/api/job",
+      "state": "disconnected",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "disconnected/cancelled/api/printer",
+      "path": "/api/printer",
+      "state": "disconnected",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "disconnected/error/api/server",
+      "path": "/api/server",
+      "state": "disconnected",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "disconnected/error/api/job",
+      "path": "/api/job",
+      "state": "disconnected",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "disconnected/error/api/printer",
+      "path": "/api/printer",
+      "state": "disconnected",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "startup/standby/api/server",
+      "path": "/api/server",
+      "state": "startup",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "startup/standby/api/job",
+      "path": "/api/job",
+      "state": "startup",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "startup/standby/api/printer",
+      "path": "/api/printer",
+      "state": "startup",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "startup/printing/api/server",
+      "path": "/api/server",
+      "state": "startup",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "startup/printing/api/job",
+      "path": "/api/job",
+      "state": "startup",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "startup/printing/api/printer",
+      "path": "/api/printer",
+      "state": "startup",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "startup/paused/api/server",
+      "path": "/api/server",
+      "state": "startup",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "startup/paused/api/job",
+      "path": "/api/job",
+      "state": "startup",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "startup/paused/api/printer",
+      "path": "/api/printer",
+      "state": "startup",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "startup/complete/api/server",
+      "path": "/api/server",
+      "state": "startup",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "startup/complete/api/job",
+      "path": "/api/job",
+      "state": "startup",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "startup/complete/api/printer",
+      "path": "/api/printer",
+      "state": "startup",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "startup/cancelled/api/server",
+      "path": "/api/server",
+      "state": "startup",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "startup/cancelled/api/job",
+      "path": "/api/job",
+      "state": "startup",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "startup/cancelled/api/printer",
+      "path": "/api/printer",
+      "state": "startup",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "startup/error/api/server",
+      "path": "/api/server",
+      "state": "startup",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "startup/error/api/job",
+      "path": "/api/job",
+      "state": "startup",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Offline"
+      }
+    },
+    {
+      "name": "startup/error/api/printer",
+      "path": "/api/printer",
+      "state": "startup",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Offline",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "ready/standby/api/version",
+      "path": "/api/version",
+      "state": "ready",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "api": "0.1",
+        "text": "OctoPrint (Moonraker node-test)"
+      }
+    },
+    {
+      "name": "ready/standby/api/server",
+      "path": "/api/server",
+      "state": "ready",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": null
+      }
+    },
+    {
+      "name": "ready/standby/api/currentuser",
+      "path": "/api/currentuser",
+      "state": "ready",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "_is_external_client": false,
+        "_login_mechanism": "apikey",
+        "name": "_api",
+        "active": true,
+        "user": true,
+        "admin": true,
+        "apikey": null,
+        "permissions": [],
+        "groups": [
+          "admins",
+          "users"
+        ]
+      }
+    },
+    {
+      "name": "ready/standby/api/login",
+      "path": "/api/login",
+      "state": "ready",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "_is_external_client": false,
+        "_login_mechanism": "apikey",
+        "name": "_api",
+        "active": true,
+        "user": true,
+        "admin": true,
+        "apikey": null,
+        "permissions": [],
+        "groups": [
+          "admins",
+          "users"
+        ]
+      }
+    },
+    {
+      "name": "ready/standby/api/settings",
+      "path": "/api/settings",
+      "state": "ready",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "plugins": {
+          "UltimakerFormatPackage": {
+            "align_inline_thumbnail": false,
+            "inline_thumbnail": false,
+            "inline_thumbnail_align_value": "left",
+            "inline_thumbnail_scale_value": "50",
+            "installed": true,
+            "installed_version": "0.2.2",
+            "scale_inline_thumbnail": false,
+            "state_panel_thumbnail": true
+          }
+        },
+        "feature": {
+          "sdSupport": false,
+          "temperatureGraph": false
+        },
+        "webcam": {
+          "flipH": false,
+          "flipV": false,
+          "rotate90": false,
+          "streamUrl": "/webcam/?action=stream",
+          "webcamEnabled": true
+        }
+      }
+    },
+    {
+      "name": "ready/standby/api/job",
+      "path": "/api/job",
+      "state": "ready",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Operational"
+      }
+    },
+    {
+      "name": "ready/standby/api/printer",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Operational",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": true,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "ready/standby/api/printerprofiles",
+      "path": "/api/printerprofiles",
+      "state": "ready",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "profiles": {
+          "_default": {
+            "id": "_default",
+            "name": "Default",
+            "color": "default",
+            "model": "Default",
+            "default": true,
+            "current": true,
+            "heatedBed": true,
+            "heatedChamber": true,
+            "axes": {
+              "x": {
+                "speed": 6000.0,
+                "inverted": false
+              },
+              "y": {
+                "speed": 6000.0,
+                "inverted": false
+              },
+              "z": {
+                "speed": 6000.0,
+                "inverted": false
+              },
+              "e": {
+                "speed": 300.0,
+                "inverted": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "ready/printing/api/server",
+      "path": "/api/server",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": null
+      }
+    },
+    {
+      "name": "ready/printing/api/job",
+      "path": "/api/job",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Printing"
+      }
+    },
+    {
+      "name": "ready/printing/api/printer",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "ready/paused/api/server",
+      "path": "/api/server",
+      "state": "ready",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": null
+      }
+    },
+    {
+      "name": "ready/paused/api/job",
+      "path": "/api/job",
+      "state": "ready",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Paused"
+      }
+    },
+    {
+      "name": "ready/paused/api/printer",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Paused",
+          "flags": {
+            "operational": true,
+            "paused": true,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "ready/complete/api/server",
+      "path": "/api/server",
+      "state": "ready",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": null
+      }
+    },
+    {
+      "name": "ready/complete/api/job",
+      "path": "/api/job",
+      "state": "ready",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Operational"
+      }
+    },
+    {
+      "name": "ready/complete/api/printer",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Operational",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": true,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "ready/cancelled/api/server",
+      "path": "/api/server",
+      "state": "ready",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": null
+      }
+    },
+    {
+      "name": "ready/cancelled/api/job",
+      "path": "/api/job",
+      "state": "ready",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "ready/cancelled/api/printer",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "ready/error/api/server",
+      "path": "/api/server",
+      "state": "ready",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": null
+      }
+    },
+    {
+      "name": "ready/error/api/job",
+      "path": "/api/job",
+      "state": "ready",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "ready/error/api/printer",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "error/standby/api/server",
+      "path": "/api/server",
+      "state": "error",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "error/standby/api/job",
+      "path": "/api/job",
+      "state": "error",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "error/standby/api/printer",
+      "path": "/api/printer",
+      "state": "error",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "error/printing/api/server",
+      "path": "/api/server",
+      "state": "error",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "error/printing/api/job",
+      "path": "/api/job",
+      "state": "error",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "error/printing/api/printer",
+      "path": "/api/printer",
+      "state": "error",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "error/paused/api/server",
+      "path": "/api/server",
+      "state": "error",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "error/paused/api/job",
+      "path": "/api/job",
+      "state": "error",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "error/paused/api/printer",
+      "path": "/api/printer",
+      "state": "error",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "error/complete/api/server",
+      "path": "/api/server",
+      "state": "error",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "error/complete/api/job",
+      "path": "/api/job",
+      "state": "error",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "error/complete/api/printer",
+      "path": "/api/printer",
+      "state": "error",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "error/cancelled/api/server",
+      "path": "/api/server",
+      "state": "error",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "error/cancelled/api/job",
+      "path": "/api/job",
+      "state": "error",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "error/cancelled/api/printer",
+      "path": "/api/printer",
+      "state": "error",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "error/error/api/server",
+      "path": "/api/server",
+      "state": "error",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "error/error/api/job",
+      "path": "/api/job",
+      "state": "error",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "error/error/api/printer",
+      "path": "/api/printer",
+      "state": "error",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "shutdown/standby/api/server",
+      "path": "/api/server",
+      "state": "shutdown",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "shutdown/standby/api/job",
+      "path": "/api/job",
+      "state": "shutdown",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "shutdown/standby/api/printer",
+      "path": "/api/printer",
+      "state": "shutdown",
+      "printState": "standby",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "shutdown/printing/api/server",
+      "path": "/api/server",
+      "state": "shutdown",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "shutdown/printing/api/job",
+      "path": "/api/job",
+      "state": "shutdown",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "shutdown/printing/api/printer",
+      "path": "/api/printer",
+      "state": "shutdown",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "shutdown/paused/api/server",
+      "path": "/api/server",
+      "state": "shutdown",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "shutdown/paused/api/job",
+      "path": "/api/job",
+      "state": "shutdown",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "shutdown/paused/api/printer",
+      "path": "/api/printer",
+      "state": "shutdown",
+      "printState": "paused",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "shutdown/complete/api/server",
+      "path": "/api/server",
+      "state": "shutdown",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "shutdown/complete/api/job",
+      "path": "/api/job",
+      "state": "shutdown",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "shutdown/complete/api/printer",
+      "path": "/api/printer",
+      "state": "shutdown",
+      "printState": "complete",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "shutdown/cancelled/api/server",
+      "path": "/api/server",
+      "state": "shutdown",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "shutdown/cancelled/api/job",
+      "path": "/api/job",
+      "state": "shutdown",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "shutdown/cancelled/api/printer",
+      "path": "/api/printer",
+      "state": "shutdown",
+      "printState": "cancelled",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "shutdown/error/api/server",
+      "path": "/api/server",
+      "state": "shutdown",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "server": "1.5.0",
+        "safemode": "settings"
+      }
+    },
+    {
+      "name": "shutdown/error/api/job",
+      "path": "/api/job",
+      "state": "shutdown",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Error"
+      }
+    },
+    {
+      "name": "shutdown/error/api/printer",
+      "path": "/api/printer",
+      "state": "shutdown",
+      "printState": "error",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 200.5
+        },
+        "extruder1": {
+          "temperature": 2.675,
+          "target": 210
+        },
+        "heater_bed": {
+          "temperature": -0.005,
+          "target": 60
+        },
+        "chamber": {
+          "temperature": 35
+        },
+        "temperature_sensor x": {
+          "temperature": 31
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 200.5
+          },
+          "tool1": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 210
+          },
+          "bed": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Error",
+          "flags": {
+            "operational": false,
+            "paused": false,
+            "printing": false,
+            "cancelling": false,
+            "pausing": false,
+            "error": true,
+            "ready": false,
+            "closedOrError": true
+          }
+        }
+      }
+    },
+    {
+      "name": "binary64/0.0",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 0.0,
+          "target": 0
+        },
+        "extruder0002": {
+          "temperature": 0.0
+        },
+        "extruder9007199254740993": {
+          "temperature": 0.0
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 0.0,
+            "offset": 0,
+            "target": 0
+          },
+          "tool2": {
+            "actual": 0.0,
+            "offset": 0,
+            "target": 0.0
+          },
+          "tool9007199254740993": {
+            "actual": 0.0,
+            "offset": 0,
+            "target": 0.0
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "binary64/-0.0",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": -0.0,
+          "target": 0
+        },
+        "extruder0002": {
+          "temperature": -0.0
+        },
+        "extruder9007199254740993": {
+          "temperature": -0.0
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": -0.0,
+            "offset": 0,
+            "target": 0
+          },
+          "tool2": {
+            "actual": -0.0,
+            "offset": 0,
+            "target": 0.0
+          },
+          "tool9007199254740993": {
+            "actual": -0.0,
+            "offset": 0,
+            "target": 0.0
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "binary64/0.125",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 0.125,
+          "target": 0
+        },
+        "extruder0002": {
+          "temperature": 0.125
+        },
+        "extruder9007199254740993": {
+          "temperature": 0.125
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 0.12,
+            "offset": 0,
+            "target": 0
+          },
+          "tool2": {
+            "actual": 0.12,
+            "offset": 0,
+            "target": 0.0
+          },
+          "tool9007199254740993": {
+            "actual": 0.12,
+            "offset": 0,
+            "target": 0.0
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "binary64/0.135",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 0.135,
+          "target": 0
+        },
+        "extruder0002": {
+          "temperature": 0.135
+        },
+        "extruder9007199254740993": {
+          "temperature": 0.135
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 0.14,
+            "offset": 0,
+            "target": 0
+          },
+          "tool2": {
+            "actual": 0.14,
+            "offset": 0,
+            "target": 0.0
+          },
+          "tool9007199254740993": {
+            "actual": 0.14,
+            "offset": 0,
+            "target": 0.0
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "binary64/1.005",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 1.005,
+          "target": 0
+        },
+        "extruder0002": {
+          "temperature": 1.005
+        },
+        "extruder9007199254740993": {
+          "temperature": 1.005
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 0
+          },
+          "tool2": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 0.0
+          },
+          "tool9007199254740993": {
+            "actual": 1.0,
+            "offset": 0,
+            "target": 0.0
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "binary64/2.675",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 2.675,
+          "target": 0
+        },
+        "extruder0002": {
+          "temperature": 2.675
+        },
+        "extruder9007199254740993": {
+          "temperature": 2.675
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 0
+          },
+          "tool2": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 0.0
+          },
+          "tool9007199254740993": {
+            "actual": 2.67,
+            "offset": 0,
+            "target": 0.0
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "binary64/39.995",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 39.995,
+          "target": 0
+        },
+        "extruder0002": {
+          "temperature": 39.995
+        },
+        "extruder9007199254740993": {
+          "temperature": 39.995
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 39.99,
+            "offset": 0,
+            "target": 0
+          },
+          "tool2": {
+            "actual": 39.99,
+            "offset": 0,
+            "target": 0.0
+          },
+          "tool9007199254740993": {
+            "actual": 39.99,
+            "offset": 0,
+            "target": 0.0
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "binary64/-0.005",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": -0.005,
+          "target": 0
+        },
+        "extruder0002": {
+          "temperature": -0.005
+        },
+        "extruder9007199254740993": {
+          "temperature": -0.005
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 0
+          },
+          "tool2": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 0.0
+          },
+          "tool9007199254740993": {
+            "actual": -0.01,
+            "offset": 0,
+            "target": 0.0
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "binary64/-1.005",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": -1.005,
+          "target": 0
+        },
+        "extruder0002": {
+          "temperature": -1.005
+        },
+        "extruder9007199254740993": {
+          "temperature": -1.005
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": -1.0,
+            "offset": 0,
+            "target": 0
+          },
+          "tool2": {
+            "actual": -1.0,
+            "offset": 0,
+            "target": 0.0
+          },
+          "tool9007199254740993": {
+            "actual": -1.0,
+            "offset": 0,
+            "target": 0.0
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "binary64/123.4567",
+      "path": "/api/printer",
+      "state": "ready",
+      "printState": "printing",
+      "heaters": {
+        "extruder": {
+          "temperature": 123.4567,
+          "target": 0
+        },
+        "extruder0002": {
+          "temperature": 123.4567
+        },
+        "extruder9007199254740993": {
+          "temperature": 123.4567
+        }
+      },
+      "ufp": true,
+      "webcam": {
+        "flipH": false,
+        "flipV": false,
+        "rotate90": false,
+        "streamUrl": "/webcam/?action=stream",
+        "webcamEnabled": true
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 123.46,
+            "offset": 0,
+            "target": 0
+          },
+          "tool2": {
+            "actual": 123.46,
+            "offset": 0,
+            "target": 0.0
+          },
+          "tool9007199254740993": {
+            "actual": 123.46,
+            "offset": 0,
+            "target": 0.0
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    },
+    {
+      "name": "disabled-ufp/configured-webcam",
+      "path": "/api/settings",
+      "state": "ready",
+      "printState": "standby",
+      "heaters": {},
+      "ufp": false,
+      "webcam": {
+        "flipH": true,
+        "flipV": false,
+        "rotate90": true,
+        "streamUrl": "/camera/stream",
+        "webcamEnabled": false
+      },
+      "expected": {
+        "plugins": {},
+        "feature": {
+          "sdSupport": false,
+          "temperatureGraph": false
+        },
+        "webcam": {
+          "flipH": true,
+          "flipV": false,
+          "rotate90": true,
+          "streamUrl": "/camera/stream",
+          "webcamEnabled": false
+        }
+      }
+    }
+  ],
+  "benchmarks": [
+    {
+      "path": "/api/version",
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "sampleMs": [
+        0.1313809771090746,
+        0.12915197294205427,
+        0.12961099855601788,
+        0.1283910241909325,
+        0.12870202772319317,
+        0.13032101560384035,
+        0.1371410326100886
+      ],
+      "medianMs": 0.12961099855601788,
+      "maximumMedianRatio": 1.5,
+      "input": {
+        "state": "ready",
+        "printState": "printing",
+        "heaters": {
+          "extruder": {
+            "temperature": 35.5,
+            "target": 200
+          },
+          "heater_bed": {
+            "temperature": 20,
+            "target": 60
+          }
+        }
+      },
+      "expected": {
+        "server": "1.5.0",
+        "api": "0.1",
+        "text": "OctoPrint (Moonraker node-test)"
+      }
+    },
+    {
+      "path": "/api/job",
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "sampleMs": [
+        2.5341760483570397,
+        2.52121698576957,
+        2.6155769592151046,
+        2.53578694537282,
+        2.553785976488143,
+        2.5439970195293427,
+        2.630267001222819
+      ],
+      "medianMs": 2.5439970195293427,
+      "maximumMedianRatio": 1.5,
+      "input": {
+        "state": "ready",
+        "printState": "printing",
+        "heaters": {
+          "extruder": {
+            "temperature": 35.5,
+            "target": 200
+          },
+          "heater_bed": {
+            "temperature": 20,
+            "target": 60
+          }
+        }
+      },
+      "expected": {
+        "job": {
+          "file": {
+            "name": null
+          },
+          "estimatedPrintTime": null,
+          "filament": {
+            "length": null
+          },
+          "user": null
+        },
+        "progress": {
+          "completion": null,
+          "filepos": null,
+          "printTime": null,
+          "printTimeLeft": null,
+          "printTimeOrigin": null
+        },
+        "state": "Printing"
+      }
+    },
+    {
+      "path": "/api/printer",
+      "iterations": 500,
+      "warmups": 2,
+      "samples": 7,
+      "sampleMs": [
+        3.5358070163056254,
+        3.58511705417186,
+        3.5886280238628387,
+        3.5707170027308166,
+        3.5759980091825128,
+        3.55891598155722,
+        3.6355479969643056
+      ],
+      "medianMs": 3.5759980091825128,
+      "maximumMedianRatio": 1.5,
+      "input": {
+        "state": "ready",
+        "printState": "printing",
+        "heaters": {
+          "extruder": {
+            "temperature": 35.5,
+            "target": 200
+          },
+          "heater_bed": {
+            "temperature": 20,
+            "target": 60
+          }
+        }
+      },
+      "expected": {
+        "temperature": {
+          "tool0": {
+            "actual": 35.5,
+            "offset": 0,
+            "target": 200
+          },
+          "bed": {
+            "actual": 20,
+            "offset": 0,
+            "target": 60
+          }
+        },
+        "state": {
+          "text": "Printing",
+          "flags": {
+            "operational": true,
+            "paused": false,
+            "printing": true,
+            "cancelling": false,
+            "pausing": false,
+            "error": false,
+            "ready": false,
+            "closedOrError": false
+          }
+        }
+      }
+    }
+  ],
+  "scope": "One-time actual pinned methods; cached upstream status and no IO. Ordinary Node tests consume this frozen artifact and do not execute Python."
+}

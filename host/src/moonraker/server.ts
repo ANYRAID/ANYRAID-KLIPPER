@@ -26,6 +26,8 @@ export interface MoonrakerNetworkOptions {
  thumbnails?:ThumbnailDownloads;
  /** Native multipart HTTP admission; lifetime belongs to the composition owner. */
  nativeUploads?:NativePrintUploads;
+ /** Configuration-owned slicer upload alias, same publication owner and limits. */
+ octoprint?:{enableUfp:boolean};
  /** Explicit process config reads, separately owned from the print device. */
  configFiles?:NativeConfigFiles;
  authorize(method:string,params:Readonly<Record<string,Json>>,request:NetworkAuthorization):AuthorizationResult|Promise<AuthorizationResult>;
@@ -136,8 +138,9 @@ export class MoonrakerNetwork {
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime,receiveUpload=nativeUploads?.captureUpload(this.#options.configFiles),nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted;
-  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&path==='/server/files/upload',isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
+  const octoprint=this.#options.octoprint,isOctoUpload=!!octoprint&&(request.url??'').split('?')[0]==='/api/files/local';
+  const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime,receiveUpload=nativeUploads?.captureUpload(isOctoUpload?undefined:this.#options.configFiles,isOctoUpload?{enableUfp:octoprint!.enableUfp}:undefined),nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted;
+  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&(path==='/server/files/upload'||isOctoUpload),isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
   if(request.headers.origin&&(this.#origins.has(request.headers.origin)||this.#options.cors?.matches(request.headers.origin))){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges, Location');}
@@ -150,7 +153,7 @@ export class MoonrakerNetwork {
    let reserved=0,outputReserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
    try{
     if(isUpload){
-     signal.throwIfAborted();response.setHeader('connection','close');
+     signal.throwIfAborted();if(isOctoUpload)await this.#options.authorize('api.files.local',{}, {request,transport:'http',signal});signal.throwIfAborted();response.setHeader('connection','close');
      const budget=8*65536;if(this.#buffered+budget>this.#maxBuffered)throw new ApiError(429,'Request buffer capacity exceeded');
      this.#buffered+=budget;reserved=budget;
      const result=await receiveUpload!(request,this.#context(request,'http',signal,undefined,nativeGenerationSignal,nativeGenerationRetiredAtAdmission));signal.throwIfAborted();
@@ -162,7 +165,7 @@ export class MoonrakerNetwork {
       const address=request.socket.localAddress??'127.0.0.1',host=request.headers.host??`${address.includes(':')?'['+address+']':address}:${request.socket.localPort}`;
       const encoded=item.path.split('/').map(part=>encodeURIComponent(part).replace(/[!'()*]/g,char=>'%'+char.charCodeAt(0).toString(16).toUpperCase())).join('/');
       // This listener is HTTP. Forwarded headers never select its origin.
-      response.setHeader('location',`http://${host}/server/files/${item.root}/${encoded}`);
+      response.setHeader('location',`http://${host}/${isOctoUpload?'api/files/moonraker':'server/files'}/${item.root}/${encoded}`);
      }
      response.statusCode=201;
      response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({...result,result}));return;
@@ -215,7 +218,7 @@ export class MoonrakerNetwork {
     }
     context.afterResponse=callback=>{(completion??=new ResponseCompletion(signal)).add(callback);};
     context.subscriptionConnection=()=>this.#subscriptionConnection(request,body,signal);
-    const result=isRPC?await this.#rpc.dispatch(body,context):JSON.stringify({result:await this.#options.endpoints!.invoke(path,request.method!,this.#options.endpoints!.parse(path,query,body,request.headers['content-type']??''),context)});signal.throwIfAborted();
+    let result:string|null;if(isRPC)result=await this.#rpc.dispatch(body,context);else{const endpoints=this.#options.endpoints!,value=await endpoints.invoke(path,request.method!,endpoints.parse(path,query,body,request.headers['content-type']??''),context);if(endpoints.wrapResult(path))result=JSON.stringify({result:value});else if(value===null){response.statusCode=204;result=null;}else result=JSON.stringify(value);}signal.throwIfAborted();
     if(result!==null&&Buffer.byteLength(result)>maxBytes){this.#error(response,500,'Response too large');return;}
     if(!response.destroyed){if(result!==null)response.setHeader('content-type','application/json; charset=UTF-8');if(completion){const sent=await new Promise<boolean>(resolve=>{const closed=()=>{response.off('finish',finished);resolve(false);},finished=()=>{response.off('close',closed);resolve(true);};response.once('close',closed);response.once('finish',finished);response.end(result??undefined);});if(!completion.complete(sent))response.destroy(completion.error);}else response.end(result??undefined);}
    }catch(error){

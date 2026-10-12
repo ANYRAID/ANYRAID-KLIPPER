@@ -3,10 +3,10 @@ import {parseRequestJson,JsonNumberError} from './json.ts';
 // and DynamicRequestHandler. GPL-3.0-or-later.
 import {JsonRpcDispatcher,ApiError,validateJson,authorizedContext,type Json,type RpcContext,type Transport} from './rpc.ts';
 export type RequestVerb='GET'|'POST'|'DELETE';
-export interface EndpointOptions{endpoint:string;methods:readonly RequestVerb[];transports?:readonly Transport[];remote?:boolean;rpcVerbPrefix?:boolean;}
+export interface EndpointOptions{endpoint:string;methods:readonly RequestVerb[];transports?:readonly Transport[];remote?:boolean;rpcVerbPrefix?:boolean;wrapResult?:boolean;pathParameter?:string;}
 export type EndpointHandler=(params:Readonly<Record<string,Json>>,verb:RequestVerb,context:RpcContext)=>Json|Promise<Json>;
 export type EndpointWrapper=(path:string,handler:EndpointHandler)=>EndpointHandler;
-interface Entry{path:string;methods:readonly RequestVerb[];rpcNames:readonly string[];objects:boolean;handler:EndpointHandler;transports:ReadonlySet<Transport>;}
+interface Entry{path:string;methods:readonly RequestVerb[];rpcNames:readonly string[];objects:boolean;handler:EndpointHandler;transports:ReadonlySet<Transport>;wrapResult:boolean;parameter?:string;}
 const verbs:readonly RequestVerb[]=['GET','POST','DELETE'];
 const excluded=new Set(['_','token','access_token','connection_id']);
 function argumentsFrom(encoded:string,args:Map<string,string>):void{for(const item of encoded.split('&')){if(!item)continue;const at=item.indexOf('='),key=decodeURIComponent((at<0?item:item.slice(0,at)).replace(/\+/g,' ')),value=decodeURIComponent((at<0?'':item.slice(at+1)).replace(/\+/g,' ')).replace(/[\x00-\x08\x0e-\x1f]/g,' ').trim();args.set(key,value);if(args.size>1024)throw new ApiError(400,'Too many request arguments');}}
@@ -42,17 +42,21 @@ export class EndpointRegistry{
   const methods=remote?['GET','POST'] as const:verbs.filter(v=>options.methods.includes(v));if(!methods.length||!remote&&(methods.length!==options.methods.length))throw new Error('Invalid endpoint request methods');
   const parts=path.slice(1).split('/'),name=parts.at(-1)!,names=remote||methods.length===1&&!options.rpcVerbPrefix?[parts.join('.')]:methods.map(v=>[...parts.slice(0,-1),`${v.toLowerCase()}_${name}`].join('.'));
   const rpcEnabled=remote||!(transports.size===1&&transports.has('http'));if(rpcEnabled&&names.some(n=>this.dispatcher.has(n)))throw new Error('RPC method already registered');
+  if(options.wrapResult!==undefined&&typeof options.wrapResult!=='boolean'||options.pathParameter!==undefined&&(!/^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(options.pathParameter)||rpcEnabled)||options.wrapResult===false&&rpcEnabled)throw new Error('Raw/dynamic endpoints require HTTP-only transport');
   const wrapped=this.#wrap?.(path,handler)??handler;
   const invoke:EndpointHandler=(params,verb,context)=>{if(this.#entries.get(path)!==entry)throw new ApiError(503,'Endpoint owner has retired');return wrapped(params,verb,context);};
-  const entry:Entry={path,methods:[...methods],rpcNames:names,objects:remote&&endpoint.startsWith('objects/'),handler:invoke,transports};
+  const entry:Entry={path,methods:[...methods],rpcNames:names,objects:remote&&endpoint.startsWith('objects/'),handler:invoke,transports,wrapResult:options.wrapResult!==false,parameter:options.pathParameter};
   if(rpcEnabled)for(let i=0;i<names.length;i++)this.dispatcher.register(names[i],[...transports],(params,context)=>invoke(params,methods[i],context));
   this.#entries.set(path,entry);if(transports.has('http'))this.#http.set(path,entry);
   return ()=>{if(this.#entries.get(path)!==entry)return;this.#entries.delete(path);this.#http.delete(path);if(rpcEnabled)for(const name of names)this.dispatcher.remove(name);};
  }
- allowed(path:string):readonly RequestVerb[]|undefined{const entry=this.#http.get(path);return entry?[...entry.methods]:undefined;}
- parse(path:string,query:string,body:Uint8Array,contentType:string):Record<string,Json>{const entry=this.#http.get(path);if(!entry)throw new ApiError(404,'Not Found');return parseRestArguments(query,body,contentType,entry.objects);}
+ #lookup(path:string):Entry|undefined{const exact=this.#http.get(path);if(exact&&!exact.parameter)return exact;if(path.length>8192)return undefined;for(const entry of this.#http.values())if(entry.parameter&&path.startsWith(entry.path+'/')&&path.length>entry.path.length+1)return entry;return undefined;}
+ wrapResult(path:string):boolean{return this.#lookup(path)?.wrapResult??true;}
+ allowed(path:string):readonly RequestVerb[]|undefined{const entry=this.#lookup(path);return entry?[...entry.methods]:undefined;}
+ parse(path:string,query:string,body:Uint8Array,contentType:string):Record<string,Json>{const entry=this.#lookup(path);if(!entry)throw new ApiError(404,'Not Found');const result=parseRestArguments(query,body,contentType,entry.objects);if(entry.parameter){if(Object.hasOwn(result,entry.parameter))throw new ApiError(400,'Path parameter cannot be overridden');try{result[entry.parameter]=decodeURIComponent(path.slice(entry.path.length+1));}catch{throw new ApiError(400,'Invalid path encoding');}}return result;}
  async invoke(path:string,verb:string,params:Record<string,Json>,context:RpcContext):Promise<Json>{
-  const entry=this.#http.get(path);if(!entry)throw new ApiError(404,'Not Found');const at=entry.methods.indexOf(verb as RequestVerb);if(at<0)throw new ApiError(405,'Method Not Allowed');
+  const entry=this.#lookup(path);if(!entry)throw new ApiError(404,'Not Found');const at=entry.methods.indexOf(verb as RequestVerb);if(at<0)throw new ApiError(405,'Method Not Allowed');
+  if(entry.parameter){let expected:string;try{expected=decodeURIComponent(path.slice(entry.path.length+1));}catch{throw new ApiError(400,'Invalid path encoding');}if(params[entry.parameter]!==expected)throw new ApiError(400,'Path parameter mismatch');}
   validateJson(params);context.signal.throwIfAborted();const authorized=authorizedContext(context,await context.authorize(entry.rpcNames[at]??entry.rpcNames[0],params));const result=await entry.handler(params,verb as RequestVerb,authorized);context.signal.throwIfAborted();validateJson(result);return result;
  }
 }
