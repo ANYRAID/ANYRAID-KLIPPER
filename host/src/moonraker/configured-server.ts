@@ -442,7 +442,7 @@ export class ConfiguredMoonraker {
    context?.signal?.throwIfAborted();
    const ldapOptions=reader.hasSection('ldap')?await readLdapOptions(reader,templates?{...context,render:(source,signal)=>{signal.throwIfAborted();const template=templates.createTemplate(source);try{const value=template.render();signal.throwIfAborted();return value;}finally{template.close();}}}:context):undefined;
    ldap=ldapOptions?new (await import('./ldap-authorization.ts')).LdapAuthorization(ldapOptions):undefined;
-   const {cors,...policy}=readAuthorizationOptions(reader,options.authorization.issuer,ldap);
+   const {cors,...policy}=readAuthorizationOptions(reader,options.authorization.issuer,ldap,(address,signal)=>{if(!auth)throw new ApiError(503,'Authorization unavailable');return auth.resolveTrustedAddress(address,signal);});
    server=new ConfiguredMoonraker(reader,{...configuredOptions,...cors?{cors}:{}},automatic);server.#ldap=ldap;server.#templates=templates;
    server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);
    auth=await ApiKeyAuthorization.open(options.database,policy);server.#authorization=auth;

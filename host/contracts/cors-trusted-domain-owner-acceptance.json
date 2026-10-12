@@ -1,0 +1,1005 @@
+{
+  "schema": 1,
+  "scope": "Configured CORS numeric Origin fallback shares original trusted hostname/NSS policy; browser origin permission remains separate from RPC/print identity. Complete Moonraker and Python retirement remain open.",
+  "upstream": {
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "path": "moonraker/components/authorization.py",
+    "sha256": "1ee62abc536cdb83e9efe65b07bf05114c9244137cc61befb1073dc54f22bc11",
+    "behavior": "check_cors unmatched nonempty rules calls _check_authorized_ip for numeric Origin; same NSS policy/cache as authentication, without force-login grant"
+  },
+  "baselineHead": "8bd11bdb82452280d1ebda05d0da6d4412e58942",
+  "sourceSha256": {
+    "host/src/moonraker/cors-policy.ts": "1c8b23b60850ed2aa646c9e75ff07f444c807e26af74ad833a8a60359d2d2613",
+    "host/src/moonraker/api-key-authorization.ts": "7fb0c5284c7f45f8eaedb37df87a1bac0b45319b6c39b01c662014ca66684070",
+    "host/src/moonraker/authorization-config.ts": "e62ee2418c69116f4f14d337e1ba4b752d509b8849a4ce3a8c97636eb23e1961",
+    "host/src/moonraker/configured-server.ts": "e340d5f7c12c87ee771dcca9253b7c0c5fdc9445e15cd0fc3244977a801cb6e6",
+    "host/src/moonraker/server.ts": "5824ffb7ca71b547baedcb35a663147d5808365b212872ae8ec0ee6cccb464f2",
+    "host/test/cors-trusted-domain-owner.test.ts": "1c2a6405b6a0eede856904a97bdfd4e386aa3729d3a49a0f5d8d7b4c14a710cb",
+    "host/test/configured-cors.test.ts": "d8b3a4eb983eabdd2c8c188bbe1eb1b3fb7a8f067094fb74b0289f154be4d232",
+    "host/test/cors-policy.test.ts": "6b8e84a328893b3ebc5ae1dab27e572c07f4c7a055a1ad08d3f5ed6b2ba0c681",
+    "host/test/moonraker-network.test.ts": "73607779b1b97531ece4caf18f88b03bb92b3cd4b67c266d563d8bc7b8869a46",
+    "host/test/trusted-domains-network.test.ts": "7cba09d4a7ba998b6900abd370fbb7b863892ade14746c5b3ac5df609e174965",
+    "host/test/authorization-config.test.ts": "2783dba954184bbb392aaecffe9db17ab6a0dc9693bb8a7bf45f8c309a11fb63",
+    "host/test/configured-authorization.test.ts": "deb020ddbfa7ec039ed3152750396e7189fceac6f18f0b241843cd16cd037ce6",
+    "host/bench/moonraker-configured-server.ts": "e77af34828c8eba75b92293c57d6bc54ab0e792825659b6bad8c50220f365831",
+    "host/acceptance/product-compiled-journey.test.ts": "5227168e7c57be4c97b749b067fc0c16f7d35ba6fd9131afad3e513f8620a413",
+    "host/contracts/moonraker-cors-reference.json": "a1d13f275b648203e36e6ec4a4d723e763c7fefbefaa3d707282862e20756742"
+  },
+  "admission": {
+    "rawPolicyOwner": "ApiKeyAuthorization.resolveTrustedAddress -> original TrustedClients",
+    "fastPath": "No Origin, explicit policy patterns, numeric trusted IPs and cached addresses stay synchronous",
+    "boundary": "Only canonical HTTP(S) numeric Origin with a nonempty unmatched CORS policy; named Origin is not looked up; bracketed IPv6 fallback exclusion remains",
+    "authorization": "Origin permission grants no identity. Bad key/JWT and force-login rejection remain 401 with admitted response headers.",
+    "lifetime": "HTTP and pending upgrades are tracked before async query, original timeout/cancellation/close and request/connection capacities apply; upgrade EOF also cancels; recheck before handleUpgrade",
+    "limits": "Original five-second NSS process timeout, four children/sixteen addresses/4096 cache entries, 84000-second cache; no new resolver or lifetime"
+  },
+  "tests": {
+    "source": {
+      "tests": 44,
+      "pass": 44,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "compiled": {
+      "tests": 44,
+      "pass": 44,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "product": {
+      "tests": 44,
+      "pass": 44,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  },
+  "deterministicRed": {
+    "preflight": {
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "actual": 403,
+      "expected": 204
+    },
+    "upgradeDisconnect": {
+      "tests": 39,
+      "pass": 38,
+      "fail": 1,
+      "error": "condition timed out",
+      "fix": "Observe upgraded socket EOF as well as close; original same input passes"
+    }
+  },
+  "performance": {
+    "network": {
+      "pairs": [
+        {
+          "round": 0,
+          "owner": "manual",
+          "route": "http",
+          "before": {
+            "medianMs": 43.27797999999984,
+            "p95Ms": 45.36762099999987
+          },
+          "after": {
+            "medianMs": 43.85384500000009,
+            "p95Ms": 45.890356999999995
+          },
+          "ratio": 1.0133061894293645,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 0,
+          "owner": "manual",
+          "route": "ws",
+          "before": {
+            "medianMs": 29.65929499999993,
+            "p95Ms": 31.445224000000053
+          },
+          "after": {
+            "medianMs": 27.603382999999894,
+            "p95Ms": 30.841927999999825
+          },
+          "ratio": 0.9306823712431452,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 0,
+          "owner": "manual",
+          "route": "startup",
+          "before": {
+            "medianMs": 8.673151999999845,
+            "p95Ms": 10.166327999999794
+          },
+          "after": {
+            "medianMs": 9.023746000000301,
+            "p95Ms": 11.025176999999985
+          },
+          "ratio": 1.0404229050753937,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 0,
+          "owner": "configured",
+          "route": "http",
+          "before": {
+            "medianMs": 42.36671999999999,
+            "p95Ms": 45.83261700000003
+          },
+          "after": {
+            "medianMs": 43.63424299999997,
+            "p95Ms": 52.11131399999999
+          },
+          "ratio": 1.0299178931009996,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 0,
+          "owner": "configured",
+          "route": "ws",
+          "before": {
+            "medianMs": 30.66440599999987,
+            "p95Ms": 37.180815000000166
+          },
+          "after": {
+            "medianMs": 25.946566000000075,
+            "p95Ms": 28.62708400000008
+          },
+          "ratio": 0.846146049592488,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 0,
+          "owner": "configured",
+          "route": "startup",
+          "before": {
+            "medianMs": 12.63302399999975,
+            "p95Ms": 16.47642500000029
+          },
+          "after": {
+            "medianMs": 12.893776999999773,
+            "p95Ms": 14.712037000000237
+          },
+          "ratio": 1.020640584550463,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 1,
+          "owner": "manual",
+          "route": "http",
+          "before": {
+            "medianMs": 39.15602599999988,
+            "p95Ms": 46.690356000000065
+          },
+          "after": {
+            "medianMs": 39.74448200000006,
+            "p95Ms": 44.03379700000005
+          },
+          "ratio": 1.0150284914000256,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 1,
+          "owner": "manual",
+          "route": "ws",
+          "before": {
+            "medianMs": 30.526914000000033,
+            "p95Ms": 34.00623099999984
+          },
+          "after": {
+            "medianMs": 27.357719999999972,
+            "p95Ms": 33.39689499999997
+          },
+          "ratio": 0.8961836103053176,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 1,
+          "owner": "manual",
+          "route": "startup",
+          "before": {
+            "medianMs": 9.016635999999835,
+            "p95Ms": 9.90389499999992
+          },
+          "after": {
+            "medianMs": 8.525849999999991,
+            "p95Ms": 9.802924000000075
+          },
+          "ratio": 0.945568835206406,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 1,
+          "owner": "configured",
+          "route": "http",
+          "before": {
+            "medianMs": 41.485570999999936,
+            "p95Ms": 46.66060600000014
+          },
+          "after": {
+            "medianMs": 40.13628599999993,
+            "p95Ms": 45.97895799999992
+          },
+          "ratio": 0.967475800200508,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 1,
+          "owner": "configured",
+          "route": "ws",
+          "before": {
+            "medianMs": 29.7414160000003,
+            "p95Ms": 31.486333999999715
+          },
+          "after": {
+            "medianMs": 27.68371400000001,
+            "p95Ms": 32.826188
+          },
+          "ratio": 0.9308135833209734,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 1,
+          "owner": "configured",
+          "route": "startup",
+          "before": {
+            "medianMs": 12.567593000000215,
+            "p95Ms": 18.96856099999968
+          },
+          "after": {
+            "medianMs": 12.157918999999765,
+            "p95Ms": 16.045180000000073
+          },
+          "ratio": 0.9674023498373601,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 2,
+          "owner": "manual",
+          "route": "http",
+          "before": {
+            "medianMs": 42.041337,
+            "p95Ms": 44.50771299999997
+          },
+          "after": {
+            "medianMs": 41.63278300000002,
+            "p95Ms": 43.02261700000008
+          },
+          "ratio": 0.9902820883170299,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 2,
+          "owner": "manual",
+          "route": "ws",
+          "before": {
+            "medianMs": 29.76236599999993,
+            "p95Ms": 39.74965199999997
+          },
+          "after": {
+            "medianMs": 27.625244000000066,
+            "p95Ms": 31.593556000000035
+          },
+          "ratio": 0.9281938136235585,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 2,
+          "owner": "manual",
+          "route": "startup",
+          "before": {
+            "medianMs": 8.6430620000001,
+            "p95Ms": 10.607613000000129
+          },
+          "after": {
+            "medianMs": 8.381519000000026,
+            "p95Ms": 11.513183000000026
+          },
+          "ratio": 0.9697395436941131,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 2,
+          "owner": "configured",
+          "route": "http",
+          "before": {
+            "medianMs": 42.44569000000001,
+            "p95Ms": 45.610044000000016
+          },
+          "after": {
+            "medianMs": 42.534951999999976,
+            "p95Ms": 48.0412399999999
+          },
+          "ratio": 1.0021029697008097,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 2,
+          "owner": "configured",
+          "route": "ws",
+          "before": {
+            "medianMs": 28.462523000000147,
+            "p95Ms": 30.733945999999833
+          },
+          "after": {
+            "medianMs": 28.695054000000027,
+            "p95Ms": 31.000959000000194
+          },
+          "ratio": 1.0081697255018425,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 2,
+          "owner": "configured",
+          "route": "startup",
+          "before": {
+            "medianMs": 12.443521999999575,
+            "p95Ms": 15.186761000000388
+          },
+          "after": {
+            "medianMs": 12.453392000000349,
+            "p95Ms": 16.630367000000206
+          },
+          "ratio": 1.000793183794811,
+          "limit": 1.5,
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    "cached": {
+      "node": "v26.10.0",
+      "coldNssMs": 25.812275,
+      "iterations": 100000,
+      "warmups": 3,
+      "samplesMs": [
+        249.606492,
+        253.01010799999995,
+        252.4173119999998,
+        250.92366700000002,
+        249.89186500000005
+      ],
+      "medianMs": 250.92366700000002,
+      "microsecondsPerRequest": 2.50923667,
+      "scope": "Actual NSS localhost followed by shared-cache CORS checks; synthetic Origin, desktop CPU only; new path had no prior successful baseline; no physical current or throughput claim"
+    },
+    "networkIdentity": {
+      "source": "host/bench/moonraker-configured-server.ts",
+      "sourceSha256": "e77af34828c8eba75b92293c57d6bc54ab0e792825659b6bad8c50220f365831",
+      "sequence": [
+        "before",
+        "after",
+        "after",
+        "before",
+        "before",
+        "after"
+      ],
+      "changes": "Only TS stripping/import roots; original 200 HTTP, 500 WS, 30 startup cycles, 3 warmups and 11 samples unchanged",
+      "scope": "No Origin and inert authorization, cannot establish domain-query or physical printing performance",
+      "ratioLimit": 1.5
+    },
+    "scope": "Original network workload without Origin and inert authorization; cached CORS CPU is supplemental new path without successful old baseline. No target-board/physical throughput claim."
+  },
+  "product": {
+    "path": "/home/dek02/.cache/codex/tmp/product-host-cors-domain-owner-oct13",
+    "manifestSha256": "c086b3565d54374b9cca71288b1ea0bf9d4b8ab49fa7a767ab3201402252c9f9",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444",
+    "files": 690,
+    "dependencies": 18,
+    "changed": [
+      "host/src/moonraker/api-key-authorization.js",
+      "host/src/moonraker/authorization-config.js",
+      "host/src/moonraker/configured-server.js",
+      "host/src/moonraker/cors-policy.js",
+      "host/src/moonraker/server.js"
+    ],
+    "nativeSourcesVerified": 75,
+    "nativeOutputsUnchanged": true,
+    "scope": "Five emitted JS changes; original native/math/motion output reused, no fresh native build"
+  },
+  "originalMixed": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skipped": 0,
+    "origin": "https://fluidd.example.com",
+    "environmentVariable": "ANYRAID_BENCH_CORS_ORIGIN",
+    "metrics": {
+      "namespace": true,
+      "automaticQueue": false,
+      "motionReportLoad": true,
+      "objectPriming": false,
+      "earlyObjectCancellation": true,
+      "fileMoveOwnership": [
+        {
+          "generation": 1,
+          "group": 0,
+          "before": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 9672.415418
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 9806.438892
+          },
+          "durationMs": 134.03665499999988
+        },
+        {
+          "generation": 1,
+          "group": 1,
+          "before": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 13419.831094
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 13694.396043
+          },
+          "durationMs": 274.5684089999995
+        },
+        {
+          "generation": 1,
+          "group": 2,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 16155.233276
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 16220.53275
+          },
+          "durationMs": 65.29998399999931
+        },
+        {
+          "generation": 1,
+          "group": 3,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 18875.994333
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 19028.643366
+          },
+          "durationMs": 152.64924299999984
+        },
+        {
+          "generation": 1,
+          "group": 4,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 21675.000383
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 21738.344896
+          },
+          "durationMs": 63.341512999999395
+        },
+        {
+          "generation": 1,
+          "group": 5,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 23617.717882
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 23683.493241
+          },
+          "durationMs": 65.7759389999992
+        },
+        {
+          "generation": 1,
+          "group": 6,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 24910.438232
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 24970.719993
+          },
+          "durationMs": 60.281551000000036
+        },
+        {
+          "generation": 1,
+          "group": 7,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 26162.44034
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 26225.826614
+          },
+          "durationMs": 63.38677400000233
+        },
+        {
+          "generation": 2,
+          "group": 0,
+          "before": {
+            "state": "printing",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 44613.79243
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 44684.478191
+          },
+          "durationMs": 70.6862209999963
+        },
+        {
+          "generation": 2,
+          "group": 1,
+          "before": {
+            "state": "printing",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 46586.29724
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 46714.28177
+          },
+          "durationMs": 127.984709999997
+        },
+        {
+          "generation": 2,
+          "group": 2,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 49199.37914
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 49320.901092
+          },
+          "durationMs": 121.52218200000061
+        },
+        {
+          "generation": 2,
+          "group": 3,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 51948.459937
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 52111.737843
+          },
+          "durationMs": 163.27401600000303
+        },
+        {
+          "generation": 2,
+          "group": 4,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 54110.497084
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 54232.633692
+          },
+          "durationMs": 122.1371880000006
+        },
+        {
+          "generation": 2,
+          "group": 5,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 55583.99939
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 55641.249919
+          },
+          "durationMs": 57.250819000000774
+        },
+        {
+          "generation": 2,
+          "group": 6,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 56720.651495
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 56775.758711
+          },
+          "durationMs": 55.107466000001295
+        },
+        {
+          "generation": 2,
+          "group": 7,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 57928.460027
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-b4d7277c-6dae-4de1-99f0-ca807db4cb63",
+            "fileId": "authorized-file",
+            "atMs": 57991.539098
+          },
+          "durationMs": 63.07476100000349
+        }
+      ],
+      "movesPrintingGenerations": [
+        1,
+        2
+      ],
+      "configListRequests": 1706,
+      "configListP99Ms": 8.325477999998839,
+      "configDownloads": 1706,
+      "configDownloadP99Ms": 12.01593800000046,
+      "liveMotionSamples": 5252,
+      "liveExtrusionSamples": 1408,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 9.447312921,
+        "print_duration": 4.273512616999999,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "c086b3565d54374b9cca71288b1ea0bf9d4b8ab49fa7a767ab3201402252c9f9",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 8253,
+      "phaseP99Ms": 8.784723999997368,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 272,
+          "writes": 43
+        },
+        {
+          "statusReads": 176,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 1653,
+      "historyP99Ms": 62.20060100000046,
+      "lifecycleShutdowns": 8,
+      "copyRequests": 16,
+      "copyP95Ms": 118.14336699999694,
+      "copyOverwriteRequests": 16,
+      "copyOverwriteP95Ms": 205.89867800000138,
+      "directoryCopyRequests": 16,
+      "directoryCopyP95Ms": 266.12829899999997,
+      "copiesDuringPrint": 4,
+      "directoryCopiesDuringPrint": 2,
+      "fileNotifications": 1132,
+      "fileNotificationP95Ms": 96.90324099999998,
+      "movesDuringPrint": 4,
+      "directoryMoveRequests": 16,
+      "directoryMoveP95Ms": 588.1789209999988,
+      "directoryMovesDuringPrint": 4,
+      "moveRequests": 16,
+      "moveP95Ms": 272.4636960000007,
+      "deleteRequests": 16,
+      "deleteP95Ms": 283.9410480000006,
+      "publicThumbnailRequests": 16,
+      "publicThumbnailP95Ms": 116.52304800000275,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 91.13866899999994,
+      "metadataRequests": 16,
+      "metadataP95Ms": 216.2986579999997,
+      "downloads": 16,
+      "downloadP95Ms": 62.10637999999926,
+      "wireCommands": 218,
+      "wireSteps": 6996,
+      "minimumStepLeadMs": 89.552,
+      "directoryRequests": 6643,
+      "directoryP99Ms": 46.4927749999988,
+      "statusRequests": 33011,
+      "uploads": 16,
+      "statusP99Ms": 8.362938999998732,
+      "uploadP95Ms": 41.478910999998334,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.281471,
+            "maxMs": 19.070975
+          },
+          "cpu": {
+            "user": 12689770,
+            "system": 2170734
+          },
+          "rss": 373530624
+        },
+        {
+          "loop": {
+            "p99Ms": 1.969151,
+            "maxMs": 12.894207
+          },
+          "cpu": {
+            "user": 7082854,
+            "system": 1430798
+          },
+          "rss": 413310976
+        }
+      ]
+    },
+    "scope": "One unmodified namespace/nativeAuthorization/apiLoad simulated-MCU scenario with existing admitted literal-pattern CORS input; not DNS-stall-during-print, full matrix, real UI or target hardware"
+  },
+  "previousCi": {
+    "schema": 1,
+    "head": "8bd11bdb82452280d1ebda05d0da6d4412e58942",
+    "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+    "mergeCheckout": "68b96856d537fc3fc8235061092172cbd5a6bf75",
+    "jobs": [
+      {
+        "id": 115012043294,
+        "run_id": 38309672671,
+        "name": "checks",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012043535,
+        "run_id": 38309672671,
+        "name": "sanitizer (asan)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012043615,
+        "run_id": 38309672671,
+        "name": "sanitizer (ubsan)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115017181843,
+        "run_id": 38309672671,
+        "name": "host",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012043186,
+        "run_id": 38309672607,
+        "name": "build",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012044810,
+        "run_id": 38309672623,
+        "name": "motion (26.9.0, off, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012044978,
+        "run_id": 38309672623,
+        "name": "motion (26.10.0, default, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012045000,
+        "run_id": 38309672623,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012045040,
+        "run_id": 38309672623,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012045068,
+        "run_id": 38309672623,
+        "name": "motion (26.10.0, off, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012045072,
+        "run_id": 38309672623,
+        "name": "motion (26.9.0, default, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012045100,
+        "run_id": 38309672623,
+        "name": "motion (26.9.0, default, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012045107,
+        "run_id": 38309672623,
+        "name": "motion (26.10.0, off, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012045119,
+        "run_id": 38309672623,
+        "name": "motion (26.10.0, default, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115012045195,
+        "run_id": 38309672623,
+        "name": "motion (26.9.0, off, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "ordinary": {
+      "jobId": 115012043294,
+      "tests": 5092,
+      "pass": 5092,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "scope": "Exact driver-current-clock head terminal; merge checkout does not mean merged into develop, and does not cover following CORS owner change or close historical gates."
+  },
+  "archive": {
+    "path": "host/contracts/cors-trusted-domain-owner-evidence.json.gz",
+    "sha256": "c78c40b917ffe3bbaba7c796abcb359acbdba863cb0a7792c7693180bc82f07d",
+    "entries": 96,
+    "uncompressedBytes": 3173596
+  },
+  "redactions": [
+    {
+      "name": "final/original-mixed.log",
+      "originalSha256": "819c858cf5484132667fc629e301e1cba5944bd321857ba1c87039ea5bc6a3c0"
+    },
+    {
+      "name": "raw/cors-domain-owner-original-mixed-oct13.log",
+      "originalSha256": "819c858cf5484132667fc629e301e1cba5944bd321857ba1c87039ea5bc6a3c0"
+    },
+    {
+      "name": "preparation/seal-cors-domain-owner-oct13.mjs",
+      "originalSha256": "2e226326fbed9c5b198ce5dfe6fb61ac245545c665065924a131c95c44b22f3f"
+    }
+  ],
+  "limitations": [
+    "All tracked Python retirement/default entry, complete Moonraker/Jinja/msgspec and consumer macro journeys remain open",
+    "Python-only CORS regex constructs and proxy delegation remain unsupported; existing canonical Origin and IPv6 boundaries retained",
+    "Original UI 1.5 failures, native compiler stability and G3 3.680611371237319e-8 > 1e-8 remain open",
+    "Full Fluidd/Mainsail fault/SIGKILL/Cura and new-head CI remain open",
+    "No target-board throughput or Cycnumbris 500 physical hardware acceptance; other machines last",
+    "task -> develop -> master integration remains required"
+  ]
+}

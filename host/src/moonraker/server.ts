@@ -51,6 +51,7 @@ export interface MoonrakerNetworkOptions {
  requestTimeoutMs?:number;shutdownTimeoutMs?:number;maxBufferedBytes?:number;maxOutputBytes?:number;
 }
 interface Peer{socket:WebSocket;request:IncomingMessage;abort:AbortController;active:number;alive:boolean;}
+interface OriginAdmission{allowed:boolean;cors:boolean;}
 const maxBytes=1024*1024;
 function bounded(value:number|undefined,fallback:number,max:number):number{const n=value??fallback;if(!Number.isInteger(n)||n<1||n>max)throw new RangeError('Invalid network capacity or timeout');return n;}
 function bytes(data:RawData):Buffer{return Buffer.isBuffer(data)?data:Array.isArray(data)?Buffer.concat(data):Buffer.from(data);}
@@ -60,6 +61,7 @@ export class MoonrakerNetwork {
  #clientCalls:ClientCalls|undefined;#clients=new RemoteClients();#notifications:NotificationFanout|undefined;#clientRequests:ClientRequests|undefined;
  #rpc:JsonRpcDispatcher;#options:MoonrakerNetworkOptions;#server:Server;#ws:WebSocketServer;
  #peers=new Map<number,Peer>();#nextId=1;#requests=new Map<AbortController,Promise<void>>();#sockets=new Set<Duplex>();
+ #upgrades=new Set<Duplex>();
  #outputBytes=0;#maximumOutputBytes:number;
  #buffered=0;#maxBuffered:number;#maxConnections:number;#maxRequests:number;#perSocket:number;#timeout:number;#shutdownTimeout:number;#origins:Set<string>;
  #opening:Promise<void>|undefined;#heartbeat:ReturnType<typeof setInterval>|undefined;#phase:'new'|'starting'|'listening'|'closing'|'closed'='new';#close:Promise<void>|undefined;
@@ -82,12 +84,7 @@ export class MoonrakerNetwork {
   this.#server=createServer({maxHeaderSize:16384,requestTimeout:30000,headersTimeout:10000},(request,response)=>this.#http(request,response));this.#server.maxConnections=this.#maxConnections+this.#maxRequests;
   this.#ws=new WebSocketServer({noServer:true,maxPayload:maxBytes,perMessageDeflate:false});
   this.#server.on('connection',socket=>{this.#sockets.add(socket);socket.on('close',()=>this.#sockets.delete(socket));});
-  this.#server.on('upgrade',(request,socket,head)=>{
-   if(this.#phase!=='listening'||this.#peers.size>=this.#maxConnections){this.#rejectUpgrade(socket,503);return;}
-   if(request.url?.split('?')[0]!=='/websocket'){this.#rejectUpgrade(socket,404);return;}
-   if(!this.#origin(request)){this.#rejectUpgrade(socket,403);return;}
-   this.#ws.handleUpgrade(request,socket,head,ws=>this.#connected(request,ws));
-  });
+  this.#server.on('upgrade',(request,socket,head)=>this.#upgrade(request,socket,head));
   this.#server.on('clientError',(_error,socket)=>{if(socket.writable)socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');});
   rpc.register('server.websocket.id',['websocket'],(_p,context)=>({websocket_id:context.connectionId!}));
   rpc.register('server.connection.identify',['websocket'],(params,context)=>{const client=this.#clients.identify(context.connectionId!,params);if(client.identity?.type==='agent')this.#agentEvent(client.id,{agent:client.identity.name,event:'connected',data:{...client.identity}});return {connection_id:client.id};});
@@ -116,9 +113,28 @@ export class MoonrakerNetwork {
   catch(error){if(this.#phase==='starting')this.#phase='new';throw error;}
   this.#heartbeat=setInterval(()=>{for(const peer of this.#peers.values()){if(peer.socket.readyState!==WebSocket.OPEN)continue;if(!peer.alive){peer.socket.terminate();continue;}peer.alive=false;peer.socket.ping();}},10000);this.#heartbeat.unref();return this.#server.address() as AddressInfo;
  }
- #origin(request:IncomingMessage):boolean{
-  const origin=request.headers.origin;if(origin===undefined)return true;
-  try{const url=new URL(origin);return this.#origins.has(origin)||this.#options.cors?.matches(origin)===true||['http:','https:'].includes(url.protocol)&&url.origin===origin&&url.host.toLowerCase()===request.headers.host?.toLowerCase();}catch{return false;}
+ #origin(request:IncomingMessage,signal:AbortSignal):OriginAdmission|Promise<OriginAdmission>{
+  const origin=request.headers.origin;if(origin===undefined)return {allowed:true,cors:false};
+  try{
+   if(this.#origins.has(origin)||this.#options.cors?.matches(origin)===true)return {allowed:true,cors:true};
+   const url=new URL(origin);if(['http:','https:'].includes(url.protocol)&&url.origin===origin&&url.host.toLowerCase()===request.headers.host?.toLowerCase())return {allowed:true,cors:false};
+  }catch{return {allowed:false,cors:false};}
+  const grant=this.#options.cors?.check(origin,signal)??false;return grant instanceof Promise?grant.then(allowed=>({allowed,cors:allowed})):{allowed:grant,cors:grant};
+ }
+ #upgrade(request:IncomingMessage,socket:Duplex,head:Buffer):void{
+  if(this.#phase!=='listening'||this.#peers.size+this.#upgrades.size>=this.#maxConnections||this.#requests.size>=this.#maxRequests){this.#rejectUpgrade(socket,503);return;}
+  if(request.url?.split('?')[0]!=='/websocket'){this.#rejectUpgrade(socket,404);return;}
+  const parent=new AbortController(),disconnected=()=>parent.abort(new Error('Upgrade client disconnected'));socket.once('close',disconnected);socket.once('end',disconnected);this.#upgrades.add(socket);
+  this.#launch(async signal=>{
+   const cancelled=()=>socket.destroy();signal.addEventListener('abort',cancelled,{once:true});
+   try{
+    signal.throwIfAborted();const check=this.#origin(request,signal),admission=check instanceof Promise?await check:check;signal.throwIfAborted();
+    if(!admission.allowed){this.#rejectUpgrade(socket,403);return;}
+    if(this.#phase!=='listening'||this.#peers.size>=this.#maxConnections){this.#rejectUpgrade(socket,503);return;}
+    if(!socket.destroyed)this.#ws.handleUpgrade(request,socket,head,ws=>this.#connected(request,ws));
+   }catch{if(!socket.destroyed)this.#rejectUpgrade(socket,503);}
+   finally{signal.removeEventListener('abort',cancelled);socket.off('close',disconnected);socket.off('end',disconnected);this.#upgrades.delete(socket);}
+  },parent.signal);
  }
  #error(response:ServerResponse,status:number,message:string,data?:Json):void{if(response.destroyed||response.writableEnded)return;if(response.headersSent){response.destroy();return;}response.writeHead(status,{'content-type':'application/json; charset=UTF-8'});response.end(JSON.stringify({error:{code:status,message,...data===undefined?{}:{data}}}));}
  #rejectUpgrade(socket:Duplex,status:number):void{socket.end(`HTTP/1.1 ${status} Rejected\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`);}
@@ -142,16 +158,17 @@ export class MoonrakerNetwork {
   const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime,receiveUpload=nativeUploads?.captureUpload(isOctoUpload?undefined:this.#options.configFiles,isOctoUpload?{enableUfp:octoprint!.enableUfp}:undefined),nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted;
   const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&(path==='/server/files/upload'||isOctoUpload),isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
-  if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
-  if(request.headers.origin&&(this.#origins.has(request.headers.origin)||this.#options.cors?.matches(request.headers.origin))){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges, Location');}
-  if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, X-Access-Token, If-None-Match, Range, If-Range'});response.end();return;}
-  if(!allowed.some(v=>v===request.method)){this.#error(response,405,'Method Not Allowed');return;}
-  if(isRPC&&!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
   if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}
   const parent=new AbortController(),disconnected=()=>{if(!response.writableEnded)parent.abort(new Error('HTTP client disconnected'));};response.once('close',disconnected);
   this.#launch(async signal=>{
    let reserved=0,outputReserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
    try{
+    signal.throwIfAborted();const originCheck=this.#origin(request,signal),originAdmission=originCheck instanceof Promise?await originCheck:originCheck;signal.throwIfAborted();
+    if(!originAdmission.allowed){this.#error(response,403,'Origin not allowed');return;}
+    if(request.headers.origin&&originAdmission.cors){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges, Location');}
+    if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, X-Access-Token, If-None-Match, Range, If-Range'});response.end();return;}
+    if(!allowed.some(v=>v===request.method)){this.#error(response,405,'Method Not Allowed');return;}
+    if(isRPC&&!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
     if(isUpload){
      signal.throwIfAborted();if(isOctoUpload)await this.#options.authorize('api.files.local',{}, {request,transport:'http',signal});signal.throwIfAborted();response.setHeader('connection','close');
      const budget=8*65536;if(this.#buffered+budget>this.#maxBuffered)throw new ApiError(429,'Request buffer capacity exceeded');

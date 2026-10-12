@@ -44,6 +44,12 @@ export class ApiKeyAuthorization {
  #active(){const status=this.#database.status;if(this.#closed||status.closed||status.closing||status.restoreState!=='ready')throw new ApiError(503,'Authorization unavailable');}
  /** Local provisioning only. Never include this value in diagnostics or logs. */
  localApiKey(){this.#active();return this.#key;}
+ /** Raw trusted-address policy for configured CORS only. This grants no RPC,
+  * session or print identity, and deliberately does not apply force_logins. */
+ resolveTrustedAddress(address:string,signal:AbortSignal):boolean|Promise<boolean>{
+  this.#active();signal.throwIfAborted();if(this.#trusted.matches(address))return true;if(!this.#trusted.hasDomains)return false;
+  return this.#trusted.resolve(address,signal).then(allowed=>{this.#active();signal.throwIfAborted();return allowed;});
+ }
  #matches(value:unknown){return this.#enableApiKey&&typeof value==='string'&&/^[a-f0-9]{32}$/u.test(value)&&timingSafeEqual(digest(value),this.#digest);}
  authorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization):AuthorizedUser|undefined{
   this.#active();context.signal.throwIfAborted();
