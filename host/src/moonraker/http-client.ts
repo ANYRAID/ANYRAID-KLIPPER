@@ -86,6 +86,14 @@ export class MoonrakerHttpClient {
   }
  }
  async request(method:string,url:string,options:HttpRequestOptions={}):Promise<HttpResponse>{
+  return this.#requestBody(method,url,options,false);
+ }
+ /** Read and limit the decoded stream without retaining a response body or
+  * reading/mutating another consumer's conditional cache. */
+ async probe(url:string,options:HttpRequestOptions={}):Promise<boolean>{
+  const response=await this.#requestBody('GET',url,{...options,enableCache:false},true);return !response.hasError()&&response.statusCode>=200&&response.statusCode<300;
+ }
+ #requestBody(method:string,url:string,options:HttpRequestOptions,discardBody:boolean):Promise<HttpResponse>{
   return this.#admit(options.signal,async signal=>{
    address(url);method=method.toUpperCase();if(!/^[A-Z]+$/.test(method))throw new TypeError('Invalid HTTP method');const attempts=count(options.attempts??1,1,100),max=count(options.maxBodyBytes??MAX_BODY,1,MAX_BODY),retry=options.retryPauseTime??.1;if(!Number.isFinite(retry)||retry<0||retry>3600)throw new RangeError('Invalid HTTP retry pause');
    const key=url.split('?',1)[0],cached=options.enableCache?this.#cache.get(key):undefined,headers=new Headers(options.headers);if(!headers.has('user-agent'))headers.set('user-agent','Moonraker');if(!headers.has('accept-encoding'))headers.set('accept-encoding','gzip, deflate, br');
@@ -100,15 +108,15 @@ export class MoonrakerHttpClient {
     if(attempt)await pause(retry*1000,undefined,{signal});signal.throwIfAborted();let transfer:Transfer|undefined;
     try{
      transfer=await this.#send(method,url,new Headers(headers),body,options,signal);const advertised=transfer.headers.get('content-length');if(advertised!==null&&!transfer.headers.has('content-encoding')&&Number(advertised)>max)throw new ApiError(413,'HTTP response body exceeds capacity');let length=0;const chunks:Buffer[]=[];
-     for await(const chunk of transfer.stream){transfer.signal.throwIfAborted();const bytes=Buffer.from(chunk);length+=bytes.length;if(length>max)throw new ApiError(413,'HTTP response body exceeds capacity');chunks.push(bytes);}
+     for await(const chunk of transfer.stream){transfer.signal.throwIfAborted();length+=chunk.length;if(length>max)throw new ApiError(413,'HTTP response body exceeds capacity');if(!discardBody)chunks.push(Buffer.from(chunk));}
      transfer.signal.throwIfAborted();error=transfer.code>=200&&transfer.code<300||transfer.code===304?null:new StatusError(transfer.code,'HTTP '+transfer.code);
      if(error&&attempt+1<attempts)continue;
-     const content=transfer.code===304?(cached?.content??Buffer.alloc(0)):Buffer.concat(chunks,length);if(content.length>max)throw new ApiError(413,'Cached HTTP body exceeds capacity');
+     const content=discardBody?Buffer.alloc(0):transfer.code===304?(cached?.content??Buffer.alloc(0)):Buffer.concat(chunks,length);if(content.length>max)throw new ApiError(413,'Cached HTTP body exceeds capacity');
      ret=new HttpResponse(url,transfer.url,transfer.code,content,transfer.headers,error);break;
     }catch(cause){signal.throwIfAborted();error=cause instanceof Error?cause:new Error('HTTP request failed');}
     finally{transfer?.stream.destroy();transfer?.response.destroy();}
    }
-   ret??=new HttpResponse(url,url,500,Buffer.alloc(0),new Headers(),error);if(options.enableCache&&ret.isCachable())this.#store(key,ret);else this.#drop(key);return ret;
+   ret??=new HttpResponse(url,url,500,Buffer.alloc(0),new Headers(),error);if(!discardBody){if(options.enableCache&&ret.isCachable())this.#store(key,ret);else this.#drop(key);}return ret;
   });
  }
  get(url:string,options:HttpRequestOptions={}){return this.request('GET',url,{enableCache:true,...options});}

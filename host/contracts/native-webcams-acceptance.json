@@ -172,5 +172,10 @@
     "Full legacy permissive Python value conversion compatibility",
     "Physical camera and target-board validation",
     "No Python or physical print-speed comparison"
-  ]
+  ],
+  "currentHttpOwnerIncrement": {
+    "reference": "webcam-http-owner-acceptance.json",
+    "status": "partial",
+    "scope": "The historical five-test and compiled-journey records above remain bound to their original implementation; current shared HTTP validation is recorded separately."
+  }
 }
