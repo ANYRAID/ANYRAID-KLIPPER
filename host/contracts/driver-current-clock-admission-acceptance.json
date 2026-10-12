@@ -1,0 +1,846 @@
+{
+  "schema": 1,
+  "scope": "Typed driver-current POST uses the existing dispatch owner after already admitted idle clock work; all printing/activity/revision/identity/current limits preserved. Complete Python/Moonraker delivery remains open.",
+  "baselineHead": "5ee090ca2440b1161d880778def2a433b241e186",
+  "sourceSha256": {
+    "host/src/moonraker/native-driver-current.ts": "2eb57d3b8d83c998321e67c7e797cc3c690d2e90c708de42cda652527d2322d4",
+    "host/src/runtime/product-service.ts": "de4b9ca8ba7f675e939241a49727bb0b1aaba7006ea91174c76e5c2e184376c3",
+    "host/test/driver-current-clock-admission.test.ts": "9a135924361083896da1d62ae3bc61545f11c07b6ea06d9dc9d822109719f6ac",
+    "host/test/native-driver-current.test.ts": "575f32d210d98b8c864ba7dc6d879b90ecc691eddfc5a6541551ee49b9d2a2eb",
+    "host/test/native-home-clock-admission.test.ts": "f480eedfc9eaadef460b7ff4c69e72fa9bdd620ecb308bde19a6e328d38d107b",
+    "host/test/gcode-dispatch.test.ts": "6a05dae452ff86dcc17a86ab3bcb348b14d8f23c605178ea722bf9344ca3b523",
+    "host/test/maintenance-gate.test.ts": "255fa19a1f4432801ec51bd33aa898c7ea00b4095c2d7c6722671438497f66f8",
+    "host/src/gcode/dispatch.ts": "e2cc2823647e7e8e0ca02e9384888807ab956010d1610f3e013f756287974f37",
+    "host/src/operations/maintenance-gate.ts": "f7df9634dc7f2a87fd1971786d933aed1907c99bde26955c33e947761e8bb9c3",
+    "host/bench/driver-current-api.ts": "ce241c600341d343ff567a25c86342baa4c2dea89b63c52205b06290b4bb1538",
+    "host/acceptance/product-compiled-journey.test.ts": "5227168e7c57be4c97b749b067fc0c16f7d35ba6fd9131afad3e513f8620a413"
+  },
+  "admission": {
+    "sharedOwner": "GCodeDispatch.runAdmissionExclusive + original MaintenanceGate",
+    "allowedWait": "Only existing opportunistic idle clock; ordinary scripts/actions and unrelated maintenance reject",
+    "rechecks": "Same original authorization closure and username, same generation lifetime and token, current driver/model limit, idle state and gate, immediately before begin/write",
+    "deadlineMs": 10000,
+    "includesQueueAndAuthorization": true,
+    "physicalFailure": "Invalidates gate, closes hardware, and retains dispatch emergency stop",
+    "prePhysicalRefusal": "No unrelated stop or fault invalidation",
+    "requestSnapshot": "Immutable primitive fields after original endpoint authorization; pending duplicates reject; exact completed retry receipt cannot replay writes",
+    "shutdown": "Cancels waiting and hanging authorization; late permission does not write"
+  },
+  "tests": {
+    "source": {
+      "tests": 50,
+      "pass": 50,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "compiled": {
+      "tests": 50,
+      "pass": 50,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "product": {
+      "tests": 50,
+      "pass": 50,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  },
+  "deterministicRed": {
+    "tests": 1,
+    "pass": 0,
+    "fail": 1,
+    "error": "Driver current requires an idle printer",
+    "owner": "Real GCodeDispatch/maintenance gate with controlled clock ownership, synthetic current port",
+    "boundary": "Proves current idle-clock race; does not establish the exact cause of every historical transient 409"
+  },
+  "performance": {
+    "original": {
+      "pairs": [
+        {
+          "round": 0,
+          "before": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.469966000000014,
+            "maxMs": 6.5982369999999975,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "after": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.5229770000000045,
+            "maxMs": 6.886049999999997,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "ratio": 1.0081933969977572,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 1,
+          "before": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.538006000000003,
+            "maxMs": 6.742099000000003,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "after": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.525017000000005,
+            "maxMs": 6.699458999999997,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "ratio": 0.9980133086448686,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 2,
+          "before": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.404796000000005,
+            "maxMs": 6.6834479999999985,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "after": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.402865999999989,
+            "maxMs": 6.86797,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "ratio": 0.9996986633141765,
+          "limit": 1.5,
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    "productionOwnerHint": {
+      "scope": "Supplemental GET availability query with actual dispatch admission getter; synthetic idle hardware, unchanged 2000-query workload; not actual hardware throughput",
+      "pairs": [
+        {
+          "round": 0,
+          "before": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.523757000000003,
+            "maxMs": 6.862690999999998,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "after": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.611917999999996,
+            "maxMs": 6.928010999999998,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "ratio": 1.013513838728204,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 1,
+          "before": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.461736000000002,
+            "maxMs": 6.840720000000005,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "after": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.428115999999996,
+            "maxMs": 7.098713000000004,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "ratio": 0.9947970638230955,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 2,
+          "before": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.433846000000003,
+            "maxMs": 6.966912000000001,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "after": {
+            "node": "v26.10.0",
+            "queries": 2000,
+            "drivers": 4,
+            "warmups": 2,
+            "batches": 7,
+            "medianMs": 6.5157469999999975,
+            "maxMs": 6.778148999999999,
+            "scope": "Endpoint authorization, validation, revision fingerprint and snapshot; excludes HTTP transport and UART"
+          },
+          "ratio": 1.0127297109691458,
+          "limit": 1.5,
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    "benchmarkIdentity": {
+      "source": "host/bench/driver-current-api.ts",
+      "sourceSha256": "ce241c600341d343ff567a25c86342baa4c2dea89b63c52205b06290b4bb1538",
+      "changes": "Only TS stripping and four import roots redirected to frozen installed bundles",
+      "historicalDigest": "432f0069370d81c76e79446f1335ad283d86ab9ec60d3d0ada45c16a875e6082",
+      "digestDifference": "f308f112 added max_current:2 to each driver on Sep27; loop/sample/query workload unchanged; benchmark unmodified in this increment",
+      "sequence": [
+        "before",
+        "after",
+        "after",
+        "before",
+        "before",
+        "after"
+      ],
+      "pairs": 3,
+      "threshold": 1.5
+    },
+    "limits": "Desktop GET snapshots only; UART write path validated by original actual compiled mixed simulation, no old successful idle-clock path for latency comparison"
+  },
+  "product": {
+    "path": "/home/dek02/.cache/codex/tmp/product-host-driver-current-clock-oct13",
+    "manifestSha256": "6ffffc5feb821845ffd81ce5fe49fcdf56f218b9efdd9da4bda7766d27eb63de",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444",
+    "files": 690,
+    "dependencies": 18,
+    "changed": [
+      "host/src/moonraker/native-driver-current.js",
+      "host/src/runtime/product-service.js"
+    ],
+    "nativeSourcesVerified": 75,
+    "nativeOutputsUnchanged": true,
+    "scope": "Only two emitted JS changes. No new native compile; original native/motion/math outputs reused after source/output digest verification."
+  },
+  "originalMixed": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skipped": 0,
+    "metrics": {
+      "namespace": true,
+      "automaticQueue": false,
+      "motionReportLoad": true,
+      "objectPriming": false,
+      "earlyObjectCancellation": true,
+      "fileMoveOwnership": [
+        {
+          "generation": 1,
+          "group": 0,
+          "before": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 9782.969654
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 9897.233022
+          },
+          "durationMs": 114.27006799999981
+        },
+        {
+          "generation": 1,
+          "group": 1,
+          "before": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 13329.384841
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 13486.865035
+          },
+          "durationMs": 157.4833039999994
+        },
+        {
+          "generation": 1,
+          "group": 2,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 16246.095018
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 16362.091173
+          },
+          "durationMs": 115.99612500000148
+        },
+        {
+          "generation": 1,
+          "group": 3,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 18955.246558
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 19018.309431
+          },
+          "durationMs": 63.06369300000006
+        },
+        {
+          "generation": 1,
+          "group": 4,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 21401.902265
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 21564.633083
+          },
+          "durationMs": 162.72844800000166
+        },
+        {
+          "generation": 1,
+          "group": 5,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 23112.186591
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 23171.869061
+          },
+          "durationMs": 59.68267999999807
+        },
+        {
+          "generation": 1,
+          "group": 6,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 24454.953097
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 24519.730678
+          },
+          "durationMs": 64.77781099999993
+        },
+        {
+          "generation": 1,
+          "group": 7,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 25686.947521
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 25750.483469
+          },
+          "durationMs": 63.53614799999923
+        },
+        {
+          "generation": 2,
+          "group": 0,
+          "before": {
+            "state": "printing",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 40248.961024
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 40365.56985
+          },
+          "durationMs": 116.60915599999862
+        },
+        {
+          "generation": 2,
+          "group": 1,
+          "before": {
+            "state": "printing",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 42607.094774
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 42671.127239
+          },
+          "durationMs": 64.03291500000341
+        },
+        {
+          "generation": 2,
+          "group": 2,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 45350.142649
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 45493.249749
+          },
+          "durationMs": 143.10701999999583
+        },
+        {
+          "generation": 2,
+          "group": 3,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 48004.046631
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 48161.020129
+          },
+          "durationMs": 156.97381799999857
+        },
+        {
+          "generation": 2,
+          "group": 4,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 50962.861261
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 51030.425792
+          },
+          "durationMs": 67.56477099999756
+        },
+        {
+          "generation": 2,
+          "group": 5,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 52270.475335
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 52328.39292
+          },
+          "durationMs": 57.917835000000196
+        },
+        {
+          "generation": 2,
+          "group": 6,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 53821.992603
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 53891.515084
+          },
+          "durationMs": 69.52287100000103
+        },
+        {
+          "generation": 2,
+          "group": 7,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 55147.434869
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-fde2647c-4cf8-4251-bb43-6cc4f472371b",
+            "fileId": "authorized-file",
+            "atMs": 55208.626728
+          },
+          "durationMs": 61.19162900000083
+        }
+      ],
+      "movesPrintingGenerations": [
+        1,
+        2
+      ],
+      "configListRequests": 1645,
+      "configListP99Ms": 6.2662729999938165,
+      "configDownloads": 1645,
+      "configDownloadP99Ms": 9.37731199999962,
+      "liveMotionSamples": 5407,
+      "liveExtrusionSamples": 1456,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 9.702945226,
+        "print_duration": 4.358484365000001,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "6ffffc5feb821845ffd81ce5fe49fcdf56f218b9efdd9da4bda7766d27eb63de",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 7943,
+      "phaseP99Ms": 3.7249769999980344,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 248,
+          "writes": 43
+        },
+        {
+          "statusReads": 178,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 1556,
+      "historyP99Ms": 67.5277700000006,
+      "lifecycleShutdowns": 8,
+      "copyRequests": 16,
+      "copyP95Ms": 253.7765700000018,
+      "copyOverwriteRequests": 16,
+      "copyOverwriteP95Ms": 341.33198999999877,
+      "directoryCopyRequests": 16,
+      "directoryCopyP95Ms": 284.36087199999747,
+      "copiesDuringPrint": 4,
+      "directoryCopiesDuringPrint": 3,
+      "fileNotifications": 1132,
+      "fileNotificationP95Ms": 78.83535899999697,
+      "movesDuringPrint": 4,
+      "directoryMoveRequests": 16,
+      "directoryMoveP95Ms": 345.1995360000001,
+      "directoryMovesDuringPrint": 4,
+      "moveRequests": 16,
+      "moveP95Ms": 161.42596500000218,
+      "deleteRequests": 16,
+      "deleteP95Ms": 83.80388900000253,
+      "publicThumbnailRequests": 16,
+      "publicThumbnailP95Ms": 109.37312999999995,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 73.5259389999992,
+      "metadataRequests": 16,
+      "metadataP95Ms": 228.46903400000156,
+      "downloads": 16,
+      "downloadP95Ms": 55.84772199999861,
+      "wireCommands": 209,
+      "wireSteps": 6900,
+      "minimumStepLeadMs": 88.67,
+      "directoryRequests": 6331,
+      "directoryP99Ms": 46.67627100000027,
+      "statusRequests": 31781,
+      "uploads": 16,
+      "statusP99Ms": 4.218642000003456,
+      "uploadP95Ms": 46.313257999998314,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.981439,
+            "maxMs": 19.202047
+          },
+          "cpu": {
+            "user": 10752276,
+            "system": 1855957
+          },
+          "rss": 351387648
+        },
+        {
+          "loop": {
+            "p99Ms": 1.953791,
+            "maxMs": 12.640255
+          },
+          "cpu": {
+            "user": 6872003,
+            "system": 1366579
+          },
+          "rss": 367005696
+        }
+      ]
+    },
+    "scope": "One unmodified namespace/nativeAuthorization/apiLoad simulated-MCU scenario, not full matrix, real client scene or hardware performance"
+  },
+  "previousCi": {
+    "schema": 1,
+    "head": "5ee090ca2440b1161d880778def2a433b241e186",
+    "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+    "mergeCheckout": "3b691d3399cc417724620d6e7b00290849479244",
+    "jobs": [
+      {
+        "id": 115003181357,
+        "run_id": 38306946405,
+        "name": "build",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181439,
+        "run_id": 38306946369,
+        "name": "motion (26.9.0, default, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181502,
+        "run_id": 38306946369,
+        "name": "motion (26.10.0, default, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181505,
+        "run_id": 38306946369,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181526,
+        "run_id": 38306946369,
+        "name": "motion (26.9.0, off, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181544,
+        "run_id": 38306946369,
+        "name": "motion (26.9.0, off, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181570,
+        "run_id": 38306946369,
+        "name": "motion (26.10.0, default, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181595,
+        "run_id": 38306946369,
+        "name": "motion (26.10.0, off, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181598,
+        "run_id": 38306946369,
+        "name": "motion (26.10.0, off, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181612,
+        "run_id": 38306946369,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181720,
+        "run_id": 38306946369,
+        "name": "motion (26.9.0, default, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181353,
+        "run_id": 38306946402,
+        "name": "checks",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181508,
+        "run_id": 38306946402,
+        "name": "sanitizer (ubsan)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115003181573,
+        "run_id": 38306946402,
+        "name": "sanitizer (asan)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 115009386847,
+        "run_id": 38306946402,
+        "name": "host",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "ordinary": {
+      "jobId": 115003181353,
+      "tests": 5081,
+      "pass": 5081,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "logSha256": "9633ff6c3687829f336f368f61ced01022fbac68b1ae8b1e581190dd3cd2aed1"
+    },
+    "scope": "Exact previous PR head terminal; Actions merge checkout is not a merge into develop. Does not cover the following driver-current-clock increment or close existing performance/precision/native-build gates."
+  },
+  "archive": {
+    "path": "host/contracts/driver-current-clock-admission-evidence.json.gz",
+    "sha256": "7bfd04ed1df5206f51f58822112b1c045cfa84f5391e0da26f818174c681abd8",
+    "entries": 75,
+    "uncompressedBytes": 2599093
+  },
+  "redactions": [
+    {
+      "name": "final/mixed-original-journey.log",
+      "originalSha256": "4d8f56b05997ab364854aec7ec31faf2d4074ee098a8f18fc15e7d1bdfbe2a55"
+    },
+    {
+      "name": "raw/driver-current-clock-original-mixed-oct13.log",
+      "originalSha256": "4d8f56b05997ab364854aec7ec31faf2d4074ee098a8f18fc15e7d1bdfbe2a55"
+    },
+    {
+      "name": "sealer.mjs",
+      "originalSha256": "cd04515582aca9e7d31f1853aefc02f1b2a3f60e1dbc44b0a0e72c9a36c5f7bd"
+    }
+  ],
+  "limitations": [
+    "Current defaults and tracked Python retirement remain open; complete Moonraker/Jinja/msgspec and consumer macros not established",
+    "Historical initialization idle 409 retained with precise cause not fully proven",
+    "Original UI 1.5 failures, native compiler stability, G3 3.680611371237319e-8 > 1e-8 remain open",
+    "Full Fluidd/Mainsail fault/SIGKILL/Cura acceptance and current new-head CI remain open",
+    "No target-board throughput, physical current, motion precision or Cycnumbris 500 hardware acceptance",
+    "task -> develop -> master integration remains required; other machine models last"
+  ]
+}

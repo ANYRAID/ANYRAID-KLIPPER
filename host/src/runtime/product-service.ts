@@ -171,7 +171,9 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   closeDriverCurrent=registerNativeDriverCurrent(target.endpoints,printer.maintenanceGate,{
    snapshot:()=>printer.hardware.drivers.map(d=>({name:d.section,revision:d.current.revision,max_current:d.current.maxCurrent,run_current:d.current.current.runCurrent,hold_current:d.current.current.holdCurrent})),
    idle:()=>printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.machine.port.status.busy&&!printer.machine.port.status.pendingMoves,
-   set:async(name,change,signal)=>{const driver=printer.hardware.drivers.find(d=>d.section===name);if(!driver)throw new Error('Unknown current driver');await printer.print.gcode.dispatch.runExclusive(async s=>{await printer.machine.port.drain(s);await driver.current.set(change,s);},signal);},
+   canQueue:()=>{const port=printer.machine.port.status;return !closing&&printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!port.failed&&(!port.busy||port.phase==='clock')&&!port.pendingMoves&&!printer.print.gcode.homing.status.busy&&printer.print.gcode.dispatch.canFollowIdleWork;},
+   reserveExclusive:(work,signal)=>printer.print.gcode.dispatch.runAdmissionExclusive(work,signal),
+   set:async(name,change,signal)=>{const driver=printer.hardware.drivers.find(d=>d.section===name);if(!driver)throw new Error('Unknown current driver');await printer.machine.port.drain(signal);await driver.current.set(change,signal);},
    fail:error=>{void printer.hardware.close(error).catch(()=>{});}
   });
   const skewProfiles=readSkewProfiles(reader);
