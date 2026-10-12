@@ -8,6 +8,7 @@ import {isAbsolute,join,dirname} from 'node:path';
 import {workerEntry} from '../runtime/worker-entry.ts';
 import {ApiError,type Json} from './rpc.ts';
 import {ConfigurationError} from './config-source.ts';
+import {MoonrakerHttpClient} from './http-client.ts';
 import type {ConfigurationReader} from './config-reader.ts';
 import {DatabaseStore} from './database.ts';
 import type {DatabaseNamespace} from './database-namespace.ts';
@@ -58,6 +59,7 @@ function catalogue(value:Json):Catalogue {
  * accepted write. Cached reads never wait for network, XML or SQLite. */
 export class Announcements {
  readonly #database:DatabaseStore;readonly #options:AnnouncementsOptions;
+ readonly #httpClient:MoonrakerHttpClient;readonly #ownsHttp:boolean;
  readonly #notify:(method:Method,value:Json)=>void;readonly #configured:string[];
  readonly #enabled:boolean;readonly #dev:boolean;
  readonly #lifetime=new AbortController();#namespace:DatabaseNamespace|undefined;
@@ -66,13 +68,15 @@ export class Announcements {
  #timer:ReturnType<typeof setTimeout>|undefined;#wake:ReturnType<typeof setTimeout>|undefined;
  #worker:Worker|undefined;#lastUpdateError=false;#notifyFailures=0;
  #owns=false;
- constructor(reader:ConfigurationReader,database:DatabaseStore,notify:(method:Method,value:Json)=>void,options:AnnouncementsOptions={}){
+ constructor(reader:ConfigurationReader,database:DatabaseStore,notify:(method:Method,value:Json)=>void,options:AnnouncementsOptions={},httpClient?:MoonrakerHttpClient){
   if(!(database instanceof DatabaseStore)||typeof notify!=='function'||options.fetch!==undefined&&typeof options.fetch!=='function'||options.developmentDirectory!==undefined&&(!isAbsolute(options.developmentDirectory)||options.developmentDirectory.includes('\0')))throw new ConfigurationError('Invalid announcements owner');
   this.#database=database;this.#options={...options};this.#notify=notify;
   const section=reader.section('announcements');this.#enabled=section.getBoolean('enable_moonlight',{defaultValue:true});this.#dev=section.getBoolean('dev_mode',{defaultValue:false});
   this.#configured=[...new Set(['moonraker','klipper',...(section.getLists('subscriptions',{defaultValue:[],separators:[',']}) as string[]).filter(Boolean).map(names)])];
   if(this.#configured.length>32)throw new ConfigurationError('Announcement feed capacity exceeded');
   if(this.#dev&&!options.developmentDirectory)throw new ConfigurationError('Announcement dev_mode requires an explicit developmentDirectory');
+  if(httpClient!==undefined&&(!(httpClient instanceof MoonrakerHttpClient)||httpClient.status.closed))throw new ConfigurationError('Invalid announcement HTTP owner');
+  this.#ownsHttp=httpClient===undefined;this.#httpClient=httpClient??new MoonrakerHttpClient();
  }
  get status(){return {ready:this.#ready,closing:this.#closing,failed:this.#fault,pending:this.#pending,entries:this.#catalogue.entries.length,feeds:this.#feeds().length,updateFailed:this.#lastUpdateError,notificationFailures:this.#notifyFailures,workerActive:!!this.#worker};}
  #feeds(){return [...new Set([...this.#configured,...this.#catalogue.storedFeeds])];}
@@ -251,6 +255,11 @@ export class Announcements {
   }
  }
  async #remoteAttempt(name:string,etag:string|undefined,life:AbortSignal){
+  if(!this.#options.fetch){
+   const response=await this.#httpClient.get('https://arksine.github.io/moonlight/assets/'+name+'.xml',{signal:life,redirect:'error',enableCache:false,maxBodyBytes:1048576,headers:{Accept:'application/xml',...etag?{'If-None-Match':etag}:{}}});
+   if(response.statusCode===304)return null;response.raiseForStatus();const advertised=response.headers.get('content-length');if(advertised!==null&&(!/^\d+$/.test(advertised)||Number(advertised)>1048576))throw Error('Announcement feed too large');
+   const version=response.etag;if(version!==null&&(version.length>1024||/[\r\n\0]/.test(version)))throw Error('Invalid announcement ETag');if(response.byteLength===0)return null;return {xml:response.text,version};
+  }
   let response:Response|undefined;
   try{
    // Fixed official origin and strict feed basename; redirects cannot become SSRF.
@@ -303,6 +312,6 @@ export class Announcements {
  }
  close():Promise<void>{
   if(this.#closed)return this.#closed;this.#closing=true;clearTimeout(this.#timer);clearTimeout(this.#wake);this.#lifetime.abort(new Error('Announcements closing'));
-  return this.#closed=(async()=>{await this.#opening?.catch(()=>{});await this.#tail;this.#ready=false;if(this.#owns){owners.delete(this.#database);this.#owns=false;}})();
+  const httpClosed=this.#ownsHttp?this.#httpClient.close():Promise.resolve();return this.#closed=(async()=>{await this.#opening?.catch(()=>{});await this.#tail;await httpClosed;this.#ready=false;if(this.#owns){owners.delete(this.#database);this.#owns=false;}})();
  }
 }

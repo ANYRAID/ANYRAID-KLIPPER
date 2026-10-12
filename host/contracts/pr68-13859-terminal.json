@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "head": "13859b3e86d86ee31543257a158f595d1091ffb9",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "scope": "Exact path-consumer head; not subsequent HTTP changes or complete motion/product/hardware gates",
+  "runs": [
+    {
+      "id": 38187830193,
+      "head_sha": "13859b3e86d86ee31543257a158f595d1091ffb9",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114613917460,
+          "name": "motion (26.9.0, off, source)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114613917583,
+          "name": "motion (26.10.0, off, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114613917587,
+          "name": "motion (26.9.0, jitless, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114613917591,
+          "name": "motion (26.9.0, off, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114613917607,
+          "name": "motion (26.10.0, default, source)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114613917613,
+          "name": "motion (26.9.0, default, source)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114613917616,
+          "name": "motion (26.10.0, off, source)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114613917627,
+          "name": "motion (26.9.0, default, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114613917654,
+          "name": "motion (26.10.0, jitless, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114613917657,
+          "name": "motion (26.10.0, default, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 38187830184,
+      "head_sha": "13859b3e86d86ee31543257a158f595d1091ffb9",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114613917436,
+          "name": "build",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 38187830167,
+      "head_sha": "13859b3e86d86ee31543257a158f595d1091ffb9",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114613917411,
+          "name": "checks",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114613917523,
+          "name": "sanitizer (ubsan)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114613917579,
+          "name": "sanitizer (asan)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 114616792814,
+          "name": "host",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "ordinary": {
+    "node": "26.11.1",
+    "tests": 4768,
+    "pass": 4768,
+    "fail": 0
+  },
+  "mergeCheckout": "e4f8812ef73c3fa313c4d4d9ba1b83c11de6bd8c"
+}

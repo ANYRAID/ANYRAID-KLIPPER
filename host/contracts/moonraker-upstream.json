@@ -79,7 +79,8 @@
     {
       "name": "http_client",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "http-client.ts implements Node HTTP/HTTPS request/get/post/delete, conditional cache, response/errors/JSON, GitHub rate metadata, prepared wrappers, getFile, streamed staged download/progress and cancel/close/drain. ConfiguredMoonraker owns one process client, advertises http_client and lends it to standard announcements; persisted feed ETags remain catalogue-owned. HTTP/announcement source and independent JS/worker closure regressions are 43/43; later download BasicAuth and post-commit cleanup corrections have affected HTTP source/JS 15/15 and unchanged other runtime hashes. Post-commit cleanup failures are diagnosed without falsely failing or retrying a committed download. Three paired fixed announcement and Node transport benchmarks pass the unchanged 1.5 desktop budget; no Python or printing-throughput comparison. Evidence is moonraker-http-client-acceptance.json. All consumers, broader encoding/arbitrary JSON integer parity, exact current-head CI, new full product package/client/hardware and complete Moonraker/Python retirement remain open."
     },
     {
       "name": "job_queue",
