@@ -86,6 +86,16 @@ test('pure async and UI completion cannot overtake caller microtask cancellation
   }
  }finally{owner.close();secrets.close();}
 });
+test('completion observers cannot replace the first result through reentrant cancellation or generation closure',async()=>{
+ for(const close of[false,true]){const {secrets,owner}=fixture(),external=new AbortController();let ended:AbortSignal|undefined;
+  try{const handle=owner.createUiTemplate('{{answer()}}'),render=handle.renderAsync('{}',{signal:external.signal,callables:new Map([['answer',call=>{ended=call.signal;call.signal.addEventListener('abort',()=>{if(close)owner.close();else external.abort({late:'after completion'});},{once:true});return 9n;}]])});
+   assert.equal(await render,'9');assert.equal(ended?.aborted,true);assert.equal(ended?.reason.message,'Template render completed');assert.equal(owner.toJSON().renders,0);if(close)assert.equal(owner.toJSON().closed,true);else assert.equal(external.signal.aborted,true);
+  }finally{owner.close();secrets.close();}
+ }
+});
+test('synchronous native admission failures stay rejected promises and release render capacity',async()=>{
+ const {secrets,owner}=fixture();try{const handle=owner.createUiTemplate('{{3}}');for(let i=0;i<64;i++){let render!:Promise<string>;assert.doesNotThrow(()=>{render=handle.renderAsync('[');});assert(render instanceof Promise);await assert.rejects(render);assert.equal(owner.toJSON().renders,0);}assert.equal(await handle.renderAsync(),'3');handle.close();}finally{owner.close();secrets.close();}
+});
 test('late globals copy the template generation without changing an active native render',async()=>{
  const {secrets,owner}=fixture();let release!:(value:TemplateValue)=>void,entered!:()=>void;
  try{

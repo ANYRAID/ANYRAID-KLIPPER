@@ -22,6 +22,13 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+本轮 UI 性能调查的两个运行时候选均因原 1.5 门限超限撤回；没有
+以首轮通过或安静组替代失败。保留完成信号重入取消／关闭、原生
+同步拒绝不占住容量的两项回归；源码、独立 JS、原实际包各 119 项
+通过。完整样本与私密快照反例见
+[UI 终态调查](host/contracts/template-ui-terminal-probe-acceptance.json)。
+前序 69d58486 十五项 CI、5102／5102 通过，见
+[精确头终态](host/contracts/pr68-69d5848-terminal.json)；本记录须自身 CI。
 配置 CORS 的数字 Origin 回退现共用原主机名信任／NSS 缓存；跨域
 许可与 API 身份独立，强制登录和错误凭据仍拒绝。HTTP／升级等待
 纳入原期限、取消、关闭和容量，升级连接 EOF 不留等待。源码、
