@@ -1,0 +1,406 @@
+{
+  "schema": 1,
+  "baseHead": "5589a0f7e223cf80f0fefa85abcba155ccdc3879",
+  "sourceSha256": {
+    "host/src/moonraker/native-probe.ts": "87f634120af55e8bb76df9dff930ad4036545db54fe9800417822f1210423be7",
+    "host/src/moonraker/product-host-api.ts": "63216cfe7600723cd7e1bce899ef10c36a3d7ae3675b9b1564c64313006adaf7",
+    "host/src/runtime/product-service.ts": "990923b98301ad57e3c20dd920628fd0f80d1abf77909485adea9ae039aa6733",
+    "host/test/native-home-compatibility.test.ts": "839211107b92559339383ef35f7501bc5b10d8f7d9e0b2e82469575d25706651",
+    "host/bench/native-home-compatibility.mjs": "fbaf6df97d93d36bc10160ed4cd44841f1a8dd6bd1746036a5a2b791f2809249"
+  },
+  "implementation": {
+    "supported": "One standard G28 line, optionally X/Y/Z selectors, through the existing typed native home owner. Restart handoff is unchanged. Arbitrary client motion scripts remain unsupported.",
+    "safety": "Original network generation captured through canonical GET and POST; both reauthorize. Idle/exclusive maintenance, 120-second bound, cancellation and failure fencing remain. Same consumed token replay requires the same normalized axes.",
+    "precision": "No motion/native math or coordinate algorithm change. Candidate manifest differs from preceding package in exactly three JS integration files; all native binaries, renderers, math and print stream files are byte identical."
+  },
+  "validation": {
+    "source": 13,
+    "compiled": 13,
+    "fail": 0,
+    "typescriptLoading": false,
+    "externalPrograms": false,
+    "workersAlsoGuarded": true,
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "initialFailure": "First source attempt had incorrect test import paths and sandbox EPERM for the simulated native Unix listener; preserved, imports corrected and explicitly authorized run passed.",
+    "productBundle": {
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "typescriptLoading": false,
+      "externalPrograms": false,
+      "scope": "Test API imports resolve directly to the complete package used by both scenes. The earlier independent test emitter drops only an unused MaintenanceGate import; package tests verify the real verbatim build."
+    }
+  },
+  "bundles": [
+    {
+      "bundle": "product-host-5589-cpu0-oct12",
+      "manifestSha256": "ba9613bc276c049a154afd4f7fc8c6df41e4891196c5d7c78439b7dd5e3b16bd",
+      "files": 686
+    },
+    {
+      "bundle": "product-host-home-candidate-oct12",
+      "manifestSha256": "9816177cc56d3e6c3733995c60640905ff4cce65a9f5446bb61abc8c5163b69b",
+      "files": 686
+    }
+  ],
+  "changedProductFiles": [
+    "host/src/moonraker/native-probe.js",
+    "host/src/moonraker/product-host-api.js",
+    "host/src/runtime/product-service.js"
+  ],
+  "performance": {
+    "typedAdmission": {
+      "rows": [
+        {
+          "pair": 0,
+          "mode": "baseline",
+          "node": "v26.10.0",
+          "warmups": 2,
+          "samples": 7,
+          "iterations": 500,
+          "typed": {
+            "rawMs": [
+              10.466606999999996,
+              11.566001999999997,
+              9.455252999999999,
+              13.404188000000005,
+              8.766833000000005,
+              11.289068,
+              8.798353000000006
+            ],
+            "medianMs": 10.466606999999996,
+            "maximumMs": 13.404188000000005,
+            "medianUsPerOperation": 20.933213999999992
+          },
+          "compatibility": null,
+          "scope": "Compiled package authorization, native generation, typed token and admission only; stub measurement. Not physical homing speed, print throughput or target-board latency."
+        },
+        {
+          "pair": 0,
+          "mode": "candidate",
+          "node": "v26.10.0",
+          "warmups": 2,
+          "samples": 7,
+          "iterations": 500,
+          "typed": {
+            "rawMs": [
+              12.073498999999998,
+              12.275643000000002,
+              9.819097,
+              8.118873999999977,
+              10.381955000000005,
+              10.541517999999996,
+              11.008403999999985
+            ],
+            "medianMs": 10.541517999999996,
+            "maximumMs": 12.275643000000002,
+            "medianUsPerOperation": 21.083035999999993
+          },
+          "compatibility": {
+            "rawMs": [
+              16.372399,
+              15.565798000000001,
+              12.402683999999994,
+              14.905518999999998,
+              18.864204,
+              16.088475999999986,
+              18.234235000000012
+            ],
+            "medianMs": 16.088475999999986,
+            "maximumMs": 18.864204,
+            "medianUsPerOperation": 32.17695199999997
+          },
+          "scope": "Compiled package authorization, native generation, typed token and admission only; stub measurement. Not physical homing speed, print throughput or target-board latency."
+        },
+        {
+          "pair": 1,
+          "mode": "candidate",
+          "node": "v26.10.0",
+          "warmups": 2,
+          "samples": 7,
+          "iterations": 500,
+          "typed": {
+            "rawMs": [
+              13.025993,
+              11.226167000000004,
+              10.391255999999998,
+              7.36944299999999,
+              10.160122999999999,
+              10.098861999999997,
+              10.801380999999992
+            ],
+            "medianMs": 10.391255999999998,
+            "maximumMs": 13.025993,
+            "medianUsPerOperation": 20.782511999999993
+          },
+          "compatibility": {
+            "rawMs": [
+              16.952697000000015,
+              14.889488,
+              12.745819000000012,
+              13.925144999999986,
+              18.531458999999984,
+              14.277960000000007,
+              19.314460999999994
+            ],
+            "medianMs": 14.889488,
+            "maximumMs": 19.314460999999994,
+            "medianUsPerOperation": 29.778976
+          },
+          "scope": "Compiled package authorization, native generation, typed token and admission only; stub measurement. Not physical homing speed, print throughput or target-board latency."
+        },
+        {
+          "pair": 1,
+          "mode": "baseline",
+          "node": "v26.10.0",
+          "warmups": 2,
+          "samples": 7,
+          "iterations": 500,
+          "typed": {
+            "rawMs": [
+              9.677085999999996,
+              12.096169000000003,
+              10.654589999999999,
+              13.395996999999994,
+              8.828033999999988,
+              10.999163999999993,
+              9.373581999999999
+            ],
+            "medianMs": 10.654589999999999,
+            "maximumMs": 13.395996999999994,
+            "medianUsPerOperation": 21.309179999999998
+          },
+          "compatibility": null,
+          "scope": "Compiled package authorization, native generation, typed token and admission only; stub measurement. Not physical homing speed, print throughput or target-board latency."
+        },
+        {
+          "pair": 2,
+          "mode": "baseline",
+          "node": "v26.10.0",
+          "warmups": 2,
+          "samples": 7,
+          "iterations": 500,
+          "typed": {
+            "rawMs": [
+              9.467212999999994,
+              12.481165000000004,
+              9.872608999999997,
+              12.302852000000001,
+              8.634731000000002,
+              10.673490000000001,
+              9.181279000000004
+            ],
+            "medianMs": 9.872608999999997,
+            "maximumMs": 12.481165000000004,
+            "medianUsPerOperation": 19.745217999999994
+          },
+          "compatibility": null,
+          "scope": "Compiled package authorization, native generation, typed token and admission only; stub measurement. Not physical homing speed, print throughput or target-board latency."
+        },
+        {
+          "pair": 2,
+          "mode": "candidate",
+          "node": "v26.10.0",
+          "warmups": 2,
+          "samples": 7,
+          "iterations": 500,
+          "typed": {
+            "rawMs": [
+              17.458743999999996,
+              14.910459000000003,
+              8.368966999999998,
+              11.745523999999989,
+              15.986404000000022,
+              8.249404999999967,
+              7.724698999999987
+            ],
+            "medianMs": 11.745523999999989,
+            "maximumMs": 17.458743999999996,
+            "medianUsPerOperation": 23.491047999999978
+          },
+          "compatibility": {
+            "rawMs": [
+              14.567523999999992,
+              16.243617999999998,
+              15.253603999999996,
+              13.047992999999991,
+              13.186084999999991,
+              29.313061000000005,
+              11.057034999999985
+            ],
+            "medianMs": 14.567523999999992,
+            "maximumMs": 29.313061000000005,
+            "medianUsPerOperation": 29.135047999999983
+          },
+          "scope": "Compiled package authorization, native generation, typed token and admission only; stub measurement. Not physical homing speed, print throughput or target-board latency."
+        }
+      ],
+      "paired": [
+        {
+          "pair": 0,
+          "ratio": 1.0071571427111001,
+          "pass": true,
+          "compatibilityUs": 32.17695199999997
+        },
+        {
+          "pair": 1,
+          "ratio": 0.9752844548687467,
+          "pass": true,
+          "compatibilityUs": 29.778976
+        },
+        {
+          "pair": 2,
+          "ratio": 1.189708211881985,
+          "pass": true,
+          "compatibilityUs": 29.135047999999983
+        }
+      ],
+      "pass": true,
+      "maximumRatio": 1.5,
+      "scope": "Original typed admission comparison only. New G28 is a diagnostic absolute cost with no former supported G28 baseline; neither is physical homing, print throughput or a target-board gate."
+    },
+    "nativeProbe": {
+      "node": "v26.10.0",
+      "warmups": 3,
+      "samples": 11,
+      "home": {
+        "wall": {
+          "medianMs": 254.02618299999995,
+          "p95Ms": 255.20721799999956
+        },
+        "cpu": {
+          "medianMs": 8.769,
+          "p95Ms": 28.739
+        }
+      },
+      "probe": {
+        "wall": {
+          "medianMs": 253.93897000000106,
+          "p95Ms": 255.52131100000042
+        },
+        "cpu": {
+          "medianMs": 8.321,
+          "p95Ms": 25.251
+        }
+      },
+      "scope": "Native owner drain/rebase and triggered Z seek with generation adoption; alternate explicit home rebase versus owned probe. Simulated MCU, fixture setup excluded."
+    },
+    "scope": "Necessary affected desktop admission and original simulated native probe budgets only; existing UI failures unchanged and not reclassified, no target-board printing-speed or motion-precision completion claim."
+  },
+  "scenes": [
+    {
+      "id": "r25",
+      "client": "fluidd",
+      "receipt": {
+        "name": "fluidd",
+        "started": "2026-10-12T05:07:58.177Z",
+        "deadline": "2026-10-12T05:22:58.177Z",
+        "closed": "2026-10-12T05:19:12.622Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 674445,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1427250,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1427177,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-5589-cpu0-oct12",
+        "automaticExtensionOrRelaunch": false
+      }
+    },
+    {
+      "id": "r27",
+      "client": "fluidd",
+      "receipt": {
+        "name": "fluidd",
+        "started": "2026-10-12T05:40:54.270Z",
+        "deadline": "2026-10-12T05:55:54.270Z",
+        "closed": "2026-10-12T05:49:57.298Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 543028,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1438750,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1438693,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-home-candidate-oct12",
+        "automaticExtensionOrRelaunch": false
+      }
+    },
+    {
+      "id": "r28",
+      "client": "mainsail",
+      "receipt": {
+        "name": "mainsail",
+        "started": "2026-10-12T05:50:02.992Z",
+        "deadline": "2026-10-12T06:05:02.992Z",
+        "closed": "2026-10-12T05:58:37.825Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 514833,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1443246,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1443186,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-home-candidate-oct12",
+        "automaticExtensionOrRelaunch": false
+      }
+    }
+  ],
+  "ui": {
+    "r25": "5589 Fluidd New File sent 399-byte multipart and created an empty file; copy/rename, two-layer preview, queue and graceful process reconstruction retained. Native G28 rejected 400, triggering this fix.",
+    "r27": "Same home candidate package: Fluidd G28 enabled homed controls; two successful print histories, two-layer short print completion and longer file pause/resume confirmed.",
+    "r28": "Same home candidate package: Mainsail G28, copy/rename, first print complete, second print paused at 76%, resume to Complete, two histories, queue add and same-artifact graceful process reconstruction with queue/history retained.",
+    "notProven": [
+      "file-picker upload: earlier chooser tooling hung without an upload request",
+      "Monaco edited-content save: native EditContext could not be filled by available UI tool",
+      "browser file download",
+      "client cancel journey",
+      "Mainsail layered preview and edited configuration save",
+      "SIGKILL recovery, target hardware"
+    ],
+    "recovery": "Graceful product process reconstruction within a live scene, not SIGKILL, not expiry extension or relaunch",
+    "seededFiles": "Layered and sample G-code seeded by API; these are not file-picker upload acceptance"
+  },
+  "precedingCi": "pr68-5589-terminal.json: exact preceding head 15 success, ordinary 4803/4803, merge 3514916d; new home increment requires its own CI.",
+  "open": [
+    "new increment CI and develop/master integration",
+    "complete Moonraker and all Python retirement",
+    "consumer macro redesign",
+    "original UI/build stability/G3/target Cycnumbris 500 precision and print-performance gates",
+    "remaining full browser journeys; other models last"
+  ],
+  "evidence": {
+    "path": "native-home-compatibility-evidence.json.gz",
+    "sha256": "b755e67c8e23c6b194b1900212e25441057e840d76e32ec213063277de622f79",
+    "bytes": 1595327,
+    "entries": 282
+  }
+}

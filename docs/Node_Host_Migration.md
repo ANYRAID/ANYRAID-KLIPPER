@@ -2,6 +2,11 @@
 
 ## 目标与当前状态
 
+标准客户端归位 `G28` 接入同代际受控操作；两客户端固定端口下的
+模拟打印完成及暂停／恢复已有实际页面证据，详见
+[归位验收](../host/contracts/native-home-compatibility-acceptance.json)。
+这不等同于完整客户端、Python 退役、运动精度或硬件验收通过。
+
 目标是以 Node.js 26 / TypeScript 全面替换仓库内 Python（包括主机、
 构建、烧录、诊断和文档工具），集成完整 Moonraker 功能，并将宏转换为
 消费级产品的受控操作。数学库按精度和目标板性能选择；必要时采用 Rust。

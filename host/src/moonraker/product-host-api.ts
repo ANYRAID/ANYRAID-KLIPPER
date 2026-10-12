@@ -2,6 +2,7 @@ import {RestartAdmissionError,type ProductHostControl} from '../runtime/product-
 import type {EndpointRegistry} from './endpoints.ts';
 import {ApiError} from './rpc.ts';
 import {MachineControlError,type MachineAction} from './machine-control.ts';
+import {parseCommand} from '../gcode/parser.ts';
 /** Explicit product operation, separate from legacy Klippy restart semantics.
  * EndpointRegistry authorizes every status and mutation before this handler. */
 export function registerProductHostControl(registry:EndpointRegistry,control:ProductHostControl):()=>void{
@@ -34,7 +35,22 @@ export function registerProductHostControl(registry:EndpointRegistry,control:Pro
   if(Object.keys(params).length)throw new ApiError(400,'Machine action takes no arguments');return {kind};
  }));
  const script=registry.register({endpoint:'/printer/gcode/script',methods:['POST'],transports:['http','websocket']},async(params,_verb,context)=>{
-  if(Object.keys(params).some(k=>k!=='script')||typeof params.script!=='string'||!['RESTART','FIRMWARE_RESTART'].includes(params.script.trim().toUpperCase()))throw new ApiError(400,'Native script compatibility supports only standard restart commands');
+  if(Object.keys(params).some(k=>k!=='script')||typeof params.script!=='string')throw new ApiError(400,'Expected a native compatibility script');
+  const script=params.script.trim(),command=script.toUpperCase();
+  if(!['RESTART','FIRMWARE_RESTART'].includes(command)){
+   let parsed;try{parsed=parseCommand(script);}catch{throw new ApiError(400,'Expected one supported native command');}
+   if(parsed.command!=='G28'||Object.keys(parsed.params).some(key=>!['G','X','Y','Z'].includes(key)))throw new ApiError(400,'Native script compatibility supports restart and G28 commands');
+   // A legacy G28 has no caller token. Capture its existing network generation,
+   // then consume the canonical typed operation's token in that same lifetime.
+   // Never obtain a new generation to replay a delayed legacy request.
+   if(!context.nativeGenerationSignal||context.nativeGenerationRetiredAtAdmission)throw new ApiError(503,'Native homing generation is unavailable');
+   const bound={...context,signal:AbortSignal.any([context.signal,context.nativeGenerationSignal])};bound.signal.throwIfAborted();
+   const endpoint='/printer/calibration/home';if(!registry.allowed(endpoint))throw new ApiError(503,'Native homing owner is unavailable');
+   const state=await registry.invoke(endpoint,'GET',{},bound);
+   if(!state||typeof state!=='object'||Array.isArray(state)||typeof state.state_token!=='string')throw new ApiError(503,'Native homing state is unavailable');
+   bound.signal.throwIfAborted();const selected=([0,1,2] as const).filter(axis=>Object.hasOwn(parsed.params,'XYZ'[axis]));
+   await registry.invoke(endpoint,'POST',{version:1,state_token:state.state_token,axes:selected.length?selected:[0,1,2]},bound);return 'ok';
+  }
   if(!context.afterResponse)throw new ApiError(503,'Response handoff is unavailable');
   try{const request=params.script.trim().toUpperCase()==='RESTART'?control.requestRestart.bind(control):control.requestFirmwareRestart.bind(control);await request(context.nativeGenerationSignal,context.nativeGenerationRetiredAtAdmission,callback=>context.afterResponse!(callback));return 'ok';}
   catch(error){throw new ApiError(error instanceof RestartAdmissionError?error.status:control.status.storage_failed?503:409,error instanceof Error?error.message:'Restart rejected');}
