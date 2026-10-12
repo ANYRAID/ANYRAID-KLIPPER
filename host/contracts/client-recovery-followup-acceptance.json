@@ -1,0 +1,1014 @@
+{
+  "schema": 1,
+  "head": "067310d9de29d81c9c2e3fa3900305516c4659c9",
+  "sourceSha256": {
+    "host/src/moonraker/native-probe.ts": "87f634120af55e8bb76df9dff930ad4036545db54fe9800417822f1210423be7",
+    "host/src/moonraker/product-host-api.ts": "63216cfe7600723cd7e1bce899ef10c36a3d7ae3675b9b1564c64313006adaf7",
+    "host/src/moonraker/endpoints.ts": "21cd6597b1c44dd625225c53fea72caa25d5478f67145b1ac84c52f144d988eb",
+    "host/src/runtime/product-service.ts": "990923b98301ad57e3c20dd920628fd0f80d1abf77909485adea9ae039aa6733",
+    "host/src/operations/print.ts": "ccc5ca14aa3d275f600b0365dd53d39eaa79503376b57bf54babbd90cb027322",
+    "host/src/moonraker/product-print-api.ts": "2e9177d2e3d39ea434a7789fa705eab0b4963578c3d70b2079830f7037ab9e8d",
+    "host/test/helpers/compiled-client-host.ts": "ef2b4343a9b5e2826e81d2f66736b0e63500a71ff58f030a7ead90497d426a30",
+    "host/test/helpers/client-firmware.ts": "1ca7525cf508d6183c90bde4d488be2ac60f615aa2f651347bdc76320d827ff8",
+    "host/test/helpers/product-machine.ts": "789581f4ccf6123bc3ff20aa1d221ef8ced8f0b410acd973f01b3ffffdcc503c",
+    "host/test/helpers/client-proxy.ts": "0625add9c3a3eee089661a8350b6b044b5aa1e68e77f37773d880ce04192172f",
+    "host/test/helpers/acceptance-bundle.ts": "60f5f9236c8d45ceb0d3fdf29aaa5a0dfde14b107e209f0b24df5e61e1a6ed08",
+    "host/contracts/client-acceptance-ports.json": "d3ededdbe2408ee110ea755bbdbd89979434eac632d4b0edcf002d0a212beda2"
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/product-host-http-json-bytes-oct12",
+    "manifestSha256": "c4ecc057b5db03076dfb7e63a00f2db549f64a46126224a7e1e1a589695a4b7e",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+  },
+  "maximumSessionMs": 900000,
+  "includesStartup": true,
+  "automaticExpiryExtensionOrRelaunch": false,
+  "ports": {
+    "schema": 1,
+    "host": "127.0.0.1",
+    "clients": {
+      "fluidd": {
+        "probePort": 18428,
+        "gatewayPort": 18430,
+        "browserOrigin": "http://127.0.0.1:18430"
+      },
+      "mainsail": {
+        "probePort": 18432,
+        "gatewayPort": 18434,
+        "browserOrigin": "http://127.0.0.1:18434"
+      }
+    },
+    "maximumSessionMs": 900000,
+    "includesStartup": true,
+    "automaticPortFallback": false,
+    "automaticExpiryExtensionOrRelaunch": false,
+    "policy": "Reuse these origins across finite local sessions. Verify the preceding owned fixture has exited; fail on an occupied port instead of allocating a new browser origin or stopping an unrelated listener. Keep generated logs, receipts and fixture data unique per session. Product-private upstream ports may remain dynamic because browsers access only the gateway origin.",
+    "scope": "Local simulated-client acceptance only; does not change production listeners, browser security settings, or authorize real hardware. Port stability alone is not proof that upload/download tooling is unblocked."
+  },
+  "scenes": [
+    {
+      "id": "r33",
+      "client": "mainsail",
+      "closure": {
+        "name": "mainsail",
+        "started": "2026-10-12T13:30:22.472Z",
+        "deadline": "2026-10-12T13:45:22.472Z",
+        "closed": "2026-10-12T13:37:19.888Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 417416,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1625515,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1625444,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-http-json-bytes-oct12",
+        "automaticExtensionOrRelaunch": false
+      },
+      "firmware": [
+        [
+          {
+            "resets": 0,
+            "configurations": 1
+          },
+          {
+            "resets": 0,
+            "configurations": 1
+          }
+        ],
+        [
+          {
+            "resets": 1,
+            "configurations": 2
+          },
+          {
+            "resets": 1,
+            "configurations": 2
+          }
+        ]
+      ],
+      "initial": {
+        "at": "2026-10-12T13:30:50.127Z",
+        "scene": "r33",
+        "phase": "initial",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "",
+            "print_duration": 0,
+            "total_duration": 0,
+            "filament_used": 0,
+            "state": "standby",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 27.993391,
+            "homed_axes": "",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "printing": {
+        "at": "2026-10-12T13:32:47.678Z",
+        "scene": "r33",
+        "phase": "printing",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "client-cancel-r33.gcode",
+            "print_duration": 24.739126827,
+            "total_duration": 28.868436438999996,
+            "filament_used": 0.253,
+            "state": "printing",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 145.544503,
+            "homed_axes": "xyz",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              2.53,
+              0,
+              0,
+              0.253
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r33.gcode",
+            "status": "in_progress",
+            "job_id": "000001",
+            "total_duration": 28.869034896000013,
+            "print_duration": 24.73973599399999,
+            "native_request_id": "compat-09b1a601-1160-4979-855e-485d0aed7781"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "cancelled": {
+        "at": "2026-10-12T13:34:36.251Z",
+        "scene": "r33",
+        "phase": "cancelled",
+        "printer": {
+          "state": "shutdown",
+          "message": "Native printer requires device reinitialization"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "client-cancel-r33.gcode",
+            "print_duration": 75.68560439,
+            "total_duration": 101.94932461699999,
+            "filament_used": 0.765,
+            "state": "cancelled",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": null,
+            "homed_axes": "",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              7.65,
+              0,
+              0,
+              0.765
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r33.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 101.94932461699999,
+            "print_duration": 75.68560439,
+            "native_request_id": "compat-09b1a601-1160-4979-855e-485d0aed7781"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "recovered": {
+        "at": "2026-10-12T13:35:00.109Z",
+        "scene": "r33",
+        "phase": "recovered",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "",
+            "print_duration": 0,
+            "total_duration": 0,
+            "filament_used": 0,
+            "state": "standby",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 14.564133,
+            "homed_axes": "",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r33.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 101.94932461699999,
+            "print_duration": 75.68560439,
+            "native_request_id": "compat-09b1a601-1160-4979-855e-485d0aed7781"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "rehomed": {
+        "at": "2026-10-12T13:35:51.144Z",
+        "scene": "r33",
+        "phase": "rehomed",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "",
+            "print_duration": 0,
+            "total_duration": 0,
+            "filament_used": 0,
+            "state": "standby",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 65.600134,
+            "homed_axes": "xyz",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r33.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 101.94932461699999,
+            "print_duration": 75.68560439,
+            "native_request_id": "compat-09b1a601-1160-4979-855e-485d0aed7781"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "completed": {
+        "at": "2026-10-12T13:36:49.042Z",
+        "scene": "r33",
+        "phase": "completed",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "client-sample.gcode",
+            "print_duration": 10.281626923999982,
+            "total_duration": 14.279797002999985,
+            "filament_used": 1,
+            "state": "complete",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 123.497735,
+            "homed_axes": "xyz",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              10,
+              0,
+              0,
+              1
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-sample.gcode",
+            "status": "completed",
+            "job_id": "000002",
+            "total_duration": 14.279797002999985,
+            "print_duration": 10.281626923999982,
+            "native_request_id": "compat-1803a1af-99ac-4b50-9109-306529787eee"
+          },
+          {
+            "filename": "client-cancel-r33.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 101.94932461699999,
+            "print_duration": 75.68560439,
+            "native_request_id": "compat-09b1a601-1160-4979-855e-485d0aed7781"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "rpcErrors": [],
+      "pageHoming": "passed",
+      "nextPrint": "page confirmed after page homing"
+    },
+    {
+      "id": "r34",
+      "client": "fluidd",
+      "closure": {
+        "name": "fluidd",
+        "started": "2026-10-12T13:38:02.777Z",
+        "deadline": "2026-10-12T13:53:02.777Z",
+        "closed": "2026-10-12T13:51:08.771Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 785994,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1628439,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1628384,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-http-json-bytes-oct12",
+        "automaticExtensionOrRelaunch": false
+      },
+      "firmware": [
+        [
+          {
+            "resets": 0,
+            "configurations": 1
+          },
+          {
+            "resets": 0,
+            "configurations": 1
+          }
+        ],
+        [
+          {
+            "resets": 1,
+            "configurations": 2
+          },
+          {
+            "resets": 1,
+            "configurations": 2
+          }
+        ]
+      ],
+      "initial": {
+        "at": "2026-10-12T13:38:21.886Z",
+        "scene": "r34",
+        "phase": "initial",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "",
+            "print_duration": 0,
+            "total_duration": 0,
+            "filament_used": 0,
+            "state": "standby",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 19.453228,
+            "homed_axes": "",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "printing": {
+        "at": "2026-10-12T13:39:39.481Z",
+        "scene": "r34",
+        "phase": "printing",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "client-cancel-r34.gcode",
+            "print_duration": 17.515824548999998,
+            "total_duration": 21.553577068999992,
+            "filament_used": 0.253,
+            "state": "printing",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 97.048187,
+            "homed_axes": "xyz",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              2.53,
+              0,
+              0,
+              0.253
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r34.gcode",
+            "status": "in_progress",
+            "job_id": "000001",
+            "total_duration": 21.554275874,
+            "print_duration": 17.516532404,
+            "native_request_id": "compat-59883d1c-14d7-4912-b8c1-17bd274fc848"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "cancelled": {
+        "at": "2026-10-12T13:40:03.006Z",
+        "scene": "r34",
+        "phase": "cancelled",
+        "printer": {
+          "state": "shutdown",
+          "message": "Native printer requires device reinitialization"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "client-cancel-r34.gcode",
+            "print_duration": 33.50069968799999,
+            "total_duration": 37.53844929799999,
+            "filament_used": 0.381,
+            "state": "cancelled",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": null,
+            "homed_axes": "",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              3.81,
+              0,
+              0,
+              0.381
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r34.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 37.53844929799999,
+            "print_duration": 33.50069968799999,
+            "native_request_id": "compat-59883d1c-14d7-4912-b8c1-17bd274fc848"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "recovered": {
+        "at": "2026-10-12T13:40:27.311Z",
+        "scene": "r34",
+        "phase": "recovered",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "",
+            "print_duration": 0,
+            "total_duration": 0,
+            "filament_used": 0,
+            "state": "standby",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 14.497015,
+            "homed_axes": "",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r34.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 37.53844929799999,
+            "print_duration": 33.50069968799999,
+            "native_request_id": "compat-59883d1c-14d7-4912-b8c1-17bd274fc848"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "rehomed": {
+        "at": "2026-10-12T13:40:49.820Z",
+        "scene": "r34",
+        "phase": "rehomed",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "",
+            "print_duration": 0,
+            "total_duration": 0,
+            "filament_used": 0,
+            "state": "standby",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 37.006128,
+            "homed_axes": "",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r34.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 37.53844929799999,
+            "print_duration": 33.50069968799999,
+            "native_request_id": "compat-59883d1c-14d7-4912-b8c1-17bd274fc848"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "completed": {
+        "at": "2026-10-12T13:50:36.284Z",
+        "scene": "r34",
+        "phase": "completed",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "client-layered-r34.gcode",
+            "print_duration": 9.716469091999926,
+            "total_duration": 13.621519660999999,
+            "filament_used": 2,
+            "state": "complete",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 623.465867,
+            "homed_axes": "xyz",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              10,
+              10,
+              0.4,
+              2
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-layered-r34.gcode",
+            "status": "completed",
+            "job_id": "000002",
+            "total_duration": 13.621519660999999,
+            "print_duration": 9.716469091999926,
+            "native_request_id": "compat-578cb7fb-9e6f-408c-a4c1-457dbc2fd4a2"
+          },
+          {
+            "filename": "client-cancel-r34.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 37.53844929799999,
+            "print_duration": 33.50069968799999,
+            "native_request_id": "compat-59883d1c-14d7-4912-b8c1-17bd274fc848"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "rpcErrors": [
+        {
+          "rpcError": {
+            "code": -32601,
+            "message": "Database namespace not found"
+          },
+          "id": 10002
+        },
+        {
+          "rpcError": {
+            "code": 409,
+            "message": "Homing requires an idle printer"
+          },
+          "id": 10031
+        },
+        {
+          "rpcError": {
+            "code": 409,
+            "message": "Homing requires an idle printer"
+          },
+          "id": 10077
+        },
+        {
+          "rpcError": {
+            "code": 409,
+            "message": "Homing requires an idle printer"
+          },
+          "id": 10078
+        }
+      ],
+      "pageHoming": "open: three 409 responses",
+      "nextPrint": "page confirmed only after separate successful HTTP diagnostic; not full page recovery acceptance"
+    }
+  ],
+  "fluiddGap": {
+    "status": "open",
+    "observation": "UI WebSocket G28 rejected three times with 409 despite later canonical GET reporting available. Same-scene standard HTTP G28 returned 200/ok; later new file completed through UI.",
+    "cause": "Not established. Different transport behavior is evidence for next diagnostic, not proof of a root cause.",
+    "stageLabels": "Raw rehomed and rehomed-confirmed labels name intended observation stages; their authoritative fields show homed_axes empty, and neither is counted as successful Fluidd homing.",
+    "next": "Capture the actual Fluidd command parameters and native idle predicate conditions, reproduce the WS/HTTP difference, then fix under unchanged idle/generation/authority guards."
+  },
+  "scope": {
+    "runtimeChanged": false,
+    "fileSource": "API-seeded; not filechooser upload",
+    "mainsail": "Full finite simulated page cancel -> firmware restart -> home -> different completed task confirmed.",
+    "fluidd": "Partial journey; successful HTTP diagnostic must not be counted as page homing or full recovery.",
+    "motion": "Original simulated MCU objects and configuration counters; no physical movement, heating, timing or target-board acceptance."
+  },
+  "evidence": {
+    "path": "host/contracts/client-recovery-followup-evidence.json.gz",
+    "sha256": "748717f7d4d0d75a97621ff3dc1c9dd25c6d4ae6dca16d09d75d073f8be9755a",
+    "bytes": 749948,
+    "entries": 65
+  },
+  "remaining": [
+    "Fluidd page G28 failure and complete recovery",
+    "Full Moonraker consumers/templates/macros and all Python retirement",
+    "Filechooser/configuration edits/queue failure/SIGKILL client journeys",
+    "Original UI/native-build/G3/target Cycnumbris500 performance and precision",
+    "Own documentation CI and develop -> master integration; other models last"
+  ]
+}

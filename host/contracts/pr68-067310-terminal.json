@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "head": "067310d9de29d81c9c2e3fa3900305516c4659c9",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "mergeCheckout": "aedca1290ea9501c6206fe8813158b8c764e85f2",
+  "jobs": [
+    {
+      "runId": 38228734049,
+      "id": 114742632935,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228734049,
+      "id": 114742633226,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228734049,
+      "id": 114742633340,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228734049,
+      "id": 114748660827,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228733631,
+      "id": 114742632267,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228733631,
+      "id": 114742632576,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228733631,
+      "id": 114742632602,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228733631,
+      "id": 114742632645,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228733631,
+      "id": 114742632659,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228733631,
+      "id": 114742632695,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228733631,
+      "id": 114742632726,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228733631,
+      "id": 114742632750,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228733631,
+      "id": 114742632752,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228733631,
+      "id": 114742632756,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38228733638,
+      "id": 114742631568,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "tests": 4917,
+    "pass": 4917,
+    "fail": 0
+  },
+  "scope": "Exact encoding head and PR merge checkout; not new acceptance-document CI, hardware or develop/master integration"
+}
