@@ -1,0 +1,809 @@
+{
+  "schema": 1,
+  "baselineHead": "887d2713efbac6d1e6625537b74f45f1ef575f24",
+  "sourceSha256": {
+    "host/src/gcode/dispatch.ts": "e2cc2823647e7e8e0ca02e9384888807ab956010d1610f3e013f756287974f37",
+    "host/src/moonraker/native-probe.ts": "9a518830b63bf8a6b3434ba2488e3da04bc9c9414c4630664fe1d8e5c225c6ab",
+    "host/src/runtime/product-service.ts": "0dbfe4416ddedb51553583418757697b79532eeb96f5058147ad247471a3bc21",
+    "host/test/native-home-clock-admission.test.ts": "f480eedfc9eaadef460b7ff4c69e72fa9bdd620ecb308bde19a6e328d38d107b"
+  },
+  "cause": {
+    "r35": "Actual Fluidd script G28 rejected while otherwise idle; port busy.",
+    "r36": "Stationary idle maintenance phase clock, 49 unavailable observations in 189 read-only samples. First R36 page G28 did not fail; diagnostic bundles do not count as performance/product proof.",
+    "fix": "Canonical home follows only the existing idle clock job in the same GCodeDispatch owner. Authority, token, generation, machine idle and maintenance gate are rechecked after waiting. Original 120-second deadline includes queue wait. Rejected pre-physical admission does not stop unrelated hardware; physical failure retains safety stop."
+  },
+  "tests": {
+    "source": {
+      "tests": 39,
+      "pass": 39,
+      "fail": 0
+    },
+    "compiled": {
+      "tests": 39,
+      "pass": 39,
+      "fail": 0
+    },
+    "product": {
+      "tests": 39,
+      "pass": 39,
+      "fail": 0
+    }
+  },
+  "performance": {
+    "home": {
+      "baselineHead": "887d2713efbac6d1e6625537b74f45f1ef575f24",
+      "warmups": 2,
+      "samples": 7,
+      "iterations": 500,
+      "sequence": "three alternating fresh-process pairs; existing typed and standard G28 workloads, candidate uses actual dispatch admission owner",
+      "budgets": [
+        {
+          "round": 0,
+          "name": "typed",
+          "before": {
+            "rawMs": [
+              12.972515000000001,
+              12.319013999999981,
+              9.855688000000015,
+              8.27794399999999,
+              10.585068000000007,
+              10.68759,
+              10.75302099999999
+            ],
+            "medianMs": 10.68759,
+            "maximumMs": 12.972515000000001,
+            "medianUsPerOperation": 21.37518
+          },
+          "after": {
+            "rawMs": [
+              15.554552999999999,
+              14.170041999999995,
+              11.43049099999999,
+              14.84391199999996,
+              20.64591900000005,
+              10.946243999999979,
+              11.521552999999983
+            ],
+            "medianMs": 14.170041999999995,
+            "maximumMs": 20.64591900000005,
+            "medianUsPerOperation": 28.34008399999999
+          },
+          "ratio": 1.3258407180664673,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 0,
+          "name": "compatibility",
+          "before": {
+            "rawMs": [
+              17.025654999999986,
+              15.95662900000002,
+              12.05331000000001,
+              15.353260000000006,
+              19.895657999999997,
+              17.037475,
+              18.637759999999957
+            ],
+            "medianMs": 17.025654999999986,
+            "maximumMs": 19.895657999999997,
+            "medianUsPerOperation": 34.05130999999997
+          },
+          "after": {
+            "rawMs": [
+              19.68963500000001,
+              19.959249,
+              21.022785,
+              21.46799200000001,
+              14.797731999999996,
+              25.654674,
+              22.562438000000043
+            ],
+            "medianMs": 21.022785,
+            "maximumMs": 25.654674,
+            "medianUsPerOperation": 42.04557
+          },
+          "ratio": 1.2347709970629628,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 1,
+          "name": "typed",
+          "before": {
+            "rawMs": [
+              11.326720000000009,
+              11.048506000000003,
+              9.874458000000004,
+              7.8766880000000015,
+              10.319783999999999,
+              10.37444499999998,
+              11.10048599999999
+            ],
+            "medianMs": 10.37444499999998,
+            "maximumMs": 11.326720000000009,
+            "medianUsPerOperation": 20.74888999999996
+          },
+          "after": {
+            "rawMs": [
+              17.460750999999988,
+              16.03035,
+              11.656514000000016,
+              14.353065000000015,
+              23.096925999999996,
+              13.579473000000007,
+              12.025140000000022
+            ],
+            "medianMs": 14.353065000000015,
+            "maximumMs": 23.096925999999996,
+            "medianUsPerOperation": 28.70613000000003
+          },
+          "ratio": 1.383501960827788,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 1,
+          "name": "compatibility",
+          "before": {
+            "rawMs": [
+              16.238062999999997,
+              15.196167000000003,
+              12.165332000000006,
+              15.242518000000018,
+              19.515492999999992,
+              15.456880999999981,
+              18.65745899999996
+            ],
+            "medianMs": 15.456880999999981,
+            "maximumMs": 19.515492999999992,
+            "medianUsPerOperation": 30.913761999999963
+          },
+          "after": {
+            "rawMs": [
+              19.277187999999995,
+              19.45545100000001,
+              21.34871000000001,
+              25.24580800000001,
+              15.342829999999992,
+              26.59097799999995,
+              21.50470200000001
+            ],
+            "medianMs": 21.34871000000001,
+            "maximumMs": 26.59097799999995,
+            "medianUsPerOperation": 42.69742000000002
+          },
+          "ratio": 1.381178389094154,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 2,
+          "name": "typed",
+          "before": {
+            "rawMs": [
+              12.340684999999993,
+              12.899223000000006,
+              10.501177000000013,
+              7.949018999999993,
+              11.222367999999989,
+              11.34453000000002,
+              11.475351999999987
+            ],
+            "medianMs": 11.34453000000002,
+            "maximumMs": 12.899223000000006,
+            "medianUsPerOperation": 22.68906000000004
+          },
+          "after": {
+            "rawMs": [
+              16.868633000000003,
+              15.404291,
+              11.449021000000016,
+              13.940178000000031,
+              22.681500000000028,
+              11.586562999999956,
+              12.52889799999997
+            ],
+            "medianMs": 13.940178000000031,
+            "maximumMs": 22.681500000000028,
+            "medianUsPerOperation": 27.880356000000063
+          },
+          "ratio": 1.228801722063409,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "round": 2,
+          "name": "compatibility",
+          "before": {
+            "rawMs": [
+              16.477396,
+              15.020434999999992,
+              12.015540000000016,
+              14.175761999999992,
+              19.571593000000007,
+              14.432756000000012,
+              17.157257000000016
+            ],
+            "medianMs": 15.020434999999992,
+            "maximumMs": 19.571593000000007,
+            "medianUsPerOperation": 30.040869999999984
+          },
+          "after": {
+            "rawMs": [
+              20.322823999999997,
+              19.013693999999987,
+              19.919478999999995,
+              23.59864299999998,
+              15.876337000000035,
+              23.075765999999987,
+              20.572437999999977
+            ],
+            "medianMs": 20.322823999999997,
+            "maximumMs": 23.59864299999998,
+            "medianUsPerOperation": 40.645647999999994
+          },
+          "ratio": 1.3530116804207073,
+          "limit": 1.5,
+          "pass": true
+        }
+      ],
+      "pass": true,
+      "scope": "Stub numerical-free admission cost; not homing duration, printing throughput, hardware or G3 precision."
+    },
+    "gcode": {
+      "node": "v26.10.0",
+      "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+      "commands": 10000,
+      "exact": true,
+      "nodeMedianMs": 21.64939000000004,
+      "nodeP95Ms": 27.202763000000004,
+      "pythonMedianMs": 38.249756034929305,
+      "pythonP95Ms": 39.97717099264264,
+      "speedup": 1.766782160371689,
+      "eventLoopP99Ms": 1.425407,
+      "eventLoopMaxMs": 1.471487,
+      "scope": "Original 10000-command exact-output gate with Python reference retained; does not retire Python benchmark dependency."
+    }
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/product-host-home-clock-oct12",
+    "manifestSha256": "f74da0e6b372bf646c1135644f11d22697d5bbd40a4f15c9978d6ef27dfb9f98",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+  },
+  "assembly": {
+    "files": 687,
+    "manifestSha256": "f74da0e6b372bf646c1135644f11d22697d5bbd40a4f15c9978d6ef27dfb9f98",
+    "nativeSourcesVerified": 75,
+    "changed": [
+      "host/src/gcode/dispatch.js",
+      "host/src/moonraker/native-probe.js",
+      "host/src/runtime/product-service.js"
+    ],
+    "scope": "Current production TS closure freshly built; verified unchanged locked native outputs reused. No new native build or hardware claim."
+  },
+  "diagnostics": [
+    {
+      "id": "r35",
+      "closure": {
+        "name": "fluidd",
+        "started": "2026-10-12T14:19:17.763Z",
+        "deadline": "2026-10-12T14:34:17.763Z",
+        "closed": "2026-10-12T14:22:32.593Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 194830,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1644682,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1644629,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-home-diagnostic-oct12",
+        "automaticExtensionOrRelaunch": false
+      }
+    },
+    {
+      "id": "r36",
+      "closure": {
+        "name": "fluidd",
+        "started": "2026-10-12T14:24:48.142Z",
+        "deadline": "2026-10-12T14:39:48.142Z",
+        "closed": "2026-10-12T14:28:30.402Z",
+        "reason": "explicit-completion",
+        "elapsedMs": 222260,
+        "children": [
+          {
+            "label": "GATEWAY",
+            "pid": 1647004,
+            "code": 0,
+            "signal": null
+          },
+          {
+            "label": "PROBE",
+            "pid": 1646948,
+            "code": 0,
+            "signal": null
+          }
+        ],
+        "product": "/home/dek02/.cache/codex/tmp/product-host-home-phase-diagnostic-oct12",
+        "automaticExtensionOrRelaunch": false
+      }
+    }
+  ],
+  "scene": {
+    "id": "r37",
+    "client": "fluidd",
+    "closure": {
+      "name": "fluidd",
+      "started": "2026-10-12T14:53:38.628Z",
+      "deadline": "2026-10-12T15:08:38.628Z",
+      "closed": "2026-10-12T14:58:46.959Z",
+      "reason": "explicit-completion",
+      "elapsedMs": 308331,
+      "children": [
+        {
+          "label": "GATEWAY",
+          "pid": 1658124,
+          "code": 0,
+          "signal": null
+        },
+        {
+          "label": "PROBE",
+          "pid": 1658071,
+          "code": 0,
+          "signal": null
+        }
+      ],
+      "product": "/home/dek02/.cache/codex/tmp/product-host-home-clock-oct12",
+      "automaticExtensionOrRelaunch": false
+    },
+    "firmware": [
+      [
+        {
+          "resets": 0,
+          "configurations": 1
+        },
+        {
+          "resets": 0,
+          "configurations": 1
+        }
+      ],
+      [
+        {
+          "resets": 1,
+          "configurations": 2
+        },
+        {
+          "resets": 1,
+          "configurations": 2
+        }
+      ]
+    ],
+    "states": {
+      "initial-home": {
+        "at": "2026-10-12T14:54:32.505Z",
+        "scene": "r37",
+        "phase": "initial-home",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "",
+            "print_duration": 0,
+            "total_duration": 0,
+            "filament_used": 0,
+            "state": "standby",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 54.241285,
+            "homed_axes": "xyz",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "printing": {
+        "at": "2026-10-12T14:55:14.025Z",
+        "scene": "r37",
+        "phase": "printing",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "client-cancel-r37.gcode",
+            "print_duration": 13.108802162000007,
+            "total_duration": 17.018847689,
+            "filament_used": 0.253,
+            "state": "printing",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 95.761359,
+            "homed_axes": "xyz",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              2.53,
+              0,
+              0,
+              0.253
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r37.gcode",
+            "status": "in_progress",
+            "job_id": "000001",
+            "total_duration": 17.021232172000005,
+            "print_duration": 13.111193215000007,
+            "native_request_id": "compat-7f835764-5f56-44af-927a-41daf139b427"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "cancelled": {
+        "at": "2026-10-12T14:55:31.347Z",
+        "scene": "r37",
+        "phase": "cancelled",
+        "printer": {
+          "state": "shutdown",
+          "message": "Native printer requires device reinitialization"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "client-cancel-r37.gcode",
+            "print_duration": 20.430708905000007,
+            "total_duration": 24.340754352000005,
+            "filament_used": 0.253,
+            "state": "cancelled",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": null,
+            "homed_axes": "",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              2.53,
+              0,
+              0,
+              0.253
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r37.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 24.340754352000005,
+            "print_duration": 20.430708905000007,
+            "native_request_id": "compat-7f835764-5f56-44af-927a-41daf139b427"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "recovered": {
+        "at": "2026-10-12T14:56:21.089Z",
+        "scene": "r37",
+        "phase": "recovered",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "",
+            "print_duration": 0,
+            "total_duration": 0,
+            "filament_used": 0,
+            "state": "standby",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 12.807238,
+            "homed_axes": "",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r37.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 24.340754352000005,
+            "print_duration": 20.430708905000007,
+            "native_request_id": "compat-7f835764-5f56-44af-927a-41daf139b427"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "rehomed": {
+        "at": "2026-10-12T14:56:41.387Z",
+        "scene": "r37",
+        "phase": "rehomed",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "",
+            "print_duration": 0,
+            "total_duration": 0,
+            "filament_used": 0,
+            "state": "standby",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 33.102207,
+            "homed_axes": "xyz",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-cancel-r37.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 24.340754352000005,
+            "print_duration": 20.430708905000007,
+            "native_request_id": "compat-7f835764-5f56-44af-927a-41daf139b427"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      },
+      "completed": {
+        "at": "2026-10-12T14:57:58.619Z",
+        "scene": "r37",
+        "phase": "completed",
+        "printer": {
+          "state": "ready",
+          "message": "Native printer is ready"
+        },
+        "objects": {
+          "print_stats": {
+            "filename": "client-layered-r37.gcode",
+            "print_duration": 9.737171157999983,
+            "total_duration": 13.642335274000011,
+            "filament_used": 2,
+            "state": "complete",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          },
+          "toolhead": {
+            "estimated_print_time": 110.334606,
+            "homed_axes": "xyz",
+            "axis_minimum": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "axis_maximum": [
+              200,
+              200,
+              200,
+              0
+            ],
+            "position": [
+              10,
+              10,
+              0.4,
+              2
+            ],
+            "extruder": "extruder",
+            "max_velocity": 100,
+            "max_accel": 1000,
+            "square_corner_velocity": 5,
+            "minimum_cruise_ratio": 0.5
+          }
+        },
+        "jobs": [
+          {
+            "filename": "client-layered-r37.gcode",
+            "status": "completed",
+            "job_id": "000002",
+            "total_duration": 13.642335274000011,
+            "print_duration": 9.737171157999983,
+            "native_request_id": "compat-992ec6e6-d4fc-4a5a-88c3-10e5ce813111"
+          },
+          {
+            "filename": "client-cancel-r37.gcode",
+            "status": "cancelled",
+            "job_id": "000001",
+            "total_duration": 24.340754352000005,
+            "print_duration": 20.430708905000007,
+            "native_request_id": "compat-7f835764-5f56-44af-927a-41daf139b427"
+          }
+        ],
+        "queue": {
+          "state": "paused",
+          "jobs": [],
+          "transitionPhase": null,
+          "transition_available": false
+        },
+        "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
+      }
+    },
+    "pageHoming": "passed initial and after explicit firmware restart; no HTTP homing substitute",
+    "fileSource": "API seeded, not page filechooser upload",
+    "scope": "Same product process and original two simulated MCU objects; no physical, heating, target performance, layer counter or full-client acceptance."
+  },
+  "evidence": {
+    "path": "host/contracts/native-home-clock-admission-evidence.json.gz",
+    "sha256": "07dbba7cb0d13e26c80f947b905d7233202bf1837db3a59d92cbb27f20de3256",
+    "bytes": 1872801,
+    "entries": 501
+  },
+  "remaining": [
+    "Own fresh head CI and task -> develop -> master integration",
+    "177 Python files, default Python entry and Python benchmark/CI references",
+    "Full Moonraker consumers/templates, consumer macro scenarios and complete client upload/config/queue/SIGKILL",
+    "Original UI 1.5 budget, native-build stability, G3 precision and target Cycnumbris500 hardware/printing gates; other models last"
+  ]
+}

@@ -22,13 +22,17 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
-同一 687 项包的 Mainsail R33 已确认取消、标准固件恢复、重新
-归位及另一份任务完成，原取消日志身份／时长保持；场次 417 秒关闭。
-Fluidd R34 取消与恢复确认，但页面 G28 三次返回 409；同场标准
-HTTP G28 成功后，页面的新短任务完成。该诊断不冒充页面归位通过，
-Fluidd 完整恢复旅程继续开放；场次 786 秒关闭。见
-[恢复后续证据](host/contracts/client-recovery-followup-acceptance.json)。
-代码头 `067310d9` 十五项 CI、4917／4917 通过；后续记录须自身 CI。
+Fluidd G28 已与原空闲时钟维护共用调度所有者，等待后保留权限、
+代际、空闲和维护检查，原 120 秒包含等待。源码／独立 JS／实际包
+各 39 项通过，三组原准入预算最高 1.384 倍，保持 1.5 门限。
+固定端口的新包 R37 页面完成归位、打印、取消、标准固件恢复、
+再次归位及另一份任务完成；原取消日志保持，308 秒关闭。
+Mainsail R33 历史旅程已通过，Fluidd R34 原三次 409 证据保留，
+本修复不以 HTTP 归位替代页面。见
+[当前归位调度验收](host/contracts/native-home-clock-admission-acceptance.json)及
+[历史恢复证据](host/contracts/client-recovery-followup-acceptance.json)。
+前序 887d2713 十五项 CI、4917／4917 通过，本运行时修复须新头 CI。
+
 HTTP 组件 JSON 补齐固定上游标准库后备实现的 UTF-8／16／32 编码，
 自动识别字节序与单个 BOM，并无损保留代理字符；文本解码与公共
 RPC／运动保护保持原行为。103 个冻结案例及消费者组合在源码、
