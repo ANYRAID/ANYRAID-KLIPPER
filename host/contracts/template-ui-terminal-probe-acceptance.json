@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "both-runtime-candidates-rejected-and-withdrawn",
+  "status": "runtime-probes-rejected-and-not-integrated",
   "baselineHead": "69d584861467f9938c5e50a26fcf81bcf983a172",
   "sourceSha256": {
     "host/src/moonraker/template-async-owner.ts": "4209eadf3e6457981a4f3a37078a4b09bd7c32a218ecc2e074d718b684ddf5f5",
@@ -14,30 +14,31 @@
     "host/bench/template-factory.ts": "d7508d77b8e5ada146efc83a158efc231aedb51671731c58fae66ee772af67d3",
     "host/contracts/moonraker-template-async-reference.json": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
     "host/contracts/moonraker-template-factory-reference.json": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
-    "host/contracts/template-numeric-reference.json.gz": "1014bdd1a41268f9fee7c98c08196d9b6c73338bfaf1ad48bedd3abded66ce4f"
+    "host/contracts/template-numeric-reference.json.gz": "1014bdd1a41268f9fee7c98c08196d9b6c73338bfaf1ad48bedd3abded66ce4f",
+    "host/test/template-message-metadata.test.ts": "e2817194332ac2c11945d3556072b3ab2370c51b91096f47c0b32955d51ef36e"
   },
   "retained": {
     "runtimeUnchanged": true,
     "nativeAndMathUnchanged": true,
-    "changes": "Two regression tests preserve already published completion during reentrant cancel/close, and require synchronous native rejection to remain a rejected Promise without pinning capacity",
+    "changes": "Two regression tests preserve already published completion during reentrant cancel/close, and require synchronous native rejection to remain a rejected Promise without pinning capacity; complete message byte cap includes maximum u32 frame and the 64th call, with oversized tenth message blocked before callback",
     "tests": {
       "source": {
-        "tests": 119,
-        "pass": 119,
+        "tests": 121,
+        "pass": 121,
         "fail": 0,
         "cancelled": 0,
         "skipped": 0
       },
       "compiled": {
-        "tests": 119,
-        "pass": 119,
+        "tests": 121,
+        "pass": 121,
         "fail": 0,
         "cancelled": 0,
         "skipped": 0
       },
       "product": {
-        "tests": 119,
-        "pass": 119,
+        "tests": 121,
+        "pass": 121,
         "fail": 0,
         "cancelled": 0,
         "skipped": 0
@@ -48,7 +49,15 @@
       "manifestSha256": "c086b3565d54374b9cca71288b1ea0bf9d4b8ab49fa7a767ab3201402252c9f9",
       "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
     },
-    "scope": "Existing accepted frozen package is reused; no retained runtime code change or fresh native build"
+    "scope": "Existing accepted frozen package is reused; no retained runtime code change or fresh native build",
+    "sourceSha256": {
+      "host/test/template-message-metadata.test.ts": "e2817194332ac2c11945d3556072b3ab2370c51b91096f47c0b32955d51ef36e",
+      "host/src/moonraker/template-async-owner.ts": "4209eadf3e6457981a4f3a37078a4b09bd7c32a218ecc2e074d718b684ddf5f5",
+      "host/src/moonraker/secrets.ts": "c32963ceedee1b0e23c24bb0632f43ac2c3ccb54c5ab7d4b85430799595cf9a3",
+      "host/native/template/src/async_text.rs": "87132b7a1331fcf08a381e9a4ca29b33923a39e44ed4fbaeedf0cd472b6f0dcd",
+      "host/bench/template-async.ts": "700c5127f7437e40c883d1d0cbeabca9f5610753aad6a402dfd396648f291030",
+      "host/bench/template-factory.ts": "d7508d77b8e5ada146efc83a158efc231aedb51671731c58fae66ee772af67d3"
+    }
   },
   "candidates": [
     {
@@ -3483,5 +3492,1232 @@
     "Native compiler stability and G3 3.680611371237319e-8 > 1e-8 remain unresolved",
     "No target-board throughput, printer UI under real printing, motion/current accuracy or Cycnumbris 500 hardware acceptance",
     "Full client fault/SIGKILL/Cura and task -> develop -> master integration/new-head CI still required; other machine models last"
-  ]
+  ],
+  "previousRetained": {
+    "runtimeUnchanged": true,
+    "nativeAndMathUnchanged": true,
+    "changes": "Two regression tests preserve already published completion during reentrant cancel/close, and require synchronous native rejection to remain a rejected Promise without pinning capacity",
+    "tests": {
+      "source": {
+        "tests": 119,
+        "pass": 119,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "compiled": {
+        "tests": 119,
+        "pass": 119,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "product": {
+        "tests": 119,
+        "pass": 119,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    "product": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-cors-domain-owner-oct13",
+      "manifestSha256": "c086b3565d54374b9cca71288b1ea0bf9d4b8ab49fa7a767ab3201402252c9f9",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "scope": "Existing accepted frozen package is reused; no retained runtime code change or fresh native build"
+  },
+  "structuredNativeCallProbe": {
+    "baseHead": "b41e33f3491bb5dad4876c9c1a91b94fb84becbe",
+    "status": "rejected",
+    "scope": "Private Rust component prototype only; no repository runtime/native changes. Complete structured wire tree shares original kinds/byte bounds and legacy default ABI. This does not prove complete Jinja or language equivalence.",
+    "changes": "No assembled JSON message text or Node JSON.parse in opt-in call path; original escaping/full-envelope bytes still traversed by a bounded counting writer; tagged type strings and JS decoder kept. Combined with previously rejected terminal/secret-status proposals.",
+    "functional": {
+      "structuredOnly": 119,
+      "combined": 120,
+      "metadataBoundaries": 2
+    },
+    "baseline": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-cors-domain-owner-oct13",
+      "manifestSha256": "c086b3565d54374b9cca71288b1ea0bf9d4b8ab49fa7a767ab3201402252c9f9",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "artifact": {
+      "scope": "Combined rejected prototype identity, not accepted product manifest",
+      "addonSha256": "e788d2a92922ad98a94ab438ed5974c183bb185d779d5d5755733348d8cf3ccc",
+      "ownerSha256": "9e8de982f23d2103b3f91e4665b66aec063572f38cfdd5df19b4575c218477a2",
+      "secretsSha256": "458ab33204c1bef1863cb738e445906d9d65170fd661d48b44cffa1f22ff1d88",
+      "rustSourceSha256": "9abc052f879d7800ee047ebf20e181a5a5b52d529c08980eba487d1786101f8d",
+      "node": "v26.10.0",
+      "accepted": false
+    },
+    "sourceSha256": {
+      "host/test/template-message-metadata.test.ts": "e2817194332ac2c11945d3556072b3ab2370c51b91096f47c0b32955d51ef36e",
+      "host/src/moonraker/template-async-owner.ts": "4209eadf3e6457981a4f3a37078a4b09bd7c32a218ecc2e074d718b684ddf5f5",
+      "host/src/moonraker/secrets.ts": "c32963ceedee1b0e23c24bb0632f43ac2c3ccb54c5ab7d4b85430799595cf9a3",
+      "host/native/template/src/async_text.rs": "87132b7a1331fcf08a381e9a4ca29b33923a39e44ed4fbaeedf0cd472b6f0dcd",
+      "host/bench/template-async.ts": "700c5127f7437e40c883d1d0cbeabca9f5610753aad6a402dfd396648f291030",
+      "host/bench/template-factory.ts": "d7508d77b8e5ada146efc83a158efc231aedb51671731c58fae66ee772af67d3"
+    },
+    "tests": {
+      "source": {
+        "tests": 121,
+        "pass": 121,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "compiled": {
+        "tests": 121,
+        "pass": 121,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "product": {
+        "tests": 121,
+        "pass": 121,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    "performance": {
+      "rows": [
+        {
+          "pair": 0,
+          "kind": "template-async",
+          "name": "pure",
+          "before": {
+            "name": "pure",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              6.874647999999993,
+              7.057009999999991,
+              4.906970000000001,
+              5.0060319999999905,
+              4.6551860000000005,
+              4.530214000000001,
+              4.8741799999999955
+            ],
+            "medianMs": 4.906970000000001,
+            "referenceMedianMs": 6.315300997812301,
+            "ratio": 0.7769970111796471,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "pure",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              5.379975999999999,
+              7.998753999999998,
+              4.4893339999999995,
+              4.838319000000006,
+              4.6015060000000005,
+              4.555014,
+              4.657767000000007
+            ],
+            "medianMs": 4.657767000000007,
+            "referenceMedianMs": 6.315300997812301,
+            "ratio": 0.7375368175821732,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 0.9492144847023735,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "template-async",
+          "name": "callback",
+          "before": {
+            "name": "callback",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              12.791361999999992,
+              12.051292000000018,
+              13.531282000000004,
+              13.434861000000012,
+              13.714405999999997,
+              12.115622000000002,
+              12.47147799999999
+            ],
+            "medianMs": 12.791361999999992,
+            "referenceMedianMs": 9.619439020752907,
+            "ratio": 1.3297409518792107,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "callback",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              13.084165999999982,
+              12.840533000000022,
+              13.011755999999991,
+              12.970594000000006,
+              12.872602999999998,
+              13.112896999999975,
+              12.964915000000019
+            ],
+            "medianMs": 12.970594000000006,
+            "referenceMedianMs": 9.619439020752907,
+            "ratio": 1.348373223429905,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 1.0140119558808525,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "template-async",
+          "name": "ui",
+          "before": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              12.14548400000001,
+              12.719580999999977,
+              12.816131999999982,
+              12.505427999999995,
+              12.044771000000026,
+              13.471762000000012,
+              17.84456399999999
+            ],
+            "medianMs": 12.719580999999977,
+            "referenceMedianMs": 8.285223972052336,
+            "ratio": 1.5352126922465326,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          },
+          "after": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              12.732661000000007,
+              12.74813199999997,
+              12.712751000000026,
+              12.663430000000005,
+              12.781922000000009,
+              13.194808000000023,
+              12.73876100000001
+            ],
+            "medianMs": 12.73876100000001,
+            "referenceMedianMs": 8.285223972052336,
+            "ratio": 1.5375276568225937,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          },
+          "pairedRatio": 1.0015079113062006,
+          "pass": false
+        },
+        {
+          "pair": 0,
+          "kind": "template-factory",
+          "name": "sync",
+          "before": {
+            "name": "sync",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              1.3991800000000012,
+              0.9675240000000045,
+              1.0261150000000043,
+              1.5862320000000025,
+              1.1319659999999985,
+              0.8471019999999996,
+              0.8492519999999999
+            ],
+            "medianMs": 1.0261150000000043,
+            "referenceMedianMs": 3.5718820290639997,
+            "ratio": 0.2872757251361111,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "sync",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              1.4108799999999988,
+              0.9643639999999962,
+              0.9951640000000026,
+              1.1088459999999998,
+              1.1818859999999987,
+              0.9381739999999965,
+              0.8650520000000057
+            ],
+            "medianMs": 0.9951640000000026,
+            "referenceMedianMs": 3.5718820290639997,
+            "ratio": 0.27861054533785434,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 0.9698367142084449,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "template-factory",
+          "name": "async",
+          "before": {
+            "name": "async",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              5.114513000000002,
+              5.978475000000003,
+              4.830428999999995,
+              4.6801770000000005,
+              5.502908000000005,
+              6.2172979999999995,
+              4.7058270000000135
+            ],
+            "medianMs": 5.114513000000002,
+            "referenceMedianMs": 4.101527971215546,
+            "ratio": 1.246977476660788,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "async",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.840479000000002,
+              4.8715389999999985,
+              4.730407,
+              4.795018999999996,
+              4.808987999999999,
+              4.750028,
+              6.7211850000000055
+            ],
+            "medianMs": 4.808987999999999,
+            "referenceMedianMs": 4.101527971215546,
+            "ratio": 1.1724869448043256,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 0.9402631296469472,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "template-factory",
+          "name": "ui",
+          "before": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.610484999999997,
+              6.498253000000005,
+              4.6960770000000025,
+              4.673496999999998,
+              5.985645000000005,
+              4.780128000000019,
+              4.918060000000025
+            ],
+            "medianMs": 4.780128000000019,
+            "referenceMedianMs": 3.2580499537289143,
+            "ratio": 1.4671745577531894,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.668226000000004,
+              6.327500000000001,
+              4.6760069999999985,
+              4.673315999999986,
+              5.528718999999995,
+              7.0645509999999945,
+              13.052235000000024
+            ],
+            "medianMs": 5.528718999999995,
+            "referenceMedianMs": 3.2580499537289143,
+            "ratio": 1.696941139184268,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          },
+          "pairedRatio": 1.1566048022144957,
+          "pass": false
+        },
+        {
+          "pair": 1,
+          "kind": "template-async",
+          "name": "pure",
+          "before": {
+            "name": "pure",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.992752000000003,
+              4.655105999999996,
+              4.560324999999999,
+              4.742327000000003,
+              4.819378999999998,
+              4.720546999999996,
+              5.512338
+            ],
+            "medianMs": 4.742327000000003,
+            "referenceMedianMs": 6.315300997812301,
+            "ratio": 0.7509265198353656,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "pure",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              6.767726000000003,
+              4.872349,
+              5.703992000000007,
+              5.606019000000003,
+              4.755048000000002,
+              6.841037,
+              6.838887999999997
+            ],
+            "medianMs": 5.703992000000007,
+            "referenceMedianMs": 6.315300997812301,
+            "ratio": 0.9032019221215174,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 1.202783359308627,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "template-async",
+          "name": "callback",
+          "before": {
+            "name": "callback",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              12.426766,
+              12.048201000000006,
+              12.359955999999983,
+              12.052740999999997,
+              12.145732999999979,
+              12.285495000000026,
+              12.323634999999996
+            ],
+            "medianMs": 12.285495000000026,
+            "referenceMedianMs": 9.619439020752907,
+            "ratio": 1.277152958035847,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "callback",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              14.26989300000001,
+              13.179158000000001,
+              14.323554000000001,
+              14.815269999999998,
+              12.440447000000006,
+              13.752985999999993,
+              12.734740999999985
+            ],
+            "medianMs": 13.752985999999993,
+            "referenceMedianMs": 9.619439020752907,
+            "ratio": 1.429707696085957,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 1.119449073887537,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "template-async",
+          "name": "ui",
+          "before": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              11.865559000000019,
+              12.16821299999998,
+              12.002130999999991,
+              11.95587999999998,
+              11.901139999999998,
+              12.08648199999999,
+              12.079390999999987
+            ],
+            "medianMs": 12.002130999999991,
+            "referenceMedianMs": 8.285223972052336,
+            "ratio": 1.4486187748798949,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              12.96165400000001,
+              15.661763000000008,
+              12.985734999999977,
+              14.168231999999989,
+              12.835882000000026,
+              14.752749999999992,
+              12.957314999999994
+            ],
+            "medianMs": 12.985734999999977,
+            "referenceMedianMs": 8.285223972052336,
+            "ratio": 1.5673366276884457,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          },
+          "pairedRatio": 1.0819524466113548,
+          "pass": false
+        },
+        {
+          "pair": 1,
+          "kind": "template-factory",
+          "name": "sync",
+          "before": {
+            "name": "sync",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              1.3574999999999946,
+              0.9953440000000029,
+              1.0476449999999957,
+              1.0545650000000037,
+              1.1490160000000031,
+              0.8735029999999995,
+              0.853112000000003
+            ],
+            "medianMs": 1.0476449999999957,
+            "referenceMedianMs": 3.5718820290639997,
+            "ratio": 0.293303359818557,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "sync",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              1.2083670000000026,
+              0.9582440000000005,
+              1.007083999999999,
+              1.0469350000000048,
+              1.132716000000002,
+              0.8409720000000007,
+              0.8302720000000008
+            ],
+            "medianMs": 1.007083999999999,
+            "referenceMedianMs": 3.5718820290639997,
+            "ratio": 0.2819477216227945,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 0.961283640927989,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "template-factory",
+          "name": "async",
+          "before": {
+            "name": "async",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.912849999999999,
+              4.963791000000008,
+              4.85245900000001,
+              4.696436999999989,
+              4.879088999999993,
+              4.826098999999999,
+              4.71940699999999
+            ],
+            "medianMs": 4.85245900000001,
+            "referenceMedianMs": 4.101527971215546,
+            "ratio": 1.183085677838719,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "async",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.915289999999999,
+              5.225373999999988,
+              5.365546999999992,
+              4.909970000000001,
+              4.692186000000007,
+              4.639657,
+              4.757356999999999
+            ],
+            "medianMs": 4.909970000000001,
+            "referenceMedianMs": 4.101527971215546,
+            "ratio": 1.1971075254047,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 1.0118519290940924,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "template-factory",
+          "name": "ui",
+          "before": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.644435999999999,
+              4.710616999999999,
+              4.6433760000000035,
+              4.681407000000007,
+              4.741377,
+              4.843418999999997,
+              4.745918000000017
+            ],
+            "medianMs": 4.710616999999999,
+            "referenceMedianMs": 3.2580499537289143,
+            "ratio": 1.4458394029866202,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.673726000000002,
+              4.606485000000006,
+              4.688626999999997,
+              4.787548000000001,
+              4.734196999999995,
+              4.7608780000000195,
+              4.692736999999994
+            ],
+            "medianMs": 4.692736999999994,
+            "referenceMedianMs": 3.2580499537289143,
+            "ratio": 1.440351457665358,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 0.9962043188822175,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "template-async",
+          "name": "pure",
+          "before": {
+            "name": "pure",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              5.037160999999998,
+              4.6625159999999966,
+              4.546875,
+              4.601825000000005,
+              4.590015000000008,
+              4.554935,
+              4.558885000000004
+            ],
+            "medianMs": 4.590015000000008,
+            "referenceMedianMs": 6.315300997812301,
+            "ratio": 0.7268085878392885,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "pure",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.838089000000004,
+              4.749817999999998,
+              4.6018649999999965,
+              4.687806999999999,
+              4.407083,
+              4.587984999999989,
+              4.5568250000000035
+            ],
+            "medianMs": 4.6018649999999965,
+            "referenceMedianMs": 6.315300997812301,
+            "ratio": 0.7286849829634628,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 1.0025816909095042,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "template-async",
+          "name": "callback",
+          "before": {
+            "name": "callback",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              16.081209,
+              16.244551,
+              13.64524400000002,
+              12.212953999999996,
+              13.705864999999989,
+              12.222043999999983,
+              12.079401999999988
+            ],
+            "medianMs": 13.64524400000002,
+            "referenceMedianMs": 9.619439020752907,
+            "ratio": 1.4185072508450722,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "callback",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              13.271149000000008,
+              12.59106899999999,
+              12.63542000000001,
+              13.012685000000005,
+              12.705621000000008,
+              12.725681000000009,
+              12.596839000000017
+            ],
+            "medianMs": 12.705621000000008,
+            "referenceMedianMs": 9.619439020752907,
+            "ratio": 1.3208276462472495,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 0.9311391573503551,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "template-async",
+          "name": "ui",
+          "before": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              13.086635999999999,
+              12.134523000000002,
+              12.130642999999964,
+              12.083842000000004,
+              12.222542999999973,
+              12.109762999999987,
+              12.087972000000036
+            ],
+            "medianMs": 12.130642999999964,
+            "referenceMedianMs": 8.285223972052336,
+            "ratio": 1.4641297617202589,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              12.725080999999989,
+              12.604379999999992,
+              12.752390999999989,
+              12.842512999999997,
+              12.675229999999999,
+              12.620270000000005,
+              12.821402000000035
+            ],
+            "medianMs": 12.725080999999989,
+            "referenceMedianMs": 8.285223972052336,
+            "ratio": 1.5358765246327861,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          },
+          "pairedRatio": 1.049003008331877,
+          "pass": false
+        },
+        {
+          "pair": 2,
+          "kind": "template-factory",
+          "name": "sync",
+          "before": {
+            "name": "sync",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              1.2924790000000002,
+              0.9182429999999968,
+              0.9907040000000009,
+              1.0766150000000039,
+              1.1168449999999979,
+              0.8780929999999998,
+              0.845251999999995
+            ],
+            "medianMs": 0.9907040000000009,
+            "referenceMedianMs": 3.5718820290639997,
+            "ratio": 0.2773619038755353,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "after": {
+            "name": "sync",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              1.2281070000000014,
+              0.9466440000000063,
+              1.0124139999999997,
+              1.0659649999999985,
+              1.1258060000000043,
+              0.9052030000000002,
+              0.8258119999999991
+            ],
+            "medianMs": 1.0124139999999997,
+            "referenceMedianMs": 3.5718820290639997,
+            "ratio": 0.28343993215960145,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 1.021913709846734,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "template-factory",
+          "name": "async",
+          "before": {
+            "name": "async",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              7.383904999999999,
+              6.861547999999999,
+              6.8661380000000065,
+              6.915478000000007,
+              6.839167000000003,
+              6.8063669999999945,
+              6.837267000000011
+            ],
+            "medianMs": 6.861547999999999,
+            "referenceMedianMs": 4.101527971215546,
+            "ratio": 1.6729248339043954,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          },
+          "after": {
+            "name": "async",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.8156780000000055,
+              4.793627999999998,
+              4.8997699999999895,
+              4.817309000000009,
+              4.728196999999994,
+              4.608104999999995,
+              4.662417000000005
+            ],
+            "medianMs": 4.793627999999998,
+            "referenceMedianMs": 4.101527971215546,
+            "ratio": 1.168741998991985,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 0.6986219436197194,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "template-factory",
+          "name": "ui",
+          "before": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              6.629533999999978,
+              7.524837000000019,
+              6.622313999999989,
+              6.652504999999991,
+              6.79372699999999,
+              6.606653999999992,
+              6.675385000000006
+            ],
+            "medianMs": 6.652504999999991,
+            "referenceMedianMs": 3.2580499537289143,
+            "ratio": 2.0418670967233155,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          },
+          "after": {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              4.731847000000002,
+              4.638396,
+              4.687827000000013,
+              5.148803000000001,
+              6.772627000000014,
+              4.776617000000016,
+              5.963524000000007
+            ],
+            "medianMs": 4.776617000000016,
+            "referenceMedianMs": 3.2580499537289143,
+            "ratio": 1.4660969192731579,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          "pairedRatio": 0.718017799310188,
+          "pass": true
+        }
+      ],
+      "observations": [
+        {
+          "observedAt": "2026-10-12T22:18:53.888Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:54.251Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:54.276Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:54.630Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:54.652Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:54.834Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:54.857Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:55.045Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:55.477Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:55.813Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:55.073Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:55.452Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:56.033Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:56.198Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:55.836Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:56.007Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:56.222Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:56.574Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:56.598Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:56.944Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:56.970Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:57.175Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:57.197Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        },
+        {
+          "observedAt": "2026-10-12T22:18:57.377Z",
+          "rows": [],
+          "scope": "Read-only process argument classification; no argument text or unrelated credentials retained. Compiler/test/benchmark overlap observation only."
+        }
+      ],
+      "pass": false,
+      "scope": "Three preset full original frozen-budget pairs; combined complete structured wire-tree native prototype, terminal and active-secret status versus accepted runtime. Not an attested final package or real printer result."
+    },
+    "failures": [
+      {
+        "pair": 0,
+        "kind": "template-async",
+        "name": "ui",
+        "ratio": 1.5375276568225937
+      },
+      {
+        "pair": 0,
+        "kind": "template-factory",
+        "name": "ui",
+        "ratio": 1.696941139184268
+      },
+      {
+        "pair": 1,
+        "kind": "template-async",
+        "name": "ui",
+        "ratio": 1.5673366276884457
+      },
+      {
+        "pair": 2,
+        "kind": "template-async",
+        "name": "ui",
+        "ratio": 1.5358765246327861
+      }
+    ],
+    "decision": "Do not integrate native or combined JS proposals. Measurements do not support removing JSON transport as sufficient to meet UI budgets; cannot attribute all variance to one factor. Earlier ReplySlot/Condvar proposal was already rejected and is not repeated.",
+    "retainedRegression": "Maximum 0xffffffff render ID and two-digit call metadata are inside the same 64KiB bound; exact 64th message is accepted, one-byte larger message at call ten is refused before its callback after nine prior valid calls. Valid earlier effects are not described as rolled back.",
+    "archive": {
+      "path": "host/contracts/template-ui-structured-call-evidence.json.gz",
+      "sha256": "23a77db7b46de09f91e611b8e7cffe5ac9f665da85a2dea93900cfbeafbecf4e",
+      "entries": 120,
+      "uncompressedBytes": 5289454
+    },
+    "redactions": [
+      {
+        "name": "raw/seal.mjs",
+        "originalSha256": "e4ef6ac74a22a1fa318c957e7ad5b62cdc667ebe361b2c671d3f0033d59f891f"
+      }
+    ],
+    "previousCi": {
+      "schema": 1,
+      "head": "b41e33f3491bb5dad4876c9c1a91b94fb84becbe",
+      "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "mergeCheckout": "45a6857948857232be9e2bd07c04d722f3cd1aac",
+      "jobs": [
+        {
+          "id": 115028422366,
+          "run_id": 38314696439,
+          "name": "build",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421501,
+          "run_id": 38314696247,
+          "name": "motion (26.9.0, off, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421694,
+          "run_id": 38314696247,
+          "name": "motion (26.10.0, off, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421723,
+          "run_id": 38314696247,
+          "name": "motion (26.10.0, default, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421731,
+          "run_id": 38314696247,
+          "name": "motion (26.9.0, off, source)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421750,
+          "run_id": 38314696247,
+          "name": "motion (26.10.0, jitless, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421759,
+          "run_id": 38314696247,
+          "name": "motion (26.10.0, default, source)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421765,
+          "run_id": 38314696247,
+          "name": "motion (26.10.0, off, source)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421775,
+          "run_id": 38314696247,
+          "name": "motion (26.9.0, default, source)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421781,
+          "run_id": 38314696247,
+          "name": "motion (26.9.0, default, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421924,
+          "run_id": 38314696247,
+          "name": "motion (26.9.0, jitless, compiled)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421236,
+          "run_id": 38314696209,
+          "name": "sanitizer (asan)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421524,
+          "run_id": 38314696209,
+          "name": "checks",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115028421525,
+          "run_id": 38314696209,
+          "name": "sanitizer (ubsan)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 115034402789,
+          "run_id": 38314696209,
+          "name": "host",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "ordinary": {
+        "jobId": 115028421524,
+        "tests": 5104,
+        "pass": 5104,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "scope": "Exact previous UI-probe regression head terminal; merge checkout does not mean merged into develop, does not cover following metadata tests or close UI/native-build/G3/hardware gates."
+    },
+    "next": "Separate native queue wait, message preparation, Node callback handoff, response delivery/wakeup and completion with instrumented controls before another runtime optimization; keep original 1.5 and motion precision gates."
+  }
 }

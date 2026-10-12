@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "head": "b41e33f3491bb5dad4876c9c1a91b94fb84becbe",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "mergeCheckout": "45a6857948857232be9e2bd07c04d722f3cd1aac",
+  "jobs": [
+    {
+      "id": 115028422366,
+      "run_id": 38314696439,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421501,
+      "run_id": 38314696247,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421694,
+      "run_id": 38314696247,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421723,
+      "run_id": 38314696247,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421731,
+      "run_id": 38314696247,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421750,
+      "run_id": 38314696247,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421759,
+      "run_id": 38314696247,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421765,
+      "run_id": 38314696247,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421775,
+      "run_id": 38314696247,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421781,
+      "run_id": 38314696247,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421924,
+      "run_id": 38314696247,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421236,
+      "run_id": 38314696209,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421524,
+      "run_id": 38314696209,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115028421525,
+      "run_id": 38314696209,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115034402789,
+      "run_id": 38314696209,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "jobId": 115028421524,
+    "tests": 5104,
+    "pass": 5104,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "scope": "Exact previous UI-probe regression head terminal; merge checkout does not mean merged into develop, does not cover following metadata tests or close UI/native-build/G3/hardware gates."
+}
