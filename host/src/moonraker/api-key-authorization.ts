@@ -1,3 +1,4 @@
+import {proxyAddress,type ProxyAddress} from './proxy-address.ts';
 import {TrustedClients,type TrustedClientOptions} from './trusted-clients.ts';
 // Native API-key subset of pinned Moonraker authorization.py; GPL-3.0-or-later.
 import {createHash,randomBytes,timingSafeEqual} from 'node:crypto';
@@ -20,6 +21,7 @@ const digest=(key:string)=>createHash('sha256').update(key).digest();
  * Address admission requires explicit trustedClients configuration. */
 export class ApiKeyAuthorization {
  readonly #trusted:TrustedClients;
+ readonly #addresses=new WeakMap<IncomingMessage,ProxyAddress>();
  readonly #database:DatabaseStore;readonly #store:DatabaseNamespace;
  readonly #connections=new WeakMap<IncomingMessage,Principal|null>();
  readonly #requests=new WeakMap<AbortSignal,IncomingMessage>();
@@ -51,7 +53,12 @@ export class ApiKeyAuthorization {
   return this.#trusted.resolve(address,signal).then(allowed=>{this.#active();signal.throwIfAborted();return allowed;});
  }
  #matches(value:unknown){return this.#enableApiKey&&typeof value==='string'&&/^[a-f0-9]{32}$/u.test(value)&&timingSafeEqual(digest(value),this.#digest);}
- authorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization):AuthorizedUser|undefined{
+ #addressSnapshot(context:NetworkAuthorization):ProxyAddress{let address=this.#addresses.get(context.request);if(!address){address=proxyAddress(context.request,context.useXheaders??true);this.#addresses.set(context.request,address);}return address;}
+ #effectiveAddress(request:IncomingMessage):string|undefined{const address=this.#addresses.get(request)!;return address.claimed&&this.#trusted.matches(address.peer)?address.claimed:address.peer;}
+ #boundAddress(request:IncomingMessage):string{const address=this.#addresses.get(request)!;if(address.invalid&&this.#trusted.matches(address.peer))throw new ApiError(401,'Invalid proxy client address');return authorizationAddress(this.#effectiveAddress(request));}
+ #proxyPending(address:ProxyAddress):boolean{return (!!address.claimed||address.invalid)&&!this.#trusted.matches(address.peer)&&this.#trusted.hasDomains;}
+ authorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization):AuthorizedUser|undefined{this.#addressSnapshot(context);return this.#authorize(method,params,context,false);}
+ #authorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization,proxyPending:boolean):AuthorizedUser|undefined{
   this.#active();context.signal.throwIfAborted();
   this.#requests.set(context.signal,context.request);
   const optionalThumbnail=method==='server.files.download'&&context.transport==='http'&&anonymousThumbnailGet(context.request);
@@ -72,7 +79,7 @@ export class ApiKeyAuthorization {
   const token=authorization!==undefined?(authorization.startsWith('Bearer ')?authorization.slice(7):authorization):context.request.headers['x-access-token']??query.at(-1);
   if(token!==undefined)return acceptToken(token);
   const cached=this.#oneShotRequests.get(context.request);if(cached!==undefined)return validate(cached);
-  if(context.request.url?.includes('token')){const oneShot=new URL(context.request.url,'http://localhost').searchParams.getAll('token').at(-1);if(oneShot!==undefined){const principal=this.#oneShots.consume(oneShot,authorizationAddress(context.request.socket.remoteAddress));if(principal!==undefined){const user=validate(principal);if(context.transport==='http')this.#oneShotRequests.set(context.request,principal);return user;}}}
+  if(context.request.url?.includes('token')){const oneShot=new URL(context.request.url,'http://localhost').searchParams.getAll('token').at(-1);if(oneShot!==undefined){if(proxyPending)throw new ApiError(401,'Proxy verification pending');const principal=this.#oneShots.consume(oneShot,this.#boundAddress(context.request));if(principal!==undefined){const user=validate(principal);if(context.transport==='http')this.#oneShotRequests.set(context.request,principal);return user;}}}
   const header=context.request.headers['x-api-key'];if(header!==undefined)return acceptKey(header);
   if(this.#trusts(context.request))return remember('trusted');
   if(optionalThumbnail||method==='access.info'||this.#users&&(method==='access.login'||method==='access.refresh_jwt'))return;
@@ -80,19 +87,25 @@ export class ApiKeyAuthorization {
  }
  #trusts(request:IncomingMessage){
   if(this.#users?.forceLogins&&this.#users.count>0)return false;
-  // Do not turn a trusted peer into a proxy delegation grant.
-  if(['forwarded','x-forwarded-for','x-real-ip'].some(name=>request.headers[name]!==undefined))return false;
-  return this.#trusted.matches(request.socket.remoteAddress);
+  const address=this.#addresses.get(request)!;if(address.invalid)return false;
+  // A header never delegates trust: the peer must be trusted before selecting
+  // the claimed client. Then the client must independently match the policy.
+  return this.#trusted.matches(this.#effectiveAddress(request));
  }
  /** Numeric/cached admission retains the synchronous hot path. A domain miss
   * can consult NSS only at the original network boundary, then runs the full
   * credential/session and current force-login policy again. */
  #networkAuthorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization):AuthorizedUser|undefined|Promise<AuthorizedUser|undefined>{
-  try{return this.authorize(method,params,context);}catch(error){
-   if(!(error instanceof ApiError)||error.status!==401||!['Unauthorized','Trusted client authorization no longer available'].includes(error.message)||!this.#trusted.hasDomains||this.#users?.forceLogins&&this.#users.count>0||['forwarded','x-forwarded-for','x-real-ip'].some(name=>context.request.headers[name]!==undefined))throw error;
-   return this.#trusted.resolve(context.request.socket.remoteAddress,context.signal).then(()=>this.authorize(method,params,context));
+  const address=this.#addressSnapshot(context),pending=this.#proxyPending(address);
+  const resolvePeer=()=>this.#trusted.resolve(address.peer,context.signal);
+  try{const grant=this.#authorize(method,params,context,pending);
+   if(pending&&['access.oneshot_token','access.login','access.info'].includes(method))return resolvePeer().then(()=>this.authorize(method,params,context));return grant;
+  }catch(error){
+   if(!(error instanceof ApiError)||error.status!==401||!['Unauthorized','Trusted client authorization no longer available','Proxy verification pending'].includes(error.message)||!this.#trusted.hasDomains||address.invalid||error.message!=='Proxy verification pending'&&this.#users?.forceLogins&&this.#users.count>0)throw error;
+   return resolvePeer().then(async peer=>{if(peer&&address.claimed&&error.message!=='Proxy verification pending')await this.#trusted.resolve(address.claimed,context.signal);return this.authorize(method,params,context);});
   }
  }
+
  /** Process-only print authority for an explicitly armed queue. Capture the
   * authenticated principal, never a username supplied by a request or saved
   * catalogue. Revalidate key generation/JWT expiry and revocation each time;
@@ -170,17 +183,17 @@ export class ApiKeyAuthorization {
   try{
    remove.push(endpoints.register({endpoint:'/access/api_key',methods:['GET','POST'],transports:['http','websocket']},async(_params,verb)=>{this.#active();return verb==='POST'?await this.rotate():this.localApiKey();}));
    remove.push(endpoints.register({endpoint:'/access/oneshot_token',methods:['GET'],transports:['http','websocket']},(_params,_verb,ctx)=>{
-    this.#active();const request=this.#requests.get(ctx.signal),principal=this.#principals.get(ctx.signal);if(!request||principal===undefined)throw new ApiError(401,'Authenticated request context required');return this.#oneShots.issue(authorizationAddress(request.socket.remoteAddress),principal);
+    this.#active();const request=this.#requests.get(ctx.signal),principal=this.#principals.get(ctx.signal);if(!request||principal===undefined)throw new ApiError(401,'Authenticated request context required');return this.#oneShots.issue(this.#boundAddress(request),principal);
    }));
    // Trusted-network policy is not implicitly enabled.
    remove.push(endpoints.register({endpoint:'/access/info',methods:['GET'],transports:['http','websocket']},(_params,_verb,ctx)=>{
-    this.#active();const address=this.#requests.get(ctx.signal)?.socket.remoteAddress;
-    const result=()=>{this.#active();ctx.signal.throwIfAborted();return {default_source:this.#users?.defaultSource??'moonraker',available_sources:[...(this.#users?.availableSources??[])],login_required:!!this.#users?.forceLogins&&this.#users.count>0,trusted:this.#trusted.matches(address)};};
+    this.#active();const request=this.#requests.get(ctx.signal),address=request?this.#effectiveAddress(request):undefined;
+    const result=()=>{this.#active();ctx.signal.throwIfAborted();return {default_source:this.#users?.defaultSource??'moonraker',available_sources:[...(this.#users?.availableSources??[])],login_required:!!this.#users?.forceLogins&&this.#users.count>0,trusted:!!request&&!this.#addresses.get(request)!.invalid&&this.#trusted.matches(address)};};
     if(this.#trusted.hasDomains)return this.#trusted.resolve(address,ctx.signal).then(result);return result();
    }));
    const users=this.#users;
    if(users){
-    const login=async(params:Readonly<Record<string,Json>>,ctx:RpcContext,create=false)=>{const operation=()=>this.#mutation(ctx,create?delivery:undefined,committed=>users.login(params,ctx.signal,create,committed));const result=await (create?operation():this.#attempts.run(this.#attempts.enabled?authorizationAddress(this.#requests.get(ctx.signal)?.socket.remoteAddress):'',ctx.signal,operation));this.#active();ctx.signal.throwIfAborted();const request=this.#requests.get(ctx.signal);if(request&&ctx.transport==='websocket'&&!create)this.#connections.set(request,{token:result.token,username:result.username,kid:JSON.parse(Buffer.from(result.token.split('.')[0],'base64url').toString()).kid});return result;};
+    const login=async(params:Readonly<Record<string,Json>>,ctx:RpcContext,create=false)=>{const operation=()=>this.#mutation(ctx,create?delivery:undefined,committed=>users.login(params,ctx.signal,create,committed));const result=await (create?operation():this.#attempts.run(this.#attempts.enabled?this.#boundAddress(this.#requests.get(ctx.signal)!):'',ctx.signal,operation));this.#active();ctx.signal.throwIfAborted();const request=this.#requests.get(ctx.signal);if(request&&ctx.transport==='websocket'&&!create)this.#connections.set(request,{token:result.token,username:result.username,kid:JSON.parse(Buffer.from(result.token.split('.')[0],'base64url').toString()).kid});return result;};
     remove.push(endpoints.register({endpoint:'/access/login',methods:['POST'],transports:['http','websocket']},(params,_verb,ctx)=>login(params,ctx)));
     remove.push(endpoints.register({endpoint:'/access/refresh_jwt',methods:['POST'],transports:['http','websocket']},params=>users.refresh(params.refresh_token)));
     remove.push(endpoints.register({endpoint:'/access/logout',methods:['POST'],transports:['http','websocket']},(_params,_verb,ctx)=>this.#mutation(ctx,delivery,committed=>users.logout(ctx.user?.username??'',ctx.signal,committed))));

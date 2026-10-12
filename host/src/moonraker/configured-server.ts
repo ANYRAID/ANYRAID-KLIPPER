@@ -70,7 +70,7 @@ import {ApiError,authorizedContext,type RpcContext,JsonRpcDispatcher,type Json} 
 import {EndpointRegistry} from './endpoints.ts';
 import {ServerInformation,ServerConfiguration,registerServerMetadata,type InformationSnapshot} from './metadata.ts';
 import {MoonrakerNetwork,type MoonrakerNetworkOptions} from './server.ts';
-export interface NetworkBinding {readonly host:string;readonly port:number;readonly maxConnections:number;}
+export interface NetworkBinding {readonly host:string;readonly port:number;readonly maxConnections:number;readonly useXheaders:boolean;}
 type KlippyAttachmentOptions=Omit<KlippyInitializationOptions,'version'|'onSnapshot'|'onRemoteMethodsReady'>;
 const mqttSensorOwners=new WeakSet<MqttSensors>();
 const sensorOwners=new WeakSet<SensorStore>();
@@ -182,7 +182,8 @@ export function readNetworkBinding(reader:ConfigurationReader):NetworkBinding{
  if(!host||host.length>255||/[\s/\0]/u.test(host))throw new ConfigurationError('Invalid server host');
  const port=section.getInt('port',{defaultValue:7125,minval:0,maxval:65535});
  const maxConnections=section.getInt('max_websocket_connections',{defaultValue:50,minval:1,maxval:10000});
- return Object.freeze({host,port,maxConnections});
+ const useXheaders=section.getBoolean('use_xheaders',{defaultValue:true});
+ return Object.freeze({host,port,maxConnections,useXheaders});
 }
 /** File-backed network composition, not the complete Moonraker daemon. Load
  * does not listen. Components consume config/register methods before start;
@@ -291,7 +292,7 @@ export class ConfiguredMoonraker {
    }
   });
   const networkOptions={...options};for(const key of ['productPrint','nativeHost','nativeObjects','nativePrinterIdentity','productPressure','productHostControl','productPrintCompatibility','maintenanceGate','nativeDetached'] as const)delete networkOptions[key];
-  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections},this.#nativeScope?.signal);
+  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections,useXheaders:this.binding.useXheaders},this.#nativeScope?.signal);
   if(options.nativeDetached)this.#nativeScope!.retire();
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   this.#nativeTemperatureObjects=options.nativeObjects;

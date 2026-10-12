@@ -16,15 +16,15 @@ const authorize=(_m:unknown,_p:unknown,c:any)=>{if(c.request.headers['x-api-key'
 async function fixture(text:string,run:(path:string)=>Promise<void>){const dir=await mkdtemp(join(tmpdir(),'configured-server-test-'));try{const path=join(dir,'main.conf');await writeFile(path,text);await run(path);}finally{await rm(dir,{recursive:true,force:true});}}
 test('network binding reads upstream defaults and rejects invalid or imprecise settings',()=>{
  const make=(server:Record<string,string>)=>new ConfigurationReader(new ConfigurationSource('/config/main.conf',{DEFAULT:{},server},[]));
- assert.deepEqual(readNetworkBinding(make({})),{host:'0.0.0.0',port:7125,maxConnections:50});
- for(const server of [{port:'-1'},{port:'65536'},{port:'9007199254740993'},{port:'1.5'},{host:' '},{host:'http://localhost'},{max_websocket_connections:'0'},{max_websocket_connections:'10001'}] as Record<string,string>[])assert.throws(()=>readNetworkBinding(make(server)));
+ assert.deepEqual(readNetworkBinding(make({})),{host:'0.0.0.0',port:7125,maxConnections:50,useXheaders:true});
+ for(const server of [{port:'-1'},{port:'65536'},{port:'9007199254740993'},{port:'1.5'},{host:' '},{host:'http://localhost'},{max_websocket_connections:'0'},{max_websocket_connections:'10001'},{use_xheaders:'perhaps'}] as Record<string,string>[])assert.throws(()=>readNetworkBinding(make(server)));
 });
 test('file-backed startup binds settings, metadata, authorization and actual WebSocket capacity',()=>fixture('[server]\nhost=127.0.0.1\nport=0\nmax_websocket_connections=1\n[consumer]\nspeed=120.5',async path=>{
  const service=await ConfiguredMoonraker.load(path,{authorize,information:info()});let ws:WebSocket|undefined;
  try{
   service.reader.section('consumer').getFloat('speed',{above:0});assert.equal(service.status.phase,'new');const opening=service.start();assert.equal(service.start(),opening);const address=await opening;assert.equal(address.address,'127.0.0.1');assert.ok(address.port>0);
   await rm(path);const url=`http://127.0.0.1:${address.port}`;assert.equal((await fetch(url+'/server/config')).status,401);
-  let body:any=await (await fetch(url+'/server/config',{headers:{'x-api-key':'test'}})).json();assert.deepEqual(body.result.config,{server:{host:'127.0.0.1',port:0,max_websocket_connections:1},consumer:{speed:120.5}});assert.equal(body.result.orig.consumer.speed,'120.5');
+  let body:any=await (await fetch(url+'/server/config',{headers:{'x-api-key':'test'}})).json();assert.deepEqual(body.result.config,{server:{host:'127.0.0.1',port:0,max_websocket_connections:1,use_xheaders:true},consumer:{speed:120.5}});assert.equal(body.result.orig.consumer.speed,'120.5');
   ws=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{'x-api-key':'test'}});await once(ws,'open');const extra=new WebSocket(url.replace('http:','ws:')+'/websocket');await assert.rejects(once(extra,'open'),/503/);extra.terminate();
   body=await (await fetch(url+'/server/info',{headers:{'x-api-key':'test'}})).json();assert.equal(body.result.websocket_count,1);assert.equal(body.result.klippy_state,'disconnected');assert(!body.result.components.includes('history'),'unregistered history cannot be advertised');assert(!body.result.components.includes('database'),'unregistered database cannot be advertised');
   service.setInformation({...info(),connected:true,state:'shutdown'});body=await (await fetch(url+'/server/info',{headers:{'x-api-key':'test'}})).json();assert.equal(body.result.klippy_state,'shutdown');

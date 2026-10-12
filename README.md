@@ -22,6 +22,14 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+可信代理授权现接通 `[server] use_xheaders`（默认 true），选取最后
+一项 X-Forwarded-For，X-Real-IP 优先；匿名代理授权须同时信任实际
+连接与客户端。未经验证的头不能改变登录计数或短时令牌绑定地址，
+畸形声明拒绝，原凭据优先级保持。源码、独立 JS、实际包各 47 项
+通过，原三组鉴权／网络最高 1.101 倍，原模拟打印预算通过；原生
+与数学输出不变。见[代理授权证据](host/contracts/trusted-proxy-owner-acceptance.json)。
+前序 017ab911 十五项 CI、5106／5106 通过，见
+[精确头终态](host/contracts/pr68-017ab91-terminal.json)；本增量须自身 CI。
 UI 分阶段调查现保留两版私有探针各 121 项回归及全部交错记录。
 同一进程的跨 L3 缓存组交接约 3.9／5.0／3.9／4.9 微秒，高于同
 缓存组约 2.4／3.4／2.4／3.3；这不是历史根因证明。工厂 UI 没有
