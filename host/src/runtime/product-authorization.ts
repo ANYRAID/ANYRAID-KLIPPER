@@ -8,7 +8,7 @@ export function assertProductAuthorization(server:ProductServerOptions|undefined
  if(server.authorization!==undefined){
   const config=server.authorization;
   if(!config||typeof config!=='object'||typeof config.issuer!=='string'||!(server.database instanceof DatabaseStore)||server.database.status.closed||server.database.status.closing||server.database.status.restoreState!=='ready')throw new TypeError('Native product authorization requires an open database and stable issuer');
-  for(const key of ['authorize','authorizeNotification','authorizeSubscriptionConnection'])if(key in server)throw new TypeError('Native product authorization cannot share external callbacks');
+  for(const key of ['authorize','authorizeNotification','authorizeSubscriptionConnection','resolveRequestProtocol','captureRequestMetadata'])if(key in server)throw new TypeError('Native product authorization cannot share external callbacks');
   let origin:URL;try{origin=new URL(config.issuer);}catch{throw new TypeError('Invalid product authorization issuer');}
   if(!['http:','https:'].includes(origin.protocol)||origin.origin!==config.issuer)throw new TypeError('Invalid product authorization issuer');
   if(reader)readAuthorizationOptions(reader,config.issuer);

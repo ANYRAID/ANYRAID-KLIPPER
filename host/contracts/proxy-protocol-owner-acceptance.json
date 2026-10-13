@@ -1,0 +1,1879 @@
+{
+  "schema": 1,
+  "baselineHead": "8ad4edae0c731fe2eb5d64f328357383b88a16db",
+  "scope": "Standard/OctoPrint multipart upload Location HTTP(S) through original trusted peer/NSS and request ownership. Not complete Moonraker/Python/macros, native TLS, URL-prefix, browser HTTPS proxy or hardware acceptance.",
+  "upstream": {
+    "moonraker": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "tornado": "6.5.10",
+    "source": "https://www.tornadoweb.org/en/stable/_modules/tornado/httpserver.html",
+    "selection": "X-Scheme priority, last comma-separated item, trim, case-sensitive http/https; invalid falls back",
+    "difference": "Require the actual peer to match original TrustedClients/NSS before accepting protocol, unlike unverified upstream headers; 4096-byte bound"
+  },
+  "sourceSha256": {
+    "host/src/moonraker/proxy-address.ts": "1a1d91dc4a406ae3c71f6ae7eb47ec60a5f3c7419fb4ad942dc32b8d02cc10dc",
+    "host/src/moonraker/api-key-authorization.ts": "6a0ca01705ad8c2253cf1bb019a08d448e92e6154baf8838ba6bf2ba71e725da",
+    "host/src/moonraker/server.ts": "57fdc78e289ea8f7d56c4a2df6441ba1c977760d9237757d492559cb56c6e02d",
+    "host/src/moonraker/configured-server.ts": "eeed9c5dbb96a8f3b80a7b672fcd3451b9256279e4c3ac7ed39b1ffee4c78177",
+    "host/src/runtime/product-authorization.ts": "998b1ed3358bfad06cdfd3cf2a3d966140d6fd8aecb4f08a8aa3f5e8d5b43924",
+    "host/test/proxy-protocol-upload.test.ts": "f29b8a4d27236ca6e9535c99178fec7c979c8ce239c7e328095045d58fc7a137",
+    "host/test/product-native-authorization.test.ts": "e1aa1137ebaeee37e985d15c39760f4b9905b15e862f80031c40736f369d4a1e"
+  },
+  "behavior": {
+    "metadata": "Captured once in original request weak map before origin waits; no socket/header mutation or second DNS cache",
+    "authorization": "Original upload authorization first; invalid credentials never start protocol NSS. Async protocol wait reauthorizes identical original method/params against current identity before staging.",
+    "location": "Captured request Host and original encoded receipt path; ignore forwarded host/Forwarded, never include token/query",
+    "lifecycle": "Original HTTP and upload authorization capacity, expiry/cancel/close; no publication or staging on failed wait",
+    "configuration": "Native loader and pre-MCU product validation reject external overrides of captureRequestMetadata/resolveRequestProtocol"
+  },
+  "validation": {
+    "source": {
+      "tests": 244,
+      "passed": 244,
+      "log": "final-source-244.log"
+    },
+    "compiled": {
+      "tests": 244,
+      "passed": 244,
+      "log": "final-compiled-244.log"
+    },
+    "product": {
+      "tests": 244,
+      "passed": 244,
+      "log": "final-admission-product-tests.log",
+      "tsLoadsForbidden": true,
+      "programWhitelist": "Manifest-hashed original NSS and thumbnail children with exact memory/IPC/argument constraints; ten-second pinned cc/test-only PTY source compile; all other programs rejected"
+    },
+    "typecheck": "Final project-wide typecheck passed; initial fixture/type/default-port/path and guard failures retained"
+  },
+  "product": {
+    "before": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-trusted-proxy-owner-oct13",
+      "manifestSha256": "dc845efeafa29127b0d948f1d26a75d62ce20e556f5357d911aa88d6335b53a8",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "after": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-proxy-protocol-owner-oct13",
+      "manifestSha256": "f98a32daedd94942b8c49279530b953ffa7fe3374edd75306bec3aa7cfb08f6e",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "files": 691,
+    "changes": [
+      "host/src/moonraker/api-key-authorization.js",
+      "host/src/moonraker/configured-server.js",
+      "host/src/moonraker/proxy-address.js",
+      "host/src/moonraker/server.js",
+      "host/src/runtime/product-authorization.js"
+    ],
+    "nativeSources": 75,
+    "nativeOutputs": 11,
+    "scope": "Standard buildProductHost with verified original native outputs and independent copied production dependencies. No native recompile or fresh dependency-install claim."
+  },
+  "performance": {
+    "original": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "controls": [
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "status",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              197.61393700000008,
+              208.72333700000013,
+              208.46080499999994,
+              216.96679900000004,
+              222.749057
+            ],
+            "medianMs": 208.72333700000013,
+            "microsecondsPerRequest": 2.087233370000001,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "file",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              300.4937400000001,
+              305.099645,
+              301.926385,
+              301.3750500000001,
+              306.832754
+            ],
+            "medianMs": 301.926385,
+            "microsecondsPerRequest": 3.0192638499999997,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "image",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              356.119817,
+              357.38493900000003,
+              359.69666200000006,
+              356.5742730000002,
+              357.1653900000001
+            ],
+            "medianMs": 357.1653900000001,
+            "microsecondsPerRequest": 3.571653900000001,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              136.666919,
+              137.598068,
+              138.216365,
+              137.65924799999993,
+              137.73320999999987
+            ],
+            "medianMs": 137.65924799999993,
+            "microsecondsPerRequest": 1.3765924799999993,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "original",
+          "label": "before",
+          "record": {
+            "node": "v26.10.0",
+            "httpRequests": 200,
+            "websocketRequests": 500,
+            "loadStartStopCycles": 30,
+            "warmups": 3,
+            "samples": 11,
+            "results": {
+              "manual": {
+                "http": {
+                  "medianMs": 43.13038900000004,
+                  "p95Ms": 47.23642999999993
+                },
+                "ws": {
+                  "medianMs": 29.70531500000004,
+                  "p95Ms": 32.807146999999986
+                },
+                "startup": {
+                  "medianMs": 8.4539749999999,
+                  "p95Ms": 12.736296999999922
+                }
+              },
+              "configured": {
+                "http": {
+                  "medianMs": 43.19533999999999,
+                  "p95Ms": 142.12455499999987
+                },
+                "ws": {
+                  "medianMs": 29.83004600000004,
+                  "p95Ms": 36.05441000000019
+                },
+                "startup": {
+                  "medianMs": 13.206670999999915,
+                  "p95Ms": 14.122760999999628
+                }
+              }
+            },
+            "scope": "Real localhost HTTP/WebSocket and file-load/listen/close cycles. Existing Node components assembled manually versus configured lifecycle. Alternating order, identical metadata and authorization callback; source file absent during steady-state requests. No Python daemon or hardware printing claim."
+          }
+        },
+        {
+          "pair": 0,
+          "kind": "uploads",
+          "route": "original",
+          "label": "before",
+          "record": {
+            "node": "v26.10.0",
+            "filesystemMagic": 61267,
+            "warmups": 2,
+            "runs": 7,
+            "results": [
+              {
+                "size": 4194304,
+                "results": {
+                  "direct": {
+                    "medianMs": 42.42148299999997,
+                    "p95Ms": 46.083519000000024,
+                    "medianMiBPerSecond": 94.29184736422353,
+                    "eventLoopMaximumMs": 2.562047
+                  },
+                  "http": {
+                    "medianMs": 62.31284999999991,
+                    "p95Ms": 71.872476,
+                    "medianMiBPerSecond": 64.19221717510923,
+                    "eventLoopMaximumMs": 4.354047
+                  }
+                }
+              },
+              {
+                "size": 16777216,
+                "results": {
+                  "direct": {
+                    "medianMs": 98.98822699999982,
+                    "p95Ms": 112.31125999999995,
+                    "medianMiBPerSecond": 161.63538316531347,
+                    "eventLoopMaximumMs": 4.106239
+                  },
+                  "http": {
+                    "medianMs": 152.3442810000006,
+                    "p95Ms": 176.9592550000002,
+                    "medianMiBPerSecond": 105.02527495600533,
+                    "eventLoopMaximumMs": 8.650751
+                  }
+                }
+              }
+            ],
+            "scope": "Direct immutable publication vs multipart HTTP loopback admission plus publication; same native store, authorization is noop. Input/FormData preparation, verification and deletion outside timing. HTTP client shares event loop; maximum delays include client work. No Python, target flash, concurrent motion or physical printer comparison."
+          }
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "status",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              213.91159700000003,
+              213.150759,
+              212.27451999999994,
+              214.25938999999994,
+              212.891887
+            ],
+            "medianMs": 213.150759,
+            "microsecondsPerRequest": 2.13150759,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "file",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              311.1677609999999,
+              312.7586369999999,
+              313.55125499999986,
+              313.5300659999998,
+              317.2893939999999
+            ],
+            "medianMs": 313.5300659999998,
+            "microsecondsPerRequest": 3.135300659999998,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "image",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              371.8163730000001,
+              348.5657600000002,
+              353.1181969999998,
+              353.0623059999998,
+              348.3832900000002
+            ],
+            "medianMs": 353.0623059999998,
+            "microsecondsPerRequest": 3.530623059999998,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              136.30372599999998,
+              136.92275199999995,
+              138.152465,
+              135.85136199999988,
+              136.04041300000017
+            ],
+            "medianMs": 136.30372599999998,
+            "microsecondsPerRequest": 1.3630372599999998,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "original",
+          "label": "after",
+          "record": {
+            "node": "v26.10.0",
+            "httpRequests": 200,
+            "websocketRequests": 500,
+            "loadStartStopCycles": 30,
+            "warmups": 3,
+            "samples": 11,
+            "results": {
+              "manual": {
+                "http": {
+                  "medianMs": 40.195063000000005,
+                  "p95Ms": 44.093102000000044
+                },
+                "ws": {
+                  "medianMs": 27.584617000000208,
+                  "p95Ms": 32.35390399999983
+                },
+                "startup": {
+                  "medianMs": 7.976069999999709,
+                  "p95Ms": 9.758628000000044
+                }
+              },
+              "configured": {
+                "http": {
+                  "medianMs": 40.11245300000019,
+                  "p95Ms": 46.77132000000006
+                },
+                "ws": {
+                  "medianMs": 28.14366199999995,
+                  "p95Ms": 35.83373000000006
+                },
+                "startup": {
+                  "medianMs": 12.007340999999997,
+                  "p95Ms": 14.9044200000003
+                }
+              }
+            },
+            "scope": "Real localhost HTTP/WebSocket and file-load/listen/close cycles. Existing Node components assembled manually versus configured lifecycle. Alternating order, identical metadata and authorization callback; source file absent during steady-state requests. No Python daemon or hardware printing claim."
+          }
+        },
+        {
+          "pair": 0,
+          "kind": "uploads",
+          "route": "original",
+          "label": "after",
+          "record": {
+            "node": "v26.10.0",
+            "filesystemMagic": 61267,
+            "warmups": 2,
+            "runs": 7,
+            "results": [
+              {
+                "size": 4194304,
+                "results": {
+                  "direct": {
+                    "medianMs": 45.14351399999998,
+                    "p95Ms": 58.16503399999999,
+                    "medianMiBPerSecond": 88.60630565888162,
+                    "eventLoopMaximumMs": 2.498559
+                  },
+                  "http": {
+                    "medianMs": 63.551837999999975,
+                    "p95Ms": 72.27325600000006,
+                    "medianMiBPerSecond": 62.940744530472934,
+                    "eventLoopMaximumMs": 2.850815
+                  }
+                }
+              },
+              {
+                "size": 16777216,
+                "results": {
+                  "direct": {
+                    "medianMs": 95.81919400000015,
+                    "p95Ms": 101.02121500000021,
+                    "medianMiBPerSecond": 166.98115828442445,
+                    "eventLoopMaximumMs": 2.750463
+                  },
+                  "http": {
+                    "medianMs": 138.60647400000016,
+                    "p95Ms": 151.63116500000024,
+                    "medianMiBPerSecond": 115.4347234891783,
+                    "eventLoopMaximumMs": 8.404991
+                  }
+                }
+              }
+            ],
+            "scope": "Direct immutable publication vs multipart HTTP loopback admission plus publication; same native store, authorization is noop. Input/FormData preparation, verification and deletion outside timing. HTTP client shares event loop; maximum delays include client work. No Python, target flash, concurrent motion or physical printer comparison."
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "status",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              204.48128699999995,
+              203.80318099999988,
+              215.98549400000002,
+              207.70832100000007,
+              207.92201299999988
+            ],
+            "medianMs": 207.70832100000007,
+            "microsecondsPerRequest": 2.0770832100000005,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "file",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              323.80972299999985,
+              338.244408,
+              332.78299300000003,
+              330.0926079999999,
+              333.31087000000025
+            ],
+            "medianMs": 332.78299300000003,
+            "microsecondsPerRequest": 3.3278299300000005,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "image",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              375.1545950000002,
+              377.64898000000017,
+              380.8256130000002,
+              380.23901799999976,
+              379.5195819999999
+            ],
+            "medianMs": 379.5195819999999,
+            "microsecondsPerRequest": 3.795195819999999,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              138.53636000000006,
+              138.63729999999998,
+              139.12807499999997,
+              139.10425600000008,
+              138.988693
+            ],
+            "medianMs": 138.988693,
+            "microsecondsPerRequest": 1.38988693,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "original",
+          "label": "after",
+          "record": {
+            "node": "v26.10.0",
+            "httpRequests": 200,
+            "websocketRequests": 500,
+            "loadStartStopCycles": 30,
+            "warmups": 3,
+            "samples": 11,
+            "results": {
+              "manual": {
+                "http": {
+                  "medianMs": 38.82852300000002,
+                  "p95Ms": 44.77301299999999
+                },
+                "ws": {
+                  "medianMs": 27.296996000000036,
+                  "p95Ms": 33.84141199999999
+                },
+                "startup": {
+                  "medianMs": 9.119822000000113,
+                  "p95Ms": 11.004120999999941
+                }
+              },
+              "configured": {
+                "http": {
+                  "medianMs": 39.8459620000001,
+                  "p95Ms": 46.65516200000002
+                },
+                "ws": {
+                  "medianMs": 27.908531999999923,
+                  "p95Ms": 32.73340099999996
+                },
+                "startup": {
+                  "medianMs": 12.443385999999919,
+                  "p95Ms": 14.981520999999702
+                }
+              }
+            },
+            "scope": "Real localhost HTTP/WebSocket and file-load/listen/close cycles. Existing Node components assembled manually versus configured lifecycle. Alternating order, identical metadata and authorization callback; source file absent during steady-state requests. No Python daemon or hardware printing claim."
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "uploads",
+          "route": "original",
+          "label": "after",
+          "record": {
+            "node": "v26.10.0",
+            "filesystemMagic": 61267,
+            "warmups": 2,
+            "runs": 7,
+            "results": [
+              {
+                "size": 4194304,
+                "results": {
+                  "direct": {
+                    "medianMs": 44.2327580000001,
+                    "p95Ms": 46.984804999999994,
+                    "medianMiBPerSecond": 90.43071652913868,
+                    "eventLoopMaximumMs": 5.107711
+                  },
+                  "http": {
+                    "medianMs": 63.87818600000003,
+                    "p95Ms": 65.09179799999993,
+                    "medianMiBPerSecond": 62.61918583599099,
+                    "eventLoopMaximumMs": 2.947071
+                  }
+                }
+              },
+              {
+                "size": 16777216,
+                "results": {
+                  "direct": {
+                    "medianMs": 98.43473700000004,
+                    "p95Ms": 108.48339899999974,
+                    "medianMiBPerSecond": 162.54424492443144,
+                    "eventLoopMaximumMs": 5.955583
+                  },
+                  "http": {
+                    "medianMs": 152.7841870000002,
+                    "p95Ms": 164.93503099999998,
+                    "medianMiBPerSecond": 104.72287946919519,
+                    "eventLoopMaximumMs": 8.261631
+                  }
+                }
+              }
+            ],
+            "scope": "Direct immutable publication vs multipart HTTP loopback admission plus publication; same native store, authorization is noop. Input/FormData preparation, verification and deletion outside timing. HTTP client shares event loop; maximum delays include client work. No Python, target flash, concurrent motion or physical printer comparison."
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "status",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              207.53178400000002,
+              212.5037749999999,
+              213.66743800000017,
+              218.17632300000014,
+              210.84597899999994
+            ],
+            "medianMs": 212.5037749999999,
+            "microsecondsPerRequest": 2.125037749999999,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "file",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              313.86818600000015,
+              319.51978399999985,
+              326.66308700000013,
+              321.45153400000004,
+              327.8291199999999
+            ],
+            "medianMs": 321.45153400000004,
+            "microsecondsPerRequest": 3.21451534,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "image",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              372.759509,
+              376.93537200000014,
+              377.4503380000001,
+              369.72645999999986,
+              374.9230540000003
+            ],
+            "medianMs": 374.9230540000003,
+            "microsecondsPerRequest": 3.749230540000003,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              136.775942,
+              138.78576199999998,
+              138.33979699999998,
+              137.65590100000009,
+              137.414849
+            ],
+            "medianMs": 137.65590100000009,
+            "microsecondsPerRequest": 1.376559010000001,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "original",
+          "label": "before",
+          "record": {
+            "node": "v26.10.0",
+            "httpRequests": 200,
+            "websocketRequests": 500,
+            "loadStartStopCycles": 30,
+            "warmups": 3,
+            "samples": 11,
+            "results": {
+              "manual": {
+                "http": {
+                  "medianMs": 39.06813800000009,
+                  "p95Ms": 45.36656200000016
+                },
+                "ws": {
+                  "medianMs": 31.062636999999995,
+                  "p95Ms": 33.57089199999996
+                },
+                "startup": {
+                  "medianMs": 8.627787999999782,
+                  "p95Ms": 11.11577299999999
+                }
+              },
+              "configured": {
+                "http": {
+                  "medianMs": 38.87556600000005,
+                  "p95Ms": 48.275232000000074
+                },
+                "ws": {
+                  "medianMs": 30.971896000000015,
+                  "p95Ms": 33.958086000000094
+                },
+                "startup": {
+                  "medianMs": 13.24840499999982,
+                  "p95Ms": 15.226345000000038
+                }
+              }
+            },
+            "scope": "Real localhost HTTP/WebSocket and file-load/listen/close cycles. Existing Node components assembled manually versus configured lifecycle. Alternating order, identical metadata and authorization callback; source file absent during steady-state requests. No Python daemon or hardware printing claim."
+          }
+        },
+        {
+          "pair": 1,
+          "kind": "uploads",
+          "route": "original",
+          "label": "before",
+          "record": {
+            "node": "v26.10.0",
+            "filesystemMagic": 61267,
+            "warmups": 2,
+            "runs": 7,
+            "results": [
+              {
+                "size": 4194304,
+                "results": {
+                  "direct": {
+                    "medianMs": 41.201239999999984,
+                    "p95Ms": 45.10726999999997,
+                    "medianMiBPerSecond": 97.08445668140088,
+                    "eventLoopMaximumMs": 2.007039
+                  },
+                  "http": {
+                    "medianMs": 57.55100700000003,
+                    "p95Ms": 66.227105,
+                    "medianMiBPerSecond": 69.50356229214196,
+                    "eventLoopMaximumMs": 2.988031
+                  }
+                }
+              },
+              {
+                "size": 16777216,
+                "results": {
+                  "direct": {
+                    "medianMs": 99.27461300000004,
+                    "p95Ms": 108.78981999999996,
+                    "medianMiBPerSecond": 161.16909969722062,
+                    "eventLoopMaximumMs": 3.364863
+                  },
+                  "http": {
+                    "medianMs": 148.23620399999982,
+                    "p95Ms": 160.31571600000007,
+                    "medianMiBPerSecond": 107.9358454160093,
+                    "eventLoopMaximumMs": 9.330687
+                  }
+                }
+              }
+            ],
+            "scope": "Direct immutable publication vs multipart HTTP loopback admission plus publication; same native store, authorization is noop. Input/FormData preparation, verification and deletion outside timing. HTTP client shares event loop; maximum delays include client work. No Python, target flash, concurrent motion or physical printer comparison."
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "status",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              204.0887140000001,
+              199.16636399999993,
+              207.57745,
+              201.19111599999997,
+              207.49116000000004
+            ],
+            "medianMs": 204.0887140000001,
+            "microsecondsPerRequest": 2.040887140000001,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "file",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              322.251495,
+              326.3812270000001,
+              324.08747500000004,
+              327.18474600000036,
+              329.242119
+            ],
+            "medianMs": 326.3812270000001,
+            "microsecondsPerRequest": 3.2638122700000007,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "image",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              371.152159,
+              368.6715159999999,
+              365.7739549999999,
+              369.1825210000002,
+              367.68842700000005
+            ],
+            "medianMs": 368.6715159999999,
+            "microsecondsPerRequest": 3.686715159999999,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "label": "before",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              137.59334,
+              138.77493200000004,
+              139.350049,
+              138.1431359999999,
+              137.8066020000001
+            ],
+            "medianMs": 138.1431359999999,
+            "microsecondsPerRequest": 1.3814313599999992,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "original",
+          "label": "before",
+          "record": {
+            "node": "v26.10.0",
+            "httpRequests": 200,
+            "websocketRequests": 500,
+            "loadStartStopCycles": 30,
+            "warmups": 3,
+            "samples": 11,
+            "results": {
+              "manual": {
+                "http": {
+                  "medianMs": 42.527897000000166,
+                  "p95Ms": 46.26406500000007
+                },
+                "ws": {
+                  "medianMs": 30.018608000000086,
+                  "p95Ms": 31.826716000000033
+                },
+                "startup": {
+                  "medianMs": 9.41325599999982,
+                  "p95Ms": 12.52920899999981
+                }
+              },
+              "configured": {
+                "http": {
+                  "medianMs": 42.92794099999992,
+                  "p95Ms": 47.71674900000005
+                },
+                "ws": {
+                  "medianMs": 30.702524999999923,
+                  "p95Ms": 37.038279999999986
+                },
+                "startup": {
+                  "medianMs": 14.340596999999889,
+                  "p95Ms": 17.53065000000015
+                }
+              }
+            },
+            "scope": "Real localhost HTTP/WebSocket and file-load/listen/close cycles. Existing Node components assembled manually versus configured lifecycle. Alternating order, identical metadata and authorization callback; source file absent during steady-state requests. No Python daemon or hardware printing claim."
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "uploads",
+          "route": "original",
+          "label": "before",
+          "record": {
+            "node": "v26.10.0",
+            "filesystemMagic": 61267,
+            "warmups": 2,
+            "runs": 7,
+            "results": [
+              {
+                "size": 4194304,
+                "results": {
+                  "direct": {
+                    "medianMs": 39.53948600000001,
+                    "p95Ms": 75.08180100000004,
+                    "medianMiBPerSecond": 101.16469394670428,
+                    "eventLoopMaximumMs": 2.314239
+                  },
+                  "http": {
+                    "medianMs": 57.30489900000009,
+                    "p95Ms": 60.81875500000001,
+                    "medianMiBPerSecond": 69.80206002980641,
+                    "eventLoopMaximumMs": 2.510847
+                  }
+                }
+              },
+              {
+                "size": 16777216,
+                "results": {
+                  "direct": {
+                    "medianMs": 96.99466699999994,
+                    "p95Ms": 102.17457999999988,
+                    "medianMiBPerSecond": 164.9575228708194,
+                    "eventLoopMaximumMs": 3.057663
+                  },
+                  "http": {
+                    "medianMs": 144.58790599999975,
+                    "p95Ms": 156.788051,
+                    "medianMiBPerSecond": 110.65932443893357,
+                    "eventLoopMaximumMs": 7.860223
+                  }
+                }
+              }
+            ],
+            "scope": "Direct immutable publication vs multipart HTTP loopback admission plus publication; same native store, authorization is noop. Input/FormData preparation, verification and deletion outside timing. HTTP client shares event loop; maximum delays include client work. No Python, target flash, concurrent motion or physical printer comparison."
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "status",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              213.301464,
+              205.23337100000015,
+              207.0338099999999,
+              204.15970000000016,
+              211.3902250000001
+            ],
+            "medianMs": 207.0338099999999,
+            "microsecondsPerRequest": 2.070338099999999,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "file",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              298.702405,
+              301.84970799999996,
+              303.03725099999997,
+              302.78590799999984,
+              303.3144440000001
+            ],
+            "medianMs": 302.78590799999984,
+            "microsecondsPerRequest": 3.0278590799999985,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "image",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              373.9570839999999,
+              376.790884,
+              377.0753679999998,
+              376.0629180000001,
+              378.03444899999977
+            ],
+            "medianMs": 376.790884,
+            "microsecondsPerRequest": 3.76790884,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "label": "after",
+          "record": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              138.35602800000004,
+              139.6319900000001,
+              139.69126200000005,
+              138.53234900000007,
+              138.8625840000002
+            ],
+            "medianMs": 138.8625840000002,
+            "microsecondsPerRequest": 1.388625840000002,
+            "maximumMicrosecondsPerRequest": 10
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "original",
+          "label": "after",
+          "record": {
+            "node": "v26.10.0",
+            "httpRequests": 200,
+            "websocketRequests": 500,
+            "loadStartStopCycles": 30,
+            "warmups": 3,
+            "samples": 11,
+            "results": {
+              "manual": {
+                "http": {
+                  "medianMs": 40.125585,
+                  "p95Ms": 43.269256999999925
+                },
+                "ws": {
+                  "medianMs": 27.558004999999866,
+                  "p95Ms": 32.52490599999999
+                },
+                "startup": {
+                  "medianMs": 8.687910000000102,
+                  "p95Ms": 10.822641000000203
+                }
+              },
+              "configured": {
+                "http": {
+                  "medianMs": 39.64750900000013,
+                  "p95Ms": 47.355649000000085
+                },
+                "ws": {
+                  "medianMs": 27.398423000000093,
+                  "p95Ms": 31.913880000000063
+                },
+                "startup": {
+                  "medianMs": 12.168055999999979,
+                  "p95Ms": 15.651820999999927
+                }
+              }
+            },
+            "scope": "Real localhost HTTP/WebSocket and file-load/listen/close cycles. Existing Node components assembled manually versus configured lifecycle. Alternating order, identical metadata and authorization callback; source file absent during steady-state requests. No Python daemon or hardware printing claim."
+          }
+        },
+        {
+          "pair": 2,
+          "kind": "uploads",
+          "route": "original",
+          "label": "after",
+          "record": {
+            "node": "v26.10.0",
+            "filesystemMagic": 61267,
+            "warmups": 2,
+            "runs": 7,
+            "results": [
+              {
+                "size": 4194304,
+                "results": {
+                  "direct": {
+                    "medianMs": 45.96742500000005,
+                    "p95Ms": 51.29576999999995,
+                    "medianMiBPerSecond": 87.0181438268512,
+                    "eventLoopMaximumMs": 1.897471
+                  },
+                  "http": {
+                    "medianMs": 62.66475700000001,
+                    "p95Ms": 68.05343300000004,
+                    "medianMiBPerSecond": 63.83173240422841,
+                    "eventLoopMaximumMs": 4.272127
+                  }
+                }
+              },
+              {
+                "size": 16777216,
+                "results": {
+                  "direct": {
+                    "medianMs": 99.97261400000025,
+                    "p95Ms": 103.59539200000063,
+                    "medianMiBPerSecond": 160.04382960317471,
+                    "eventLoopMaximumMs": 2.051071
+                  },
+                  "http": {
+                    "medianMs": 148.02045199999975,
+                    "p95Ms": 154.49686800000018,
+                    "medianMiBPerSecond": 108.09317080047849,
+                    "eventLoopMaximumMs": 8.257535
+                  }
+                }
+              }
+            ],
+            "scope": "Direct immutable publication vs multipart HTTP loopback admission plus publication; same native store, authorization is noop. Input/FormData preparation, verification and deletion outside timing. HTTP client shares event loop; maximum delays include client work. No Python, target flash, concurrent motion or physical printer comparison."
+          }
+        }
+      ],
+      "comparisons": [
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "status",
+          "before": 208.72333700000013,
+          "after": 213.150759,
+          "ratio": 1.0212119165189462,
+          "limit": 1.5,
+          "absoluteUs": 2.13150759,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "file",
+          "before": 301.926385,
+          "after": 313.5300659999998,
+          "ratio": 1.0384321529236333,
+          "limit": 1.5,
+          "absoluteUs": 3.135300659999998,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "image",
+          "before": 357.1653900000001,
+          "after": 353.0623059999998,
+          "ratio": 0.9885120895952424,
+          "limit": 1.5,
+          "absoluteUs": 3.530623059999998,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "before": 137.65924799999993,
+          "after": 136.30372599999998,
+          "ratio": 0.9901530625824722,
+          "limit": 1.5,
+          "absoluteUs": 1.3630372599999998,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "manual/http",
+          "before": 43.13038900000004,
+          "after": 40.195063000000005,
+          "ratio": 0.931942974128983,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "manual/ws",
+          "before": 29.70531500000004,
+          "after": 27.584617000000208,
+          "ratio": 0.9286088028354579,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "manual/startup",
+          "before": 8.4539749999999,
+          "after": 7.976069999999709,
+          "ratio": 0.9434697878808256,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "configured/http",
+          "before": 43.19533999999999,
+          "after": 40.11245300000019,
+          "ratio": 0.9286291762028079,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "configured/ws",
+          "before": 29.83004600000004,
+          "after": 28.14366199999995,
+          "ratio": 0.9434669326356356,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "configured/startup",
+          "before": 13.206670999999915,
+          "after": 12.007340999999997,
+          "ratio": 0.9091875613468431,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "direct",
+          "before": {
+            "medianMs": 42.42148299999997,
+            "p95Ms": 46.083519000000024,
+            "medianMiBPerSecond": 94.29184736422353,
+            "eventLoopMaximumMs": 2.562047
+          },
+          "after": {
+            "medianMs": 45.14351399999998,
+            "p95Ms": 58.16503399999999,
+            "medianMiBPerSecond": 88.60630565888162,
+            "eventLoopMaximumMs": 2.498559
+          },
+          "ratio": 1.0641663328931716,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "http",
+          "before": {
+            "medianMs": 62.31284999999991,
+            "p95Ms": 71.872476,
+            "medianMiBPerSecond": 64.19221717510923,
+            "eventLoopMaximumMs": 4.354047
+          },
+          "after": {
+            "medianMs": 63.551837999999975,
+            "p95Ms": 72.27325600000006,
+            "medianMiBPerSecond": 62.940744530472934,
+            "eventLoopMaximumMs": 2.850815
+          },
+          "ratio": 1.0198833466933395,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "direct",
+          "before": {
+            "medianMs": 98.98822699999982,
+            "p95Ms": 112.31125999999995,
+            "medianMiBPerSecond": 161.63538316531347,
+            "eventLoopMaximumMs": 4.106239
+          },
+          "after": {
+            "medianMs": 95.81919400000015,
+            "p95Ms": 101.02121500000021,
+            "medianMiBPerSecond": 166.98115828442445,
+            "eventLoopMaximumMs": 2.750463
+          },
+          "ratio": 0.9679857585488456,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "http",
+          "before": {
+            "medianMs": 152.3442810000006,
+            "p95Ms": 176.9592550000002,
+            "medianMiBPerSecond": 105.02527495600533,
+            "eventLoopMaximumMs": 8.650751
+          },
+          "after": {
+            "medianMs": 138.60647400000016,
+            "p95Ms": 151.63116500000024,
+            "medianMiBPerSecond": 115.4347234891783,
+            "eventLoopMaximumMs": 8.404991
+          },
+          "ratio": 0.9098239401582763,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "status",
+          "before": 212.5037749999999,
+          "after": 207.70832100000007,
+          "ratio": 0.9774335585332551,
+          "limit": 1.5,
+          "absoluteUs": 2.0770832100000005,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "file",
+          "before": 321.45153400000004,
+          "after": 332.78299300000003,
+          "ratio": 1.0352509097063447,
+          "limit": 1.5,
+          "absoluteUs": 3.3278299300000005,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "image",
+          "before": 374.9230540000003,
+          "after": 379.5195819999999,
+          "ratio": 1.0122599236055503,
+          "limit": 1.5,
+          "absoluteUs": 3.795195819999999,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "before": 137.65590100000009,
+          "after": 138.988693,
+          "ratio": 1.0096820549668983,
+          "limit": 1.5,
+          "absoluteUs": 1.38988693,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "manual/http",
+          "before": 39.06813800000009,
+          "after": 38.82852300000002,
+          "ratio": 0.9938667412304095,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "manual/ws",
+          "before": 31.062636999999995,
+          "after": 27.296996000000036,
+          "ratio": 0.8787726553930383,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "manual/startup",
+          "before": 8.627787999999782,
+          "after": 9.119822000000113,
+          "ratio": 1.057028985876837,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "configured/http",
+          "before": 38.87556600000005,
+          "after": 39.8459620000001,
+          "ratio": 1.024961591555993,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "configured/ws",
+          "before": 30.971896000000015,
+          "after": 27.908531999999923,
+          "ratio": 0.9010921384987186,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "configured/startup",
+          "before": 13.24840499999982,
+          "after": 12.443385999999919,
+          "ratio": 0.9392365345111421,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "direct",
+          "before": {
+            "medianMs": 41.201239999999984,
+            "p95Ms": 45.10726999999997,
+            "medianMiBPerSecond": 97.08445668140088,
+            "eventLoopMaximumMs": 2.007039
+          },
+          "after": {
+            "medianMs": 44.2327580000001,
+            "p95Ms": 46.984804999999994,
+            "medianMiBPerSecond": 90.43071652913868,
+            "eventLoopMaximumMs": 5.107711
+          },
+          "ratio": 1.0735783194874746,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "http",
+          "before": {
+            "medianMs": 57.55100700000003,
+            "p95Ms": 66.227105,
+            "medianMiBPerSecond": 69.50356229214196,
+            "eventLoopMaximumMs": 2.988031
+          },
+          "after": {
+            "medianMs": 63.87818600000003,
+            "p95Ms": 65.09179799999993,
+            "medianMiBPerSecond": 62.61918583599099,
+            "eventLoopMaximumMs": 2.947071
+          },
+          "ratio": 1.109940369940008,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "direct",
+          "before": {
+            "medianMs": 99.27461300000004,
+            "p95Ms": 108.78981999999996,
+            "medianMiBPerSecond": 161.16909969722062,
+            "eventLoopMaximumMs": 3.364863
+          },
+          "after": {
+            "medianMs": 98.43473700000004,
+            "p95Ms": 108.48339899999974,
+            "medianMiBPerSecond": 162.54424492443144,
+            "eventLoopMaximumMs": 5.955583
+          },
+          "ratio": 0.9915398713264185,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "http",
+          "before": {
+            "medianMs": 148.23620399999982,
+            "p95Ms": 160.31571600000007,
+            "medianMiBPerSecond": 107.9358454160093,
+            "eventLoopMaximumMs": 9.330687
+          },
+          "after": {
+            "medianMs": 152.7841870000002,
+            "p95Ms": 164.93503099999998,
+            "medianMiBPerSecond": 104.72287946919519,
+            "eventLoopMaximumMs": 8.261631
+          },
+          "ratio": 1.0306806493776675,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "status",
+          "before": 204.0887140000001,
+          "after": 207.0338099999999,
+          "ratio": 1.0144304696829036,
+          "limit": 1.5,
+          "absoluteUs": 2.070338099999999,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "file",
+          "before": 326.3812270000001,
+          "after": 302.78590799999984,
+          "ratio": 0.9277062617330002,
+          "limit": 1.5,
+          "absoluteUs": 3.0278590799999985,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "image",
+          "before": 368.6715159999999,
+          "after": 376.790884,
+          "ratio": 1.0220233124817815,
+          "limit": 1.5,
+          "absoluteUs": 3.76790884,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "before": 138.1431359999999,
+          "after": 138.8625840000002,
+          "ratio": 1.0052079894870802,
+          "limit": 1.5,
+          "absoluteUs": 1.388625840000002,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "manual/http",
+          "before": 42.527897000000166,
+          "after": 40.125585,
+          "ratio": 0.9435120904285449,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "manual/ws",
+          "before": 30.018608000000086,
+          "after": 27.558004999999866,
+          "ratio": 0.9180307427979268,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "manual/startup",
+          "before": 9.41325599999982,
+          "after": 8.687910000000102,
+          "ratio": 0.9229441969920151,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "configured/http",
+          "before": 42.92794099999992,
+          "after": 39.64750900000013,
+          "ratio": 0.9235828245291383,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "configured/ws",
+          "before": 30.702524999999923,
+          "after": 27.398423000000093,
+          "ratio": 0.8923833788914808,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "configured/startup",
+          "before": 14.340596999999889,
+          "after": 12.168055999999979,
+          "ratio": 0.8485041452597876,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "direct",
+          "before": {
+            "medianMs": 39.53948600000001,
+            "p95Ms": 75.08180100000004,
+            "medianMiBPerSecond": 101.16469394670428,
+            "eventLoopMaximumMs": 2.314239
+          },
+          "after": {
+            "medianMs": 45.96742500000005,
+            "p95Ms": 51.29576999999995,
+            "medianMiBPerSecond": 87.0181438268512,
+            "eventLoopMaximumMs": 1.897471
+          },
+          "ratio": 1.1625701204107721,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "http",
+          "before": {
+            "medianMs": 57.30489900000009,
+            "p95Ms": 60.81875500000001,
+            "medianMiBPerSecond": 69.80206002980641,
+            "eventLoopMaximumMs": 2.510847
+          },
+          "after": {
+            "medianMs": 62.66475700000001,
+            "p95Ms": 68.05343300000004,
+            "medianMiBPerSecond": 63.83173240422841,
+            "eventLoopMaximumMs": 4.272127
+          },
+          "ratio": 1.0935322824668081,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "direct",
+          "before": {
+            "medianMs": 96.99466699999994,
+            "p95Ms": 102.17457999999988,
+            "medianMiBPerSecond": 164.9575228708194,
+            "eventLoopMaximumMs": 3.057663
+          },
+          "after": {
+            "medianMs": 99.97261400000025,
+            "p95Ms": 103.59539200000063,
+            "medianMiBPerSecond": 160.04382960317471,
+            "eventLoopMaximumMs": 2.051071
+          },
+          "ratio": 1.03070217252254,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "http",
+          "before": {
+            "medianMs": 144.58790599999975,
+            "p95Ms": 156.788051,
+            "medianMiBPerSecond": 110.65932443893357,
+            "eventLoopMaximumMs": 7.860223
+          },
+          "after": {
+            "medianMs": 148.02045199999975,
+            "p95Ms": 154.49686800000018,
+            "medianMiBPerSecond": 108.09317080047849,
+            "eventLoopMaximumMs": 8.257535
+          },
+          "ratio": 1.0237402013415977,
+          "limit": 1.5,
+          "pass": true
+        }
+      ],
+      "pass": true,
+      "scope": "Original auth100000x8, configured 200HTTP/500WS/30startup and upload4/16MiB workloads with unchanged samples/assertions. Original upload benchmark has noop auth/no proxy headers; newly admitted HTTPS protocol path has no successful prior baseline. Sequential AB/BA/AB, no overlapping task benchmarks or mixed scene."
+    },
+    "maxRatio": 1.1625701204107721,
+    "authMaximumUs": 3.795195819999999,
+    "newProtocol": {
+      "node": "v26.10.0",
+      "requests": 100000,
+      "runs": 8,
+      "warmups": 2,
+      "maximumUs": 10,
+      "rows": [
+        {
+          "mode": "numeric",
+          "coldMs": 0.35356400000000576,
+          "times": [
+            34.04480600000001,
+            28.102165000000014,
+            28.266227000000015,
+            27.380186999999978,
+            27.23441399999996,
+            26.968542000000014,
+            26.971531000000027,
+            27.18024399999996
+          ],
+          "retained": [
+            26.968542000000014,
+            26.971531000000027,
+            27.18024399999996,
+            27.23441399999996,
+            27.380186999999978,
+            28.266227000000015
+          ],
+          "microsecondsPerRequest": 0.27234413999999957
+        },
+        {
+          "mode": "cached-nss",
+          "coldMs": 22.553369000000032,
+          "times": [
+            51.75946699999997,
+            43.34818700000005,
+            41.176050999999916,
+            41.08236000000011,
+            41.068408999999974,
+            41.14597100000003,
+            40.82081699999992,
+            40.771525999999994
+          ],
+          "retained": [
+            40.771525999999994,
+            40.82081699999992,
+            41.068408999999974,
+            41.08236000000011,
+            41.14597100000003,
+            41.176050999999916
+          ],
+          "microsecondsPerRequest": 0.4108236000000011
+        }
+      ],
+      "scope": "New URL metadata success only, numeric and genuine NSS cache. Original auth hot-path workload count retained; no old successful protocol-resolution baseline or real printing claim."
+    },
+    "noPriorSuccessfulProtocolResolutionBaseline": true,
+    "noConcurrentTaskBenchmarksOrPrinting": true,
+    "oldCandidatePair": "First completed pre-authorization protocol candidate pair retained after result-object parser failure; not counted as final product acceptance"
+  },
+  "mixed": {
+    "rows": [
+      {
+        "path": "beforeObjectCancellation.progress.status.toolhead.minimum_cruise_ratio",
+        "value": 0.5
+      },
+      {
+        "path": "compiledDetachedWindow.fileQueryP99Ms",
+        "value": 9.137491000001319
+      },
+      {
+        "path": "configListP99Ms",
+        "value": 5.127717000003031
+      },
+      {
+        "path": "configDownloadP99Ms",
+        "value": 11.23723500000051
+      },
+      {
+        "path": "phaseP99Ms",
+        "value": 4.782192999999097
+      },
+      {
+        "path": "historyP99Ms",
+        "value": 61.261976999998296
+      },
+      {
+        "path": "minimumStepLeadMs",
+        "value": 84.235
+      },
+      {
+        "path": "directoryP99Ms",
+        "value": 46.3327649999992
+      },
+      {
+        "path": "statusP99Ms",
+        "value": 4.115345000000161
+      },
+      {
+        "path": "generations.0.loop.p99Ms",
+        "value": 2.004991
+      },
+      {
+        "path": "generations.1.loop.p99Ms",
+        "value": 1.971199
+      },
+      {
+        "path": "compiledServices.queryP99Ms",
+        "value": 9.049779000000854
+      },
+      {
+        "path": "networkChanges.systemQueryP99Ms",
+        "value": 4.840692999998282
+      },
+      {
+        "path": "compiledQueue.queryP99Ms",
+        "value": 6.650263999996241
+      },
+      {
+        "path": "configBackupLoad.p99Ms",
+        "value": 5.04376499999853
+      }
+    ],
+    "pass": true,
+    "scope": "Original one simulated namespace/nativeAuthorization/apiLoad case; unchanged assertions and budgets, not hardware or full matrix.",
+    "log": "original-mixed.log",
+    "durationMs": 60743.829158,
+    "originalAssertionsAndBudgets": true,
+    "sameFrozenProduct": true,
+    "noHardwareClaim": true
+  },
+  "failures": {
+    "oldLocation": "Configured trusted HTTPS header produced http upload Location",
+    "firstCandidate": "Invalid API key began unresolved protocol NSS and returned503/expected401; fixed by original authorization stage and post-wait recheck",
+    "retained": "Missing gate/journal/config trust, first leaked-worker timeout, default-port assertion/type, build path, initial restricted product guard and benchmark parser failures all archived"
+  },
+  "priorCi": "pr68-8ad4eda-terminal.json:15 success and5119 ordinary; does not close previous startup cause/G3 or mean develop merge",
+  "remaining": [
+    "Own exact-head CI and task/develop/master integration",
+    "Full Python/Moonraker/macro retirement and consumers",
+    "Native TLS/URL prefix/other request URL consumers",
+    "Original UI performance/native compiler stability/G3 precision",
+    "Full clients fault/SIGKILL/Cura and Cycnumbris500 target/hardware; other models last"
+  ],
+  "evidence": {
+    "path": "proxy-protocol-owner-evidence.json.gz",
+    "sha256": "d18a05ae7325512e6eaf7e44fbca805785dd56d278d3d83765c0fd7aa19d9935",
+    "entries": 275,
+    "uncompressedBytes": 3858727,
+    "compressedBytes": 983647
+  }
+}

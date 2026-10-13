@@ -9,6 +9,7 @@ import {setImmediate as yieldImmediate} from 'node:timers/promises';
 import {ClientCalls} from './client-calls.ts';
 import {ClientRequests,type ClientArguments,type ClientRequestLimits,type ClientRequestOptions} from './client-requests.ts';
 import {ResponseCompletion} from './response-completion.ts';
+import type {RequestProtocol} from './proxy-address.ts';
 import {subscriptionConnectionId} from './subscription-connection.ts';
 import {NotificationFanout,type NotificationLimits,type DeliveryReport} from './notifications.ts';
 import {RemoteClients} from './clients.ts';
@@ -25,6 +26,11 @@ export interface MoonrakerNetworkOptions {
  endpoints?:EndpointRegistry;
  /** Configuration-owned xheaders selection; identity trust remains separate. */
  useXheaders?:boolean;
+ /** Verified request URL protocol, never an identity or forwarded host grant.
+  * The configuration-owned authorization policy supplies this resolver. */
+ resolveRequestProtocol?(request:NetworkAuthorization):RequestProtocol|Promise<RequestProtocol>;
+ /** Synchronous immutable metadata capture, without granting authorization. */
+ captureRequestMetadata?(request:NetworkAuthorization):void;
  thumbnails?:ThumbnailDownloads;
  /** Native multipart HTTP admission; lifetime belongs to the composition owner. */
  nativeUploads?:NativePrintUploads;
@@ -72,6 +78,8 @@ export class MoonrakerNetwork {
   if(nativeLifetime!==undefined&&(!(nativeLifetime instanceof AbortSignal)||nativeLifetime.aborted))throw new Error('Invalid native request lifetime');this.#nativeLifetime=nativeLifetime;
   if(rpc.has('server.websocket.id')||rpc.has('server.connection.identify'))throw new Error('Network RPC method already registered');
   if(options.useXheaders!==undefined&&typeof options.useXheaders!=='boolean')throw new TypeError('Invalid xheaders policy');
+  if(options.resolveRequestProtocol!==undefined&&typeof options.resolveRequestProtocol!=='function')throw new TypeError('Invalid request protocol resolver');
+  if(options.captureRequestMetadata!==undefined&&typeof options.captureRequestMetadata!=='function')throw new TypeError('Invalid request metadata capture');
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');if(options.endpoints&&options.endpoints.dispatcher!==rpc)throw new Error('Endpoint registry must share the network dispatcher');this.#rpc=rpc;this.#options={...options};
   this.#maximumOutputBytes=bounded(options.maxOutputBytes,8*maxBytes,64*maxBytes);
   this.#maxBuffered=bounded(options.maxBufferedBytes,8*maxBytes,64*maxBytes);this.#maxConnections=bounded(options.maxConnections,50,10000);this.#maxRequests=bounded(options.maxRequests,256,10000);this.#perSocket=bounded(options.maxRequestsPerSocket,32,1000);this.#timeout=bounded(options.requestTimeoutMs,300000,2147483647);this.#shutdownTimeout=bounded(options.shutdownTimeoutMs,5000,60000);
@@ -163,9 +171,12 @@ export class MoonrakerNetwork {
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}
   const parent=new AbortController(),disconnected=()=>{if(!response.writableEnded)parent.abort(new Error('HTTP client disconnected'));};response.once('close',disconnected);
+  const address=request.socket.localAddress??'127.0.0.1',locationHost=request.headers.host??`${address.includes(':')?'['+address+']':address}:${request.socket.localPort}`;
   this.#launch(async signal=>{
    let reserved=0,outputReserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
    try{
+    let uploadProtocol:RequestProtocol='http';
+    if(isUpload)this.#options.captureRequestMetadata?.({request,transport:'http',signal,useXheaders:this.#options.useXheaders});
     signal.throwIfAborted();const originCheck=this.#origin(request,signal),originAdmission=originCheck instanceof Promise?await originCheck:originCheck;signal.throwIfAborted();
     if(!originAdmission.allowed){this.#error(response,403,'Origin not allowed');return;}
     if(request.headers.origin&&originAdmission.cors){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges, Location');}
@@ -176,16 +187,27 @@ export class MoonrakerNetwork {
      signal.throwIfAborted();if(isOctoUpload)await this.#options.authorize('api.files.local',{}, {request,transport:'http',signal,useXheaders:this.#options.useXheaders});signal.throwIfAborted();response.setHeader('connection','close');
      const budget=8*65536;if(this.#buffered+budget>this.#maxBuffered)throw new ApiError(429,'Request buffer capacity exceeded');
      this.#buffered+=budget;reserved=budget;
-     const result=await receiveUpload!(request,this.#context(request,'http',signal,undefined,nativeGenerationSignal,nativeGenerationRetiredAtAdmission));signal.throwIfAborted();
+     const context=this.#context(request,'http',signal,undefined,nativeGenerationSignal,nativeGenerationRetiredAtAdmission),authorize=context.authorize;let selectedProtocol=false;
+     if(this.#options.resolveRequestProtocol)context.authorize=(method,params)=>{
+      const afterGrant=(grant:AuthorizationResult):AuthorizationResult|Promise<AuthorizationResult>=>{
+       if(selectedProtocol)return grant;
+       const selected=this.#options.resolveRequestProtocol!({request,transport:'http',signal:context.signal,useXheaders:this.#options.useXheaders});
+       const accept=(protocol:RequestProtocol)=>{context.signal.throwIfAborted();if(protocol!=='http'&&protocol!=='https')throw new ApiError(500,'Invalid request protocol');uploadProtocol=protocol;selectedProtocol=true;};
+       // A new protocol wait cannot preserve a stale key/JWT/network grant.
+       if(selected instanceof Promise)return selected.then(protocol=>{accept(protocol);return authorize(method,params);});
+       accept(selected);return grant;
+      };
+      const grant=authorize(method,params);return grant instanceof Promise?grant.then(afterGrant):afterGrant(grant);
+     };
+     const result=await receiveUpload!(request,context);signal.throwIfAborted();
      if(!result||typeof result!=='object'||Array.isArray(result))throw new ApiError(500,'Invalid upload receipt');
      // Multipart clients consume top-level item/action; result remains a native
      // compatibility alias for previously issued SDKs and receipts.
      const item=result.item;
      if(item&&typeof item==='object'&&!Array.isArray(item)&&typeof item.root==='string'&&typeof item.path==='string'){
-      const address=request.socket.localAddress??'127.0.0.1',host=request.headers.host??`${address.includes(':')?'['+address+']':address}:${request.socket.localPort}`;
       const encoded=item.path.split('/').map(part=>encodeURIComponent(part).replace(/[!'()*]/g,char=>'%'+char.charCodeAt(0).toString(16).toUpperCase())).join('/');
-      // This listener is HTTP. Forwarded headers never select its origin.
-      response.setHeader('location',`http://${host}/${isOctoUpload?'api/files/moonraker':'server/files'}/${item.root}/${encoded}`);
+      // The original owner verifies the proxy; forwarded host/query are unused.
+      response.setHeader('location',`${uploadProtocol}://${locationHost}/${isOctoUpload?'api/files/moonraker':'server/files'}/${item.root}/${encoded}`);
      }
      response.statusCode=201;
      response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({...result,result}));return;

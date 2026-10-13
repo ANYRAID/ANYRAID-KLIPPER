@@ -22,6 +22,14 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+可信代理后的标准／OctoPrint 上传回执现沿原信任与 NSS 所有者选择
+HTTP(S)：X-Scheme 优先，取最后一项，禁用或未验证代理保持 HTTP。
+请求 Host 与原编码路径保持，转发主机和令牌不进入 Location。
+先拒绝坏凭据，协议等待后再核对身份，暂存前完成；源码、独立 JS、
+实际包各 244 项通过，原三组预算最高 1.163 倍，原模拟打印通过。
+前序 8ad4edae 十五项 CI、5119／5119 通过；本增量须自身 CI。
+见[代理协议证据](host/contracts/proxy-protocol-owner-acceptance.json)和
+[前序精确头终态](host/contracts/pr68-8ad4eda-terminal.json)。
 可信代理授权现接通 `[server] use_xheaders`（默认 true），选取最后
 一项 X-Forwarded-For，X-Real-IP 优先；匿名代理授权须同时信任实际
 连接与客户端。未经验证的头不能改变登录计数或短时令牌绑定地址，

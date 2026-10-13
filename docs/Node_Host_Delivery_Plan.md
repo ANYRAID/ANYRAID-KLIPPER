@@ -1,5 +1,42 @@
 # Klipper 与 Moonraker 集成交付计划
 
+标准／OctoPrint 上传的代理协议已沿原请求、信任与 NSS 所有者接通。
+X-Scheme 优先于 X-Forwarded-Proto，取最后一项，仅接受 http／https；
+use_xheaders=false、畸形／超过 4096 字节或未验证代理保持后端 HTTP。
+只核验实际代理的协议声明，客户端 API 身份仍按原凭据／双地址政策。
+请求 Host 与编码路径保持，X-Forwarded-Host、Forwarded 和查询令牌
+不进入回执。选择规则来自
+[Tornado 6.5.10](https://www.tornadoweb.org/en/stable/_modules/tornado/httpserver.html)，
+要求代理经过原名单核验是明确的安全加固差别，不宣称逐位等价。
+
+元数据先在原 IncomingMessage 同步冻结；协议查询放在原上传授权
+阶段，先拒绝坏凭据，新增异步等待后重新核对当前权限／吊销，暂存
+前完成。原请求与上传授权容量、取消、关闭和期限保持，没有第二套
+DNS 缓存或身份所有者。原生配置与 MCU 获取前的产品校验拒绝外部
+覆盖协议及捕获回调。初版 503／应 401 的确定性反例保留，已修正。
+
+最终源码、独立 JS、实际包各 244／244，类型及空白通过。实际包
+691 项、18 个独立生产依赖，五个 JS 有差异，75 个原生来源与原
+输出按摘要复用，未重新编译原生。原鉴权四路径、网络六项和上传
+4／16 MiB 两模式的三组 AB／BA／AB 共 42 项最高 1.163 倍，
+原 1.5／10 微秒门限保持；新协议数值／真实 NSS 缓存成功路径为
+0.272／0.411 微秒，首次 NSS 22.6 ms，没有旧协议成功路径对照。
+原 namespace／nativeAuthorization／apiLoad 模拟打印单场通过，
+状态 P99 4.115 ms、最小步进提前量 84.235 ms、循环 P99 为
+2.005／1.971 ms；基准与编译、回归及打印场景顺序执行，未作整机
+隔离或硬件声明。第一次产品保护拦住原缩略图进程及测试 PTY 编译，
+现仅允许原摘要／参数绑定的这些程序，其他程序与 TS 仍拒绝。
+夹具门禁／日志／配置名单、URL 默认端口、类型、构建导入路径与
+预算结果格式错误均保留，没有按成功重跑覆盖实际失败。见
+[完整协议证据](../host/contracts/proxy-protocol-owner-acceptance.json)。
+
+前序 8ad4edae 十五项 CI 与 5119／5119 成功，实际合并检出
+58d2c841，见[精确头终态](../host/contracts/pr68-8ad4eda-terminal.json)。
+这不证明原启动失败根因已定位或合入 develop；本增量须自身检查。
+直接 TLS／url_prefix／其他 URL 消费者、全部 Moonraker／Python／宏、
+原 UI 性能、G3／原生稳定性、完整客户端故障和 Cycnumbris 500
+目标板／实机仍开放，其他机型最后。
+
 可信代理授权已接入原信任所有者与配置生命周期。server 的
 use_xheaders 默认 true，可明确 false；真实 TCP 地址保持，最后
 一项 X-Forwarded-For 作为候选，X-Real-IP 优先。RFC Forwarded 不

@@ -1,4 +1,4 @@
-import {proxyAddress,type ProxyAddress} from './proxy-address.ts';
+import {proxyAddress,proxyProtocol,type ProxyAddress,type RequestProtocol} from './proxy-address.ts';
 import {TrustedClients,type TrustedClientOptions} from './trusted-clients.ts';
 // Native API-key subset of pinned Moonraker authorization.py; GPL-3.0-or-later.
 import {createHash,randomBytes,timingSafeEqual} from 'node:crypto';
@@ -21,7 +21,7 @@ const digest=(key:string)=>createHash('sha256').update(key).digest();
  * Address admission requires explicit trustedClients configuration. */
 export class ApiKeyAuthorization {
  readonly #trusted:TrustedClients;
- readonly #addresses=new WeakMap<IncomingMessage,ProxyAddress>();
+ readonly #addresses=new WeakMap<IncomingMessage,ProxyAddress&{readonly protocol:RequestProtocol|undefined}>();
  readonly #database:DatabaseStore;readonly #store:DatabaseNamespace;
  readonly #connections=new WeakMap<IncomingMessage,Principal|null>();
  readonly #requests=new WeakMap<AbortSignal,IncomingMessage>();
@@ -53,7 +53,17 @@ export class ApiKeyAuthorization {
   return this.#trusted.resolve(address,signal).then(allowed=>{this.#active();signal.throwIfAborted();return allowed;});
  }
  #matches(value:unknown){return this.#enableApiKey&&typeof value==='string'&&/^[a-f0-9]{32}$/u.test(value)&&timingSafeEqual(digest(value),this.#digest);}
- #addressSnapshot(context:NetworkAuthorization):ProxyAddress{let address=this.#addresses.get(context.request);if(!address){address=proxyAddress(context.request,context.useXheaders??true);this.#addresses.set(context.request,address);}return address;}
+ #addressSnapshot(context:NetworkAuthorization):ProxyAddress&{readonly protocol:RequestProtocol|undefined}{let address=this.#addresses.get(context.request);if(!address){const enabled=context.useXheaders??true;address=Object.freeze({...proxyAddress(context.request,enabled),protocol:proxyProtocol(context.request,enabled)});this.#addresses.set(context.request,address);}return address;}
+ /** Capture headers synchronously before any network-origin/auth waits. */
+ captureRequestMetadata(context:NetworkAuthorization):void{context.signal.throwIfAborted();this.#addressSnapshot(context);}
+ /** URL metadata borrows the original peer policy and NSS cache. A verified
+  * proxy may select a protocol without granting its client an API identity. */
+ resolveRequestProtocol(context:NetworkAuthorization):RequestProtocol|Promise<RequestProtocol>{
+  this.#active();context.signal.throwIfAborted();const snapshot=this.#addressSnapshot(context);
+  if(snapshot.protocol===undefined)return 'http';
+  const trusted=this.resolveTrustedAddress(snapshot.peer??'',context.signal),select=(allowed:boolean):RequestProtocol=>allowed?snapshot.protocol!:'http';
+  return trusted instanceof Promise?trusted.then(select):select(trusted);
+ }
  #effectiveAddress(request:IncomingMessage):string|undefined{const address=this.#addresses.get(request)!;return address.claimed&&this.#trusted.matches(address.peer)?address.claimed:address.peer;}
  #boundAddress(request:IncomingMessage):string{const address=this.#addresses.get(request)!;if(address.invalid&&this.#trusted.matches(address.peer))throw new ApiError(401,'Invalid proxy client address');return authorizationAddress(this.#effectiveAddress(request));}
  #proxyPending(address:ProxyAddress):boolean{return (!!address.claimed||address.invalid)&&!this.#trusted.matches(address.peer)&&this.#trusted.hasDomains;}
@@ -134,7 +144,9 @@ export class ApiKeyAuthorization {
   if(context.user?.username!==user.username)throw new ApiError(401,'Queue request identity changed');
   return Object.freeze({transport:context.transport,signal,user,nativeGenerationSignal:context.nativeGenerationSignal,nativeGenerationRetiredAtAdmission:context.nativeGenerationRetiredAtAdmission,authorize});
  }
- readonly networkOptions:Pick<MoonrakerNetworkOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'>={
+ readonly networkOptions:Pick<MoonrakerNetworkOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'|'resolveRequestProtocol'|'captureRequestMetadata'>={
+  captureRequestMetadata:context=>this.captureRequestMetadata(context),
+  resolveRequestProtocol:context=>this.resolveRequestProtocol(context),
   authorize:(method,params,context)=>this.#networkAuthorize(method,params,context),
   authorizeNotification:(method,params,context)=>{
    const denied=(error:unknown)=>{

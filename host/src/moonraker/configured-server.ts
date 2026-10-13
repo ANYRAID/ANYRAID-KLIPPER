@@ -161,7 +161,7 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  /** Enables configuration-owned Klippy supervision when the network starts. */
  klippy?:{initialization?:KlippyAttachmentOptions;retryDelayMs?:number;pathContext?:KlippyPathContext};
 }
-export interface ConfiguredAuthorizationOptions extends Omit<ConfiguredServerOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'> {
+export interface ConfiguredAuthorizationOptions extends Omit<ConfiguredServerOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'|'resolveRequestProtocol'|'captureRequestMetadata'> {
  authorize?:never;authorizeNotification?:never;authorizeSubscriptionConnection?:never;
  /** Persistent database ownership transfers when assembly is constructed. */
  database:DatabaseStore;
@@ -425,10 +425,12 @@ export class ConfiguredMoonraker {
   * printer entry point. Failed initialization closes transferred resources. */
  static async loadAuthorized(filename:string,options:ConfiguredAuthorizationOptions):Promise<ConfiguredMoonraker>{
   if(!options.database||!options.authorization||typeof options.authorization.issuer!=='string')throw new ConfigurationError('Native authorization requires a database and stable issuer');
-  for(const name of ['authorize','authorizeNotification','authorizeSubscriptionConnection'])if(name in options)throw new ConfigurationError('Native authorization cannot share external authorization callbacks');
+  for(const name of ['authorize','authorizeNotification','authorizeSubscriptionConnection','resolveRequestProtocol','captureRequestMetadata'])if(name in options)throw new ConfigurationError('Native authorization cannot share external authorization callbacks');
   let auth:ApiKeyAuthorization|undefined;
   const owner=()=>{if(!auth)throw new ApiError(503,'Authorization is not initialized');return auth;};
   const resolved:ConfiguredServerOptions={...options,
+   captureRequestMetadata:context=>owner().captureRequestMetadata(context),
+   resolveRequestProtocol:context=>owner().resolveRequestProtocol(context),
    authorize:(method,params,context)=>owner().networkOptions.authorize!(method,params,context),
    authorizeNotification:(method,params,context)=>owner().networkOptions.authorizeNotification!(method,params,context),
    authorizeSubscriptionConnection:(source,target)=>owner().networkOptions.authorizeSubscriptionConnection!(source,target)
