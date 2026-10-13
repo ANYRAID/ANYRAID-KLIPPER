@@ -11,6 +11,22 @@ const bytes=await readFile(new URL('../contracts/moonraker-template-async-refere
 assert.equal(createHash('sha256').update(bytes).digest('hex'),'ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a');
 const reference=JSON.parse(bytes.toString()) as {secrets:string;file:string;cases:{name:string;source:string;context:string;ui:boolean;calls:{name:string;args:unknown;kwargs:unknown}[];output?:string;error?:boolean;cancelled?:boolean}[]};
 function fixture(){const parsed=parseSecretsText(reference.secrets),secrets=new SecretsStore(reference.file,parsed.type,parsed.values);return {secrets,owner:new MoonrakerAsyncTemplateOwner(secrets)};}
+test('repeated typed contexts retain independent callable frames and recover after invalid input',async()=>{
+ const {secrets,owner}=fixture();try{
+  const first='{"id":"one","number":1.0,"negative":-0.0,"payload":{"large":9007199254740993}}',second='{"id":"two","number":1,"negative":0,"payload":{"large":9007199254740995}}';
+  for(const ui of [false,true]){
+   const source='{{id}}/{{number is integer}}/{{number}}/{{negative}}/{{payload.large+1}}/{{read(number)}}',handle=ui?owner.createUiTemplate(source):owner.createTemplate(source.replaceAll('{{','{').replaceAll('}}','}'));
+   const render=(context:string,tag:string)=>handle.renderAsync(context,{callables:new Map([['read',async invocation=>{assert.equal(invocation.args.length,1);await new Promise<void>(resolve=>setImmediate(resolve));return tag;}]])});
+   try{
+    for(let i=0;i<3;i++)assert.equal(await render(first,'repeat'+i),'one/False/1.0/-0.0/9007199254740994/repeat'+i);
+    const jobs=Array.from({length:8},(_,i)=>render(i%2?second:first,'job'+i));
+    assert.deepEqual(await Promise.all(jobs),Array.from({length:8},(_,i)=>(i%2?'two/True/1/0/9007199254740996/':'one/False/1.0/-0.0/9007199254740994/')+'job'+i));
+    await assert.rejects(render('[1]','invalid'));await assert.rejects(render('{','invalid'));
+    assert.equal(await render(first,'recovered'),'one/False/1.0/-0.0/9007199254740994/recovered');
+   }finally{handle.close();}
+  }
+ }finally{owner.close();secrets.close();}
+});
 test('native call envelope includes escaped bytes and rejects overflow before invoking a callback',async()=>{
  const {secrets,owner}=fixture();let calls=0;
  try{

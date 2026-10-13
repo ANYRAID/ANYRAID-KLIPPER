@@ -485,6 +485,7 @@ impl NativeTemplateExecutor {
             runtime: self.runtime.clone(),
             environment: Some(Arc::new(env)),
             globals: Vec::new(),
+            context_cache: Mutex::new(None),
             ui,
         })
     }
@@ -549,6 +550,9 @@ pub struct NativeAsyncTextTemplate {
     runtime: Arc<Runtime>,
     environment: Option<Arc<Environment<'static>>>,
     globals: Vec<Global>,
+    // Cache only the last immutable parsed JSON map. Frame callables and
+    // environment globals remain per-render and are never stored here.
+    context_cache: Mutex<Option<(String, Value)>>,
     ui: bool,
 }
 #[napi]
@@ -599,14 +603,23 @@ impl NativeAsyncTextTemplate {
             return Err(private_error());
         }
         let mut environment = self.environment.as_ref().ok_or_else(private_error)?.clone();
-        let mut context = json_value(
-            serde_json::from_str(&context).map_err(|_| private_error())?,
-            0,
-        )
-        .map_err(|_| private_error())?;
-        if context.kind() != minijinja::value::ValueKind::Map {
-            return Err(private_error());
-        }
+        let mut context = {
+            let mut cache = self.context_cache.lock().map_err(|_| private_error())?;
+            if let Some((source, value)) = cache.as_ref().filter(|(source, _)| source == &context) {
+                let _ = source;
+                value.clone()
+            } else {
+                let value = json_value(
+                    serde_json::from_str(&context).map_err(|_| private_error())?,
+                    0,
+                ).map_err(|_| private_error())?;
+                if value.kind() != minijinja::value::ValueKind::Map {
+                    return Err(private_error());
+                }
+                *cache = Some((context, value.clone()));
+                value
+            }
+        };
         let cancelled = Arc::new(AtomicBool::new(false));
         {
             let mut frames = self.runtime.frames.lock().map_err(|_| private_error())?;
@@ -690,5 +703,6 @@ impl NativeAsyncTextTemplate {
     pub fn close(&mut self) {
         self.environment = None;
         self.globals.clear();
+        self.context_cache.get_mut().ok().map(|cache| cache.take());
     }
 }

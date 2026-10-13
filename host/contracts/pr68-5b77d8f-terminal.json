@@ -1,0 +1,163 @@
+{
+  "schema": 1,
+  "head": "5b77d8faf91b20b3148c8bb2b9d77d47a76b146f",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "pr": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/68",
+  "draft": true,
+  "merged": false,
+  "mergeCheckout": "1146a7c7acae5556712f0643421aec71954fe8bd",
+  "runs": [
+    {
+      "id": 38353440666,
+      "name": "Build test",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 268,
+      "jobs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38353440666/jobs",
+      "logs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38353440666/logs",
+      "workflow_id": 372156043
+    },
+    {
+      "id": 38353440631,
+      "name": "Node motion diagnostics",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 119,
+      "jobs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38353440631/jobs",
+      "logs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38353440631/logs",
+      "workflow_id": 372156042
+    },
+    {
+      "id": 38353440685,
+      "name": "Node host",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 268,
+      "jobs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38353440685/jobs",
+      "logs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38353440685/logs",
+      "workflow_id": 372156049
+    }
+  ],
+  "jobs": [
+    {
+      "id": 115150810026,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440631
+    },
+    {
+      "id": 115150810202,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440631
+    },
+    {
+      "id": 115150810284,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440631
+    },
+    {
+      "id": 115150810308,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440631
+    },
+    {
+      "id": 115150810325,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440631
+    },
+    {
+      "id": 115150810332,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440631
+    },
+    {
+      "id": 115150810340,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440631
+    },
+    {
+      "id": 115150810343,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440631
+    },
+    {
+      "id": 115150810389,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440631
+    },
+    {
+      "id": 115150810419,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440631
+    },
+    {
+      "id": 115150810198,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440685
+    },
+    {
+      "id": 115150810383,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440685
+    },
+    {
+      "id": 115150810386,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440685
+    },
+    {
+      "id": 115155525467,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440685
+    },
+    {
+      "id": 115150810356,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38353440666
+    }
+  ],
+  "checks": {
+    "job": 115150810198,
+    "node": "26.11.1",
+    "tests": 5182,
+    "pass": 5182,
+    "fail": 0,
+    "verifiedLogExcerpt": [
+      "2026-10-13T05:50:24.9796013Z HEAD is now at 1146a7c7 Merge 5b77d8faf91b20b3148c8bb2b9d77d47a76b146f into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "2026-10-13T05:50:30.6872399Z node: v26.11.1",
+      "2026-10-13T06:06:55.7465203Z ℹ tests 5182",
+      "2026-10-13T06:06:55.7465748Z ℹ pass 5182",
+      "2026-10-13T06:06:55.7465980Z ℹ fail 0"
+    ]
+  },
+  "scope": "Exact welcome-owner head terminal; Actions merge checkout is not develop merge, following native context-cache changes are not covered, historical UI/G3/native-build and hardware gates remain open."
+}

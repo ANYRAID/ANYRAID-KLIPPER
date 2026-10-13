@@ -1,0 +1,3461 @@
+{
+  "schema": 1,
+  "status": "bounded-immutable-context-candidate-original-current-budgets-pass-history-open",
+  "baseHead": "5b77d8faf91b20b3148c8bb2b9d77d47a76b146f",
+  "scope": "Optimize typed JSON parsing in the existing full native template engine; no renderer/language substitution, Jinja/Python retirement or whole-goal closure.",
+  "behavior": {
+    "cache": "One exact last source string and immutable typed Value map per handle, bounded by original 65536 UTF8 bytes and 64 handles; no hash collision path, rendered output, secrets snapshot, callable frame or environment cache. Invalid input cannot replace prior valid map; close clears cache. JSON number spelling, order and nesting pass through original parser.",
+    "concurrency": "Keep original two asynchronous lanes, 32 frames, 64 callbacks, fuel, timers, limits, cancellation, first settlement and native completion protocol. Per-render callables overlay a fresh map and are never cached.",
+    "immutability": "Pinned MiniJinja2.24 documents Value as immutable reference-counted data; original json_value only produces primitives, vecs and maps, original pycompat dictionary/list methods read rather than mutate. Mutable runtime Objects are not cached."
+  },
+  "sourceSha256": {
+    "host/native/template/Cargo.toml": "af7d4c84ccbb9d3a5eb625847f1ddc2e6696a1586c98f85dc43bd51e12be6778",
+    "host/native/template/Cargo.lock": "d5fa08f87b0c4796387cc2c228c4d4c8c39ebd93e2eaf95ffd47fb7684baeaf0",
+    "host/native/template/build.rs": "fcbd1ff3f627a7553fa1704dc6f558998daff8bc256015c37aace62cc49ce584",
+    "host/native/template/src/lib.rs": "aa995cd293221f15548c1864bd708d60c0fe5b1f5e8dd23057a8866bc24177b7",
+    "host/native/template/src/async_text.rs": "e1ec1cc8beb94f1fbc3129fd7874476602db347d497ee76a93c25316bfc2f3f2",
+    "host/native/template/src/sync_functions.rs": "89ea21f0dc74f8f3bf54c494a5384f1dacbca6168cb6663dfc1e00ed7ec7f864",
+    "host/native/template/src/sensor_text.rs": "7af064df40cfdf4c24665a1c5fb50ef8c5f7eef4a50742cfe988d447db3d029d",
+    "host/test/template-async.test.ts": "94c12b8aef06cf5e10e4f43348f1c656510cec5fac038b1740189ef3d020fdb8",
+    "host/src/moonraker/template-async-owner.ts": "4209eadf3e6457981a4f3a37078a4b09bd7c32a218ecc2e074d718b684ddf5f5",
+    "host/src/moonraker/template-wire.ts": "f78738448bf5ae587c02dbff4e8c6f2e6a1fbe867bbb2a762074ec5c7327c4fd",
+    "host/bench/template-async.ts": "700c5127f7437e40c883d1d0cbeabca9f5610753aad6a402dfd396648f291030",
+    "host/bench/template-factory.ts": "d7508d77b8e5ada146efc83a158efc231aedb51671731c58fae66ee772af67d3",
+    "host/contracts/moonraker-template-async-reference.json": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+    "host/contracts/moonraker-template-factory-reference.json": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+    "host/contracts/pr68-5b77d8f-terminal.json": "9ba90a2f1b6286a81c7aafae628529279e89d03428410af10dc6b6279f67d602"
+  },
+  "product": {
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-context-cache-oct13",
+      "manifestSha256": "869c8c86cc12eeb20cf1c399a531fe886eb3a6c37b060e58ee8a5fa58270ac9d",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "before": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-welcome-owner-oct13",
+      "manifestSha256": "d51ec1c638fe9dc1b9f84bed5ed08a5c8a35aba95c5bd7d9045d8354caa6dd54",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "files": 697,
+    "changes": [
+      "host/build/native-build-info.json",
+      "host/build/template.node"
+    ],
+    "nativeSources": 75,
+    "nativeOutputs": 11,
+    "nodeHeaders": 2810,
+    "scope": "Standard product builder with complete private source/header snapshot, independent initially empty Rust output; locked cached dependency sources, copied independent production Node dependencies with preserved relative links. One build does not close earlier SIGKILL/ICE stability failures."
+  },
+  "validation": {
+    "prototypeBaseline": 112,
+    "prototypeCandidate": 112,
+    "finalProduct": 140,
+    "minimumNode": "26.9.0",
+    "minimumProduct": 140,
+    "typecheck": "Complete host project; sandbox EPERM failure preserved, admitted check status0 without error",
+    "freshNativeSeconds": 37.983085937999995,
+    "freshNative": "One standard private C/Rust/header snapshot and initially empty Rust target successful; previous SIGKILL/ICE stability gate remains open.",
+    "runtimeJs": "All 661 runtime JS files unchanged from welcome baseline; standard697-file manifest changes only native receipt and template.node."
+  },
+  "templateBudgets": {
+    "prototype": {
+      "schema": 1,
+      "records": [
+        {
+          "pair": 0,
+          "label": "baseline",
+          "kind": "async",
+          "name": "0-baseline-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.951696999999996,
+                  4.616143000000001,
+                  4.719553000000005,
+                  4.676604000000005,
+                  4.580130999999994,
+                  4.474910000000008,
+                  4.629132999999996
+                ],
+                "medianMs": 4.629132999999996,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.7330027502416093,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  12.495908999999997,
+                  11.735837999999987,
+                  12.781182999999999,
+                  11.861640000000023,
+                  12.057683999999995,
+                  11.788308999999998,
+                  11.757339000000002
+                ],
+                "medianMs": 11.861640000000023,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.2330906172812997,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.699547999999993,
+                  11.840541000000002,
+                  11.77374900000001,
+                  11.941590999999988,
+                  11.736509000000012,
+                  11.786269000000004,
+                  11.902630999999985
+                ],
+                "medianMs": 11.786269000000004,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.4225649227778718,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 0,
+          "label": "baseline",
+          "kind": "factory",
+          "name": "0-baseline-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.3744680000000002,
+                  0.9471530000000001,
+                  1.0308940000000035,
+                  1.0763739999999942,
+                  1.2262470000000008,
+                  0.8796120000000016,
+                  0.8882119999999958
+                ],
+                "medianMs": 1.0308940000000035,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.2886136752590751,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.9212770000000035,
+                  4.815564999999992,
+                  5.88288,
+                  4.830784999999992,
+                  5.027077999999989,
+                  4.978377000000009,
+                  5.105829
+                ],
+                "medianMs": 4.978377000000009,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.2137859439063137,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.743493999999998,
+                  5.054438000000005,
+                  4.881346000000008,
+                  4.704514000000003,
+                  4.729903999999976,
+                  4.939467000000008,
+                  7.450650000000024
+                ],
+                "medianMs": 4.881346000000008,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.4982416075030383,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        },
+        {
+          "pair": 0,
+          "label": "candidate",
+          "kind": "async",
+          "name": "0-candidate-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  7.710933999999995,
+                  5.138118999999996,
+                  4.167355999999998,
+                  4.406819999999996,
+                  4.26041699999999,
+                  4.2298179999999945,
+                  4.144316000000003
+                ],
+                "medianMs": 4.26041699999999,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.6746182013297309,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.703118000000003,
+                  11.260262999999995,
+                  12.973835000000008,
+                  13.543522999999993,
+                  11.797380000000004,
+                  11.300871999999998,
+                  11.425314999999983
+                ],
+                "medianMs": 11.703118000000003,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.216611277929179,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.371932999999984,
+                  11.391064,
+                  11.302532999999983,
+                  11.419654000000008,
+                  11.368853999999999,
+                  11.400943999999981,
+                  11.326243000000034
+                ],
+                "medianMs": 11.371932999999984,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.3725558944887568,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 0,
+          "label": "candidate",
+          "kind": "factory",
+          "name": "0-candidate-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.2625069999999994,
+                  0.9366830000000022,
+                  0.9935630000000018,
+                  1.067264999999999,
+                  1.2056559999999976,
+                  0.8921220000000005,
+                  0.8530020000000036
+                ],
+                "medianMs": 0.9935630000000018,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.2781623222479052,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.557532000000002,
+                  4.43338,
+                  4.239886999999996,
+                  4.515000999999998,
+                  4.316129000000004,
+                  4.279397999999986,
+                  4.3196279999999945
+                ],
+                "medianMs": 4.3196279999999945,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.0531753118142972,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.71225299999999,
+                  4.24517800000001,
+                  4.309397999999987,
+                  4.2585869999999915,
+                  4.35724900000001,
+                  4.190866999999997,
+                  4.2704980000000035
+                ],
+                "medianMs": 4.2704980000000035,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.3107527694940093,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        },
+        {
+          "pair": 1,
+          "label": "candidate",
+          "kind": "async",
+          "name": "1-candidate-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.924776000000001,
+                  4.349398999999998,
+                  4.207817000000006,
+                  4.245087000000005,
+                  4.269447999999997,
+                  4.150846000000001,
+                  4.218436999999994
+                ],
+                "medianMs": 4.245087000000005,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.6721907635868118,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.914090999999999,
+                  11.270223000000016,
+                  15.170424999999994,
+                  11.702057999999994,
+                  11.948151999999993,
+                  11.44518500000001,
+                  11.441444000000018
+                ],
+                "medianMs": 11.702057999999994,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.2165010843931814,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  15.633171000000004,
+                  15.910255000000006,
+                  11.57252699999998,
+                  11.423453999999992,
+                  11.429615000000013,
+                  11.402983999999947,
+                  11.400593999999955
+                ],
+                "medianMs": 11.429615000000013,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.3795179271621765,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 1,
+          "label": "candidate",
+          "kind": "factory",
+          "name": "1-candidate-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.2946469999999977,
+                  0.9249519999999976,
+                  0.9968439999999958,
+                  1.0640539999999987,
+                  1.1073450000000022,
+                  0.8766219999999976,
+                  0.8502119999999991
+                ],
+                "medianMs": 0.9968439999999958,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.2790808856196227,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.484621000000004,
+                  4.342908000000001,
+                  4.298738999999998,
+                  4.2446470000000005,
+                  4.377078999999995,
+                  4.347088999999997,
+                  4.318007999999992
+                ],
+                "medianMs": 4.342908000000001,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.058851245311127,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.2979780000000005,
+                  4.247878,
+                  4.2701979999999935,
+                  4.305357999999998,
+                  4.350978999999995,
+                  4.25761700000001,
+                  4.4331399999999945
+                ],
+                "medianMs": 4.2979780000000005,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.3191872626387648,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        },
+        {
+          "pair": 1,
+          "label": "baseline",
+          "kind": "async",
+          "name": "1-baseline-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.856006000000001,
+                  4.532481000000004,
+                  4.427639999999997,
+                  4.528230999999998,
+                  4.511120999999989,
+                  4.480981,
+                  4.550831000000002
+                ],
+                "medianMs": 4.528230999999998,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.7170253645184345,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  12.157083999999998,
+                  11.736119000000002,
+                  12.127703999999994,
+                  11.966591999999991,
+                  14.252921999999984,
+                  11.813119999999998,
+                  13.317170000000004
+                ],
+                "medianMs": 12.127703999999994,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.260749610641096,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.77861900000002,
+                  15.482109000000008,
+                  14.725788999999992,
+                  12.247476000000006,
+                  12.791403000000003,
+                  12.063813000000039,
+                  12.199144999999987
+                ],
+                "medianMs": 12.247476000000006,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.4782311306626246,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 1,
+          "label": "baseline",
+          "kind": "factory",
+          "name": "1-baseline-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.262326999999999,
+                  0.930012000000005,
+                  1.0017540000000054,
+                  1.0285140000000013,
+                  1.0776639999999986,
+                  0.8773119999999963,
+                  0.8453519999999983
+                ],
+                "medianMs": 1.0017540000000054,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.28045551108598954,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.865375999999998,
+                  4.854855000000001,
+                  4.761644000000004,
+                  4.664192999999997,
+                  4.676513,
+                  4.610132000000007,
+                  4.601251999999988
+                ],
+                "medianMs": 4.676513,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.1401880062307728,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.466830000000002,
+                  4.571951999999996,
+                  4.612031999999999,
+                  5.714237000000011,
+                  4.8286859999999905,
+                  4.583051000000012,
+                  4.708042999999975
+                ],
+                "medianMs": 4.612031999999999,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.4155805053637747,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        },
+        {
+          "pair": 2,
+          "label": "baseline",
+          "kind": "async",
+          "name": "2-baseline-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  5.454244000000003,
+                  4.658613000000003,
+                  4.579011999999999,
+                  4.569851999999997,
+                  4.619391999999991,
+                  4.634933000000004,
+                  4.731613999999993
+                ],
+                "medianMs": 4.634933000000004,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.7339211546061862,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  12.514319999999998,
+                  12.193434999999994,
+                  12.262444999999985,
+                  13.287790000000001,
+                  12.60702999999998,
+                  12.197385000000025,
+                  11.963052000000005
+                ],
+                "medianMs": 12.262444999999985,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.2747567684087477,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  12.157523999999995,
+                  11.792698999999999,
+                  11.896470999999991,
+                  11.993442000000016,
+                  12.093434000000002,
+                  12.004142000000002,
+                  12.024372999999969
+                ],
+                "medianMs": 12.004142000000002,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.4488614961396693,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 2,
+          "label": "baseline",
+          "kind": "factory",
+          "name": "2-baseline-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.3439380000000014,
+                  0.9576129999999949,
+                  1.1339049999999986,
+                  1.115755,
+                  1.1565360000000027,
+                  0.8825419999999937,
+                  0.8778519999999972
+                ],
+                "medianMs": 1.115755,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.31237173874199314,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  5.519175000000004,
+                  4.957237000000006,
+                  4.666223000000002,
+                  4.739913999999999,
+                  4.673953000000012,
+                  4.883235999999997,
+                  4.623482999999993
+                ],
+                "medianMs": 4.739913999999999,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.1556459039813052,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.716414,
+                  4.725104000000002,
+                  4.817824999999999,
+                  4.671443000000011,
+                  4.861715999999987,
+                  4.598622000000006,
+                  4.75878400000002
+                ],
+                "medianMs": 4.725104000000002,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.450285927811515,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        },
+        {
+          "pair": 2,
+          "label": "candidate",
+          "kind": "async",
+          "name": "2-candidate-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.507570999999999,
+                  4.266876999999994,
+                  4.195136000000005,
+                  4.369388999999998,
+                  4.291247999999996,
+                  4.122895999999997,
+                  4.154105999999999
+                ],
+                "medianMs": 4.266876999999994,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.6756411137771728,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  12.283906000000002,
+                  11.276223000000002,
+                  11.367873000000003,
+                  11.251173000000023,
+                  11.772607999999991,
+                  11.213450999999992,
+                  12.808543000000014
+                ],
+                "medianMs": 11.367873000000003,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.1817604930469476,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.14246,
+                  12.246075999999988,
+                  11.307962999999972,
+                  11.276162000000028,
+                  11.237712000000045,
+                  11.254762000000028,
+                  11.123479999999972
+                ],
+                "medianMs": 11.254762000000028,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.3584137300288464,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 2,
+          "label": "candidate",
+          "kind": "factory",
+          "name": "2-candidate-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.279588000000004,
+                  0.9075220000000002,
+                  0.9716529999999963,
+                  1.4430499999999995,
+                  4.318517999999997,
+                  0.8692219999999935,
+                  0.8652109999999951
+                ],
+                "medianMs": 0.9716529999999963,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.2720283010731502,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.8174550000000025,
+                  4.632593,
+                  4.4097599999999915,
+                  4.362379000000004,
+                  4.392739000000006,
+                  4.522660999999999,
+                  4.346629000000007
+                ],
+                "medianMs": 4.4097599999999915,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.0751505368115524,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.320559000000003,
+                  4.295898000000008,
+                  4.303758000000002,
+                  4.818185,
+                  5.792177999999993,
+                  4.256727999999995,
+                  4.497151000000002
+                ],
+                "medianMs": 4.320559000000003,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.3261180955973442,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        }
+      ],
+      "admitted": true,
+      "decision": "Original budgets pass; pending wider product validation"
+    },
+    "final": {
+      "schema": 1,
+      "records": [
+        {
+          "pair": 0,
+          "label": "baseline",
+          "kind": "async",
+          "name": "final-0-baseline-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  5.174038000000003,
+                  4.8472930000000005,
+                  5.310069999999996,
+                  4.696851999999993,
+                  4.604010000000002,
+                  4.689741999999995,
+                  4.658750999999995
+                ],
+                "medianMs": 4.696851999999993,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.7437257545803503,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  13.684999999999988,
+                  11.830164999999994,
+                  12.320972000000012,
+                  13.790200999999996,
+                  12.355692000000005,
+                  12.947589999999991,
+                  12.108169000000004
+                ],
+                "medianMs": 12.355692000000005,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.2844503690229676,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  12.350532000000015,
+                  11.905355999999983,
+                  15.467902999999978,
+                  12.394253000000049,
+                  13.035861000000011,
+                  12.311781999999994,
+                  12.49429299999997
+                ],
+                "medianMs": 12.394253000000049,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.4959466445093414,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 0,
+          "label": "baseline",
+          "kind": "factory",
+          "name": "final-0-baseline-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.4088690000000028,
+                  1.0220929999999981,
+                  1.014522999999997,
+                  1.0924849999999964,
+                  1.2420959999999965,
+                  0.9344919999999988,
+                  0.8626819999999995
+                ],
+                "medianMs": 1.0220929999999981,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.28614970810439516,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.894074000000003,
+                  4.818342999999999,
+                  4.791092999999989,
+                  4.657891000000006,
+                  4.817223999999996,
+                  5.156576999999999,
+                  4.6394909999999925
+                ],
+                "medianMs": 4.817223999999996,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.174494976946931,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.579599999999999,
+                  4.6837719999999905,
+                  4.647001000000003,
+                  4.974445000000003,
+                  4.848864000000006,
+                  4.826322999999988,
+                  4.914963999999998
+                ],
+                "medianMs": 4.826322999999988,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.4813532844934278,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        },
+        {
+          "pair": 0,
+          "label": "candidate",
+          "kind": "async",
+          "name": "final-0-candidate-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  5.088906999999999,
+                  4.326777,
+                  4.1416440000000065,
+                  4.26179599999999,
+                  4.1956849999999974,
+                  4.122184000000004,
+                  4.196294999999992
+                ],
+                "medianMs": 4.196294999999992,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.6644647660426068,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.849995000000007,
+                  11.300138000000004,
+                  11.641693000000004,
+                  11.393810000000002,
+                  11.598012000000011,
+                  11.303867999999994,
+                  13.230773999999997
+                ],
+                "medianMs": 11.598012000000011,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.205684861141959,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.33731899999998,
+                  11.473720000000014,
+                  11.440111000000002,
+                  11.335518000000036,
+                  11.275947999999971,
+                  11.390389999999968,
+                  11.475960000000043
+                ],
+                "medianMs": 11.390389999999968,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.3747835952802192,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 0,
+          "label": "candidate",
+          "kind": "factory",
+          "name": "final-0-candidate-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.2947769999999963,
+                  0.9727129999999988,
+                  1.0519040000000004,
+                  1.1869450000000015,
+                  1.3440579999999969,
+                  0.9037019999999956,
+                  0.8822219999999987
+                ],
+                "medianMs": 1.0519040000000004,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.2944957284257365,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.542259999999999,
+                  4.443438,
+                  4.367958000000002,
+                  4.317235999999994,
+                  5.882068000000004,
+                  4.406437000000011,
+                  4.354748000000001
+                ],
+                "medianMs": 4.406437000000011,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.0743403509434317,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.223934999999997,
+                  4.297037000000003,
+                  4.337557000000004,
+                  4.28706600000001,
+                  4.429968000000002,
+                  4.150285000000011,
+                  4.2458449999999885
+                ],
+                "medianMs": 4.28706600000001,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.3158380199460609,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        },
+        {
+          "pair": 1,
+          "label": "candidate",
+          "kind": "async",
+          "name": "final-1-candidate-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.644821,
+                  4.289586000000007,
+                  4.149455000000003,
+                  4.227595000000008,
+                  4.262966000000006,
+                  4.1515349999999955,
+                  4.260146000000006
+                ],
+                "medianMs": 4.260146000000006,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.6745752896775267,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.754623999999993,
+                  11.034095000000008,
+                  11.461980000000011,
+                  11.360098999999991,
+                  11.239787000000007,
+                  11.068876000000017,
+                  13.843961000000007
+                ],
+                "medianMs": 11.360098999999991,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.1809523378121944,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.05496500000001,
+                  11.087446,
+                  11.655673000000007,
+                  11.10689499999998,
+                  11.199596999999983,
+                  11.536281999999972,
+                  11.547271000000023
+                ],
+                "medianMs": 11.199596999999983,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.3517554911947331,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 1,
+          "label": "candidate",
+          "kind": "factory",
+          "name": "final-1-candidate-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.3428380000000004,
+                  1.0048129999999986,
+                  1.116983999999995,
+                  1.1390949999999975,
+                  2.2453099999999964,
+                  0.8797820000000058,
+                  0.8830309999999955
+                ],
+                "medianMs": 1.116983999999995,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.31271581505526297,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  5.484572,
+                  4.4807890000000015,
+                  4.454738000000006,
+                  4.475329000000002,
+                  4.380417000000008,
+                  4.337777000000003,
+                  4.476078999999999
+                ],
+                "medianMs": 4.475329000000002,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.0911370180595585,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.372546999999997,
+                  4.2866360000000014,
+                  4.286625999999998,
+                  4.303897000000006,
+                  4.374366999999992,
+                  4.3551880000000125,
+                  5.3193490000000025
+                ],
+                "medianMs": 4.3551880000000125,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.3367468460744127,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        },
+        {
+          "pair": 1,
+          "label": "baseline",
+          "kind": "async",
+          "name": "final-1-baseline-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.915543999999997,
+                  4.606490999999998,
+                  4.491309000000001,
+                  4.595190000000002,
+                  4.562969999999993,
+                  4.511628999999999,
+                  4.531080000000003
+                ],
+                "medianMs": 4.562969999999993,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.7225261316255017,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  12.240359999999995,
+                  11.70359400000001,
+                  14.810524000000015,
+                  20.372428000000014,
+                  18.493291999999997,
+                  12.328022000000004,
+                  11.983826999999991
+                ],
+                "medianMs": 12.328022000000004,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.2815739019087933,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  12.167208999999986,
+                  12.42341300000004,
+                  12.161219999999958,
+                  11.956827000000033,
+                  12.145028999999965,
+                  11.912426000000039,
+                  12.204211000000043
+                ],
+                "medianMs": 12.161219999999958,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.467820307697427,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 1,
+          "label": "baseline",
+          "kind": "factory",
+          "name": "final-1-baseline-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.3692679999999982,
+                  1.0657440000000022,
+                  1.106695000000002,
+                  1.1412750000000003,
+                  1.1812850000000026,
+                  0.9516530000000003,
+                  0.9049320000000023
+                ],
+                "medianMs": 1.106695000000002,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.30983526079387563,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.826594,
+                  5.031565999999998,
+                  4.697570999999996,
+                  4.654890999999992,
+                  4.637120999999993,
+                  4.998515999999995,
+                  4.830623000000003
+                ],
+                "medianMs": 4.826594,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.1767794914170902,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.530549999999991,
+                  4.637949999999989,
+                  4.622220999999996,
+                  4.843884000000003,
+                  4.753591999999998,
+                  4.610389999999995,
+                  4.689052000000004
+                ],
+                "medianMs": 4.637949999999989,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.42353557062308,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        },
+        {
+          "pair": 2,
+          "label": "baseline",
+          "kind": "async",
+          "name": "final-2-baseline-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  5.719155000000001,
+                  5.798496,
+                  4.559890000000003,
+                  4.600540000000002,
+                  4.793932999999996,
+                  4.470498000000006,
+                  4.524540000000002
+                ],
+                "medianMs": 4.600540000000002,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.7284751750698323,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  12.494743999999997,
+                  11.75418400000001,
+                  12.319772,
+                  12.269031000000012,
+                  12.417282,
+                  12.144729000000012,
+                  12.039498000000009
+                ],
+                "medianMs": 12.269031000000012,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.2754414237182539,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  12.004916999999978,
+                  12.006288000000012,
+                  12.361132000000026,
+                  12.073228000000029,
+                  11.951446999999973,
+                  12.122828999999967,
+                  12.478404000000012
+                ],
+                "medianMs": 12.073228000000029,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.4571999550917831,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 2,
+          "label": "baseline",
+          "kind": "factory",
+          "name": "final-2-baseline-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.3923279999999991,
+                  0.9673129999999972,
+                  1.0489829999999998,
+                  1.0946149999999975,
+                  1.1156440000000032,
+                  0.9010719999999992,
+                  0.8834219999999959
+                ],
+                "medianMs": 1.0489829999999998,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.2936779522572537,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.844693999999997,
+                  5.057915999999992,
+                  4.793613000000008,
+                  5.081557000000004,
+                  8.089016,
+                  5.3574899999999985,
+                  4.683592000000004
+                ],
+                "medianMs": 5.057915999999992,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.2331784728755626,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.5675700000000035,
+                  4.674641000000008,
+                  5.412190999999993,
+                  6.14396099999999,
+                  5.895127000000002,
+                  5.641083999999978,
+                  4.655080999999996
+                ],
+                "medianMs": 5.412190999999993,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.6611749595200693,
+                "maximumMedianRatio": 1.5,
+                "pass": false
+              }
+            ],
+            "pass": false,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        },
+        {
+          "pair": 2,
+          "label": "candidate",
+          "kind": "async",
+          "name": "final-2-candidate-async",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+            "results": [
+              {
+                "name": "pure",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.481868999999996,
+                  4.186455000000002,
+                  4.149344999999997,
+                  4.2660160000000005,
+                  4.162233999999998,
+                  4.105844000000005,
+                  4.2410660000000036
+                ],
+                "medianMs": 4.186455000000002,
+                "referenceMedianMs": 6.315300997812301,
+                "ratio": 0.6629066455344318,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "callback",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.702573999999998,
+                  11.122816,
+                  11.43119999999999,
+                  11.063645000000008,
+                  11.126076000000012,
+                  11.084984999999989,
+                  11.103105999999997
+                ],
+                "medianMs": 11.122816,
+                "referenceMedianMs": 9.619439020752907,
+                "ratio": 1.1562853068670345,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  11.301249000000013,
+                  11.466880000000003,
+                  11.391629999999992,
+                  11.27949799999999,
+                  11.19495599999999,
+                  11.446190999999999,
+                  11.635012000000017
+                ],
+                "medianMs": 11.391629999999992,
+                "referenceMedianMs": 8.285223972052336,
+                "ratio": 1.3749332593091226,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true
+          }
+        },
+        {
+          "pair": 2,
+          "label": "candidate",
+          "kind": "factory",
+          "name": "final-2-candidate-factory",
+          "result": {
+            "schema": 1,
+            "node": "v26.10.0",
+            "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+            "results": [
+              {
+                "name": "sync",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  1.3838780000000028,
+                  1.0671239999999997,
+                  1.1394349999999989,
+                  1.2226160000000021,
+                  1.1500150000000033,
+                  0.9117320000000007,
+                  0.8898120000000063
+                ],
+                "medianMs": 1.1394349999999989,
+                "referenceMedianMs": 3.5718820290639997,
+                "ratio": 0.31900129699932567,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "async",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  5.920737000000003,
+                  4.718022000000005,
+                  4.698722000000004,
+                  4.316377000000003,
+                  5.186288000000005,
+                  4.386707000000001,
+                  4.327496999999994
+                ],
+                "medianMs": 4.698722000000004,
+                "referenceMedianMs": 4.101527971215546,
+                "ratio": 1.1456028175293587,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              },
+              {
+                "name": "ui",
+                "iterations": 500,
+                "warmups": 2,
+                "samples": 7,
+                "sampleMs": [
+                  4.207355000000007,
+                  4.265146000000001,
+                  4.40982799999999,
+                  4.286156000000005,
+                  4.739872000000005,
+                  6.493685999999997,
+                  5.808476000000013
+                ],
+                "medianMs": 4.40982799999999,
+                "referenceMedianMs": 3.2580499537289143,
+                "ratio": 1.3535176141031353,
+                "maximumMedianRatio": 1.5,
+                "pass": true
+              }
+            ],
+            "pass": true,
+            "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+          }
+        }
+      ],
+      "admitted": true,
+      "decision": "Original budgets pass; pending wider product validation"
+    },
+    "limit": 1.5,
+    "scope": "Three predetermined AB/BA/AB original direct pure/callback/UI and factory sync/async/UI groups each for prototype and fresh standard product; original frozen hashes/inputs/500iterations/2warmups/7samples retained. Failed baseline factoryUI1.661 retained; historical UI2.060/1.506/1.888 not erased or causally closed."
+  },
+  "hotPath": {
+    "comparisons": 42,
+    "pass": true,
+    "maxRatio": 1.1382381819207992,
+    "maxAuthUs": 3.6714717900000005,
+    "limits": "Original1.5ratio/10us, identical workloads/warmups/samples, sequential fresh AB/BA/AB"
+  },
+  "varyingContexts": {
+    "schema": 1,
+    "records": [
+      {
+        "pair": 0,
+        "label": "baseline",
+        "size": 1024,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          4.086363000000006,
+          5.492141000000004,
+          4.6885210000000015,
+          4.189323999999999,
+          2.9143079999999912,
+          3.0576989999999995,
+          2.970819000000006
+        ],
+        "medianMs": 4.086363000000006
+      },
+      {
+        "pair": 0,
+        "label": "baseline",
+        "size": 60000,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          4.325385999999995,
+          5.188257000000007,
+          4.7675020000000075,
+          5.957636999999991,
+          5.4332100000000025,
+          5.3742599999999925,
+          4.61760000000001
+        ],
+        "medianMs": 5.188257000000007
+      },
+      {
+        "pair": 0,
+        "label": "candidate",
+        "size": 1024,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          3.723887999999988,
+          3.460454999999996,
+          3.6414370000000247,
+          3.2730020000000195,
+          3.2456820000000164,
+          3.0145590000000198,
+          3.5621360000000095
+        ],
+        "medianMs": 3.460454999999996
+      },
+      {
+        "pair": 0,
+        "label": "candidate",
+        "size": 60000,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          4.7272020000000055,
+          4.569318999999979,
+          4.731560999999999,
+          4.864332999999988,
+          4.840812,
+          4.70088100000001,
+          4.901023999999978
+        ],
+        "medianMs": 4.731560999999999
+      },
+      {
+        "pair": 1,
+        "label": "candidate",
+        "size": 1024,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          2.961229000000003,
+          2.8611170000000072,
+          2.885306999999983,
+          2.9617680000000064,
+          3.184242000000012,
+          3.1354100000000074,
+          3.2568219999999997
+        ],
+        "medianMs": 2.9617680000000064
+      },
+      {
+        "pair": 1,
+        "label": "candidate",
+        "size": 60000,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          4.234744000000006,
+          4.401896999999991,
+          4.853162999999995,
+          4.655230000000017,
+          4.548139000000049,
+          4.66330099999999,
+          4.501287999999988
+        ],
+        "medianMs": 4.548139000000049
+      },
+      {
+        "pair": 1,
+        "label": "baseline",
+        "size": 1024,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          3.4512550000000033,
+          3.2211810000000014,
+          4.1629839999999945,
+          5.2255179999999655,
+          3.1159900000000107,
+          2.8834170000000086,
+          2.852876999999978
+        ],
+        "medianMs": 3.2211810000000014
+      },
+      {
+        "pair": 1,
+        "label": "baseline",
+        "size": 60000,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          4.609950000000026,
+          4.507058000000029,
+          4.7103309999999965,
+          4.537829000000045,
+          4.566718999999978,
+          4.582339000000047,
+          5.555891999999972
+        ],
+        "medianMs": 4.582339000000047
+      },
+      {
+        "pair": 2,
+        "label": "baseline",
+        "size": 1024,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          2.906817999999987,
+          2.9507879999999886,
+          2.8673069999999825,
+          2.920757999999978,
+          2.8575069999999982,
+          2.873727000000031,
+          2.871586999999977
+        ],
+        "medianMs": 2.873727000000031
+      },
+      {
+        "pair": 2,
+        "label": "baseline",
+        "size": 60000,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          4.1961239999999975,
+          4.327826000000016,
+          4.2686049999999796,
+          4.190023999999994,
+          4.170974000000001,
+          4.192854000000011,
+          4.195365000000038
+        ],
+        "medianMs": 4.195365000000038
+      },
+      {
+        "pair": 2,
+        "label": "candidate",
+        "size": 1024,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          3.0354489999999714,
+          2.9801780000000235,
+          2.8944079999999985,
+          2.815016000000014,
+          2.8155269999999746,
+          2.9074870000000033,
+          2.95103899999998
+        ],
+        "medianMs": 2.9074870000000033
+      },
+      {
+        "pair": 2,
+        "label": "candidate",
+        "size": 60000,
+        "iterations": 100,
+        "warmups": 2,
+        "samples": 7,
+        "samplesMs": [
+          4.176943999999992,
+          4.154192999999964,
+          4.315176000000008,
+          4.360227000000009,
+          7.2087830000000395,
+          4.268135000000029,
+          4.112083000000041
+        ],
+        "medianMs": 4.268135000000029
+      }
+    ],
+    "comparisons": [
+      {
+        "pair": 0,
+        "size": 1024,
+        "ratio": 0.8468300540113523,
+        "maximumRatio": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "size": 60000,
+        "ratio": 0.9119750621451468,
+        "maximumRatio": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "size": 1024,
+        "ratio": 0.9194664938108119,
+        "maximumRatio": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "size": 60000,
+        "ratio": 0.992536562659376,
+        "maximumRatio": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "size": 1024,
+        "ratio": 1.0117478104217874,
+        "maximumRatio": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "size": 60000,
+        "ratio": 1.0173453322893218,
+        "maximumRatio": 1.5,
+        "pass": true
+      }
+    ],
+    "pass": true,
+    "scope": "Supplemental actual-package alternating 100 unique contexts at 1024/60000 padding bytes, typed floats/negative zero/int128 and per-render async call. Does not replace frozen original budgets or claim Python/board throughput."
+  },
+  "mixed": {
+    "original-mixed": {
+      "durationMs": 62722.064928,
+      "record": {
+        "namespace": true,
+        "automaticQueue": false,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9687.070761
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9826.054501
+            },
+            "durationMs": 138.99028999999973
+          },
+          {
+            "generation": 1,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 14171.571621
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 14235.451693
+            },
+            "durationMs": 63.88393199999882
+          },
+          {
+            "generation": 1,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 17013.202766
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 17135.131553
+            },
+            "durationMs": 121.92772699999841
+          },
+          {
+            "generation": 1,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 19697.919695
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 19760.926015
+            },
+            "durationMs": 63.00811000000249
+          },
+          {
+            "generation": 1,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22372.364696
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22522.670553
+            },
+            "durationMs": 150.3028059999997
+          },
+          {
+            "generation": 1,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23865.315948
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23932.30971
+            },
+            "durationMs": 66.99409199999718
+          },
+          {
+            "generation": 1,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25204.350315
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25269.495393
+            },
+            "durationMs": 65.14547799999855
+          },
+          {
+            "generation": 1,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26444.88055
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26510.824348
+            },
+            "durationMs": 65.94441799999913
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 42486.826547
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 42550.180881
+            },
+            "durationMs": 63.35474399999657
+          },
+          {
+            "generation": 2,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 44932.674079
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 45193.542762
+            },
+            "durationMs": 260.86913300000015
+          },
+          {
+            "generation": 2,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 47673.802359
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 47955.761636
+            },
+            "durationMs": 281.9594369999977
+          },
+          {
+            "generation": 2,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 50278.544633
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 50435.044518
+            },
+            "durationMs": 156.50006500000018
+          },
+          {
+            "generation": 2,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 52830.953543
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 52969.201371
+            },
+            "durationMs": 138.24816799999826
+          },
+          {
+            "generation": 2,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 54614.538795
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 54690.30538
+            },
+            "durationMs": 75.76663499999995
+          },
+          {
+            "generation": 2,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 56374.974394
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 56438.742813
+            },
+            "durationMs": 63.7692590000006
+          },
+          {
+            "generation": 2,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 57982.579545
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6a99a153-83ee-4271-b475-76cb958aa60c",
+              "fileId": "authorized-file",
+              "atMs": 58046.83564
+            },
+            "durationMs": 64.25648499999807
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 1714,
+        "configListP99Ms": 6.369422999996459,
+        "configDownloads": 1713,
+        "configDownloadP99Ms": 12.686625000002095,
+        "liveMotionSamples": 5763,
+        "liveExtrusionSamples": 1428,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 10.245301036,
+          "print_duration": 4.859357091,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "869c8c86cc12eeb20cf1c399a531fe886eb3a6c37b060e58ee8a5fa58270ac9d",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 8279,
+        "phaseP99Ms": 6.836068999999043,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 264,
+            "writes": 43
+          },
+          {
+            "statusReads": 184,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1646,
+        "historyP99Ms": 65.6494840000014,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 142.08295699999871,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 182.3865319999968,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 270.93828700000086,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 255.4084920000023,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 376.156246999999,
+        "directoryMovesDuringPrint": 4,
+        "moveRequests": 16,
+        "moveP95Ms": 281.64624300000287,
+        "deleteRequests": 16,
+        "deleteP95Ms": 265.3336909999998,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 108.47394300000087,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 104.33595699999569,
+        "metadataRequests": 16,
+        "metadataP95Ms": 248.43049500000052,
+        "downloads": 16,
+        "downloadP95Ms": 54.77826300000015,
+        "wireCommands": 230,
+        "wireSteps": 7412,
+        "minimumStepLeadMs": 83.118,
+        "directoryRequests": 6597,
+        "directoryP99Ms": 47.168313999998645,
+        "statusRequests": 33114,
+        "uploads": 16,
+        "statusP99Ms": 8.114236000001256,
+        "uploadP95Ms": 44.17926399999851,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.992703,
+              "maxMs": 20.135935
+            },
+            "cpu": {
+              "user": 11321127,
+              "system": 2105814
+            },
+            "rss": 370036736
+          },
+          {
+            "loop": {
+              "p99Ms": 2.490367,
+              "maxMs": 35.160063
+            },
+            "cpu": {
+              "user": 7186225,
+              "system": 1494579
+            },
+            "rss": 424161280
+          }
+        ]
+      }
+    },
+    "tls-mixed": {
+      "durationMs": 63238.652593,
+      "record": {
+        "namespace": true,
+        "automaticQueue": false,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9623.463967
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9749.722357
+            },
+            "durationMs": 126.26230099999884
+          },
+          {
+            "generation": 1,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 14262.545948
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 14391.037977
+            },
+            "durationMs": 128.49683900000127
+          },
+          {
+            "generation": 1,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 17017.444212
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 17172.307174
+            },
+            "durationMs": 154.86329199999818
+          },
+          {
+            "generation": 1,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 19919.366002
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 20033.830689
+            },
+            "durationMs": 114.46595700000034
+          },
+          {
+            "generation": 1,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22716.214215
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22840.690942
+            },
+            "durationMs": 124.4717469999996
+          },
+          {
+            "generation": 1,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 24162.710994
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 24226.109638
+            },
+            "durationMs": 63.39909400000033
+          },
+          {
+            "generation": 1,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25530.996747
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25593.725142
+            },
+            "durationMs": 62.72872500000085
+          },
+          {
+            "generation": 1,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26861.825233
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26928.064053
+            },
+            "durationMs": 66.23865000000296
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 45298.130327
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 45436.534944
+            },
+            "durationMs": 138.40485700000136
+          },
+          {
+            "generation": 2,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 47454.451419
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 47577.602757
+            },
+            "durationMs": 123.15132799999992
+          },
+          {
+            "generation": 2,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 49779.294106
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 49927.140785
+            },
+            "durationMs": 147.84700899999734
+          },
+          {
+            "generation": 2,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 52235.84766
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 52358.872157
+            },
+            "durationMs": 123.0245070000019
+          },
+          {
+            "generation": 2,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 54606.69186
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 54731.020774
+            },
+            "durationMs": 124.32931400000234
+          },
+          {
+            "generation": 2,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 56123.90685
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 56180.16214
+            },
+            "durationMs": 56.25546000000031
+          },
+          {
+            "generation": 2,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 57266.722251
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 57331.953608
+            },
+            "durationMs": 65.23152699999628
+          },
+          {
+            "generation": 2,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 58647.730852
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-3c680923-7ff7-4a67-b76e-5cbadb071ecb",
+              "fileId": "authorized-file",
+              "atMs": 58718.398889
+            },
+            "durationMs": 70.66820700000244
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 1724,
+        "configListP99Ms": 10.849541000003228,
+        "configDownloads": 1724,
+        "configDownloadP99Ms": 9.873899000000165,
+        "liveMotionSamples": 5747,
+        "liveExtrusionSamples": 1451,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 10.538157622,
+          "print_duration": 4.869154739,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "869c8c86cc12eeb20cf1c399a531fe886eb3a6c37b060e58ee8a5fa58270ac9d",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 8483,
+        "phaseP99Ms": 7.524036999995587,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 280,
+            "writes": 43
+          },
+          {
+            "statusReads": 176,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1695,
+        "historyP99Ms": 64.17879299999913,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 128.04558199999883,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 183.83665699999983,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 249.70243400000254,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 215.59905900000012,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 313.3611410000012,
+        "directoryMovesDuringPrint": 4,
+        "moveRequests": 16,
+        "moveP95Ms": 154.24647399999958,
+        "deleteRequests": 16,
+        "deleteP95Ms": 221.55196599999908,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 110.55013599999984,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 89.06889799999954,
+        "metadataRequests": 16,
+        "metadataP95Ms": 278.4582450000016,
+        "downloads": 16,
+        "downloadP95Ms": 67.43041599999924,
+        "wireCommands": 232,
+        "wireSteps": 7506,
+        "minimumStepLeadMs": 79.22,
+        "directoryRequests": 6865,
+        "directoryP99Ms": 45.63944300000003,
+        "statusRequests": 33921,
+        "uploads": 16,
+        "statusP99Ms": 5.448920999995607,
+        "uploadP95Ms": 217.20234999999957,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.013183,
+              "maxMs": 18.956287
+            },
+            "cpu": {
+              "user": 13130271,
+              "system": 2098552
+            },
+            "rss": 371990528
+          },
+          {
+            "loop": {
+              "p99Ms": 1.975295,
+              "maxMs": 25.247743
+            },
+            "cpu": {
+              "user": 7430807,
+              "system": 1447305
+            },
+            "rss": 436854784
+          }
+        ]
+      }
+    },
+    "welcome-mixed": {
+      "durationMs": 62807.191049,
+      "record": {
+        "namespace": true,
+        "automaticQueue": false,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9243.187485
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9535.865232
+            },
+            "durationMs": 292.682377000001
+          },
+          {
+            "generation": 1,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 14403.292606
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 14533.494445
+            },
+            "durationMs": 130.2059590000008
+          },
+          {
+            "generation": 1,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 16948.01042
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 17110.371675
+            },
+            "durationMs": 162.3616949999996
+          },
+          {
+            "generation": 1,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 19785.983754
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 19946.160401
+            },
+            "durationMs": 160.17616700000144
+          },
+          {
+            "generation": 1,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22437.404747
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22504.74994
+            },
+            "durationMs": 67.34185299999808
+          },
+          {
+            "generation": 1,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23788.75116
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23889.76736
+            },
+            "durationMs": 101.01642999999967
+          },
+          {
+            "generation": 1,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25067.113725
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25132.110898
+            },
+            "durationMs": 64.9978630000005
+          },
+          {
+            "generation": 1,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26443.488672
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26508.232401
+            },
+            "durationMs": 64.74399899999844
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 43185.737002
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 43257.559392
+            },
+            "durationMs": 71.82218999999895
+          },
+          {
+            "generation": 2,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 45538.826257
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 45659.37471
+            },
+            "durationMs": 120.54855299999326
+          },
+          {
+            "generation": 2,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 48328.56689
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 48398.678108
+            },
+            "durationMs": 70.11142799999652
+          },
+          {
+            "generation": 2,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 51236.214377
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 51352.099339
+            },
+            "durationMs": 115.8850420000017
+          },
+          {
+            "generation": 2,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 53944.116624
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 54006.152138
+            },
+            "durationMs": 62.035603999996965
+          },
+          {
+            "generation": 2,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 55349.063417
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 55416.917136
+            },
+            "durationMs": 67.8537490000017
+          },
+          {
+            "generation": 2,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 56623.118944
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 56653.869612
+            },
+            "durationMs": 30.75082800000382
+          },
+          {
+            "generation": 2,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 57953.108665
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-72f03d17-4034-402b-9f90-2e00813ee625",
+              "fileId": "authorized-file",
+              "atMs": 58019.306022
+            },
+            "durationMs": 66.19752699999663
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 1708,
+        "configListP99Ms": 10.926002000000153,
+        "configDownloads": 1708,
+        "configDownloadP99Ms": 11.484529000001203,
+        "liveMotionSamples": 5723,
+        "liveExtrusionSamples": 1447,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 10.268272155999998,
+          "print_duration": 4.8804455529999995,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "869c8c86cc12eeb20cf1c399a531fe886eb3a6c37b060e58ee8a5fa58270ac9d",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 8376,
+        "phaseP99Ms": 9.406952000001183,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 264,
+            "writes": 43
+          },
+          {
+            "statusReads": 188,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1669,
+        "historyP99Ms": 63.39885200000208,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 124.4556339999981,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 178.84192900000198,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 263.96618099999614,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 262.67083699999785,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 374.04993699999613,
+        "directoryMovesDuringPrint": 4,
+        "moveRequests": 16,
+        "moveP95Ms": 292.19434100000035,
+        "deleteRequests": 16,
+        "deleteP95Ms": 299.1024679999973,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 114.18392099999983,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 78.7754819999991,
+        "metadataRequests": 16,
+        "metadataP95Ms": 210.967627,
+        "downloads": 16,
+        "downloadP95Ms": 69.47656000000279,
+        "wireCommands": 233,
+        "wireSteps": 7508,
+        "minimumStepLeadMs": 83.696,
+        "directoryRequests": 6711,
+        "directoryP99Ms": 47.527965999994194,
+        "statusRequests": 33513,
+        "uploads": 16,
+        "statusP99Ms": 6.62747599999966,
+        "uploadP95Ms": 54.51697800000147,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.053119,
+              "maxMs": 18.186239
+            },
+            "cpu": {
+              "user": 13388471,
+              "system": 2042220
+            },
+            "rss": 373829632
+          },
+          {
+            "loop": {
+              "p99Ms": 1.957887,
+              "maxMs": 13.860863
+            },
+            "cpu": {
+              "user": 8209101,
+              "system": 1512704
+            },
+            "rss": 387944448
+          }
+        ]
+      },
+      "welcome": {
+        "requests": 2340,
+        "medianMs": 1.154674999997951,
+        "p99Ms": 11.042892999998003,
+        "fullPinnedTemplate": true,
+        "originalWorkloadAndBudgetsUnchanged": true
+      }
+    }
+  },
+  "failures": [
+    "First isolated native compile status0 plus EPERM is failure; admitted rebuild preserved as separate observation",
+    "First fixture stripTypeScriptTypes transform driver unsupported before tests; repaired to original strip mode",
+    "First full typecheck status0 plus EPERM is failure; admitted check preserved",
+    "Standard product compilation successful but initial copied dependency links escaped inventory; copy corrected with verbatimSymlinks, no rebuild or changed inputs",
+    "First mixed driver quote syntax error happened before any fixture started; corrected checked driver retained with same original inputs",
+    "Final baseline factory UI1.661 failed original1.5; slow samples retained"
+  ],
+  "ci": "Prior welcome head only: pr68-5b77d8f-terminal.json,15success/5182tests. This native increment needs its own CI and develop/master integration.",
+  "evidence": {
+    "path": "host/contracts/template-context-cache-evidence.json.gz",
+    "entries": 281,
+    "compressedBytes": 3496381,
+    "sha256": "c6d87fbbf4c626e97c09b07678e2aae5fe6401aeb6f1c02692f1406e36fbd632"
+  },
+  "open": [
+    "Historical UI causal/stability gate and original G3 precision",
+    "Fresh native SIGKILL/ICE stability, board throughput/precision and physical acceptance",
+    "Remaining original Moonraker SUDO/password, logs and other consumers; complete Python/Jinja/msgspec and consumer macros",
+    "Fixed Fluidd/Mainsail fault/SIGKILL/Cura and browserHTTPS journeys; no new browser sessions here",
+    "Task->develop->master integration and actual default switch; other machine families last"
+  ]
+}

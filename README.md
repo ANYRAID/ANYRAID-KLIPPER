@@ -22,12 +22,21 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+原异步模板现在复用最后一份完全相同的不可变 JSON 上下文，
+每次调用的回调仍独立，整数、浮点、负零及大整数语义保持。
+新标准包 140 项、最低 Node.js 26.9 的 140 项通过；原三组
+模板预算全部通过，直接 UI 最高 1.375、工厂 UI 最高 1.354。
+原 42 项高频预算及三轮完整模拟打印通过。历史 UI／G3／
+原生构建稳定性门禁仍开放，见
+[上下文复用证据](host/contracts/template-context-cache-acceptance.json)。
+欢迎入口 5b77d8fa 的十五项 CI、5182／5182 已通过，见
+[精确终态](host/contracts/pr68-5b77d8f-terminal.json)；新的原生增量须自身 CI。
 原生应用现接通完整原版 Moonraker 欢迎模板，身份显示、公告、
 警告及主机信息来自现有进程所有者；HTML／脚本内容安全编码，
 私密模板值不进入页面。HTTP／HTTPS 与前缀根入口共用原容量、
 取消及退出规则。三种方式各 490 项、最低 Node.js 26.9 的 18 项、
 原 42 项预算及三轮同包模拟旅程通过，补验含 2388 次欢迎页读取。
-直接 UI 仍为 1.888 > 1.5，门禁未关闭；SUDO 密码流程、日志、
+欢迎入口当时直接 UI 为 1.888 > 1.5，历史门禁未关闭；SUDO 密码流程、日志、
 完整 Python／宏和实机交付仍待完成。见
 [欢迎入口证据](host/contracts/application-welcome-owner-acceptance.json)。
 前序 0b2cc747 十五项 CI、5164／5164 全成功，见
