@@ -1,3 +1,4 @@
+import {relativeRouteUrl,validateRoutePrefix} from './route-prefix.ts';
 import type {ThumbnailDownloads} from './thumbnail-download.ts';
 import {CorsPolicy} from './cors-policy.ts';
 import {NativePrintUploads} from './native-print-uploads.ts';
@@ -20,11 +21,14 @@ import type {Duplex} from 'node:stream';
 import {WebSocketServer,WebSocket,type RawData} from 'ws';
 import {JsonRpcDispatcher,ApiError,encodeNotification,type Json,type RpcContext,type AuthorizationResult} from './rpc.ts';
 export interface NetworkAuthorization {
- request:IncomingMessage;transport:'http'|'websocket';connectionId?:number;signal:AbortSignal;useXheaders?:boolean;
+ request:IncomingMessage;transport:'http'|'websocket';connectionId?:number;signal:AbortSignal;useXheaders?:boolean;routePrefix?:string;
 }
+export interface MoonrakerAddress extends AddressInfo {routePrefix?:string;}
 export interface MoonrakerNetworkOptions {
  endpoints?:EndpointRegistry;
  /** Configuration-owned xheaders selection; identity trust remains separate. */
+ /** Canonical encoded configured prefix; default root remains empty. */
+ routePrefix?:string;
  useXheaders?:boolean;
  /** Verified request URL protocol, never an identity or forwarded host grant.
   * The configuration-owned authorization policy supplies this resolver. */
@@ -77,6 +81,7 @@ export class MoonrakerNetwork {
  constructor(rpc:JsonRpcDispatcher,options:MoonrakerNetworkOptions,nativeLifetime?:AbortSignal){
   if(nativeLifetime!==undefined&&(!(nativeLifetime instanceof AbortSignal)||nativeLifetime.aborted))throw new Error('Invalid native request lifetime');this.#nativeLifetime=nativeLifetime;
   if(rpc.has('server.websocket.id')||rpc.has('server.connection.identify'))throw new Error('Network RPC method already registered');
+  validateRoutePrefix(options.routePrefix??'');
   if(options.useXheaders!==undefined&&typeof options.useXheaders!=='boolean')throw new TypeError('Invalid xheaders policy');
   if(options.resolveRequestProtocol!==undefined&&typeof options.resolveRequestProtocol!=='function')throw new TypeError('Invalid request protocol resolver');
   if(options.captureRequestMetadata!==undefined&&typeof options.captureRequestMetadata!=='function')throw new TypeError('Invalid request metadata capture');
@@ -118,11 +123,11 @@ export class MoonrakerNetwork {
   if(this.#nativeLifetime&&!this.#nativeLifetime.aborted||nativeLifetime!==undefined&&(!(nativeLifetime instanceof AbortSignal)||nativeLifetime.aborted))throw new Error('Native request lifetime is not retired');
   this.#options.nativeUploads=next;this.#nativeLifetime=nativeLifetime;
  }
- async listen(port=0,host='127.0.0.1'):Promise<AddressInfo>{
+ async listen(port=0,host='127.0.0.1'):Promise<MoonrakerAddress>{
   if(this.#phase!=='new'||!Number.isInteger(port)||port<0||port>65535)throw new Error('Invalid network listen state or port');
   this.#phase='starting';try{this.#opening=new Promise<void>((resolve,reject)=>{const fail=(e:Error)=>{this.#server.off('listening',ready);reject(e);},ready=()=>{this.#server.off('error',fail);resolve();};this.#server.once('error',fail);this.#server.once('listening',ready);this.#server.listen(port,host);});await this.#opening;if(this.#phase!=='starting')throw new Error('Network startup cancelled');this.#phase='listening';}
   catch(error){if(this.#phase==='starting')this.#phase='new';throw error;}
-  this.#heartbeat=setInterval(()=>{for(const peer of this.#peers.values()){if(peer.socket.readyState!==WebSocket.OPEN)continue;if(!peer.alive){peer.socket.terminate();continue;}peer.alive=false;peer.socket.ping();}},10000);this.#heartbeat.unref();return this.#server.address() as AddressInfo;
+  this.#heartbeat=setInterval(()=>{for(const peer of this.#peers.values()){if(peer.socket.readyState!==WebSocket.OPEN)continue;if(!peer.alive){peer.socket.terminate();continue;}peer.alive=false;peer.socket.ping();}},10000);this.#heartbeat.unref();const address=this.#server.address() as AddressInfo;return this.#options.routePrefix?{...address,routePrefix:this.#options.routePrefix}:address;
  }
  #origin(request:IncomingMessage,signal:AbortSignal):OriginAdmission|Promise<OriginAdmission>{
   const origin=request.headers.origin;if(origin===undefined)return {allowed:true,cors:false};
@@ -134,7 +139,7 @@ export class MoonrakerNetwork {
  }
  #upgrade(request:IncomingMessage,socket:Duplex,head:Buffer):void{
   if(this.#phase!=='listening'||this.#peers.size+this.#upgrades.size>=this.#maxConnections||this.#requests.size>=this.#maxRequests){this.#rejectUpgrade(socket,503);return;}
-  if(request.url?.split('?')[0]!=='/websocket'){this.#rejectUpgrade(socket,404);return;}
+  if(relativeRouteUrl(request.url??'',this.#options.routePrefix??'')?.split('?')[0]!=='/websocket'){this.#rejectUpgrade(socket,404);return;}
   const parent=new AbortController(),disconnected=()=>parent.abort(new Error('Upgrade client disconnected'));socket.once('close',disconnected);socket.once('end',disconnected);this.#upgrades.add(socket);
   this.#launch(async signal=>{
    const cancelled=()=>socket.destroy();signal.addEventListener('abort',cancelled,{once:true});
@@ -156,18 +161,19 @@ export class MoonrakerNetwork {
   const job=Promise.resolve().then(()=>run(abort.signal)).catch(()=>{}).finally(()=>{clearTimeout(timeout);parent?.removeEventListener('abort',cancel);this.#requests.delete(abort);});this.#requests.set(abort,job);
  }
  #context(request:IncomingMessage,transport:'http'|'websocket',signal:AbortSignal,id?:number,nativeGenerationSignal=this.#nativeLifetime,nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted):RpcContext{
-  return {transport,signal,nativeGenerationSignal,nativeGenerationRetiredAtAdmission,connectionId:id,authorize:(method,params)=>this.#options.authorize(method,params,{request,transport,connectionId:id,signal,useXheaders:this.#options.useXheaders}),receiveResponse:transport==='websocket'&&id!==undefined?(responseId,value)=>{this.#clientRequests?.receive(id,responseId,value);}:undefined};
+  return {transport,signal,nativeGenerationSignal,nativeGenerationRetiredAtAdmission,connectionId:id,authorize:(method,params)=>this.#options.authorize(method,params,{request,transport,connectionId:id,signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''}),receiveResponse:transport==='websocket'&&id!==undefined?(responseId,value)=>{this.#clientRequests?.receive(id,responseId,value);}:undefined};
  }
  async #subscriptionConnection(request:IncomingMessage,body:Uint8Array,signal:AbortSignal):Promise<{id:number;signal:AbortSignal}>{
   if(!this.#options.authorizeSubscriptionConnection)throw new ApiError(503,'Subscription connection authorization is required');signal.throwIfAborted();
   const id=subscriptionConnectionId(request.url??'',body,request.headers['content-type']??''),peer=this.#peers.get(id);if(!peer||peer.abort.signal.aborted)throw new ApiError(404,'Subscription connection is no longer available');
-  const combined=AbortSignal.any([signal,peer.abort.signal]);await this.#options.authorizeSubscriptionConnection({request,transport:'http',signal:combined,useXheaders:this.#options.useXheaders},{request:peer.request,transport:'websocket',connectionId:id,signal:combined,useXheaders:this.#options.useXheaders});combined.throwIfAborted();if(this.#peers.get(id)!==peer)throw new ApiError(404,'Subscription connection changed');return {id,signal:peer.abort.signal};
+  const combined=AbortSignal.any([signal,peer.abort.signal]);await this.#options.authorizeSubscriptionConnection({request,transport:'http',signal:combined,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''},{request:peer.request,transport:'websocket',connectionId:id,signal:combined,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});combined.throwIfAborted();if(this.#peers.get(id)!==peer)throw new ApiError(404,'Subscription connection changed');return {id,signal:peer.abort.signal};
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  const octoprint=this.#options.octoprint,isOctoUpload=!!octoprint&&(request.url??'').split('?')[0]==='/api/files/local';
+  const routed=relativeRouteUrl(request.url??'',this.#options.routePrefix??'');if(routed===undefined){this.#error(response,404,'Not Found');return;}
+  const octoprint=this.#options.octoprint,isOctoUpload=!!octoprint&&routed.split('?')[0]==='/api/files/local';
   const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime,receiveUpload=nativeUploads?.captureUpload(isOctoUpload?undefined:this.#options.configFiles,isOctoUpload?{enableUfp:octoprint!.enableUfp}:undefined),nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted;
-  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&(path==='/server/files/upload'||isOctoUpload),isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
+  const url=routed,at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&(path==='/server/files/upload'||isOctoUpload),isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}
   const parent=new AbortController(),disconnected=()=>{if(!response.writableEnded)parent.abort(new Error('HTTP client disconnected'));};response.once('close',disconnected);
@@ -176,7 +182,7 @@ export class MoonrakerNetwork {
    let reserved=0,outputReserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
    try{
     let uploadProtocol:RequestProtocol='http';
-    if(isUpload)this.#options.captureRequestMetadata?.({request,transport:'http',signal,useXheaders:this.#options.useXheaders});
+    if(isUpload)this.#options.captureRequestMetadata?.({request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});
     signal.throwIfAborted();const originCheck=this.#origin(request,signal),originAdmission=originCheck instanceof Promise?await originCheck:originCheck;signal.throwIfAborted();
     if(!originAdmission.allowed){this.#error(response,403,'Origin not allowed');return;}
     if(request.headers.origin&&originAdmission.cors){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges, Location');}
@@ -184,14 +190,14 @@ export class MoonrakerNetwork {
     if(!allowed.some(v=>v===request.method)){this.#error(response,405,'Method Not Allowed');return;}
     if(isRPC&&!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
     if(isUpload){
-     signal.throwIfAborted();if(isOctoUpload)await this.#options.authorize('api.files.local',{}, {request,transport:'http',signal,useXheaders:this.#options.useXheaders});signal.throwIfAborted();response.setHeader('connection','close');
+     signal.throwIfAborted();if(isOctoUpload)await this.#options.authorize('api.files.local',{}, {request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});signal.throwIfAborted();response.setHeader('connection','close');
      const budget=8*65536;if(this.#buffered+budget>this.#maxBuffered)throw new ApiError(429,'Request buffer capacity exceeded');
      this.#buffered+=budget;reserved=budget;
      const context=this.#context(request,'http',signal,undefined,nativeGenerationSignal,nativeGenerationRetiredAtAdmission),authorize=context.authorize;let selectedProtocol=false;
      if(this.#options.resolveRequestProtocol)context.authorize=(method,params)=>{
       const afterGrant=(grant:AuthorizationResult):AuthorizationResult|Promise<AuthorizationResult>=>{
        if(selectedProtocol)return grant;
-       const selected=this.#options.resolveRequestProtocol!({request,transport:'http',signal:context.signal,useXheaders:this.#options.useXheaders});
+       const selected=this.#options.resolveRequestProtocol!({request,transport:'http',signal:context.signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});
        const accept=(protocol:RequestProtocol)=>{context.signal.throwIfAborted();if(protocol!=='http'&&protocol!=='https')throw new ApiError(500,'Invalid request protocol');uploadProtocol=protocol;selectedProtocol=true;};
        // A new protocol wait cannot preserve a stale key/JWT/network grant.
        if(selected instanceof Promise)return selected.then(protocol=>{accept(protocol);return authorize(method,params);});
@@ -207,7 +213,7 @@ export class MoonrakerNetwork {
      if(item&&typeof item==='object'&&!Array.isArray(item)&&typeof item.root==='string'&&typeof item.path==='string'){
       const encoded=item.path.split('/').map(part=>encodeURIComponent(part).replace(/[!'()*]/g,char=>'%'+char.charCodeAt(0).toString(16).toUpperCase())).join('/');
       // The original owner verifies the proxy; forwarded host/query are unused.
-      response.setHeader('location',`${uploadProtocol}://${locationHost}/${isOctoUpload?'api/files/moonraker':'server/files'}/${item.root}/${encoded}`);
+      response.setHeader('location',`${uploadProtocol}://${locationHost}${this.#options.routePrefix??''}/${isOctoUpload?'api/files/moonraker':'server/files'}/${item.root}/${encoded}`);
      }
      response.statusCode=201;
      response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({...result,result}));return;
@@ -275,9 +281,9 @@ export class MoonrakerNetwork {
  #connected(request:IncomingMessage,socket:WebSocket):void{
   const id=this.#nextId++;if(!Number.isSafeInteger(id)){socket.terminate();return;}
   const peer:Peer={socket,request,abort:new AbortController(),active:0,alive:true};this.#peers.set(id,peer);this.#clients.add(id);
-  if(this.#notifications)this.#notifications.add(id,{signal:peer.abort.signal,authorize:(method,params,signal)=>this.#options.authorizeNotification!(method,params,{request,transport:'websocket',connectionId:id,signal,useXheaders:this.#options.useXheaders}),send:message=>this.#send(peer,message),disconnect:reason=>{peer.abort.abort(reason);socket.terminate();}});
-  if(this.#clientCalls)this.#clientCalls.add(id,{signal:peer.abort.signal,authorize:(method,params,signal)=>this.#options.authorizeClientCall!(method,params,{request,transport:'websocket',connectionId:id,signal,useXheaders:this.#options.useXheaders}),send:message=>this.#send(peer,message),disconnect:reason=>{peer.abort.abort(reason);socket.terminate();}});
-  if(this.#clientRequests)this.#clientRequests.add(id,{signal:peer.abort.signal,authorize:(method,params,signal)=>this.#options.authorizeClientRequest!(method,params,{request,transport:'websocket',connectionId:id,signal,useXheaders:this.#options.useXheaders}),send:message=>this.#send(peer,message)});
+  if(this.#notifications)this.#notifications.add(id,{signal:peer.abort.signal,authorize:(method,params,signal)=>this.#options.authorizeNotification!(method,params,{request,transport:'websocket',connectionId:id,signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''}),send:message=>this.#send(peer,message),disconnect:reason=>{peer.abort.abort(reason);socket.terminate();}});
+  if(this.#clientCalls)this.#clientCalls.add(id,{signal:peer.abort.signal,authorize:(method,params,signal)=>this.#options.authorizeClientCall!(method,params,{request,transport:'websocket',connectionId:id,signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''}),send:message=>this.#send(peer,message),disconnect:reason=>{peer.abort.abort(reason);socket.terminate();}});
+  if(this.#clientRequests)this.#clientRequests.add(id,{signal:peer.abort.signal,authorize:(method,params,signal)=>this.#options.authorizeClientRequest!(method,params,{request,transport:'websocket',connectionId:id,signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''}),send:message=>this.#send(peer,message)});
   socket.on('error',()=>socket.terminate());socket.on('pong',()=>{peer.alive=true;});socket.on('close',()=>{peer.abort.abort(new Error('WebSocket client disconnected'));this.#peers.delete(id);const client=this.#clients.remove(id);if(client?.identity?.type==='agent')this.#agentEvent(id,{agent:client.identity.name,event:'disconnected'});});
   socket.on('message',data=>{
    const size=Array.isArray(data)?data.reduce((n,b)=>n+b.byteLength,0):data.byteLength;

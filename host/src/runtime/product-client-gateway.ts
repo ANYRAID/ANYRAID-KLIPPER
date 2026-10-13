@@ -1,3 +1,4 @@
+import {validateRoutePrefix,relativeRouteUrl} from '../moonraker/route-prefix.ts';
 import {createServer,request as httpRequest,type IncomingMessage,type ServerResponse,type Server,type IncomingHttpHeaders} from 'node:http';
 import {randomBytes} from 'node:crypto';
 import type {AddressInfo} from 'node:net';
@@ -36,7 +37,8 @@ export class ProductClientGateway {
  #listening=false;#closed=false;#closing:Promise<void>|undefined;#sweep:ReturnType<typeof setInterval>|undefined;
  constructor(options:ProductClientGatewayOptions){
   const origin=new URL(options.origin),upstream=new URL(options.upstream),local=(u:URL)=>['127.0.0.1','[::1]'].includes(u.hostname);
-  if(origin.origin!==options.origin||origin.username||origin.password||!['http:','https:'].includes(origin.protocol)||origin.protocol==='http:'&&(!options.loopbackHttp||!local(origin))||upstream.origin!==options.upstream||upstream.protocol!=='http:'||!local(upstream)||upstream.username||upstream.password||options.client!==undefined&&typeof options.client!=='function')throw new TypeError('Invalid explicit client gateway origins');
+  const prefix=upstream.pathname==='/'?'':upstream.pathname;validateRoutePrefix(prefix);
+  if(origin.origin!==options.origin||origin.username||origin.password||!['http:','https:'].includes(origin.protocol)||origin.protocol==='http:'&&(!options.loopbackHttp||!local(origin))||upstream.origin+prefix!==options.upstream||!!upstream.search||!!upstream.hash||upstream.protocol!=='http:'||!local(upstream)||upstream.username||upstream.password||options.client!==undefined&&typeof options.client!=='function')throw new TypeError('Invalid explicit client gateway origins');
   this.#options={...options};this.#origin=origin;this.#upstream=upstream;this.#secure=origin.protocol==='https:';this.#cookie=this.#secure?'__Host-anyraid-client':'anyraid-client-loopback';
   this.#maxSessions=bounded(options.maxSessions,128,1024);this.#maxConnections=bounded(options.maxConnections,50,1000);this.#maxRequests=bounded(options.maxRequests,256,10000);
   this.#server=createServer({maxHeaderSize:16384,requestTimeout:30000,headersTimeout:10000},(q,r)=>this.#launch(this.#http(q,r)));this.#server.maxConnections=this.#maxConnections+this.#maxRequests;
@@ -63,7 +65,7 @@ export class ProductClientGateway {
  #failure(response:ServerResponse,error:unknown){this.#reply(response,error instanceof GatewayError?error.code:502,{error:{message:'Client request rejected'}});}
  async #json(request:IncomingMessage){const chunks:Buffer[]=[];let size=0;if(request.headers['content-type']?.split(';')[0]!=='application/json')throw new GatewayError(415);for await(const b of request){size+=b.length;if(size>4096)throw new GatewayError(413);chunks.push(b);}try{return JSON.parse(Buffer.concat(chunks).toString());}catch{throw new GatewayError(400);}}
  async #native(path:string,method:string,body?:object,token?:string):Promise<Record<string,unknown>>{
-  const result=await fetch(this.#upstream.origin+path,{method,redirect:'error',signal:AbortSignal.any([this.#lifetime.signal,AbortSignal.timeout(10000)]),headers:{'content-type':'application/json',...token?{authorization:'Bearer '+token}:{}},body:body?JSON.stringify(body):undefined});
+  const result=await fetch(this.#upstream.origin+(this.#upstream.pathname==='/'?'':this.#upstream.pathname)+path,{method,redirect:'error',signal:AbortSignal.any([this.#lifetime.signal,AbortSignal.timeout(10000)]),headers:{'content-type':'application/json',...token?{authorization:'Bearer '+token}:{}},body:body?JSON.stringify(body):undefined});
   const chunks:Uint8Array[]=[];let size=0;try{for await(const b of result.body??[]){size+=b.length;if(size>65536)throw new GatewayError(502);chunks.push(b);}}finally{if(!result.body?.locked)await result.body?.cancel().catch(()=>{});}
   if(result.status!==200)throw new GatewayError(result.status===400||result.status===401?401:503);const parsed=JSON.parse(Buffer.concat(chunks).toString());if(!parsed.result||typeof parsed.result!=='object'||Array.isArray(parsed.result))throw new GatewayError(502);return parsed.result;
  }
@@ -110,10 +112,10 @@ export class ProductClientGateway {
   }catch(error){if(!request.complete&&!response.headersSent)response.setHeader('connection','close');if(error instanceof GatewayError&&error.code===401&&request.method==='GET'&&!apiPath(request.url?.split('?')[0]??'')&&(!request.url?.startsWith('/_client/')||['/_client/control','/_client/queue'].includes(request.url??''))&&request.headers.accept?.includes('text/html')&&!response.headersSent){response.writeHead(303,{location:'/access/client-login','cache-control':'no-store'});response.end();}else this.#failure(response,error);}finally{response.off('close',disconnect);if(admitted)this.#active--;if(!request.complete)request.resume();}
  }
  async #proxy(request:IncomingMessage,response:ServerResponse,token:string,signal:AbortSignal){
-  const forwarded=headers(request.headers);for(const h of ['cookie','authorization','x-api-key','x-access-token','forwarded','x-forwarded-for','x-real-ip'])delete forwarded[h];forwarded.authorization='Bearer '+token;forwarded.host=this.#upstream.host;if(forwarded.origin!==undefined)forwarded.origin=this.#upstream.origin;
+  const forwarded=headers(request.headers);for(const h of ['cookie','authorization','x-api-key','x-access-token','forwarded','x-forwarded-for','x-real-ip','x-forwarded-host','x-forwarded-proto','x-scheme'])delete forwarded[h];forwarded.authorization='Bearer '+token;forwarded.host=this.#upstream.host;if(forwarded.origin!==undefined)forwarded.origin=this.#upstream.origin;
   await new Promise<void>((resolve,reject)=>{
-   const upstream=httpRequest(new URL(request.url!,this.#upstream),{method:request.method,headers:forwarded,signal},incoming=>{
-    const reply=headers(incoming.headers);delete reply['set-cookie'];response.writeHead(incoming.statusCode??502,reply);void pipeline(incoming,response,{signal}).then(resolve,reject);
+   const upstream=httpRequest(new URL(this.#upstream.origin+(this.#upstream.pathname==='/'?'':this.#upstream.pathname)+request.url!),{method:request.method,headers:forwarded,signal},incoming=>{
+    const reply=headers(incoming.headers);delete reply['set-cookie'];if(typeof reply.location==='string'){try{const location=new URL(reply.location,this.#upstream),relative=relativeRouteUrl(location.pathname,this.#upstream.pathname==='/'?'':this.#upstream.pathname);if(location.origin===this.#upstream.origin&&relative!==undefined&&!location.username&&!location.password&&!location.search&&!location.hash&&apiPath(relative))reply.location=this.#origin.origin+relative;}catch{incoming.destroy();reject(new GatewayError(502));return;}}response.writeHead(incoming.statusCode??502,reply);void pipeline(incoming,response,{signal}).then(resolve,reject);
    });upstream.setTimeout(300000,()=>upstream.destroy(new Error('Client proxy timed out')));upstream.once('error',reject);void pipeline(request,upstream,{signal}).catch(reject);
   });
  }
@@ -122,7 +124,7 @@ export class ProductClientGateway {
   try{
    this.#admit(request,true);if(request.url!=='/websocket')throw new GatewayError(404);if(this.#relays.size+this.#upgrades>=this.#maxConnections)throw new GatewayError(503);this.#upgrades++;admitted=true;const session=this.#session(request),token=await this.#token(session);
    await this.#identity(session,token);if(socket.destroyed||this.#closed)throw new GatewayError(503);
-   upstream=new WebSocket(this.#upstream.origin.replace('http:','ws:')+'/websocket',{headers:{authorization:'Bearer '+token,origin:this.#upstream.origin},maxPayload:1024*1024,perMessageDeflate:false,handshakeTimeout:10000});
+   upstream=new WebSocket(this.#upstream.origin.replace('http:','ws:')+(this.#upstream.pathname==='/'?'':this.#upstream.pathname)+'/websocket',{headers:{authorization:'Bearer '+token,origin:this.#upstream.origin},maxPayload:1024*1024,perMessageDeflate:false,handshakeTimeout:10000});
    this.#lifetime.signal.addEventListener('abort',abort,{once:true});if(this.#lifetime.signal.aborted)abort();
    const remote=upstream;await new Promise<void>((resolve,reject)=>{remote.once('open',resolve);remote.once('error',reject);socket.once('close',()=>{remote.terminate();reject(new Error('Client disconnected'));});});
    if(this.#closed||this.#sessions.get(session.id)!==session||this.#relays.size>=this.#maxConnections)throw new GatewayError(503);

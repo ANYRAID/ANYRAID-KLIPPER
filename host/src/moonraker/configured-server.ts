@@ -1,3 +1,4 @@
+import {readRoutePrefix} from './route-prefix.ts';
 import {randomUUID} from 'node:crypto';
 import {OctoprintCompatibility} from './octoprint-compat.ts';
 import {Webcams} from './webcams.ts';
@@ -57,7 +58,6 @@ import {KlippySupervisor} from './klippy-supervisor.ts';
 import type {DeliveryReport} from './notifications.ts';
 import {registerExtensions} from './extensions.ts';
 import type {ClientArguments,ClientRequestOptions} from './client-requests.ts';
-import type {AddressInfo} from 'node:net';
 import {loadConfiguration,ConfigurationError,type ConfigurationLimits} from './config-source.ts';
 import {ApiKeyAuthorization} from './api-key-authorization.ts';
 import {readAuthorizationOptions} from './authorization-config.ts';
@@ -69,8 +69,8 @@ import {ConfigurationReader} from './config-reader.ts';
 import {ApiError,authorizedContext,type RpcContext,JsonRpcDispatcher,type Json} from './rpc.ts';
 import {EndpointRegistry} from './endpoints.ts';
 import {ServerInformation,ServerConfiguration,registerServerMetadata,type InformationSnapshot} from './metadata.ts';
-import {MoonrakerNetwork,type MoonrakerNetworkOptions} from './server.ts';
-export interface NetworkBinding {readonly host:string;readonly port:number;readonly maxConnections:number;readonly useXheaders:boolean;}
+import {MoonrakerNetwork,type MoonrakerAddress,type MoonrakerNetworkOptions} from './server.ts';
+export interface NetworkBinding {readonly host:string;readonly port:number;readonly maxConnections:number;readonly useXheaders:boolean;readonly routePrefix:string;}
 type KlippyAttachmentOptions=Omit<KlippyInitializationOptions,'version'|'onSnapshot'|'onRemoteMethodsReady'>;
 const mqttSensorOwners=new WeakSet<MqttSensors>();
 const sensorOwners=new WeakSet<SensorStore>();
@@ -183,7 +183,8 @@ export function readNetworkBinding(reader:ConfigurationReader):NetworkBinding{
  const port=section.getInt('port',{defaultValue:7125,minval:0,maxval:65535});
  const maxConnections=section.getInt('max_websocket_connections',{defaultValue:50,minval:1,maxval:10000});
  const useXheaders=section.getBoolean('use_xheaders',{defaultValue:true});
- return Object.freeze({host,port,maxConnections,useXheaders});
+ const routePrefix=readRoutePrefix(section.get('route_prefix',{defaultValue:null}));
+ return Object.freeze({host,port,maxConnections,useXheaders,routePrefix});
 }
 /** File-backed network composition, not the complete Moonraker daemon. Load
  * does not listen. Components consume config/register methods before start;
@@ -211,7 +212,7 @@ export class ConfiguredMoonraker {
  #metadataFiles:MetadataFiles|undefined;#startupAbort=new AbortController();#metadataRecovery:{restored:number;unavailable:number}|null=null;
  #network:MoonrakerNetwork;#information:ServerInformation;#configuration:ServerConfiguration;
  #nativeSubscriptions:NativeSubscriptions|undefined;#subscriptions:SubscriptionDelivery|undefined;#klippy:KlippyLifecycle|undefined;#klippyRoutes=new Map<string,()=>void>();
- #base:InformationSnapshot;#release:()=>void;#opening:Promise<AddressInfo>|undefined;#stopping=false;
+ #base:InformationSnapshot;#release:()=>void;#opening:Promise<MoonrakerAddress>|undefined;#stopping=false;
  #gcodeNotifications=notificationMetrics();#klippyNotifications=notificationMetrics();#klippyEvents=new KlippyNotifications();
  #gcodeStore:GcodeStore|undefined;
  #systemInformation:SystemInformation|undefined;
@@ -292,7 +293,7 @@ export class ConfiguredMoonraker {
    }
   });
   const networkOptions={...options};for(const key of ['productPrint','nativeHost','nativeObjects','nativePrinterIdentity','productPressure','productHostControl','productPrintCompatibility','maintenanceGate','nativeDetached'] as const)delete networkOptions[key];
-  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections,useXheaders:this.binding.useXheaders},this.#nativeScope?.signal);
+  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections,useXheaders:this.binding.useXheaders,routePrefix:this.binding.routePrefix},this.#nativeScope?.signal);
   if(options.nativeDetached)this.#nativeScope!.retire();
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   this.#nativeTemperatureObjects=options.nativeObjects;
@@ -756,12 +757,12 @@ export class ConfiguredMoonraker {
   if(this.#sensorTransport)snapshot={...snapshot,components:[...new Set([...snapshot.components,'mqtt',...this.#sensors?.status.sensors?['sensor']:[]])]};
   const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);const faulted=this.#metadataMonitor?.status.phase==='faulted';this.#information.replace({...copy,directories:[...new Set([...copy.directories,...this.#nativeProcessFiles||this.#nativeUploads?['gcodes']:[],...this.#configFiles?['config']:[]])],components:[...new Set([...copy.components,'http_client',...this.#octoprint?['octoprint_compat']:[],...this.#database?['database']:[],...this.#authorization?['authorization']:[],...this.#ldap?['ldap']:[],...this.#webcams?['webcam']:[],...this.#announcements?['announcements']:[],...this.#procStats?['proc_stats']:[],...this.#nativeHistory||this.#historyRuntime?['history']:[],...this.#metadataMonitor?['metadata_monitor']:[]])],failedComponents:[...new Set([...copy.failedComponents,...faulted?['metadata_monitor']:[],...this.#historyRuntime?.status.failure?['history']:[],...this.#sensorError?['sensor']:[]])],warnings:[...new Set([...copy.warnings,...this.#historyRuntime?.status.failure?['History persistence failed; tracking requires restart']:[],...this.#sensorError?['Sensor sampling failed; restart required']:[],...faulted?['File metadata monitoring failed; cached file metadata is unavailable']:[],...this.reader.warnings(),...this.klippyRemoteMethodFailures.map(f=>`Klippy remote method registration failed: ${f.name}`)])]});this.#base=copy;
  }
- start():Promise<AddressInfo>{
+ start():Promise<MoonrakerAddress>{
   if(this.#stopping)return Promise.reject(new Error('Configured server is stopping'));
   if(this.#opening)return this.#opening;
   this.#opening=this.#start();return this.#opening;
  }
- async #start():Promise<AddressInfo>{
+ async #start():Promise<MoonrakerAddress>{
   try{
    await this.#webcams?.start();
    await this.#announcements?.start();

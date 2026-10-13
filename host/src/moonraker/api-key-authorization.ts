@@ -1,3 +1,4 @@
+import {relativeRouteUrl} from './route-prefix.ts';
 import {proxyAddress,proxyProtocol,type ProxyAddress,type RequestProtocol} from './proxy-address.ts';
 import {TrustedClients,type TrustedClientOptions} from './trusted-clients.ts';
 // Native API-key subset of pinned Moonraker authorization.py; GPL-3.0-or-later.
@@ -71,7 +72,7 @@ export class ApiKeyAuthorization {
  #authorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization,proxyPending:boolean):AuthorizedUser|undefined{
   this.#active();context.signal.throwIfAborted();
   this.#requests.set(context.signal,context.request);
-  const optionalThumbnail=method==='server.files.download'&&context.transport==='http'&&anonymousThumbnailGet(context.request);
+  const optionalThumbnail=method==='server.files.download'&&context.transport==='http'&&anonymousThumbnailGet({method:context.request.method,url:relativeRouteUrl(context.request.url??'',context.routePrefix??'')});
   const remember=(principal:Principal)=>{this.#principals.set(context.signal,principal);if(context.transport==='websocket')this.#connections.set(context.request,principal);return typeof principal==='number'?identity:{username:principal==='trusted'?'_TRUSTED_USER_':principal.username};};
   const validate=(principal:Principal)=>{if(typeof principal==='number'){if(!this.#enableApiKey||principal!==this.#generation)throw new ApiError(401,'Invalid API Key');}else if(principal==='trusted'){if(!this.#trusts(context.request))throw new ApiError(401,'Trusted client authorization no longer available');}else this.#users!.decode(principal.token,'access',false);return remember(principal);};
   const identify=method==='server.connection.identify',session=this.#connections.get(context.request);

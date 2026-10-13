@@ -39,7 +39,7 @@ async function setup(options:Partial<ProductClientGatewayOptions>,clock?:()=>num
 }
 test('gateway accepts only an explicit origin and fixed private native listener',()=>{
  const good={origin,upstream:'http://127.0.0.1:7125',loopbackHttp:true};
- for(const option of [{loopbackHttp:false},{origin:'http://printer.example.com'},{upstream:'http://example.com'},{upstream:'http://127.0.0.1:7125/server'},{upstream:'http://operator:secret@127.0.0.1:7125'},{maxSessions:0}])assert.throws(()=>new ProductClientGateway({...good,...option}),/Invalid/);
+ for(const option of [{loopbackHttp:false},{origin:'http://printer.example.com'},{upstream:'http://example.com'},{upstream:'http://127.0.0.1:7125/server?token=not-an-upstream-prefix'},{upstream:'http://operator:secret@127.0.0.1:7125'},{maxSessions:0}])assert.throws(()=>new ProductClientGateway({...good,...option}),/Invalid/);
  const unopened=new ProductClientGateway(good);assert.equal(unopened.status.sessions,0);return unopened.close();
 });
 test('unchanged client HTTP and websocket use native per-user identity; cookie never exposes JWT or grants anonymous access',()=>fixture(async f=>{

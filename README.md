@@ -22,6 +22,14 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+配置的 `[server] route_prefix` 现作用于已有 HTTP／WS、文件及
+标准／OctoPrint 上传；网关支持带前缀私有上游，登录与回执仍使用
+固定公共入口。源码／独立 JS／实际包各 258 项、原 42 项预算及
+根路径／Unicode 前缀同包模拟旅程通过，658 个运行时 JS 逐项
+匹配。前序 5c554954 十五项 CI、5137／5137 成功，本增量须
+自身检查。见[路由证据](host/contracts/route-prefix-owner-acceptance.json)、
+[启动说明](docs/Node_Host_Startup.md)及
+[前序终态](host/contracts/pr68-5c55495-terminal.json)。
 可信代理后的标准／OctoPrint 上传回执现沿原信任与 NSS 所有者选择
 HTTP(S)：X-Scheme 优先，取最后一项，禁用或未验证代理保持 HTTP。
 请求 Host 与原编码路径保持，转发主机和令牌不进入 Location。
