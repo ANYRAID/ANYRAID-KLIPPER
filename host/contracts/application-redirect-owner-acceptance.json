@@ -1,0 +1,1033 @@
+{
+  "schema": 1,
+  "baselineHead": "8a68d5c007a76149c259c2e909549e225824f1e2",
+  "scope": "Configured application RedirectHandler over original HTTP/HTTPS, authorization, CORS/NSS and request lifetimes. Full Moonraker, welcome/log handlers and complete Python/macro/hardware delivery remain open.",
+  "upstream": {
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "application": "https://raw.githubusercontent.com/Arksine/moonraker/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/application.py",
+    "authorization": "https://raw.githubusercontent.com/Arksine/moonraker/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/authorization.py",
+    "behavior": "GET last Python-stripped query URL before JSON body regardless content type; optional authentication validates present credentials; full raw decoded target CORS with trailing slash removal for matching, numeric fallback only after nonempty patterns, no hostname or bracketed IPv6 fallback; 302.",
+    "differences": "Absolute canonical HTTP(S) without userinfo, controls/backslash or authority/path normalization ambiguity; original and encoded targets4096bytes; nonstring body URL returns400; errors never reflect target/credentials, no-store/no-referrer headers. Existing1MiB request and shared byte budgets retained; not all Tornado/Python regex equivalence."
+  },
+  "sourceSha256": {
+    "host/src/moonraker/configured-server.ts": "500fd12b99d2661e2d24167b5b3ed4ccf65fb4080ad242165f9bfd4dc5f1a136",
+    "host/src/moonraker/cors-policy.ts": "8cf1f9c08af15543bac8e4a802c843b2f48daae4b07361f108a63e8f2f4a2284",
+    "host/src/moonraker/redirect-target.ts": "c4423d29de21b020c87b919101d8b14956e013561b9c3ba3b03d0472b9ee5d7e",
+    "host/src/moonraker/server.ts": "0fb89db02af108983ff6a89cc10df7b05647a0939843b2cf588fd1440e9dbfb8",
+    "host/src/runtime/product-authorization.ts": "cd3e01012d64397f7ddc3a9be045376edeb17792cf9b15a7cfeef49a80f1c776",
+    "host/test/trusted-proxy-network.test.ts": "ca877a7e5ebf70208491612b964bebe8ccc93f3b90c4f044f5e815115f993404",
+    "host/test/trusted-domains-network.test.ts": "39c503c2f3a84f8592cadf1223ea069427b459214b88672ff75b7f31c8964802",
+    "host/test/authorization-policy-network.test.ts": "b3ef5b5042a5b328f1c4831e0ce59ca5bd3d81e8abbe015dafcab1a11478435e",
+    "host/test/api-key-authorization.test.ts": "6729d7fe9cf7ef8dae9ffca70064329b139018e94b73c21430f9c841516d416e",
+    "host/test/configured-server.test.ts": "a40836ab98fb3b567d4512f41cb0f30b5c134cb1c539f3bffec6b0150824b44d",
+    "host/test/authorization-config.test.ts": "2783dba954184bbb392aaecffe9db17ab6a0dc9693bb8a7bf45f8c309a11fb63",
+    "host/test/authorization-identity.test.ts": "87ef825d42d6ffedeeeaa39e094231a9dbca829ea1a60b21327063490c12062f",
+    "host/test/authorization-events.test.ts": "11752bb3f2e99d693384a7d6990648ecb3cf0525ff333a0ecfae3d9fa08bdf6d",
+    "host/test/trusted-clients-network.test.ts": "036f3a61f0ebfe4a136934ac4b9449493214958b15daff7b5704fb4cf3ce1090",
+    "host/test/trusted-clients.test.ts": "2d35475ba704996d7f8d6eb52341291cde25a97da9cf0650fd2220b64592412b",
+    "host/test/proxy-protocol-upload.test.ts": "f29b8a4d27236ca6e9535c99178fec7c979c8ce239c7e328095045d58fc7a137",
+    "host/test/native-print-uploads.test.ts": "4b8c09f1ba1ff20825ab0530f665552409757a3d4868aac5f88e6ce71715525e",
+    "host/test/octoprint-compat.test.ts": "72163444b184effe31eb768f2aa6eaf63915fc5107b08aa012563b037f7b9bdc",
+    "host/test/product-native-authorization.test.ts": "6092d4fdb3afcc3d5f921bb18a6b151fead136c5b7bb73e4c14b2112e2c8f381",
+    "host/test/route-prefix.test.ts": "34eabbbd1718c362bfa3c6f181e792d551629274dba0b02d432c64aaa7c036c5",
+    "host/test/product-client-gateway.test.ts": "3e01fbac5e1f6e30eaeae755e73956327cf7e05d5bb95703e4dbc9f6b9c339a0",
+    "host/test/direct-tls-network.test.ts": "a14a8d3d773c0fd9d176c60714cb72a4b6e0746d73570694c3018d96ab44b639",
+    "host/test/moonraker-network.test.ts": "73607779b1b97531ece4caf18f88b03bb92b3cd4b67c266d563d8bc7b8869a46",
+    "host/test/product-service.test.ts": "77e97e87de17066b60fb241bfbdb5057cba7f7fe0f2410967d40d1c83ee705be",
+    "host/test/application-redirect.test.ts": "86d61dd5ef474e0e9dae64d376b7b9a5c7bd1b8d2d49eec9b2d2eefcc74196b0",
+    "host/test/cors-policy.test.ts": "6b8e84a328893b3ebc5ae1dab27e572c07f4c7a055a1ad08d3f5ed6b2ba0c681",
+    "host/test/configured-cors.test.ts": "d8b3a4eb983eabdd2c8c188bbe1eb1b3fb7a8f067094fb74b0289f154be4d232",
+    "host/test/cors-trusted-domain-owner.test.ts": "1c2a6405b6a0eede856904a97bdfd4e386aa3729d3a49a0f5d8d7b4c14a710cb",
+    "host/acceptance/product-compiled-journey.test.ts": "a754ab1cdff530d183a4b40020b3d14a1a18062835e2ca06963fd94731611d45",
+    "host/test/helpers/mqtt-certificate.ts": "f5d72c7829572dba2277ead5556dd52bed29a46ee15d478cbf6436996c56788a",
+    "host/test/helpers/acceptance-bundle.ts": "60f5f9236c8d45ceb0d3fdf29aaa5a0dfde14b107e209f0b24df5e61e1a6ed08",
+    "host/test/helpers/pty.c": "d0be1baa4217068c6dd1918035739a436cc77f241cdcee045043e60a8575372e",
+    "host/bench/api-key-authorization.ts": "c54f9869b09c24a529ac0218f3f3e2c3aff884d57228f413ef5b0814e15cc170",
+    "host/bench/moonraker-configured-server.ts": "e77af34828c8eba75b92293c57d6bc54ab0e792825659b6bad8c50220f365831",
+    "host/bench/native-print-uploads.ts": "749d90eefadd4206be034136a822cfb0eaa90ea0e1340386efb8b1dd16d80a03",
+    "host/contracts/pr68-8a68d5c-terminal.json": "0a2c81c254617ab7a0606c21fe780bd74580f80b8b1684ccc0129a1d61a3d808"
+  },
+  "baseline": {
+    "baselineHead": "8a68d5c007a76149c259c2e909549e225824f1e2",
+    "bundleManifestSha256": "e02ccbc359e74cc7f97f8185c48d059ed9a4fc342e1554708a8bbeae44a11920",
+    "observedStatus": 404,
+    "requiredStatus": 302,
+    "scope": "Same valid configured authorization/CORS/prefix; actual prior compiled product has no RedirectHandler. Original 404 is preserved, not a successful performance baseline."
+  },
+  "behavior": {
+    "owner": "Configuration closes over its original native authorization owner; optional checks use existing access.info policy, no new anonymous RPC or second DNS cache. Public redirect grants no API/file/print authority.",
+    "cors": "Original full decoded target matched before Unicode header encoding; strict UTF8 query selection, last query value, original percent/query bytes preserved. Caller Origin admission and target policy independent.",
+    "lifecycle": "Original peer/protocol snapshot before async work; original request, byte, deadline, cancellation, capacity and shutdown owners. Original credentials checked before target NSS and again after wait, one-shot per-request cache prevents double consumption, late permits never send Location.",
+    "preflight": "External redirect-owner override rejected by configured/native process before MCU and journal acquisition.",
+    "clients": "Fluidd127.0.0.1:18430/probe18428 and Mainsail18434/probe18432 fixed; no new browser session or system trust changes."
+  },
+  "validation": {
+    "source": {
+      "tests": 334,
+      "passed": 334,
+      "failed": 0,
+      "durationMs": 72446.191772
+    },
+    "compiled": {
+      "tests": 334,
+      "passed": 334,
+      "failed": 0,
+      "durationMs": 68933.917548
+    },
+    "product": {
+      "tests": 334,
+      "passed": 334,
+      "failed": 0,
+      "durationMs": 68108.749509
+    },
+    "targetedTests": 17,
+    "typecheck": "Project-wide typecheck and independent final JS emit passed with no child error",
+    "minimumNode": "26.9.0",
+    "minimumProductTests": 17,
+    "programGuard": "No TS/arbitrary programs. Original hashed bounded NSS/thumbnail,10s PTY and10s fixed test-certificate commands retained."
+  },
+  "product": {
+    "before": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-direct-tls-owner-oct13",
+      "manifestSha256": "e02ccbc359e74cc7f97f8185c48d059ed9a4fc342e1554708a8bbeae44a11920",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "after": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-redirect-owner-oct13",
+      "manifestSha256": "f32394e02871ff1492fa6c300f03d32188289d96cb5d41981d7df0aaff016ff8",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "files": 694,
+    "changes": [
+      "host/src/moonraker/configured-server.js",
+      "host/src/moonraker/cors-policy.js",
+      "host/src/moonraker/redirect-target.js",
+      "host/src/moonraker/server.js",
+      "host/src/runtime/product-authorization.js"
+    ],
+    "nativeSources": 75,
+    "nativeOutputs": 11,
+    "scope": "Standard buildProductHost with verified original native outputs and independent copied production dependencies. No native recompile or fresh dependency-install claim."
+  },
+  "runtimeIdentity": {
+    "runtimeMatches": 660,
+    "manifestSha256": "f32394e02871ff1492fa6c300f03d32188289d96cb5d41981d7df0aaff016ff8",
+    "productCloneMatches": true
+  },
+  "budgets": {
+    "pass": true,
+    "comparisons": 42,
+    "maxRatio": 1.1032618870504691,
+    "maxAuthUs": 3.585598140000002,
+    "limits": "Original1.5ratio/10us, same original workloads/warmups/samples AB/BA/AB",
+    "scope": "Original auth100000x8, configured HTTP200/WS500/startup30 with 3warm11samples, uploads4/16MiB2warm7. Sequential fresh AB/BA/AB using original TLS actual product before and the redirect actual product after; no overlapping task benchmarks or mixed scenes. No old successful redirect baseline; no Python or board throughput claim."
+  },
+  "newPathObservation": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "count": 100000,
+    "warmups": 3,
+    "retained": 11,
+    "samplesMs": [
+      1006.1368230000003,
+      1019.6094549999998,
+      1020.9872029999997,
+      1013.1774970000006,
+      1019.073926,
+      1012.8239209999992,
+      1020.0395680000001,
+      1019.6742430000013,
+      1016.4026180000001,
+      1017.2804590000014,
+      1014.5900220000003
+    ],
+    "medianUs": 10.172804590000014,
+    "p95Us": 10.209872029999996,
+    "scope": "New successful redirect selection/full target RE2/Unicode header path, desktop synchronous CPU observation including assertions. Prior actual product returns404, so no successful prior redirect baseline or pre-existing timing threshold; unchanged existing hot paths retain original42budgets."
+  },
+  "mixed": {
+    "original": {
+      "tests": 1,
+      "durationMs": 64320.674953,
+      "record": {
+        "namespace": true,
+        "automaticQueue": false,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 11580.653913
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 11874.035674
+            },
+            "durationMs": 293.38616999999977
+          },
+          {
+            "generation": 1,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 16416.140933
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 16474.955077
+            },
+            "durationMs": 58.81852399999843
+          },
+          {
+            "generation": 1,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 18906.879819
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 18962.919045
+            },
+            "durationMs": 56.03958599999896
+          },
+          {
+            "generation": 1,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 21406.523081
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 21462.759301
+            },
+            "durationMs": 56.236329999999725
+          },
+          {
+            "generation": 1,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23743.402165
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23803.171422
+            },
+            "durationMs": 59.76673700000174
+          },
+          {
+            "generation": 1,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25047.946597
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25108.663147
+            },
+            "durationMs": 60.716919999998936
+          },
+          {
+            "generation": 1,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 27166.019825
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 27225.326865
+            },
+            "durationMs": 59.307519999998476
+          },
+          {
+            "generation": 1,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 28403.840315
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 28463.347448
+            },
+            "durationMs": 59.50720299999739
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 44203.846505
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 44478.362867
+            },
+            "durationMs": 274.5164819999991
+          },
+          {
+            "generation": 2,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 46158.557821
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 46214.598867
+            },
+            "durationMs": 56.041135999999824
+          },
+          {
+            "generation": 2,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 48872.612892
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 48952.293407
+            },
+            "durationMs": 79.68076499999734
+          },
+          {
+            "generation": 2,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 51389.164228
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 51452.520392
+            },
+            "durationMs": 63.35604400000011
+          },
+          {
+            "generation": 2,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 53664.644201
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 53784.120372
+            },
+            "durationMs": 119.47639100000379
+          },
+          {
+            "generation": 2,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 55124.62819
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 55176.828234
+            },
+            "durationMs": 52.20063400000072
+          },
+          {
+            "generation": 2,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 56273.025789
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 56326.623081
+            },
+            "durationMs": 53.5974819999974
+          },
+          {
+            "generation": 2,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 57634.215595
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-377974c2-309f-4e03-9c44-9115e2b13350",
+              "fileId": "authorized-file",
+              "atMs": 57695.675103
+            },
+            "durationMs": 61.45978800000012
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 1621,
+        "configListP99Ms": 11.338502999999037,
+        "configDownloads": 1620,
+        "configDownloadP99Ms": 15.268736000001809,
+        "liveMotionSamples": 5733,
+        "liveExtrusionSamples": 1438,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 10.322615943999999,
+          "print_duration": 4.950210827000001,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "f32394e02871ff1492fa6c300f03d32188289d96cb5d41981d7df0aaff016ff8",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 7879,
+        "phaseP99Ms": 8.27126199999475,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 264,
+            "writes": 43
+          },
+          {
+            "statusReads": 168,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1589,
+        "historyP99Ms": 59.689023999999336,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 118.06838199999765,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 185.1976669999931,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 290.22456599999714,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 76.53528300000107,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 299.5672029999987,
+        "directoryMovesDuringPrint": 4,
+        "moveRequests": 16,
+        "moveP95Ms": 292.745621,
+        "deleteRequests": 16,
+        "deleteP95Ms": 247.29057399999874,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 113.6195910000024,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 85.28680099999838,
+        "metadataRequests": 16,
+        "metadataP95Ms": 200.3198609999963,
+        "downloads": 16,
+        "downloadP95Ms": 53.58060200000182,
+        "wireCommands": 225,
+        "wireSteps": 7394,
+        "minimumStepLeadMs": 80.971,
+        "directoryRequests": 6378,
+        "directoryP99Ms": 43.34575400000176,
+        "statusRequests": 31518,
+        "uploads": 16,
+        "statusP99Ms": 8.03556799999933,
+        "uploadP95Ms": 40.69277900000452,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.721791,
+              "maxMs": 20.578303
+            },
+            "cpu": {
+              "user": 11490118,
+              "system": 2114037
+            },
+            "rss": 370626560
+          },
+          {
+            "loop": {
+              "p99Ms": 1.970175,
+              "maxMs": 23.363583
+            },
+            "cpu": {
+              "user": 6586989,
+              "system": 1313052
+            },
+            "rss": 432893952
+          }
+        ]
+      }
+    },
+    "tls": {
+      "tests": 1,
+      "durationMs": 63451.555724,
+      "record": {
+        "namespace": true,
+        "automaticQueue": false,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 10219.072404
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 10369.953937
+            },
+            "durationMs": 150.8859220000013
+          },
+          {
+            "generation": 1,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 15129.000376
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 15209.669823
+            },
+            "durationMs": 80.67371699999967
+          },
+          {
+            "generation": 1,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 17603.506852
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 17734.532866
+            },
+            "durationMs": 131.02749399999811
+          },
+          {
+            "generation": 1,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 19987.908201
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 20111.382773
+            },
+            "durationMs": 123.47513199999958
+          },
+          {
+            "generation": 1,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22418.139485
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22557.40856
+            },
+            "durationMs": 139.2654650000004
+          },
+          {
+            "generation": 1,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 24169.868291
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 24231.790414
+            },
+            "durationMs": 61.92261299999882
+          },
+          {
+            "generation": 1,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25489.437157
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25552.178942
+            },
+            "durationMs": 62.742215000002034
+          },
+          {
+            "generation": 1,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26714.481
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26780.109244
+            },
+            "durationMs": 65.62896399999954
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 44109.03845
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 44429.092577
+            },
+            "durationMs": 320.0546570000006
+          },
+          {
+            "generation": 2,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 46679.912652
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 46830.061632
+            },
+            "durationMs": 150.15026000000216
+          },
+          {
+            "generation": 2,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 49433.075614
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 49585.570785
+            },
+            "durationMs": 152.49587099999917
+          },
+          {
+            "generation": 2,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 52057.372479
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 52124.549842
+            },
+            "durationMs": 67.17859399999725
+          },
+          {
+            "generation": 2,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 54773.196202
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 54840.732621
+            },
+            "durationMs": 67.53689899999881
+          },
+          {
+            "generation": 2,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 56213.626848
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 56278.625632
+            },
+            "durationMs": 64.99916399999347
+          },
+          {
+            "generation": 2,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 57572.453915
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 57636.507826
+            },
+            "durationMs": 64.05515100000048
+          },
+          {
+            "generation": 2,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 58800.280019
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-a995202f-5510-4f56-83fc-96ea6fbe7ce1",
+              "fileId": "authorized-file",
+              "atMs": 58864.32514
+            },
+            "durationMs": 64.04574200000206
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 1713,
+        "configListP99Ms": 10.040764999999737,
+        "configDownloads": 1713,
+        "configDownloadP99Ms": 10.752974999995786,
+        "liveMotionSamples": 5655,
+        "liveExtrusionSamples": 1425,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 10.288270122,
+          "print_duration": 4.912406774999999,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "f32394e02871ff1492fa6c300f03d32188289d96cb5d41981d7df0aaff016ff8",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 8379,
+        "phaseP99Ms": 7.696924000000763,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 272,
+            "writes": 43
+          },
+          {
+            "statusReads": 178,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1677,
+        "historyP99Ms": 59.21869599999627,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 130.58236899999974,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 192.45491199999924,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 247.6738519999999,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 260.4571739999956,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 342.9350940000004,
+        "directoryMovesDuringPrint": 4,
+        "moveRequests": 16,
+        "moveP95Ms": 319.2094649999999,
+        "deleteRequests": 16,
+        "deleteP95Ms": 267.8859339999981,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 114.4637800000055,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 82.39512899999681,
+        "metadataRequests": 16,
+        "metadataP95Ms": 242.7759700000006,
+        "downloads": 16,
+        "downloadP95Ms": 54.03854699999647,
+        "wireCommands": 240,
+        "wireSteps": 7677,
+        "minimumStepLeadMs": 85.559,
+        "directoryRequests": 6797,
+        "directoryP99Ms": 46.09118999999919,
+        "statusRequests": 33522,
+        "uploads": 16,
+        "statusP99Ms": 6.087422000000515,
+        "uploadP95Ms": 194.35450799999853,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.028543,
+              "maxMs": 21.364735
+            },
+            "cpu": {
+              "user": 12931337,
+              "system": 2077512
+            },
+            "rss": 381419520
+          },
+          {
+            "loop": {
+              "p99Ms": 1.989631,
+              "maxMs": 24.199167
+            },
+            "cpu": {
+              "user": 7413212,
+              "system": 1491593
+            },
+            "rss": 446398464
+          }
+        ]
+      }
+    },
+    "scope": "Same exact independent package, original1000motions/file/auth/API/restart/ADC-fault assertions and budgets; HTTPS+Unicode supplement retains CA/hostname validation, temporary parent fixture CA restored. Sequential after regression and budgets; no physical motion/heating or target-board precision claim."
+  },
+  "failures": [
+    "Initial fixture type errors used unsupported config injection/listen/quota APIs; corrected to original authorization/network owner fixtures, not production test override",
+    "Initial sandbox source run failed and was explicitly interrupted130 after live handle; not counted as pass",
+    "Initial sandbox compiler driver reported status0 alongside EPERM child error; preserved as failed observation; same admitted final compiler returned0 with no error",
+    "Compiled fixture omitted originalpty.c and stopped before regressions; original file copied and same suite executed, no runtime change"
+  ],
+  "priorCi": "pr68-8a68d5c-terminal.json",
+  "evidence": {
+    "path": "host/contracts/application-redirect-owner-evidence.json.gz",
+    "entries": 253,
+    "compressedBytes": 951932,
+    "sha256": "1aa7b46fb07841b894b0f4db1143e5e7857071237e34183b638e488d61406473"
+  },
+  "open": [
+    "Welcome original template and full owner context, trusted logs and remaining HTTP consumers",
+    "Full Python/Moonraker/Jinja/msgspec and consumer macro journeys",
+    "OriginalUI/G3/fresh native-build stability, full clientfault/SIGKILL/Cura",
+    "Cycnumbris500target-board precision/throughput/hardware",
+    "Own new CI and task->develop->master integration; other machines last"
+  ]
+}

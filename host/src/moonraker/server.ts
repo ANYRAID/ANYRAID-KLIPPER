@@ -1,3 +1,4 @@
+import {redirectArgument,safeRedirectTarget} from './redirect-target.ts';
 import {relativeRouteUrl,validateRoutePrefix} from './route-prefix.ts';
 import type {ThumbnailDownloads} from './thumbnail-download.ts';
 import {CorsPolicy} from './cors-policy.ts';
@@ -30,6 +31,8 @@ export interface MoonrakerNetworkOptions {
  endpoints?:EndpointRegistry;
  /** Explicit process-owned TLS material; listeners share every admission budget. */
  tls?:MoonrakerTlsOptions;
+ /** Configuration-owned application status; never an alternate auth policy. */
+ redirect?:{authorizationAvailable():boolean};
  /** Configuration-owned xheaders selection; identity trust remains separate. */
  /** Canonical encoded configured prefix; default root remains empty. */
  routePrefix?:string;
@@ -86,6 +89,7 @@ export class MoonrakerNetwork {
   if(nativeLifetime!==undefined&&(!(nativeLifetime instanceof AbortSignal)||nativeLifetime.aborted))throw new Error('Invalid native request lifetime');this.#nativeLifetime=nativeLifetime;
   if(rpc.has('server.websocket.id')||rpc.has('server.connection.identify'))throw new Error('Network RPC method already registered');
   validateRoutePrefix(options.routePrefix??'');
+  if(options.redirect!==undefined&&(!options.redirect||typeof options.redirect.authorizationAvailable!=='function'||options.endpoints?.allowed('/server/redirect')))throw new TypeError('Invalid or conflicting application redirect owner');
   if(options.useXheaders!==undefined&&typeof options.useXheaders!=='boolean')throw new TypeError('Invalid xheaders policy');
   if(options.resolveRequestProtocol!==undefined&&typeof options.resolveRequestProtocol!=='function')throw new TypeError('Invalid request protocol resolver');
   if(options.captureRequestMetadata!==undefined&&typeof options.captureRequestMetadata!=='function')throw new TypeError('Invalid request metadata capture');
@@ -178,9 +182,10 @@ export class MoonrakerNetwork {
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
   const routed=relativeRouteUrl(request.url??'',this.#options.routePrefix??'');if(routed===undefined){this.#error(response,404,'Not Found');return;}
+  const isRedirect=!!this.#options.redirect&&routed.split('?')[0]==='/server/redirect';
   const octoprint=this.#options.octoprint,isOctoUpload=!!octoprint&&routed.split('?')[0]==='/api/files/local';
   const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime,receiveUpload=nativeUploads?.captureUpload(isOctoUpload?undefined:this.#options.configFiles,isOctoUpload?{enableUfp:octoprint!.enableUfp}:undefined),nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted;
-  const url=routed,at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&(path==='/server/files/upload'||isOctoUpload),isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
+  const url=routed,at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&(path==='/server/files/upload'||isOctoUpload),isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRedirect?['GET']:isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}
   const parent=new AbortController(),disconnected=()=>{if(!response.writableEnded)parent.abort(new Error('HTTP client disconnected'));};response.once('close',disconnected);
@@ -189,13 +194,14 @@ export class MoonrakerNetwork {
    let reserved=0,outputReserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
    try{
     let uploadProtocol:RequestProtocol=transportProtocol(request);
-    if(isUpload)this.#options.captureRequestMetadata?.({request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});
+    if(isUpload||isRedirect)this.#options.captureRequestMetadata?.({request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});
     signal.throwIfAborted();const originCheck=this.#origin(request,signal),originAdmission=originCheck instanceof Promise?await originCheck:originCheck;signal.throwIfAborted();
     if(!originAdmission.allowed){this.#error(response,403,'Origin not allowed');return;}
     if(request.headers.origin&&originAdmission.cors){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges, Location');}
-    if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, X-Access-Token, If-None-Match, Range, If-Range'});response.end();return;}
+    if(request.method==='OPTIONS'){if(isRedirect&&(!this.#options.redirect!.authorizationAvailable()||!this.#options.cors||!originAdmission.cors)){this.#error(response,405,'Method Not Allowed');return;}response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, X-Access-Token, If-None-Match, Range, If-Range'});response.end();return;}
     if(!allowed.some(v=>v===request.method)){this.#error(response,405,'Method Not Allowed');return;}
     if(isRPC&&!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
+    if(isRedirect&&this.#options.redirect!.authorizationAvailable()){await this.#options.authorize('access.info',{}, {request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});signal.throwIfAborted();}
     if(isUpload){
      signal.throwIfAborted();if(isOctoUpload)await this.#options.authorize('api.files.local',{}, {request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});signal.throwIfAborted();response.setHeader('connection','close');
      const budget=8*65536;if(this.#buffered+budget>this.#maxBuffered)throw new ApiError(429,'Request buffer capacity exceeded');
@@ -228,6 +234,7 @@ export class MoonrakerNetwork {
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
     for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
     const body=Buffer.concat(chunks),context=this.#context(request,'http',signal,undefined,nativeGenerationSignal,nativeGenerationRetiredAtAdmission);
+    if(isRedirect){const argument=redirectArgument(query,body),target=safeRedirectTarget(argument);if(target===undefined||!this.#options.redirect!.authorizationAvailable()||!this.#options.cors)throw new ApiError(400,'Unauthorized URL redirect');const grant=this.#options.cors.checkRedirect(argument,signal),allowed=grant instanceof Promise?await grant:grant;signal.throwIfAborted();if(!allowed)throw new ApiError(400,'Unauthorized URL redirect');await this.#options.authorize('access.info',{}, {request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});signal.throwIfAborted();response.writeHead(302,{location:target,'cache-control':'no-store','referrer-policy':'no-referrer'});response.end();return;}
     if(isDownload&&request.method==='DELETE'){
      if(query||body.length)throw new ApiError(400,'File deletion does not accept a query or body');
      const result=await nativeUploads!.remove({path:decodeURIComponent(path.slice('/server/files/'.length))},context);signal.throwIfAborted();response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({result}));return;

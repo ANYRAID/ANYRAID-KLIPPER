@@ -107,7 +107,7 @@ function validateConfigFiles(options:ConfiguredServerOptions|ConfiguredAuthoriza
 const databaseOwners=new WeakSet<DatabaseStore>();
 const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0});
 const nativeGenerationNotifications=new Set(['notify_gcode_response','notify_print_state_changed','notify_history_changed','notify_filelist_changed','notify_klippy_ready','notify_klippy_shutdown']);
-export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'|'tls'> {
+export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'|'tls'|'redirect'> {
  /** Process-owned announcements; requests never control remote URLs or paths. */
  announcements?:AnnouncementsOptions;
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
@@ -296,7 +296,7 @@ export class ConfiguredMoonraker {
    }
   });
   const networkOptions={...options};for(const key of ['productPrint','nativeHost','nativeObjects','nativePrinterIdentity','productPressure','productHostControl','productPrintCompatibility','maintenanceGate','nativeDetached'] as const)delete networkOptions[key];
-  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,tls:configuredTls.get(reader),nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections,useXheaders:this.binding.useXheaders,routePrefix:this.binding.routePrefix},this.#nativeScope?.signal);
+  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,tls:configuredTls.get(reader),redirect:{authorizationAvailable:()=>this.#authorization!==undefined},nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections,useXheaders:this.binding.useXheaders,routePrefix:this.binding.routePrefix},this.#nativeScope?.signal);
   if(options.nativeDetached)this.#nativeScope!.retire();
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   this.#nativeTemperatureObjects=options.nativeObjects;
@@ -364,6 +364,7 @@ export class ConfiguredMoonraker {
   for(const key of nativeDeviceFields)delete (options as unknown as Record<string,unknown>)[key];
  }
  static async #prepare(filename:string,options:ConfiguredServerOptions){
+  if('redirect' in options)throw new ConfigurationError('Redirect status belongs to the application owner');
   if('tls' in options)throw new ConfigurationError('TLS material belongs to server configuration');
   assertNativeProcessResources(options);
   if(options.productHostControl!==undefined&&(!(options.productHostControl instanceof ProductHostControl)||!options.productPrint&&!options.nativeDetached))throw new ConfigurationError('Host control requires a native print owner');

@@ -20,18 +20,18 @@ function options(f:Fixture,root:string,database:DatabaseStore,onRelease:()=>void
 test('native product rejects invalid authorization before MCU and journal acquisition, releasing the adapter database',async()=>{
  const root=await mkdtemp(join(tmpdir(),'product-auth-reject-')),f=await productMachineFixture(root);let releases=0;
  try{
-  for(const mode of ['unsupported','mixed','protocol','metadata','tls','certificate','closed','issuer']){
+  for(const mode of ['unsupported','mixed','protocol','metadata','tls','redirect','certificate','closed','issuer']){
    const db=await DatabaseStore.open({path:join(root,mode+'.sqlite')}),config=options(f,root,db,()=>releases++);
    await writeFile(f.config.moonrakerConfig,'[server]\nhost: 127.0.0.1\nport: 0\n'+(mode==='unsupported'?'[authorization]\nunsupported_rule: deny\n':mode==='certificate'?'ssl_certificate_path: /missing-private-path\n':''));
    const factory=config.createAdapter;
-   config.createAdapter=async()=>{const adapter=await factory();if(mode==='mixed')Object.assign(adapter.server,{authorize:()=>{}});if(mode==='protocol')Object.assign(adapter.server,{resolveRequestProtocol:()=> 'https'});if(mode==='tls')Object.assign(adapter.server,{tls:{}});if(mode==='metadata')Object.assign(adapter.server,{captureRequestMetadata:()=>{}});if(mode==='issuer')adapter.server.authorization={issuer:'not-an-origin'};return adapter;};
+   config.createAdapter=async()=>{const adapter=await factory();if(mode==='mixed')Object.assign(adapter.server,{authorize:()=>{}});if(mode==='protocol')Object.assign(adapter.server,{resolveRequestProtocol:()=> 'https'});if(mode==='redirect')Object.assign(adapter.server,{redirect:{authorizationAvailable:()=>true}});if(mode==='tls')Object.assign(adapter.server,{tls:{}});if(mode==='metadata')Object.assign(adapter.server,{captureRequestMetadata:()=>{}});if(mode==='issuer')adapter.server.authorization={issuer:'not-an-origin'};return adapter;};
    if(mode==='closed')await db.close();
    let unexpected:Awaited<ReturnType<typeof loadNativeProductMachineProfile>>|undefined;
-   try{await assert.rejects(async()=>{unexpected=await loadNativeProductMachineProfile(f.path,config,new AbortController().signal);},mode==='unsupported'?/Unsupported/:mode==='mixed'||mode==='protocol'||mode==='metadata'||mode==='tls'?/external callbacks/:mode==='certificate'?/Unable to load configured TLS/:mode==='closed'?/open database/:/issuer/);
+   try{await assert.rejects(async()=>{unexpected=await loadNativeProductMachineProfile(f.path,config,new AbortController().signal);},mode==='unsupported'?/Unsupported/:mode==='mixed'||mode==='protocol'||mode==='metadata'||mode==='tls'||mode==='redirect'?/external callbacks/:mode==='certificate'?/Unable to load configured TLS/:mode==='closed'?/open database/:/issuer/);
     assert.equal(db.status.closed,true);await assert.rejects(access(f.config.journalPath));assert.deepEqual(f.transport.stops,[0,0]);assert(f.transport.firmware.every(m=>m.stepperConfigs.length===0&&m.motion.length===0));
    }finally{await unexpected?.release();await db.close();}
   }
-  assert.equal(releases,8);
+  assert.equal(releases,9);
  }finally{await f.close();await rm(root,{recursive:true,force:true});}
 });
 test('native product owns login and authenticated printer state across service restart without external authorization callbacks',async()=>{

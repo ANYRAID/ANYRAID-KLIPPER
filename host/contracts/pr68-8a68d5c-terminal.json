@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "head": "8a68d5c007a76149c259c2e909549e225824f1e2",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "merge": "154366eb39d846cabf172e44da17e3f1e47c0382",
+  "jobs": [
+    {
+      "id": 115113471552,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560309
+    },
+    {
+      "id": 115113471573,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560309
+    },
+    {
+      "id": 115113471585,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560309
+    },
+    {
+      "id": 115113471644,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560309
+    },
+    {
+      "id": 115113471653,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560309
+    },
+    {
+      "id": 115113471656,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560309
+    },
+    {
+      "id": 115113471661,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560309
+    },
+    {
+      "id": 115113471662,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560309
+    },
+    {
+      "id": 115113471663,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560309
+    },
+    {
+      "id": 115113471666,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560309
+    },
+    {
+      "id": 115113471296,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560301
+    },
+    {
+      "id": 115113471300,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560287
+    },
+    {
+      "id": 115113471354,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560287
+    },
+    {
+      "id": 115113471357,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560287
+    },
+    {
+      "id": 115118046022,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38341560287
+    }
+  ],
+  "ordinary": {
+    "node": "v26.11.1",
+    "tests": 5147,
+    "failed": 0,
+    "passed": 5147,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "topLevel": 5147,
+    "suites": 0,
+    "jobId": 115113471300,
+    "logExcerpt": [
+      "2026-10-13T03:24:45.5953854Z HEAD is now at 154366eb Merge 8a68d5c007a76149c259c2e909549e225824f1e2 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "2026-10-13T03:24:50.6709401Z node: v26.11.1",
+      "2026-10-13T03:42:59.1337045Z ℹ tests 5147",
+      "2026-10-13T03:42:59.1337497Z ℹ pass 5147",
+      "2026-10-13T03:42:59.1337717Z ℹ fail 0",
+      "2026-10-13T03:42:59.1339609Z {\"nodeTestObservation\":{\"schema\":1,\"node\":\"v26.11.1\",\"success\":true,\"counts\":{\"tests\":5147,\"failed\":0,\"passed\":5147,\"cancelled\":0,\"skipped\":0,\"todo\":0,\"topLevel\":5147,\"suites\":0}}}",
+      "2026-10-13T03:43:03.5712472Z Version: 154366eb"
+    ]
+  },
+  "scope": "Exact prior TLS task head and synthetic Actions merge. Not develop integration, root cause, G3 or hardware, and not the following redirect increment."
+}

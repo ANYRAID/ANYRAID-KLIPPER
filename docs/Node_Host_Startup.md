@@ -1,5 +1,38 @@
 # Node 主机启动与机器集成
 
+原生 loadAuthorized／原生产品入口现提供 GET /server/redirect，
+开启 route_prefix 时在该前缀下访问；它使用原身份所有者的可选
+校验，错误 API Key／JWT 仍拒绝。该入口不会授予后续 API 或
+打印权限。配置 cors_domains 为实际客户端所需目标，例如：
+
+```ini
+[authorization]
+cors_domains:
+  https://fluidd.example.com
+```
+
+```sh
+curl --get --data-urlencode 'url=https://fluidd.example.com' \
+  http://127.0.0.1:7125/server/redirect
+```
+
+查询中的最后一个 url 优先于 JSON GET 请求体；完整目标通过
+原 CORS 后返回 302，匹配时仅去掉尾斜杠，Location 保持原目标
+并编码 Unicode。来源 Origin 单独检查；未授权目标／缺少原
+授权组件返回 400，不能用外部回调替代所有者。目标解析仅允许
+规范绝对 HTTP(S)，禁止用户信息、控制符／反斜杠与归一化歧义，
+原始及编码目标均限 4096 字节；这些为明确加固差别。
+
+原请求容量、字节、期限、取消及退出规则保持；NSS 借用原
+授权缓存，等待后身份再核验，取消／吊销不能发出迟到重定向。
+HTTP／HTTPS 共用该入口和配置前缀。源码／独立 JS／实际包
+各 334 项、最低 Node.js 26.9 实际包 17 项、原 42 项预算和
+同包模拟打印通过；新路径 CPU 观察没有旧成功基线。见
+[重定向证据](../host/contracts/application-redirect-owner-acceptance.json)。
+本增量未新开浏览器或实机场次；Fluidd18430／探针18428、
+Mainsail18434／探针18432保持，冲突停止、不换来源。
+以下保留前序启动说明及其当时的验证范围。
+
 ### 配置直接 HTTPS
 
 HTTP 与 HTTPS 使用同一应用及身份所有者。缺省 HTTP 7125、

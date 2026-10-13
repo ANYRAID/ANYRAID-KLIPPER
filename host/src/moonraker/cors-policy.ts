@@ -3,6 +3,7 @@
 import {RE2} from 're2-wasm';
 import {TrustedClients} from './trusted-clients.ts';
 import {isIP} from 'node:net';
+import {safeRedirectTarget} from './redirect-target.ts';
 export type TrustedOriginResolver=(address:string,signal:AbortSignal)=>boolean|Promise<boolean>;
 
 /** Browser read/upgrade admission only; never grants API or print authority.
@@ -53,6 +54,17 @@ export class CorsPolicy {
   if(!this.#enabled||!this.#resolve||typeof origin!=='string'||origin.length>1024)return false;
   try{const url=new URL(origin);if(!['http:','https:'].includes(url.protocol)||url.origin!==origin)return false;}catch{return false;}
   const address=/^https?:\/\/([^/:]+)/.exec(origin)?.[1];if(!address||!isIP(address))return false;
+  const result=this.#resolve(address,signal);if(result instanceof Promise)return result.then(allowed=>{signal.throwIfAborted();return allowed===true;});signal.throwIfAborted();return result===true;
+ }
+ /** RedirectHandler passes a full target, stripping trailing slashes only for
+  * policy matching. Never reduce it to an origin and broaden path permission. */
+ checkRedirect(target:unknown,signal:AbortSignal):boolean|Promise<boolean>{
+  signal.throwIfAborted();const safe=safeRedirectTarget(target);if(!this.#enabled||safe===undefined)return false;
+  // Match the decoded argument before Unicode header serialization, as upstream.
+  const value=(target as string).replace(/\/+$/,'');if(this.#exact.has(value))return true;
+  for(const regex of this.#patterns){const match=regex.exec(value);if(match?.index===0&&match[0]===value)return true;}
+  const address=/^https?:\/\/([^/:]+)/.exec(value)?.[1];if(!address||!isIP(address))return false;
+  if(this.#trusted.matches(address))return true;if(!this.#resolve)return false;
   const result=this.#resolve(address,signal);if(result instanceof Promise)return result.then(allowed=>{signal.throwIfAborted();return allowed===true;});signal.throwIfAborted();return result===true;
  }
 }
