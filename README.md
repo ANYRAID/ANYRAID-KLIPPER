@@ -22,6 +22,15 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+标准类型检查与产品构建 API 现通过独立解析／直接平台编译器
+所有者运行锁定 TypeScript 7，无临时 shim；取消后等待真实子进程、
+管道及自有进程组收口，不能确认时保留暂存与锁。Linux x64／ARM64
+启用，实际本机验收为 x64。标准 npm typecheck、构建 API、最低
+Node.js26.9 和两版各 13 项相关测试通过，700 文件及依赖摘要
+与原包完全一致。未新编原生或执行完整 npm 构建 CLI，旧 execve
+异常原因仍未证，见[编译进程证据](host/contracts/typescript-process-owner-acceptance.json)。
+前序 a3506c84 的十五项 CI、5214／5214 已成功，见
+[该头终态](host/contracts/pr68-a3506c8-terminal.json)；本编译增量须自身 CI。
 原生进程现生产应用与打印诊断日志，并将同一文件接到标准下载和
 `/server/logs/rollover`。专用私有目录、午夜／手工轮转、两份日期备份、
 CLI 选项及强制终止后的轮转恢复见[启动说明](docs/Node_Host_Startup.md)。

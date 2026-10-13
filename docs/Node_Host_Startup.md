@@ -888,6 +888,36 @@ node docs/diagnostics/node26-motion-capture-20261008/filter-boundary-analysis.mj
 覆盖捕获中正常、有限 binary64 的运算范围；不声明完整 IEEE 特殊值
 覆盖。不在相同条件下扩展子进程次数求绿。
 
+### 编译入口与子进程退出所有权
+
+`npm --prefix host run typecheck` 由 `host/scripts/run-typescript.ts` 运行。
+标准 `buildProductHost` API 使用同一所有者，开发解析器
+`typescript-resolver.mjs` 不进入运行包。官方 getExePath 在独立 Node
+子进程解析，父进程不加载可能同步阻塞的包元信息；锁定 TS／平台
+包版本、绝对普通可执行文件和所选字节核验后直接 spawn 平台编译器，
+不使用 PATH 或 execve，不需外部 shim。锁文件限 1 MiB，包元信息／
+解析器限 64 KiB，现有候选观察器的有界读取保持；实际二进制摘要
+仅为启动前身份，不能保证无 TOCTOU 替换。
+
+两阶段共用类型检查 120 秒／构建 TS 60 秒 deadline，每流 4 MiB 输出
+保持；触发取消时 SIGKILL 自有 detached 组。解析器／编译器直接子进程正常退出也清理
+同组残余，实际 close／管道退出和组内无活成员后才释放暂存。组终态
+观察失败返回 COMPILER_JOIN_FAILED、cleanupComplete=false，构建
+保留 stage／lock，并保持旧产品；按失败回执路径检查已无活所有者
+后才能恢复，不能直接删锁。期限不保证 kernel D-state 或不可读状态
+的物理结束时间；已死 zombie 不宣称已 reaped。builder 的 signal
+覆盖 TS 与发布前检查，同步原生构建不是即时可取消。仅 Linux
+x64／arm64 可用，其他系统明确拒绝；本机只实际验证 x64。
+
+Node26.10／26.9 的标准类型检查与各 13 项相关测试通过；最终新增
+CLI 测试的完整严格范围在 26.9 核对。实际 Node runner／builder 的
+SIGTERM／SIGINT 取消由自身收口后退出，不代表向 npm 父进程发
+信号必然传播。标准构建 API 使用既有 nativeDirectory 参数核验复用
+原生，700 文件及依赖摘要完全相同；完整 npm 构建 CLI／新原生编译
+未验。历史 execve 挂起原因未证，全部历史边界保留，见
+[编译所有者验收](../host/contracts/typescript-process-owner-acceptance.json)。
+以下保留原候选摘要观察器的验收范围。
+
 ### 产品 TypeScript 编译失败观测
 
 构建所有者在原编译命令启动前读取入口、包装器、解析器、包元信息、

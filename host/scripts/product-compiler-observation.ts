@@ -3,6 +3,7 @@ import {constants} from 'node:fs';
 import {open,realpath} from 'node:fs/promises';
 import {basename,dirname,join} from 'node:path';
 import type {SpawnSyncReturns} from 'node:child_process';
+import type {CompilerExecution} from './run-typescript.ts';
 
 type Fingerprint={bytes:number;sha256:string}|{unavailable:string};
 export interface ProductCompilerInputs {
@@ -59,7 +60,7 @@ export async function captureProductCompilerInputs(host:string,config:string):Pr
  return {schema:1,node:process.version,platform:process.platform,arch:process.arch,typescript,files};
 }
 /** Keep the existing failure text and append only bounded, named metadata. */
-export function productCompilerFailure(result:Pick<SpawnSyncReturns<string>,'error'|'status'|'signal'|'stdout'|'stderr'>,inputs:ProductCompilerInputs):Error {
- const observation={...inputs,status:result.status,signal:result.signal,errorCode:result.error?errorCode(result.error):null,scope:'Pre-launch file digests; nativeCandidate is the installed platform candidate. Actual wrapper launch route, loaded memory, source inputs and concurrent mutation are not attested.'};
+export function productCompilerFailure(result:Pick<SpawnSyncReturns<string>,'error'|'status'|'signal'|'stdout'|'stderr'>&{cleanupComplete?:boolean;phase?:string},inputs:ProductCompilerInputs,execution?:CompilerExecution,retainedBuild?:{stage:string;lock:string}):Error {
+ const observation={...inputs,status:result.status,signal:result.signal,errorCode:result.error?errorCode(result.error):null,...execution?{execution}:{},...result.cleanupComplete!==undefined?{cleanupComplete:result.cleanupComplete,phase:result.phase}:{},...retainedBuild?{retainedBuild}:{},scope:'Pre-launch file digests; nativeCandidate is the installed platform candidate. Actual wrapper launch route, loaded memory, source inputs and concurrent mutation are not attested.'};
  return new Error('Product TypeScript build failed: '+(result.error?.message??result.stdout+result.stderr)+'\nproductCompilerFailure='+JSON.stringify(observation));
 }

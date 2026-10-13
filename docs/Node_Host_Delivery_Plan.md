@@ -1,5 +1,41 @@
 # Klipper 与 Moonraker 集成交付计划
 
+默认编译入口改为锁定 TypeScript 7 的官方解析器隔离子进程，由父
+所有者直接启动所选平台编译器，不经过 process.execve，不修改
+node_modules 或禁用全局能力。TS／平台包版本须与锁一致，实际
+路径、普通可执行文件及启动前字节摘要单独核验；这不保证无
+TOCTOU 替换，也不证明旧挂起的根因。
+
+解析与编译共用原 120 秒类型检查／60 秒构建编译 deadline，每流
+4 MiB 输出上限保持。超时／取消／越界及解析器／编译器直接子进程正常退出均清理
+其独立自有组，等待 close／管道 EOF 和组内无活进程；已死亡、由
+其他父进程接管的 zombie 不宣称已回收。组观察失败返回具名错误、
+cleanupComplete=false，并保留 stage／lock 和旧包。期限触发取消，
+不保证 kernel D-state 或不可读状态在期限内物理清除。builder 取消
+只覆盖 TS 与发布前检查，原生同步构建并非即时可取消。仅 Linux
+x64／arm64 启用，其他平台明确拒绝。
+
+标准 npm typecheck 在 Node26.10／26.9 通过；最终新增实际 CLI 取消
+案例后，同三文件各 13／13、exit0，最终新测试的完整严格类型检查
+由 26.9 的同一锁定编译器／配置执行。实际 Node runner 的 SIGTERM
+与 builder 的 SIGINT 均先 join 后退出 143／130，不推断 npm 父进程
+信号传播。一次真实类型错误保留原 700 文件产品和依赖身份，正常
+确认清理后释放暂存与锁；注入组观察失败则保留待恢复目录。
+
+标准 buildProductHost API 用既有 nativeDirectory 参数、逐项核对
+75 原生来源和 11 输出后复用，1.208 秒通过。新旧 700 文件清单及
+生产依赖摘要完全一致，664 个运行时 JS 零变化，两个开发 wrapper
+不入产品；不重跑已覆盖同一代码的 42 预算／五场模拟打印。完整
+npm build:product-host CLI、原生重编及 ARM64 执行本批未验。默认
+沙箱首轮文件失败和随后 mkfifo EPERM 判别保留，获授权本机环境
+结果分别记录。固定源码、输出、失败及复现见
+[编译进程所有者验收](../host/contracts/typescript-process-owner-acceptance.json)。
+前序 a3506c84 的 3 workflow／15 job、普通 5214／5214 已成功，实际
+CI 合成检出 32ffc5f，见[前序终态](../host/contracts/pr68-a3506c8-terminal.json)；
+不覆盖本编译增量。新头 CI、正常集成、历史编译器／UI／G3、SUDO
+与完整 Moonraker／Python／宏／目标板／实机／发布仍开放。
+以下保留前序日志生命周期验收记录。
+
 原生 process 工厂已接通真实应用／打印诊断日志的生产、默认私有
 目录、文件头、午夜／手工轮转、两份日期备份和 CLI 控制，标准
 下载读取同一生产文件。实际生命周期／故障枚举沿原设备与服务

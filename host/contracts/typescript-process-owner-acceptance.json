@@ -1,0 +1,372 @@
+{
+  "schema": 1,
+  "status": "compiler-process-owner-local-validation-complete-new-head-ci-pending",
+  "baseHead": "a3506c84201ce7b0db4f48a73c0ceb9eb41f1f2f",
+  "scope": "Development-only official TypeScript7 resolver/direct-native execution ownership. Standard npm typecheck and standard buildProductHost API validated; not npm build CLI or new native compilation. No runtime/hardware/service/production change.",
+  "sourceSha256": {
+    "host/package.json": "fbfd8781252ee5eb7f09797e4550fdeb9aaa00cb3160b2f4dc6011d7371a5427",
+    "host/scripts/build-product-host.ts": "7cbf1433cc93c0e03dd42c14f034afc8dde0daad1bbbe2889071a0db38331b20",
+    "host/scripts/product-compiler-observation.ts": "798314c66665168dab8b0e22664e504b648c37b3fbdfd0c53c205a1c2a44070b",
+    "host/scripts/run-typescript.ts": "1ca2f78e59291fc554d5ec2322277c8682cf665386290abec19d3a702f129d97",
+    "host/scripts/typescript-resolver.mjs": "1d5b3337cf28ffa8512ccdce23f150d02fd1866feb737055b4f5105306fe9362",
+    "host/test/typescript-owner.test.ts": "c8b456581a5e5e2f7aea68a2cbd64671738b5bdf9b4ce0abbc7300f61eafcbfb"
+  },
+  "unchangedValidationInputsSha256": {
+    "host/test/product-compiler-observation.test.ts": "32b515043105fc4c4c664f19552dc051f2828b37b6d893f584df55f3f891002e",
+    "host/test/product-compiler-metadata-bounds.test.ts": "5701f427be56c88a6f97c608fa07e547e600af36a690241db107b9d4edc24f80",
+    "host/tsconfig.json": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1",
+    "host/tsconfig.product-host.json": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e",
+    "host/package-lock.json": "b890eff34a349b721afd6013f53d6e2c3fa14538ce8ae6bc0bd580ec328da389"
+  },
+  "unchangedRuntimeInputsSha256": {
+    "host/src/moonraker/process-logs.ts": "2eef32e9ef70ac38a07e050e973a5af4c9c5c91db89627b94b173c4feb13c5f0",
+    "host/src/moonraker/process-log-worker.ts": "46d4a94dcf9e0e5c970e3fdd96c0c3744892a7149a71996b592087fe8c5066b8",
+    "host/src/moonraker/configured-server.ts": "dc6fcdbbaaff80837d931f2124c8e9ad58fb54fb102a40da124637456e676b9b",
+    "host/src/moonraker/database.ts": "1bb365f033a77f12a0bc2617ddb1a00fce2c336e7465d1c287503d6575933568",
+    "host/src/runtime/native-product-machine.ts": "7b50175ac6412a3c2b7c791b6278069d2d6695aaa9ac16fc275d9185dccaa417",
+    "host/src/runtime/product-host-cli.ts": "464c4b32665d5401b5378f42bc55203140dd1df4457cae7b6bd9f9a8f540ad35",
+    "host/src/runtime/product-host.ts": "75229ce2ab4d494c96b7de670ada1fd369e8bd5e0fcbe4bb2ccd7661fa81e771",
+    "host/test/process-logs.test.ts": "0ebad21aa4a99eba3dcc9b498372c2ed8a5ba7cdd6e79aaec394dca1eef464e8",
+    "host/test/product-host.test.ts": "43f406a9dbee0c321217a6cf8cd9bfb5279653ef3655f219ff0487147e330520",
+    "host/test/native-product-process-lifetime.test.ts": "94481645f92c8274325d3073a0d5e9507852c984335e46e8dadf39193af17f7b",
+    "host/acceptance/product-compiled-journey.test.ts": "0a42f2b1acdadea894e2593a5549825815f23d20a78b181e34791577ee6e95d3",
+    "host/bench/process-log-startup.ts": "b9fdcf8784b3691e15222b8702f8a70a58d0b0fa476e105f8fcfcbfea2efc954"
+  },
+  "behavior": {
+    "selection": "Separate Node resolver uses unchanged installed official getExePath. Installed TypeScript and official platform package versions must match locked7.x. Absolute regular executable, native package name/platform/version, permissions and bounded bytes are checked. No PATH compiler lookup, no node_modules edits, no process.execve or global/preload shim.",
+    "metadata": "Installed package JSON and resolver are regular/no-follow/nonblocking files <=64KiB; lock has separate1MiB limit; native executable <=64MiB. Official synchronous import/metadata resolution stays in separately cancellable child. Existing candidate observer O_NONBLOCK/bounded/FIFO behavior unchanged.",
+    "ownership": "Parent directly spawns official native executable after resolver actual close and owned-group confirmation. Both newly detached POSIX groups are owned exclusively by runner; timeout/abort/output overflow triggers SIGKILL, normal resolver/compiler direct-child exit also kills residual group members, await child close/pipe EOF then inspect only that group for live members. Already-dead adopted zombies are not claimed reaped.",
+    "limits": {
+      "typecheckDeadlineMs": 120000,
+      "buildCompilerDeadlineMs": 60000,
+      "maxBufferPerStreamBytes": 4194304,
+      "deadlineScope": "One shared deadline for resolution, native identity recheck and native compiler. Deadline triggers cancellation; joining kernel D-state or unreadable process status does not have a guaranteed physical-time bound. Never delete staging merely because a timeout was reported."
+    },
+    "cleanupFailure": "Group observation failure settles with COMPILER_JOIN_FAILED and cleanupComplete=false, does not become unhandled async rejection. Builder retains stage and lock, reports retainedBuild paths, leaves prior product untouched; no automatic recovery/delete/retry.",
+    "publication": "Original private stage, recognized prior product, atomic rename/rollback and lock checks retained. Successful/confirmed compiler cleanup permits stage release. Optional builder signal covers compilation and publication checks; native build spawnSync is not immediately cancellable.",
+    "cli": "Node runner/builder SIGTERM/SIGINT handlers wait compiler cleanup and exit143/130 without process.exit. Tested actual Node executables, not signal propagation through an npm parent.",
+    "support": "Linux x64 and arm64 enabled; other platforms fail closed. Actual validation performed Linux x64; ARM64 execution not run.",
+    "evidence": "Selected actual binary pathname/version/SHA and inode metadata identify pre-launch bytes; not TOCTOU-free exec proof, loaded-memory attestation or historical execve root-cause diagnosis. Earlier120s execve hang and interrupted/orphan diagnostics remain open."
+  },
+  "validation": {
+    "discriminator": {
+      "schema": 1,
+      "at": "2026-10-13T18:31:01.738Z",
+      "scope": "One direct native compiler child under Node26 async spawn, same complete strict host/tsconfig.json, pipes and actual close joined. No execve launcher retry, no product emit or root-cause claim.",
+      "command": "/home/dek02/.cache/codex/tmp/anyraid-client-regression-deps-oct10/node_modules/@typescript/typescript-linux-x64/lib/tsc",
+      "args": [
+        "-p",
+        "host/tsconfig.json"
+      ],
+      "node": "v26.10.0",
+      "binarySha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+      "configSha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1",
+      "pid": 12,
+      "timeoutMs": 120000,
+      "maxBuffer": 4194304,
+      "result": {
+        "status": 0,
+        "signal": null,
+        "errorCode": null,
+        "elapsedMs": 3301.830658,
+        "stdoutBytes": 0,
+        "stderrBytes": 0,
+        "actions": []
+      }
+    },
+    "standardNpmTypecheck": {
+      "node26_10": {
+        "exitCode": 0,
+        "log": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-owner-standard-typecheck.log",
+        "scope": "Full strict original config after owner implementation; before final real-CLI-cancellation test addition."
+      },
+      "node26_9": {
+        "exitCode": 0,
+        "log": "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/compiler-owner-minimum-typecheck.log",
+        "scope": "Full strict original config on final frozen source, same locked TypeScript/native/config bytes."
+      },
+      "command": "npm --prefix host run typecheck with corresponding Node26.x bin first in PATH; no NODE_OPTIONS/preload shim.",
+      "deadlineMs": 120000
+    },
+    "tests": {
+      "node26_10": {
+        "tests": 13,
+        "passed": 13,
+        "exitCode": 0,
+        "durationMs": 4323.898633,
+        "log": "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/compiler-owner-final-tests.log"
+      },
+      "node26_9": {
+        "tests": 13,
+        "passed": 13,
+        "exitCode": 0,
+        "durationMs": 4366.808645,
+        "log": "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/compiler-owner-minimum-tests.log"
+      },
+      "files": [
+        "host/test/typescript-owner.test.ts",
+        "host/test/product-compiler-observation.test.ts",
+        "host/test/product-compiler-metadata-bounds.test.ts"
+      ],
+      "cases": "Official actual resolver and native fixture child; nonzero/signal; timeout/AbortSignal/output; normal-exit descendant inherited/closed stdio; installed/platform version/mode/FIFO; group observation failure with retained prior product; actual repository Node runner SIGTERM and builder SIGINT after real native PID observed; prior observer metadata/FIFO/rejection contracts."
+    },
+    "standardBuildApi": {
+      "schema": 1,
+      "scope": "Unmodified invocation of standard buildProductHost API with its existing nativeDirectory argument; spawn observer forwards exact original arguments/options and never changes launch. No external shim, no native rebuild; not npm build CLI validation.",
+      "node": "v26.10.0",
+      "config": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/tsconfig.product-host.json",
+      "timeoutMs": 60000,
+      "maxBuffer": 4194304,
+      "nativeSources": 75,
+      "nativeOutputs": 11,
+      "calls": [
+        {
+          "command": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+          "args": [
+            "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/scripts/typescript-resolver.mjs",
+            "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/"
+          ],
+          "options": {
+            "cwd": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration",
+            "detached": true,
+            "stdio": [
+              "ignore",
+              "pipe",
+              "pipe"
+            ]
+          },
+          "pid": 2283835,
+          "phase": "resolver",
+          "at": "2026-10-13T18:44:46.823Z",
+          "status": 0,
+          "signal": null,
+          "closedAt": "2026-10-13T18:44:46.906Z"
+        },
+        {
+          "command": "/home/dek02/.cache/codex/tmp/anyraid-client-regression-deps-oct10/node_modules/@typescript/typescript-linux-x64/lib/tsc",
+          "args": [
+            "-p",
+            "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/tsconfig.product-host.json",
+            "--outDir",
+            "/home/dek02/.cache/codex/tmp/.product-build-MqCywD"
+          ],
+          "options": {
+            "cwd": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration",
+            "detached": true,
+            "stdio": [
+              "ignore",
+              "pipe",
+              "pipe"
+            ]
+          },
+          "identity": {
+            "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+            "bytes": 24101026
+          },
+          "pid": 2283846,
+          "phase": "native",
+          "at": "2026-10-13T18:44:46.949Z",
+          "status": 0,
+          "signal": null,
+          "closedAt": "2026-10-13T18:44:47.944Z"
+        }
+      ],
+      "result": {
+        "status": 0,
+        "durationMs": 1208.3993650000002
+      }
+    },
+    "product": {
+      "schema": 1,
+      "before": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-process-log-lifecycle-oct14",
+        "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "after": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-compiler-owner-oct14",
+        "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "files": 700,
+      "runtimeJs": 664,
+      "changes": [],
+      "runtimeJsChanged": 0,
+      "nativeSources": 75,
+      "nativeOutputs": 11,
+      "scope": "Same75native source/11output fingerprints reused. All664production runtimeJS hashes match prior accepted log candidate. Compiler scripts are development-only and absent from runtime package."
+    },
+    "trueCompilerFailurePreservesPriorProduct": {
+      "schema": 1,
+      "scope": "One deliberate true compiler type error against recognized existing standard product. No success rerun; original700file and dependency identities preserved, compiler group joined before staging/lock cleanup.",
+      "before": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-compiler-owner-oct14",
+        "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "after": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-compiler-owner-oct14",
+        "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "compilerFailure": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "platform": "linux",
+        "arch": "x64",
+        "typescript": "7.0.2",
+        "files": {
+          "package": {
+            "bytes": 3087,
+            "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e"
+          },
+          "nativeCandidate": {
+            "bytes": 24101026,
+            "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4"
+          },
+          "nativePackage": {
+            "bytes": 1042,
+            "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7"
+          },
+          "entry": {
+            "bytes": 44,
+            "sha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd"
+          },
+          "wrapper": {
+            "bytes": 609,
+            "sha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e"
+          },
+          "resolver": {
+            "bytes": 3051,
+            "sha256": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+          },
+          "config": {
+            "bytes": 199,
+            "sha256": "1d275881425d31cc01dddb3c752da713739eef2f03d2a4b8fdd63ece0a5a1b92"
+          },
+          "hostConfig": {
+            "bytes": 527,
+            "sha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1"
+          },
+          "lock": {
+            "bytes": 70616,
+            "sha256": "b890eff34a349b721afd6013f53d6e2c3fa14538ce8ae6bc0bd580ec328da389"
+          }
+        },
+        "status": 1,
+        "signal": null,
+        "errorCode": null,
+        "execution": {
+          "schema": 1,
+          "binary": "/home/dek02/.cache/codex/tmp/anyraid-client-regression-deps-oct10/node_modules/@typescript/typescript-linux-x64/lib/tsc",
+          "typescript": "7.0.2",
+          "nativePackage": "@typescript/typescript-linux-x64",
+          "nativeVersion": "7.0.2",
+          "platform": "linux",
+          "arch": "x64",
+          "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+          "bytes": 24101026,
+          "dev": 2053,
+          "ino": 17867826,
+          "mode": 33277,
+          "mtimeMs": 1791566762188.2415,
+          "resolverPid": 2286063,
+          "resolverGroupStopped": true,
+          "scope": "Official locked platform executable selected and bytes rechecked immediately before direct spawn; no PATH lookup or execve launcher. Pre-launch identity does not attest loaded memory or concurrent replacement.",
+          "compilerPid": 2286074,
+          "compilerGroupStopped": true
+        },
+        "cleanupComplete": true,
+        "phase": "compile",
+        "scope": "Pre-launch file digests; nativeCandidate is the installed platform candidate. Actual wrapper launch route, loaded memory, source inputs and concurrent mutation are not attested."
+      }
+    },
+    "runtimeAcceptanceReuse": {
+      "contract": "host/contracts/process-log-lifecycle-acceptance.json",
+      "reason": "Entire700file manifest and pinned dependency digests identical; all664runtimeJS unchanged, native75sources/11outputs unchanged. Original42budget/five-print results stay within old simulated scope; no repeat was needed."
+    },
+    "freeze": {
+      "files": 23,
+      "sha256": "ebd81893a126519fbdd90b52ea6477aa02e71434ff768b5b5a43356546e65411",
+      "path": "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/freeze.json",
+      "legacyRuntimeInputsMatch": true
+    }
+  },
+  "failuresRetained": [
+    {
+      "kind": "initial-sandbox-isolated-file-failures",
+      "log": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-owner-first-tests.log",
+      "tests": 3,
+      "passed": 0,
+      "failed": 3,
+      "exitCode": 1,
+      "scope": "File-level outcomes, not three completed inner test matrices."
+    },
+    {
+      "kind": "same-process-sandbox-diagnostic",
+      "log": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-owner-isolation-diagnostic.log",
+      "tests": 6,
+      "passed": 1,
+      "failed": 5,
+      "exitCode": 1,
+      "detail": "mkfifo spawnSync EPERM even with reportedstatus0; child outcomes not normalexit. Sandbox cause does not prove compiler/product cause."
+    },
+    {
+      "kind": "prior-default-execve-timeout",
+      "contract": "host/contracts/process-log-lifecycle-acceptance.json",
+      "detail": "Earlier120s timeout and interrupted regular-file orphan unchanged; no oldexecve rerun or root-cause/fix claim."
+    }
+  ],
+  "earlierScopedSuccess": {
+    "tests": 12,
+    "passed": 12,
+    "exitCode": 0,
+    "log": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-owner-granted-tests.log",
+    "scope": "Authorized local matrix before adding real CLI cancellation; final13cases run only after this test addition."
+  },
+  "designReviewCorrections": [
+    "Lock70616bytes exceeded initial uniform64KiB metadata limit; separate bounded1MiB lock introduced before accepted validation.",
+    "Normal primary exit needed owned-group residual cleanup even when descendants close their ownstdio.",
+    "Async close/group observation rejection required explicit settled cleanupComplete=false and preserved stage/lock."
+  ],
+  "reproduction": {
+    "node": "26.9+26.x Linux x64/arm64",
+    "typescript": "Locked installed TypeScript7 official platform package",
+    "typecheck": "npm --prefix host run typecheck",
+    "tests": "node --test --test-concurrency=1 host/test/typescript-owner.test.ts host/test/product-compiler-observation.test.ts host/test/product-compiler-metadata-bounds.test.ts",
+    "build": "buildProductHost(newOfflineOutput,host/tsconfig.product-host.json,verifiedPriorProduct/host/build), using existing nativeDirectory argument and validating75source/11output SHA before reuse. Success driver observes spawn with identical forwarded args/options; it does not alter launch.",
+    "note": "npm build:product-host default CLI retains fresh-native behavior, but was not fully executed in this batch. No newnative rebuild or broad runtime repetition required when fullmanifest/dependencies are identical."
+  },
+  "open": [
+    "newcandidateCI",
+    "npm-build-product-host-CLI-full-fresh-native-not-executed",
+    "ARM64-execution-not-validated",
+    "historicalexecve-cause/UI/G3/native-build-stability",
+    "completeMoonraker/Python/Jinja/msgspec/consumerMacros/SUDO",
+    "fullclient/targetboard/hardware/powerloss",
+    "taskPR-develop-master/integration/release"
+  ],
+  "evidenceSha256": {
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/build-and-identity.mjs": "2993e8a03574d5f0bd2c808b96c88d32ec61ec3e1d2ae28ebea399f4405e8655",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/build-and-identity.log": "907f51f9f67a42840b4fcd3334f94c3831807c624e5e1d0f5797bf3ec9a9efcb",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/standard-build-api-receipt.json": "5da08721708e8bb90620ed973e0ffd1107472061cc644231c9fb52dbdd1b4ed0",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/product-identity.json": "b7fba40ec60788460fe173903d1087736afbf78f11ed48fdbc540bbed94ff5e5",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/preserve-product-on-failure.mjs": "23747abeb2de2f3e26091ebecd4ce60e9ba5045e7bd8ee70647206ee0bae0c5c",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/preserve-product-on-failure.json": "d12a7e234fdb901ebc3cfee1ca6e9852ae02dd708350321dd179b384fe587dba",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/preserve-product-on-failure.log": "bb1fb26a24e1f2cf22776bfbf1d6f3b152574ac3e3b0d48048b2f42d4cd91a94",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/invalid-product.json": "1d275881425d31cc01dddb3c752da713739eef2f03d2a4b8fdd63ece0a5a1b92",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/invalid-product.ts": "fc0be1ec5780660c2afb150f93551f028b8c7110842d87420057bb2b2f204623",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/compiler-owner-final-tests.log": "8b0b193d472bb1a17131f6d44e0308e9b98eeb0aeaf2338668fc2fd0c5719b8d",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/compiler-owner-minimum-tests.log": "90f14d457d0bc90e579a86ac9664192b2972c27fa3e7b30b4f1750a15ac8d5cf",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/compiler-owner-minimum-typecheck.log": "37634a704dc42c947510a8f43cea5ffc8dc4d3da2225218f83c75bd8f940b01e",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/freeze.json": "ebd81893a126519fbdd90b52ea6477aa02e71434ff768b5b5a43356546e65411",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-owner-standard-typecheck.log": "37634a704dc42c947510a8f43cea5ffc8dc4d3da2225218f83c75bd8f940b01e",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-owner-first-tests.log": "849b2d4c210dec926b1b34d98e753348ab5ef4921eb0eb585501b736a536bc63",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-owner-isolation-diagnostic.log": "84ac99e2f0e74174ee201484e8056914dae2f019e83541f0c459f79849043d61",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-owner-granted-tests.log": "47f6075e54030f69db6b9f1da73050d7d7c0513bababee755ecfb13f2a50be28",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-native-direct-discriminator.mjs": "5e8d6fb54c6a7713e061fc182f15dceb9d2a8ba5f323d22c6402ef2f7c97ad31",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-native-direct-discriminator.json": "52e1a9f464a9266a6d7fcc6a8bfedba37a927fc967275cb33668b68a7af54b73",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-native-direct-discriminator.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/compiler-owner-oct14/commands.json": "610f50a634bed72247f533a99a436cf2ed2643026f339da227098ddebff8e711"
+  }
+}
