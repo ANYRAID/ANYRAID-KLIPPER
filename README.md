@@ -22,6 +22,15 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+原生应用新增已选定日志的两个标准下载地址：moonraker.log 与
+klippy.log，沿原身份、CORS、HTTP／HTTPS、前缀和退出所有者
+分块读取真实文件。原生进程可明确提供既有日志路径；旧 Klippy
+信息中的路径变更跟随实际连接恢复。三种方式各 498 项、最低
+Node.js26.9 的 7 项、原 42 项预算及四次同包模拟打印通过。
+原日志生产／轮转、默认路径及完整路径／文件头语义仍开放，见
+[日志下载证据](host/contracts/application-log-owner-acceptance.json)。
+前序 58282b92 十五项 CI、5183／5183 已通过，见
+[终态](host/contracts/pr68-58282b9-terminal.json)；新日志增量须自身 CI。
 原异步模板现在复用最后一份完全相同的不可变 JSON 上下文，
 每次调用的回调仍独立，整数、浮点、负零及大整数语义保持。
 新标准包 140 项、最低 Node.js 26.9 的 140 项通过；原三组

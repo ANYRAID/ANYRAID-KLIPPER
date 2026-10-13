@@ -1,6 +1,7 @@
 import {redirectArgument,safeRedirectTarget} from './redirect-target.ts';
 import {relativeRouteUrl,validateRoutePrefix} from './route-prefix.ts';
 import type {ThumbnailDownloads} from './thumbnail-download.ts';
+import {ApplicationLogFiles,applicationLogRange} from './application-log-files.ts';
 import {CorsPolicy} from './cors-policy.ts';
 import {NativePrintUploads} from './native-print-uploads.ts';
 import type {NativeConfigFiles} from './native-config-files.ts';
@@ -51,6 +52,8 @@ export interface MoonrakerNetworkOptions {
  octoprint?:{enableUfp:boolean};
  /** Explicit process config reads, separately owned from the print device. */
  configFiles?:NativeConfigFiles;
+ /** Fixed process-owned log aliases; never a caller-selected filesystem path. */
+ logs?:ApplicationLogFiles;
  authorize(method:string,params:Readonly<Record<string,Json>>,request:NetworkAuthorization):AuthorizationResult|Promise<AuthorizationResult>;
  /** Required to enable broadcasts; separate from inbound method authorization. */
  authorizeNotification?(method:string,params:readonly Json[],request:NetworkAuthorization):void|Promise<void>;
@@ -190,7 +193,7 @@ export class MoonrakerNetwork {
   const isRedirect=!!this.#options.redirect&&routed.split('?')[0]==='/server/redirect';
   const octoprint=this.#options.octoprint,isOctoUpload=!!octoprint&&routed.split('?')[0]==='/api/files/local';
   const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime,receiveUpload=nativeUploads?.captureUpload(isOctoUpload?undefined:this.#options.configFiles,isOctoUpload?{enableUfp:octoprint!.enableUfp}:undefined),nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted;
-  const url=routed,at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&(path==='/server/files/upload'||isOctoUpload),isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isWelcome||isRedirect?['GET']:isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
+  const url=routed,at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&(path==='/server/files/upload'||isOctoUpload),isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isLogDownload=this.#options.logs?.matches(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isWelcome||isRedirect?['GET']:isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isLogDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}
   const parent=new AbortController(),disconnected=()=>{if(!response.writableEnded)parent.abort(new Error('HTTP client disconnected'));};response.once('close',disconnected);
@@ -199,11 +202,11 @@ export class MoonrakerNetwork {
    let reserved=0,outputReserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
    try{
     let uploadProtocol:RequestProtocol=transportProtocol(request);
-    if(isUpload||isRedirect||isWelcome)this.#options.captureRequestMetadata?.({request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});
+    if(isUpload||isRedirect||isWelcome||isLogDownload)this.#options.captureRequestMetadata?.({request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});
     signal.throwIfAborted();const originCheck=isWelcome?{allowed:true,cors:false}:this.#origin(request,signal),originAdmission=originCheck instanceof Promise?await originCheck:originCheck;signal.throwIfAborted();
     if(!originAdmission.allowed){this.#error(response,403,'Origin not allowed');return;}
     if(request.headers.origin&&originAdmission.cors){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges, Location');}
-    if(request.method==='OPTIONS'){if(isWelcome){this.#error(response,405,'Method Not Allowed');return;}if(isRedirect&&(!this.#options.redirect!.authorizationAvailable()||!this.#options.cors||!originAdmission.cors)){this.#error(response,405,'Method Not Allowed');return;}response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, X-Access-Token, If-None-Match, Range, If-Range'});response.end();return;}
+    if(request.method==='OPTIONS'){if(isWelcome){this.#error(response,405,'Method Not Allowed');return;}if(isRedirect&&(!this.#options.redirect!.authorizationAvailable()||!this.#options.cors||!originAdmission.cors)){this.#error(response,405,'Method Not Allowed');return;}response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, X-Access-Token, If-None-Match, Range, If-Range'+(isLogDownload?', If-Modified-Since':'')});response.end();return;}
     if(!allowed.some(v=>v===request.method)){this.#error(response,405,'Method Not Allowed');return;}
     if(isRPC&&!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
     if(isRedirect&&this.#options.redirect!.authorizationAvailable()){await this.#options.authorize('access.info',{}, {request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});signal.throwIfAborted();}
@@ -244,6 +247,20 @@ export class MoonrakerNetwork {
     if(isDownload&&request.method==='DELETE'){
      if(query||body.length)throw new ApiError(400,'File deletion does not accept a query or body');
      const result=await nativeUploads!.remove({path:decodeURIComponent(path.slice('/server/files/'.length))},context);signal.throwIfAborted();response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({result}));return;
+    }
+    if(isLogDownload){
+     const budget=3*65536;if(budget>this.#maximumOutputBytes-this.#outputBytes)throw new ApiError(429,'Response buffer capacity exceeded');this.#outputBytes+=budget;outputReserved=budget;
+     await this.#options.logs!.download(path,context,async(file,downloadSignal)=>{
+      const modified=new Date(file.modifiedMs).toUTCString(),ascii=Array.from(file.name,char=>char.codePointAt(0)!>127?'?':char).join('').replace(/"/g,'\\"'),encoded=encodeURIComponent(file.name).replace(/['()*]/g,char=>'%'+char.charCodeAt(0).toString(16).toUpperCase());
+      response.setHeader('content-type','text/plain; charset=UTF-8');response.setHeader('cache-control','private, no-cache');response.setHeader('x-content-type-options','nosniff');response.setHeader('last-modified',modified);response.setHeader('accept-ranges','bytes');response.setHeader('content-disposition',`attachment; filename="${ascii}"; filename*=UTF-8''${encoded}`);
+      const since=request.headers['if-modified-since'];if(since&&Math.floor(file.modifiedMs/1000)*1000<=Date.parse(since)){response.writeHead(304);response.end();return;}
+      // Original log handler ignores If-None-Match and applies ranges to HEAD
+      // too; full-file ranges remain 200. Integer header bounds stay exact.
+      const range=applicationLogRange(request.headers.range,file.size);if(range.status===416){response.setHeader('content-range','bytes */'+file.size);response.writeHead(416);response.end();return;}
+      response.statusCode=range.status;if(range.status===206)response.setHeader('content-range',`bytes ${range.start}-${range.end-1}/${file.size}`);response.setHeader('content-length',range.end-range.start);
+      if(request.method==='HEAD'){response.end();return;}
+      await pipeline(Readable.from(file.chunks(downloadSignal,range.start,range.end),{objectMode:false,highWaterMark:65536}),response,{signal:downloadSignal});
+     });return;
     }
     if(isDownload||isConfigDownload){
      // Source copy, generator and transport each hold bounded chunks. Kernel

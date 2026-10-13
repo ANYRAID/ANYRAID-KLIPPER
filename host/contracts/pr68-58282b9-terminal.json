@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "head": "58282b9257fa27790c1a9ce760049d886e656272",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "pr": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/68",
+  "draft": true,
+  "merged": false,
+  "jobs": [
+    {
+      "id": 115162956510,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38357272719
+    },
+    {
+      "id": 115162956529,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38357272719
+    },
+    {
+      "id": 115162956558,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38357272719
+    },
+    {
+      "id": 115162956585,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38357272719
+    },
+    {
+      "id": 115162956602,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38357272719
+    },
+    {
+      "id": 115162956603,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38357272719
+    },
+    {
+      "id": 115162956626,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38357272719
+    },
+    {
+      "id": 115162956653,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38357272719
+    },
+    {
+      "id": 115162956654,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38357272719
+    },
+    {
+      "id": 115162956660,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38357272719
+    },
+    {
+      "id": 115162956223,
+      "name": "build",
+      "runId": 38357272741,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115162956331,
+      "name": "checks",
+      "runId": 38357272733,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115167567402,
+      "name": "host",
+      "runId": 38357272733,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115162956724,
+      "name": "sanitizer (asan)",
+      "runId": 38357272733,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 115162956396,
+      "name": "sanitizer (ubsan)",
+      "runId": 38357272733,
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "verification": "Motion jobs read from connector. Connector subsequently unavailable for host/build; refreshed PR showed All checks have passed/15successful at58282b9, successful row names and exact job links verified. Exact host job UI test log confirmed nodeTestObservation node26.11.1/tests5183/pass5183/fail0.",
+  "checks": {
+    "job": 115162956331,
+    "tests": 5183,
+    "passed": 5183,
+    "failed": 0,
+    "node": "26.11.1",
+    "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38357272733/job/115162956331?pr=68"
+  },
+  "scope": "Prior immutable-context head only; not following log changes, develop merge, historical UI/G3/native stability or hardware closure. Full checkout SHA was not captured in this browser fallback."
+}
