@@ -15,6 +15,7 @@ import {ProcStats,type ProcStatsSource} from './proc-stats.ts';
 import {NativeHostNotifications} from './native-host-notifications.ts';
 import {NativeRequestScope} from './native-request-scope.ts';
 import {nativePrinterState,NativePrinterInformation,type NativePrinterIdentity} from './native-printer-info.ts';
+import {ProcessLogs} from './process-logs.ts';
 import {ApplicationLogFiles,validateApplicationLogFile} from './application-log-files.ts';
 import {ProductHostControl} from '../runtime/product-host-control.ts';
 import {registerProductHostControl} from './product-host-api.ts';
@@ -114,6 +115,8 @@ const nativeGenerationNotifications=new Set(['notify_gcode_response','notify_pri
 export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'|'tls'|'redirect'|'welcome'|'logs'> {
  /** Actual application process log argument; absence disables moonraker.log. */
  applicationLogFile?:string;
+ /** Borrowed native process producer; only its factory closes it. */
+ processLogs?:ProcessLogs;
  /** Existing native printer log produced by the trusted process integration. */
  printerLogFile?:string;
  /** Process-owned announcements; requests never control remote URLs or paths. */
@@ -212,6 +215,7 @@ export class ConfiguredMoonraker {
  #ldap:LdapAuthorization|undefined;
  #templates:MoonrakerTemplateFactory|undefined;#welcome:WelcomeApplication|undefined;
  #logs:ApplicationLogFiles|undefined;
+ #processLogs:ProcessLogs|undefined;
  /** Trusted component lookup only; never serialized as resolved values. */
  get templates(){return this.#templates;}
  /** Local provisioning only; never serialized into server information. */
@@ -286,7 +290,7 @@ export class ConfiguredMoonraker {
   if(options.nativeDetached){this.maintenanceGate.invalidate();this.#nativeRetirement=Promise.resolve();this.#nativeRetirementDrained=true;this.#nativeRetiredSnapshot={group_state:'stopped',hardware_state:'stopped',print_state:'idle',homed_axes:'',closing:true,admission_closed:true,maintenance:false,mcus:[]};}
   const initialScope=this.#nativeScope;this.#nativeProcessFiles=options.nativeProcessFiles;this.#nativeProcessHistory=options.nativeProcessHistory;this.#nativeController=options.productPrint;
   const nativeHost=options.nativeHost||options.nativeDetached?()=>this.#nativeRetiredSnapshot??this.#nativeHost!():undefined;
-  this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc,(path,handler)=>this.#nativeProcessFiles&&nativeProcessFileRoutes.has(path)||this.#nativeProcessHistory&&path.startsWith('/server/history/')?handler:this.#nativeScope?.wrap(path,handler)??handler);
+  this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc,(path,handler)=>path==='/server/logs/rollover'||this.#nativeProcessFiles&&nativeProcessFileRoutes.has(path)||this.#nativeProcessHistory&&path.startsWith('/server/history/')?handler:this.#nativeScope?.wrap(path,handler)??handler);
   this.#queueGcodeUploads=reader.hasSection('file_manager')&&reader.section('file_manager').getBoolean('queue_gcode_uploads',{defaultValue:false});
   if(this.#queueGcodeUploads&&!reader.hasSection('job_queue'))throw new ConfigurationError('Upload queue requires the process job_queue component');
   if(reader.hasSection('octoprint_compat'))this.#octoprint=new OctoprintCompatibility(reader,this.#base.version,{
@@ -305,7 +309,7 @@ export class ConfiguredMoonraker {
    }
   });
   const networkOptions={...options};for(const key of ['productPrint','nativeHost','nativeObjects','nativePrinterIdentity','productPressure','productHostControl','productPrintCompatibility','maintenanceGate','nativeDetached'] as const)delete networkOptions[key];
-  this.#logs=new ApplicationLogFiles(options.applicationLogFile,()=>options.printerLogFile??options.nativePrinterIdentity?.logFile??this.#klippy?.snapshot.info.log_file);
+  this.#processLogs=options.processLogs;this.#logs=new ApplicationLogFiles(options.processLogs?.paths.moonraker??options.applicationLogFile,()=>options.processLogs?.paths.klipper??options.printerLogFile??options.nativePrinterIdentity?.logFile??this.#klippy?.snapshot.info.log_file);
   this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,logs:this.#logs,tls:configuredTls.get(reader),redirect:{authorizationAvailable:()=>this.#authorization!==undefined},welcome:{render:context=>{if(!this.#welcome)throw new ApiError(503,'Application is unavailable');return this.#welcome.render(context);}},nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections,useXheaders:this.binding.useXheaders,routePrefix:this.binding.routePrefix},this.#nativeScope?.signal);
   if(options.nativeDetached)this.#nativeScope!.retire();
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
@@ -351,9 +355,10 @@ export class ConfiguredMoonraker {
   let releaseNativeSubscribe=options.nativeObjects?this.endpoints.register({endpoint:'objects/subscribe',methods:['GET','POST'],remote:true,transports:['websocket','http']},(params,_verb,context)=>this.#subscriptions!.subscribe(params,context)):()=>{};
   let releaseObjects=options.nativeObjects?registerNativeObjects(this.endpoints,options.nativeObjects):()=>{};
   // No device lifecycle sampler exists before the first real attachment.
-  if(options.nativePrinterIdentity&&nativeHost&&!options.nativeDetached)this.#nativeLifecycle=new NativeHostNotifications(nativeHost,method=>this.#broadcastTracked(method,[],this.#klippyNotifications));
+  if(options.nativePrinterIdentity&&nativeHost&&!options.nativeDetached)this.#nativeLifecycle=new NativeHostNotifications(nativeHost,method=>{options.processLogs?.lifecycle(method);this.#broadcastTracked(method,[],this.#klippyNotifications);});
+  const releaseLogs=options.processLogs?.register(this.endpoints)??(()=>{});
   const releaseOctoprint=this.#octoprint?.register(this.endpoints)??(()=>{});
-  const nativePrinter=options.nativePrinterIdentity?new NativePrinterInformation({...options.nativePrinterIdentity,logFile:options.printerLogFile??options.nativePrinterIdentity.logFile}):undefined;
+  const nativePrinter=options.nativePrinterIdentity?new NativePrinterInformation({...options.nativePrinterIdentity,logFile:options.processLogs?.paths.klipper??options.printerLogFile??options.nativePrinterIdentity.logFile}):undefined;
   const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections,nativeHost,nativePrinter);
   const localUser=userInfo().username,localHostname=hostname();
   this.#welcome=new WelcomeApplication(configuredWelcome.get(reader)!,{templates:()=>this.#templates,authorization:()=>this.#authorization,authorize:context=>options.authorize('server.info',{},context),information:()=>readServerInformation(this.#information,true,this.#network.status.connections,nativeHost,nativePrinter),stateMessage:info=>nativePrinter&&info.native_host?nativePrinterState(info.native_host as ReturnType<typeof readNativeHostStatus>).state_message:this.#klippy?.snapshot.stateMessage??'',corsEnabled:()=>!!options.cors,announcements:()=>this.#announcements?.list().entries??[],machine:()=>{
@@ -371,7 +376,7 @@ export class ConfiguredMoonraker {
   let releaseFileChanges=(this.#nativeProcessFiles??this.#nativeUploads)?.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications))??(()=>{});
   this.#releaseFileChanges=releaseFileChanges;
   if(options.productPrint||options.nativeDetached){this.#nativeReleases.push(releaseNativeSubscribe,releaseObjects,releaseUploads,releasePrint);releaseNativeSubscribe=releaseObjects=releaseUploads=releasePrint=()=>{};if(!this.#nativeProcessFiles){this.#nativeReleases.push(releaseFileChanges);releaseFileChanges=()=>{};}if(!this.#nativeProcessHistory){this.#nativeReleases.push(releaseHistory);releaseHistory=()=>{};}}
-  this.#release=()=>{releaseOctoprint();releaseConfigChanges();releaseConfigSave();releaseConfigWriter();this.#releaseNativeBindings();releaseProcessFiles();releaseWebcams();releaseAnnouncements();releaseFileChanges();releaseHostControl();releaseNativeSubscribe();releaseObjects();releaseUploads();releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseSystem();releaseProc();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  this.#release=()=>{releaseLogs();releaseOctoprint();releaseConfigChanges();releaseConfigSave();releaseConfigWriter();this.#releaseNativeBindings();releaseProcessFiles();releaseWebcams();releaseAnnouncements();releaseFileChanges();releaseHostControl();releaseNativeSubscribe();releaseObjects();releaseUploads();releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseSystem();releaseProc();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
   if(mqttApi)this.#mqttRpc=new MqttRpc(this.rpc,this.#sensorTransport!,this.#sensorTransport!.instanceName,options.mqttAuthorize!,mqttApiQos);
   if(this.#sensorTransport){if(this.#mqttRpc)this.#sensorTransport.bindRpc(this.#mqttRpc.receive,mqttApiQos);this.#sensorTransport.enablePresence();mqttSensorOwners.add(this.#sensorTransport);}
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
@@ -415,6 +420,7 @@ export class ConfiguredMoonraker {
   if(options.onPrintStartComplete!==undefined&&typeof options.onPrintStartComplete!=='function')throw new ConfigurationError('Invalid print start observer');
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
   if(options.klippy!==undefined&&(!options.klippy||typeof options.klippy!=='object'||Array.isArray(options.klippy)))throw new ConfigurationError('Invalid Klippy configuration owner');
+  if(options.processLogs!==undefined&&(!(options.processLogs instanceof ProcessLogs)||options.processLogs.status.closed))throw new ConfigurationError('Invalid process log producer');
   validateApplicationLogFile(options.applicationLogFile);validateApplicationLogFile(options.printerLogFile);validateApplicationLogFile(options.nativePrinterIdentity?.logFile);if(options.printerLogFile!==undefined&&!options.nativePrinterIdentity)throw new ConfigurationError('Native printer log requires its printer identity owner');
   const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));configuredWelcome.set(reader,await loadWelcomeSource());
   const templates=options.templates?await MoonrakerTemplateFactory.load(reader,options.templates):undefined;
@@ -699,7 +705,7 @@ export class ConfiguredMoonraker {
     this.#startupAbort.signal.throwIfAborted();const fresh=readNativeHostStatus(host);scope.signal.throwIfAborted();
     if(gate.status.closed||gate.status.activities||gate.status.maintenance||fresh.group_state!=='ready'||fresh.hardware_state!=='ready'||fresh.closing||fresh.admission_closed||fresh.maintenance||fresh.mcus.some(m=>m.state!=='ready')||fresh.print_state!==controller.state||!['idle','interrupted'].includes(controller.state)||controller.pendingDeviceActions||controller.safeStopPending)throw new ApiError(409,'New native hardware changed during attachment');
     this.#network.replaceNativeUploads(this.#nativeProcessFiles??uploads,scope.signal);if(this.#nativeProcessFiles)this.#nativeProcessFiles.bindDeviceFiles(uploads!,scope.signal);
-    if(this.#nativeLifecycleEnabled)this.#nativeLifecycle=new NativeHostNotifications(()=>this.#nativeRetiredSnapshot??this.#nativeHost!(),method=>this.#broadcastTracked(method,[],this.#klippyNotifications));
+    if(this.#nativeLifecycleEnabled)this.#nativeLifecycle=new NativeHostNotifications(()=>this.#nativeRetiredSnapshot??this.#nativeHost!(),method=>{this.#processLogs?.lifecycle(method);this.#broadcastTracked(method,[],this.#klippyNotifications);});
     this.#nativeRetiredSnapshot=undefined;
     this.#printStateTask=this.#observePrintState(api,api.watchState(this.#startupAbort.signal));this.#nativeLifecycle?.start();
    }catch(error){

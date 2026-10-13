@@ -33,6 +33,8 @@ export interface ProductHostProfile {
 }
 export interface HostReloadContext {readonly reason:'initial'|HostReloadKind;}
 export interface ProductHostFactory {
+ configureLogging?(options:import('../moonraker/process-logs.ts').ProcessLoggingOptions):void;
+ logLifecycle?(event:import('../moonraker/process-logs.ts').ProcessLogEvent,reason?:'initial'|'restart'|'firmware_restart'|'reinitialize'):void;
  /** Process inbox diagnostics; no mutation or filesystem capability. */
  readonly diskImportStatus?:import('../moonraker/native-ufp-disk-imports.ts').NativeUfpDiskImports['status'];
  (signal:AbortSignal,context?:HostReloadContext):Promise<ProductHostProfile>;
@@ -57,6 +59,8 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
  control??=new ProductHostControl();
  signal.throwIfAborted();if(typeof factory!=='function'||typeof ready!=='function'||factory.close!==undefined&&typeof factory.close!=='function'||factory.serverLifetime!==undefined&&factory.serverLifetime!=='process'||factory.serverLifetime==='process'&&!factory.close)throw new TypeError('Invalid product host callbacks');
  if(factory.bootstrap!==undefined&&(typeof factory.bootstrap!=='function'||factory.serverLifetime!=='process')||factory.resetFirmware!==undefined&&(typeof factory.resetFirmware!=='function'||factory.serverLifetime!=='process')||listening!==undefined&&typeof listening!=='function')throw new TypeError('Invalid product process bootstrap');
+ let loggingFailed=false;
+ const log:(event:import('../moonraker/process-logs.ts').ProcessLogEvent,reason?:'initial'|'restart'|'firmware_restart'|'reinitialize')=>void=(event,reason)=>{try{factory.logLifecycle?.(event,reason);}catch{loggingFailed=true;}};
  const processLifetime=factory.serverLifetime==='process';let processServer:ConfiguredMoonraker|undefined;
  const stopped=Promise.withResolvers<void>(),abort=()=>stopped.resolve(),errors:unknown[]=[];
  let temperatureHistory:TemperatureStore|undefined;
@@ -64,8 +68,10 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
  const closeGeneration=async()=>{
   detach();detach=()=>{};const oldService=service,oldProfile=profile;service=undefined;profile=undefined;
   const failures:unknown[]=[];
+  if(oldService||oldProfile)log('device_retiring');
   if(oldService)try{await oldService.close();if(!processLifetime)temperatureHistory=oldService.server.retiredTemperatureHistory();}catch(error){failures.push(error);}
   if(oldProfile)try{await oldProfile.release();}catch(error){failures.push(error);}
+  if(oldService||oldProfile)log(failures.length?'device_failed':'device_retired');
   if(failures.length)throw new AggregateError(failures,'Product generation cleanup failed');
  };
  // Await only this request's OS submission, never the lifetime that ultimately
@@ -79,10 +85,11 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
  const reload:{reason:HostReloadContext['reason']}={reason:'initial'};
  signal.addEventListener('abort',abort,{once:true});
  try{
-  if(factory.bootstrap){const process=await factory.bootstrap(signal,control);processServer=process.server;await control.configure(process.recoveryJournal);signal.throwIfAborted();const address=await processServer.start();signal.throwIfAborted();listening?.({...address});}
+  log('bootstrap');
+  if(factory.bootstrap){const process=await factory.bootstrap(signal,control);processServer=process.server;await control.configure(process.recoveryJournal);signal.throwIfAborted();const address=await processServer.start();signal.throwIfAborted();listening?.({...address});log('listening');}
   while(!signal.aborted){
    try{
-   await factory.machineControl?.assertDeviceAvailable(signal);signal.throwIfAborted();profile=await factory(signal,{reason:reload.reason});
+   await factory.machineControl?.assertDeviceAvailable(signal);signal.throwIfAborted();log('device_loading',['initial','restart','firmware_restart','reinitialize'].includes(reload.reason)?reload.reason as 'initial'|'restart'|'firmware_restart'|'reinitialize':undefined);profile=await factory(signal,{reason:reload.reason});
    if(!profile||typeof profile.release!=='function')throw new TypeError('Machine profile must own dependency cleanup');
    // A host reload must not enter the UART bootloader/reset startup path.
    const policies=reload.reason==='restart'||reload.reason==='firmware_restart'?new Map([...profile.policies].map(([id,p])=>[id,p.transport==='uart'?{...p,leaveBootloader:false}:p])):profile.policies;
@@ -108,12 +115,13 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
     // Fence producers synchronously before yielding to any HTTP request.
     printer.maintenanceGate.invalidate();machineAction=action;if(!action)reload.reason=kind;requested=Promise.withResolvers<void>();activeRequest=requested;change.resolve();return requested.promise;
    },validate,{kinds:processLifetime?['reinitialize','restart',...factory.resetFirmware?['firmware_restart' as const]:[],...factory.machineControl?machineRecoveryKinds:[]]:['reinitialize'],generationSignal:service.server.nativeGenerationSignal});
-   ready({...service.address});errors.length=0;completion?.resolve();completion=undefined;
+   log('device_ready',['initial','restart','firmware_restart','reinitialize'].includes(reload.reason)?reload.reason as 'initial'|'restart'|'firmware_restart'|'reinitialize':undefined);ready({...service.address});errors.length=0;completion?.resolve();completion=undefined;
    await Promise.race([stopped.promise,change.promise]);
    completion=requested;activeRequest=undefined;await closeGeneration();
    if(!requested)break;
    if(machineAction){await factory.machineControl!.execute(machineAction,signal);completion?.resolve();completion=undefined;if(!await waitRetired())break;}
    }catch(error){
+    log('device_failed');
     // Startup owners aggregate their primary error with failed stop/cleanup.
     // That failure can precede transfer into `service`/`profile`; do not infer
     // safe retirement merely from the previous server's stopped snapshot.
@@ -140,6 +148,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
   if(processServer?.status.phase==='listening'&&!signal.aborted)await stopped.promise;
  }
  finally{
+  log('shutdown');
   signal.removeEventListener('abort',abort);
   try{await closeGeneration();}catch(error){if(error instanceof AggregateError)errors.push(...error.errors);else errors.push(error);}
   completion??=activeRequest;
@@ -149,5 +158,6 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
  try{await processServer?.close();}catch(error){errors.push(error);}
  try{await factory.close?.();}catch(error){errors.push(error);}
  try{await control.close();}catch(error){errors.push(error);}
+ if(loggingFailed)errors.push(new Error('Product logging callback failed'));
  if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Product host and resource cleanup failed');
 }

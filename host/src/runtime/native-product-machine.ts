@@ -1,6 +1,8 @@
+import {expandConfigurationUserPath,resolveConfigurationPath} from '../moonraker/config-path.ts';
+import {ProcessLogs,validateProcessLogging,type ProcessLoggingOptions} from '../moonraker/process-logs.ts';
 import {loadWelcomeSource} from '../moonraker/welcome-application.ts';
 import {isAbsolute,relative,resolve,sep,dirname,basename} from 'node:path';
-import {realpath} from 'node:fs/promises';
+import {realpath,mkdir} from 'node:fs/promises';
 import {PublishedPrintFiles} from '../storage/published-files.ts';
 import {NativePrintUploads,type NativeUploadOptions} from '../moonraker/native-print-uploads.ts';
 import {NativeUfpDiskImports,type NativeUfpDiskImportOptions} from '../moonraker/native-ufp-disk-imports.ts';
@@ -63,6 +65,8 @@ export interface NativeProductProcessOptions extends Omit<NativeProductMachineOp
  /** Explicit process data directory. Every process server owns one private
   * template/secrets generation; device restarts do not reload it. */
  dataPath:string;
+ /** Explicit writable producer choices; old server log files stay borrowed. */
+ logging?:ProcessLoggingOptions;
  createProcess(configuration:ProductMachineConfiguration,signal:AbortSignal):Promise<NativeProductProcessResources>;
  /** Device resources only. Returning a server would mix the two lifetimes. */
  createAdapter(configuration:ProductMachineConfiguration,signal:AbortSignal,gate:MaintenanceGate,process:Readonly<NativeMachineAdapter['server']>,reload?:HostReloadContext):Promise<Omit<NativeMachineAdapter,'server'>>;
@@ -174,6 +178,8 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  const processOptions='createProcess' in snapshot?snapshot:undefined;
  let processResources:NativeProductProcessResources|undefined,processOpening:Promise<void>|undefined,processJournal:PrintJournal|undefined,processIdentity:ProductMachineConfiguration|undefined;
  let configFiles:NativeConfigFiles|undefined;
+ let logs:ProcessLogs|undefined,logging:ProcessLoggingOptions|undefined=processOptions?.logging;
+ if(logging)validateProcessLogging(logging);
  let bootstrapping:ReturnType<NonNullable<ProductHostFactory['bootstrap']>>|undefined;
  let resources:NativeProductFileResources|undefined,pending:Promise<ProductHostProfile>|undefined,active=false,closing:Promise<void>|undefined;
  const ensureProcess=async(config:ProductMachineConfiguration,s:AbortSignal)=>{
@@ -184,6 +190,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    processResources=await processOptions!.createProcess(structuredClone(config),s);s.throwIfAborted();
    if(!processResources||typeof processResources.release!=='function')throw new TypeError('Native process resources must own cleanup');
    if(processResources.server.templates!==undefined||processResources.server.authorization?.templateSecrets!==undefined)throw new TypeError('Native process owns template and secrets configuration');
+   if('processLogs' in processResources.server)throw new TypeError('Native process owns logging');
    processResources.server={...processResources.server,templates:{dataPath:processOptions!.dataPath}};
    if(snapshot.diskImports&&typeof processResources.diskImportContext!=='function')throw new TypeError('Disk imports require the current process filesystem policy');
    if(processResources.machineControl&&(['retirement','execute','assertDeviceAvailable','close'] as const).some(key=>typeof processResources!.machineControl![key]!=='function'))throw new TypeError('Invalid native machine control capability');
@@ -191,6 +198,16 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    await loadWelcomeSource();s.throwIfAborted();
    await readTlsConfiguration(new ConfigurationReader(await loadConfiguration(config.moonrakerConfig)),processResources.server.templates?.dataPath??processResources.server.authorization?.templateSecrets?.dataPath);s.throwIfAborted();
    if(['nativeDetached','productPrint','nativeHost','nativeObjects','maintenanceGate','nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory','configFiles'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
+   if(logging?.applicationFile&&processResources.server.applicationLogFile||logging?.printerFile&&processResources.server.printerLogFile)throw new TypeError('Writable and borrowed log ownership conflict');
+   const paths={moonraker:logging?.disableFile?undefined:logging?.applicationFile??(processResources.server.applicationLogFile?undefined:resolve(processOptions!.dataPath,'logs/moonraker.log')),klipper:logging?.printerFile??(processResources.server.printerLogFile?undefined:resolve(processOptions!.dataPath,'logs/klippy.log'))};
+   const logReader=new ConfigurationReader(await loadConfiguration(config.moonrakerConfig)),legacySecrets=logReader.section('secrets').get('secrets_path',{defaultValue:null}),tlsPaths=['ssl_certificate_path','ssl_key_path'].map(key=>logReader.section('server').get(key,{defaultValue:null}));
+   const blocked=[...logReader.snapshot().files.map(file=>file.filename),processResources.server.database?.storagePaths.path,processResources.server.database?.storagePaths.backupDirectory,resolve(processOptions!.dataPath,'certs'),...tlsPaths.filter((p):p is string=>!!p).map(resolveConfigurationPath),snapshot.filesRoot,snapshot.metadataRoot,snapshot.configFiles?.root,snapshot.diskImports?.root,config.printerConfig,config.moonrakerConfig,config.journalPath,config.journalPath+'.host-recovery.sqlite',resolve(processOptions!.dataPath,'moonraker.secrets'),legacySecrets?resolve(expandConfigurationUserPath(legacySecrets)):undefined].filter((p):p is string=>!!p);
+   const physicalBlocked=await Promise.all(blocked.map(plannedPath)),selected=await Promise.all(Object.values(paths).filter((p):p is string=>!!p).map(plannedPath));
+   for(const file of selected){const directory=dirname(file);if(physicalBlocked.some(p=>overlapping(p,directory)||overlapping(directory,p)))throw new TypeError('Log directory overlaps writable or private process storage');}
+   if(selected.length===2&&selected[0]===selected[1])throw new TypeError('Application and printer logs require separate files');
+   for(const file of Object.values(paths))if(file&&dirname(file)===resolve(processOptions!.dataPath,'logs'))await mkdir(dirname(file),{recursive:true,mode:0o700});
+   logs=await ProcessLogs.open(paths,logging??{},processResources.server.information.version);s.throwIfAborted();logs.lifecycle('bootstrap');
+   processResources.server={...processResources.server,processLogs:logs};
    if(snapshot.configFiles){configFiles=await NativeConfigFiles.open(snapshot.configFiles);if(!configFiles.contains(config.printerConfig))throw new TypeError('Printer config must be inside the explicit config root');s.throwIfAborted();}
    await resources!.processFiles(snapshot.uploads);s.throwIfAborted();
    processJournal=await PrintJournal.open({path:config.journalPath,deviceId:config.deviceId});s.throwIfAborted();
@@ -221,9 +238,11 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  };
  factory.close=()=>{
   if(closing)return closing;stopped.abort(new Error('Native product factory closed'));
-  closing=(async()=>{await pending?.catch(()=>{});await bootstrapping?.catch(()=>{});const results=await Promise.allSettled([resources?.close()]);await Promise.allSettled([processOpening]);for(const close of [()=>processResources?.machineControl?.close(),()=>configFiles?.close(),()=>processJournal?.close(),()=>processResources?.release?.()])try{await close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process cleanup failed');})();return closing;
+  closing=(async()=>{await pending?.catch(()=>{});await bootstrapping?.catch(()=>{});const results=await Promise.allSettled([resources?.close()]);await Promise.allSettled([processOpening]);for(const close of [()=>processResources?.machineControl?.close(),()=>configFiles?.close(),()=>processJournal?.close(),()=>processResources?.release?.()])try{await close();}catch(error){results.push({status:'rejected',reason:error});}logs?.lifecycle('shutdown_complete');try{await logs?.close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process cleanup failed');})();return closing;
  };
  if(processOptions){
+  factory.configureLogging=value=>{if(processOpening||bootstrapping||active||closing)throw new TypeError('Log configuration requires unstarted process');validateProcessLogging(value);if(logging)throw new TypeError('CLI and profile logging owners conflict');logging={...value};};
+  factory.logLifecycle=(event,reason)=>logs?.lifecycle(event,reason);
   Object.defineProperty(factory,'serverLifetime',{value:'process',enumerable:true});
   Object.defineProperty(factory,'diskImportStatus',{get:()=>resources?.status.diskImports,enumerable:true});
   Object.defineProperty(factory,'machineControl',{get:()=>processResources?.machineControl,enumerable:true});

@@ -1,0 +1,1918 @@
+{
+  "schema": 1,
+  "status": "native-process-producer-rotation-local-simulation-validated-default-compiler-launcher-cause-open",
+  "baseHead": "ca8527ee261b8004d42d76c067152b53e1eee936",
+  "scope": "Actual native createProcess logging production/CLI/download/rotation/recovery; not full Moonraker component logging, external Klippy service control, all Python/consumer macros, hardware or release.",
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "logging": "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/loghelper.py",
+    "entrypoint": "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/server.py"
+  },
+  "sourceSha256": {
+    "host/src/moonraker/process-logs.ts": "2eef32e9ef70ac38a07e050e973a5af4c9c5c91db89627b94b173c4feb13c5f0",
+    "host/src/moonraker/process-log-worker.ts": "46d4a94dcf9e0e5c970e3fdd96c0c3744892a7149a71996b592087fe8c5066b8",
+    "host/src/moonraker/configured-server.ts": "dc6fcdbbaaff80837d931f2124c8e9ad58fb54fb102a40da124637456e676b9b",
+    "host/src/moonraker/database.ts": "1bb365f033a77f12a0bc2617ddb1a00fce2c336e7465d1c287503d6575933568",
+    "host/src/runtime/native-product-machine.ts": "7b50175ac6412a3c2b7c791b6278069d2d6695aaa9ac16fc275d9185dccaa417",
+    "host/src/runtime/product-host-cli.ts": "464c4b32665d5401b5378f42bc55203140dd1df4457cae7b6bd9f9a8f540ad35",
+    "host/src/runtime/product-host.ts": "75229ce2ab4d494c96b7de670ada1fd369e8bd5e0fcbe4bb2ccd7661fa81e771",
+    "host/test/process-logs.test.ts": "0ebad21aa4a99eba3dcc9b498372c2ed8a5ba7cdd6e79aaec394dca1eef464e8",
+    "host/test/product-host.test.ts": "43f406a9dbee0c321217a6cf8cd9bfb5279653ef3655f219ff0487147e330520",
+    "host/test/native-product-process-lifetime.test.ts": "94481645f92c8274325d3073a0d5e9507852c984335e46e8dadf39193af17f7b",
+    "host/acceptance/product-compiled-journey.test.ts": "0a42f2b1acdadea894e2593a5549825815f23d20a78b181e34791577ee6e95d3",
+    "host/bench/process-log-startup.ts": "b9fdcf8784b3691e15222b8702f8a70a58d0b0fa476e105f8fcfcbfea2efc954"
+  },
+  "behavior": {
+    "owner": "One process worker borrowed by configured server; producer survives device generations; host stops/closes physical/service/storage/control resources before factory log close. Host callback exception safely recorded only after all cleanup. PrintJournal remains authoritative and independent.",
+    "paths": "Default explicit dataPath/logs/{moonraker,klippy}.log; optional factory logging production choices; old applicationLogFile/printerLogFile readonly, dual writable/borrowed claim rejects. Private0700 uid-owned dedicated directories with existing kernel flock; physical separation from all loaded config, secrets, TLS, API/print/recovery DB and backups, uploads/metadata/disk roots before device acquisition. Final symlink/arbitrary hardlink reject.",
+    "records": "Bounded trusted lifecycle/fault/reload enums and safe public version/platform/node header only. Text or JSON lines(time,level,file,function,line0,message). Not full original component DEBUG/stack traces; no arbitrary config/request/error-cause serialization.",
+    "rotation": "Local midnight on next record, initial deadline uses actual file mtime; two YYYY-MM-DD backups. Prepare new regular0600 inode/header then link current dated backup and atomic rename over filename. Old download retains inode/initial length; new request sees complete header/file without absence window.",
+    "recovery": "Directory flock under dedicated private rotation namespace. current nlink2 accepted only if exactly one own dated regular alias matches dev/ino and uid; unlink that intermediate alias to roll back. Own.rotate-UUIDv4 only cleaned when regular/uid/nlink1/0600; unknown names untouched/abnormal staging rejects. Two exact published/link SIGKILL injection boundaries pass; no PID/mtime lock-recovery guess. Not fsync/power-loss durability or lossless unflushed diagnostics.",
+    "rpc": "POST /server/logs/rollover and RPC server.logs.rollover use original identity/prefix/HTTP(S)/CORS/abort owners; application moonraker/klipper/default both, returned rolled_over/failed. Reauthorize after queued records, before command admission; maximum2 awaiting rollovers; no OS/MCU stop/start. External Klippy/borrowed files lack writable rollover and explicitly fail.",
+    "limits": "256 queued operations,1MiB bodies,64KiB individual record; first fault code sticky, reject new writes/rotation,stderr notice, final close rejects. Startup/close10s triggers termination; join actual worker exit/fd+flock release, not guarantee absolute10s noninterruptible physical IO. Accepted filesystem calls retain ownership until join.",
+    "cli": "-l/-n/-s/-v with exact pinned env booleans y/yes/true. CLI overrides env logfile; disable before final path expansion/validation. Factory configureLogging required; CLI/profile logging ownership conflict rejects. -v currently lifecycle stderr; stdout retains ready/listening. Original complete -d/-c/-u/-g/-o CLI/component debug still open.",
+    "downloads": "Same producer paths flow through original fixed aliases and native printer.info.log_file. Existing two-download/1GiB/64KiB/auth-after-open/range/HEAD/condition/cancel/close contract retained. Full original path/header compatibility remains open."
+  },
+  "validation": {
+    "source": {
+      "tests": 541,
+      "passed": 541,
+      "durationMs": 116982.290377,
+      "log": "/home/dek02/.cache/codex/tmp/process-logs-source-matrix-corrected-oct14.log",
+      "receipt": "/home/dek02/.cache/codex/tmp/process-logs-source-matrix-corrected-oct14.json",
+      "fileCount": 38,
+      "selectorSha256": "f0dd5091fdf84c6e4b45e8ee4ac734540ab64c79cb4e7344602c3c304482ff72",
+      "scope": "Original35host/test498coverage plus3native log/CLI/lifetime test files; acceptance excluded. Wrong initial matrix remains explicit failure."
+    },
+    "incremental": {
+      "tests": 43,
+      "passed": 43,
+      "durationMs": 40474.293748
+    },
+    "faultInjection": {
+      "enospc": {
+        "result": "pass",
+        "elapsedMs": 43.369956
+      },
+      "stall": {
+        "result": "pass",
+        "elapsedMs": 10039.182456
+      },
+      "scope": "Worker actual node:fs writeSync controlled shim; same production ProcessLogs+worker, real files/fd/locks and joins; does not prove real full storage or target board. Source/driver/outputs hashed below."
+    },
+    "product": {
+      "identity": {
+        "before": {
+          "path": "/home/dek02/.cache/codex/tmp/product-host-application-log-oct13",
+          "manifestSha256": "21f780fca15f3b3399eccaf9da1dddd8afc2747dfd7951d2cff5f1874b1e882e",
+          "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+        },
+        "after": {
+          "path": "/home/dek02/.cache/codex/tmp/product-host-process-log-lifecycle-oct14",
+          "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+          "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+        },
+        "changes": [
+          "host/src/moonraker/configured-server.js",
+          "host/src/moonraker/database.js",
+          "host/src/moonraker/process-log-worker.js",
+          "host/src/moonraker/process-logs.js",
+          "host/src/runtime/native-product-machine.js",
+          "host/src/runtime/product-host-cli.js",
+          "host/src/runtime/product-host.js"
+        ],
+        "files": 700,
+        "runtimeJs": 664,
+        "nativeSources": 75,
+        "nativeOutputs": 11,
+        "scope": "Unmodified standard builder with declared compiler-child official-fallback compatibility shim; hash-verified native output reuse, independently copied pinned production dependencies. No new native compilation or successful default execve-launcher claim; no shim inside product."
+      },
+      "original": {
+        "tests": 498,
+        "passed": 498,
+        "exitCode": 0,
+        "durationMs": 73175.261645,
+        "log": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-original.log",
+        "statusReceipt": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-original.status"
+      },
+      "supplementalOriginal": {
+        "tests": 43,
+        "passed": 42,
+        "failed": 1,
+        "exitCode": 1,
+        "durationMs": 32822.296322,
+        "log": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-supplemental.log",
+        "statusReceipt": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-supplemental.status",
+        "failure": "Temporary guard new Function omitted join; actual generated CLI child had not spawned. Preserve this failed command."
+      },
+      "previouslyUnexecutedCli": {
+        "tests": 1,
+        "passed": 1,
+        "exitCode": 0,
+        "durationMs": 1882.395253,
+        "receipt": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-supplemental-cli-driver-repair1.json",
+        "log": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-supplemental-cli-driver-repair1.log",
+        "guardBeforeSha256": "bab42fba9609b077c24b2c47b2ba2e5139fa6ba55c47ba4538393d20752a0106",
+        "guardAfterSha256": "9809d3de18bc1b25711ef8615cb19d0b0903411f82f8162aa719f6a9cc539b0a"
+      },
+      "scope": "Actual standard product JS and pinned dependencies; no type stripping in product execution. Original498 plus supplemental42 and narrowly repaired unexecutedCLI1 are separate commands, not one541/541 or43/43 product run. Simulated PTY MCU/files/loopback only."
+    },
+    "compiled": {
+      "tests": 541,
+      "passed": 541,
+      "exitCode": 0,
+      "durationMs": 111226.793333,
+      "log": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiled.log",
+      "statusReceipt": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiled.status",
+      "scope": "Independent emitted JS, same original35+supplemental3 host/test selector; not one full CI run."
+    },
+    "minimumNode": {
+      "node": "26.9.0",
+      "files": 4,
+      "tests": 50,
+      "passed": 50,
+      "exitCode": 0,
+      "durationMs": 34308.939954,
+      "log": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/minimum.log",
+      "statusReceipt": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/minimum.status",
+      "scope": "Actual same standard product; selected minimum-runtime compatibility matrix, not all541 tests or hardware acceptance."
+    },
+    "budgets": {
+      "comparisons": 42,
+      "pass": true,
+      "maxRatio": 1.2625092327137057,
+      "maxAuthUs": 3.767542229999999,
+      "limits": {
+        "ratio": 1.5,
+        "authUsStrictlyBelow": 10
+      },
+      "groups": [
+        {
+          "pair": 0,
+          "maxRatio": 1.0739826148879628,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "maxRatio": 1.0813596571316844,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "maxRatio": 1.2625092327137057,
+          "pass": true
+        }
+      ],
+      "receipt": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/budgets.json",
+      "inputs": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/budget-run-inputs.json",
+      "fresh": true,
+      "retries": 0,
+      "node": "v26.10.0",
+      "comparisonsDetail": [
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "status",
+          "before": 200.89430500000003,
+          "after": 215.75699099999997,
+          "ratio": 1.0739826148879628,
+          "limit": 1.5,
+          "absoluteUs": 2.15756991,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "file",
+          "before": 311.3370319999999,
+          "after": 312.16802899999993,
+          "ratio": 1.0026691235368366,
+          "limit": 1.5,
+          "absoluteUs": 3.121680289999999,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "image",
+          "before": 363.05905899999993,
+          "after": 340.5786670000002,
+          "ratio": 0.9380806195501109,
+          "limit": 1.5,
+          "absoluteUs": 3.405786670000002,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "before": 136.33620600000017,
+          "after": 138.89978299999996,
+          "ratio": 1.0188033470727489,
+          "limit": 1.5,
+          "absoluteUs": 1.3889978299999997,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "manual/http",
+          "before": 43.18060800000012,
+          "after": 43.59192299999995,
+          "ratio": 1.0095254564271035,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "manual/ws",
+          "before": 28.910520000000133,
+          "after": 28.590854000000036,
+          "ratio": 0.98894291766457,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "manual/startup",
+          "before": 8.729545000000144,
+          "after": 8.519091000000117,
+          "ratio": 0.975891756099542,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "configured/http",
+          "before": 44.333617000000004,
+          "after": 43.92816700000003,
+          "ratio": 0.9908545697951969,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "configured/ws",
+          "before": 27.71409000000017,
+          "after": 28.441121000000066,
+          "ratio": 1.0262332625750978,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "network",
+          "route": "configured/startup",
+          "before": 14.74136499999986,
+          "after": 14.494490000000042,
+          "ratio": 0.9832529077192091,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "direct",
+          "before": {
+            "medianMs": 44.54309000000001,
+            "p95Ms": 46.061375,
+            "medianMiBPerSecond": 89.80068513432721,
+            "eventLoopMaximumMs": 2.058239
+          },
+          "after": {
+            "medianMs": 40.852626999999984,
+            "p95Ms": 41.404245999999944,
+            "medianMiBPerSecond": 97.91292001858294,
+            "eventLoopMaximumMs": 2.623487
+          },
+          "ratio": 0.9171484735342783,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "http",
+          "before": {
+            "medianMs": 63.28346099999999,
+            "p95Ms": 66.15289899999993,
+            "medianMiBPerSecond": 63.20766811410648,
+            "eventLoopMaximumMs": 3.661823
+          },
+          "after": {
+            "medianMs": 58.41742699999986,
+            "p95Ms": 63.151516000000015,
+            "medianMiBPerSecond": 68.47271791001698,
+            "eventLoopMaximumMs": 4.136959
+          },
+          "ratio": 0.9231073344740085,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "direct",
+          "before": {
+            "medianMs": 97.37853700000005,
+            "p95Ms": 125.42925300000024,
+            "medianMiBPerSecond": 164.30725386642428,
+            "eventLoopMaximumMs": 5.566463
+          },
+          "after": {
+            "medianMs": 93.45300700000007,
+            "p95Ms": 103.5038239999999,
+            "medianMiBPerSecond": 171.2090441348772,
+            "eventLoopMaximumMs": 1.950719
+          },
+          "ratio": 0.9596879341081087,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "http",
+          "before": {
+            "medianMs": 148.5427169999998,
+            "p95Ms": 159.4830979999997,
+            "medianMiBPerSecond": 107.71312335696686,
+            "eventLoopMaximumMs": 8.929279
+          },
+          "after": {
+            "medianMs": 149.5195349999999,
+            "p95Ms": 160.49593699999969,
+            "medianMiBPerSecond": 107.00942856731069,
+            "eventLoopMaximumMs": 8.724479
+          },
+          "ratio": 1.0065760073582073,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "status",
+          "before": 199.29707799999994,
+          "after": 205.78911600000004,
+          "ratio": 1.0325746772865385,
+          "limit": 1.5,
+          "absoluteUs": 2.0578911600000005,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "file",
+          "before": 310.8666370000001,
+          "after": 336.1586399999999,
+          "ratio": 1.0813596571316844,
+          "limit": 1.5,
+          "absoluteUs": 3.361586399999999,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "image",
+          "before": 366.214236,
+          "after": 342.5996829999999,
+          "ratio": 0.9355171080787801,
+          "limit": 1.5,
+          "absoluteUs": 3.425996829999999,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "before": 137.14316899999994,
+          "after": 139.954252,
+          "ratio": 1.0204974335980237,
+          "limit": 1.5,
+          "absoluteUs": 1.39954252,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "manual/http",
+          "before": 44.26603899999998,
+          "after": 41.842881000000034,
+          "ratio": 0.9452592087582098,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "manual/ws",
+          "before": 28.84068500000012,
+          "after": 27.976231999999982,
+          "ratio": 0.9700266134455497,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "manual/startup",
+          "before": 8.136273999999958,
+          "after": 8.113855000000058,
+          "ratio": 0.9972445618227828,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "configured/http",
+          "before": 44.56324300000006,
+          "after": 40.995236999999634,
+          "ratio": 0.9199338791389033,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "configured/ws",
+          "before": 28.817875000000186,
+          "after": 28.389839000000165,
+          "ratio": 0.985146857636102,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "network",
+          "route": "configured/startup",
+          "before": 14.223834000000352,
+          "after": 14.700522999999976,
+          "ratio": 1.033513397301994,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "direct",
+          "before": {
+            "medianMs": 41.01840500000003,
+            "p95Ms": 43.25663199999997,
+            "medianMiBPerSecond": 97.51719990087369,
+            "eventLoopMaximumMs": 1.830911
+          },
+          "after": {
+            "medianMs": 40.96086600000001,
+            "p95Ms": 43.507879,
+            "medianMiBPerSecond": 97.65418533875722,
+            "eventLoopMaximumMs": 1.996799
+          },
+          "ratio": 0.9985972394587255,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "http",
+          "before": {
+            "medianMs": 62.47774900000002,
+            "p95Ms": 64.64060400000017,
+            "medianMiBPerSecond": 64.02279313872205,
+            "eventLoopMaximumMs": 3.835903
+          },
+          "after": {
+            "medianMs": 61.48038499999984,
+            "p95Ms": 70.26180099999999,
+            "medianMiBPerSecond": 65.06140129083464,
+            "eventLoopMaximumMs": 2.961407
+          },
+          "ratio": 0.9840364927359951,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "direct",
+          "before": {
+            "medianMs": 95.83048700000018,
+            "p95Ms": 100.02580500000022,
+            "medianMiBPerSecond": 166.96148064028904,
+            "eventLoopMaximumMs": 3.086335
+          },
+          "after": {
+            "medianMs": 95.51489700000002,
+            "p95Ms": 136.36469100000022,
+            "medianMiBPerSecond": 167.51313672044265,
+            "eventLoopMaximumMs": 1.988607
+          },
+          "ratio": 0.9967067891452941,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "http",
+          "before": {
+            "medianMs": 144.7950619999997,
+            "p95Ms": 160.9095980000002,
+            "medianMiBPerSecond": 110.50100589756323,
+            "eventLoopMaximumMs": 6.750207
+          },
+          "after": {
+            "medianMs": 147.77656800000022,
+            "p95Ms": 154.11727400000018,
+            "medianMiBPerSecond": 108.27156305321678,
+            "eventLoopMaximumMs": 7.532543
+          },
+          "ratio": 1.020591213255605,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "status",
+          "before": 192.4300350000001,
+          "after": 208.61082199999998,
+          "ratio": 1.084086598019898,
+          "limit": 1.5,
+          "absoluteUs": 2.08610822,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "file",
+          "before": 308.6574149999999,
+          "after": 323.81973900000025,
+          "ratio": 1.0491234723779448,
+          "limit": 1.5,
+          "absoluteUs": 3.2381973900000025,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "image",
+          "before": 374.7071269999997,
+          "after": 376.7542229999999,
+          "ratio": 1.0054631893884427,
+          "limit": 1.5,
+          "absoluteUs": 3.767542229999999,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "auth",
+          "route": "anonymous-image",
+          "before": 136.24880899999994,
+          "after": 143.94113800000002,
+          "ratio": 1.0564579540654928,
+          "limit": 1.5,
+          "absoluteUs": 1.4394113800000001,
+          "maximumUs": 10,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "manual/http",
+          "before": 46.146478000000116,
+          "after": 39.66557999999998,
+          "ratio": 0.8595581227239028,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "manual/ws",
+          "before": 29.320811999999933,
+          "after": 26.91537100000005,
+          "ratio": 0.917961310212013,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "manual/startup",
+          "before": 13.727476000000024,
+          "after": 9.434044000000085,
+          "ratio": 0.6872380618257915,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "configured/http",
+          "before": 45.11283000000003,
+          "after": 39.969794999999976,
+          "ratio": 0.8859961789140683,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "configured/ws",
+          "before": 28.850683000000117,
+          "after": 28.444685000000163,
+          "ratio": 0.9859276121816613,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "network",
+          "route": "configured/startup",
+          "before": 19.314527,
+          "after": 17.405494999999974,
+          "ratio": 0.9011608205574992,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "direct",
+          "before": {
+            "medianMs": 45.510716999999886,
+            "p95Ms": 52.00863400000003,
+            "medianMiBPerSecond": 87.89138611022125,
+            "eventLoopMaximumMs": 2.705407
+          },
+          "after": {
+            "medianMs": 42.38579400000003,
+            "p95Ms": 59.827240000000074,
+            "medianMiBPerSecond": 94.37124145887174,
+            "eventLoopMaximumMs": 2.715647
+          },
+          "ratio": 0.9313365465105755,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "uploads",
+          "size": 4194304,
+          "mode": "http",
+          "before": {
+            "medianMs": 68.0887479999999,
+            "p95Ms": 107.29586199999994,
+            "medianMiBPerSecond": 58.74685785087436,
+            "eventLoopMaximumMs": 4.077567
+          },
+          "after": {
+            "medianMs": 65.51102199999991,
+            "p95Ms": 100.50035600000001,
+            "medianMiBPerSecond": 61.05842769480845,
+            "eventLoopMaximumMs": 11.198463
+          },
+          "ratio": 0.9621416742748745,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "direct",
+          "before": {
+            "medianMs": 100.11547300000029,
+            "p95Ms": 165.23825099999976,
+            "medianMiBPerSecond": 159.81545629814838,
+            "eventLoopMaximumMs": 10.911743
+          },
+          "after": {
+            "medianMs": 126.3967090000001,
+            "p95Ms": 246.95929100000012,
+            "medianMiBPerSecond": 126.58557431269817,
+            "eventLoopMaximumMs": 16.408575
+          },
+          "ratio": 1.2625092327137057,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "kind": "uploads",
+          "size": 16777216,
+          "mode": "http",
+          "before": {
+            "medianMs": 157.75030900000002,
+            "p95Ms": 189.73154300000078,
+            "medianMiBPerSecond": 101.42610877548265,
+            "eventLoopMaximumMs": 11.010047
+          },
+          "after": {
+            "medianMs": 163.20887200000016,
+            "p95Ms": 198.93018399999983,
+            "medianMiBPerSecond": 98.03388629510279,
+            "eventLoopMaximumMs": 10.936319
+          },
+          "ratio": 1.03460255028724,
+          "limit": 1.5,
+          "pass": true
+        }
+      ],
+      "inputIdentityAndDriverHashes": {
+        "schema": 1,
+        "scope": "Fresh original42 budgets; no automatic retry/reuse. Same original workloads/thresholds. Inputs recorded before serial execution; failures preserved and reported.",
+        "node": "v26.10.0",
+        "NODE_OPTIONS": null,
+        "identity": {
+          "before": {
+            "path": "/home/dek02/.cache/codex/tmp/product-host-application-log-oct13",
+            "manifestSha256": "21f780fca15f3b3399eccaf9da1dddd8afc2747dfd7951d2cff5f1874b1e882e",
+            "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+          },
+          "after": {
+            "path": "/home/dek02/.cache/codex/tmp/product-host-process-log-lifecycle-oct14",
+            "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+            "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+          },
+          "changes": [
+            "host/src/moonraker/configured-server.js",
+            "host/src/moonraker/database.js",
+            "host/src/moonraker/process-log-worker.js",
+            "host/src/moonraker/process-logs.js",
+            "host/src/runtime/native-product-machine.js",
+            "host/src/runtime/product-host-cli.js",
+            "host/src/runtime/product-host.js"
+          ],
+          "files": 700,
+          "runtimeJs": 664,
+          "nativeSources": 75,
+          "nativeOutputs": 11,
+          "scope": "Unmodified standard builder with declared compiler-child official-fallback compatibility shim; hash-verified native output reuse, independently copied pinned production dependencies. No new native compilation or successful default execve-launcher claim; no shim inside product."
+        },
+        "drivers": {
+          "auth-after.mjs": "3211a192cbc1cb12a4bc55d4fe9184dbd0797ea53a8448d7e4cf8aedf9f7f43e",
+          "auth-before.mjs": "30cd9f70330057dd247ce40ed038a5f243ab55e208ba727b29751bbd1389ae48",
+          "network-after.mjs": "d57f9bcdf157dddf67c75d822b6e46a0149e8f393dc1c67c0f6e03ff9b87fd6b",
+          "network-before.mjs": "c09042dcadfebe94402c9aa43cc9fb4f3b14834ff8fe547f66bf802b1961b2e8",
+          "uploads-after.mjs": "c555ea6a33cce28228288136954c7f9127b0adb4fd5abf2379e4c53189d647e0",
+          "uploads-before.mjs": "fb1c654c14dd522bf03bda1f3b41519c8401d745db3b6e9ab7ac602dac61b9e4"
+        },
+        "runnerSha256": "348beee2d0f67b0503a0ef6b9e61da10fb0dadf62a4c2d974e2e8dd10d1700eb",
+        "runnerBeforeRepairSha256": "575ee7865a0daf961f79a73f04ac67b29609997b3e5573f0169bfa76c3b9906a",
+        "freezeSha256": "ea2362e1e3c35fe73b2f9a4dd7930e75ea5879259e5c9a52da23ecf3e761ebf6",
+        "initialBenchEntries": [
+          "auth-after.mjs",
+          "auth-before.mjs",
+          "network-after.mjs",
+          "network-before.mjs",
+          "uploads-after.mjs",
+          "uploads-before.mjs"
+        ],
+        "at": "2026-10-13T17:49:06.791Z"
+      },
+      "scope": "Original42 fixed workloads, fresh serial AB/BA/AB. No retries or success reuse; local loopback/product software performance only."
+    },
+    "prints": {
+      "scenes": [
+        {
+          "schema": 1,
+          "name": "original-mixed",
+          "status": {
+            "status": 0,
+            "signal": null
+          },
+          "durationMs": 59305.018022,
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "originalMoves": 1000,
+          "identity": {
+            "path": "/home/dek02/.cache/codex/tmp/product-host-process-log-lifecycle-oct14",
+            "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+            "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+          },
+          "statusP99Ms": 3.4159060000001773,
+          "minimumStepLeadMs": 86.649,
+          "statusRequests": 32006,
+          "wireCommands": 219,
+          "wireSteps": 7296,
+          "phaseP99Ms": 3.898064000000886,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.961983,
+                "maxMs": 19.464191
+              },
+              "cpu": {
+                "user": 10651419,
+                "system": 1830712
+              },
+              "rss": 387518464
+            },
+            {
+              "loop": {
+                "p99Ms": 1.925119,
+                "maxMs": 23.085055
+              },
+              "cpu": {
+                "user": 6568188,
+                "system": 1366722
+              },
+              "rss": 436895744
+            }
+          ],
+          "faultInjected": "adc",
+          "logSha256": "b01ddc2a62eae1f7ab7b7085dd193e6c0fd5ac1542f4c87c95ad0e8566579fe2"
+        },
+        {
+          "schema": 1,
+          "name": "tls-mixed",
+          "status": {
+            "status": 0,
+            "signal": null
+          },
+          "durationMs": 66122.896551,
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "originalMoves": 1000,
+          "identity": {
+            "path": "/home/dek02/.cache/codex/tmp/product-host-process-log-lifecycle-oct14",
+            "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+            "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+          },
+          "statusP99Ms": 5.477339000000029,
+          "minimumStepLeadMs": 88.179,
+          "statusRequests": 35969,
+          "wireCommands": 234,
+          "wireSteps": 7512,
+          "phaseP99Ms": 8.058919000002788,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.957887,
+                "maxMs": 19.464191
+              },
+              "cpu": {
+                "user": 13127466,
+                "system": 2172826
+              },
+              "rss": 383586304
+            },
+            {
+              "loop": {
+                "p99Ms": 1.937407,
+                "maxMs": 25.395199
+              },
+              "cpu": {
+                "user": 7570612,
+                "system": 1535148
+              },
+              "rss": 400392192
+            }
+          ],
+          "faultInjected": "adc",
+          "logSha256": "9587b6ce537589bf42a20df102453e6664325a9da95b5ea74a23a56c5125c3c1"
+        },
+        {
+          "schema": 1,
+          "name": "welcome-mixed",
+          "status": {
+            "status": 0,
+            "signal": null
+          },
+          "durationMs": 60537.085258,
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "originalMoves": 1000,
+          "identity": {
+            "path": "/home/dek02/.cache/codex/tmp/product-host-process-log-lifecycle-oct14",
+            "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+            "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+          },
+          "statusP99Ms": 5.219022999999652,
+          "minimumStepLeadMs": 86.926,
+          "statusRequests": 32091,
+          "wireCommands": 233,
+          "wireSteps": 7486,
+          "phaseP99Ms": 6.380192000000534,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.976319,
+                "maxMs": 19.480575
+              },
+              "cpu": {
+                "user": 12075672,
+                "system": 1909715
+              },
+              "rss": 375427072
+            },
+            {
+              "loop": {
+                "p99Ms": 1.935359,
+                "maxMs": 22.003711
+              },
+              "cpu": {
+                "user": 7916279,
+                "system": 1507998
+              },
+              "rss": 452718592
+            }
+          ],
+          "faultInjected": "adc",
+          "completeWelcomeLoad": {
+            "requests": 2225,
+            "medianMs": 1.1382379999995464,
+            "p99Ms": 10.505267000000458,
+            "fullPinnedTemplate": true,
+            "originalWorkloadAndBudgetsUnchanged": true
+          },
+          "logSha256": "d839693c31cd19a1c409a1480fa14875684ff711242d585f65ddbd91b51246f1"
+        },
+        {
+          "schema": 1,
+          "name": "logs-mixed",
+          "status": {
+            "status": 0,
+            "signal": null
+          },
+          "durationMs": 60857.955315,
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "originalMoves": 1000,
+          "identity": {
+            "path": "/home/dek02/.cache/codex/tmp/product-host-process-log-lifecycle-oct14",
+            "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+            "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+          },
+          "statusP99Ms": 4.643194000000221,
+          "minimumStepLeadMs": 86.296,
+          "statusRequests": 32427,
+          "wireCommands": 210,
+          "wireSteps": 6880,
+          "phaseP99Ms": 4.538872000000993,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.991679,
+                "maxMs": 19.251199
+              },
+              "cpu": {
+                "user": 12969337,
+                "system": 2097299
+              },
+              "rss": 378597376
+            },
+            {
+              "loop": {
+                "p99Ms": 2.035711,
+                "maxMs": 18.169855
+              },
+              "cpu": {
+                "user": 8472718,
+                "system": 1530555
+              },
+              "rss": 437096448
+            }
+          ],
+          "faultInjected": "adc",
+          "completeLogLoad": {
+            "requests": 1866,
+            "bytesPerRequest": 262144,
+            "medianMs": 1.7105369999990216,
+            "p99Ms": 11.44821100000263,
+            "actualBothProcessOwnedFiles": true,
+            "originalWorkloadAndBudgetsUnchanged": true
+          },
+          "completeWelcomeLoad": {
+            "requests": 2251,
+            "medianMs": 1.1333280000035302,
+            "p99Ms": 10.538248000000749,
+            "fullPinnedTemplate": true,
+            "originalWorkloadAndBudgetsUnchanged": true
+          },
+          "logSha256": "a0f765d8dbd68e88f865cf757bf6ec04a89e83472499fd98dfdbc3e90c446c2b"
+        },
+        {
+          "schema": 1,
+          "name": "produced-logs-mixed",
+          "status": {
+            "status": 0,
+            "signal": null
+          },
+          "durationMs": 63645.613847,
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "originalMoves": 1000,
+          "identity": {
+            "path": "/home/dek02/.cache/codex/tmp/product-host-process-log-lifecycle-oct14",
+            "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+            "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+          },
+          "statusP99Ms": 7.659391000001051,
+          "minimumStepLeadMs": 85.806,
+          "statusRequests": 34142,
+          "wireCommands": 230,
+          "wireSteps": 7414,
+          "phaseP99Ms": 9.207414999998946,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.995775,
+                "maxMs": 19.480575
+              },
+              "cpu": {
+                "user": 13537627,
+                "system": 2039323
+              },
+              "rss": 402702336
+            },
+            {
+              "loop": {
+                "p99Ms": 1.950719,
+                "maxMs": 21.200895
+              },
+              "cpu": {
+                "user": 8125526,
+                "system": 1501471
+              },
+              "rss": 433467392
+            }
+          ],
+          "faultInjected": "adc",
+          "producedLogLoad": {
+            "requests": 1981,
+            "actualNativeWorkerFiles": true,
+            "printingRollovers": [
+              {
+                "application": "moonraker",
+                "generation": 1,
+                "durationMs": 1.3730219999997644
+              },
+              {
+                "application": "klipper",
+                "generation": 1,
+                "durationMs": 0.8967439999996714
+              },
+              {
+                "application": "klipper",
+                "generation": 2,
+                "durationMs": 1.0323560000033467
+              },
+              {
+                "application": "moonraker",
+                "generation": 2,
+                "durationMs": 0.8692540000047302
+              }
+            ],
+            "medianMs": 1.1882589999986521,
+            "p99Ms": 11.484219999998459,
+            "originalWorkloadAndBudgetsUnchanged": true
+          },
+          "completeWelcomeLoad": {
+            "requests": 2370,
+            "medianMs": 1.1211680000014894,
+            "p99Ms": 10.592336999998224,
+            "fullPinnedTemplate": true,
+            "originalWorkloadAndBudgetsUnchanged": true
+          },
+          "logSha256": "4dd550901cf75d167036a0e7b2f5fdf4a7156842c37e97894e457c580a28ece3"
+        }
+      ],
+      "scope": "All five sequential complete simulated MCU scenes use same standard bundle. Original1000moves, file/API concurrency, two generations/rebuild, ADC fault and exit/assertion budgets unchanged. First four original HTTP,HTTPS+Unicode prefix,welcome,256KiB readonly logs; fifth actual native log production/download and four printing rollovers. Not hardware, consumer macros or complete Moonraker acceptance."
+    },
+    "processStartup": {
+      "status": 0,
+      "node": "v26.10.0",
+      "packages": [
+        "/home/dek02/.cache/codex/tmp/product-host-application-log-oct13",
+        "/home/dek02/.cache/codex/tmp/product-host-process-log-lifecycle-oct14"
+      ],
+      "warmup": 3,
+      "samples": 11,
+      "startupsPerVariant": 14,
+      "alternating": true,
+      "observations": [
+        {
+          "run": 0,
+          "variant": 0,
+          "ms": 376.652281
+        },
+        {
+          "run": 0,
+          "variant": 1,
+          "ms": 363.69761900000015
+        },
+        {
+          "run": 1,
+          "variant": 1,
+          "ms": 343.2773480000001
+        },
+        {
+          "run": 1,
+          "variant": 0,
+          "ms": 266.97312599999987
+        },
+        {
+          "run": 2,
+          "variant": 0,
+          "ms": 344.19176300000004
+        },
+        {
+          "run": 2,
+          "variant": 1,
+          "ms": 363.9713630000001
+        },
+        {
+          "run": 3,
+          "variant": 1,
+          "ms": 353.887784
+        },
+        {
+          "run": 3,
+          "variant": 0,
+          "ms": 336.227167
+        },
+        {
+          "run": 4,
+          "variant": 0,
+          "ms": 336.8487180000002
+        },
+        {
+          "run": 4,
+          "variant": 1,
+          "ms": 349.7385690000001
+        },
+        {
+          "run": 5,
+          "variant": 1,
+          "ms": 355.7984440000005
+        },
+        {
+          "run": 5,
+          "variant": 0,
+          "ms": 342.5915960000002
+        },
+        {
+          "run": 6,
+          "variant": 0,
+          "ms": 329.81558700000005
+        },
+        {
+          "run": 6,
+          "variant": 1,
+          "ms": 354.8443580000003
+        },
+        {
+          "run": 7,
+          "variant": 1,
+          "ms": 350.3399669999999
+        },
+        {
+          "run": 7,
+          "variant": 0,
+          "ms": 346.2516029999997
+        },
+        {
+          "run": 8,
+          "variant": 0,
+          "ms": 335.79529999999977
+        },
+        {
+          "run": 8,
+          "variant": 1,
+          "ms": 364.2697640000006
+        },
+        {
+          "run": 9,
+          "variant": 1,
+          "ms": 366.5121799999997
+        },
+        {
+          "run": 9,
+          "variant": 0,
+          "ms": 335.413004
+        },
+        {
+          "run": 10,
+          "variant": 0,
+          "ms": 327.8036239999992
+        },
+        {
+          "run": 10,
+          "variant": 1,
+          "ms": 292.001174
+        },
+        {
+          "run": 11,
+          "variant": 1,
+          "ms": 356.354949999999
+        },
+        {
+          "run": 11,
+          "variant": 0,
+          "ms": 348.1765610000002
+        },
+        {
+          "run": 12,
+          "variant": 0,
+          "ms": 335.631566
+        },
+        {
+          "run": 12,
+          "variant": 1,
+          "ms": 354.81840699999884
+        },
+        {
+          "run": 13,
+          "variant": 1,
+          "ms": 370.4488990000009
+        },
+        {
+          "run": 13,
+          "variant": 0,
+          "ms": 337.71001799999976
+        }
+      ],
+      "results": [
+        {
+          "rawMs": [
+            336.227167,
+            336.8487180000002,
+            342.5915960000002,
+            329.81558700000005,
+            346.2516029999997,
+            335.79529999999977,
+            335.413004,
+            327.8036239999992,
+            348.1765610000002,
+            335.631566,
+            337.71001799999976
+          ],
+          "medianMs": 336.227167,
+          "p95Ms": 348.1765610000002
+        },
+        {
+          "rawMs": [
+            353.887784,
+            349.7385690000001,
+            355.7984440000005,
+            354.8443580000003,
+            350.3399669999999,
+            364.2697640000006,
+            366.5121799999997,
+            292.001174,
+            356.354949999999,
+            354.81840699999884,
+            370.4488990000009
+          ],
+          "medianMs": 354.8443580000003,
+          "p95Ms": 370.4488990000009
+        }
+      ],
+      "ratio": 1.0553708707303842,
+      "maximumRatio": 1.5,
+      "scope": "Standard native process factory bootstrap, files/authorization/journals/templates/config, recovery control and actual HTTP listener. Module imports and fixture preparation excluded. Cleanup outside timing; logger worker creation and headers included. No device factory acquisition or full hardware ready; no real hardware.",
+      "receipt": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/startup-receipt.json"
+    },
+    "typecheck": {
+      "priorDirectShell": {
+        "receipt": "/home/dek02/.cache/codex/tmp/process-logs-direct-typecheck-receipt-oct14.json",
+        "session": 24342,
+        "exitCode": 0,
+        "scope": "Prior direct command, regular-file stdout/stderr, default sandbox; not current frozen product build. Captured empty output is not the evidence alone; wait_stdin exit0 confirmed."
+      },
+      "defaultLauncherFailure": "Blocked: verifier spawnSync native TypeScript7 held futex/pipe until120s, ETIMEDOUT withSIGKILL; controlled exact PID terminated to join driver; no emit/new product. Root cause unconfirmed; do not equate prior shell0 with current successful build.",
+      "directNative": {
+        "typecheckExitCode": 0,
+        "typecheckStatus": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-typecheck.status",
+        "emitExitCode": 0,
+        "emitStatus": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-emit.status",
+        "scope": "Full strict typecheck directly invoking fixed native TypeScript7 compiler, then independent emit; not the default Node execve launcher. Frozen12source hashes verified before/after."
+      },
+      "officialFallback": {
+        "schema": 1,
+        "scope": "Single full strict typecheck via unchanged official TypeScript7 Node launcher, with child-only temporary preload disabling process.execve to select its built-in execFileSync fallback. Earlier default-launcher failures retained; no root-cause conclusion.",
+        "command": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+        "args": [
+          "--import",
+          "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-fallback-only.mjs",
+          "host/node_modules/typescript/bin/tsc",
+          "-p",
+          "host/tsconfig.json"
+        ],
+        "timeoutMs": 120000,
+        "nodeSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+        "preloadSha256": "ea1a4dd4752bdd737c8a713814d4fe2213cfc2a47dc4374f3d401527257b6c90",
+        "launcherSha256": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd",
+        "wrapperSha256": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e",
+        "nativeSha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+        "configSha256": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1",
+        "freezeSha256": "ea2362e1e3c35fe73b2f9a4dd7930e75ea5879259e5c9a52da23ecf3e761ebf6",
+        "result": {
+          "status": 0,
+          "signal": null,
+          "stdout": "",
+          "stderr": "",
+          "pid": 2254962,
+          "groupId": 2254962,
+          "elapsedMs": 3186.511844,
+          "actions": []
+        }
+      },
+      "currentBuild": {
+        "exitCode": 0,
+        "compilerLaunch": {
+          "schema": 1,
+          "scope": "Unmodified standard builder compiler invocation, only exact private compiler child receives execve-disabled official fallback. Original 60s timeout and parameters retained; product has no shim dependency.",
+          "command": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+          "originalArgs": [
+            "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/node_modules/typescript/bin/tsc",
+            "-p",
+            "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/tsconfig.product-host.json",
+            "--outDir",
+            "/home/dek02/.cache/codex/tmp/.product-build-ADg5TH"
+          ],
+          "effectiveArgs": [
+            "--import",
+            "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-fallback-only.mjs",
+            "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/node_modules/typescript/bin/tsc",
+            "-p",
+            "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/tsconfig.product-host.json",
+            "--outDir",
+            "/home/dek02/.cache/codex/tmp/.product-build-ADg5TH"
+          ],
+          "timeoutMs": 60000,
+          "preloadSha256": "ea1a4dd4752bdd737c8a713814d4fe2213cfc2a47dc4374f3d401527257b6c90",
+          "nativeSha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+          "status": 0,
+          "signal": null,
+          "elapsedMs": 1461.937134,
+          "stdout": "",
+          "stderr": ""
+        },
+        "postBuildInputs": {
+          "schema": 1,
+          "scope": "Post-build input fingerprints. Build had completed when parent requested explicit fixed-shim assertion; compiler launch receipt already captured actual preload SHA, now checked against fixed expected hash. No claim these extra fingerprints were captured prelaunch.",
+          "node": "v26.10.0",
+          "NODE_OPTIONS": null,
+          "shimSha256": "ea1a4dd4752bdd737c8a713814d4fe2213cfc2a47dc4374f3d401527257b6c90",
+          "files": {
+            "host/scripts/build-product-host.ts": "45973c5a38056309e8eb00728956fd618c60852961e04c7610d0cd160b8cc1a5",
+            "host/scripts/product-compiler-observation.ts": "cb203054e07e5cdd55205cec4c75a9435b6acaae2974d9628a72e4f2d2a11526",
+            "host/tsconfig.product-host.json": "a77a908a5d2ae1afaf188ab28ef728954f157182e90eaf6c132bac68729f3c3e",
+            "host/tsconfig.json": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1",
+            "host/node_modules/typescript/bin/tsc": "2219f428a7e55aaf1f7ad85b9b0f0cf5078aeb76ccc9a7c6036c92d48f492ffd",
+            "host/node_modules/typescript/lib/tsc.js": "cbdfbf11c26ed00dfc073155e316a42d6d6d8a387be61006b82fa9aa93ac572e",
+            "host/node_modules/typescript/lib/getExePath.js": "96c10fd3a18e165d7323de8e314ac8d755ad96811f9fbc304a5b3ba4e05285cc"
+          },
+          "at": "2026-10-13T17:41:53.432Z"
+        },
+        "scope": "Standard builder source unchanged; only exact private compiler child receives --import compiler-fallback-only.mjs to disable process.execve and select official execFileSync fallback. Product contains no shim. Fixed shim hash assertion added after successful build; actual launch receipt already recorded identical hash and post-build inputs now checked. No default-launcher root-cause/fix or new native compilation claim."
+      }
+    },
+    "finalVerification": {
+      "receipt": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/final-summary.json",
+      "sha256": "27b8750d2a324a698aabc43b00683d044c7d164cfbd20065596fb700d43c8ccb",
+      "index": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/evidence-index.json",
+      "indexSha256": "815472600affdcf42e8b04853ca5b00e0b669d519ce1cd13e1494e07b99dbe1a",
+      "indexedEvidenceCount": 204,
+      "frozenFilesMatch": true,
+      "all38SourceTestHashesMatch": true,
+      "compiledAndProductTestJsHashesMatch": true,
+      "bothActualBundleIdentitiesMatch": true,
+      "runtimeJsAll664MatchIndependentEmit": true,
+      "scope": "Read-only final input/output identity checks, not an extra functionality test or new CI run.",
+      "sourceTestSha256": {
+        "host/test/trusted-proxy-network.test.ts": "ca877a7e5ebf70208491612b964bebe8ccc93f3b90c4f044f5e815115f993404",
+        "host/test/trusted-domains-network.test.ts": "39c503c2f3a84f8592cadf1223ea069427b459214b88672ff75b7f31c8964802",
+        "host/test/authorization-policy-network.test.ts": "b3ef5b5042a5b328f1c4831e0ce59ca5bd3d81e8abbe015dafcab1a11478435e",
+        "host/test/api-key-authorization.test.ts": "6729d7fe9cf7ef8dae9ffca70064329b139018e94b73c21430f9c841516d416e",
+        "host/test/configured-server.test.ts": "a40836ab98fb3b567d4512f41cb0f30b5c134cb1c539f3bffec6b0150824b44d",
+        "host/test/authorization-config.test.ts": "2783dba954184bbb392aaecffe9db17ab6a0dc9693bb8a7bf45f8c309a11fb63",
+        "host/test/authorization-identity.test.ts": "87ef825d42d6ffedeeeaa39e094231a9dbca829ea1a60b21327063490c12062f",
+        "host/test/authorization-events.test.ts": "11752bb3f2e99d693384a7d6990648ecb3cf0525ff333a0ecfae3d9fa08bdf6d",
+        "host/test/trusted-clients-network.test.ts": "036f3a61f0ebfe4a136934ac4b9449493214958b15daff7b5704fb4cf3ce1090",
+        "host/test/trusted-clients.test.ts": "2d35475ba704996d7f8d6eb52341291cde25a97da9cf0650fd2220b64592412b",
+        "host/test/proxy-protocol-upload.test.ts": "f29b8a4d27236ca6e9535c99178fec7c979c8ce239c7e328095045d58fc7a137",
+        "host/test/native-print-uploads.test.ts": "4b8c09f1ba1ff20825ab0530f665552409757a3d4868aac5f88e6ce71715525e",
+        "host/test/octoprint-compat.test.ts": "72163444b184effe31eb768f2aa6eaf63915fc5107b08aa012563b037f7b9bdc",
+        "host/test/product-native-authorization.test.ts": "baae66a45f525c5a8905950110f23e781e4dc6f8c4094323fb232f033558edf9",
+        "host/test/route-prefix.test.ts": "34eabbbd1718c362bfa3c6f181e792d551629274dba0b02d432c64aaa7c036c5",
+        "host/test/product-client-gateway.test.ts": "3e01fbac5e1f6e30eaeae755e73956327cf7e05d5bb95703e4dbc9f6b9c339a0",
+        "host/test/direct-tls-network.test.ts": "a14a8d3d773c0fd9d176c60714cb72a4b6e0746d73570694c3018d96ab44b639",
+        "host/test/moonraker-network.test.ts": "73607779b1b97531ece4caf18f88b03bb92b3cd4b67c266d563d8bc7b8869a46",
+        "host/test/product-service.test.ts": "77e97e87de17066b60fb241bfbdb5057cba7f7fe0f2410967d40d1c83ee705be",
+        "host/test/application-redirect.test.ts": "86d61dd5ef474e0e9dae64d376b7b9a5c7bd1b8d2d49eec9b2d2eefcc74196b0",
+        "host/test/cors-policy.test.ts": "6b8e84a328893b3ebc5ae1dab27e572c07f4c7a055a1ad08d3f5ed6b2ba0c681",
+        "host/test/configured-cors.test.ts": "d8b3a4eb983eabdd2c8c188bbe1eb1b3fb7a8f067094fb74b0289f154be4d232",
+        "host/test/cors-trusted-domain-owner.test.ts": "1c2a6405b6a0eede856904a97bdfd4e386aa3729d3a49a0f5d8d7b4c14a710cb",
+        "host/test/application-welcome.test.ts": "b9029125b7c5073ba3cc1031737ab83d46514af900ec43e7d35a3eb2f220d402",
+        "host/test/template-factory.test.ts": "e9c2c8b43f107b76b2aa5eaa1fc07334ece637dfe5df55e693697ed9eab7fac7",
+        "host/test/template-async.test.ts": "94c12b8aef06cf5e10e4f43348f1c656510cec5fac038b1740189ef3d020fdb8",
+        "host/test/template-sync.test.ts": "83132efa0400936b301a2beb1a1ebf0d21c466195c7b57178ca11e0c5eee93fe",
+        "host/test/template-sync-functions.test.ts": "d279497559c73d7fd3fb4aa01107f0fc4798b69446daf97e2e97d947e9bc47e5",
+        "host/test/template-numbers.test.ts": "4ed197d8b7fc9fd678be75f638038b8f19d57fb9e94712acdcd48b282a28614a",
+        "host/test/template-message-metadata.test.ts": "e2817194332ac2c11945d3556072b3ab2370c51b91096f47c0b32955d51ef36e",
+        "host/test/announcements-network.test.ts": "f79cb29762ed9f59c362555aefe08259794d945cce99a7e488890902256af0f1",
+        "host/test/system-information.test.ts": "312b20cdf3b702c080917877174e9ef22a686b0414529661b443493aae0b9754",
+        "host/test/configured-system-services.test.ts": "c5290751e00cee65d12cf4899158616d40bb3c7a39e230b33de490d3e96a6db7",
+        "host/test/moonraker-metadata.test.ts": "fdbdd4ec723eddb5a4b8c30ffc6fe3eacfb674809f0cd1b96c97a4601e083ff1",
+        "host/test/application-log-files.test.ts": "36cc87700388be89ac4b903f12f448fc9b6ec2dc5313958a20d6108b0e4d30a8",
+        "host/test/process-logs.test.ts": "0ebad21aa4a99eba3dcc9b498372c2ed8a5ba7cdd6e79aaec394dca1eef464e8",
+        "host/test/product-host.test.ts": "43f406a9dbee0c321217a6cf8cd9bfb5279653ef3655f219ff0487147e330520",
+        "host/test/native-product-process-lifetime.test.ts": "94481645f92c8274325d3073a0d5e9507852c984335e46e8dadf39193af17f7b"
+      }
+    }
+  },
+  "failures": [
+    {
+      "kind": "driver-selector-error",
+      "record": "/home/dek02/.cache/codex/tmp/process-logs-source-matrix-oct14.json",
+      "detail": "Initial driver mistakenly selected73acceptance scenarios from compile.include, outside original498host/test scope; 73testCodeFailure entries and180s ETIMEDOUT preserved. Corrected list retains original35+3=38 and excludesacceptance, compared independently. Not a performance retry or product failure classification."
+    },
+    {
+      "kind": "sandbox-listen",
+      "record": "/home/dek02/.cache/codex/tmp/process-logs-native-diagnostic-oct14.log",
+      "detail": "Actual serialPair Unix socket listen EPERM before product producer; initial file-level failure andCtrl-C130 retained. Explicit local simulated test permissions used afterward."
+    },
+    {
+      "kind": "lock-test-sandbox-hang",
+      "record": "/home/dek02/.cache/codex/tmp/process-logs-crash-final-oct14.log",
+      "detail": "25s bounded diagnostics had4passed/remaining cancelled at prior lock-child test;10s observed stderr attempt ETIMEDOUT/no output. Real granted environment phase file shows ready/competing rejected/kill true/SIGKILL/reopen. Sandbox hang root cause unconfirmed; zero buffered stderr not proof of no execution."
+    },
+    {
+      "kind": "worker-argv-fixture",
+      "record": "/home/dek02/.cache/codex/tmp/process-logs-second-unit-oct14.log",
+      "detail": "9/10 initially, child-e Worker inheritedinput-type causing failure. Source workers use[]; product workers explicit no-strip .js. Exact failure preserved."
+    },
+    {
+      "kind": "type-fixture-errors",
+      "record": "/home/dek02/.cache/codex/tmp/process-logs-first-typecheck-oct14.log",
+      "detail": "Reload union narrowed; later test-only broad text edit touched unrelatedfixture and notification return type invalid. Corrected; failures retained."
+    },
+    {
+      "kind": "environment-git-sigkill",
+      "detail": "Two independent read-only git diff commands Killed while sed/wc succeeded. No confirmed OOM,compiler or product cause; no claim fixed."
+    },
+    {
+      "kind": "current-build-typecheck-environment",
+      "record": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/typecheck.status",
+      "detail": "Initial exact frozen package build stopped at typecheck120s ETIMEDOUT/SIGKILL. Native launcher/subprocess ownership diagnostics and controlled cleanup retained; no product/compiled/minimum/performance/print validation executed."
+    },
+    {
+      "kind": "interrupted-native-diagnostic-orphan",
+      "record": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/typecheck-regular-file-interrupted-receipt.json",
+      "detail": "Interrupted regular-file diagnostic had no compiler exit receipt. Exact PID/argv/starttime/PGID orphan recovered with SIGTERM then SIGKILL; proc absent afterward. Not successful typecheck; default launcher hang cause unknown."
+    },
+    {
+      "kind": "product-supplemental-temporary-guard",
+      "record": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-supplemental.log",
+      "detail": "Original supplemental command42pass/1fail exit1. Guard new Function lacked join dependency before actual generated CLI spawn. Prior guard retained; only missing join explicitly supplied without whitelist/source/compiler/product changes. Previously unexecuted CLI single case passed separately; no once43/43 claim."
+    }
+  ],
+  "evidenceSha256": {
+    "/home/dek02/.cache/codex/tmp/process-logs-source-matrix-corrected-oct14.log": "b2606107dcea842ee2599fff8e8a5e2f9b3e807a13fb3b3c15fc6c4e341e4581",
+    "/home/dek02/.cache/codex/tmp/process-logs-source-matrix-corrected-oct14.json": "e5645bf297494dd84ae804de4e6e4a751fef1999d10e054af24ffe91f86eaa78",
+    "/home/dek02/.cache/codex/tmp/process-logs-source-corrected-list-oct14.json": "105699181317fe63798f02f50b42b6d9274d599fbca8f0a618394e3eb93c9f92",
+    "/home/dek02/.cache/codex/tmp/process-logs-source-list-comparison-oct14.json": "4fa306380433c2756208366c31cdd15c8f8d9ec239036545001aa9fb271ef5d7",
+    "/home/dek02/.cache/codex/tmp/process-logs-source-matrix-oct14.log": "4193f132f36326043d8cca72ba6f9a213162d92796bbb0f13654c0bd78c2b61a",
+    "/home/dek02/.cache/codex/tmp/process-logs-source-matrix-oct14.json": "a216dafb949caeb19562f746b4451cb6943b4239d58431d2d954bf46f5fade5e",
+    "/home/dek02/.cache/codex/tmp/process-logs-native-diagnostic-oct14.log": "a6578acba4433b5d65ba5138d4ab1c4b53bf1fb1077a38fe6052e8f80307dc15",
+    "/home/dek02/.cache/codex/tmp/process-logs-third-regression-oct14.log": "35a1d965bd2a192aef2ab3528cafaefeeb545ff909f8c8fd3aa73c4c496b6ea4",
+    "/home/dek02/.cache/codex/tmp/process-logs-first-unit-oct14.log": "ef8c34e7b82dad74c6c656a06c51b90a9a481159846c0d872ef4295e47b720b7",
+    "/home/dek02/.cache/codex/tmp/process-logs-second-unit-oct14.log": "1e413d4d063d878355cdfa4606d14c0909d02153e7092b1384eadaf4751ba8c9",
+    "/home/dek02/.cache/codex/tmp/process-logs-crash-final-oct14.log": "3e2eb1b3a4a4005b72f17716acc50bf6a127d195be37e22fba135f31094be719",
+    "/home/dek02/.cache/codex/tmp/process-logs-lock-observed-oct14.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-logs-lock-observed-oct14.status": "012ef4f066c7610a9672a43fff07f8cdb46a0b4fbeb24672bdcc978cf04995af",
+    "/home/dek02/.cache/codex/tmp/process-lock-phases-oct14.jsonl": "a88207c6f42402113fe46faabc048fc809631ee4ceb180d5041efb0b9d44221e",
+    "/home/dek02/.cache/codex/tmp/process-lock-phases-oct14.log": "6010b4b012ebc1f3a7f2b9c6bb938c1cc3e219b12f7c2d861aeaa003b2854061",
+    "/home/dek02/.cache/codex/tmp/process-lock-phases-oct14.status": "2ec609998ce235304f1ad6349751ff172d6b042da39e0da338fa78eeabe57004",
+    "/home/dek02/.cache/codex/tmp/process-lock-phase-driver-oct14.mjs": "016fd62cee2b2c4844f8779257728f4844bd8e49b98351d7cb74104b35316e07",
+    "/home/dek02/.cache/codex/tmp/process-logs-crash-source-final-oct14.log": "f9dfa05d668bba2c91256c73177c18c6d96d00e7e9b3f1c75eb2d8944746b8ec",
+    "/home/dek02/.cache/codex/tmp/process-log-enospc-oct14.log": "1b9d87fe5672820b1918f55bb8b4c8864dde9dd53c26005ff2fb61150526ed1e",
+    "/home/dek02/.cache/codex/tmp/process-log-stall-oct14.log": "c4b0902e9b5f2347ad72d1296db0031b30c387798701c018413884609cbec056",
+    "/home/dek02/.cache/codex/tmp/process-log-fault-driver-oct14.mjs": "4dc414269d26915ce8ad563187193721f8943ca3771e03adf91d45ef79dc2f7e",
+    "/home/dek02/.cache/codex/tmp/process-log-worker-fault-preload-oct14.mjs": "ab3f5c1ff62affb65b2e0a978246f2fd6e2bd7dd5a80b32b1732192596fd0c10",
+    "/home/dek02/.cache/codex/tmp/process-logs-active-scope-oct14.json": "a7e8f91fee430ed2999fec17d09fe943ffe41ca26ecbae49450fce7510b39b16",
+    "/home/dek02/.cache/codex/tmp/process-logs-first-typecheck-oct14.log": "c4d369672e94087716eeabf98bfaf8cd9ae3a5ba49c4cfbb3eab927d1894ca17",
+    "/home/dek02/.cache/codex/tmp/process-logs-fifth-typecheck-oct14.log": "87e57d87193643f8a7a7217bb02c0877b8163f751454be9135e8537a13fb4be1",
+    "/home/dek02/.cache/codex/tmp/process-logs-final-typecheck-oct14.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-logs-direct-typecheck-receipt-oct14.json": "2e3c0681073b524eaa94a5cab90cb86fcfbb5c4751dc3608f9bc1b976ed28680",
+    "/home/dek02/.cache/codex/tmp/process-logs-native-typecheck-identity-oct14.json": "dbf25115c4ea039e2c40346adfba1592b194d3acb614df43f490e4d1ce00d3d9",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/typecheck.status": "f105db2afe8893ae26ed6f90eadd900a9dfa7c28d7e23f65b43340e13a319550",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/typecheck-timeout-environment.json": "4da930d03bfe84fa5732f5c7532379bb0731d0ea58f23e5290838ae2f849fce3",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/environment-observations.json": "63a0d17d27f1906ea77f792e6ab2d043d8f1404980d6b583fba8564cdc399fa3",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/freeze.json": "ea2362e1e3c35fe73b2f9a4dd7930e75ea5879259e5c9a52da23ecf3e761ebf6",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiled.log": "f61987345a77b81fef5c5ef202ab2d12ac16afbcae0f61bc998643921228b271",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiled.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-original.log": "112246652988b000924ea7176394eda97acd4c775cecdc1fcb8221fbfe29c9a8",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-original.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-supplemental.log": "2c49fa86038383f1d58b5e85a56bb1166c3a87b6e36e61d94877c81e793020c0",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-supplemental.status": "87247c78cdc9022660458ef5909d14182a3190471aeef6691ebd81078aa740bc",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-supplemental-cli-driver-repair1.json": "3246a3dea556bde7580420cffeeb5b3fcf118b070a1630a9f16cff628f462a68",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-supplemental-cli-driver-repair1.log": "45c88180e75bdce44e32777026aa933d59a974cfac493f8f8203abea5abd37b2",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-guard-before-join-repair.mjs": "bab42fba9609b077c24b2c47b2ba2e5139fa6ba55c47ba4538393d20752a0106",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-guard.mjs": "9809d3de18bc1b25711ef8615cb19d0b0903411f82f8162aa719f6a9cc539b0a",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/minimum.log": "d19c0c7e5aac48d1cae35742a9e4d821f40487190d770e151f5de7f66ddf8c8d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/minimum.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-identity.json": "b5a5abe42912420a1484469d9ac7cbd77c021b6ff4b47c85fac2d79003521a92",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/selector-exact-diff.json": "1c9b6e881819c1a95589c9d8fe294b245497000cf51ea9ca8977916550c5e721",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/test-selection.json": "3048fd2b07345c35ee61edd88fafee3f0c48386ac4349aab88df6b7a87d4e25b",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/tests.json": "82cbf4ffc9789d5dddd25257a82debb165dad15866d9aa82d1eb7b38c7b8e3e3",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiled-test-sha.json": "061931c7f28151d5f9501d4add3554d49e1d54b85785987d51ce3074812953fd",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-typecheck.status": "16e3edbe92d848d09637b5ec0801d01a735a0deb44c99bc4c374f0865de6acd8",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-typecheck-freeze-before.json": "57ab153599604a0f0fe3240c815e514fd148d3fc359c1363724e886337212192",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-typecheck-freeze-after.json": "f2931444ff03b82cdfcea3ce5ba483d1b3a919396c01fb145e3167422450ed54",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-emit.status": "16e3edbe92d848d09637b5ec0801d01a735a0deb44c99bc4c374f0865de6acd8",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-emit.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/fallback-typecheck.json": "f34c5d4815940220d16e90831707183ed2df7d87befcf9873d5daf54b8e28ed1",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/fallback-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-fallback-only.mjs": "ea1a4dd4752bdd737c8a713814d4fe2213cfc2a47dc4374f3d401527257b6c90",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/standard-builder-compiler-launch.json": "b4d513f6359d1a110216926e943db5378b835fc1284f74be11cfb2f118e95ee3",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/standard-builder-post-inputs.json": "1a09e52a27779f77dd7558f0984f67434225ea9a12d61dfdf1b23431241d9d8b",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/typecheck-regular-file-interrupted-receipt.json": "221cf39d69c90865c8c7d688d3c8d9f7c763fc0b7cfdc0fbf40dd941a190594b",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bounded-command.mjs": "cd5e5494ef81977a13f0407e8da685eadd22d1cc4bfe74ab718097c5afa6b2f7",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/budget-run-inputs.json": "a81cb7f9c7929e16c570da77ee45885adc731e8736aac03cd27f5fc949538829",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/budgets.json": "1c2910b7b0b698140fbc8be1dac2b1b6556eb4ff091ee58b8d74bbb60665603e",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/build-compatible.mjs": "2b81b3db9a5afe6593190fc6ab1bdfec1b7793972397209f675d833eda4f283b",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/build.mjs": "ee5db3818385c20786f93f9e22b3a7de8648ad9adf05bd8b781088708e11686a",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/capture-freeze.mjs": "8ab41f894a74b5f06b89cca6dff6654345e97f020ba528dbcfcabc08f4bea0bc",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compile.json": "ccf04e98cdbcc8f3075f87a1766e9d354fc3d5f02666f23c47c9ea5a7feecc31",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-special-inputs.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-version-diagnostic.json": "a88220e96374b66b235192337ec5551aae40dbb1891e4d6d5f7281eed0aa21f9",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-version-diagnostic.log": "41024334022fa58f9c7337359517de307cbcfc6055c19f2b734245eacc2fe97a",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/compiler-version-diagnostic.mjs": "3f49d8bba7ea4279dd22609e1899edf311d3a2c4a1185a34e0236d8f2072eae0",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-emit-ended.txt": "086715d60df9c6e0ae4f8710ba6b15baf6210fb2e93d8e635b0cecd0b8a0a604",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-emit-launch.txt": "d3f7235c875d87a8a6e5da29c451264f76e0879bfb58cd0f5a2409742f7cff1c",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-emit-started.txt": "c41b9068d47239bc233aaa4311437e4b38679046bb9b42e6b74488f96e57a397",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-emit.sh": "28058abe1941677a060c33713a7e21266d0143e350c3fdee43a66bae7a8260c4",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-typecheck-ended.txt": "bab4c85b3dcb56df6e71e43efa2a584f5d9b08a6d1311f4146d2b56837d83887",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-typecheck-launch.txt": "6e954590b8e5ed7cbdc95305827100c61d0f9b96b84b4eab7ba1529641dc7d35",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-typecheck-proc-start.txt": "c4310adf3abc842ba5f1aaeab9d785244c137ffa39e7ae736350e3b25bf6698c",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-typecheck-started.txt": "03c05323397d9ba4f18d5242ba351885722f41c6d17b264aa31e0f0c65052caf",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/direct-native-typecheck.sh": "90adb400a2d4733890550df3429f3ea53822131f8324157f4f7c5ac81b26b45f",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/extract-scene.mjs": "3e6642f3ef0635d2eb617bd807a361a718a83cb886ac8e6d65351d59382b9048",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/fallback-typecheck.mjs": "b6c585b58a68f74a8d3530765e7de54cc152e15c3687c016b0686e73a32f4a35",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/final-summary.json": "27b8750d2a324a698aabc43b00683d044c7d164cfbd20065596fb700d43c8ccb",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/logs-mixed-metrics.json": "e22b119e6a0f206e738dd5575f72104666f73cf51bcdb51ecdc35ae07296ad89",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/logs-mixed.log": "a0f765d8dbd68e88f865cf757bf6ec04a89e83472499fd98dfdbc3e90c446c2b",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/logs-mixed.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/minimum.mjs": "0ab4832c9e3a7d80189f300c11942dc4fc56123568fc17670929156b17215fce",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/original-mixed-metrics.json": "e8d1edc78d4dd1daa7dd5554fcfd82c4b9693784ef16b75c33e5eb8162d18aea",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/original-mixed.log": "b01ddc2a62eae1f7ab7b7085dd193e6c0fd5ac1542f4c87c95ad0e8566579fe2",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/original-mixed.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/produced-logs-mixed-metrics.json": "07760d78e2fe5b119c565fc9e8a0ed35742afe3d8aa1c327b57ecc65fa323b97",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/produced-logs-mixed.log": "4dd550901cf75d167036a0e7b2f5fdf4a7156842c37e97894e457c580a28ece3",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/produced-logs-mixed.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/product-guard-baseline.mjs": "e39c5282bf9d853195f0c61ebfabc4cc8e0d103e0683e0506ef7bd834dd3304f",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/resume-proc-observation.json": "627c21ece559bd33f9b2905f1494c5d59365987758d9c9cfaa945a2da3c0a2d3",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/run-budgets-before-no-retry.mjs": "575ee7865a0daf961f79a73f04ac67b29609997b3e5573f0169bfa76c3b9906a",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/run-budgets.mjs": "348beee2d0f67b0503a0ef6b9e61da10fb0dadf62a4c2d974e2e8dd10d1700eb",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/run-mixed.mjs": "f6ec1900d99118ff5ec7da40d8fc2b2a75db1553d6347b7c6431441fb85f4aed",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/run-startup.mjs": "7830efaf6079541b6080ce1fa980f76ed6dd001fb79f725bc0ea1ce471fddd0a",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/selector-diff.json": "1466fc8313263661a94ea6480103bf8593efa375b28c421a0c5024800885f3b8",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/startup-receipt.json": "2ed62694c6d839fa6e65f5c9ab2c13c4c7045691cb27954dfa29f28400ae5535",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/startup.log": "e0cc50b245e38acc897a8732a7d28a955f741db6796d18b52c234fb2bf1c7447",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/startup.status": "9e595c7faf69a0461167374f38dd0cd74b1aedcdd85df97ef3f16ee38ab71f66",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/summarize-final.mjs": "7189ab693ef54cbf8787a0cfb80429610257fc55850f4ab4159aec1344fd6ed0",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/supplemental-cli-driver-repair.mjs": "30cc274edd6c633b01c002d87267753ae3c03544bc178ec5fc7b5c584a507fc6",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/test-compiled-product.mjs": "fbac903caf3816525c2e73ae93eb01dc53b87ea52390953b51828da352984815",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/tls-mixed-metrics.json": "d8320d85b628fcef4b4d19383ee37cae6c9688c13bd0c7d10d2a129b9af0fbe4",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/tls-mixed.log": "9587b6ce537589bf42a20df102453e6664325a9da95b5ea74a23a56c5125c3c1",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/tls-mixed.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/typecheck-regular-file-diagnostic.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/typecheck-regular-file-diagnostic.mjs": "11359fbf07d27d1c234ed2bdb8e577e519bd7795611afbd93c0446311f86eebe",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/welcome-mixed-metrics.json": "7b785ee08736cca23ada51d2355bab789bc99c3b31988a96ea527ecab5309878",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/welcome-mixed.log": "d839693c31cd19a1c409a1480fa14875684ff711242d585f65ddbd91b51246f1",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/welcome-mixed.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-anonymous-image-after.json": "0c8e2c77eefc7ac40c860f1e5476d76b65968d9ed4e22197af4424b7fb6057bc",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-anonymous-image-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-anonymous-image-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-anonymous-image-before.json": "e74041f35ced03e8ed9a25d199fed738226c20425cb158e1dcd08a0dae09aed2",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-anonymous-image-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-anonymous-image-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-file-after.json": "47c4565433a5d4afc12074d21a25b15b0db106c6dd2da22a11eccfa911131c2a",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-file-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-file-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-file-before.json": "c7794b80c6b92ec75983d55b89ab42a56f30221781c08732dd674a352d76d604",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-file-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-file-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-image-after.json": "6b2e126a7304e3ae4d43b1f089ca0d869a2cae1d29a5f39c4a225ada0f9caa56",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-image-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-image-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-image-before.json": "87ab965d300115a1b5bfb397d573eb38f506ea4580172f906428d18bc0f5bca4",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-image-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-image-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-status-after.json": "efce1b0ed74282ec7b3254f17d727196eb4be9052e41a25023ad595386e2b216",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-status-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-status-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-status-before.json": "585acfab85392d7ac7cc7cc0b44b27fedc255227d46091486215741c1310e95e",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-status-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-auth-status-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-network-original-after.json": "99b2fe800ea72cc76038bbd4c662570606e299d463f41b717897b0dc0b94cade",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-network-original-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-network-original-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-network-original-before.json": "9ee5ba1e086aa1726dfbb47b205f02635f41a1d4add7a3e392da459badf1599b",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-network-original-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-network-original-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-uploads-original-after.json": "223b0267f589e34cca1f74eb13ddb04f431d1c8512b4c84196c61e91323439c3",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-uploads-original-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-uploads-original-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-uploads-original-before.json": "0eb0abda45a741f7aa77a502cc40c91bb8ab1de5424a806149817881938949c4",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-uploads-original-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/0-uploads-original-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-anonymous-image-after.json": "b6e1e39d55c85676ef7bc3683b22608991af1cc7165154baf42115f11df41dd9",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-anonymous-image-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-anonymous-image-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-anonymous-image-before.json": "367e629daccfb704dd93d97020ac8b92da23e59e39cba2e7954b61ed2dc1e946",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-anonymous-image-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-anonymous-image-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-file-after.json": "86ce9e6637156e88498f1d71373149bd0bf4931c3cc0033652550e2aa82c489c",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-file-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-file-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-file-before.json": "5b4285f2b2c1bd3c30a6c1deee28225e57ff6ffe11ef012ee8cf7617d5748100",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-file-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-file-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-image-after.json": "b52ca042797ae0b3b43e3deda6ec4a598676dd326d4b3bcf9ce6d75bb28791fe",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-image-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-image-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-image-before.json": "2ed41491935e20304131811f77dd08e004d2f75c8fa15443466d26ddc0002049",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-image-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-image-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-status-after.json": "fd4493646b38915e0b0df77f3ab1bccc2b487878dff7e73a22c04ab816bd14fb",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-status-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-status-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-status-before.json": "6c723b16f7c49adfebe4d787505536cc5d26a66825ac8e13e43a53d57ac5e9c9",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-status-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-auth-status-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-network-original-after.json": "d651dcd262a5c0e9bc17c450cc1832fb79e2859b621577a798d4adf12e122367",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-network-original-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-network-original-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-network-original-before.json": "2780bee580df93a16aab46b71153d87dbf72401b0c3098c6cc21f3a285db42d0",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-network-original-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-network-original-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-uploads-original-after.json": "8b920b3956adc95a6959f9450358365ea6775c48ddda9cd0f9821b337a911240",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-uploads-original-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-uploads-original-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-uploads-original-before.json": "843797e67f9cb13dc4f4fb6ad63a45d075b735728230ee2b75492db66f843dbb",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-uploads-original-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/1-uploads-original-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-anonymous-image-after.json": "d311a0764c48da536b85668641239502d45c9224f34a69a9266fc311676fd994",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-anonymous-image-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-anonymous-image-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-anonymous-image-before.json": "3f64d517c5c08df02f0c33131d6ad7d4846ec0026387b27cac709b8919133866",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-anonymous-image-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-anonymous-image-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-file-after.json": "3b33383a79cfe33381260cb3844583f3e417c314a2c01133acdb2420510d3f17",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-file-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-file-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-file-before.json": "84a5f90b447ae5dcfa4d04a282b395dcc430a50b5c7ccbb489d16ee7a7968a95",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-file-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-file-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-image-after.json": "d6e94d4ae1158a605f7479ad0ca05e7a609ec71d60fe5270e5aef979ca3b028f",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-image-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-image-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-image-before.json": "b118fcd7ddc943f921196815074c739971a77d3074b62defd9fb60c74f7550cb",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-image-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-image-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-status-after.json": "0c3b4edd2a89ebf4fc0e5946db35c91414be923b5502f5b3c6986d60b291d69d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-status-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-status-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-status-before.json": "be67dbc0baadceb4b912513ebbb8b89b7492017879b7912350b8f270e1267082",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-status-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-auth-status-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-network-original-after.json": "3ad95e4794b59fc048d1f45b8be4140978c90ed0adf5f999826680c3360c7e08",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-network-original-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-network-original-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-network-original-before.json": "56c13328629af433a5dc5b4b325860b7ae69abf6bcadee567d77aad227b15e0c",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-network-original-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-network-original-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-uploads-original-after.json": "aeb0e92b3e3e04ffa35bb0b74007d73d55377ffe14cbed34142f4af078578b20",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-uploads-original-after.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-uploads-original-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-uploads-original-before.json": "9fefb62cc6c7754fb8bc2eb705a248560d4fa8ae9b67fe0a8897546602684de8",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-uploads-original-before.status": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/2-uploads-original-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/auth-after.mjs": "3211a192cbc1cb12a4bc55d4fe9184dbd0797ea53a8448d7e4cf8aedf9f7f43e",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/auth-before.mjs": "30cd9f70330057dd247ce40ed038a5f243ab55e208ba727b29751bbd1389ae48",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/network-after.mjs": "d57f9bcdf157dddf67c75d822b6e46a0149e8f393dc1c67c0f6e03ff9b87fd6b",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/network-before.mjs": "c09042dcadfebe94402c9aa43cc9fb4f3b14834ff8fe547f66bf802b1961b2e8",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/uploads-after.mjs": "c555ea6a33cce28228288136954c7f9127b0adb4fd5abf2379e4c53189d647e0",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/uploads-before.mjs": "fb1c654c14dd522bf03bda1f3b41519c8401d745db3b6e9ab7ac602dac61b9e4",
+    "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/evidence-index.json": "815472600affdcf42e8b04853ca5b00e0b669d519ce1cd13e1494e07b99dbe1a"
+  },
+  "open": [
+    "currentcandidateCI",
+    "fullcomponentlogconsumers/debug/errorstacks",
+    "externalklippyservicerollover",
+    "fullCLI/downloadheaders",
+    "completeMoonraker/Python/Jinja/msgspec/consumermacros",
+    "historicalUI/G3/nativebuildstability",
+    "fullclient/browser/targetboard/hardware/powerloss",
+    "taskPR-develop-master/integration/release"
+  ],
+  "preemptiveDriverRepair": {
+    "kind": "budget-no-automatic-retry",
+    "original": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/run-budgets-before-no-retry.mjs",
+    "current": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/run-budgets.mjs",
+    "detail": "Before any budget execution, removed generic failure auto-rerun and success auto-reuse branch. Fresh inputs preserved; original workloads/thresholds unchanged."
+  },
+  "notExecuted": [
+    "new-headCI",
+    "hardware/targetboard/realprint/powerloss",
+    "fullMoonraker/Python/Jinja/msgspec/consumerMacros",
+    "newNativeCompilation",
+    "taskPR/develop/master/integration/release",
+    "browserScenesByThisVerificationAgent"
+  ],
+  "reproduction": {
+    "environment": {
+      "node": "26.10.0",
+      "minimumNode": "26.9.0",
+      "NODE_OPTIONS": null,
+      "TMPDIR": "/home/dek02/.cache/codex/tmp",
+      "execution": "Serial local synthetic private files/PTY MCU/loopback; no concurrent benchmark workloads."
+    },
+    "selectors": {
+      "original": [
+        "host/test/trusted-proxy-network.test.ts",
+        "host/test/trusted-domains-network.test.ts",
+        "host/test/authorization-policy-network.test.ts",
+        "host/test/api-key-authorization.test.ts",
+        "host/test/configured-server.test.ts",
+        "host/test/authorization-config.test.ts",
+        "host/test/authorization-identity.test.ts",
+        "host/test/authorization-events.test.ts",
+        "host/test/trusted-clients-network.test.ts",
+        "host/test/trusted-clients.test.ts",
+        "host/test/proxy-protocol-upload.test.ts",
+        "host/test/native-print-uploads.test.ts",
+        "host/test/octoprint-compat.test.ts",
+        "host/test/product-native-authorization.test.ts",
+        "host/test/route-prefix.test.ts",
+        "host/test/product-client-gateway.test.ts",
+        "host/test/direct-tls-network.test.ts",
+        "host/test/moonraker-network.test.ts",
+        "host/test/product-service.test.ts",
+        "host/test/application-redirect.test.ts",
+        "host/test/cors-policy.test.ts",
+        "host/test/configured-cors.test.ts",
+        "host/test/cors-trusted-domain-owner.test.ts",
+        "host/test/application-welcome.test.ts",
+        "host/test/template-factory.test.ts",
+        "host/test/template-async.test.ts",
+        "host/test/template-sync.test.ts",
+        "host/test/template-sync-functions.test.ts",
+        "host/test/template-numbers.test.ts",
+        "host/test/template-message-metadata.test.ts",
+        "host/test/announcements-network.test.ts",
+        "host/test/system-information.test.ts",
+        "host/test/configured-system-services.test.ts",
+        "host/test/moonraker-metadata.test.ts",
+        "host/test/application-log-files.test.ts"
+      ],
+      "supplemental": [
+        "host/test/process-logs.test.ts",
+        "host/test/native-product-process-lifetime.test.ts",
+        "host/test/product-host.test.ts"
+      ],
+      "rule": "Execute only these38 host/test files; compile.include may also emit acceptance helpers and must not select acceptance execution."
+    },
+    "compiler": {
+      "strictTypecheck": "Fixed @typescript/typescript-linux-x64/lib/tsc -p host/tsconfig.json,120s bounded, regular-file stdout/stderr and exact group join. Official Node launcher fallback checked separately.",
+      "independentEmit": {
+        "extends": "host/tsconfig.json",
+        "options": {
+          "noEmit": false,
+          "noEmitOnError": true,
+          "rootDir": "repository root",
+          "outDir": "fresh isolated compiled directory",
+          "rewriteRelativeImportExtensions": true,
+          "typeRoots": [
+            "host/node_modules/@types"
+          ]
+        },
+        "includeRule": "host/src/**/*.ts plus exact38 tests and declared acceptance/driver/helper compile inputs; emit does not expand execution selector.",
+        "exactConfigSha256": "ccf04e98cdbcc8f3075f87a1766e9d354fc3d5f02666f23c47c9ea5a7feecc31",
+        "configurationTemplate": {
+          "extends": "{repository}/host/tsconfig.json",
+          "compilerOptions": {
+            "noEmit": false,
+            "noEmitOnError": true,
+            "rootDir": "{repository}",
+            "outDir": "{receiptRoot}/compiled",
+            "rewriteRelativeImportExtensions": true,
+            "typeRoots": [
+              "{repository}/host/node_modules/@types"
+            ]
+          },
+          "include": [
+            "{repository}/host/src/**/*.ts",
+            "{repository}/host/test/trusted-proxy-network.test.ts",
+            "{repository}/host/test/trusted-domains-network.test.ts",
+            "{repository}/host/test/authorization-policy-network.test.ts",
+            "{repository}/host/test/api-key-authorization.test.ts",
+            "{repository}/host/test/configured-server.test.ts",
+            "{repository}/host/test/authorization-config.test.ts",
+            "{repository}/host/test/authorization-identity.test.ts",
+            "{repository}/host/test/authorization-events.test.ts",
+            "{repository}/host/test/trusted-clients-network.test.ts",
+            "{repository}/host/test/trusted-clients.test.ts",
+            "{repository}/host/test/proxy-protocol-upload.test.ts",
+            "{repository}/host/test/native-print-uploads.test.ts",
+            "{repository}/host/test/octoprint-compat.test.ts",
+            "{repository}/host/test/product-native-authorization.test.ts",
+            "{repository}/host/test/route-prefix.test.ts",
+            "{repository}/host/test/product-client-gateway.test.ts",
+            "{repository}/host/test/direct-tls-network.test.ts",
+            "{repository}/host/test/moonraker-network.test.ts",
+            "{repository}/host/test/product-service.test.ts",
+            "{repository}/host/test/application-redirect.test.ts",
+            "{repository}/host/test/cors-policy.test.ts",
+            "{repository}/host/test/configured-cors.test.ts",
+            "{repository}/host/test/cors-trusted-domain-owner.test.ts",
+            "{repository}/host/test/application-welcome.test.ts",
+            "{repository}/host/test/template-factory.test.ts",
+            "{repository}/host/test/template-async.test.ts",
+            "{repository}/host/test/template-sync.test.ts",
+            "{repository}/host/test/template-sync-functions.test.ts",
+            "{repository}/host/test/template-numbers.test.ts",
+            "{repository}/host/test/template-message-metadata.test.ts",
+            "{repository}/host/test/announcements-network.test.ts",
+            "{repository}/host/test/system-information.test.ts",
+            "{repository}/host/test/configured-system-services.test.ts",
+            "{repository}/host/test/moonraker-metadata.test.ts",
+            "{repository}/host/test/application-log-files.test.ts",
+            "{repository}/host/acceptance/product-compiled-journey.test.ts",
+            "{repository}/host/test/process-logs.test.ts",
+            "{repository}/host/test/native-product-process-lifetime.test.ts",
+            "{repository}/host/test/product-host.test.ts",
+            "{repository}/scripts/product-host.ts"
+          ]
+        }
+      },
+      "standardBuild": "Unchanged host/scripts/build-product-host.ts buildProductHost(product,host/tsconfig.product-host.json,baseline/host/build). Validate all75 native source hashes and11 output hashes before reuse; copy pinned18 production dependencies independently; compare all664 product runtime JS with independent emit.",
+      "compatibility": "For only exact compiler child, prepend --import to a private UTF8 preload containing exactly process.execve = undefined; plus newline, SHA ea1a4dd4752bdd737c8a713814d4fe2213cfc2a47dc4374f3d401527257b6c90. Keep original60s compiler timeout/arguments/maxBuffer. No global NODE_OPTIONS or product preload. Fixed-shim assertion added post-build; actual launch receipt already recorded same hash. Default execve hang remains unconfirmed."
+    },
+    "functional": "Use emitted JS tests with --no-experimental-strip-types and guard restricting production imports/workers/programs to same hashed bundle and declared synthetic fixtures. Product original498 and supplemental42 plus repaired previously unexecutedCLI1 are separate commands. Minimum26.9 selects process-logs/native-product-process-lifetime/product-host/application-log-files (50cases).",
+    "budgets": {
+      "order": [
+        "before-after",
+        "after-before",
+        "before-after"
+      ],
+      "auth": "status/file/image/anonymous-image,100000 requests x8 rounds,3warmups; each accepted count800000,absolute<10us and ratio<=1.5.",
+      "network": "manual/configured HTTP200,WS500,startup30;3warmups/11samples;ratio<=1.5.",
+      "uploads": "4MiB/16MiB direct/HTTP,2warmups/7samples;ratio<=1.5.",
+      "baseline": "Exact prior application-log product identified above, not a reused welcome success."
+    },
+    "printCommand": "node --test --test-name-pattern=^namespace=true nativeAuthorization=true apiLoad=true load=false <independent-compiled>/host/acceptance/product-compiled-journey.test.js",
+    "printEnvironment": {
+      "common": "ANYRAID_ACCEPTANCE_BUNDLE plus exact MANIFEST_SHA256/DEPENDENCIES_SHA256 above",
+      "original": {},
+      "tls": {
+        "ANYRAID_BENCH_DIRECT_TLS": "on",
+        "ANYRAID_BENCH_ROUTE_PREFIX": "/fixture.scope/打印"
+      },
+      "welcome": "TLS/prefix plus ANYRAID_BENCH_WELCOME=on",
+      "readonlyLogs": "TLS/prefix/welcome plus ANYRAID_BENCH_LOGS=on",
+      "producedLogs": "TLS/prefix/welcome plus ANYRAID_BENCH_PRODUCED_LOGS=on"
+    },
+    "startup": "node host/bench/process-log-startup.ts <baseline-product> <candidate-product>;3warmups+11samples each,alternating28actual factory startups,ratio<=1.5. Timer excludes module imports/fixture prep/cleanup, includes native factory dependencies/recovery/actualHTTP listener; no MCU/device acquisition."
+  }
+}

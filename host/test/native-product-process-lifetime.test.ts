@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,readdir,readlink} from 'node:fs/promises';
+import {mkdtemp,rm,readdir,readlink,readFile,writeFile,mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {once} from 'node:events';
@@ -15,15 +15,16 @@ import {ProductHostControl} from '../src/runtime/product-host-control.ts';
 import {productMachineFixture} from './helpers/product-machine.ts';
 async function until(check:()=>boolean){const end=performance.now()+5000;while(!check()){assert(performance.now()<end,'Process host timeout');await delay(5);}}
 const information={connected:false,state:'disconnected' as const,components:[],failedComponents:[],directories:[],warnings:[],version:'process-test',missingRequirements:[]};
-async function fixture(failure?:'replacement'|'stop',holdReplacement=false){
+async function fixture(failure?:'replacement'|'stop',holdReplacement=false,logSettings?:{logging?:import('../src/moonraker/process-logs.ts').ProcessLoggingOptions;borrowed?:true}){
  const root=await mkdtemp(join(tmpdir(),'native-process-')),abort=new AbortController(),control=new ProductHostControl(),ready=Promise.withResolvers<string>();
  let current=await productMachineFixture(root),processOpens=0,processReleases=0,databaseCloses=0,calls=0,key='',db:DatabaseStore|undefined;
  const fixtures=[current],profiles:ProductHostProfile[]=[],addresses:string[]=[],detached=Promise.withResolvers<void>(),replacement=Promise.withResolvers<void>();
  const native=createNativeProductHostFactory(current.path,{
-  filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),dataPath:join(root,'private'),standardPrint:{nozzle:200,bed:60},
+  filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),dataPath:join(root,'private'),logging:logSettings?.logging,standardPrint:{nozzle:200,bed:60},
   async createProcess(){
+   if(logSettings?.borrowed){await writeFile(join(root,'borrowed-moon.log'),'borrowed moon');await writeFile(join(root,'borrowed-klippy.log'),'borrowed klippy');}
    processOpens++;db=await DatabaseStore.open({path:join(root,'api.db')});const close=db.close.bind(db);db.close=()=>{databaseCloses++;return close();};
-   return {server:{information,database:db,authorization:{issuer:'https://process.invalid'}},async release(){processReleases++;if(!db!.status.closed)await db!.close();}};
+   return {server:{information,...logSettings?.borrowed?{applicationLogFile:join(root,'borrowed-moon.log'),printerLogFile:join(root,'borrowed-klippy.log')}:{},database:db,authorization:{issuer:'https://process.invalid'}},async release(){processReleases++;if(!db!.status.closed)await db!.close();}};
   },
   async createAdapter(){
    const f=current;
@@ -35,6 +36,7 @@ async function fixture(failure?:'replacement'|'stop',holdReplacement=false){
   if(calls++){assert(profiles.every(p=>p.product.maintenanceGate.status.closed));detached.resolve();if(holdReplacement)await replacement.promise;if(failure==='replacement')throw new Error('Replacement configuration failed');current=await productMachineFixture(root);fixtures.push(current);}
   const profile=await native(signal);profiles.push(profile);return profile;
  };
+ factory.logLifecycle=native.logLifecycle;
  Object.defineProperty(factory,'serverLifetime',{value:native.serverLifetime});factory.close=()=>native.close!();
  let terminal=false;
  const running=runProductHost(factory,abort.signal,address=>{const base=`http://127.0.0.1:${address.port}`;addresses.push(base);ready.resolve(base);},control);
@@ -193,4 +195,31 @@ test('process-mode adapter cannot hide a second server owner in its device resou
  const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),dataPath:join(root,'private'),async createProcess(){return {server:{information,authorize(){},authorizeNotification(){}},async release(){processReleased++;}};},async createAdapter(){return {stops:f.bindings.stops,output:f.bindings.print.output,lifecycle:f.bindings.print.lifecycle,async authorizePrintFile(){},server:{information,authorize(){}},async release(){devicesReleased++;}};}});
  try{await assert.rejects(factory(new AbortController().signal),/only device/);assert.equal(devicesReleased,1);await factory.close!();assert.equal(processReleased,1);}
  finally{await factory.close!();await f.close();await rm(root,{recursive:true,force:true});}
+});
+
+test('actual native process produces downloadable logs, rotates both through retained authorization and drains final shutdown',async()=>{
+ const f=await fixture(undefined,true);let rebuilding:Promise<void>|undefined;
+ try{const base=await f.ready,headers={'x-api-key':f.key},logRoot=join(f.root,'private/logs');
+ const read=async(name:string)=>{const response=await fetch(base+'/server/files/'+name+'.log',{headers});assert.equal(response.status,200);return response.text();};
+ assert.match(await read('moonraker'),/bootstrap/);assert.match(await read('klippy'),/device_ready/);
+ const printer=await(await fetch(base+'/printer/info',{headers})).json() as any;assert.equal(printer.result.log_file,join(logRoot,'klippy.log'));
+ assert.equal((await fetch(base+'/server/logs/rollover',{method:'POST'})).status,401);
+ rebuilding=f.control.reinitialize();await f.detached;
+ const response=await fetch(base+'/server/logs/rollover',{method:'POST',headers});assert.equal(response.status,200,await response.clone().text());assert.deepEqual((await response.json() as any).result,{rolled_over:['moonraker','klipper'],failed:{}});
+ assert.match(await read('moonraker'),/Log Start/);assert.match(await read('klippy'),/Log Start/);assert.equal((await readdir(logRoot)).filter(n=>/\.\d{4}-\d{2}-\d{2}$/.test(n)).length,2);
+ f.replacement.resolve();await rebuilding;await delay(20);assert.match(await read('klippy'),/device_ready/);
+ f.abort.abort();await f.running;assert.match(await readFile(join(logRoot,'moonraker.log'),'utf8'),/shutdown_complete/);assert.match(await readFile(join(logRoot,'klippy.log'),'utf8'),/device_retired/);
+ assert(f.fixtures.every(v=>v.transport.stops.every(n=>n===1)));
+ }finally{f.replacement.resolve();await rebuilding?.catch(()=>{});await f.close();}
+});
+
+for(const mode of ['nolog','borrowed'] as const)test(`native process preserves explicit ${mode} application ownership`,async()=>{
+ const f=await fixture(undefined,false,mode==='nolog'?{logging:{disableFile:true}}:{borrowed:true});try{const base=await f.ready,headers={'x-api-key':f.key};const moon=await fetch(base+'/server/files/moonraker.log',{headers});assert.equal(moon.status,mode==='nolog'?404:200);if(mode==='borrowed')assert.equal(await moon.text(),'borrowed moon');const printer=await fetch(base+'/server/files/klippy.log',{headers});assert.equal(printer.status,200);if(mode==='borrowed')assert.equal(await printer.text(),'borrowed klippy');const rolled=await(await fetch(base+'/server/logs/rollover',{method:'POST',headers})).json() as any;assert.deepEqual(rolled.result.rolled_over,mode==='nolog'?['klipper']:[]);f.abort.abort();await f.running;if(mode==='borrowed'){assert.equal(await readFile(join(f.root,'borrowed-moon.log'),'utf8'),'borrowed moon');assert.equal(await readFile(join(f.root,'borrowed-klippy.log'),'utf8'),'borrowed klippy');}}finally{await f.close();}
+});
+for(const conflict of ['uploads','config','secrets','database','tls'] as const)test(`log producer rejects ${conflict} path overlap before acquiring any device`,async()=>{
+ const root=await mkdtemp(join(tmpdir(),'native-log-conflict-')),f=await productMachineFixture(root),control=new ProductHostControl();let device=0,db:DatabaseStore|undefined;
+ const data=join(root,'private');await mkdir(join(data,'logs'),{recursive:true,mode:0o700});
+ const file=conflict==='uploads'?join(root,'files/log.log'):conflict==='config'?JSON.parse(await readFile(f.path,'utf8')).moonrakerConfig:conflict==='secrets'?join(data,'moonraker.secrets'):conflict==='tls'?join(data,'certs/moon.log'):join(data,'logs/moon.log');
+ const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),dataPath:data,logging:{applicationFile:file},async createProcess(){if(conflict==='database')db=await DatabaseStore.open({path:join(data,'logs/api.sqlite')});return {server:{information,database:db,authorize:()=>({username:'test'}),authorizeNotification:()=>{}},async release(){await db?.close();}};},async createAdapter(){device++;throw new Error('Must not acquire device');}});
+ try{await assert.rejects(factory.bootstrap!(new AbortController().signal,control),/overlap|conflict/);assert.equal(device,0);}finally{await factory.close!().catch(()=>{});await control.close();await f.close();await rm(root,{recursive:true,force:true});}
 });

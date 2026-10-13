@@ -37,6 +37,8 @@ export class DatabaseStore {
   try{if(!(await lstat(options.path)).isFile())throw new ApiError(400,'Database path must be a regular file');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
   const owner=new DatabaseStore({...options,...limits});try{await owner.#ready;return owner;}catch(error){await owner.#worker.terminate();await owner.#exited;throw error;}
  }
+ /** Trusted startup composition only; never included in public status. */
+ get storagePaths(){return {path:this.#options.path,backupDirectory:this.#options.backupDirectory};}
  get status(){return {readCache:{...this.#readCache},restoreState:this.#restoreState,closed:this.#closed,closing:!!this.#closing,pending:this.#pending.size,pendingBytes:this.#bytes};}
  #call(method:string,args:Json[],closing=false):Promise<Json>{
   try{

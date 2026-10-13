@@ -1,30 +1,94 @@
 # Node 主机启动与机器集成
 
-日志读取由配置服务器直接装配，不能注入另一套下载所有者。
-可信进程绑定中的 `applicationLogFile` 选择已存在的应用日志，
-对应 `/server/files/moonraker.log`；未设置时该地址不注册。
-原生进程的 `printerLogFile` 选择已存在的打印日志，并通过原
-`printer.info` 的 `log_file` 返回同一路径；它需要真实原生
-打印身份。旧 Klippy 模式则取实际连接的 `info.log_file`。
-这些是可信启动绑定，不是 `[server]` 配置键或请求参数，
-不创建日志、不重定向 stdout、不代表已接通日志生产／轮转。
+## 原生进程诊断日志
 
-仅接受有界绝对路径及非符号链接常规文件，缺失／空来源返回
-404；不猜测 `/tmp/klippy.log` 或私密目录。两固定下载别名
-支持 HTTP／HTTPS、原前缀与身份／CORS，路径不能由查询或
-上传文件更改。每次先鉴权、打开并核验文件后再鉴权；最多两
-活动读取，文件最多 1 GiB，64 KiB 块共用原响应容量／期限。
-打开的 inode 和最初长度保持；追加或轮转在下一请求可见。
-这不是不可变快照，同一文件原地改写仍可能混合读取。
+`createNativeProductHostFactory` 的 `createProcess` 模式现在创建一份
+`ProcessLogs` 所有者，跨设备重建保留，最终在设备、服务、数据库和
+工厂资源收口后排空并关闭。`dataPath/logs/moonraker.log` 与
+`dataPath/logs/klippy.log` 是默认生产文件；真实 bootstrap、监听、
+设备加载／就绪／退役、故障通知与最终退出写入这两份文件。
+`printer.info.log_file` 和两个标准下载地址指向这些真实文件。
+日志仅记录有界枚举及恢复原因，不记录密码、完整配置、命令参数、
+请求内容或任意异常 cause。这仍缺完整组件 DEBUG／异常堆栈流。
 
-范围保持整文件 200、部分 206、不可满足 416，HEAD 也按
-范围返回头；忽略 If-None-Match，标准 Last-Modified 条件
-读取保持。缺少原 ETag 计算、完整日期／路径展开及保留路径
-政策，不宣称完整 StaticFileHandler 兼容。DELETE 返回 405，
-原生产／轮转／CLI 默认策略仍待完成。三种回归各 498 项、
-最低 Node26.9 日志 7 项和原性能／打印场次证据见
-[日志候选](../host/contracts/application-log-owner-acceptance.json)。
-本增量没有新开浏览器场次，固定 18430／18434 来源保持。
+生产目录必须专用、由当前服务用户持有且权限为 0700。默认目录会
+创建；显式目录须事先存在。进程借用已有 `sealed-file.node` 的
+非阻塞目录 flock，同一目录两个文件只锁一次；第二个写入进程拒绝，
+SIGKILL 后内核释放锁，不通过 PID／时间猜测清理活锁。
+目录及物理路径在 MCU 获取前与文件库、元数据、配置、私密文件、
+TLS、授权数据库及备份、作业／恢复日志和磁盘投递目录隔离。
+最终文件符号链接、非受控硬链接及两个生产别名同一物理文件拒绝。
+
+可信原生工厂可设置 `logging: {applicationFile, printerFile,
+disableFile, structured, verbose}`。原 `applicationLogFile`／
+`printerLogFile` 继续只是只读借用绑定，不能由下载声明升级为写入
+所有者；同一个别名同时声明写入与借用会拒绝。`disableFile` 只禁用
+新应用生产文件，原生打印日志仍可生产；明确借用的下载不授予轮转。
+标准配置服务器仍自行装配下载，不能用另一套下载回调替换所有者。
+
+```sh
+node scripts/product-host.ts --profile /absolute/machine.ts \
+  --logfile /absolute/private-logs/moonraker.log --structured-logging
+node scripts/product-host.ts --profile /absolute/machine.ts --nologfile
+```
+
+`-l/--logfile`、`-n/--nologfile`、`-s/--structured-logging`、
+`-v/--verbose` 支持原 `MOONRAKER_LOG_PATH`、
+`MOONRAKER_DISABLE_FILE_LOG`、`MOONRAKER_STRUCTURED_LOGGING`、
+`MOONRAKER_VERBOSE_LOGGING` 默认项。布尔值只接受忽略大小写的
+`y/yes/true`；命令行日志路径覆盖环境，禁用优先，最后才验证路径。
+路径支持既有用户目录展开，随后转为绝对路径。CLI 配置须由工厂的
+`configureLogging` 能力接收；旧手工工厂缺少该能力会明确拒绝。
+CLI 与工厂两套显式 logging 声明拒绝竞争所有权。
+`--verbose` 当前只向 stderr 输出实际生命周期记录，尚不等于原版
+全部 DEBUG 消费者；stdout 保留机器可读 ready/listening 协议。
+原版 -d/-c/-u/-g/-o 等整体 Moonraker CLI 尚未接入此机器模块入口。
+
+文件采用普通文本或固定 JSON 行文件头／记录。独立 Worker 执行
+串行文件 I/O；日志操作最多 256 项、正文共 1 MiB、单条 64 KiB，
+手工轮转等待最多两项。队列满、ENOSPC、权限或 Worker 故障锁存
+通用错误码，停止新日志准入，stderr 明确报告，最终关闭返回失败。
+这些错误及外部日志回调抛错不跳过原设备停止和其他资源清理。
+启动握手与退出排空各十秒，超时触发 Worker 终止并等待真实退出、
+回收 fd／目录锁；不能把十秒说成不可中断系统 I/O 的物理结束保证。
+
+午夜轮转在下一次日志记录时触发，首次期限取实际文件修改时间；
+文件名为 `.YYYY-MM-DD`，最多保留两份。POST `/server/logs/rollover`
+或 RPC `server.logs.rollover` 沿原身份、HTTP(S)、前缀、取消、容量和
+退出所有者工作；`application` 为 moonraker／klipper，不提供时尝试
+两者并返回 `{rolled_over, failed}`。实际操作前再次鉴权；打印中可
+轮转文件，不执行设备动作。外部 Klippy 或只读借用没有可写轮转
+能力时返回明确 failed，不停止／启动系统服务或伪造成功。
+
+轮转先准备完整新文件头，再为旧 inode 建立日期备份，原子替换
+公开文件名。已打开的下载保持旧 inode／初始长度，新下载读取新
+文件；下载仍限两活动读取、1 GiB 文件和 64 KiB 块，复用原鉴权、
+HTTP(S)／前缀／CORS／期限／断连。GET／HEAD 范围及标准日期条件
+保持，DELETE405、无 ETag、绝对受保护来源和容量为既有明确差异；
+完整原 StaticFileHandler 路径／头兼容仍待完成。
+
+专用目录内本日志的日期备份和 `.rotate-UUIDv4` 为所有者保留的
+命名空间。重开在 flock 内只识别 current 与恰好一份日期备份同
+dev/ino 的双链接中间态并回滚；暂存清理还要求常规文件、当前 uid、
+单链接及 0600。未知文件不清理，异常暂存或其他硬链接拒绝。
+SIGKILL 恢复仅证明锁和轮转命名空间可重开；这是异步诊断流，
+不保证未排空记录零丢失或断电耐久，不代替权威 SQLite 打印日志。
+
+源码与独立 JS 各 541／541 已通过。两处轮转发布边界的强制终止、
+内核锁竞争、只读绑定、实际 CLI、撤销／取消、失败重开及风险降低
+清理均有软件证据。实际标准新包原 498 项、新增 42 项和修正临时
+guard 后单验 CLI 1 项分别通过，保留原 42／43 驱动失败；最低
+Node.js26.9 四文件 50／50 通过。标准 builder 未改，精确编译子进程
+用固定 --import 选择官方后备方式；兼容 shim 不进入产品，原默认
+execve 启动超时原因仍未知。原生输出核验复用，未重新原生构建。
+原 42 预算全部通过（最高 1.263 倍／鉴权 3.768 微秒），五场同包
+完整模拟打印通过，新增场完成两代四次打印中真实文件轮转。实际
+进程启动固定 28 次、3 次热身／11 组样本，中位 336.227→354.844
+毫秒、1.055 倍，原 1.5 倍门限保持；指标包含进程依赖、恢复和
+HTTP 监听，排除模块导入／夹具准备／清理，不等于 MCU 就绪。
+新头 CI、完整组件日志、外部 Klippy 控制及目标板／实机保持待验，见
+[候选证据](../host/contracts/process-log-lifecycle-acceptance.json)。
+没有新开浏览器或实机场次，固定 Fluidd18430／Mainsail18434 来源保持。
 
 原生异步模板每个句柄最多保留最后一个相同 JSON 字符串及其
 不可变解析值；仍限 65536 UTF8 字节／64 句柄，关闭即释放。
@@ -726,7 +790,8 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 ```
 
 `--profile` 必须是本机 `.ts`、`.mts`、`.js` 或 `.mjs` 模块的绝对路径。
-帮助和参数错误不会加载机器模块或原生插件。运行主机前仍须安装
+帮助不会加载机器模块或原生插件；参数语法错误不会导入机器模块，
+命名用户路径展开会借用既有 Unix NSS 插件。运行主机前仍须安装
 `host` 依赖并完成 `npm --prefix host run build:native`，运行环境和
 迁移范围见 [迁移说明](Node_Host_Migration.md)。
 
