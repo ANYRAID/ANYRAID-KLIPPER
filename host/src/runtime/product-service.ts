@@ -1,3 +1,4 @@
+import {loadWelcomeSource} from '../moonraker/welcome-application.ts';
 import {registerNativeDualCarriage} from '../moonraker/native-dual-carriage.ts';
 import {registerNativeLayerPause} from '../moonraker/native-layer-pause.ts';
 import {PrintLayerPause} from '../operations/print-layer-pause.ts';
@@ -99,6 +100,7 @@ export function startConfiguredDeltaProductService(reader:ConfigurationReader,po
 async function startMachineProductService<T extends ProductServicePrinter>(reader:ConfigurationReader,product:ProductPrinterOptions,options:ProductServiceOptions,signal:AbortSignal,connect:()=>Promise<T>){
  signal.throwIfAborted();const bedScrews=readBedScrews(reader),screws=readScrewsTilt(reader),zTilt=readZTilt(reader),quad=readQuadGantry(reader);const configPath=options.configPath,serverOptions={...options.server};
  const serverReader=new ConfigurationReader(await loadConfiguration(configPath));assertProductAuthorization(serverOptions,false,serverOptions.authorization?serverReader:undefined);
+ if(!options.existingServer)await loadWelcomeSource();signal.throwIfAborted();
  if(!options.existingServer)await readTlsConfiguration(serverReader,serverOptions.templates?.dataPath??serverOptions.authorization?.templateSecrets?.dataPath);signal.throwIfAborted();
  if(options.serverLifetime!==undefined&&!['generation','process'].includes(options.serverLifetime)||options.existingServer&&(!(options.existingServer instanceof ConfiguredMoonraker)||options.serverLifetime!=='process'))throw new TypeError('Invalid product server lifetime');
  const processDefaults={systemInformation:serverOptions.systemInformation??{},systemServices:serverOptions.systemServices??{},procStats:serverOptions.procStats??{},gcodeStore:serverOptions.gcodeStore??{},nativePrinterIdentity:serverOptions.productPrintCompatibility||serverOptions.nativeProcessFiles?{configFile:reader.source.primaryFile,softwareVersion:serverOptions.information.version}:undefined};

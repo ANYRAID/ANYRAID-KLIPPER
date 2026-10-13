@@ -57,6 +57,8 @@ export class ApiKeyAuthorization {
  #addressSnapshot(context:NetworkAuthorization):ProxyAddress&{readonly protocol:RequestProtocol|undefined;readonly transport:RequestProtocol}{let address=this.#addresses.get(context.request);if(!address){const enabled=context.useXheaders??true;address=Object.freeze({...proxyAddress(context.request,enabled),protocol:proxyProtocol(context.request,enabled),transport:transportProtocol(context.request)});this.#addresses.set(context.request,address);}return address;}
  /** Capture headers synchronously before any network-origin/auth waits. */
  captureRequestMetadata(context:NetworkAuthorization):void{context.signal.throwIfAborted();this.#addressSnapshot(context);}
+ /** Public status borrows the same frozen, verified address selection. */
+ requestAddress(context:NetworkAuthorization):string|undefined{this.#active();context.signal.throwIfAborted();this.#addressSnapshot(context);return this.#effectiveAddress(context.request);}
  /** URL metadata borrows the original peer policy and NSS cache. A verified
   * proxy may select a protocol without granting its client an API identity. */
  resolveRequestProtocol(context:NetworkAuthorization):RequestProtocol|Promise<RequestProtocol>{

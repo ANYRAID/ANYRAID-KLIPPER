@@ -33,6 +33,8 @@ export interface MoonrakerNetworkOptions {
  tls?:MoonrakerTlsOptions;
  /** Configuration-owned application status; never an alternate auth policy. */
  redirect?:{authorizationAvailable():boolean};
+ /** Process-owned complete welcome renderer; request capacity/lifetime stays here. */
+ welcome?:{render(context:NetworkAuthorization):Promise<string>};
  /** Configuration-owned xheaders selection; identity trust remains separate. */
  /** Canonical encoded configured prefix; default root remains empty. */
  routePrefix?:string;
@@ -90,6 +92,7 @@ export class MoonrakerNetwork {
   if(rpc.has('server.websocket.id')||rpc.has('server.connection.identify'))throw new Error('Network RPC method already registered');
   validateRoutePrefix(options.routePrefix??'');
   if(options.redirect!==undefined&&(!options.redirect||typeof options.redirect.authorizationAvailable!=='function'||options.endpoints?.allowed('/server/redirect')))throw new TypeError('Invalid or conflicting application redirect owner');
+  if(options.welcome!==undefined&&(!options.welcome||typeof options.welcome.render!=='function'||options.endpoints?.allowed('/')))throw new TypeError('Invalid or conflicting application welcome owner');
   if(options.useXheaders!==undefined&&typeof options.useXheaders!=='boolean')throw new TypeError('Invalid xheaders policy');
   if(options.resolveRequestProtocol!==undefined&&typeof options.resolveRequestProtocol!=='function')throw new TypeError('Invalid request protocol resolver');
   if(options.captureRequestMetadata!==undefined&&typeof options.captureRequestMetadata!=='function')throw new TypeError('Invalid request metadata capture');
@@ -181,11 +184,13 @@ export class MoonrakerNetwork {
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  const routed=relativeRouteUrl(request.url??'',this.#options.routePrefix??'');if(routed===undefined){this.#error(response,404,'Not Found');return;}
+  const rawUrl=request.url??'',prefix=this.#options.routePrefix??'',bareWelcome=!!this.#options.welcome&&!!prefix&&rawUrl.split('?')[0]===prefix;
+  const routed=bareWelcome?'/'+rawUrl.slice(prefix.length):relativeRouteUrl(rawUrl,prefix);if(routed===undefined){this.#error(response,404,'Not Found');return;}
+  const isWelcome=!!this.#options.welcome&&routed.split('?')[0]==='/';
   const isRedirect=!!this.#options.redirect&&routed.split('?')[0]==='/server/redirect';
   const octoprint=this.#options.octoprint,isOctoUpload=!!octoprint&&routed.split('?')[0]==='/api/files/local';
   const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime,receiveUpload=nativeUploads?.captureUpload(isOctoUpload?undefined:this.#options.configFiles,isOctoUpload?{enableUfp:octoprint!.enableUfp}:undefined),nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted;
-  const url=routed,at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&(path==='/server/files/upload'||isOctoUpload),isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRedirect?['GET']:isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
+  const url=routed,at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&(path==='/server/files/upload'||isOctoUpload),isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isWelcome||isRedirect?['GET']:isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}
   const parent=new AbortController(),disconnected=()=>{if(!response.writableEnded)parent.abort(new Error('HTTP client disconnected'));};response.once('close',disconnected);
@@ -194,11 +199,11 @@ export class MoonrakerNetwork {
    let reserved=0,outputReserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
    try{
     let uploadProtocol:RequestProtocol=transportProtocol(request);
-    if(isUpload||isRedirect)this.#options.captureRequestMetadata?.({request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});
-    signal.throwIfAborted();const originCheck=this.#origin(request,signal),originAdmission=originCheck instanceof Promise?await originCheck:originCheck;signal.throwIfAborted();
+    if(isUpload||isRedirect||isWelcome)this.#options.captureRequestMetadata?.({request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});
+    signal.throwIfAborted();const originCheck=isWelcome?{allowed:true,cors:false}:this.#origin(request,signal),originAdmission=originCheck instanceof Promise?await originCheck:originCheck;signal.throwIfAborted();
     if(!originAdmission.allowed){this.#error(response,403,'Origin not allowed');return;}
     if(request.headers.origin&&originAdmission.cors){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges, Location');}
-    if(request.method==='OPTIONS'){if(isRedirect&&(!this.#options.redirect!.authorizationAvailable()||!this.#options.cors||!originAdmission.cors)){this.#error(response,405,'Method Not Allowed');return;}response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, X-Access-Token, If-None-Match, Range, If-Range'});response.end();return;}
+    if(request.method==='OPTIONS'){if(isWelcome){this.#error(response,405,'Method Not Allowed');return;}if(isRedirect&&(!this.#options.redirect!.authorizationAvailable()||!this.#options.cors||!originAdmission.cors)){this.#error(response,405,'Method Not Allowed');return;}response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, X-Access-Token, If-None-Match, Range, If-Range'});response.end();return;}
     if(!allowed.some(v=>v===request.method)){this.#error(response,405,'Method Not Allowed');return;}
     if(isRPC&&!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
     if(isRedirect&&this.#options.redirect!.authorizationAvailable()){await this.#options.authorize('access.info',{}, {request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});signal.throwIfAborted();}
@@ -234,6 +239,7 @@ export class MoonrakerNetwork {
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
     for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
     const body=Buffer.concat(chunks),context=this.#context(request,'http',signal,undefined,nativeGenerationSignal,nativeGenerationRetiredAtAdmission);
+    if(isWelcome){const budget=1024*1024;if(budget>this.#maximumOutputBytes-this.#outputBytes)throw new ApiError(429,'Response buffer capacity exceeded');this.#outputBytes+=budget;outputReserved=budget;const html=await this.#options.welcome!.render({request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});signal.throwIfAborted();if(typeof html!=='string'||!html.isWellFormed()||Buffer.byteLength(html)>budget)throw new ApiError(500,'Invalid welcome output');response.writeHead(200,{'content-type':'text/html; charset=UTF-8','cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer'});await new Promise<void>(resolve=>{const finish=()=>{response.off('close',finish);response.off('finish',finish);resolve();};response.once('close',finish);response.once('finish',finish);response.end(html);});return;}
     if(isRedirect){const argument=redirectArgument(query,body),target=safeRedirectTarget(argument);if(target===undefined||!this.#options.redirect!.authorizationAvailable()||!this.#options.cors)throw new ApiError(400,'Unauthorized URL redirect');const grant=this.#options.cors.checkRedirect(argument,signal),allowed=grant instanceof Promise?await grant:grant;signal.throwIfAborted();if(!allowed)throw new ApiError(400,'Unauthorized URL redirect');await this.#options.authorize('access.info',{}, {request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});signal.throwIfAborted();response.writeHead(302,{location:target,'cache-control':'no-store','referrer-policy':'no-referrer'});response.end();return;}
     if(isDownload&&request.method==='DELETE'){
      if(query||body.length)throw new ApiError(400,'File deletion does not accept a query or body');

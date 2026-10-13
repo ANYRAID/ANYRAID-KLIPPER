@@ -1,3 +1,4 @@
+import {loadWelcomeSource} from '../moonraker/welcome-application.ts';
 import {isAbsolute,relative,resolve,sep,dirname,basename} from 'node:path';
 import {realpath} from 'node:fs/promises';
 import {PublishedPrintFiles} from '../storage/published-files.ts';
@@ -187,6 +188,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    if(snapshot.diskImports&&typeof processResources.diskImportContext!=='function')throw new TypeError('Disk imports require the current process filesystem policy');
    if(processResources.machineControl&&(['retirement','execute','assertDeviceAvailable','close'] as const).some(key=>typeof processResources!.machineControl![key]!=='function'))throw new TypeError('Invalid native machine control capability');
    assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);
+   await loadWelcomeSource();s.throwIfAborted();
    await readTlsConfiguration(new ConfigurationReader(await loadConfiguration(config.moonrakerConfig)),processResources.server.templates?.dataPath??processResources.server.authorization?.templateSecrets?.dataPath);s.throwIfAborted();
    if(['nativeDetached','productPrint','nativeHost','nativeObjects','maintenanceGate','nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory','configFiles'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
    if(snapshot.configFiles){configFiles=await NativeConfigFiles.open(snapshot.configFiles);if(!configFiles.contains(config.printerConfig))throw new TypeError('Printer config must be inside the explicit config root');s.throwIfAborted();}

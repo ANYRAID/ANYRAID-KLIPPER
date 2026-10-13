@@ -1,3 +1,6 @@
+import {hostname,userInfo} from 'node:os';
+import {WelcomeApplication,loadWelcomeSource} from './welcome-application.ts';
+const configuredWelcome=new WeakMap<ConfigurationReader,string>();
 import {readRoutePrefix} from './route-prefix.ts';
 import {readTlsConfiguration} from './tls-configuration.ts';
 import type {MoonrakerTlsOptions} from './server.ts';
@@ -71,7 +74,7 @@ import {MoonrakerTemplateFactory} from './template-factory.ts';
 import {ConfigurationReader} from './config-reader.ts';
 import {ApiError,authorizedContext,type RpcContext,JsonRpcDispatcher,type Json} from './rpc.ts';
 import {EndpointRegistry} from './endpoints.ts';
-import {ServerInformation,ServerConfiguration,registerServerMetadata,type InformationSnapshot} from './metadata.ts';
+import {ServerInformation,ServerConfiguration,registerServerMetadata,readServerInformation,type InformationSnapshot} from './metadata.ts';
 import {MoonrakerNetwork,type MoonrakerAddress,type MoonrakerNetworkOptions} from './server.ts';
 export interface NetworkBinding {readonly host:string;readonly port:number;readonly maxConnections:number;readonly useXheaders:boolean;readonly routePrefix:string;}
 type KlippyAttachmentOptions=Omit<KlippyInitializationOptions,'version'|'onSnapshot'|'onRemoteMethodsReady'>;
@@ -107,7 +110,7 @@ function validateConfigFiles(options:ConfiguredServerOptions|ConfiguredAuthoriza
 const databaseOwners=new WeakSet<DatabaseStore>();
 const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0});
 const nativeGenerationNotifications=new Set(['notify_gcode_response','notify_print_state_changed','notify_history_changed','notify_filelist_changed','notify_klippy_ready','notify_klippy_shutdown']);
-export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'|'tls'|'redirect'> {
+export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'|'tls'|'redirect'|'welcome'> {
  /** Process-owned announcements; requests never control remote URLs or paths. */
  announcements?:AnnouncementsOptions;
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
@@ -202,7 +205,7 @@ export class ConfiguredMoonraker {
  #announcements:Announcements|undefined;#announcementNotifications=notificationMetrics();
  #authorization:ApiKeyAuthorization|undefined;#releaseAuthorization:()=>void=()=>{};
  #ldap:LdapAuthorization|undefined;
- #templates:MoonrakerTemplateFactory|undefined;
+ #templates:MoonrakerTemplateFactory|undefined;#welcome:WelcomeApplication|undefined;
  /** Trusted component lookup only; never serialized as resolved values. */
  get templates(){return this.#templates;}
  /** Local provisioning only; never serialized into server information. */
@@ -296,7 +299,7 @@ export class ConfiguredMoonraker {
    }
   });
   const networkOptions={...options};for(const key of ['productPrint','nativeHost','nativeObjects','nativePrinterIdentity','productPressure','productHostControl','productPrintCompatibility','maintenanceGate','nativeDetached'] as const)delete networkOptions[key];
-  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,tls:configuredTls.get(reader),redirect:{authorizationAvailable:()=>this.#authorization!==undefined},nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections,useXheaders:this.binding.useXheaders,routePrefix:this.binding.routePrefix},this.#nativeScope?.signal);
+  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,tls:configuredTls.get(reader),redirect:{authorizationAvailable:()=>this.#authorization!==undefined},welcome:{render:context=>{if(!this.#welcome)throw new ApiError(503,'Application is unavailable');return this.#welcome.render(context);}},nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections,useXheaders:this.binding.useXheaders,routePrefix:this.binding.routePrefix},this.#nativeScope?.signal);
   if(options.nativeDetached)this.#nativeScope!.retire();
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   this.#nativeTemperatureObjects=options.nativeObjects;
@@ -343,7 +346,17 @@ export class ConfiguredMoonraker {
   // No device lifecycle sampler exists before the first real attachment.
   if(options.nativePrinterIdentity&&nativeHost&&!options.nativeDetached)this.#nativeLifecycle=new NativeHostNotifications(nativeHost,method=>this.#broadcastTracked(method,[],this.#klippyNotifications));
   const releaseOctoprint=this.#octoprint?.register(this.endpoints)??(()=>{});
-  const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections,nativeHost,options.nativePrinterIdentity?new NativePrinterInformation(options.nativePrinterIdentity):undefined);
+  const nativePrinter=options.nativePrinterIdentity?new NativePrinterInformation(options.nativePrinterIdentity):undefined;
+  const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections,nativeHost,nativePrinter);
+  const localUser=userInfo().username,localHostname=hostname();
+  this.#welcome=new WelcomeApplication(configuredWelcome.get(reader)!,{templates:()=>this.#templates,authorization:()=>this.#authorization,authorize:context=>options.authorize('server.info',{},context),information:()=>readServerInformation(this.#information,true,this.#network.status.connections,nativeHost,nativePrinter),stateMessage:info=>nativePrinter&&info.native_host?nativePrinterState(info.native_host as ReturnType<typeof readNativeHostStatus>).state_message:this.#klippy?.snapshot.stateMessage??'',corsEnabled:()=>!!options.cors,announcements:()=>this.#announcements?.list().entries??[],machine:()=>{
+   const snapshot=this.#systemInformation?.snapshot() as {system_info?:Record<string,Json>}|undefined,network=snapshot?.system_info?.network as Record<string,{ip_addresses?:{family?:string;address?:string;is_link_local?:boolean}[]}>|undefined;
+   const localIp=Object.entries(network??{}).filter(([name])=>name!=='lo').flatMap(([,row])=>row.ip_addresses??[]).find(row=>row.family==='ipv4'&&!row.is_link_local)?.address;
+   const services=this.#systemServices?.snapshot() as {instance_ids?:{moonraker?:string}}|undefined;
+   // The existing native host control uses polkit, has no interactive password
+   // request queue and never invents one from a page or query parameter.
+   return {sudo_requested:false,sudo_request_message:'',linux_user:localUser,local_ip:localIp??'unknown',service_name:services?.instance_ids?.moonraker||'unknown',hostname:localHostname};
+  }});
   const releaseExtensions=registerExtensions(this.endpoints,this.#network);
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy,new Set(this.#mqttMacros?['publish_mqtt_topic']:[]));
   const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,options.history?new HistoryFileMetadata(this.#metadataFiles,options.history.repository):this.#metadataFiles):()=>{};
@@ -364,6 +377,7 @@ export class ConfiguredMoonraker {
   for(const key of nativeDeviceFields)delete (options as unknown as Record<string,unknown>)[key];
  }
  static async #prepare(filename:string,options:ConfiguredServerOptions){
+  if('welcome' in options)throw new ConfigurationError('Welcome rendering belongs to the application owner');
   if('redirect' in options)throw new ConfigurationError('Redirect status belongs to the application owner');
   if('tls' in options)throw new ConfigurationError('TLS material belongs to server configuration');
   assertNativeProcessResources(options);
@@ -393,7 +407,7 @@ export class ConfiguredMoonraker {
   if(options.onPrintStartComplete!==undefined&&typeof options.onPrintStartComplete!=='function')throw new ConfigurationError('Invalid print start observer');
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
   if(options.klippy!==undefined&&(!options.klippy||typeof options.klippy!=='object'||Array.isArray(options.klippy)))throw new ConfigurationError('Invalid Klippy configuration owner');
-  const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));
+  const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));configuredWelcome.set(reader,await loadWelcomeSource());
   const templates=options.templates?await MoonrakerTemplateFactory.load(reader,options.templates):undefined;
   let mqtt:Awaited<ReturnType<typeof configureNativeSensorsFromConfig>>|undefined;
   try{configuredTls.set(reader,await readTlsConfiguration(reader,options.templates?.dataPath));const automatic=options.klippy?{...await readKlippyBinding(reader,options.klippy.pathContext,options.klippy.retryDelayMs),initialization:options.klippy.initialization??{}}:undefined;
@@ -803,7 +817,7 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
-  this.#templates?.close();this.#templates=undefined;
+  this.#welcome?.close();this.#welcome=undefined;this.#templates?.close();this.#templates=undefined;
   const ldapClosed=this.#ldap?.close()??Promise.resolve();
   this.#releaseUploadQueue();this.#releaseNativeQueue();const queueClosed=this.#nativeQueue?.close();
   this.#nativeScope?.retire();

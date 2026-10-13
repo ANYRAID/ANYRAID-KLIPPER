@@ -1,0 +1,1620 @@
+{
+  "schema": 1,
+  "status": "complete-welcome-candidate-with-original-direct-ui-gate-open",
+  "baselineHead": "0b2cc74713048f931f88e1d9c278927b89ec9adb",
+  "scope": "Complete pinned welcome template and original context over actual configured process owners. Not complete Moonraker/SUDO/Python/macro/hardware delivery and not a passed full UI performance gate.",
+  "upstream": {
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "asset": "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/assets/welcome.html",
+    "application": "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/application.py",
+    "template": "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/template.py",
+    "gitBlob": "bd428835dd618ab2a076ef02dcbe7756a5dbeff9",
+    "assetSha256": "fe91ee967ef43dab8e425c175fbbf1e4d3cd7f093f5f330a8098740acf482c2f",
+    "differences": "Original UI environment does not autoescape. Full original asset is retained; wrapper enables HTML autoescape, script JSON, DOM ID lookup and configured sudo endpoint prefix; unsafe/noncanonical or absent announcement links become#. Original1MiB/shared output/request budgets; early bounded warnings before JSON; UI-only instance cannot bind guessed secrets/private templates/globals."
+  },
+  "sourceSha256": {
+    "host/assets/moonraker/README.md": "9a3c775076545b7d2d611bb10810d62308b7050a59a4a8d254348e30537c1cc0",
+    "host/assets/moonraker/welcome.html": "fe91ee967ef43dab8e425c175fbbf1e4d3cd7f093f5f330a8098740acf482c2f",
+    "host/src/moonraker/api-key-authorization.ts": "582abf20ec9330dbd5f269fb583d0794873ddcd13b4c259031dc20406729176e",
+    "host/src/moonraker/configured-server.ts": "32f1209b27aee360535755e75448c06131302dbe9abe1fbabcb8e8758f419b21",
+    "host/src/moonraker/metadata.ts": "b0827bfe9b65363caa85a0c333ca3de042f22897cf94c7a747041440b4b7691e",
+    "host/src/moonraker/server.ts": "26f888a8de598d59f2ec4b7022c30515f8acc5b9d7e90b9832d89722c0b5eab5",
+    "host/src/moonraker/template-factory.ts": "608b52769de2702c45ee37edf9005a24cdf33a48bdbd91c47cb691aa7bdd9602",
+    "host/src/moonraker/welcome-application.ts": "e995846e2dbee970498a03c7d560958e7cad8ec7661a3abdfe7750623f112ca7",
+    "host/src/runtime/native-product-machine.ts": "1d1991e74f4fba8b9f269443f6e10cf7a94029456990fa9fe56286c41ac981c4",
+    "host/src/runtime/product-authorization.ts": "3d0161429097a511e003e00dcc25f6a99eb45fb4f1191f60463362d3346e4cfe",
+    "host/src/runtime/product-machine-profile.ts": "697f1c22b02d1cc7fa62667a7493c0837506c89211e7dfa91a619fb30755df97",
+    "host/src/runtime/product-service.ts": "065eacb69806872bb612541104b7c5a1d7bc453ad539ac69674d54f778bf6672",
+    "host/test/trusted-proxy-network.test.ts": "ca877a7e5ebf70208491612b964bebe8ccc93f3b90c4f044f5e815115f993404",
+    "host/test/trusted-domains-network.test.ts": "39c503c2f3a84f8592cadf1223ea069427b459214b88672ff75b7f31c8964802",
+    "host/test/authorization-policy-network.test.ts": "b3ef5b5042a5b328f1c4831e0ce59ca5bd3d81e8abbe015dafcab1a11478435e",
+    "host/test/api-key-authorization.test.ts": "6729d7fe9cf7ef8dae9ffca70064329b139018e94b73c21430f9c841516d416e",
+    "host/test/configured-server.test.ts": "a40836ab98fb3b567d4512f41cb0f30b5c134cb1c539f3bffec6b0150824b44d",
+    "host/test/authorization-config.test.ts": "2783dba954184bbb392aaecffe9db17ab6a0dc9693bb8a7bf45f8c309a11fb63",
+    "host/test/authorization-identity.test.ts": "87ef825d42d6ffedeeeaa39e094231a9dbca829ea1a60b21327063490c12062f",
+    "host/test/authorization-events.test.ts": "11752bb3f2e99d693384a7d6990648ecb3cf0525ff333a0ecfae3d9fa08bdf6d",
+    "host/test/trusted-clients-network.test.ts": "036f3a61f0ebfe4a136934ac4b9449493214958b15daff7b5704fb4cf3ce1090",
+    "host/test/trusted-clients.test.ts": "2d35475ba704996d7f8d6eb52341291cde25a97da9cf0650fd2220b64592412b",
+    "host/test/proxy-protocol-upload.test.ts": "f29b8a4d27236ca6e9535c99178fec7c979c8ce239c7e328095045d58fc7a137",
+    "host/test/native-print-uploads.test.ts": "4b8c09f1ba1ff20825ab0530f665552409757a3d4868aac5f88e6ce71715525e",
+    "host/test/octoprint-compat.test.ts": "72163444b184effe31eb768f2aa6eaf63915fc5107b08aa012563b037f7b9bdc",
+    "host/test/product-native-authorization.test.ts": "baae66a45f525c5a8905950110f23e781e4dc6f8c4094323fb232f033558edf9",
+    "host/test/route-prefix.test.ts": "34eabbbd1718c362bfa3c6f181e792d551629274dba0b02d432c64aaa7c036c5",
+    "host/test/product-client-gateway.test.ts": "3e01fbac5e1f6e30eaeae755e73956327cf7e05d5bb95703e4dbc9f6b9c339a0",
+    "host/test/direct-tls-network.test.ts": "a14a8d3d773c0fd9d176c60714cb72a4b6e0746d73570694c3018d96ab44b639",
+    "host/test/moonraker-network.test.ts": "73607779b1b97531ece4caf18f88b03bb92b3cd4b67c266d563d8bc7b8869a46",
+    "host/test/product-service.test.ts": "77e97e87de17066b60fb241bfbdb5057cba7f7fe0f2410967d40d1c83ee705be",
+    "host/test/application-redirect.test.ts": "86d61dd5ef474e0e9dae64d376b7b9a5c7bd1b8d2d49eec9b2d2eefcc74196b0",
+    "host/test/cors-policy.test.ts": "6b8e84a328893b3ebc5ae1dab27e572c07f4c7a055a1ad08d3f5ed6b2ba0c681",
+    "host/test/configured-cors.test.ts": "d8b3a4eb983eabdd2c8c188bbe1eb1b3fb7a8f067094fb74b0289f154be4d232",
+    "host/test/cors-trusted-domain-owner.test.ts": "1c2a6405b6a0eede856904a97bdfd4e386aa3729d3a49a0f5d8d7b4c14a710cb",
+    "host/test/application-welcome.test.ts": "b9029125b7c5073ba3cc1031737ab83d46514af900ec43e7d35a3eb2f220d402",
+    "host/test/template-factory.test.ts": "e9c2c8b43f107b76b2aa5eaa1fc07334ece637dfe5df55e693697ed9eab7fac7",
+    "host/test/template-async.test.ts": "c6f3e55506f7990e69c3b85c21ca13353b6ad80a7c323bcb38d46099ab868921",
+    "host/test/template-sync.test.ts": "83132efa0400936b301a2beb1a1ebf0d21c466195c7b57178ca11e0c5eee93fe",
+    "host/test/template-sync-functions.test.ts": "d279497559c73d7fd3fb4aa01107f0fc4798b69446daf97e2e97d947e9bc47e5",
+    "host/test/template-numbers.test.ts": "4ed197d8b7fc9fd678be75f638038b8f19d57fb9e94712acdcd48b282a28614a",
+    "host/test/template-message-metadata.test.ts": "e2817194332ac2c11945d3556072b3ab2370c51b91096f47c0b32955d51ef36e",
+    "host/test/announcements-network.test.ts": "f79cb29762ed9f59c362555aefe08259794d945cce99a7e488890902256af0f1",
+    "host/test/system-information.test.ts": "312b20cdf3b702c080917877174e9ef22a686b0414529661b443493aae0b9754",
+    "host/test/configured-system-services.test.ts": "c5290751e00cee65d12cf4899158616d40bb3c7a39e230b33de490d3e96a6db7",
+    "host/test/moonraker-metadata.test.ts": "fdbdd4ec723eddb5a4b8c30ffc6fe3eacfb674809f0cd1b96c97a4601e083ff1",
+    "host/acceptance/product-compiled-journey.test.ts": "547ffe81b9cc4685ca6f8d649cac13c0f7b0ea0be450e44d90bbec9b938226b1",
+    "host/test/helpers/mqtt-certificate.ts": "f5d72c7829572dba2277ead5556dd52bed29a46ee15d478cbf6436996c56788a",
+    "host/test/helpers/acceptance-bundle.ts": "60f5f9236c8d45ceb0d3fdf29aaa5a0dfde14b107e209f0b24df5e61e1a6ed08",
+    "host/test/helpers/pty.c": "d0be1baa4217068c6dd1918035739a436cc77f241cdcee045043e60a8575372e",
+    "host/contracts/pr68-0b2cc74-terminal.json": "0d7e2a0830114bccf6c706296ea2f5e8110c96a64e693aa3860c4c245ed25866"
+  },
+  "baseline": {
+    "baselineHead": "0b2cc74713048f931f88e1d9c278927b89ec9adb",
+    "bundleManifestSha256": "f32394e02871ff1492fa6c300f03d32188289d96cb5d41981d7df0aaff016ff8",
+    "observedStatus": 404,
+    "requiredStatus": 200,
+    "scope": "Same valid configured authorization/CORS/prefix; actual prior compiled product has no WelcomeHandler. Original 404 is preserved, not a successful performance baseline."
+  },
+  "behavior": {
+    "template": "No smaller page/alternate renderer; full pinned style, status/auth, summary, announcements, warnings and original modal/script remain, source SHA checked from bounded regular bundled asset. Shared original private UI factory when available; otherwise restricted public-only same native executor.",
+    "owner": "Original protected server.info auth is observed for a badge; bad credentials show False200, never grant API. Original frozen/verified address selection, metadata reader shared with RPC/native state, actual cached system network/services, real process user/hostname and original announcement catalogue. Caller query cannot invent authority or SUDO state.",
+    "sudo": "Existing native polkit control has no interactive SUDO password queue: requestedfalse/messageempty reflect that current process. Original form retained and endpoint follows prefix; backendSUDO/password lifecycle still open, no password entered, endpoint/control/authority created.",
+    "lifetime": "HTTP/HTTPS and optional-prefix root boundary, public page without CORS permission, original request/body/output quota, deadlines, disconnect and shutdown; late render suppressed and reservations released after actual HTTPfinish/close.",
+    "preflight": "Fixed source asset checked at original legacy/generation/process MCU/journal preflight; external welcome overrides rejected by configured/native owners. No per-request asset files or system commands.",
+    "clients": "No new browser/localclient or hardware sessions; Fluidd18430/probe18428, Mainsail18434/probe18432 remain fixed."
+  },
+  "validation": {
+    "source": {
+      "tests": 490,
+      "passed": 490,
+      "failed": 0,
+      "durationMs": 78647.791074
+    },
+    "compiled": {
+      "tests": 490,
+      "passed": 490,
+      "failed": 0,
+      "durationMs": 76506.245638
+    },
+    "product": {
+      "tests": 490,
+      "passed": 490,
+      "failed": 0,
+      "durationMs": 74722.479681
+    },
+    "targetedTests": 18,
+    "minimumNode": "26.9.0",
+    "minimumProductTests": 18,
+    "typecheck": "Final project-wide and standalone emit including full welcome load supplement",
+    "programGuard": "Original noTS/arbitrary-program guard and hashed bounded NSS/thumbnail/testPTY/testcertificate only; native75sources/11outputs reused"
+  },
+  "product": {
+    "before": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-redirect-owner-oct13",
+      "manifestSha256": "f32394e02871ff1492fa6c300f03d32188289d96cb5d41981d7df0aaff016ff8",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "after": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-welcome-owner-oct13",
+      "manifestSha256": "d51ec1c638fe9dc1b9f84bed5ed08a5c8a35aba95c5bd7d9045d8354caa6dd54",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "files": 697,
+    "changes": [
+      "host/assets/moonraker/README.md",
+      "host/assets/moonraker/welcome.html",
+      "host/src/moonraker/api-key-authorization.js",
+      "host/src/moonraker/configured-server.js",
+      "host/src/moonraker/metadata.js",
+      "host/src/moonraker/server.js",
+      "host/src/moonraker/template-factory.js",
+      "host/src/moonraker/welcome-application.js",
+      "host/src/runtime/native-product-machine.js",
+      "host/src/runtime/product-authorization.js",
+      "host/src/runtime/product-machine-profile.js",
+      "host/src/runtime/product-service.js"
+    ],
+    "nativeSources": 75,
+    "nativeOutputs": 11,
+    "scope": "Standard buildProductHost with verified original native outputs and independent copied production dependencies. No native recompile or fresh dependency-install claim."
+  },
+  "runtimeIdentity": {
+    "runtimeMatches": 661,
+    "manifestSha256": "d51ec1c638fe9dc1b9f84bed5ed08a5c8a35aba95c5bd7d9045d8354caa6dd54",
+    "productCloneMatches": true
+  },
+  "budgets": {
+    "pass": true,
+    "comparisons": 42,
+    "maxRatio": 1.1831594617291743,
+    "maxAuthUs": 3.6448982899999987,
+    "limits": "Original1.5ratio/10us and all original inputs/warmups/samples AB/BA/AB",
+    "scope": "Original auth100000x8, configured HTTP200/WS500/startup30 with 3warm11samples, uploads4/16MiB2warm7. Sequential fresh AB/BA/AB using original TLS actual product before and the welcome actual product after; no overlapping task benchmarks or mixed scenes. No old successful welcome baseline; no Python or board throughput claim."
+  },
+  "uiGate": {
+    "pass": false,
+    "factory": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+      "results": [
+        {
+          "name": "sync",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            1.877793000000004,
+            1.9392539999999983,
+            1.0224629999999948,
+            1.0802539999999965,
+            1.2542779999999993,
+            0.892710000000001,
+            0.832778999999995
+          ],
+          "medianMs": 1.0802539999999965,
+          "referenceMedianMs": 3.5718820290639997,
+          "ratio": 0.30243272068060817,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "async",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            5.040314000000009,
+            5.615676000000008,
+            5.595535999999996,
+            5.790861000000007,
+            4.8598400000000055,
+            4.8569089999999875,
+            4.940381000000002
+          ],
+          "medianMs": 5.040314000000009,
+          "referenceMedianMs": 4.101527971215546,
+          "ratio": 1.2288869015091077,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "ui",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            5.968834000000001,
+            6.946037000000004,
+            4.698666000000003,
+            4.6058439999999905,
+            5.075783999999999,
+            4.525822000000005,
+            4.592013999999978
+          ],
+          "medianMs": 4.698666000000003,
+          "referenceMedianMs": 3.2580499537289143,
+          "ratio": 1.4421712578784343,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        }
+      ],
+      "pass": true,
+      "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+    },
+    "direct": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+      "results": [
+        {
+          "name": "pure",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            4.898010999999997,
+            4.590163000000004,
+            6.315481999999996,
+            5.188077000000007,
+            4.583364000000003,
+            4.6100840000000005,
+            4.580093000000005
+          ],
+          "medianMs": 4.6100840000000005,
+          "referenceMedianMs": 6.315300997812301,
+          "ratio": 0.7299864252862993,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "callback",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            12.453129999999987,
+            12.120333000000002,
+            12.148584,
+            12.671294999999986,
+            15.99998100000002,
+            15.642043000000001,
+            16.796048000000013
+          ],
+          "medianMs": 12.671294999999986,
+          "referenceMedianMs": 9.619439020752907,
+          "ratio": 1.3172592468919475,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "ui",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            16.073941999999988,
+            16.069973000000005,
+            15.639612,
+            16.657006000000024,
+            15.601571999999976,
+            12.490361000000007,
+            11.907748999999967
+          ],
+          "medianMs": 15.639612,
+          "referenceMedianMs": 8.285223972052336,
+          "ratio": 1.8876510825483341,
+          "maximumMedianRatio": 1.5,
+          "pass": false
+        }
+      ],
+      "pass": false
+    },
+    "originalFailedRatios": [
+      2.06,
+      1.506
+    ],
+    "limit": 1.5,
+    "scope": "One final compiled-product observation per original unchanged benchmark. Factory current green cannot erase historical failed groups; direct UI still failed, no retry/threshold or OS-tuning change."
+  },
+  "mixed": {
+    "original": {
+      "tests": 1,
+      "durationMs": 63574.086099,
+      "record": {
+        "namespace": true,
+        "automaticQueue": false,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9627.483212
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9735.360002
+            },
+            "durationMs": 107.88040000000001
+          },
+          {
+            "generation": 1,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 12974.629324
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 13027.557471
+            },
+            "durationMs": 52.93353799999932
+          },
+          {
+            "generation": 1,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 15327.642142
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 15465.859242
+            },
+            "durationMs": 138.21739999999954
+          },
+          {
+            "generation": 1,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 18062.393061
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 18200.8712
+            },
+            "durationMs": 138.47896899999978
+          },
+          {
+            "generation": 1,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 20840.522255
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 20978.416749
+            },
+            "durationMs": 137.8929440000029
+          },
+          {
+            "generation": 1,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22441.387994
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22513.423949
+            },
+            "durationMs": 72.03660499999751
+          },
+          {
+            "generation": 1,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23810.433136
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23878.883661
+            },
+            "durationMs": 68.45227499999964
+          },
+          {
+            "generation": 1,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25129.722277
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25192.190672
+            },
+            "durationMs": 62.46899499999927
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 44285.147509
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 44630.523452
+            },
+            "durationMs": 345.37698299999465
+          },
+          {
+            "generation": 2,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 46495.164555
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 46647.520259
+            },
+            "durationMs": 152.35619399999996
+          },
+          {
+            "generation": 2,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 49405.715998
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 49471.063408
+            },
+            "durationMs": 65.34801000000152
+          },
+          {
+            "generation": 2,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 52116.82322
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 52182.880281
+            },
+            "durationMs": 66.05793100000301
+          },
+          {
+            "generation": 2,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 54821.815015
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 54956.546764
+            },
+            "durationMs": 134.73209900000074
+          },
+          {
+            "generation": 2,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 56409.809436
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 56473.158092
+            },
+            "durationMs": 63.349176000003354
+          },
+          {
+            "generation": 2,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 57754.153814
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 57816.735024
+            },
+            "durationMs": 62.58208999999624
+          },
+          {
+            "generation": 2,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 59110.090951
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-4e710d75-425e-4b8b-a1cb-703402f45bf5",
+              "fileId": "authorized-file",
+              "atMs": 59172.433125
+            },
+            "durationMs": 62.34278400000039
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 1782,
+        "configListP99Ms": 7.242812999998932,
+        "configDownloads": 1782,
+        "configDownloadP99Ms": 8.709171000002243,
+        "liveMotionSamples": 5367,
+        "liveExtrusionSamples": 1456,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 9.603258623000002,
+          "print_duration": 4.341344351,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "d51ec1c638fe9dc1b9f84bed5ed08a5c8a35aba95c5bd7d9045d8354caa6dd54",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 8588,
+        "phaseP99Ms": 4.556528000000981,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 272,
+            "writes": 43
+          },
+          {
+            "statusReads": 184,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1706,
+        "historyP99Ms": 60.63053999999829,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 148.62674700000025,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 180.75902799999858,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 248.0897299999997,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 3,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 114.43482899999799,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 383.0162999999957,
+        "directoryMovesDuringPrint": 4,
+        "moveRequests": 16,
+        "moveP95Ms": 344.65107899999566,
+        "deleteRequests": 16,
+        "deleteP95Ms": 124.9663500000006,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 108.54515900000115,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 93.01898000000074,
+        "metadataRequests": 16,
+        "metadataP95Ms": 228.8010490000015,
+        "downloads": 16,
+        "downloadP95Ms": 55.1594019999975,
+        "wireCommands": 211,
+        "wireSteps": 6900,
+        "minimumStepLeadMs": 83.032,
+        "directoryRequests": 6982,
+        "directoryP99Ms": 44.95912899999894,
+        "statusRequests": 34346,
+        "uploads": 16,
+        "statusP99Ms": 4.212502999999742,
+        "uploadP95Ms": 42.29193200000009,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.999871,
+              "maxMs": 19.677183
+            },
+            "cpu": {
+              "user": 11732966,
+              "system": 2004172
+            },
+            "rss": 363028480
+          },
+          {
+            "loop": {
+              "p99Ms": 1.963007,
+              "maxMs": 21.528575
+            },
+            "cpu": {
+              "user": 7174949,
+              "system": 1508792
+            },
+            "rss": 434003968
+          }
+        ]
+      }
+    },
+    "tls": {
+      "tests": 1,
+      "durationMs": 61702.742417,
+      "record": {
+        "namespace": true,
+        "automaticQueue": false,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 10102.299766
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 10167.528344
+            },
+            "durationMs": 65.23519799999849
+          },
+          {
+            "generation": 1,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 14676.153847
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 14985.18753
+            },
+            "durationMs": 309.037812999999
+          },
+          {
+            "generation": 1,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 17436.815453
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 17554.643867
+            },
+            "durationMs": 117.82896400000027
+          },
+          {
+            "generation": 1,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 19934.503826
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 20040.186038
+            },
+            "durationMs": 105.68199199999799
+          },
+          {
+            "generation": 1,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22341.411266
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22471.361411
+            },
+            "durationMs": 129.94733500000075
+          },
+          {
+            "generation": 1,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23807.717868
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 23871.915445
+            },
+            "durationMs": 64.19798699999956
+          },
+          {
+            "generation": 1,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25195.653573
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25259.778538
+            },
+            "durationMs": 64.12525499999902
+          },
+          {
+            "generation": 1,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26466.59453
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26515.60965
+            },
+            "durationMs": 49.01540000000023
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 43446.630554
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 43777.046003
+            },
+            "durationMs": 330.41553900000144
+          },
+          {
+            "generation": 2,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 45550.344205
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 45699.348536
+            },
+            "durationMs": 149.00438099999883
+          },
+          {
+            "generation": 2,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 48450.135865
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 48514.464724
+            },
+            "durationMs": 64.3288590000011
+          },
+          {
+            "generation": 2,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 50878.383006
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 51044.206018
+            },
+            "durationMs": 165.82272199999716
+          },
+          {
+            "generation": 2,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 53339.026627
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 53462.684147
+            },
+            "durationMs": 123.65765000000101
+          },
+          {
+            "generation": 2,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 54818.533886
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 54876.363531
+            },
+            "durationMs": 57.82954500000051
+          },
+          {
+            "generation": 2,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 56000.835909
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 56056.210468
+            },
+            "durationMs": 55.374698999999964
+          },
+          {
+            "generation": 2,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 57120.629276
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-6e7b681b-e1e9-4a2d-a43f-9e76067820e5",
+              "fileId": "authorized-file",
+              "atMs": 57187.752901
+            },
+            "durationMs": 67.12388500000088
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 1666,
+        "configListP99Ms": 10.591855999999098,
+        "configDownloads": 1665,
+        "configDownloadP99Ms": 11.242533999999068,
+        "liveMotionSamples": 5729,
+        "liveExtrusionSamples": 1442,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 10.558130266000001,
+          "print_duration": 4.938640222,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "d51ec1c638fe9dc1b9f84bed5ed08a5c8a35aba95c5bd7d9045d8354caa6dd54",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 8172,
+        "phaseP99Ms": 7.842824999999721,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 272,
+            "writes": 43
+          },
+          {
+            "statusReads": 168,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1640,
+        "historyP99Ms": 59.73623800000132,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 142.77099799999996,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 190.91425999999774,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 236.92377600000327,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 117.59017299999687,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 342.679035000001,
+        "directoryMovesDuringPrint": 4,
+        "moveRequests": 16,
+        "moveP95Ms": 329.9621610000031,
+        "deleteRequests": 16,
+        "deleteP95Ms": 189.54532599999948,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 111.09100799999942,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 89.2413030000007,
+        "metadataRequests": 16,
+        "metadataP95Ms": 279.5561230000003,
+        "downloads": 16,
+        "downloadP95Ms": 57.14255899999989,
+        "wireCommands": 237,
+        "wireSteps": 7510,
+        "minimumStepLeadMs": 87.621,
+        "directoryRequests": 6628,
+        "directoryP99Ms": 44.9861280000041,
+        "statusRequests": 32682,
+        "uploads": 16,
+        "statusP99Ms": 5.604714000000968,
+        "uploadP95Ms": 57.76939699999639,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.998847,
+              "maxMs": 20.398079
+            },
+            "cpu": {
+              "user": 12940856,
+              "system": 2203407
+            },
+            "rss": 368291840
+          },
+          {
+            "loop": {
+              "p99Ms": 1.982463,
+              "maxMs": 24.559615
+            },
+            "cpu": {
+              "user": 7174649,
+              "system": 1441954
+            },
+            "rss": 440541184
+          }
+        ]
+      }
+    },
+    "welcome": {
+      "tests": 1,
+      "durationMs": 64227.052926,
+      "record": {
+        "namespace": true,
+        "automaticQueue": false,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9906.418123
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 10234.201218
+            },
+            "durationMs": 327.7870149999999
+          },
+          {
+            "generation": 1,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 14894.600739
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 15002.444829
+            },
+            "durationMs": 107.84821999999986
+          },
+          {
+            "generation": 1,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 17417.74378
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 17523.375537
+            },
+            "durationMs": 105.63223700000162
+          },
+          {
+            "generation": 1,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 20129.845893
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 20194.551226
+            },
+            "durationMs": 64.70559299999877
+          },
+          {
+            "generation": 1,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22453.354247
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22602.951744
+            },
+            "durationMs": 149.59395699999732
+          },
+          {
+            "generation": 1,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 24200.039169
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 24262.448906
+            },
+            "durationMs": 62.410116999999445
+          },
+          {
+            "generation": 1,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25504.581345
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25567.825347
+            },
+            "durationMs": 63.24427199999991
+          },
+          {
+            "generation": 1,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 27273.495488
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 27320.305273
+            },
+            "durationMs": 46.81015499999921
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 45951.355889
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 46265.792547
+            },
+            "durationMs": 314.4367679999996
+          },
+          {
+            "generation": 2,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 48190.745468
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 48346.845089
+            },
+            "durationMs": 156.09985099999903
+          },
+          {
+            "generation": 2,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 50819.89756
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 50872.424014
+            },
+            "durationMs": 52.52677399999811
+          },
+          {
+            "generation": 2,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 52913.856482
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 53031.060884
+            },
+            "durationMs": 117.20454199999949
+          },
+          {
+            "generation": 2,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 55354.784385
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 55493.198951
+            },
+            "durationMs": 138.41465599999356
+          },
+          {
+            "generation": 2,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 57048.363275
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 57110.030118
+            },
+            "durationMs": 61.66714299999876
+          },
+          {
+            "generation": 2,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 58391.707713
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 58453.754192
+            },
+            "durationMs": 62.046668999995745
+          },
+          {
+            "generation": 2,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 59622.526542
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-e5aee364-b2e1-4ca9-aaed-04a062e11f1d",
+              "fileId": "authorized-file",
+              "atMs": 59688.388478
+            },
+            "durationMs": 65.8632759999964
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 1737,
+        "configListP99Ms": 10.185982999999396,
+        "configDownloads": 1736,
+        "configDownloadP99Ms": 11.524640999999974,
+        "liveMotionSamples": 5888,
+        "liveExtrusionSamples": 1583,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 10.518364880000002,
+          "print_duration": 4.871710352999998,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "d51ec1c638fe9dc1b9f84bed5ed08a5c8a35aba95c5bd7d9045d8354caa6dd54",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 8589,
+        "phaseP99Ms": 6.257244999999784,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 288,
+            "writes": 43
+          },
+          {
+            "statusReads": 170,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1719,
+        "historyP99Ms": 60.54042599999957,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 139.3334010000035,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 572.1071360000024,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 235.26307599999927,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 101.66204899999866,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 321.95141400000284,
+        "directoryMovesDuringPrint": 4,
+        "moveRequests": 16,
+        "moveP95Ms": 326.5591430000004,
+        "deleteRequests": 16,
+        "deleteP95Ms": 110.95719800000006,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 120.53910799999721,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 95.69124700000248,
+        "metadataRequests": 16,
+        "metadataP95Ms": 248.44057099999918,
+        "downloads": 16,
+        "downloadP95Ms": 53.55428400000528,
+        "wireCommands": 241,
+        "wireSteps": 7862,
+        "minimumStepLeadMs": 85.016,
+        "directoryRequests": 7003,
+        "directoryP99Ms": 45.20218599999862,
+        "statusRequests": 34351,
+        "uploads": 16,
+        "statusP99Ms": 6.9711480000005395,
+        "uploadP95Ms": 54.04545599999983,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.166783,
+              "maxMs": 19.857407
+            },
+            "cpu": {
+              "user": 14284392,
+              "system": 2222430
+            },
+            "rss": 393404416
+          },
+          {
+            "loop": {
+              "p99Ms": 1.984511,
+              "maxMs": 27.787263
+            },
+            "cpu": {
+              "user": 7669648,
+              "system": 1441764
+            },
+            "rss": 459624448
+          }
+        ]
+      },
+      "welcome": {
+        "requests": 2388,
+        "medianMs": 1.1660699999993085,
+        "p99Ms": 9.779214999998658,
+        "fullPinnedTemplate": true,
+        "originalWorkloadAndBudgetsUnchanged": true
+      }
+    },
+    "scope": "Same exact package; original1000motions/file/auth/API/restart/ADCfault/budgets retained. Third scene only adds steady complete welcome reads to original TLS+Unicode scene, no existing load replaced. Desktop simulatedMCU, not physical movement/heating or target-board proof."
+  },
+  "failures": [
+    "Initial script used a const filename variable and stopped after the configured-owner edit; type failures preserved",
+    "Initial two bare-prefix probes404 until dedicated welcome boundary was added; original API/WS prefix mapping was not broadened",
+    "Initial complete-template fixture asserted a different legal slash entity and used unsupported root EndpointRegistry registration; actual cases corrected, no production bypass",
+    "Original direct UI budget still fails; not counted as passing or historical cause solved"
+  ],
+  "priorCi": "pr68-0b2cc74-terminal.json",
+  "evidence": {
+    "path": "host/contracts/application-welcome-owner-evidence.json.gz",
+    "entries": 301,
+    "compressedBytes": 1145646,
+    "sha256": "8d1124d8db94f7a3cec024c51c411f12d32a66e3084c28ba8132180d7bfaf463"
+  },
+  "open": [
+    "Original direct/factory UI historical gates, full template/Jinja/msgspec semantics and stable fresh native builds",
+    "Original SUDO/password owner flow, trusted log downloads and remaining HTTP consumers",
+    "Full Python retirement/default switch, consumer macro journeys and G3 precision",
+    "Full fixed clients fault/SIGKILL/Cura/direct browserHTTPS and Cycnumbris500board/hardware",
+    "New ownCI and task->develop->master integration; other machines last"
+  ]
+}

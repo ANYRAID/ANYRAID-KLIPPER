@@ -22,6 +22,16 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+原生应用现接通完整原版 Moonraker 欢迎模板，身份显示、公告、
+警告及主机信息来自现有进程所有者；HTML／脚本内容安全编码，
+私密模板值不进入页面。HTTP／HTTPS 与前缀根入口共用原容量、
+取消及退出规则。三种方式各 490 项、最低 Node.js 26.9 的 18 项、
+原 42 项预算及三轮同包模拟旅程通过，补验含 2388 次欢迎页读取。
+直接 UI 仍为 1.888 > 1.5，门禁未关闭；SUDO 密码流程、日志、
+完整 Python／宏和实机交付仍待完成。见
+[欢迎入口证据](host/contracts/application-welcome-owner-acceptance.json)。
+前序 0b2cc747 十五项 CI、5164／5164 全成功，见
+[精确终态](host/contracts/pr68-0b2cc74-terminal.json)；本增量须自身 CI。
 原生配置入口现提供 Moonraker 的 GET /server/redirect，复用现有
 授权及完整目标 URL 的 CORS／NSS 校验，支持配置前缀、HTTP／HTTPS
 和 Unicode；重定向许可不授予 API 或打印身份。等待期间取消或

@@ -3,7 +3,7 @@
 import type {ConfigurationReader} from './config-reader.ts';
 import {ConfigurationError} from './config-source.ts';
 import {ApiError} from './rpc.ts';
-import {loadSecrets,type SecretsContext,type SecretsStore} from './secrets.ts';
+import {loadSecrets,SecretsStore,type SecretsContext} from './secrets.ts';
 import {MoonrakerTemplateOwner,type MoonrakerTextTemplate,type SyncTemplateCallable,type SyncTemplateOptions} from './template-owner.ts';
 import {MoonrakerAsyncTemplateOwner,type MoonrakerAsyncTextTemplate,type TemplateCallable,type AsyncTemplateOptions} from './template-async-owner.ts';
 import type {TemplateCall,TemplateValue} from './template-wire.ts';
@@ -16,9 +16,13 @@ const failure=()=>new ApiError(500,'Error rending Jinja2 Template');
 export class MoonrakerTemplateFactory {
  #secrets:SecretsStore|undefined;#sync:MoonrakerTemplateOwner|undefined;#async:MoonrakerAsyncTemplateOwner|undefined;
  #configured=false;#releaseReader:()=>void=()=>{};readonly #shutdown=new AbortController();
+ #uiOnly=false;
  readonly #globals=new Map<string,TemplateValue|FactoryTemplateCallable>();readonly #templates=new Set<MoonrakerRenderableTemplate>();
  readonly #options:TemplateFactoryOptions;#dataPath:string|undefined;
- private constructor(secrets:SecretsStore,context:SecretsContext,options:TemplateFactoryOptions){this.#secrets=secrets;this.#sync=new MoonrakerTemplateOwner(secrets);this.#options={...options};this.#dataPath=context.dataPath;}
+ private constructor(secrets:SecretsStore,context:SecretsContext|undefined,options:TemplateFactoryOptions){this.#secrets=secrets;this.#sync=new MoonrakerTemplateOwner(secrets);this.#options={...options};this.#dataPath=context?.dataPath;}
+ /** Public application without a private generation: same UI executor, empty
+  * secrets, no filesystem/configuration binding or private template methods. */
+ static createPublicUi():MoonrakerTemplateFactory{const factory=new MoonrakerTemplateFactory(new SecretsStore('','invalid',Object.freeze({})),undefined,{});factory.#uiOnly=true;factory.markConfigured();return factory;}
  static async load(reader:ConfigurationReader,context:SecretsContext,options:TemplateFactoryOptions={}):Promise<MoonrakerTemplateFactory>{
   if(options.debug!==undefined&&typeof options.debug!=='function')throw new ConfigurationError('Invalid trusted template logger');
   const secrets=await loadSecrets(reader,context);let factory:MoonrakerTemplateFactory|undefined;
@@ -34,9 +38,9 @@ export class MoonrakerTemplateFactory {
  }
  markConfigured():void{this.#check();this.#configured=true;}
  /** Trusted application context for configuration getters, never serialized. */
- configurationDataPath():string{this.#check();return this.#dataPath!;}
+ configurationDataPath():string{this.#check();if(this.#dataPath===undefined)throw new ConfigurationError('Public UI has no private data directory');return this.#dataPath;}
  addEnvironmentGlobal(key:string,value:TemplateValue|FactoryTemplateCallable):void{
-  const sync=this.#check();sync.addEnvironmentGlobal(key,value as TemplateValue|SyncTemplateCallable);
+  const sync=this.#check();if(this.#uiOnly)throw failure();sync.addEnvironmentGlobal(key,value as TemplateValue|SyncTemplateCallable);
   try{this.#async?.addEnvironmentGlobal(key,value);this.#globals.set(key,value);}
   catch{this.close();throw failure();}
  }
@@ -56,7 +60,7 @@ export class MoonrakerTemplateFactory {
   });return calls;
  }
  #create(source:string,isAsync:boolean,ui:boolean):MoonrakerRenderableTemplate{
-  this.#check();if(typeof isAsync!=='boolean'||this.#templates.size>=64)throw failure();
+  this.#check();if(typeof isAsync!=='boolean'||this.#templates.size>=64||this.#uiOnly&&!ui)throw failure();
   const handle:MoonrakerTextTemplate|MoonrakerAsyncTextTemplate=isAsync?(ui?this.#asyncOwner().createUiTemplate(source):this.#asyncOwner().createTemplate(source)):this.#sync!.createTemplate(source);
   let template!:MoonrakerRenderableTemplate;
   template=new MoonrakerRenderableTemplate(source,isAsync,(context,options)=>{

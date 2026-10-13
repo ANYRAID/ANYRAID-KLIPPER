@@ -48,10 +48,12 @@ export class ServerConfiguration {
  }
  read():Record<string,Json>{return this.#view;}
 }
+/** Application and API consume one actual lifecycle view. */
+export function readServerInformation(information:ServerInformation,raw:boolean,connections:number,nativeHost?:NativeHostStatusSource,nativePrinter?:NativePrinterInformation):Record<string,Json>{const result=information.read(raw,connections);if(!nativeHost)return result;const status=readNativeHostStatus(nativeHost);return {...result,...nativePrinter?{klippy_connected:!status.closing,klippy_state:nativePrinterState(status).state,host_type:'node'}:{},native_host:status};}
 export function registerServerMetadata(registry:EndpointRegistry,information:ServerInformation,configuration:ServerConfiguration,connections:()=>number,nativeHost?:NativeHostStatusSource,nativePrinter?:NativePrinterInformation):()=>void{
  const releases:(()=>void)[]=[];
  try{
-  releases.push(registry.register({endpoint:'/server/info',methods:['GET']},params=>{const raw=Object.hasOwn(params,'raw')?params.raw:false;if(typeof raw!=='boolean'&&(typeof raw!=='string'||!['true','false'].includes(raw.toLowerCase())))throw new ApiError(400,'Unable to convert argument [raw] to boolean');const result=information.read(raw===true||typeof raw==='string'&&raw.toLowerCase()==='true',connections());if(!nativeHost)return result;const status=readNativeHostStatus(nativeHost);return {...result,...nativePrinter?{klippy_connected:!status.closing,klippy_state:nativePrinterState(status).state,host_type:'node'}:{},native_host:status};}));
+  releases.push(registry.register({endpoint:'/server/info',methods:['GET']},params=>{const raw=Object.hasOwn(params,'raw')?params.raw:false;if(typeof raw!=='boolean'&&(typeof raw!=='string'||!['true','false'].includes(raw.toLowerCase())))throw new ApiError(400,'Unable to convert argument [raw] to boolean');return readServerInformation(information,raw===true||typeof raw==='string'&&raw.toLowerCase()==='true',connections(),nativeHost,nativePrinter);}));
   if(nativePrinter){if(!nativeHost)throw new Error('Native printer information requires live status');releases.push(registry.register({endpoint:'/printer/info',methods:['GET']},()=>nativePrinter.read(readNativeHostStatus(nativeHost))));}
   releases.push(registry.register({endpoint:'/server/config',methods:['GET']},()=>configuration.read()));
  }catch(error){for(const release of releases.reverse())release();throw error;}
