@@ -29,7 +29,13 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 通过，原三组鉴权／网络最高 1.101 倍，原模拟打印预算通过；原生
 与数学输出不变。见[代理授权证据](host/contracts/trusted-proxy-owner-acceptance.json)。
 前序 017ab911 十五项 CI、5106／5106 通过，见
-[精确头终态](host/contracts/pr68-017ab91-terminal.json)；本增量须自身 CI。
+[精确头终态](host/contracts/pr68-017ab91-terminal.json)。代理头 b7dbc339
+普通 CI 5117／5118，一项模拟 MCU 启动返回 Invalid uptime response；
+协议／MCU 构建步骤跳过，原因未证。新增测试失败的有界时钟捕获，
+相关产品／诊断 25 项与扩展诊断 6 项通过，启动保护保持。本增量须
+自身 CI。离线滤波另有确定性抵消反例，但两版精确求和候选未通过
+原编译性能门限，均撤回；保存 G3 输入重算不能解释原异常。
+见[原失败与撤回证据](host/contracts/motion-adaptive-sum-rejected.json)。
 UI 分阶段调查现保留两版私有探针各 121 项回归及全部交错记录。
 同一进程的跨 L3 缓存组交接约 3.9／5.0／3.9／4.9 微秒，高于同
 缓存组约 2.4／3.4／2.4／3.3；这不是历史根因证明。工厂 UI 没有

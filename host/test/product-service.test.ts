@@ -18,6 +18,7 @@ import {startConfiguredProductService} from '../src/runtime/product-service.ts';
 import {productTransports} from './helpers/product-transports.ts';
 import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
 import {ConfigurationSource} from '../src/moonraker/config-source.ts';
+import {captureClockFaults} from './helpers/clock-fault-diagnostic.ts';
 async function fixture(){
  const f=await configuredPrinterFixture(false,false),dir=await mkdtemp(join(tmpdir(),'product-service-')),journal=await PrintJournal.open({path:join(dir,'jobs.db'),deviceId:'printer'}),maintenanceGate=new MaintenanceGate(),configPath=join(dir,'moonraker.conf');
  await writeFile(configPath,'[server]\nhost=127.0.0.1\nport=0');
@@ -357,7 +358,8 @@ test('native dispatch responses enter authorized console history and detach on s
   owner.server.recordNativeGcodeResponse('late');assert.equal(owner.server.gcodeStoreStatus?.records,2);
  }finally{ws?.terminate();await owner?.close();await f.dispose();}
 });
-test('native process statistics use real Linux values behind authorization and stop their sampler',async()=>{
+test('native process statistics use real Linux values behind authorization and stop their sampler',async t=>{
+ const clockCapture=captureClockFaults(t.mock,()=>performance.now()/1000);
  const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined,ws:WebSocket|undefined;
  f.serviceOptions.server.authorizeNotification=()=>{};
  try{
@@ -370,7 +372,8 @@ test('native process statistics use real Linux values behind authorization and s
   for(let i=0;i<200&&!owner.server.procStatsStatus?.samples;i++)await delay(10);
   const response=await fetch(url,{headers:{'x-api-key':'test'}});assert.equal(response.status,200);const value=(await response.json()).result;
   assert(value.moonraker_stats.length>0&&value.moonraker_stats.length<=30);assert(value.system_uptime>0);assert.equal(value.websocket_connections,1);assert(value.system_memory.total>0);assert.equal(value.moonraker_stats[0].mem_units,'kB');assert(value.moonraker_stats[0].memory>0);await owner.close();assert.equal(owner.server.procStatsStatus?.closed,true);assert.equal(owner.server.procStatsStatus?.pending,false);
- }finally{ws?.terminate();await owner?.close();await f.dispose();}
+ }catch(error){t.diagnostic(JSON.stringify({processStatisticsClockFailure:clockCapture.snapshot()},(_key,value)=>typeof value==='bigint'?value.toString():value));throw error;}
+ finally{ws?.terminate();await owner?.close();await f.dispose();}
 });
 test('native system information is initialized before listening and authorized over HTTP and RPC',async()=>{
  const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined,ws:WebSocket|undefined;
