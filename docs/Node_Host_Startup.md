@@ -1,5 +1,195 @@
 # Node 主机启动与机器集成
 
+## 固定 Node 安装校验与 SUDO 消费者
+
+此可信装配在已有固定 Node 布局上接通真实安装消费者：等待密码、
+校验凭据、消费进程 FIFO、替换固定服务、保存批准的配置删项、确认
+版本并经原 `afterResponse`／进程退役所有者请求自重启。它不是完整
+上游 InstallValidator 迁移，也不改变默认 Python 入口、默认 polkit
+或已有 machine-control 单元的 `NoNewPrivileges=yes`。SUDO 模式必须
+由管理员显式批准；内核 `NoNewPrivs` 非零时直接拒绝，不自动改策略。
+仅 Linux x64／arm64 启用，本机实际证据为 x64。
+
+准入要求同一 `dataPath` 下现有 `config/moonraker.conf`、
+`database/moonraker-sql.db`、`logs`、`gcodes` 和 `systemd`，工厂机器
+清单必须指向该主配置，显式配置写入 allowlist 包含它。数据库必须
+是正在选用的既有 SQLite，不能先创建空库掩盖旧安装。上游已经使用
+SQLite／namespace_store 和 record codec；保留的 `data.mdb` 可以是
+已完成转换后的备份，不因此拒绝，不自动转换／删除它。这里只核对
+安装相关 record 和现有存储身份，没有遍历所有表或证明全库整数精度。
+旧 `file_manager.gcode_path`、实际 LMDB 转换／旧目录迁移仍拒绝。
+
+配置在日志、数据库及其他进程资源打开后校验，因此绝不移动这些
+路径。只删除主文件拥有且等于现有默认路径的 database/config/log/
+secrets/TLS 路径别名，以及明确支持的旧 debug 选项。涉及 DEFAULT
+继承、target section 跨 include 或不同路径时阻断；候选按原解析器
+重新解析，要求只批准的选项消失，其余值及文件归属保持。已加载
+source 与磁盘身份再次核验，维护租约与已有 writer 互斥，原单文件
+备份／原子保存复用；设备 detached 不等于所有文件未打开。
+
+GET `/machine/sudo/info?check_access=true` 与 POST
+`/machine/sudo/password {"password":"..."}` 复用原身份、前缀、CORS、
+HTTP(S)、容量与取消所有者。欢迎页 flags／公告来自实际队列，成功
+确认后移除公告。密码只在内存保存和独立快照中，经 sudo stdin
+写入有界一行，不进 argv／日志／回执；关闭和换代擦除 Buffer 引用。
+`sudo_password` 敏感模板禁用调试 sink，公开 config/settings/original
+对所有 section 的继承副本脱敏，后续 publish 同样处理。Buffer 擦除
+不承诺 JavaScript／V8 的所有历史字符串副本都被物理清零。
+原 authorization 严格选项名单保持：DEFAULT 密码继承到
+`[authorization]` 的布局仍拒绝启动，不能据脱敏测试声称支持该布局。
+
+队列上限 16，操作上限 4；密码消费串行，访问探测使用独立快照。
+HTTP 密码请求在 probe 前后、每个消费者前及重启前复核授权，安装
+副作用前的关键节点再次核验并使用新 identity；启动时 status 只读
+验证没有 HTTP 用户授权上下文。失败消费者
+保留；已经成功消费者不会重播，重启需求保持到显式恢复，即使另一
+消费者失败、授权撤销或响应 handoff 丢失。版本仅全步骤确认后写
+`moonraker.validate_install.node_layout`，保留原 `install_version`，
+不把固定布局版本冒充 legacy migration 完成。
+
+安装成功仍为 `restart_required`，旧进程不能取得设备；请求自重启
+只确认 `systemctl --no-block restart -- <固定单元>` 已提交，不声称
+新服务 ready。下一真实进程同时核对 root 公共证明、实际 unit/profile/
+bundle/config 摘要、本地 version-confirmed journal 和 DB marker，
+才放行设备，不依赖缓存 sudo timestamp 或再次提交密码。安装等待
+期间仅专用自重启桥接；ready 后保留原显式 MachineControlPort 的
+标准 server.restart／已批准操作。需要这些长期控制时必须装配原
+可信端口；本固定 helper 不授予通用 service/reboot/shutdown 权限。
+
+### 受信 profile 与管理员审核出口
+
+沿下文“进程服务与设备代际”的板级适配器装配即可接入。以下为
+固定布局的完整装配外壳；`board-adapter.mjs` 仍须提供该机型真实
+设备停止／文件准入及既有进程资源，不能采用验收夹具的空回调：
+
+```js
+import {readFile} from 'node:fs/promises';
+import {createNativeProductHostFactory} from '/opt/anyraid/host/src/runtime/native-product-machine.js';
+import {createTrustedSudoBackend} from '/opt/anyraid/host/src/moonraker/sudo-backend.js';
+import {createProcessResources, createMachineDeviceAdapter} from './board-adapter.mjs';
+
+const dataPath = '/var/lib/anyraid';
+const manifestPath = '/etc/anyraid-install/approved.json';
+const approved = JSON.parse(await readFile(manifestPath, 'utf8'));
+const backend = await createTrustedSudoBackend({
+  mode: 'trusted-sudo', sudo: '/usr/bin/sudo',
+  node: '/opt/anyraid-runtime/node',
+  helper: '/usr/local/libexec/anyraid-install-helper.mjs',
+  manifest: manifestPath,
+});
+export const createProductHostProfile = createNativeProductHostFactory('/etc/anyraid/machine.json', {
+  dataPath, filesRoot: dataPath + '/gcodes', metadataRoot: dataPath + '/metadata',
+  uploads: {stagingRoot: dataPath + '/staging'},
+  configFiles: {root: dataPath + '/config', writable: ['moonraker.conf', 'printer.cfg']},
+  standardPrint: {nozzle: 200, bed: 60},
+  installation: {backend, options: {
+    dataPath, configRoot: dataPath + '/config', configFile: dataPath + '/config/moonraker.conf',
+    databasePath: dataPath + '/database/moonraker-sql.db',
+    logsRoot: dataPath + '/logs', gcodesRoot: dataPath + '/gcodes',
+    unit: approved.unit, candidateSha256: approved.candidateSha256,
+    recoveryPath: dataPath + '/systemd/node-install.json',
+  }},
+  async createProcess(configuration, signal) {
+    const resources = await createProcessResources(configuration, signal);
+    if (resources.server.database?.storagePaths.path !== dataPath + '/database/moonraker-sql.db'
+        || !resources.machineControl) {
+      await resources.release();
+      throw new Error('必须使用既有 SQLite 和明确的常规机器控制端口');
+    }
+    return resources;
+  },
+  createAdapter: createMachineDeviceAdapter,
+});
+```
+
+profile 是普通服务用户运行的受信模块，放在 bundle 外并由管理员
+绑定摘要；机器清单的 moonrakerConfig／printerConfig 与这些目录
+一致。profile 不含密码。现有设备适配、权限和退役规则仍须完成。
+如 profile 准备在接线前失败，装配者负责关闭已经创建的 backend。
+本批实际编译 profile CLI 用隔离目录验证此组合接口与生产后端的
+不可信路径拒绝；没有在真实 root happy path 上执行以上部署配置。
+
+只读候选生成请求含固定字段，不接受任意 unit 字节／命令：
+
+```json
+{"schema":1,"unit":"anyraid.service","user":"printer","node":"/opt/anyraid-runtime/node","bundle":"/opt/anyraid","profile":"/etc/anyraid/machine.mjs","dataPath":"/var/lib/anyraid"}
+```
+
+已有目标 `/etc/systemd/system/anyraid.service` 必须可读。普通用户执行：
+
+```sh
+/opt/anyraid-runtime/node --no-experimental-strip-types \
+  /opt/anyraid/scripts/product-install-helper.js --prepare /absolute/request.json \
+  > /absolute/approved-candidate.json
+```
+
+该命令只读主配置绑定所用 profile、bundle 清单和旧 unit，输出前后
+摘要，不导入 profile、不执行安装、不自动确认发布来源。管理员
+另行审核包来源、锁定机器／账号／profile、既有 unit 摘要和
+`fixedInstallUnit` 重生成的固定候选；复制独立 helper.js 为 bundle
+外的 `.mjs`、准备 approved manifest 及明确 sudo 规则属于真实部署，
+本批未执行。manifest 无秘密，可 root-owned 0644 供服务用户读取；
+helper／Node／sudo／manifest 及其全部祖先须 root-owned、无 group/world
+写入且无符号链接，runtime/helper 必须在 root 启动前已受保护。
+只有入口内部检查不能补救已经替换的 root 程序。helper 仅导入 Node
+内建模块，不从服务可写 bundle/profile 加载 root 代码。root 读取
+可写 profile/build-info/旧 env 时使用固定 setpriv 清除 supplementary
+groups 并以服务 uid/gid 有界读取，避免 root 跟随用户路径读取秘密。
+实际 setpriv/root 隔离效果仍须管理员在目标系统验收。
+
+helper 清除 NODE_OPTIONS／NODE_PATH／LD_* 等注入环境，固定绝对
+可执行文件和规范 unit 字段，非 root User，正确转义；不允许 HTTP
+提供命令、shell、写入目标、manifest 或任意 unit 内容。生产包独立
+helper 由管理员按产品 build-info 文件摘要独立核对来源后复制；
+approved.json 不含 helper SHA，root-owned 检查只验证路径权限，
+不能解释为批准清单已绑定其字节。不以 `.ts` strip-types 作为 root
+入口。`--trusted-sudo` 只生成显式候选，与 `--polkit` 互斥，不安装
+策略；它不能绕过已运行进程的 NNP。默认 machineControl descriptor
+生成的 NNP／polkit 方案继续保持。
+
+### 恢复与取消边界
+
+root 私有 `/var/lib/anyraid-install/<unit>/receipt.json` 在任何备份／
+unit replace／daemon-reload 副作用前耐久写 unknown，原 unit 和 env
+分别备份；新的 Node unit 不引用旧 env，不制造无人读取的新 env，
+这是与上游 Python env 更新的明确差异。普通服务用户的本地 journal
+不能证明 root 副作用；独立 root-owned 只读公共 attestation 仅公布
+摘要，不包含密码、旧 env 或备份。任一步未知结果、配置提交失败或
+版本 journal 未确认都保持 blocked，不自动重播或放行设备。
+跨进程 O_EXCL owner.lock 排他；stale lock 不自动删除，须管理员
+核对进程／unit／回执并明确恢复。无法确认 root 子组收口时保留锁。
+
+取消通过关闭 sudo stdin 请求受信 helper 合作收口；helper 始终有
+自身 60 秒 deadline，负责其 root 子组终止与实际 close。普通用户
+不能假定可 SIGKILL 已提权组／sudo 新 session。deadline 是取消触发
+点，不保证 kernel D-state 的物理退出；真实 sudo/PAM/PTY EOF转发、
+不可读进程状态、目标权限及 root 服务安装仍是未执行门禁。未知
+副作用不会因 child 已结束就被解释为回滚。进程关闭等待在途密码／
+安装工作，再关闭公告、配置 lease、鉴权、数据库；cleanup 错误保留。
+
+固定 Node 消费者尚未逐项接入上游 force_validation、validate_service、
+validate_config、配置备份回退行为；旧布局 pre-open 迁移、LMDB 导入、
+全库精度巡检、完整服务/env兼容同样开放。完整 Moonraker/Python/宏、
+历史 UI/G3、ARM64、目标板／真实打印／发布门禁未关闭。软件范围与
+分次失败、产品身份及原预算见
+[安装生命周期验收](../host/contracts/sudo-install-lifecycle-acceptance.json)。
+
+本机软件验收分开记账：源码扩展22／23后仅修CORS驱动补1／1，
+最低26.9四文件23／23；原回归首次253 pass／9装配fail后，只补七文件
+245／245。最终标准npm typecheck26.9 exit0，23编译输入冻结。标准
+构建API复用核验过的75／11原生指纹，704包667运行时JS加独立helper
+与独立emit668项一致；实际编译profile CLI首次／fresh退出0，生产
+路径拒绝例exit1。未执行完整构建CLI或新原生构建。
+
+原42预算均通过，最大1.130倍、auth最高3.516微秒；原五场同包模拟
+打印分别59.931／59.967／61.360／64.021／60.329秒、全部exit0。第六场
+真实安装后fresh ready接原1000moves／并发API／两代恢复／ADC／退出，
+修备份列表驱动后62.534秒、状态P99 8.908毫秒、最小提前量79.425毫秒。
+首轮备份列表遗漏失败保留，补验唯一规范备份的旧字节和匿名401／
+授权200；没有删备份或过滤任意隐藏文件。原28启动median337.416→
+334.067毫秒，ratio0.990；基线启动未开启安装，第六场覆盖安装交接。
+上述均为普通UID／模拟MCU与注入固定执行器，不是特权或硬件验收。
+
 ## 原生进程诊断日志
 
 `createNativeProductHostFactory` 的 `createProcess` 模式现在创建一份

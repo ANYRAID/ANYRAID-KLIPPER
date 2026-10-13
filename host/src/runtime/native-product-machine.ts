@@ -22,6 +22,11 @@ import {ConfiguredMoonraker} from '../moonraker/configured-server.ts';
 import {resetConfiguredFirmware} from './firmware-restart.ts';
 import {NativeConfigFiles,type NativeConfigFilesOptions} from '../moonraker/native-config-files.ts';
 import type {MachineControlPort} from '../moonraker/machine-control.ts';
+import {LinuxMachineControl} from '../moonraker/machine-control.ts';
+import type {FixedNodeInstallOptions} from '../moonraker/fixed-node-install.ts';
+import type {SudoBackend} from '../moonraker/sudo-backend.ts';
+import {open} from 'node:fs/promises';
+import {constants} from 'node:fs';
 
 type NativeAdapterServer<T>=T extends unknown?Omit<T,'nativeUploads'|'productPrintCompatibility'|'nativeProcessFiles'|'nativeProcessHistory'|'configFiles'>:never;
 export interface NativeMachineAdapter {
@@ -62,6 +67,7 @@ export interface NativeProductProcessResources {
  release():Promise<void>;
 }
 export interface NativeProductProcessOptions extends Omit<NativeProductMachineOptions,'fileResources'|'processFiles'|'createAdapter'> {
+ installation?:{options:FixedNodeInstallOptions;backend:SudoBackend};
  /** Explicit process data directory. Every process server owns one private
   * template/secrets generation; device restarts do not reload it. */
  dataPath:string;
@@ -178,6 +184,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  const processOptions='createProcess' in snapshot?snapshot:undefined;
  let processResources:NativeProductProcessResources|undefined,processOpening:Promise<void>|undefined,processJournal:PrintJournal|undefined,processIdentity:ProductMachineConfiguration|undefined;
  let configFiles:NativeConfigFiles|undefined;
+ let installationServer:ConfiguredMoonraker|undefined,installationControl:MachineControlPort|undefined;
  let logs:ProcessLogs|undefined,logging:ProcessLoggingOptions|undefined=processOptions?.logging;
  if(logging)validateProcessLogging(logging);
  let bootstrapping:ReturnType<NonNullable<ProductHostFactory['bootstrap']>>|undefined;
@@ -185,6 +192,9 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  const ensureProcess=async(config:ProductMachineConfiguration,s:AbortSignal)=>{
   if(processIdentity&&(['deviceId','journalPath','moonrakerConfig','printerConfig'] as const).some(key=>processIdentity![key]!==config[key]))throw new Error('Native process configuration identity cannot change');
   processIdentity??=structuredClone(config);
+  if(processOptions?.installation&&!processOpening){const o=processOptions.installation.options;if(o.dataPath!==processOptions.dataPath||o.configFile!==config.moonrakerConfig||o.configRoot!==snapshot.configFiles?.root||o.gcodesRoot!==snapshot.filesRoot)throw new TypeError('Fixed installation must use the actual immutable process layout');
+   // Existing SQLite only: legacy LMDB conversion must precede any process open.
+   const database=await open(o.databasePath,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);try{const info=await database.stat(),header=Buffer.alloc(16),r=await database.read(header);if(!info.isFile()||r.bytesRead!==16||header.toString()!=='SQLite format 3\0')throw new TypeError('Fixed installation requires an existing selected SQLite database');}finally{await database.close();}}
   resources??=await NativeProductFileResources.open(snapshot);s.throwIfAborted();
   processOpening??=(async()=>{
    processResources=await processOptions!.createProcess(structuredClone(config),s);s.throwIfAborted();
@@ -197,7 +207,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);
    await loadWelcomeSource();s.throwIfAborted();
    await readTlsConfiguration(new ConfigurationReader(await loadConfiguration(config.moonrakerConfig)),processResources.server.templates?.dataPath??processResources.server.authorization?.templateSecrets?.dataPath);s.throwIfAborted();
-   if(['nativeDetached','productPrint','nativeHost','nativeObjects','maintenanceGate','nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory','configFiles'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
+   if(['installation','nativeDetached','productPrint','nativeHost','nativeObjects','maintenanceGate','nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory','configFiles'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
    if(logging?.applicationFile&&processResources.server.applicationLogFile||logging?.printerFile&&processResources.server.printerLogFile)throw new TypeError('Writable and borrowed log ownership conflict');
    const paths={moonraker:logging?.disableFile?undefined:logging?.applicationFile??(processResources.server.applicationLogFile?undefined:resolve(processOptions!.dataPath,'logs/moonraker.log')),klipper:logging?.printerFile??(processResources.server.printerLogFile?undefined:resolve(processOptions!.dataPath,'logs/klippy.log'))};
    const logReader=new ConfigurationReader(await loadConfiguration(config.moonrakerConfig)),legacySecrets=logReader.section('secrets').get('secrets_path',{defaultValue:null}),tlsPaths=['ssl_certificate_path','ssl_key_path'].map(key=>logReader.section('server').get(key,{defaultValue:null}));
@@ -221,6 +231,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    let createAdapter:NativeProductMachineOptions['createAdapter'];
    if(processOptions){
     await ensureProcess(config,s);
+    installationServer?.assertInstallationReady();
     createAdapter=async(c,signal,g)=>{
      const device=await processOptions.createAdapter(c,signal,g,processResources!.server,reload);
      if(device&&'server' in device){const error=new TypeError('Process-mode adapter must own only device resources');try{await device.release?.();}catch(cleanup){throw new AggregateError([error,cleanup],'Invalid native device cleanup failed');}throw error;}
@@ -245,7 +256,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
   factory.logLifecycle=(event,reason)=>logs?.lifecycle(event,reason);
   Object.defineProperty(factory,'serverLifetime',{value:'process',enumerable:true});
   Object.defineProperty(factory,'diskImportStatus',{get:()=>resources?.status.diskImports,enumerable:true});
-  Object.defineProperty(factory,'machineControl',{get:()=>processResources?.machineControl,enumerable:true});
+  Object.defineProperty(factory,'machineControl',{get:()=>installationControl??processResources?.machineControl,enumerable:true});
   factory.resetFirmware=(profile,signal)=>resetConfiguredFirmware(profile.reader,profile.policies,signal);
   factory.bootstrap=(incoming,control)=>{
    if(stopped.signal.aborted)return Promise.reject(stopped.signal.reason);incoming.throwIfAborted();
@@ -253,9 +264,12 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    return bootstrapping??=(async()=>{
     const signal=AbortSignal.any([incoming,stopped.signal]),config=await readProductMachine(path,signal);await ensureProcess(config,signal);
     const process=processResources!.server,files=await resources!.processFiles(snapshot.uploads);
-    const serverOptions={nativeDetached:true as const,configFiles,nativeProcessFiles:files,nativeProcessHistory:processJournal!,productHostControl:control,
+    const serverOptions={nativeDetached:true as const,configFiles,nativeProcessFiles:files,nativeProcessHistory:processJournal!,productHostControl:control,...processOptions.installation?{installation:processOptions.installation}:{},
      nativePrinterIdentity:{configFile:config.printerConfig,softwareVersion:process.information.version},systemInformation:process.systemInformation??{},systemServices:process.systemServices??{},procStats:process.procStats??{},gcodeStore:process.gcodeStore??{},temperatureStore:{...process.temperatureStore,previous:undefined}};
     const server=process.authorization?await ConfiguredMoonraker.loadAuthorized(config.moonrakerConfig,{...process,...serverOptions}):await ConfiguredMoonraker.load(config.moonrakerConfig,{...process,...serverOptions});
+    if(processOptions.installation)processResources!.server={...processResources!.server,installation:processOptions.installation};
+    if(processOptions.installation){installationServer=server;const original=processResources!.machineControl,readonlyControl=original??new LinuxMachineControl({ownUnit:processOptions.installation.options.unit});processResources!.machineControl=readonlyControl;
+     installationControl={retirement(action){if(server.installationStatus?.ready&&original)return original.retirement(action);if(action.kind!=='server_restart')throw new ApiError(403,'Pending installation supports only own-unit process restart');return 'process';},execute(action,signal){if(server.installationStatus?.ready&&original)return original.execute(action,signal);if(action.kind!=='server_restart')return Promise.reject(new ApiError(403,'Unsupported installation action'));return server.executeInstallationRestart(signal);},assertDeviceAvailable:signal=>readonlyControl.assertDeviceAvailable(signal),close:()=>readonlyControl.close()};}
     if(snapshot.diskImports)try{await resources!.startDiskImports({...snapshot.diskImports,context:signal=>processResources!.diskImportContext!(AbortSignal.any([signal,stopped.signal]))});}catch(error){await server.close();throw error;}
     return {server,recoveryJournal:{path:config.journalPath+'.host-recovery.sqlite',deviceId:config.deviceId}};
    })();

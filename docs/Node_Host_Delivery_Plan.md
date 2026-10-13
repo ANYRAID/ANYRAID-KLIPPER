@@ -1,5 +1,57 @@
 # Klipper 与 Moonraker 集成交付计划
 
+本轮接通已有固定 Node 布局的真实 InstallValidator 消费者，沿原进程
+HTTP、身份／CORS、FIFO、维护／配置 writer、响应提交和退役重启所有者
+执行密码校验、固定服务与 env 备份、批准配置原子保存及单独 Node 版本
+确认。安装成功旧进程仍阻断设备；新进程无密码／sudo cache，重新核对
+root 只读证明、实际 unit/profile/bundle/config 指纹、journal 与 DB marker
+后才 ready。原 install_version 保留，不能据此称完整上游安装迁移完成。
+默认 polkit／NNP、Python 入口保持；显式 trusted-sudo 拒绝 NoNewPrivs，
+root helper 独立复制且只导入内建模块，不 root import 服务可写模块。
+真实 root／sudo/PAM/PTY／systemd／部署尚未授权或执行。
+
+新增四文件原扩展矩阵 22／23、exit1 的唯一失败为临时 CORS 期望401
+与真实403不符，仅修驱动补1／1，不记单次23／23；最后必要测试URL
+补编后，最低26.9同四文件23／23、exit0。受影响原35文件首次262项
+253 pass／9资源装配失败；保持1040项测试参考资源（其中含.ts，运行
+仍禁止TS加载）字节后，只补未真正执行七文件245／245、exit0；实际
+253+245=498分次通过，不冒称单次完整35文件全绿。首轮装配／bootstrap
+权限、公告start时序、生命周期接线及夹具清理失败全部保留。
+
+标准 buildProductHost API 逐项核验75原生来源／11输出后复用，1.202秒
+exit0；本批未新编原生，未执行完整 npm build:product-host CLI。704项
+产品有667运行时JS及独立helper，668项与独立emit逐hash一致，生产18
+依赖与旧包相同。相对原700项包有10项运行时新增／变化及独立helper；
+实际编译后的profile由标准产品CLI启动，首次安装、fresh ready及原
+server.restart分别核实，生产后端的不可信root路径在监听前拒绝。
+此隔离系统根／普通UID与注入执行器证据不是root happy-path验收。
+
+原42预算按AB／BA／AB重新采样全部通过，三组最高1.109／1.092／1.130，
+鉴权最高3.516微秒；原1.5倍及严格小于10微秒门限保持，无失败重采或
+旧输出复用。原五场同一704包模拟打印各exit0，原1000moves／并发API／
+两代恢复／ADC／退出和全部门限保持，真实硬件与Python对比尚未验。
+第六场启用真实安装消费者：首CLI完成事务并退出，新CLI无密码验证
+ready后继续原完整旅程；修驱动后1／1、62.534秒，状态P99 8.908毫秒、
+最小步进提前量79.425毫秒。首轮10.519秒因配置列表未纳入原子保存
+生成的备份而exit1保留；补验恰好一个规范UUID备份，字节等于旧配置，
+匿名401／授权200。原28启动也exit0，median337.416→334.067毫秒，
+ratio0.990、p95 360.124→363.244；该基线启动未开启installation，安装
+准入交接由第六场单独覆盖。最终标准npm typecheck以26.9执行exit0，
+23编译输入冻结核对一致。
+详细范围、真实失败与复现见[本轮安装验收](../host/contracts/sudo-install-lifecycle-acceptance.json)
+及[可信装配／恢复说明](Node_Host_Startup.md#固定-node-安装校验与-sudo-消费者)。
+前序fad45的3 workflow／15 job及5221／5221终态见[精确头记录](../host/contracts/pr68-fad45d3-terminal.json)，
+不覆盖本批未提交源码；新头CI、正常集成与发布仍须实际执行。
+
+本批后续兼容性缺口集中保持：旧路径及legacy pre-open迁移、实际LMDB
+导入、跨include／DEFAULT目标配置、全库记录与整数精度验证，以及上游
+force_validation、validate_service、validate_config、配置备份回退逐项
+行为均未完整接入。SQLite已有schema／codec基础不是全库迁移验收；
+旧data.mdb可作为正常备份保留。完整Moonraker／Python／宏、历史UI／G3、
+ARM64、默认原生重编稳定性、目标板／实机和发布门禁未关闭。
+
+以下保留前序编译与日志生命周期验收记录。
+
 默认编译入口改为锁定 TypeScript 7 的官方解析器隔离子进程，由父
 所有者直接启动所选平台编译器，不经过 process.execve，不修改
 node_modules 或禁用全局能力。TS／平台包版本须与锁一致，实际

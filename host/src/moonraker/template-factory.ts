@@ -45,6 +45,8 @@ export class MoonrakerTemplateFactory {
   catch{this.close();throw failure();}
  }
  createTemplate(source:string,isAsync=false):MoonrakerRenderableTemplate{return this.#create(source,isAsync,false);}
+ /** Private credential rendering cannot call the application debug sink. */
+ createSensitiveTemplate(source:string):MoonrakerRenderableTemplate{return this.#create(source,false,false,true);}
  createUiTemplate(source:string):MoonrakerRenderableTemplate{return this.#create(source,true,true);}
  #debug(context:string,options:SyncTemplateOptions|AsyncTemplateOptions,ui:boolean):Map<string,SyncTemplateCallable|TemplateCallable>|undefined{
   if(ui||!this.#options.debug)return undefined;
@@ -59,15 +61,15 @@ export class MoonrakerTemplateFactory {
    }return null;
   });return calls;
  }
- #create(source:string,isAsync:boolean,ui:boolean):MoonrakerRenderableTemplate{
+ #create(source:string,isAsync:boolean,ui:boolean,sensitive=false):MoonrakerRenderableTemplate{
   this.#check();if(typeof isAsync!=='boolean'||this.#templates.size>=64||this.#uiOnly&&!ui)throw failure();
   const handle:MoonrakerTextTemplate|MoonrakerAsyncTextTemplate=isAsync?(ui?this.#asyncOwner().createUiTemplate(source):this.#asyncOwner().createTemplate(source)):this.#sync!.createTemplate(source);
   let template!:MoonrakerRenderableTemplate;
   template=new MoonrakerRenderableTemplate(source,isAsync,(context,options)=>{
-   try{this.#check();const calls=this.#debug(context,options,ui);return (handle as MoonrakerTextTemplate).render(context,calls?{...options,callables:calls as ReadonlyMap<string,SyncTemplateCallable>}:options);}
+   try{this.#check();const calls=this.#debug(context,options,ui||sensitive);return (handle as MoonrakerTextTemplate).render(context,calls?{...options,callables:calls as ReadonlyMap<string,SyncTemplateCallable>}:options);}
    catch{if(!this.#configured)throw new ConfigurationError('Error rending Jinja2 Template');throw failure();}
   },async(context,options)=>{
-   try{this.#check();this.#shutdown.signal.throwIfAborted();options.signal?.throwIfAborted();const calls=this.#debug(context,options,ui);
+   try{this.#check();this.#shutdown.signal.throwIfAborted();options.signal?.throwIfAborted();const calls=this.#debug(context,options,ui||sensitive);
     // The executor already tracks every active frame. Generation close stops
     // them directly; do not attach another shared abort listener per render.
     return await (handle as MoonrakerAsyncTextTemplate).renderAsync(context,calls?{...options,callables:calls as ReadonlyMap<string,TemplateCallable>}:options);

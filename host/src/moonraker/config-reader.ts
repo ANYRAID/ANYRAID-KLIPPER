@@ -103,8 +103,8 @@ export class ConfigSection {
   this.#reader.record(section,option,record);return value;
  }
  get<D extends Json=never>(option:string,options:ReadOptions<D>={}):string|D{return this.#get(option,v=>v,options);}
- getTemplate<D extends Json|MoonrakerRenderableTemplate=never>(option:string,options:{defaultValue?:D;isAsync?:boolean;deprecate?:boolean}={}):MoonrakerRenderableTemplate|D{
-  const factory=this.#reader.templates();return this.#get(option,value=>factory.createTemplate(strip(value),options.isAsync??false),options,undefined,value=>{if(value instanceof MoonrakerRenderableTemplate)return value.toString();validateJson(value);return value;});
+ getTemplate<D extends Json|MoonrakerRenderableTemplate=never>(option:string,options:{defaultValue?:D;isAsync?:boolean;deprecate?:boolean;sensitive?:boolean}={}):MoonrakerRenderableTemplate|D{
+  const factory=this.#reader.templates();return this.#get(option,value=>options.sensitive?factory.createSensitiveTemplate(strip(value)):factory.createTemplate(strip(value),options.isAsync??false),options,undefined,value=>{if(value instanceof MoonrakerRenderableTemplate)return value.toString();validateJson(value);return value;});
  }
  loadTemplate(option:string,options:ReadOptions<string>&{isAsync?:boolean}={}):MoonrakerRenderableTemplate{const value=this.getTemplate(option,options);return typeof value==='string'?this.#reader.templates().createTemplate(strip(value),options.isAsync??false):value;}
  /** Path values use absolute strings in TS. Missing defaults retain identity,

@@ -102,6 +102,17 @@ export class NativeConfigFiles {
  save(name:string,bytes:Buffer,expected:string|undefined,context:RpcContext):Promise<Json>{
   if(!Buffer.isBuffer(bytes)||bytes.length>this.#max)return Promise.reject(new ApiError(413,'Config size limit exceeded'));if(this.#writing)return Promise.reject(new ApiError(409,'Another config mutation is pending'));const copy=Buffer.from(bytes);return this.#mutate(context,signal=>this.#save(name,copy,expected,context,signal));
  }
+ /** Trusted fixed-layout install consumer only. Hold the existing exclusive
+  * writer/maintenance lease across privileged confirmation and one atomic save.
+  * No endpoint accepts a callback, arbitrary root or replacement plan. */
+ installationTransaction<T>(name:string,bytes:Buffer,expected:string,context:RpcContext,run:(signal:AbortSignal,commit:()=>Promise<Json>)=>Promise<T>):Promise<T>{
+  const copy=Buffer.from(bytes);let result:T;
+  return this.#mutate(context,async signal=>{
+   authorizedContext(context,await context.authorize('machine.sudo.password',{}));signal.throwIfAborted();this.#allowed(name);if(!this.#writable.has(name)||!this.#writer)throw new ApiError(403,'Installation config requires the existing explicit writable capability');
+   const lease=this.#writer(context),owned=AbortSignal.any([signal,lease.signal]);let committed=false;
+   try{result=await run(owned,()=>{if(committed)return Promise.reject(new ApiError(409,'Installation config already committed'));committed=true;return this.#save(name,copy,expected,context,owned,lease);});return null;}finally{lease.release();}
+  }).then(()=>result).finally(()=>copy.fill(0));
+ }
  async #save(name:string,bytes:Buffer,expected:string|undefined,context:RpcContext,signal:AbortSignal,held?:{release:()=>void;signal:AbortSignal}):Promise<Json>{
    authorizedContext(context,await context.authorize('server.files.upload',{root:'config',path:name,size:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}));signal.throwIfAborted();this.#allowed(name);
    if(!this.#writable.has(name))throw new ApiError(403,'Config file is read-only');

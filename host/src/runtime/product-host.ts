@@ -1,6 +1,7 @@
 import type {TemperatureStore} from '../moonraker/temperature-store.ts';
 import {ProductHostControl,RestartAdmissionError,recoveryMachineAction,machineRecoveryKinds,type HostReloadKind} from './product-host-control.ts';
 import type {MachineAction,MachineControlPort} from '../moonraker/machine-control.ts';
+import {InstallReadinessError} from '../moonraker/fixed-node-install.ts';
 import {startConfiguredMachineService,type ConfiguredProductServiceOptions} from './product-service.ts';
 import type {ProductPrinterOptions} from './product-printer.ts';
 import type {MCUMachinePolicy} from './configured-mcu-connections.ts';
@@ -126,7 +127,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
     // That failure can precede transfer into `service`/`profile`; do not infer
     // safe retirement merely from the previous server's stopped snapshot.
     let cleanupFailed=error instanceof AggregateError;
-    if(!signal.aborted||error!==signal.reason){if(error instanceof AggregateError&&error.message==='Product generation cleanup failed')errors.push(...error.errors);else errors.push(error);}
+    if((!signal.aborted||error!==signal.reason)&&!(error instanceof InstallReadinessError&&['pending','running','restart_required'].includes(error.state))){if(error instanceof AggregateError&&error.message==='Product generation cleanup failed')errors.push(...error.errors);else errors.push(error);}
     try{await closeGeneration();}catch(cleanup){cleanupFailed=true;if(cleanup instanceof AggregateError)errors.push(...cleanup.errors);else errors.push(cleanup);}
     completion??=activeRequest;
     completion?.reject(new AggregateError(errors,'Product reinitialization failed'));completion=activeRequest=undefined;

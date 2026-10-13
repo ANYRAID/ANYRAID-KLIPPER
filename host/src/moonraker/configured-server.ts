@@ -18,6 +18,9 @@ import {nativePrinterState,NativePrinterInformation,type NativePrinterIdentity} 
 import {ProcessLogs} from './process-logs.ts';
 import {ApplicationLogFiles,validateApplicationLogFile} from './application-log-files.ts';
 import {ProductHostControl} from '../runtime/product-host-control.ts';
+import {ProcessSudoOwner} from './sudo-owner.ts';
+import type {SudoBackend} from './sudo-backend.ts';
+import {FixedNodeInstallValidator,type FixedNodeInstallOptions} from './fixed-node-install.ts';
 import {registerProductHostControl} from './product-host-api.ts';
 import {NativeSubscriptions} from './native-subscriptions.ts';
 import {NativeObjects,registerNativeObjects} from './native-objects.ts';
@@ -139,6 +142,8 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  nativePrinterIdentity?:NativePrinterIdentity;
  productPrintCompatibility?:NativePrintCompatibility;
  productHostControl?:ProductHostControl;
+ /** Trusted fixed-layout process installer. No request can create this port. */
+ installation?:{options:FixedNodeInstallOptions;backend:SudoBackend};
  productPressure?:PressureAdvancePort;
  /** Live native owner snapshot; never a replacement for Klippy state. */
  nativeHost?:NativeHostStatusSource;
@@ -261,6 +266,7 @@ export class ConfiguredMoonraker {
  #fileNotifications=notificationMetrics();
  #releaseFileChanges:()=>void=()=>{};
  #databaseRestart={requested:false,error:null as string|null};
+ #sudo:ProcessSudoOwner|undefined;#installer:FixedNodeInstallValidator|undefined;#installAnnouncement:string|undefined;
  #agentMethods:AgentMethods;#jobState:JobState|undefined;
  #reconnecting=false;#lastAttachment:{path:string;options:KlippyAttachmentOptions}|undefined;
  #supervisor:KlippySupervisor|undefined;
@@ -290,7 +296,7 @@ export class ConfiguredMoonraker {
   if(options.nativeDetached){this.maintenanceGate.invalidate();this.#nativeRetirement=Promise.resolve();this.#nativeRetirementDrained=true;this.#nativeRetiredSnapshot={group_state:'stopped',hardware_state:'stopped',print_state:'idle',homed_axes:'',closing:true,admission_closed:true,maintenance:false,mcus:[]};}
   const initialScope=this.#nativeScope;this.#nativeProcessFiles=options.nativeProcessFiles;this.#nativeProcessHistory=options.nativeProcessHistory;this.#nativeController=options.productPrint;
   const nativeHost=options.nativeHost||options.nativeDetached?()=>this.#nativeRetiredSnapshot??this.#nativeHost!():undefined;
-  this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc,(path,handler)=>path==='/server/logs/rollover'||this.#nativeProcessFiles&&nativeProcessFileRoutes.has(path)||this.#nativeProcessHistory&&path.startsWith('/server/history/')?handler:this.#nativeScope?.wrap(path,handler)??handler);
+  for(const section of Object.keys(reader.source.original))reader.redact(section,'sudo_password');reader.redact('machine','sudo_password');this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc,(path,handler)=>path==='/server/logs/rollover'||this.#nativeProcessFiles&&nativeProcessFileRoutes.has(path)||this.#nativeProcessHistory&&path.startsWith('/server/history/')?handler:this.#nativeScope?.wrap(path,handler)??handler);
   this.#queueGcodeUploads=reader.hasSection('file_manager')&&reader.section('file_manager').getBoolean('queue_gcode_uploads',{defaultValue:false});
   if(this.#queueGcodeUploads&&!reader.hasSection('job_queue'))throw new ConfigurationError('Upload queue requires the process job_queue component');
   if(reader.hasSection('octoprint_compat'))this.#octoprint=new OctoprintCompatibility(reader,this.#base.version,{
@@ -334,6 +340,11 @@ export class ConfiguredMoonraker {
   const releaseConfigSave=this.#configFiles?.registerSave(this.endpoints)??(()=>{});
   const releaseConfigChanges=this.#configFiles?.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications))??(()=>{});
   const releaseHostControl=options.productHostControl?registerProductHostControl(this.endpoints,options.productHostControl):()=>{};
+  if(options.installation){if(!options.nativeDetached||!options.productHostControl||!this.#configFiles||!this.#database)throw new ConfigurationError('Installation requires detached process ownership, config writer, database and host control');
+   this.#sudo=new ProcessSudoOwner(options.installation.backend,event=>{if(!this.#stopping)this.#broadcastTracked('notify_sudo_alert',[event],this.#systemNotifications);},async context=>{authorizedContext(context,await context.authorize('server.restart',{}));if(!context.afterResponse)throw new ApiError(503,'Response handoff unavailable');await options.productHostControl!.requestMachineAction({kind:'server_restart'},context.nativeGenerationSignal,context.nativeGenerationRetiredAtAdmission,callback=>context.afterResponse!(callback));});
+   this.#installer=new FixedNodeInstallValidator(options.installation.options,reader,this.#configFiles,this.#database,this.#sudo,async()=>{if(this.#installAnnouncement&&this.#announcements){try{await this.#announcements.removeAnnouncement(this.#installAnnouncement);this.#installAnnouncement=undefined;}catch{this.reader.warn('Installation completed but announcement cleanup failed');}}});
+  }
+  const releaseSudo=this.#sudo?.registerEndpoints(this.endpoints)??(()=>{});
   let releasePrint=this.#printApi instanceof ProductPrintApi?registerProductPrintApi(this.endpoints,this.#printApi):this.#printApi?registerPrintApi(this.endpoints,this.#printApi):this.#registerDetachedNativeRoutes();
   const releaseHistoryIdle=this.#historyRuntime?this.maintenanceGate.registerIdle(()=>!this.#historyRuntime!.status.awaitingPrintStart):()=>{};
   let releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):(options.productPrint&&this.#nativeUploads||this.#nativeProcessHistory&&this.#nativeProcessFiles)?(this.#nativeHistory=registerNativeHistory(this.endpoints,(this.#nativeProcessHistory??options.productPrint)!, (this.#nativeProcessFiles??this.#nativeUploads)!,event=>{if(!this.#stopping)this.#broadcastTracked('notify_history_changed',[event],this.#historyNotifications);},this.#nativeProcessHistory?()=>this.#nativeController:undefined,()=>this.#nativeHistoryFields?.fields.snapshot().totals??[])):()=>{};
@@ -367,7 +378,7 @@ export class ConfiguredMoonraker {
    const services=this.#systemServices?.snapshot() as {instance_ids?:{moonraker?:string}}|undefined;
    // The existing native host control uses polkit, has no interactive password
    // request queue and never invents one from a page or query parameter.
-   return {sudo_requested:false,sudo_request_message:'',linux_user:localUser,local_ip:localIp??'unknown',service_name:services?.instance_ids?.moonraker||'unknown',hostname:localHostname};
+   return {sudo_requested:this.#sudo?.snapshot.sudo_requested??false,sudo_request_message:this.#sudo?.snapshot.sudo_request_message??'',linux_user:localUser,local_ip:localIp??'unknown',service_name:services?.instance_ids?.moonraker||'unknown',hostname:localHostname};
   }});
   const releaseExtensions=registerExtensions(this.endpoints,this.#network);
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy,new Set(this.#mqttMacros?['publish_mqtt_topic']:[]));
@@ -376,7 +387,7 @@ export class ConfiguredMoonraker {
   let releaseFileChanges=(this.#nativeProcessFiles??this.#nativeUploads)?.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications))??(()=>{});
   this.#releaseFileChanges=releaseFileChanges;
   if(options.productPrint||options.nativeDetached){this.#nativeReleases.push(releaseNativeSubscribe,releaseObjects,releaseUploads,releasePrint);releaseNativeSubscribe=releaseObjects=releaseUploads=releasePrint=()=>{};if(!this.#nativeProcessFiles){this.#nativeReleases.push(releaseFileChanges);releaseFileChanges=()=>{};}if(!this.#nativeProcessHistory){this.#nativeReleases.push(releaseHistory);releaseHistory=()=>{};}}
-  this.#release=()=>{releaseLogs();releaseOctoprint();releaseConfigChanges();releaseConfigSave();releaseConfigWriter();this.#releaseNativeBindings();releaseProcessFiles();releaseWebcams();releaseAnnouncements();releaseFileChanges();releaseHostControl();releaseNativeSubscribe();releaseObjects();releaseUploads();releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseSystem();releaseProc();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  this.#release=()=>{releaseSudo();releaseLogs();releaseOctoprint();releaseConfigChanges();releaseConfigSave();releaseConfigWriter();this.#releaseNativeBindings();releaseProcessFiles();releaseWebcams();releaseAnnouncements();releaseFileChanges();releaseHostControl();releaseNativeSubscribe();releaseObjects();releaseUploads();releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseSystem();releaseProc();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
   if(mqttApi)this.#mqttRpc=new MqttRpc(this.rpc,this.#sensorTransport!,this.#sensorTransport!.instanceName,options.mqttAuthorize!,mqttApiQos);
   if(this.#sensorTransport){if(this.#mqttRpc)this.#sensorTransport.bindRpc(this.#mqttRpc.receive,mqttApiQos);this.#sensorTransport.enablePresence();mqttSensorOwners.add(this.#sensorTransport);}
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
@@ -453,7 +464,7 @@ export class ConfiguredMoonraker {
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
   const {reader,automatic,templates,mqtt,configuredOptions,nativeHistory}=await this.#prepare(filename,options);let server:ConfiguredMoonraker|undefined;
-  try{server=new ConfiguredMoonraker(reader,configuredOptions,automatic);server.#templates=templates;server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);await server.#initializeNativeQueue();server.#nativeHistoryFields=nativeHistory;if(options.productPrint)nativeHistory?.bind(options.productPrint);templates?.markConfigured();return server;}
+  try{server=new ConfiguredMoonraker(reader,configuredOptions,automatic);server.#templates=templates;server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);await server.#initializeNativeQueue();server.#nativeHistoryFields=nativeHistory;if(options.productPrint)nativeHistory?.bind(options.productPrint);templates?.markConfigured();await server.#initializeInstallation();return server;}
   catch(error){try{if(server)await server.close();else{try{await mqtt?.close();}finally{templates?.close();}}}catch(cleanup){throw new AggregateError([error,cleanup],'Queue initialization and server cleanup failed');}throw error;}
  }
  /** Configuration-owned native authorization; does not listen or switch any
@@ -485,8 +496,21 @@ export class ConfiguredMoonraker {
    server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);
    auth=await ApiKeyAuthorization.open(options.database,policy);server.#authorization=auth;
    server.#releaseAuthorization=auth.register(server.endpoints,server);
-   await server.#initializeNativeQueue();server.#nativeHistoryFields=nativeHistory;if(options.productPrint)nativeHistory?.bind(options.productPrint);templates?.markConfigured();server.setInformation({...server.#base,components:[...new Set([...server.#base.components,'authorization'])]});return server;
+   await server.#initializeNativeQueue();server.#nativeHistoryFields=nativeHistory;if(options.productPrint)nativeHistory?.bind(options.productPrint);templates?.markConfigured();await server.#initializeInstallation();server.setInformation({...server.#base,components:[...new Set([...server.#base.components,'authorization'])]});return server;
   }catch(error){try{if(server)await server.close();else{try{await mqtt?.close();}finally{templates?.close();await ldap?.close();}}}catch(cleanup){throw new AggregateError([error,cleanup],'Authorization initialization and cleanup failed');}throw error;}
+ }
+ get installationStatus(){return this.#installer?.status;}
+ assertInstallationReady():void{this.#installer?.assertReady();}
+ async executeInstallationRestart(signal:AbortSignal):Promise<void>{if(!this.#sudo||!this.#installer?.status.restart_required&&!this.#installer?.status.ready)throw new ApiError(409,'Confirmed installation restart unavailable');await this.#sudo.operation('restart',signal);}
+ async #initializeInstallation():Promise<void>{
+  if(!this.#installer)return;
+  const template=this.reader.section('machine').getTemplate('sudo_password',{defaultValue:null,sensitive:true});
+  if(template){try{this.#sudo!.setConfiguredPassword(template.render());}finally{template.close();}}
+  this.reader.publish(this.#configuration);await this.#installer.initialize(this.#startupAbort.signal);
+ }
+ async #announceInstallation():Promise<void>{
+  if(!this.#announcements||!this.#installer)return;const existing=this.#announcements.list().entries.find(e=>e.title==='Node Installation Sudo Password Required'&&e.source==='internal'&&e.feed==='machine');
+  if(this.#installer.status.state==='pending'){if(existing){this.#installAnnouncement=existing.entry_id;return;}const announcement=await this.#announcements.addInternal('Node Installation Sudo Password Required','Fixed Node installation needs sudo permission. Open the host welcome page to provide the Linux password.',readRoutePrefix(this.reader.section('server').get('route_prefix',{defaultValue:null}))+'/', 'high','machine');this.#installAnnouncement=announcement.entry_id;}else if(existing)await this.#announcements.removeAnnouncement(existing.entry_id);
  }
  async #initializeNativeQueue():Promise<void>{
   if(!this.reader.hasSection('job_queue'))return;
@@ -590,7 +614,7 @@ export class ConfiguredMoonraker {
   this.#supervisor=supervisor;supervisor.start();
  }
  get databaseRestoreStatus(){return {...this.#databaseRestart,state:this.#database?.status.restoreState??null};}
- requireConfigWriteIdle():void{if(this.#configFiles?.status.writing)throw new ApiError(409,'Configuration save is pending');}
+ requireConfigWriteIdle():void{if(this.#installer?.status.running)throw new ApiError(409,'Installation validation is pending');if(this.#configFiles?.status.writing)throw new ApiError(409,'Configuration save is pending');}
  #beginConfigWrite(context:RpcContext):{release:()=>void;signal:AbortSignal}{
   if(this.#stopping||this.#nativeReattaching||this.#configHostControl?.status.busy)throw new ApiError(409,'Host transition blocks configuration save');
   if(!this.#nativeScope||context.nativeGenerationSignal&&context.nativeGenerationSignal!==this.#nativeScope.signal)throw new ApiError(503,'Configuration request belongs to another generation');
@@ -799,7 +823,7 @@ export class ConfiguredMoonraker {
  async #start():Promise<MoonrakerAddress>{
   try{
    await this.#webcams?.start();
-   await this.#announcements?.start();
+   await this.#announcements?.start();await this.#announceInstallation();
    if(this.#startupAbort.signal.aborted)throw new Error('Configured server startup cancelled',{cause:this.#startupAbort.signal.reason});
    this.reader.validate();this.reader.publish(this.#configuration);this.setInformation(this.#base);
    if(this.#metadataFiles)this.#metadataRecovery=await this.#metadataFiles.restoreSelected(this.#startupAbort.signal);
@@ -838,6 +862,6 @@ export class ConfiguredMoonraker {
   this.#releaseUploadQueue();this.#releaseNativeQueue();const queueClosed=this.#nativeQueue?.close();
   this.#nativeScope?.retire();
   this.#nativeLifecycle?.close();this.#nativeHistory?.();this.#releaseFileChanges();
-  this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi?.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const networkClosed=this.#network.close();const authorizationClosed=networkClosed.then(()=>this.#authorization?.close(),async error=>{try{await this.#authorization?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Network and authorization cleanup failed');}throw error;});const announcementsClosed=this.#announcements?.close()??Promise.resolve();const webcamsClosed=networkClosed.then(()=>this.#webcams?.close(),()=>this.#webcams?.close());const nativeClosed=Promise.allSettled([queueClosed,this.#nativeUploads?.drain(),this.#nativeProcessFiles?.drain(),this.#nativeScope?.drain(),this.#nativeHistory?.drain()]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native dependencies failed to drain');});const databaseClosed=Promise.allSettled([historyClosed,authorizationClosed,webcamsClosed,announcementsClosed,nativeClosed]).then(()=>this.#database?.close());const settled=await Promise.allSettled([logsClosed,this.#httpClient.close(),ldapClosed,nativeClosed,printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,historyClosed,authorizationClosed,webcamsClosed,announcementsClosed,databaseClosed,this.#systemInformation?.close(),this.#systemServices?.close(),this.#procStats?.close(),this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close(),networkClosed.then(()=>this.#configFiles?.close(),()=>this.#configFiles?.close())]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#releaseAuthorization();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);if(this.#configFiles)configFileOwners.delete(this.#configFiles);
+  this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi?.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const networkClosed=this.#network.close();const installClosed=Promise.allSettled([this.#sudo?.close(),this.#installer?.close()]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Installation shutdown failed');});const authorizationClosed=Promise.allSettled([networkClosed,installClosed]).then(()=>this.#authorization?.close());const announcementsClosed=installClosed.then(()=>this.#announcements?.close(),async error=>{await this.#announcements?.close();throw error;});const webcamsClosed=networkClosed.then(()=>this.#webcams?.close(),()=>this.#webcams?.close());const nativeClosed=Promise.allSettled([queueClosed,this.#nativeUploads?.drain(),this.#nativeProcessFiles?.drain(),this.#nativeScope?.drain(),this.#nativeHistory?.drain()]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native dependencies failed to drain');});const databaseClosed=Promise.allSettled([historyClosed,authorizationClosed,webcamsClosed,announcementsClosed,nativeClosed,installClosed]).then(()=>this.#database?.close());const settled=await Promise.allSettled([logsClosed,this.#httpClient.close(),ldapClosed,networkClosed,installClosed,nativeClosed,printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,historyClosed,authorizationClosed,webcamsClosed,announcementsClosed,databaseClosed,this.#systemInformation?.close(),this.#systemServices?.close(),this.#procStats?.close(),this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close(),Promise.allSettled([networkClosed,installClosed]).then(()=>this.#configFiles?.close())]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#releaseAuthorization();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);if(this.#configFiles)configFileOwners.delete(this.#configFiles);
  }
 }
