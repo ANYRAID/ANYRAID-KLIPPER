@@ -1,4 +1,7 @@
 import {readRoutePrefix} from './route-prefix.ts';
+import {readTlsConfiguration} from './tls-configuration.ts';
+import type {MoonrakerTlsOptions} from './server.ts';
+const configuredTls=new WeakMap<ConfigurationReader,MoonrakerTlsOptions|undefined>();
 import {randomUUID} from 'node:crypto';
 import {OctoprintCompatibility} from './octoprint-compat.ts';
 import {Webcams} from './webcams.ts';
@@ -104,7 +107,7 @@ function validateConfigFiles(options:ConfiguredServerOptions|ConfiguredAuthoriza
 const databaseOwners=new WeakSet<DatabaseStore>();
 const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0});
 const nativeGenerationNotifications=new Set(['notify_gcode_response','notify_print_state_changed','notify_history_changed','notify_filelist_changed','notify_klippy_ready','notify_klippy_shutdown']);
-export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'> {
+export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'|'tls'> {
  /** Process-owned announcements; requests never control remote URLs or paths. */
  announcements?:AnnouncementsOptions;
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
@@ -293,7 +296,7 @@ export class ConfiguredMoonraker {
    }
   });
   const networkOptions={...options};for(const key of ['productPrint','nativeHost','nativeObjects','nativePrinterIdentity','productPressure','productHostControl','productPrintCompatibility','maintenanceGate','nativeDetached'] as const)delete networkOptions[key];
-  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections,useXheaders:this.binding.useXheaders,routePrefix:this.binding.routePrefix},this.#nativeScope?.signal);
+  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,tls:configuredTls.get(reader),nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections,useXheaders:this.binding.useXheaders,routePrefix:this.binding.routePrefix},this.#nativeScope?.signal);
   if(options.nativeDetached)this.#nativeScope!.retire();
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   this.#nativeTemperatureObjects=options.nativeObjects;
@@ -361,6 +364,7 @@ export class ConfiguredMoonraker {
   for(const key of nativeDeviceFields)delete (options as unknown as Record<string,unknown>)[key];
  }
  static async #prepare(filename:string,options:ConfiguredServerOptions){
+  if('tls' in options)throw new ConfigurationError('TLS material belongs to server configuration');
   assertNativeProcessResources(options);
   if(options.productHostControl!==undefined&&(!(options.productHostControl instanceof ProductHostControl)||!options.productPrint&&!options.nativeDetached))throw new ConfigurationError('Host control requires a native print owner');
   if(options.nativeObjects!==undefined&&(!(options.nativeObjects instanceof NativeObjects)||!options.productPrint))throw new ConfigurationError('Native objects require a native print owner');
@@ -391,7 +395,7 @@ export class ConfiguredMoonraker {
   const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));
   const templates=options.templates?await MoonrakerTemplateFactory.load(reader,options.templates):undefined;
   let mqtt:Awaited<ReturnType<typeof configureNativeSensorsFromConfig>>|undefined;
-  try{const automatic=options.klippy?{...await readKlippyBinding(reader,options.klippy.pathContext,options.klippy.retryDelayMs),initialization:options.klippy.initialization??{}}:undefined;
+  try{configuredTls.set(reader,await readTlsConfiguration(reader,options.templates?.dataPath));const automatic=options.klippy?{...await readKlippyBinding(reader,options.klippy.pathContext,options.klippy.retryDelayMs),initialization:options.klippy.initialization??{}}:undefined;
    const native=!!options.nativeProcessHistory||!!options.productPrint?.durable;
    if(options.nativeHistoryAuxiliary!==undefined&&(!native||options.history||typeof options.nativeHistoryAuxiliary!=='function'))throw new ConfigurationError('Native auxiliary providers require a durable native print owner');
    const nativeHistory=native?new NativeHistoryFields():undefined;

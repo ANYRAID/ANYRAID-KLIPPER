@@ -22,6 +22,13 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+配置的直接 HTTPS 现与 HTTP 共用原网络、身份、文件与退出所有者，
+真实 TLS 回执保持协议，证书预检在 MCU／日志之前，冲突回滚。
+源码／独立 JS／实际包各 294 项、原 42 项预算及同包 HTTP／HTTPS
+模拟打印通过，最低 Node.js 26.9 的 TLS 释放检查通过。前序
+fdc4b27e 十五项 CI、5142／5142 成功，本增量须自身检查。见
+[直接 TLS 证据](host/contracts/direct-tls-owner-acceptance.json)及
+[前序终态](host/contracts/pr68-fdc4b27-terminal.json)。
 配置的 `[server] route_prefix` 现作用于已有 HTTP／WS、文件及
 标准／OctoPrint 上传；网关支持带前缀私有上游，登录与回执仍使用
 固定公共入口。源码／独立 JS／实际包各 258 项、原 42 项预算及
@@ -31,7 +38,7 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 [启动说明](docs/Node_Host_Startup.md)及
 [前序终态](host/contracts/pr68-5c55495-terminal.json)。
 可信代理后的标准／OctoPrint 上传回执现沿原信任与 NSS 所有者选择
-HTTP(S)：X-Scheme 优先，取最后一项，禁用或未验证代理保持 HTTP。
+HTTP(S)：X-Scheme 优先，取最后一项，禁用或未验证代理保持原真实传输协议。
 请求 Host 与原编码路径保持，转发主机和令牌不进入 Location。
 先拒绝坏凭据，协议等待后再核对身份，暂存前完成；源码、独立 JS、
 实际包各 244 项通过，原三组预算最高 1.163 倍，原模拟打印通过。

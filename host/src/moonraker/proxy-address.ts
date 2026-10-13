@@ -1,10 +1,13 @@
 // Request address selection for pinned Moonraker/Tornado xheaders.
 // Original Moonraker Copyright (C) 2020 Eric Callahan. GPL-3.0-or-later.
 import {isIP} from 'node:net';
+import {TLSSocket} from 'node:tls';
 import type {IncomingMessage} from 'node:http';
 import {authorizationAddress} from './authorization-policy.ts';
 export interface ProxyAddress {readonly peer:string|undefined;readonly claimed:string|undefined;readonly invalid:boolean;}
 export type RequestProtocol='http'|'https';
+/** Actual TLS transport is captured before proxy waits; a header cannot invent it. */
+export function transportProtocol(request:IncomingMessage):RequestProtocol{return request.socket instanceof TLSSocket&&request.socket.encrypted?'https':'http';}
 /** Pinned Tornado selector: X-Scheme overrides X-Forwarded-Proto, last item
  * only, case-sensitive HTTP(S). Selection alone never grants proxy trust. */
 export function proxyProtocol(request:IncomingMessage,useXheaders=true):RequestProtocol|undefined{

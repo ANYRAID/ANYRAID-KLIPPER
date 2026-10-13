@@ -134,9 +134,9 @@ test('listener failure closes already configured native hardware',async()=>{
   assert.deepEqual(f.stops,[1,1]);assert.equal(f.product.maintenanceGate.status.closed,true);assert.equal(f.firmware[0].motion.length,0);assert.equal(await f.journal.active(),null);
  }finally{await new Promise<void>((resolve,reject)=>blocker.close(error=>error?reject(error):resolve()));await f.dispose();}
 });
-test('configuration load failure closes connected native product',async()=>{
+test('configuration load preflight rejects before native connection or borrowing the print gate',async()=>{
  const f=await fixture();try{
-  f.serviceOptions.configPath=join(f.dir,'missing.conf');await assert.rejects(startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal));assert.deepEqual(f.stops,[1,1]);assert.equal(f.product.maintenanceGate.status.closed,true);
+  f.serviceOptions.configPath=join(f.dir,'missing.conf');await assert.rejects(startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal));assert.deepEqual(f.stops,[0,0]);assert.equal(f.product.maintenanceGate.status.closed,false);assert(f.firmware.every(m=>m.stepperConfigs.length===0&&m.motion.length===0));
  }finally{await f.dispose();}
 });
 test('cancelled startup closes a server returned late from configuration loading',async t=>{

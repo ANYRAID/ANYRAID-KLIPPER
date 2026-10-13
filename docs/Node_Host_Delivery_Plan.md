@@ -1,5 +1,52 @@
 # Klipper 与 Moonraker 集成交付计划
 
+直接 HTTPS 现接通原网络所有者，HTTP／HTTPS 的 RPC、鉴权、
+WebSocket 身份及通知、请求／连接／字节／输出容量、前缀、取消
+和退出期限共用。真实 TLSSocket 协议在原请求中先冻结，可信代理
+协议仅沿原名单／NSS 覆盖；未核验头不能使真实 TLS 回执降为
+HTTP。原路径与身份仍保持，TLS 本身不授予 API 权限。
+
+配置使用 ssl_port（缺省 7130）、ssl_certificate_path、ssl_key_path，
+原可信 dataPath/certs/moonraker.cert／moonraker.key 优先于旧路径。
+常规文件读取有 256／64 KiB 上限，TLS 最低 1.2、握手十秒。
+外部 TLS 覆盖、无效显式材料及相同端口在 MCU／日志获取前拒绝；
+安全监听失败撤回 HTTP，启动不报告半完成。显式材料缺一拒绝、
+原始读取限额、原子启动及不创建证书目录是明确加固差别。仅默认
+证书缺失保持 HTTP；新 secure 地址随 ready／listening 提供。
+
+源码／独立 JS／实际包各 294／294，完整类型与空白通过；末尾
+新增端口实际 ECONNREFUSED 释放断言后，这三种方式各五项及
+最低 Node.js 26.9 实际包五项通过，运行时不再变化。693 项标准
+包、18 个独立生产依赖、659 个运行时 JS 与最终编译逐摘要一致；
+75 个原生来源及 11 个原输出复用，未重新原生编译。产品保护
+仍拒绝 TS 与任意程序，仅增加摘要／固定参数绑定、十秒临时
+RSA2048 测试证书生成；密钥未纳入证据或仓库。
+
+原三组 AB／BA／AB 共 42 项预算最高 1.145 倍，鉴权最大
+3.619 微秒，保持原 1.5／10 微秒、全部输入／预热／样本。
+预算驱动先选错另一份参考网络脚本，两次均在计时及 Python
+启动前终止，错误包装和日志保留；修正使用原配置网络负载，四份
+有效鉴权样本继续保留并标明修复间隔，未按慢值重测。
+
+同一独立编译包的原完整 HTTP 及 HTTPS＋Unicode 前缀旅程各
+一次通过，62.107／61.707 秒；原 1000 移动、文件／并发 API、
+重建、ADC 故障与全部预算保持。状态 P99 为 3.761／4.497 ms，
+最小步进提前量 79.728／88.248 ms，循环 P99 为 1.975／1.956
+与 2.036／1.975 ms。HTTPS 的父测试线程临时增加该夹具 CA、
+结束恢复，主机名校验保持，不改变系统或浏览器信任。回归、预算
+与旅程顺序执行；部分类型检查与功能回归重叠，不宣称整机隔离。
+
+旧包有效 TLS 配置不产生安全监听、握手 EPROTO；夹具错误、
+旧代际遗漏预检、原断言与新提前拒绝行为的冲突、标准编译启动
+EPERM 和驱动错误均保留。273 项证据逐摘要校验，见
+[直接 TLS 证据](../host/contracts/direct-tls-owner-acceptance.json)。
+前序 fdc4b27e 十五项 CI、5142／5142 成功，Actions 合并检出
+cb55e429，见[精确头终态](../host/contracts/pr68-fdc4b27-terminal.json)。
+任务 PR 未合入 develop，本增量须自身 CI。浏览器仍固定原两
+入口；未新开客户端场次。欢迎／重定向／日志处理器、剩余消费者、
+完整 Moonraker／Python／宏、UI／G3／原生稳定性和 Cycnumbris 500
+目标板／实机保持开放，其他机型最后。以下保留前序范围及证据。
+
 当前接通的是上游实际配置键 `route_prefix`，此前文案 `url_prefix`
 不准确。已有 HTTP／JSON-RPC、WebSocket、文件／配置／受管缩略图、
 标准与 OctoPrint 上传共用规范前缀；RPC 方法名、原请求 URL、查询
@@ -35,14 +82,14 @@ P99 为 1.996／1.985 和 1.971／1.980 ms。基准、回归、编译
 
 前序 5c554954 十五项 CI、5137／5137 成功，实际 Actions 合并
 检出 cefdf388；见[精确头终态](../host/contracts/pr68-5c55495-terminal.json)。
-任务 PR 仍草稿、未合入 develop，本增量须自身 CI。直接 TLS、
+任务 PR 仍草稿、未合入 develop，当时增量须自身 CI。剩余 URL 消费者、
 剩余上游处理器／消费者、全部 Moonraker／Python／宏、原 UI
 性能／G3／原生稳定性、完整客户端故障及 Cycnumbris 500
 目标板／实机保持开放；其他机型最后。以下保留前序证据及原包身份。
 
 标准／OctoPrint 上传的代理协议已沿原请求、信任与 NSS 所有者接通。
 X-Scheme 优先于 X-Forwarded-Proto，取最后一项，仅接受 http／https；
-use_xheaders=false、畸形／超过 4096 字节或未验证代理保持后端 HTTP。
+use_xheaders=false、畸形／超过 4096 字节或未验证代理保持原真实传输协议。
 只核验实际代理的协议声明，客户端 API 身份仍按原凭据／双地址政策。
 请求 Host 与编码路径保持，X-Forwarded-Host、Forwarded 和查询令牌
 不进入回执。选择规则来自
@@ -73,7 +120,7 @@ DNS 缓存或身份所有者。原生配置与 MCU 获取前的产品校验拒�
 前序 8ad4edae 十五项 CI 与 5119／5119 成功，实际合并检出
 58d2c841，见[精确头终态](../host/contracts/pr68-8ad4eda-terminal.json)。
 这不证明原启动失败根因已定位或合入 develop；本增量须自身检查。
-直接 TLS／其他 URL 消费者、全部 Moonraker／Python／宏、
+其他 URL 消费者、全部 Moonraker／Python／宏、
 原 UI 性能、G3／原生稳定性、完整客户端故障和 Cycnumbris 500
 目标板／实机仍开放，其他机型最后。
 

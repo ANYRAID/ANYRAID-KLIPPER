@@ -1,5 +1,5 @@
 import {relativeRouteUrl} from './route-prefix.ts';
-import {proxyAddress,proxyProtocol,type ProxyAddress,type RequestProtocol} from './proxy-address.ts';
+import {transportProtocol,proxyAddress,proxyProtocol,type ProxyAddress,type RequestProtocol} from './proxy-address.ts';
 import {TrustedClients,type TrustedClientOptions} from './trusted-clients.ts';
 // Native API-key subset of pinned Moonraker authorization.py; GPL-3.0-or-later.
 import {createHash,randomBytes,timingSafeEqual} from 'node:crypto';
@@ -22,7 +22,7 @@ const digest=(key:string)=>createHash('sha256').update(key).digest();
  * Address admission requires explicit trustedClients configuration. */
 export class ApiKeyAuthorization {
  readonly #trusted:TrustedClients;
- readonly #addresses=new WeakMap<IncomingMessage,ProxyAddress&{readonly protocol:RequestProtocol|undefined}>();
+ readonly #addresses=new WeakMap<IncomingMessage,ProxyAddress&{readonly protocol:RequestProtocol|undefined;readonly transport:RequestProtocol}>();
  readonly #database:DatabaseStore;readonly #store:DatabaseNamespace;
  readonly #connections=new WeakMap<IncomingMessage,Principal|null>();
  readonly #requests=new WeakMap<AbortSignal,IncomingMessage>();
@@ -54,15 +54,15 @@ export class ApiKeyAuthorization {
   return this.#trusted.resolve(address,signal).then(allowed=>{this.#active();signal.throwIfAborted();return allowed;});
  }
  #matches(value:unknown){return this.#enableApiKey&&typeof value==='string'&&/^[a-f0-9]{32}$/u.test(value)&&timingSafeEqual(digest(value),this.#digest);}
- #addressSnapshot(context:NetworkAuthorization):ProxyAddress&{readonly protocol:RequestProtocol|undefined}{let address=this.#addresses.get(context.request);if(!address){const enabled=context.useXheaders??true;address=Object.freeze({...proxyAddress(context.request,enabled),protocol:proxyProtocol(context.request,enabled)});this.#addresses.set(context.request,address);}return address;}
+ #addressSnapshot(context:NetworkAuthorization):ProxyAddress&{readonly protocol:RequestProtocol|undefined;readonly transport:RequestProtocol}{let address=this.#addresses.get(context.request);if(!address){const enabled=context.useXheaders??true;address=Object.freeze({...proxyAddress(context.request,enabled),protocol:proxyProtocol(context.request,enabled),transport:transportProtocol(context.request)});this.#addresses.set(context.request,address);}return address;}
  /** Capture headers synchronously before any network-origin/auth waits. */
  captureRequestMetadata(context:NetworkAuthorization):void{context.signal.throwIfAborted();this.#addressSnapshot(context);}
  /** URL metadata borrows the original peer policy and NSS cache. A verified
   * proxy may select a protocol without granting its client an API identity. */
  resolveRequestProtocol(context:NetworkAuthorization):RequestProtocol|Promise<RequestProtocol>{
   this.#active();context.signal.throwIfAborted();const snapshot=this.#addressSnapshot(context);
-  if(snapshot.protocol===undefined)return 'http';
-  const trusted=this.resolveTrustedAddress(snapshot.peer??'',context.signal),select=(allowed:boolean):RequestProtocol=>allowed?snapshot.protocol!:'http';
+  if(snapshot.protocol===undefined)return snapshot.transport;
+  const trusted=this.resolveTrustedAddress(snapshot.peer??'',context.signal),select=(allowed:boolean):RequestProtocol=>allowed?snapshot.protocol!:snapshot.transport;
   return trusted instanceof Promise?trusted.then(select):select(trusted);
  }
  #effectiveAddress(request:IncomingMessage):string|undefined{const address=this.#addresses.get(request)!;return address.claimed&&this.#trusted.matches(address.peer)?address.claimed:address.peer;}

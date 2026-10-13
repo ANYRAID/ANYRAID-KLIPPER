@@ -44,6 +44,7 @@ import type {NativeHostSnapshot} from '../moonraker/native-host-status.ts';
 import {connectProductPrinter,type ProductPrinterOptions} from './product-printer.ts';
 import type {ConfiguredPrinterOptions} from './configured-printer.ts';
 import {ConfiguredMoonraker,type ConfiguredServerOptions,type ConfiguredAuthorizationOptions} from '../moonraker/configured-server.ts';
+import {readTlsConfiguration} from '../moonraker/tls-configuration.ts';
 import {assertProductAuthorization} from './product-authorization.ts';
 import {loadConfiguration} from '../moonraker/config-source.ts';
 import {ConfigurationReader} from '../moonraker/config-reader.ts';
@@ -97,7 +98,8 @@ export function startConfiguredDeltaProductService(reader:ConfigurationReader,po
 }
 async function startMachineProductService<T extends ProductServicePrinter>(reader:ConfigurationReader,product:ProductPrinterOptions,options:ProductServiceOptions,signal:AbortSignal,connect:()=>Promise<T>){
  signal.throwIfAborted();const bedScrews=readBedScrews(reader),screws=readScrewsTilt(reader),zTilt=readZTilt(reader),quad=readQuadGantry(reader);const configPath=options.configPath,serverOptions={...options.server};
- assertProductAuthorization(serverOptions,false,serverOptions.authorization?new ConfigurationReader(await loadConfiguration(configPath)):undefined);
+ const serverReader=new ConfigurationReader(await loadConfiguration(configPath));assertProductAuthorization(serverOptions,false,serverOptions.authorization?serverReader:undefined);
+ if(!options.existingServer)await readTlsConfiguration(serverReader,serverOptions.templates?.dataPath??serverOptions.authorization?.templateSecrets?.dataPath);signal.throwIfAborted();
  if(options.serverLifetime!==undefined&&!['generation','process'].includes(options.serverLifetime)||options.existingServer&&(!(options.existingServer instanceof ConfiguredMoonraker)||options.serverLifetime!=='process'))throw new TypeError('Invalid product server lifetime');
  const processDefaults={systemInformation:serverOptions.systemInformation??{},systemServices:serverOptions.systemServices??{},procStats:serverOptions.procStats??{},gcodeStore:serverOptions.gcodeStore??{},nativePrinterIdentity:serverOptions.productPrintCompatibility||serverOptions.nativeProcessFiles?{configFile:reader.source.primaryFile,softwareVersion:serverOptions.information.version}:undefined};
  const processServer={...serverOptions,...processDefaults};

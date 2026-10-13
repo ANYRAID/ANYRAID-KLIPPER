@@ -4,6 +4,9 @@ import {PublishedPrintFiles} from '../storage/published-files.ts';
 import {NativePrintUploads,type NativeUploadOptions} from '../moonraker/native-print-uploads.ts';
 import {NativeUfpDiskImports,type NativeUfpDiskImportOptions} from '../moonraker/native-ufp-disk-imports.ts';
 import {ServerInformation} from '../moonraker/metadata.ts';
+import {readTlsConfiguration} from '../moonraker/tls-configuration.ts';
+import {ConfigurationReader} from '../moonraker/config-reader.ts';
+import {loadConfiguration} from '../moonraker/config-source.ts';
 import {assertProductAuthorization} from './product-authorization.ts';
 import {ApiError} from '../moonraker/rpc.ts';
 import {nativeFilename} from '../moonraker/native-file-path.ts';
@@ -184,6 +187,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    if(snapshot.diskImports&&typeof processResources.diskImportContext!=='function')throw new TypeError('Disk imports require the current process filesystem policy');
    if(processResources.machineControl&&(['retirement','execute','assertDeviceAvailable','close'] as const).some(key=>typeof processResources!.machineControl![key]!=='function'))throw new TypeError('Invalid native machine control capability');
    assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);
+   await readTlsConfiguration(new ConfigurationReader(await loadConfiguration(config.moonrakerConfig)),processResources.server.templates?.dataPath??processResources.server.authorization?.templateSecrets?.dataPath);s.throwIfAborted();
    if(['nativeDetached','productPrint','nativeHost','nativeObjects','maintenanceGate','nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory','configFiles'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
    if(snapshot.configFiles){configFiles=await NativeConfigFiles.open(snapshot.configFiles);if(!configFiles.contains(config.printerConfig))throw new TypeError('Printer config must be inside the explicit config root');s.throwIfAborted();}
    await resources!.processFiles(snapshot.uploads);s.throwIfAborted();

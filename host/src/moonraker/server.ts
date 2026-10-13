@@ -10,22 +10,26 @@ import {setImmediate as yieldImmediate} from 'node:timers/promises';
 import {ClientCalls} from './client-calls.ts';
 import {ClientRequests,type ClientArguments,type ClientRequestLimits,type ClientRequestOptions} from './client-requests.ts';
 import {ResponseCompletion} from './response-completion.ts';
-import type {RequestProtocol} from './proxy-address.ts';
+import {transportProtocol,type RequestProtocol} from './proxy-address.ts';
 import {subscriptionConnectionId} from './subscription-connection.ts';
 import {NotificationFanout,type NotificationLimits,type DeliveryReport} from './notifications.ts';
 import {RemoteClients} from './clients.ts';
 import {EndpointRegistry} from './endpoints.ts';
 import {createServer,type IncomingMessage,type ServerResponse,type Server} from 'node:http';
 import type {AddressInfo} from 'node:net';
+import {createServer as createSecureServer,type Server as SecureServer} from 'node:https';
 import type {Duplex} from 'node:stream';
 import {WebSocketServer,WebSocket,type RawData} from 'ws';
 import {JsonRpcDispatcher,ApiError,encodeNotification,type Json,type RpcContext,type AuthorizationResult} from './rpc.ts';
 export interface NetworkAuthorization {
  request:IncomingMessage;transport:'http'|'websocket';connectionId?:number;signal:AbortSignal;useXheaders?:boolean;routePrefix?:string;
 }
-export interface MoonrakerAddress extends AddressInfo {routePrefix?:string;}
+export interface MoonrakerTlsOptions {readonly port:number;readonly cert:Uint8Array;readonly key:Uint8Array;readonly handshakeTimeoutMs?:number;}
+export interface MoonrakerAddress extends AddressInfo {routePrefix?:string;secure?:AddressInfo;}
 export interface MoonrakerNetworkOptions {
  endpoints?:EndpointRegistry;
+ /** Explicit process-owned TLS material; listeners share every admission budget. */
+ tls?:MoonrakerTlsOptions;
  /** Configuration-owned xheaders selection; identity trust remains separate. */
  /** Canonical encoded configured prefix; default root remains empty. */
  routePrefix?:string;
@@ -71,7 +75,7 @@ function bytes(data:RawData):Buffer{return Buffer.isBuffer(data)?data:Array.isAr
  * remain separate components; the required authorize callback never defaults to allow. */
 export class MoonrakerNetwork {
  #clientCalls:ClientCalls|undefined;#clients=new RemoteClients();#notifications:NotificationFanout|undefined;#clientRequests:ClientRequests|undefined;
- #rpc:JsonRpcDispatcher;#options:MoonrakerNetworkOptions;#server:Server;#ws:WebSocketServer;
+ #rpc:JsonRpcDispatcher;#options:MoonrakerNetworkOptions;#server:Server;#secure:SecureServer|undefined;#securePort:number|undefined;#ws:WebSocketServer;
  #peers=new Map<number,Peer>();#nextId=1;#requests=new Map<AbortController,Promise<void>>();#sockets=new Set<Duplex>();
  #upgrades=new Set<Duplex>();
  #outputBytes=0;#maximumOutputBytes:number;
@@ -97,11 +101,11 @@ export class MoonrakerNetwork {
   if(options.authorizeClientCall)this.#clientCalls=new ClientCalls(options.clientCallLimits);
   if(options.authorizeClientRequest!==undefined&&typeof options.authorizeClientRequest!=='function')throw new TypeError('Invalid client request authorization');
   if(options.authorizeClientRequest)this.#clientRequests=new ClientRequests(options.clientRequestLimits);
-  this.#server=createServer({maxHeaderSize:16384,requestTimeout:30000,headersTimeout:10000},(request,response)=>this.#http(request,response));this.#server.maxConnections=this.#maxConnections+this.#maxRequests;
+  const httpOptions={maxHeaderSize:16384,requestTimeout:30000,headersTimeout:10000},listener=(request:IncomingMessage,response:ServerResponse)=>this.#http(request,response);
+  if(options.tls!==undefined){const tls=options.tls;if(!tls||!Number.isInteger(tls.port)||tls.port<0||tls.port>65535||!(tls.cert instanceof Uint8Array)||!tls.cert.byteLength||tls.cert.byteLength>256*1024||!(tls.key instanceof Uint8Array)||!tls.key.byteLength||tls.key.byteLength>64*1024)throw new TypeError('Invalid process TLS options');this.#securePort=tls.port;this.#secure=createSecureServer({...httpOptions,cert:Buffer.from(tls.cert),key:Buffer.from(tls.key),handshakeTimeout:bounded(tls.handshakeTimeoutMs,10000,10000),minVersion:'TLSv1.2'},listener);this.#secure.on('tlsClientError',(_error,socket)=>socket.destroy());}
+  this.#server=createServer(httpOptions,listener);
   this.#ws=new WebSocketServer({noServer:true,maxPayload:maxBytes,perMessageDeflate:false});
-  this.#server.on('connection',socket=>{this.#sockets.add(socket);socket.on('close',()=>this.#sockets.delete(socket));});
-  this.#server.on('upgrade',(request,socket,head)=>this.#upgrade(request,socket,head));
-  this.#server.on('clientError',(_error,socket)=>{if(socket.writable)socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');});
+  for(const server of [this.#server,...this.#secure?[this.#secure]:[]]){server.maxConnections=this.#maxConnections+this.#maxRequests;server.on('connection',socket=>{if(this.#phase==='closing'||this.#phase==='closed'||this.#sockets.size>=this.#maxConnections+this.#maxRequests){socket.destroy();return;}this.#sockets.add(socket);socket.on('close',()=>this.#sockets.delete(socket));});server.on('upgrade',(request,socket,head)=>this.#upgrade(request,socket,head));server.on('clientError',(_error,socket)=>{if(socket.writable)socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');});}
   rpc.register('server.websocket.id',['websocket'],(_p,context)=>({websocket_id:context.connectionId!}));
   rpc.register('server.connection.identify',['websocket'],(params,context)=>{const client=this.#clients.identify(context.connectionId!,params);if(client.identity?.type==='agent')this.#agentEvent(client.id,{agent:client.identity.name,event:'connected',data:{...client.identity}});return {connection_id:client.id};});
  }
@@ -125,10 +129,13 @@ export class MoonrakerNetwork {
  }
  async listen(port=0,host='127.0.0.1'):Promise<MoonrakerAddress>{
   if(this.#phase!=='new'||!Number.isInteger(port)||port<0||port>65535)throw new Error('Invalid network listen state or port');
-  this.#phase='starting';try{this.#opening=new Promise<void>((resolve,reject)=>{const fail=(e:Error)=>{this.#server.off('listening',ready);reject(e);},ready=()=>{this.#server.off('error',fail);resolve();};this.#server.once('error',fail);this.#server.once('listening',ready);this.#server.listen(port,host);});await this.#opening;if(this.#phase!=='starting')throw new Error('Network startup cancelled');this.#phase='listening';}
-  catch(error){if(this.#phase==='starting')this.#phase='new';throw error;}
-  this.#heartbeat=setInterval(()=>{for(const peer of this.#peers.values()){if(peer.socket.readyState!==WebSocket.OPEN)continue;if(!peer.alive){peer.socket.terminate();continue;}peer.alive=false;peer.socket.ping();}},10000);this.#heartbeat.unref();const address=this.#server.address() as AddressInfo;return this.#options.routePrefix?{...address,routePrefix:this.#options.routePrefix}:address;
+  if(this.#secure&&port!==0&&port===this.#securePort)throw new Error('HTTP and HTTPS ports must differ');
+  this.#phase='starting';try{this.#opening=(async()=>{await this.#listenServer(this.#server,port,host);if(this.#phase!=='starting')throw new Error('Network startup cancelled');if(this.#secure)await this.#listenServer(this.#secure,this.#securePort!,host);})();await this.#opening;if(this.#phase!=='starting')throw new Error('Network startup cancelled');this.#phase='listening';}
+  catch(error){for(const socket of this.#sockets)socket.destroy();await Promise.all([this.#server,...this.#secure?[this.#secure]:[]].map(server=>this.#closeServer(server)));if(this.#phase==='starting')this.#phase='new';throw error;}
+  this.#heartbeat=setInterval(()=>{for(const peer of this.#peers.values()){if(peer.socket.readyState!==WebSocket.OPEN)continue;if(!peer.alive){peer.socket.terminate();continue;}peer.alive=false;peer.socket.ping();}},10000);this.#heartbeat.unref();const address=this.#server.address() as AddressInfo;return this.#secure?{...address,...this.#options.routePrefix?{routePrefix:this.#options.routePrefix}:{},secure:this.#secure.address() as AddressInfo}:this.#options.routePrefix?{...address,routePrefix:this.#options.routePrefix}:address;
  }
+ #listenServer(server:Server|SecureServer,port:number,host:string):Promise<void>{return new Promise((resolve,reject)=>{const fail=(error:Error)=>{server.off('listening',ready);reject(error);},ready=()=>{server.off('error',fail);resolve();};server.once('error',fail);server.once('listening',ready);server.listen(port,host);});}
+ #closeServer(server:Server|SecureServer):Promise<void>{return new Promise(resolve=>{if(!server.listening)resolve();else server.close(()=>resolve());});}
  #origin(request:IncomingMessage,signal:AbortSignal):OriginAdmission|Promise<OriginAdmission>{
   const origin=request.headers.origin;if(origin===undefined)return {allowed:true,cors:false};
   try{
@@ -181,7 +188,7 @@ export class MoonrakerNetwork {
   this.#launch(async signal=>{
    let reserved=0,outputReserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
    try{
-    let uploadProtocol:RequestProtocol='http';
+    let uploadProtocol:RequestProtocol=transportProtocol(request);
     if(isUpload)this.#options.captureRequestMetadata?.({request,transport:'http',signal,useXheaders:this.#options.useXheaders,routePrefix:this.#options.routePrefix??''});
     signal.throwIfAborted();const originCheck=this.#origin(request,signal),originAdmission=originCheck instanceof Promise?await originCheck:originCheck;signal.throwIfAborted();
     if(!originAdmission.allowed){this.#error(response,403,'Origin not allowed');return;}
@@ -319,7 +326,7 @@ export class MoonrakerNetwork {
   const clientCallsClosed=this.#clientCalls?.close()??Promise.resolve();
   const notificationsClosed=this.#notifications?.close()??Promise.resolve();
   for(const abort of this.#requests.keys())abort.abort(new Error('Moonraker network shutting down'));for(const peer of this.#peers.values()){peer.abort.abort(new Error('Moonraker network shutting down'));peer.socket.terminate();}for(const socket of this.#sockets)socket.destroy();
-  const serverClosed=(async()=>{await this.#opening?.catch(()=>{});await new Promise<void>(resolve=>{if(!this.#server.listening)resolve();else this.#server.close(()=>resolve());});})();
+  const serverClosed=(async()=>{await this.#opening?.catch(()=>{});await Promise.all([this.#server,...this.#secure?[this.#secure]:[]].map(server=>this.#closeServer(server)));})();
   let timeout:ReturnType<typeof setTimeout>|undefined;
   this.#close=Promise.race([Promise.all([serverClosed,clientCallsClosed,notificationsClosed,clientRequestsClosed,...this.#requests.values()]),new Promise<never>((_,reject)=>{timeout=setTimeout(()=>reject(new Error('Network tasks did not stop before shutdown deadline')),this.#shutdownTimeout);})]).then(()=>{this.#phase='closed';this.#rpc.remove('server.websocket.id');this.#rpc.remove('server.connection.identify');for(const client of this.#clients.all())this.#clients.remove(client.id);this.#ws.close();}).finally(()=>{clearTimeout(timeout);this.#close=undefined;});return this.#close;
  }

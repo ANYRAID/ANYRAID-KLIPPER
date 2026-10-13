@@ -1,5 +1,48 @@
 # Node 主机启动与机器集成
 
+### 配置直接 HTTPS
+
+HTTP 与 HTTPS 使用同一应用及身份所有者。缺省 HTTP 7125、
+ssl_port 为 7130；两者使用同一 host，仍须显式配置 127.0.0.1
+用于本机验收。原可信应用 dataPath 下的 certs/moonraker.cert 与
+certs/moonraker.key 各自优先；应用不自动生成证书或创建该目录。
+旧显式路径继续支持、记录弃用提示，例如：
+
+```ini
+[server]
+host: 127.0.0.1
+port: 7125
+ssl_port: 7130
+ssl_certificate_path: /installed/printer-certs/moonraker.cert
+ssl_key_path: /installed/printer-certs/moonraker.key
+route_prefix: /host/printer.v1
+```
+
+路径按原物理 expanduser／resolve 语义处理，建议使用绝对路径。
+示例需要使用者已提供并维护的有效证书／密钥；不要使用临时测试
+密钥。证书最多 256 KiB、密钥最多 64 KiB，必须是常规文件；
+证书不匹配、无效显式材料或相同的非零端口拒绝。最低 TLS1.2，
+握手十秒内完成；显式缺一、原子双监听启动等为明确加固差别。
+默认材料不存在时只开 HTTP，部分默认材料会给出不含内容的警告。
+
+配置／证书预检在 MCU 与日志获取前执行；失败不连接硬件或
+借用调用方打印门禁。任一监听失败回滚已经打开的监听，退出
+同时取消 HTTP／WS、原请求及尚未握手的 TLS 连接，不回落到
+另一端口或不安全的监听。PEM 内容不进入信息接口、错误或证据；
+原配置接口仍保留使用者配置的文件名。
+
+实际 HTTPS 的地址由 ready／listening 的 address.secure 提供，
+非空规范前缀仍由 address.routePrefix 提供。示例的直接 API
+基址为 https://127.0.0.1:7130/host/printer.v1；客户端必须信任
+证书并校验主机名。API 凭据仍必需，TLS 不赋予打印权限。
+
+本机 Fluidd／Mainsail 浏览器仍复用 18430／18434，不新增 HTTPS
+浏览器来源；网关私有上游继续原环回 HTTP，公共 HTTPS 可由既有
+代理提供。本轮是实际 Node HTTPS／WSS 和模拟 MCU 验证，未把
+临时 CA 写入系统或浏览器，也未进行直接浏览器 HTTPS／实机验收。
+详细原始样本、包身份、失败及范围见
+[直接 TLS 证据](../host/contracts/direct-tls-owner-acceptance.json)。
+
 ### 配置路由前缀与固定客户端入口
 
 配置键为 `[server] route_prefix`，不是 `url_prefix`。例如：
@@ -35,7 +78,7 @@ Location 转换为公共地址，客户端转发主机／协议头移除。
 原网关及 Unicode 前缀同负载对照和根路径／前缀同包完整模拟旅程
 通过。详细身份、原失败、样本及边界见
 [路由前缀证据](../host/contracts/route-prefix-owner-acceptance.json)。
-已有接口加前缀不等于全部上游处理器、直接 TLS、客户端或硬件
+已有接口加前缀不等于全部上游处理器、客户端或硬件
 验收完成。以下保留前序接线及其原包验证范围。
 
 可信代理授权已接入原信任所有者与配置生命周期。server 的
@@ -2460,7 +2503,7 @@ Host 和逐段 URI 编码的回执路径，适用于 gcodes／config、显式旧
 中文、空格和字面百分号；不带令牌／查询，不采纳 X-Forwarded-Host。
 当前后端监听 HTTP。use_xheaders 启用时，仅原 TrustedClients／NSS
 核验的实际代理可按 X-Scheme／X-Forwarded-Proto 选择 HTTP(S)，
-前者优先，取最后一项并区分大小写；畸形、超限或禁用时保持 HTTP。
+前者优先，取最后一项并区分大小写；畸形、超限或禁用时保持原真实传输协议。
 该协议选择不授予 API 身份，匿名客户端仍核对原双地址／强制登录。
 元数据在请求开始同步冻结，坏凭据先在原上传授权阶段拒绝，协议
 等待沿原请求／上传期限和容量；等待后复核当前身份，暂存前完成。
