@@ -13,7 +13,7 @@ const signal=()=>new AbortController().signal;
 async function fixture(){
  const root=await mkdtemp(join(tmpdir(),'native-components-')),machine=await productMachineFixture(root),dataPath=join(root,'private'),control=new ProductHostControl();await mkdir(dataPath);
  let releases=0,devices=0,opens=0;
- const options:NativeProductProcessOptions={dataPath,filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),async createProcess(){opens++;return {server:{information:machine.bindings.server.information,authorize(){},authorizeNotification(){}},async release(){releases++;}};},async createAdapter(){devices++;return {stops:machine.bindings.stops,lifecycle:machine.bindings.print.lifecycle,output:machine.bindings.print.output,async authorizePrintFile(){},async release(){}};}};
+ const options:NativeProductProcessOptions={dataPath,filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),async createProcess(){opens++;return {server:{systemServices:{source:async()=>({provider:'none' as const,available_services:[],service_state:{},instance_ids:{moonraker:'',klipper:''}})},information:machine.bindings.server.information,authorize(){},authorizeNotification(){}},async release(){releases++;}};},async createAdapter(){devices++;return {stops:machine.bindings.stops,lifecycle:machine.bindings.print.lifecycle,output:machine.bindings.print.output,async authorizePrintFile(){},async release(){}};}};
  return {root,machine,dataPath,control,options,get counts(){return {opens,devices,releases};},async close(){await control.close();await machine.close();await rm(root,{recursive:true,force:true});}};
 }
 test('process entry requires explicit data identity before acquiring dependencies',async()=>{

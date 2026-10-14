@@ -1,6 +1,12 @@
+import {SystemBusActionUncertain} from '../moonraker/system-bus-owner.ts';
 import {randomUUID} from 'node:crypto';
 import {HostRecoveryJournal,recoveryCapacity,type RecoveryRecord,type RecoveryJournalOptions,type RecoveryKind,type MachineRecoveryKind} from './host-recovery-journal.ts';
 import type {MachineAction} from '../moonraker/machine-control.ts';
+function uncertainMachineResult(error:unknown):boolean{
+ const pending:unknown[]=[error],seen=new Set<Error>();
+ while(pending.length&&seen.size<32){const item=pending.pop();if(!(item instanceof Error)||seen.has(item))continue;seen.add(item);if(item instanceof SystemBusActionUncertain)return true;if(item instanceof AggregateError)pending.push(...item.errors.slice(0,32));if(item.cause instanceof Error)pending.push(item.cause);}
+ return false;
+}
 export type HostReloadKind='reinitialize'|RecoveryKind;
 type StandardReloadKind='restart'|'firmware_restart';
 export const machineRecoveryKinds=['service_start','service_stop','service_restart','server_restart','machine_reboot','machine_shutdown'] as const;
@@ -92,7 +98,7 @@ export class ProductHostControl {
    await this.#save({...record,state:'running'});
    if(this.#closed||record.state_token!==this.#token)throw new Error('Host stopped before recovery');
    await this.#begin(kind,record.service);await this.#save({...record,state:'succeeded',error:null});
-  }catch(error){if(!this.#storageFault)await this.#save({...record,state:'failed',error:'Reinitialization failed; inspect host readiness and process error'});}
+  }catch(error){if(!this.#storageFault)await this.#save({...record,state:uncertainMachineResult(error)?'interrupted':'failed',error:uncertainMachineResult(error)?'System action result is unknown; inspect the daemon and do not replay this request':'Reinitialization failed; inspect host readiness and process error'});}
   finally{this.#remoteBusy=false;}
  }
  attach(handler:(kind:HostReloadKind,service?:string)=>Promise<void>,validate:(kind:HostReloadKind,service?:string)=>void=()=>{},options:{kinds?:readonly HostReloadKind[];generationSignal?:AbortSignal}={}):()=>void{

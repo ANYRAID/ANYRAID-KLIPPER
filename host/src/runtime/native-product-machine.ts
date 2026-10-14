@@ -24,6 +24,8 @@ import {ConfiguredMoonraker} from '../moonraker/configured-server.ts';
 import {resetConfiguredFirmware} from './firmware-restart.ts';
 import {NativeConfigFiles,type NativeConfigFilesOptions} from '../moonraker/native-config-files.ts';
 import type {MachineControlPort} from '../moonraker/machine-control.ts';
+import {SystemdBusControl} from '../moonraker/systemd-bus-control.ts';
+import {MachineSystemProvider,readMachineProvider,type MachineProviderOptions} from '../moonraker/machine-provider.ts';
 import {LinuxMachineControl} from '../moonraker/machine-control.ts';
 import type {FixedNodeInstallOptions} from '../moonraker/fixed-node-install.ts';
 import type {SudoBackend} from '../moonraker/sudo-backend.ts';
@@ -73,6 +75,8 @@ export interface NativeProductProcessResources {
  release():Promise<void>;
 }
 export interface NativeProductProcessOptions extends Omit<NativeProductMachineOptions,'fileResources'|'processFiles'|'createAdapter'> {
+ /** Trusted provider capabilities. Configuration cannot grant write scope. */
+ machineProvider?:MachineProviderOptions;
  installation?:{options:FixedNodeInstallOptions;backend:SudoBackend;externalService?:ExternalNodeInstallationService;
   /** A failed primary component generation closes its backend. Only this
    * trusted factory may supply a fresh, uncached backend for the backup. */
@@ -225,9 +229,10 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  const legacyDatabaseOwnerOptions='createProcess' in options&&options.legacyDatabaseOwnerOptions?Object.freeze(structuredClone(options.legacyDatabaseOwnerOptions)):undefined;
  if(legacyDatabaseOwnerOptions&&(!legacyDatabase||Object.keys(legacyDatabaseOwnerOptions).some(k=>!['backupDirectory','maxRecordBytes','maxDatabaseBytes','maxReplyBytes','maxPending','maxPendingBytes','maxReadCacheBytes'].includes(k))))throw new TypeError('Invalid trusted pre-open database owner options');
  const legacyOwner=legacyDatabase?resolveDatabaseStoreOptions({...legacyDatabaseOwnerOptions,path:legacyDatabase.databasePath,legacyAuthorization:legacyDatabase.authorization}):undefined;
- const snapshot={...options,diskImports:options.diskImports?structuredClone(options.diskImports):undefined,configFiles:options.configFiles?structuredClone(options.configFiles):undefined,files:{...options.files},uploads:{...options.uploads},standardPrint:options.standardPrint?{...options.standardPrint}:undefined},stopped=new AbortController();
+ const snapshot={...options,machineProvider:'createProcess' in options&&options.machineProvider?structuredClone(options.machineProvider):undefined,diskImports:options.diskImports?structuredClone(options.diskImports):undefined,configFiles:options.configFiles?structuredClone(options.configFiles):undefined,files:{...options.files},uploads:{...options.uploads},standardPrint:options.standardPrint?{...options.standardPrint}:undefined},stopped=new AbortController();
  const processOptions='createProcess' in snapshot?snapshot:undefined;
  let processResources:NativeProductProcessResources|undefined,processOpening:Promise<void>|undefined,processJournal:PrintJournal|undefined,processIdentity:ProductMachineConfiguration|undefined;
+ let machineProvider:MachineSystemProvider|undefined;
  let configFiles:NativeConfigFiles|undefined,preopenedDatabase:DatabaseStore|undefined,pathOwner:LegacyProductPathOwner|undefined;
  let projectedConfigFiles=snapshot.configFiles;
  let legacyGcodeReceipt:LegacyGcodeImportReceipt|undefined;
@@ -242,7 +247,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  let processCleanup:Promise<void>|undefined;
  const closeProcessResources=()=>processCleanup??=(async()=>{
   const failures:unknown[]=[];
-  for(const close of [()=>resources?.close(),()=>processResources?.machineControl?.close(),()=>configFiles?.close(),()=>processJournal?.close(),()=>processResources?.release?.(),()=>preopenedDatabase?.close(),()=>installationBackend?.close()])try{await close();}catch(error){failures.push(error);}
+  for(const close of [()=>resources?.close(),()=>processResources?.machineControl?.close(),()=>configFiles?.close(),()=>processJournal?.close(),()=>processResources?.release?.(),()=>preopenedDatabase?.close(),()=>installationBackend?.close(),()=>machineProvider?.close()])try{await close();}catch(error){failures.push(error);}
   logs?.lifecycle('shutdown_complete');for(const close of [()=>logs?.close(),()=>pathOwner?.close()])try{await close();}catch(error){failures.push(error);}
   if(failures.length)throw new AggregateError(failures,'Native process cleanup failed');
  })();
@@ -274,7 +279,12 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    if(!processResources||typeof processResources.release!=='function')throw new TypeError('Native process resources must own cleanup');
    if(processResources.server.templates!==undefined||processResources.server.authorization?.templateSecrets!==undefined)throw new TypeError('Native process owns template and secrets configuration');
    if('processLogs' in processResources.server)throw new TypeError('Native process owns logging');
-   processResources.server={...processResources.server,templates:{dataPath:processOptions!.dataPath}};
+   const providerReader=new ConfigurationReader(await loadConfiguration(config.moonrakerConfig));readMachineProvider(providerReader);
+   if(processResources.server.systemServices?.source&&processOptions!.machineProvider)throw new TypeError('Explicit service source conflicts with machine provider capabilities');
+   if(processResources.machineControl&&processOptions!.machineProvider?.control)throw new TypeError('Explicit machine control conflicts with provider control descriptor');
+   if(!processResources.server.systemServices?.source){machineProvider=new MachineSystemProvider(providerReader,processOptions!.machineProvider,true);processResources.server={...processResources.server,systemServices:machineProvider.services};if(machineProvider.control)processResources.machineControl=machineProvider.control;}
+   await machineProvider?.prepare(s);s.throwIfAborted();
+   processResources.server={...processResources.server,...machineProvider?.warnings.length?{information:{...processResources.server.information,warnings:[...processResources.server.information.warnings,...machineProvider.warnings]}}:{},templates:{dataPath:processOptions!.dataPath}};
    if(snapshot.diskImports&&typeof processResources.diskImportContext!=='function')throw new TypeError('Disk imports require the current process filesystem policy');
    if(processResources.machineControl&&(['retirement','execute','assertDeviceAvailable','close'] as const).some(key=>typeof processResources!.machineControl![key]!=='function'))throw new TypeError('Invalid native machine control capability');
    assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);
@@ -339,14 +349,14 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    return bootstrapping??=(async()=>{
     const signal=AbortSignal.any([incoming,stopped.signal]),config=await readProductMachine(path,signal);
     const attempt=async()=>{await ensureProcess(config,signal);
-    const process=processResources!.server,files=await resources!.processFiles(snapshot.uploads);
-    const installation=processOptions.installation?{...processOptions.installation,backend:installationBackend!,options:{...processOptions.installation.options,configFile:config.moonrakerConfig,...legacyPaths?{legacy:{bindings:pathOwner!.mapping,gcodeImport:legacyGcodeReceipt!,backupConfiguration:selectedBackupConfiguration,...processOptions.installation.externalService?{externalService:processOptions.installation.externalService}:{}}}:{}}}:undefined;
+    const process=processResources!.server,files=await resources!.processFiles(snapshot.uploads),serviceProvider=machineProvider;
+    const installation=processOptions.installation?{...processOptions.installation,backend:installationBackend!,options:{...processOptions.installation.options,configFile:config.moonrakerConfig,...serviceProvider?.bus?{serviceIdentity:{read:(signal:AbortSignal)=>serviceProvider.installationProperties(signal),current:(proof:import('../moonraker/system-bus-owner.ts').SystemdProperties)=>!!serviceProvider.bus?.installationCurrent(proof)}}:{},...legacyPaths?{legacy:{bindings:pathOwner!.mapping,gcodeImport:legacyGcodeReceipt!,backupConfiguration:selectedBackupConfiguration,...processOptions.installation.externalService?{externalService:processOptions.installation.externalService}:{}}}:{}}}:undefined;
     const serverOptions={nativeDetached:true as const,configFiles,nativeProcessFiles:files,nativeProcessHistory:processJournal!,productHostControl:control,...installation?{installation}:{},
      nativePrinterIdentity:{configFile:config.printerConfig,softwareVersion:process.information.version},systemInformation:process.systemInformation??{},systemServices:process.systemServices??{},procStats:process.procStats??{},gcodeStore:process.gcodeStore??{},temperatureStore:{...process.temperatureStore,previous:undefined}};
     const server=process.authorization?await ConfiguredMoonraker.loadAuthorized(config.moonrakerConfig,{...process,...serverOptions}):await ConfiguredMoonraker.load(config.moonrakerConfig,{...process,...serverOptions});
     componentsLoaded=true;
     if(installation)processResources!.server={...processResources!.server,installation};
-    if(processOptions.installation){installationServer=server;const original=processResources!.machineControl,readonlyControl=original??new LinuxMachineControl({ownUnit:processOptions.installation.options.unit});processResources!.machineControl=readonlyControl;
+    if(processOptions.installation){installationServer=server;const original=processResources!.machineControl,readonlyControl=original??(machineProvider?.bus?new SystemdBusControl(machineProvider.bus,{ownUnit:processOptions.installation.options.unit},machineProvider.configuration.shutdown):new LinuxMachineControl({ownUnit:processOptions.installation.options.unit}));processResources!.machineControl=readonlyControl;
      installationControl={retirement(action){if(server.installationStatus?.ready&&original)return original.retirement(action);if(action.kind!=='server_restart')throw new ApiError(403,'Pending installation supports only own-unit process restart');return 'process';},execute(action,signal){if(server.installationStatus?.ready&&original)return original.execute(action,signal);if(action.kind!=='server_restart')return Promise.reject(new ApiError(403,'Unsupported installation action'));return server.executeInstallationRestart(signal);},assertDeviceAvailable:signal=>readonlyControl.assertDeviceAvailable(signal),close:()=>readonlyControl.close()};}
     if(snapshot.diskImports)try{await resources!.startDiskImports({...snapshot.diskImports,context:signal=>processResources!.diskImportContext!(AbortSignal.any([signal,stopped.signal]))});}catch(error){await server.close();throw error;}
     return {server,recoveryJournal:{path:config.journalPath+'.host-recovery.sqlite',deviceId:config.deviceId}};};
@@ -359,7 +369,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
      try{await closeProcessResources();}catch(cleanup){throw new AggregateError([error,cleanup],'Primary configuration and process cleanup failed');}
      if(!processOptions.installation?.reopenBackend)throw new AggregateError([error,new Error('Backup requires a fresh installation backend')],'Backup process capability unavailable');
      const next=processOptions.installation.reopenBackend();if(next===processOptions.installation.backend)throw new TypeError('Backup installation backend must be a new owner');
-     installationBackend=ownBackend(next);processCleanup=undefined;processResources=undefined;processOpening=undefined;processIdentity=undefined;processJournal=undefined;configFiles=undefined;preopenedDatabase=undefined;pathOwner=undefined;resources=undefined;logs=undefined;legacyGcodeReceipt=undefined;installationServer=undefined;installationControl=undefined;
+     installationBackend=ownBackend(next);processCleanup=undefined;processResources=undefined;processOpening=undefined;processIdentity=undefined;processJournal=undefined;configFiles=undefined;preopenedDatabase=undefined;pathOwner=undefined;resources=undefined;logs=undefined;machineProvider=undefined;legacyGcodeReceipt=undefined;installationServer=undefined;installationControl=undefined;
      // Preserve every private source seen in this process while the next
      // configuration adds its newly selected physical material paths.
      projectedConfigFiles=projectedConfigFiles?{...snapshot.configFiles!,reserved:[...(projectedConfigFiles.reserved??[])]}:undefined;

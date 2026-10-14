@@ -10,6 +10,7 @@ import {OctoprintCompatibility} from './octoprint-compat.ts';
 import {Webcams} from './webcams.ts';
 import {Announcements,type AnnouncementsOptions} from './announcements.ts';
 import {SystemInformation,type SystemInformationSource} from './system-information.ts';
+import {readMachineProvider} from './machine-provider.ts';
 import {SystemServices,validateSystemServices,type SystemServicesOptions} from './system-services.ts';
 import {ProcStats,type ProcStatsSource} from './proc-stats.ts';
 import {NativeHostNotifications} from './native-host-notifications.ts';
@@ -295,7 +296,7 @@ export class ConfiguredMoonraker {
   this.#automatic=automatic;this.#metadataFiles=options.metadataFiles;this.#discoverMetadata=options.discoverMetadataOnStart??false;if(options.metadataMonitor)this.#metadataMonitor=new MetadataMonitor(options.metadataFiles!,options.metadataMonitor,()=>{if(!this.#stopping)this.setInformation(this.#base);});
   if(reader.prefixSections('webcam ').length&&!options.database)throw new ConfigurationError('Webcam configuration requires a database');
   if((reader.hasSection('announcements')||options.announcements)&&!options.database)throw new ConfigurationError('Announcements require a database');
-  this.reader=reader;this.binding=readNetworkBinding(reader);
+  readMachineProvider(reader);this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
   this.#nativeScope=options.productPrint||options.nativeDetached?new NativeRequestScope():undefined;this.#nativeHost=options.nativeHost;this.#nativeCanAttach=!!options.nativeDetached||!!options.productPrint&&!!options.nativeHost&&!!options.nativeObjects;this.#nativeGeneration=options.productPrint?1:0;this.#nativeLifecycleEnabled=!!options.nativePrinterIdentity&&(!!options.nativeHost||!!options.nativeDetached);
   if(options.nativeDetached){this.maintenanceGate.invalidate();this.#nativeRetirement=Promise.resolve();this.#nativeRetirementDrained=true;this.#nativeRetiredSnapshot={group_state:'stopped',hardware_state:'stopped',print_state:'idle',homed_axes:'',closing:true,admission_closed:true,maintenance:false,mcus:[]};}

@@ -22,6 +22,12 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+可信 `createProcess` 路线现接入默认共享 `systemd_dbus` 所有者：真实
+Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共同借用连接。
+设备退役后已提交动作的未知结果持久为 interrupted，包装错误不丢失，
+新进程不重放；备份换代先释放首轮真实 socket。默认入口的软件与模拟验证、
+其他 provider 的兼容边界见[共享总线验收](host/contracts/system-bus-provider-acceptance.json)
+和[启动装配](docs/Node_Host_Startup.md#共享-d-bus-进程所有者)。
 旧安装迁移现接入真实 Node 进程工厂：在取得进程资源前只读导入原
 LMDB／复用旧 SQLite 身份，保留原 API key、JWT 和原记录数值字节；
 旧物理目录以受控别名接线，文本／UFP 模型导入独立发布库并保留源文件。

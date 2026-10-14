@@ -1,0 +1,920 @@
+{
+  "schema": 1,
+  "status": "local-candidate-awaiting-parent-review",
+  "scope": "Shared process-owned default systemd_dbus for trusted createProcess path, typed control and read/installation lifecycle; not complete Moonraker/provider/hardware acceptance.",
+  "existingCommittedHead": "72d09f5141fbb303e8158059f7af3ae004675962",
+  "existingHeadCi": "15 jobs successful, PR merge checkout d7ce760eb06e2d33f1047007353ffcb11d2562a5; does not cover this uncommitted D-Bus batch",
+  "dependencies": {
+    "locked": "dbus-native0.16.1",
+    "direct": 19,
+    "additionalRuntimePackages": [
+      "dbus-native0.16.1",
+      "xml2js0.6.2",
+      "xmlbuilder11.0.1",
+      "sax1.6.1"
+    ],
+    "installation": "Independent npm ci --omit=dev --ignore-scripts for new bundle; 99 installed packages; no reuse",
+    "licenses": {
+      "dbus-native": {
+        "version": "0.16.1",
+        "license": "MIT",
+        "files": {
+          "LICENSE": "435a6722c786b0a56fbe7387028f1d9d3f3a2d0fb615bb8fee118727c3f59b7b"
+        }
+      },
+      "xml2js": {
+        "version": "0.6.2",
+        "license": "MIT",
+        "files": {
+          "LICENSE": "c51452ef1dfd5606c9fe266930fa6bf7e8a534d52973b6475df5bf212cad5b0a"
+        }
+      },
+      "xmlbuilder": {
+        "version": "11.0.1",
+        "license": "MIT",
+        "files": {
+          "LICENSE": "e368bc4263b466cf98c225af15e300549e00da8859416a4536109e9654d434a8"
+        }
+      },
+      "sax": {
+        "version": "1.6.1",
+        "license": "BlueOak-1.0.0",
+        "files": {
+          "LICENSE.md": "8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004"
+        }
+      }
+    }
+  },
+  "bundle": {
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-dbus-audited-oct14",
+      "manifestSha256": "e6cadde96c4039bd3d158bc36081fbf5ec961f262df0b4fc56852333266bdf2e",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+    },
+    "files": 723,
+    "runtimeJs": 682,
+    "independentMatches": 689,
+    "nativeOutputs": 12,
+    "nativeSources": 84,
+    "nodeHeaders": 2810,
+    "directDependencies": 19,
+    "dependencyInstall": "npm ci --omit=dev --ignore-scripts; added99 packages, explicit data-disk cache; no reuse from previous bundle",
+    "licenses": {
+      "dbus-native": {
+        "version": "0.16.1",
+        "license": "MIT",
+        "files": {
+          "LICENSE": "435a6722c786b0a56fbe7387028f1d9d3f3a2d0fb615bb8fee118727c3f59b7b"
+        }
+      },
+      "xml2js": {
+        "version": "0.6.2",
+        "license": "MIT",
+        "files": {
+          "LICENSE": "c51452ef1dfd5606c9fe266930fa6bf7e8a534d52973b6475df5bf212cad5b0a"
+        }
+      },
+      "xmlbuilder": {
+        "version": "11.0.1",
+        "license": "MIT",
+        "files": {
+          "LICENSE": "e368bc4263b466cf98c225af15e300549e00da8859416a4536109e9654d434a8"
+        }
+      },
+      "sax": {
+        "version": "1.6.1",
+        "license": "BlueOak-1.0.0",
+        "files": {
+          "LICENSE.md": "8a1af140fdfbf5afd3df27f7e662f989c5b963a300020dfafce42033cae9e004"
+        }
+      }
+    }
+  },
+  "build": {
+    "node": "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+    "args": [
+      "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+      "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/npm",
+      "run",
+      "build:product-host",
+      "--",
+      "/home/dek02/.cache/codex/tmp/product-host-dbus-audited-oct14"
+    ],
+    "allowedCpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "buildCpu": 0,
+    "cargoBuildJobs": 1,
+    "cargo": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/cargo/bin/cargo",
+    "rustc": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/cargo/bin/rustc",
+    "cargoHome": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/cargo",
+    "rustupHome": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/rustup",
+    "status": 0,
+    "durationSeconds": 58.95594194200021,
+    "scope": "Controlled build process only; runtime acceptance uses ordinary multicore scheduling. Default Rust concurrent compiler stability remains open."
+  },
+  "sourceFreeze": {
+    "inputs": 1669,
+    "file": "provider-audited-test-url-freeze.json",
+    "sha256": "995b424929455384e7c721aa9ee63fc98ab9cc1032d3efdb6e4b62b7ae6e5081",
+    "postBuildDelta": "Only host-recovery-journal test child extension selection; all689 product JS unchanged"
+  },
+  "validation": {
+    "sourceCore": {
+      "node": "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+      "files": [
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/system-bus-owner.test.ts",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/machine-provider.test.ts",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/legacy-node-install-bootstrap.test.ts",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/fixed-node-install.test.ts",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/host-recovery-journal.test.ts",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/product-host-control.test.ts",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/machine-control.test.ts",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/system-services.test.ts"
+      ],
+      "counts": {
+        "tests": 73,
+        "pass": 73,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "durationSeconds": 63.51122816800125,
+      "status": 0
+    },
+    "sourceOriginalPriorAuditFixes": {
+      "files": 11,
+      "pass": 98,
+      "evidence": "provider-original-factory-source-first.log",
+      "scope": "Earlier prototype; not presented as same runtime freeze as four audited corrections. Later independent/product/minimum validate all original11."
+    },
+    "sourceUrlRepair": {
+      "pass": 1,
+      "evidence": "provider-recovery-url-source-repair.log"
+    },
+    "independentCore": {
+      "first": {
+        "node": "v26.11.1",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/system-bus-owner.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/machine-provider.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/legacy-node-install-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/fixed-node-install.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/host-recovery-journal.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/product-host-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/machine-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/system-services.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/system-bus-owner.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/machine-provider.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/legacy-node-install-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/fixed-node-install.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/host-recovery-journal.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/product-host-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/machine-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/system-services.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 1,
+        "error": null,
+        "signal": null,
+        "durationMs": 46785.804421,
+        "counts": {
+          "tests": 73,
+          "pass": 72,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      "repairPass": 1,
+      "repairEvidence": "provider-recovery-url-independent-repair.log",
+      "scope": "72 passes plus SIGKILL URL repair1, separate runs; strict689JS still equal"
+    },
+    "independentOriginal": [
+      {
+        "node": "v26.11.1",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/legacy-path-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/legacy-preopen-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-history-product.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-install-bootstrap.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/legacy-path-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/legacy-preopen-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-history-product.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-install-bootstrap.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 14115.505053,
+        "counts": {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.11.1",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-components.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-disk-imports.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-machine-control.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-components.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-disk-imports.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-machine-control.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 34005.152937,
+        "counts": {
+          "tests": 26,
+          "pass": 26,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.11.1",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-process-lifetime.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-restart.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/product-host.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-process-lifetime.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/native-product-restart.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/independent-js-audited/host/test/product-host.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 141640.523917,
+        "counts": {
+          "tests": 56,
+          "pass": 56,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      }
+    ],
+    "actualProduct": [
+      {
+        "node": "v26.11.1",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/system-bus-owner.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/machine-provider.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-node-install-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/fixed-node-install.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/host-recovery-journal.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/product-host-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/machine-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/system-services.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/system-bus-owner.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/machine-provider.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-node-install-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/fixed-node-install.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/host-recovery-journal.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/product-host-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/machine-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/system-services.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 56902.296884,
+        "counts": {
+          "tests": 73,
+          "pass": 73,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.11.1",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-path-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-preopen-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-history-product.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-install-bootstrap.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-path-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-preopen-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-history-product.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-install-bootstrap.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 15136.81387,
+        "counts": {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.11.1",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-components.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-disk-imports.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-machine-control.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-components.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-disk-imports.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-machine-control.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 34661.42093,
+        "counts": {
+          "tests": 26,
+          "pass": 26,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.11.1",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-process-lifetime.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-process-lifetime.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 22033.861295,
+        "counts": {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.11.1",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-restart.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-restart.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 107048.956923,
+        "counts": {
+          "tests": 27,
+          "pass": 27,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.11.1",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/product-host.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/product-host.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 13844.743602,
+        "counts": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      }
+    ],
+    "minimum26_9ActualProduct": [
+      {
+        "node": "v26.9.0",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/system-bus-owner.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/machine-provider.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-node-install-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/fixed-node-install.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/host-recovery-journal.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/product-host-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/machine-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/system-services.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/system-bus-owner.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/machine-provider.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-node-install-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/fixed-node-install.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/host-recovery-journal.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/product-host-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/machine-control.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/system-services.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 61696.262133,
+        "counts": {
+          "tests": 73,
+          "pass": 73,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.9.0",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-path-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-preopen-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-history-product.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-install-bootstrap.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-path-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/legacy-preopen-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-history-product.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-install-bootstrap.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 12927.121576000001,
+        "counts": {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.9.0",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-components.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-disk-imports.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-machine-control.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-bootstrap.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-components.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-disk-imports.test.js",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-machine-control.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 32087.827572000002,
+        "counts": {
+          "tests": 26,
+          "pass": 26,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.9.0",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-process-lifetime.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-process-lifetime.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 21200.075467,
+        "counts": {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.9.0",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-restart.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/native-product-restart.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 103970.701759,
+        "counts": {
+          "tests": 27,
+          "pass": 27,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      },
+      {
+        "node": "v26.9.0",
+        "files": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/product-host.test.js"
+        ],
+        "args": [
+          "--no-experimental-strip-types",
+          "--import",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+          "--test",
+          "--test-isolation=none",
+          "--test-reporter=tap",
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/dbus-preflight/actual-product-tests-audited/host/test/product-host.test.js"
+        ],
+        "affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "status": 0,
+        "error": null,
+        "signal": null,
+        "durationMs": 13568.583894000001,
+        "counts": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "runnerTimeoutMs": 150000
+      }
+    ],
+    "strictEmit": "provider-independent-emit-audited.json and provider-recovery-url-reemit.json; official locked TS7.0.2;689matches",
+    "types": [
+      "provider-final-typecheck-26.11.1.status",
+      "provider-final-typecheck-26.9.status"
+    ],
+    "canonicalWhitespace": "provider-final-whitespace.status"
+  },
+  "journey": {
+    "evidence": "provider-legacy-journey.status",
+    "fixtureSha256": "1b04e8ec5f284e8d55163162a90d7d73eb6bee21162a0cdf66981a4ba51f5ed8",
+    "pass": 1,
+    "originalDeadlineMs": 180000,
+    "scope": "Same723 package; old SQLite original API key; complete1000 simulated moves and original budgets before additional text/UFP print motions0→38→78; preserved source bytes/no replay; injected service source, not default D-Bus or physical device proof"
+  },
+  "performance": {
+    "original42": {
+      "maximumRatio": 1.1242597168540813,
+      "maximumAuthUs": 3.5969704999999976,
+      "ratioLimit": 1.5,
+      "authMaximumUs": 10,
+      "evidence": "performance-repair/budgets.json",
+      "scope": "Original auth/network/upload workloads; network exact original standalone server options, no process provider;723after; private default D-Bus costs separate"
+    },
+    "original28": {
+      "ratio": 1.0039705512890833,
+      "ratioLimit": 1.5,
+      "warmup": 3,
+      "samples": 11,
+      "starts": 28,
+      "evidence": "startup-receipt.json",
+      "scope": "Symmetric trusted none-source isolation for process factory; no device acquisition or default D-Bus performance claim"
+    },
+    "privateDefaultStartup": {
+      "available": {
+        "bootMs": 339.300647,
+        "listeningMs": 391.753641,
+        "httpMeanMs": 1.6552962812500027,
+        "httpMaxMs": 26.122884999999997,
+        "permissionQueries": 5,
+        "statusRequests": 32
+      },
+      "missingPermissionService": {
+        "bootMs": 373.97035200000005,
+        "listeningMs": 430.45058400000005,
+        "httpMeanMs": 1.9180641562499794,
+        "httpMaxMs": 26.356235000000083,
+        "permissionOwnerLookups": 5,
+        "statusRequests": 32
+      },
+      "evidence": [
+        "provider-default-startup-cost-first.log",
+        "provider-default-startup-cost-unavailable-repair.log"
+      ],
+      "scope": "Real private daemon/default createProcess source, ordinary scheduling; permission service normal or immediate NameHasNoOwner. Does not cover five2s timeout queries, real systembus/polkit or board performance."
+    }
+  },
+  "auditedCorrections": [
+    "AggregateError/cause preserves submitted uncertain interrupted outcome and cleanup errors in actual runProductHost",
+    "Installation identity revision scoped to related structural unit properties and connection/systemd-owner epochs",
+    "Own and target proof must share generation before typed submission",
+    "Explicit systemd Subscribe before reads; bounded matches/concurrent subscription and owner/reconnection renewal"
+  ],
+  "firstFailuresPreserved": [
+    "Preflight missing response serial and duplicate UnknownMethod dispatch",
+    "Owner fixture property schema; promise reflection/late reply drain and sandbox EPERM setup failures",
+    "Compiler resolver sandbox empty stdout JSON parse and missing bin/npm driver invocation",
+    "Fresh CLI initial explicit Rust environment omission; controlled environment repair successful",
+    "Four audit regression first4/5; owner renewal barrier1repair",
+    "Startup measurement expected5method calls when permission service missing, actual5owner-lookups/0method sends; fixture repair",
+    "Strict independent SIGKILL test .ts URL guard rejection72/73, dynamicURL repair1",
+    "First budget baseline added service source without required systemInformation; restored original options in new full42 evidence"
+  ],
+  "remaining": [
+    "Full CLI/supervisor grouped-name and installation-property consumer compatibility; none upstream503/unmanaged power semantics",
+    "Direct ConfiguredMoonraker custom source ownership is caller-supplied, not an automatic global D-Bus owner",
+    "Read installation properties do not automatically derive all legacy declarations from User/Group/ExecStart; root deployment remains separately attested",
+    "Default Rust concurrent compiler stability; controlled CPU0/Cargojobs1 is not a root-cause fix",
+    "ARM64 execution/real systembus, Polkit/SUDO/services, target board/Cycnumbris500 real printing, G3/macros, klippy177 Python files and remaining Python/full replacement",
+    "New commit own CI, normal develop/master integration and release; no merge/publish authorization"
+  ],
+  "archive": {
+    "path": "system-bus-provider-evidence.tar.gz",
+    "sha256": "568e7a768d984c6fabf0a0f46cfada297d10afc86a68944ee520e194ad1037de",
+    "bytes": 512903,
+    "members": 382,
+    "manifest": "evidence-manifest.json",
+    "manifestSha256": "67b1817db615b35dd7d5d8e96a350ce449a69cc7dcd9e62b7ae4e337dc85055b",
+    "allMemberBytesAndHashesMatch": true
+  },
+  "sensitiveReview": "Explicit root evidence files and benchmark repair subtrees only. Excludes dependency caches, unpacked upstream/package trees, npm tarballs, browser auth state, and any generator live log. Generated ephemeral synthetic fixture credentials may appear; no real credentials detected."
+}

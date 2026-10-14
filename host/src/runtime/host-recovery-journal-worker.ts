@@ -66,7 +66,7 @@ function save(value:unknown):RecoveryWrite{
   if(found){
    const old=row(found);if(old.state_token!==next.state_token||old.kind!==next.kind||old.service!==next.service)throw new Error('Recovery identity conflicts');
    if(JSON.stringify(old)===JSON.stringify(next))return {record:old,expired:[]};
-   const allowed=old.state==='queued'?['running','failed']:old.state==='running'?['succeeded','failed']:[];
+   const allowed=old.state==='queued'?['running','failed']:old.state==='running'?['succeeded','failed',...['service_start','service_stop','service_restart','server_restart','machine_reboot','machine_shutdown'].includes(old.kind??'')?['interrupted']:[]]:[];
    if(!allowed.includes(next.state))throw new Error('Invalid recovery transition');db!.prepare('UPDATE operations SET state=?,error=? WHERE id=?').run(next.state,next.error,next.request_id);return {record:next,expired:[]};
   }
   if(next.state!=='queued')throw new Error('Recovery must start queued');

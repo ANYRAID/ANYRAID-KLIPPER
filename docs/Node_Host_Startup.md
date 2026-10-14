@@ -1,5 +1,42 @@
 # Node 主机启动与机器集成
 
+## 共享 D-Bus 进程所有者
+
+标准 Node `createProcess` 工厂实际解析 `[machine] provider`，默认
+`systemd_dbus`；`shutdown_action` 只接受大小写归一后的 `poweroff`／`halt`。
+可信 `machineProvider` 装配声明 Unix socket 与可写 unit 范围，配置值本身
+不授予系统控制权限。显式自定义 source／控制能力冲突拒绝，不覆盖借入能力。
+共享连接仅由进程工厂关闭：控制 facade、服务状态、安装消费者借用同一总线；
+设备退役及服务清理完成后再释放连接，配置备份换代先等待旧 socket 真正 close。
+
+连接只使用固定 Unix／EXTERNAL、显式 Hello 和真实 systemd Subscribe；
+收到成功回复前不得认为握手或订阅已就绪。方法调用绑定核验过的 unique
+owner，信号核验 sender／path；连接、owner、状态证明分代，服务正常状态
+信号不能抹去同一 owner 的成功 job 回复。换代／断线撤销旧证明；读取缓存
+只供展示，控制及设备准入重新取实际属性。订阅去重且有界，重连重新订阅。
+安装身份证明单独按相关 unit 的结构性属性失效；无关服务和 ActiveState
+变化不永久阻断 ready，MainPID／FragmentPath／owner 等变化仍同步阻断。
+
+提交后的取消、超时和断线表示结果未知，持久收据为 `interrupted`；真实
+宿主退役路径包装 AggregateError 仍保留该状态及额外清理失败，新进程不重放。
+只有发送前已确证 logind 接口缺失才走原受控 CLI power fallback，未知结果
+不 fallback。Polkit pid／uint64 start-time 查询只是诊断，不能作为缓存权限。
+
+实际私有 dbus-daemon、模拟服务／MCU、源码／独立 JS／新产品包与最低
+Node 26.9 的结果由最终验收 JSON 记录；原网络／运动预算采用隔离夹具，
+默认 D-Bus 进程启动另有实际私有 daemon＋授权 HTTP 测量，不混称硬件。
+标准新包受控 CPU0／Cargo jobs1 构建，应用普通多核调度，默认 Rust 编译
+并发稳定性仍开放。dbus-native 0.16.1 精确锁定，新增依赖及许可证已核验。
+
+范围边界：上述默认入口是可信 `createProcess` 路线；直接配置 server 的
+自定义读源仍由调用方装配。CLI／supervisor 查询和 typed 控制具备基础兼容，
+完整 supervisor 分组名称／安装属性消费，以及 none 的上游 503 与无 systemd
+托管 power 语义仍待补齐。安装读取提供 User／Group／ExecStart 等属性，
+尚未用其自动推导全部旧安装声明；真实 polkit／sudo／服务管理和 ARM64／
+目标板／实机未授权且未执行。新候选仍须自身 CI、正常集成和发布门禁。
+
+详细结果和原始失败见[共享总线验收](../host/contracts/system-bus-provider-acceptance.json)。
+
 ## 旧安装迁移的可信工厂装配
 
 LMDB 导出子进程在失败／取消时先终止、关闭尚未消费的 stdout／stderr，

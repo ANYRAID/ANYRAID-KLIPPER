@@ -1,3 +1,4 @@
+import {ServiceInstallationProof,type ServiceInstallationIdentity} from './service-installation-proof.ts';
 import {constants} from 'node:fs';
 import {open,lstat,mkdir,rename,unlink} from 'node:fs/promises';
 import {join,dirname,resolve,isAbsolute} from 'node:path';
@@ -14,6 +15,7 @@ import type {LegacyNodeInstallDeclaration} from './legacy-node-install.ts';
 export interface FixedNodeInstallOptions {
  dataPath:string;configRoot:string;configFile:string;databasePath:string;logsRoot:string;gcodesRoot:string;
  unit:string;candidateSha256:string;recoveryPath:string;
+ serviceIdentity?:ServiceInstallationIdentity;
  /** Factory-produced pre-open proof; selects the actual legacy consumer. */
  legacy?:LegacyNodeInstallDeclaration;
 }
@@ -26,15 +28,15 @@ export class InstallReadinessError extends ApiError {readonly state:InstallState
 /** Actual installation queue consumer for an already fixed Node layout.
  * Legacy relocation/LMDB conversion never runs after these process files open. */
 export class FixedNodeInstallValidator {
- readonly #configurationCommit:LegacyConfigCommitOwner;readonly #options:Readonly<FixedNodeInstallOptions>;readonly #reader:ConfigurationReader;readonly #files:NativeConfigFiles;readonly #db:DatabaseStore;readonly #sudo:ProcessSudoOwner;readonly #confirmed:()=>Promise<void>;
+ readonly #serviceProof:ServiceInstallationProof;readonly #configurationCommit:LegacyConfigCommitOwner;readonly #options:Readonly<FixedNodeInstallOptions>;readonly #reader:ConfigurationReader;readonly #files:NativeConfigFiles;readonly #db:DatabaseStore;readonly #sudo:ProcessSudoOwner;readonly #confirmed:()=>Promise<void>;
  #state:InstallState='checking';#before:Buffer|undefined;#after:Buffer|undefined;#pending:Promise<unknown>|undefined;#release=()=>{};#reason='Installation validation not completed';
- constructor(options:FixedNodeInstallOptions,reader:ConfigurationReader,files:NativeConfigFiles,db:DatabaseStore,sudo:ProcessSudoOwner,confirmed:()=>Promise<void>=async()=>{}){this.#options=Object.freeze({...options});this.#configurationCommit=new LegacyConfigCommitOwner(options.recoveryPath+'.config-batch.json');this.#reader=reader;this.#files=files;this.#db=db;this.#sudo=sudo;this.#confirmed=confirmed;}
+ constructor(options:FixedNodeInstallOptions,reader:ConfigurationReader,files:NativeConfigFiles,db:DatabaseStore,sudo:ProcessSudoOwner,confirmed:()=>Promise<void>=async()=>{}){this.#options=Object.freeze({...options});this.#serviceProof=new ServiceInstallationProof(options.serviceIdentity);this.#configurationCommit=new LegacyConfigCommitOwner(options.recoveryPath+'.config-batch.json');this.#reader=reader;this.#files=files;this.#db=db;this.#sudo=sudo;this.#confirmed=confirmed;}
  get status(){return {state:this.#state,ready:this.#state==='ready',restart_required:this.#state==='restart_required',running:this.#state==='running',message:this.#reason};}
- assertReady(){if(this.#state!=='ready')throw new InstallReadinessError(this.#state);}
+ assertReady(){if(this.#state==='ready'&&!this.#serviceProof.current)this.#blocked();if(this.#state!=='ready')throw new InstallReadinessError(this.#state);}
  #blocked(){this.#state='blocked';this.#reason='Fixed Node layout or installation outcome requires administrator reconciliation';}
  async initialize(signal:AbortSignal):Promise<void>{
   try{
-   const o=this.#options;for(const p of [o.dataPath,o.configRoot,o.configFile,o.databasePath,o.logsRoot,o.gcodesRoot,o.recoveryPath]){if(!isAbsolute(p)||resolve(p)!==p||/[\0\r\n]/u.test(p)||p==='/')throw Error();}
+   const o=this.#options;await this.#serviceProof.refresh(signal);for(const p of [o.dataPath,o.configRoot,o.configFile,o.databasePath,o.logsRoot,o.gcodesRoot,o.recoveryPath]){if(!isAbsolute(p)||resolve(p)!==p||/[\0\r\n]/u.test(p)||p==='/')throw Error();}
    if(o.configRoot!==join(o.dataPath,'config')||o.configFile!==join(o.configRoot,'moonraker.conf')||o.databasePath!==join(o.dataPath,'database/moonraker-sql.db')||o.logsRoot!==join(o.dataPath,'logs')||o.gcodesRoot!==join(o.dataPath,'gcodes')||dirname(o.recoveryPath)!==join(o.dataPath,'systemd')||!this.#files.contains(o.configFile)||this.#db.storagePaths.path!==o.databasePath||!/^[a-f0-9]{64}$/u.test(o.candidateSha256)||!/^[A-Za-z0-9][A-Za-z0-9_.@-]{0,239}\.service$/u.test(o.unit))throw Error();
    for(const p of [o.dataPath,o.configRoot,dirname(o.databasePath),o.logsRoot,o.gcodesRoot]){const s=await lstat(p);if(!s.isDirectory()||s.isSymbolicLink())throw Error();}
    // Primary-file-only mutation. Includes may remain read-only, but a target
@@ -59,7 +61,7 @@ export class FixedNodeInstallValidator {
    // a present planned record is never a completion proof.
    let rootStatus;try{rootStatus=await this.#sudo.operation('status',signal);}catch{signal.throwIfAborted();/* An authenticated password request may acquire status later. */}
    if(rootStatus&&rootStatus.candidateSha256!==o.candidateSha256||rootStatus?.phase==='unknown'&&rootStatus.backup!==null)throw Error('Privileged outcome requires reconciliation');
-   if(marker&&typeof marker==='object'&&!Array.isArray(marker)&&marker.version===1&&marker.candidate_sha256===o.candidateSha256&&marker.config_sha256===hash(this.#before)&&hash(this.#before)===hash(this.#after)&&previous?.phase==='version-confirmed'&&(configurationPhase==='confirmed'||configurationPhase==='absent')&&previous.configAfter===hash(this.#before)&&rootStatus?.phase==='installed'&&rootStatus.unitSha256===o.candidateSha256){this.#state='ready';this.#reason='Fixed Node installation revalidated in this process';return;}
+   if(marker&&typeof marker==='object'&&!Array.isArray(marker)&&marker.version===1&&marker.candidate_sha256===o.candidateSha256&&marker.config_sha256===hash(this.#before)&&hash(this.#before)===hash(this.#after)&&previous?.phase==='version-confirmed'&&(configurationPhase==='confirmed'||configurationPhase==='absent')&&previous.configAfter===hash(this.#before)&&rootStatus?.phase==='installed'&&rootStatus.unitSha256===o.candidateSha256){await this.#serviceProof.refresh(signal,o.unit);this.#state='ready';this.#reason='Fixed Node installation revalidated in this process';return;}
    this.#state='pending';this.#reason='Sudo password required for fixed Node installation validation';this.#release=this.#sudo.register('fixed-node-install',this.#reason,c=>this.#install(c));
   }catch{this.#blocked();}
  }
