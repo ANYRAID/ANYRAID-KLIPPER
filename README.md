@@ -41,6 +41,10 @@ LMDB／复用旧 SQLite 身份，保留原 API key、JWT 和原记录数值字�
 执行、真实特权部署与实机验收仍开放；klippy 仍有 177 个 Python 文件，
 其他 Python 与完整替代尚未完成，新头 CI、集成和主线发布须另行完成。
 
+首次新头CI因LMDB测试C夹具行长失败，纯格式修复的全仓门禁和源码／实际包
+各6项补验通过，产品与预算证据保持；修复新头CI仍待终态，见
+[格式补验](host/contracts/legacy-lmdb-fixture-format-followup.json)。
+
 以下固定布局、编译进程与日志数据均为前序批次记录；其“未执行完整
 构建 CLI／旧安装迁移未接入”的范围由本次上述证据更新，历史失败保留。
 已有固定 Node 布局现接通真实 SUDO 安装消费者：固定服务与旧env

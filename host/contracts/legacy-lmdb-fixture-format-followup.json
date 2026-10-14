@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "status": "parent-reviewed-fixture-format-repair-awaiting-new-head-ci",
+  "parentHead": "2940915122dc6d6ec349d52d36fa5f5fffa6448d",
+  "actualFailureMerge": "ebcb093fb7eb22b0a65c526af123941fa8be20f7",
+  "failure": {
+    "checksRun": 38553241113,
+    "checksJob": 115816014071,
+    "buildRun": 38553240970,
+    "buildJob": 115816012795,
+    "conclusions": {
+      "checks": "failure",
+      "build": "failure"
+    },
+    "scope": "Bothfirstattempts reject13Cfixturelinesover80columns. Exit124 is check_whitespace shellchainfailure, nottimeout. Ordinarynpmci/typecheck/test skipped; otherjobs initiallyinprogress, no wholeheadpass. No oldrunrerun."
+  },
+  "fixtureDelta": {
+    "schema": 1,
+    "before": "c0073c29e848a64a5cf397ad17bcce5b09a417c950bd710fbcf898c0f39f2721",
+    "after": "13be401baf5b181b4617137897a3f56445c555a5df7b6e32787da096a6ae8f0b",
+    "maximumLineLength": 74,
+    "adjacentCLiteralBytesIdentical": true,
+    "literalGroups": 15,
+    "optimizedAssemblyIdenticalExceptFilename": true,
+    "assemblySha256": "55367892e88c5f62febf2e2d71ab6aec50e1c6b44291473ae45a52d856fd0e94",
+    "copies": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/legacy-install-oct14/independent-js/host/test/fixtures/legacy-lmdb.c",
+        "sha256": "13be401baf5b181b4617137897a3f56445c555a5df7b6e32787da096a6ae8f0b"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/legacy-install-oct14/actual-product-tests/host/test/fixtures/legacy-lmdb.c",
+        "sha256": "13be401baf5b181b4617137897a3f56445c555a5df7b6e32787da096a6ae8f0b"
+      }
+    ],
+    "scope": "Only formatting of C test data fixture; strings/preprocessor/compiledbehavior unchanged. Production717 package/native84 sources unchanged. Prior freeze remains; this thirdtest-onlydelta is separate."
+  },
+  "whitespace": {
+    "command": "scripts/check_whitespace.sh, originalwhole-repositoryscope with Node26.10",
+    "status": 0
+  },
+  "tests": {
+    "source": {
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "node": "v26.10.0",
+      "args": [
+        "--test",
+        "--test-isolation=none",
+        "--test-reporter=tap",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/legacy-database-preopen.test.ts",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/legacy-preopen-export-cancel.test.ts"
+      ],
+      "files": [
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/legacy-database-preopen.test.ts",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/legacy-preopen-export-cancel.test.ts"
+      ],
+      "counts": {
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "durationMs": 9247.428075,
+      "timeoutMs": 120000,
+      "maxBuffer": 4194304
+    },
+    "product": {
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "node": "v26.10.0",
+      "args": [
+        "--no-experimental-strip-types",
+        "--import",
+        "/home/dek02/.cache/codex/tmp/legacy-install-oct14/deny-ts.mjs",
+        "--test",
+        "--test-isolation=none",
+        "--test-reporter=tap",
+        "/home/dek02/.cache/codex/tmp/legacy-install-oct14/actual-product-tests/host/test/legacy-database-preopen.test.js",
+        "/home/dek02/.cache/codex/tmp/legacy-install-oct14/actual-product-tests/host/test/legacy-preopen-export-cancel.test.js"
+      ],
+      "files": [
+        "/home/dek02/.cache/codex/tmp/legacy-install-oct14/actual-product-tests/host/test/legacy-database-preopen.test.js",
+        "/home/dek02/.cache/codex/tmp/legacy-install-oct14/actual-product-tests/host/test/legacy-preopen-export-cancel.test.js"
+      ],
+      "counts": {
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "durationMs": 8740.16964,
+      "timeoutMs": 120000,
+      "maxBuffer": 4194304
+    }
+  },
+  "unchangedProduct": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "sources": 2459,
+    "freezeSha256": "c442cc757647bfd0d78ec8650d226aa2f415696178ef2e699bad7f1a7fdd0869",
+    "deltaSha256": "709b4880266c43318926c8c4db7406fad7291d4f18cb8f19b76661b7e1e9e96a",
+    "productFiles": 717,
+    "independentProductJs": 683,
+    "nativeSources": 84,
+    "nativeOutputs": 12,
+    "nodeHeaders": 2810,
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-legacy-install-oct14",
+      "manifestSha256": "445cd462c972f82d6e806bf0e8189aa699ba6737ad3251064bb0ef3dbb301767",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "scope": "Read-only final byte verification after all serialized scenarios; no rebuild or mutation; ordinaryUID current package and all frozen sources except2recorded test-only URL changes and1pure-formatCfixturedelta"
+  },
+  "historicalContract": {
+    "path": "legacy-install-lifecycle-acceptance.json",
+    "sha256": "70fb9e028cb63f83686a70259b192a09a0f54b9d8c76880fb4725140ea380117",
+    "scope": "29409151originalcontract/freeze/failures retained unchanged; this followup C fixture is separate3rdtest-onlydelta. No runtime/native/source/build/productiondependencychange orrepeat42/28/fivescenes."
+  },
+  "evidence": {
+    "ci-29409151-checks-failure.log": {
+      "sha256": "3b56aba2b578cd1d3e9dcba51ec5ef30b4c97aa7d1ffe4095db1c1a7a8240f73",
+      "bytes": 37507
+    },
+    "ci-29409151-build-failure.log": {
+      "sha256": "e55f6d33e1c06af5e8871ff906e5b0f01c9a7bc843f7849c8768bfafedfafb45",
+      "bytes": 59931
+    },
+    "fixture-whitespace-delta.json": {
+      "sha256": "25107fb8879f81da1d83b14d4702b128fc70fb49cfe4479a59d0505cd95e0a66",
+      "bytes": 1068
+    },
+    "full-whitespace-repair.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "full-whitespace-repair.status": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "bytes": 2
+    },
+    "source-fixture-whitespace-repair.log": {
+      "sha256": "e0fc6845fa66862b078ea064ada94f6dd19e9ac163a38cb8147c343fd0bb1fb6",
+      "bytes": 1864
+    },
+    "source-fixture-whitespace-repair.status": {
+      "sha256": "a63aa38578607a27eed9a09ecc11d3933b6d364a94e3b84b6b75c5c06ab3c297",
+      "bytes": 861
+    },
+    "product-fixture-whitespace-repair.log": {
+      "sha256": "9fea04c72662fb364fa6870980dc949cfd1da9eae895a0d33a49309d76633448",
+      "bytes": 1862
+    },
+    "product-fixture-whitespace-repair.status": {
+      "sha256": "21b4e4b12e5e32311481782f267a5f970ac9688d6710f0c099c7215cec9c1577",
+      "bytes": 982
+    },
+    "fixture-final-freeze-verification.json": {
+      "sha256": "9e539e22c87a1d64fee3ebe9fcdedfe9adab611efa18873f794bbe133c875a1f",
+      "bytes": 857
+    }
+  },
+  "remaining": [
+    "NewrepairheadCI",
+    "Normaldevelop/masterintegration",
+    "Realprivilege/production/hardwareandcompleteMoonraker/Python/macro/UI/G3/ARM64gates"
+  ]
+}

@@ -73,6 +73,16 @@ waitFilament 的 5 秒状态等待，实际确认 1992.863 毫秒后通过，不
 PAM／systemd、生产部署、目标板／实机、ARM64 执行、完整 Moonraker／宏／历史 UI／G3、任务→develop→master 发布仍开放。
 klippy 仍有 177 个 Python 文件，其他 Python 与完整替代未完成。
 
+随后提交 `29409151` 的首次主机 checks／Build test 在源码格式门禁失败：
+测试用 `legacy-lmdb.c` 13 行超过80列，脚本链 exit124，不是执行 timeout，
+后续 npm ci／类型／主机测试 skipped。只修该C数据夹具换行和相邻字符串
+拼接，15组解码字符串 bytes 与去除文件名后的优化汇编完全相同；全仓原
+whitespace exit0，源码／实际717包直接受影响两文件分别6/6，原断言与期限
+保持。2459输入只增加这一测试数据delta，717包／683JS／84原生来源／12输出／
+2810headers／依赖均保持。原首失败与历史contract不覆写，不重跑旧CI求绿，
+不重复已覆盖的42预算／28启动／五场；修复新头自身CI仍须核实。见
+[测试夹具格式补验](../host/contracts/legacy-lmdb-fixture-format-followup.json)。
+
 ## 前序固定布局安装候选记录
 
 以下记录只代表前序 704 文件包；本批新包／新原生／旧安装验证见上节，
