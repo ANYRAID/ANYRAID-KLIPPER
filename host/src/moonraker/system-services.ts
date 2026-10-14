@@ -1,4 +1,5 @@
 // Service-state wire fields follow Moonraker machine.py (GPL-3.0-or-later).
+import {validServiceName} from './service-name.ts';
 import {execFile} from 'node:child_process';
 import {open} from 'node:fs/promises';
 import {isDeepStrictEqual} from 'node:util';
@@ -77,7 +78,7 @@ export function linuxServiceSource(options:{allowedUnits?:readonly string[];nati
 }
 function validateSnapshot(value:ServiceSnapshot):ServiceSnapshot{
  if(!value||typeof value!=='object'||!['none','systemd_cli','systemd_dbus','supervisord_cli'].includes(value.provider)||!Array.isArray(value.available_services)||value.available_services.length>64||!value.service_state||typeof value.service_state!=='object'||Array.isArray(value.service_state)||!value.instance_ids||typeof value.instance_ids!=='object')throw new Error('Invalid service snapshot');
- const keys=Object.keys(value.service_state);if(keys.length!==value.available_services.length||new Set(value.available_services).size!==keys.length||value.available_services.some(name=>typeof name!=='string'||!unitPattern.test(name+'.service')||!keys.includes(name)))throw new Error('Invalid service catalogue');
+ const keys=Object.keys(value.service_state);if(keys.length!==value.available_services.length||new Set(value.available_services).size!==keys.length||value.available_services.some(name=>typeof name!=='string'||!(value.provider==='supervisord_cli'?validServiceName(name):unitPattern.test(name+'.service'))||!keys.includes(name)))throw new Error('Invalid service catalogue');
  for(const state of Object.values(value.service_state))if(!state||typeof state!=='object'||Object.keys(state).length!==2||!Object.hasOwn(state,'active_state')||!Object.hasOwn(state,'sub_state')||typeof state.active_state!=='string'||typeof state.sub_state!=='string'||!statePattern.test(state.active_state)||!statePattern.test(state.sub_state))throw new Error('Invalid service state');
  for(const role of ['moonraker','klipper'] as const){const name=value.instance_ids[role];if(typeof name!=='string'||name!==''&&!keys.includes(name))throw new Error('Invalid service instance');}
  if(value.provider==='none'&&keys.length)throw new Error('Unavailable service provider has a catalogue');

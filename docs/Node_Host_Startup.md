@@ -1,5 +1,48 @@
 # Node 主机启动与机器集成
 
+## Supervisor 分组进程候选（2026-10-15）
+
+`supervisord_cli` 现在按完整 `group:name` 读取和控制进程，状态目录、
+PID 身份、固定参数、设备退役、API 和恢复 journal 使用同一个原名。
+只读目录默认可识别分组内的 moonraker／klipper；这不授予写权限。
+可信工厂通过 `machineProvider.supervisorControl` 声明 `ownProcess`、
+`allowedProcesses` 和 `deviceProcesses`，例如：
+
+```ts
+machineProvider: {supervisorControl: {
+  ownProcess: 'farm:moonraker',
+  allowedProcesses: ['farm:klipper', 'other:crowsnest'],
+  deviceProcesses: ['farm:klipper']
+}}
+```
+
+原 `control` 的 flat `.service` 描述符继续兼容；两种描述符不能同时
+使用，也不能覆盖调用方已有 `machineControl`。systemd 描述符仍拒组名。
+自身进程只允许 restart；`group:klipper` 自动要求设备退役，取得设备前
+核对每个允许的设备进程都已停止且 PID 为零。不同组的同名进程不合并。
+空段、多重冒号、星号和重复名称拒绝；Supervisor 裸 `all` 是批量目标，
+不能出现在可信目录中，`group:all` 是精确进程，systemd `all.service`
+不受影响。已启动的 CLI 控制若失败或取消而结果未知，收口子进程后
+记录 interrupted；包装清理错误仍保留，新进程不自动重放。
+
+Windows Node26.9 新12项与旧控制／API11项单次23／23、全仓锁定
+Windows TS7类型检查通过。真实隔离Node CLI子进程的失败／取消包装
+已测；分组请求的新证据是 EndpointRegistry／JSON-RPC 处理链，不是
+真实 supervisor 守护进程验收。用户明确授权11文件传入184隔离工作树，
+Linux Node26.11.1标准类型检查与源103／103通过，含原configured-server
+14项HTTP／WS和新Supervisor12项。新724文件产品独立安装锁定生产依赖，
+690个JS（host/src683＋辅助7）与独立TS7发射逐文件SHA相等，12原生输出
+按当前84输入新编；编译使用CPU0／Cargo jobs1，不证明默认并发稳定。
+独立JS初轮71／57通过／14失败，补缺资产及pty.c后仅失败三文件48／48；
+实际包初轮65／62通过／3失败，补原产品scripts辅助路径后三文件41／41。
+两轮原失败及精确夹具收口保留，不合并写成一次103全绿。实际包初轮
+configured14与Supervisor12通过，父进程及后代禁止TS加载。全量npm test
+5354／5343通过／11失败：8新编产品／原生构建相关、宿主提前退出未知、
+source-brake明确SIGSEGV、thumbnail断连503未知；G3及集成门禁保留。
+Windows原符号链接／SIGKILL、Linux来源及ELF导入失败亦保留。
+窄 API 处理层9组比较最高1.133倍、沿用1.5阈值，不替代原42／28
+性能预算。详细范围与失败见[共享总线及后续验收](../host/contracts/system-bus-provider-acceptance.json)。
+
 ## 共享 D-Bus 进程所有者
 
 标准 Node `createProcess` 工厂实际解析 `[machine] provider`，默认
@@ -30,7 +73,7 @@ Node 26.9 的结果由最终验收 JSON 记录；原网络／运动预算采用�
 
 范围边界：上述默认入口是可信 `createProcess` 路线；直接配置 server 的
 自定义读源仍由调用方装配。CLI／supervisor 查询和 typed 控制具备基础兼容，
-完整 supervisor 分组名称／安装属性消费，以及 none 的上游 503 与无 systemd
+supervisor 安装属性消费，以及 none 的上游 503 与无 systemd
 托管 power 语义仍待补齐。安装读取提供 User／Group／ExecStart 等属性，
 尚未用其自动推导全部旧安装声明；真实 polkit／sudo／服务管理和 ARM64／
 目标板／实机未授权且未执行。新候选仍须自身 CI、正常集成和发布门禁。

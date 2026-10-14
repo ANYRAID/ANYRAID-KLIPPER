@@ -32,6 +32,8 @@ export class MachineControlError extends Error {
  readonly code:'unavailable'|'not_allowed'|'busy'|'identity'|'container'|'unit'|'command';
  constructor(code:MachineControlError['code'],message:string){super(message);this.code=code;}
 }
+/** A submitted external action has no confirmed result; it must not replay. */
+export class MachineActionUncertain extends MachineControlError {readonly outcome='unknown';constructor(message:string,cause?:unknown){super('command',message);this.cause=cause;}}
 async function readCgroup(signal:AbortSignal):Promise<string>{
  signal.throwIfAborted();const file=await open('/proc/self/cgroup','r');
  try{const buffer=Buffer.alloc(65537);let size=0;while(size<buffer.length){signal.throwIfAborted();const read=await file.read(buffer,size,buffer.length-size,null);if(!read.bytesRead)break;size+=read.bytesRead;}signal.throwIfAborted();if(size>65536)throw new MachineControlError('identity','Process cgroup exceeds capacity');return buffer.subarray(0,size).toString('utf8');}

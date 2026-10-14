@@ -916,5 +916,1093 @@
     "manifestSha256": "67b1817db615b35dd7d5d8e96a350ce449a69cc7dcd9e62b7ae4e337dc85055b",
     "allMemberBytesAndHashesMatch": true
   },
-  "sensitiveReview": "Explicit root evidence files and benchmark repair subtrees only. Excludes dependency caches, unpacked upstream/package trees, npm tarballs, browser auth state, and any generator live log. Generated ephemeral synthetic fixture credentials may appear; no real credentials detected."
+  "sensitiveReview": "Explicit root evidence files and benchmark repair subtrees only. Excludes dependency caches, unpacked upstream/package trees, npm tarballs, browser auth state, and any generator live log. Generated ephemeral synthetic fixture credentials may appear; no real credentials detected.",
+  "committedDbusHeadCi": {
+    "head": "51f583ae46eb13bb9aa37cde5154c0c22ce48d61",
+    "mergeCheckout": "e35bc68a690e39ade57f01d198a82143761748a3",
+    "nodeHost": {
+      "run": 38631561626,
+      "status": "completed",
+      "conclusion": "failure",
+      "checksJob": 116084208199,
+      "tests": 5342,
+      "pass": 5341,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failure": "configured-server.test.ts original complete parsed-config deepEqual omitted the now consumed default machine provider/shutdown/supervisor-config fields",
+      "notRun": [
+        "protocol-native",
+        "Linux MCU"
+      ],
+      "sanitizers": {
+        "asan": {
+          "rootTapSummaries": 153,
+          "tests": 1234,
+          "pass": 1234,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "ubsan": {
+          "rootTapSummaries": 153,
+          "tests": 1234,
+          "pass": 1234,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      }
+    },
+    "build": {
+      "run": 38631561925,
+      "conclusion": "success"
+    },
+    "motion": {
+      "run": 38631561625,
+      "conclusion": "success"
+    },
+    "repair": "Only add machine={provider:systemd_dbus,shutdown_action:poweroff,supervisord_config_path:empty} to the original full deepEqual; preserve original network/permission/WebSocket assertions. Windows module import is ELF-incompatible; entire original file still requires Linux validation. Original failed run is not rerun or overwritten."
+  },
+  "supervisorGroupFollowUp": {
+    "status": "uncommitted-candidate-windows-validation-complete-linux-validation-pending",
+    "baseHead": "51f583ae46eb13bb9aa37cde5154c0c22ce48d61",
+    "scope": "Exact supervisor group:name catalogue/control/PID/device retirement/API/recovery compatibility with explicit ownProcess/allowedProcesses/deviceProcesses; preserves old flat control descriptor without broadening systemd units. No installation property derivation or other provider closure.",
+    "upstream": {
+      "moonraker": "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/machine.py",
+      "supervisorCli": "https://github.com/Supervisor/supervisor/blob/4.3.0/supervisor/supervisorctl.py",
+      "supervisorNamespec": "https://github.com/Supervisor/supervisor/blob/4.3.0/supervisor/options.py"
+    },
+    "invariants": [
+      "Complete original group:name retained in read status, permitted PID, fixed argv, retirement, API and durable journal; same bare process names in different groups do not alias",
+      "Read-only default group:moonraker/group:klipper catalogue does not manufacture control authority; explicit current PID controls instance identity",
+      "Only supervisord_cli snapshots permit group syntax; systemd unit validators and actual control scopes remain unchanged",
+      "Bare all rejected by supervisor descriptor and old flat conversion before control commands; status parser rejects unsafe catalogue names after a read-only status reply; group:all is a literal permitted process, not wildcard; systemd all.service remains legal",
+      "Group:own supports restart only; automatic group:klipper still retires and proves all permitted hardware owners stopped with PID0 without requiring explicit deviceProcesses",
+      "Mutating real CLI child failures/cancellation after spawn become MachineActionUncertain and join close; wrapped unknown outcomes persist interrupted and no fresh process replay"
+    ],
+    "environment": {
+      "node": "v26.9.0",
+      "platform": "win32",
+      "officialZipSha256": "c8af870b5b3e9789a6cbdb30270e7c212e12d76a7afa7fc7f21b6b21cc22a71b",
+      "nodeExeSha256": "8490398f5e0082772dfb0ae5a6ebdff98a97696a20cb9778b4f82eec79b6d0a1",
+      "typescript": "7.0.2",
+      "nativePackage": "@typescript/typescript-win32-x64",
+      "compilerExeSha256": "f9ecfbdc93753d2c972d66a8d0d75f5bd737fd4a5f88b422d9091ea282bcb2c7",
+      "dependencyInstall": "Official portable Node; npm ci --ignore-scripts against committed package-lock,106 packages; no global PATH/Node changes",
+      "typecheck": {
+        "status": 0,
+        "args": [
+          "tsc.exe",
+          "-p",
+          "tsconfig.json"
+        ],
+        "scope": "Full current project tsconfig, directly invoking official locked Windows TS7 native executable. Standard Linux run-typescript process owner and POSIX group cleanup are not validated by this Windows invocation."
+      }
+    },
+    "validation": {
+      "sourceFinal": {
+        "node": "v26.9.0",
+        "tests": 23,
+        "pass": 23,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "files": [
+          "supervisor-group-control.test.ts",
+          "product-host-control.test.ts",
+          "product-host-api.test.ts"
+        ],
+        "newCases": 12,
+        "oldCases": 11,
+        "evidence": "source-final-control-api.log",
+        "scope": "Windows injected supervisor controls, EndpointRegistry/JSON-RPC handler dispatch and real SQLite recovery. Real Node CLI subprocess fixture failure/cancel/close wrapping is tested; no actual supervisor daemon or network transport acceptance claim for new grouped requests."
+      },
+      "typecheck": {
+        "status": 0,
+        "args": [
+          "tsc.exe",
+          "-p",
+          "tsconfig.json"
+        ],
+        "scope": "Full current project tsconfig, directly invoking official locked Windows TS7 native executable. Standard Linux run-typescript process owner and POSIX group cleanup are not validated by this Windows invocation."
+      },
+      "failures": {
+        "initialNewSuiteRunner": {
+          "status": 1,
+          "tests": 1,
+          "pass": 0,
+          "fail": 1,
+          "error": "Sandbox test runner spawn EPERM; later exact test permission allowed isolated Node child tests."
+        },
+        "initialTypecheck": {
+          "status": 1,
+          "scope": "New test snapshot Json declaration and missing required journal deviceId; test fixture types repaired. Product checks/thresholds unchanged."
+        },
+        "oldJournalFirst": {
+          "status": 1,
+          "completeRootSummary": false,
+          "observedPass": 3,
+          "observedFail": 2,
+          "failures": [
+            "Windows symlink NOFOLLOW/open and linked-shm EBUSY leaves active SQLite handle",
+            "Windows SIGKILL result does not satisfy original POSIX .signal assertion"
+          ],
+          "termination": "Stopped exact test runner session54225 after active handles prevented exit; original assertions were preserved."
+        },
+        "portableGroupFirst": {
+          "status": 1,
+          "tests": 31,
+          "pass": 26,
+          "fail": 5,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "failures": [
+            "Entire configured-server module failed import because sealed-file.node is Linux ELF, not Win32; zero individual configured-server cases ran.",
+            "Four original Linux-specific system-services cases returned the intentional Windows unavailable source; no weakening or Windows production port."
+          ]
+        }
+      }
+    },
+    "performance": {
+      "node": "v26.9.0",
+      "platform": "win32",
+      "beforeHead": "51f583ae46eb13bb9aa37cde5154c0c22ce48d61",
+      "beforeSourceSha256": "8589c70cc80e3c9bad9b8d7707552a42b439f527a4819893c1a33a7745207185",
+      "afterSourceSha256": "88b3166fdab5a7ab429741f3a40f9781aa5ed2b3af957e36f2aac157392d812d",
+      "iterations": 30000,
+      "warmup": 3,
+      "retained": 5,
+      "controls": [
+        {
+          "pair": 0,
+          "route": "/machine/services/restart",
+          "variant": 0,
+          "samples": [
+            22.227600000000024,
+            22.945600000000013,
+            23.9135,
+            22.260899999999992,
+            22.361199999999997
+          ],
+          "medianMs": 22.361199999999997,
+          "microsecondsPerRequest": 0.7453733333333332
+        },
+        {
+          "pair": 0,
+          "route": "/machine/services/restart",
+          "variant": 1,
+          "samples": [
+            22.49340000000001,
+            21.969899999999996,
+            22.25709999999998,
+            21.378399999999942,
+            21.63659999999993
+          ],
+          "medianMs": 21.969899999999996,
+          "microsecondsPerRequest": 0.7323299999999998
+        },
+        {
+          "pair": 0,
+          "route": "/machine/services/start",
+          "variant": 0,
+          "samples": [
+            21.8365,
+            22.546100000000024,
+            22.14110000000005,
+            22.144700000000057,
+            21.958099999999945
+          ],
+          "medianMs": 22.14110000000005,
+          "microsecondsPerRequest": 0.7380366666666683
+        },
+        {
+          "pair": 0,
+          "route": "/machine/services/start",
+          "variant": 1,
+          "samples": [
+            23.0141000000001,
+            22.426000000000045,
+            21.522800000000075,
+            21.656499999999937,
+            21.81899999999996
+          ],
+          "medianMs": 21.81899999999996,
+          "microsecondsPerRequest": 0.7272999999999986
+        },
+        {
+          "pair": 0,
+          "route": "/machine/services/stop",
+          "variant": 0,
+          "samples": [
+            22.468200000000024,
+            22.33490000000006,
+            22.453300000000013,
+            22.14689999999996,
+            22.283099999999877
+          ],
+          "medianMs": 22.33490000000006,
+          "microsecondsPerRequest": 0.7444966666666687
+        },
+        {
+          "pair": 0,
+          "route": "/machine/services/stop",
+          "variant": 1,
+          "samples": [
+            22.680199999999786,
+            22.179200000000037,
+            22.222800000000007,
+            22.373000000000047,
+            22.1099999999999
+          ],
+          "medianMs": 22.222800000000007,
+          "microsecondsPerRequest": 0.7407600000000002
+        },
+        {
+          "pair": 1,
+          "route": "/machine/services/restart",
+          "variant": 1,
+          "samples": [
+            22.744900000000143,
+            22.58069999999998,
+            22.217200000000048,
+            22.439100000000053,
+            21.937599999999975
+          ],
+          "medianMs": 22.439100000000053,
+          "microsecondsPerRequest": 0.7479700000000018
+        },
+        {
+          "pair": 1,
+          "route": "/machine/services/restart",
+          "variant": 0,
+          "samples": [
+            22.675700000000006,
+            22.90319999999997,
+            22.866899999999987,
+            22.53449999999998,
+            22.50149999999985
+          ],
+          "medianMs": 22.675700000000006,
+          "microsecondsPerRequest": 0.7558566666666668
+        },
+        {
+          "pair": 1,
+          "route": "/machine/services/start",
+          "variant": 1,
+          "samples": [
+            21.66210000000001,
+            23.014999999999873,
+            22.345299999999952,
+            21.941299999999956,
+            21.990099999999984
+          ],
+          "medianMs": 21.990099999999984,
+          "microsecondsPerRequest": 0.7330033333333328
+        },
+        {
+          "pair": 1,
+          "route": "/machine/services/start",
+          "variant": 0,
+          "samples": [
+            22.003099999999904,
+            22.06749999999988,
+            22.026799999999866,
+            23.11959999999999,
+            22.77930000000015
+          ],
+          "medianMs": 22.06749999999988,
+          "microsecondsPerRequest": 0.7355833333333295
+        },
+        {
+          "pair": 1,
+          "route": "/machine/services/stop",
+          "variant": 1,
+          "samples": [
+            22.28670000000011,
+            23.170900000000074,
+            22.622100000000046,
+            22.095600000000104,
+            22.50559999999996
+          ],
+          "medianMs": 22.50559999999996,
+          "microsecondsPerRequest": 0.7501866666666653
+        },
+        {
+          "pair": 1,
+          "route": "/machine/services/stop",
+          "variant": 0,
+          "samples": [
+            23.472099999999955,
+            20.239600000000337,
+            19.864599999999882,
+            19.70450000000028,
+            19.557100000000446
+          ],
+          "medianMs": 19.864599999999882,
+          "microsecondsPerRequest": 0.6621533333333294
+        },
+        {
+          "pair": 2,
+          "route": "/machine/services/restart",
+          "variant": 0,
+          "samples": [
+            19.60849999999982,
+            19.50530000000026,
+            19.86810000000014,
+            19.67990000000009,
+            19.541600000000017
+          ],
+          "medianMs": 19.60849999999982,
+          "microsecondsPerRequest": 0.6536166666666607
+        },
+        {
+          "pair": 2,
+          "route": "/machine/services/restart",
+          "variant": 1,
+          "samples": [
+            19.51150000000007,
+            19.41080000000011,
+            19.717200000000048,
+            19.33289999999988,
+            19.38889999999992
+          ],
+          "medianMs": 19.41080000000011,
+          "microsecondsPerRequest": 0.6470266666666703
+        },
+        {
+          "pair": 2,
+          "route": "/machine/services/start",
+          "variant": 0,
+          "samples": [
+            20.15079999999989,
+            19.8433,
+            19.81790000000001,
+            19.7815999999998,
+            20.125300000000152
+          ],
+          "medianMs": 19.8433,
+          "microsecondsPerRequest": 0.6614433333333333
+        },
+        {
+          "pair": 2,
+          "route": "/machine/services/start",
+          "variant": 1,
+          "samples": [
+            19.595299999999952,
+            19.05729999999994,
+            18.975400000000263,
+            19.21939999999995,
+            19.36130000000003
+          ],
+          "medianMs": 19.21939999999995,
+          "microsecondsPerRequest": 0.640646666666665
+        },
+        {
+          "pair": 2,
+          "route": "/machine/services/stop",
+          "variant": 0,
+          "samples": [
+            19.124700000000303,
+            19.95629999999983,
+            20.019999999999982,
+            19.83919999999989,
+            19.74940000000015
+          ],
+          "medianMs": 19.83919999999989,
+          "microsecondsPerRequest": 0.661306666666663
+        },
+        {
+          "pair": 2,
+          "route": "/machine/services/stop",
+          "variant": 1,
+          "samples": [
+            19.687799999999697,
+            19.659499999999753,
+            19.932600000000093,
+            19.27469999999994,
+            19.78899999999976
+          ],
+          "medianMs": 19.687799999999697,
+          "microsecondsPerRequest": 0.65625999999999
+        }
+      ],
+      "comparisons": [
+        {
+          "pair": 0,
+          "route": "/machine/services/restart",
+          "beforeMs": 22.361199999999997,
+          "afterMs": 21.969899999999996,
+          "ratio": 0.9825009391267016,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "route": "/machine/services/start",
+          "beforeMs": 22.14110000000005,
+          "afterMs": 21.81899999999996,
+          "ratio": 0.9854523939641621,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "route": "/machine/services/stop",
+          "beforeMs": 22.33490000000006,
+          "afterMs": 22.222800000000007,
+          "ratio": 0.9949809490975982,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "route": "/machine/services/restart",
+          "beforeMs": 22.675700000000006,
+          "afterMs": 22.439100000000053,
+          "ratio": 0.9895659229924566,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "route": "/machine/services/start",
+          "beforeMs": 22.06749999999988,
+          "afterMs": 21.990099999999984,
+          "ratio": 0.9964925795853677,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "route": "/machine/services/stop",
+          "beforeMs": 19.864599999999882,
+          "afterMs": 22.50559999999996,
+          "ratio": 1.132950071987359,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "route": "/machine/services/restart",
+          "beforeMs": 19.60849999999982,
+          "afterMs": 19.41080000000011,
+          "ratio": 0.9899176377591496,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "route": "/machine/services/start",
+          "beforeMs": 19.8433,
+          "afterMs": 19.21939999999995,
+          "ratio": 0.9685586570782053,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "route": "/machine/services/stop",
+          "beforeMs": 19.83919999999989,
+          "afterMs": 19.687799999999697,
+          "ratio": 0.9923686438969215,
+          "limit": 1.5,
+          "pass": true
+        }
+      ],
+      "maximumRatio": 1.132950071987359,
+      "authorizations": 4320000,
+      "admissions": 4320000,
+      "catalogue": [
+        {
+          "grouped": false,
+          "entries": 64,
+          "warmup": 10,
+          "samples": 50,
+          "medianMs": 0.134900000000016,
+          "p95Ms": 0.2074999999999818,
+          "maximumMs": 0.5330000000003565
+        },
+        {
+          "grouped": true,
+          "entries": 64,
+          "warmup": 10,
+          "samples": 50,
+          "medianMs": 0.12609999999995125,
+          "p95Ms": 0.1902999999997519,
+          "maximumMs": 0.37609999999995125
+        }
+      ],
+      "scope": "Same-machine Windows Node26.9 before/after EndpointRegistry authorization and actual product service handler parameter validation with injected immediate admission. Excludes HTTP transport, durable writes, process retirement and CLI IO. Sequential AB/BA/AB;64-entry real SystemServices refresh/parser/snapshot measured separately; no Linux42/28 or physical claim.",
+      "baselineOriginalGitSha256": "63216cfe7600723cd7e1bce899ef10c36a3d7ae3675b9b1564c64313006adaf7",
+      "baselinePortabilityDelta": "Only import specifiers moved to absolute file URLs for the temporary before module; all handler statements and regex remain byte-for-byte after reversing those imports. Both variants use the same current shared EndpointRegistry and injected immediate admission.",
+      "ratioThresholdSource": "1.5 is the existing project regression ratio policy in system-bus-provider-acceptance.json performance.original42/28. This new narrow API handler comparison adopts that unchanged threshold; it is not rerunning or claiming the original42/28 workload."
+    },
+    "unchangedProductionInputs": {
+      "files": 111,
+      "prefixes": [
+        "host/native",
+        "host/src/math",
+        "host/src/motion",
+        "host/src/kinematics",
+        "host/src/gcode"
+      ],
+      "evidence": "unchanged-motion-numerical-inputs.json",
+      "scope": "Exact bytes against Git HEAD for all tracked native/math/motion/kinematics/gcode inputs. Source evidence only; no fresh native build, loaded binary, Linux runtime performance or physical precision claim."
+    },
+    "linux": {
+      "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER",
+      "branch": "devac/supervisor-group-compat",
+      "base": "51f583ae46eb13bb9aa37cde5154c0c22ce48d61",
+      "existingRuntime": "Node26.11.1 on existing184 LAN development machine, confirmed read-only",
+      "oldCheckoutPreserved": "72d09f51 original task tree and39 uncommitted changes untouched",
+      "transferred": true,
+      "testsRun": true,
+      "boundary": "Only11 files transferred into approved isolated task tree. No docs transferred, old39 changes untouched, no deployment or real system control/device.",
+      "authorization": "Direct user reply allowed transmission and isolated verification of the explicit11 source/test files",
+      "inputArchiveSha256": "737302c891709f32ed31cbe66d71e4e890b64208cd48455cb6f0349e53d1901b",
+      "inputArchiveBytes": 40340,
+      "sourceFreeze": "linux-final-source-freeze.json",
+      "all11SourceTestHashesMatchWindowsAndArchive": true,
+      "validation": {
+        "npmCi": {
+          "status": 0,
+          "durationSeconds": 5.173102494998602,
+          "node": "v26.11.1",
+          "nodeSha256": "5a7b8a3cf5ccb57d297519754fd73238f64cf560afd0ef19a2f9bf7384cbb657",
+          "args": [
+            "npm",
+            "ci",
+            "--ignore-scripts",
+            "--no-audit",
+            "--no-fund"
+          ],
+          "packageLockSha256": "660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6"
+        },
+        "typecheck": {
+          "status": 0,
+          "durationSeconds": 3.272635649998847,
+          "args": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "node": "v26.11.1",
+          "scope": "Standard Linux compiler process owner, full project tsconfig and fresh locked Linux dependencies; current11-file source overlay verified."
+        },
+        "freshProductBuild": {
+          "status": 0,
+          "durationSeconds": 64.48621895599354,
+          "args": [
+            "taskset",
+            "-c",
+            "0",
+            "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+            "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/npm",
+            "run",
+            "build:product-host",
+            "--",
+            "/home/dek02/.codex/worktrees/supervisor-group-compat/product"
+          ],
+          "runtimeAllowedCpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "buildCpu": 0,
+          "cargoBuildJobs": 1,
+          "cargoHome": "/home/dek02/.codex/worktrees/supervisor-group-compat/cargo-home",
+          "cargoTarget": "/home/dek02/.codex/worktrees/supervisor-group-compat/template-target",
+          "scope": "New product output from standard full CLI; all native outputs freshly compiled under controlled build affinity/jobs, not default Rust stability or hardware proof."
+        },
+        "product": {
+          "files": 724,
+          "allJavaScript": 690,
+          "hostSrcJavaScript": 683,
+          "javaScriptDifferences": 0,
+          "manifestSha256": "f6b2dd80d00b56bd95bb7ff86e88d87615a5f845996faa9bc76f57e0afc230a1",
+          "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+          "independentProductionDependencies": {
+            "exitCode": 0,
+            "durationSeconds": 0.7682263851165771,
+            "command": [
+              "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+              "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/npm",
+              "ci",
+              "--omit=dev",
+              "--ignore-scripts",
+              "--cache",
+              "/home/dek02/.codex/worktrees/supervisor-group-compat/npm-cache"
+            ],
+            "scope": "Independent locked production dependencies in freshly built product; ignore scripts; no global dependencies"
+          },
+          "nativeSources": 84,
+          "nativeOutputs": 12,
+          "provenance": "Fresh CPU0/Cargojobs1 build from current84 native inputs. ExistingNode26.11.1,TS7.0.2,Rust1.89.0 and GCC12.3.0 tools; native input/output hashes bound in linux-product-native-build-info.json and linux-native-input-output-verification.json. Source npm pretest C and Rust separately compiled freshly (Rust48.13s), not product-output or fingerprint-only reuse. No concurrent compiler stability claim."
+        },
+        "fullNpmTest": {
+          "status": 1,
+          "durationSeconds": 496.75543572999595,
+          "args": [
+            "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+            "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/npm",
+            "test"
+          ],
+          "node": "v26.11.1",
+          "runtimeAllowedCpus": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "counts": {
+            "tests": 5354,
+            "pass": 5343,
+            "fail": 11,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "scope": "One ordinary-multicore standard npm test including pretest build:native/build:template; C outputs compile freshly for source tests. Template may reuse the independently fresh product-build Cargo target fingerprint. No claim of default Rust concurrent compiler stability, sanitizer rerun, real hardware or deployment.",
+          "observedPretest": {
+            "c": "fresh build:native compiled source addons",
+            "rust": "fresh build:template; log Compiling plus release finished48.13s, not fingerprint-only reuse",
+            "boundary": "Different source-addon build from fresh remapped product package; retain original scope text as preparation assumption, actual observation governs"
+          }
+        },
+        "fullFailureClassification": {
+          "counts": {
+            "tests": 5354,
+            "pass": 5343,
+            "fail": 11,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "failures": [
+            {
+              "location": "test/native-file-start-accounting-compiled.test.ts:14:1",
+              "observedFailure": "rustc SIGSEGV during fresh product build"
+            },
+            {
+              "location": "test/print-layer-pause-compiled.test.ts:14:1",
+              "observedFailure": "Fresh Rust build rejected with E0275 recursion overflow in napi Either25; original default compile condition retained"
+            },
+            {
+              "location": "test/product-build.test.ts:20:1",
+              "observedFailure": "GCC LMDB internal compiler error / segmentation fault during fresh build"
+            },
+            {
+              "location": "test/product-build.test.ts:46:1",
+              "observedFailure": "rustc metadata decoder panicked Option unwrap during fresh publication/reproducibility build"
+            },
+            {
+              "location": "test/product-build.test.ts:59:1",
+              "observedFailure": "rustc SIGSEGV during fresh product build"
+            },
+            {
+              "location": "test/product-client-gateway-compiled.test.ts:14:1",
+              "observedFailure": "rustc SIGSEGV during fresh product build"
+            },
+            {
+              "location": "test/product-host.test.ts:39:88",
+              "observedFailure": "premature host child exit, code/signal not recorded; unresolved"
+            },
+            {
+              "location": "test/product-native-build.test.ts:9:1",
+              "observedFailure": "GCC LMDB internal compiler error / segmentation fault during fresh build"
+            },
+            {
+              "location": "test/sd-flash-build.test.ts:11:1",
+              "observedFailure": "GCC LMDB internal compiler error / segmentation fault during fresh build"
+            },
+            {
+              "location": "test/source-brake.test.ts:1:1",
+              "observedFailure": "runtime SIGSEGV, cause unresolved"
+            },
+            {
+              "location": "test/thumbnail-process.test.ts:16:1",
+              "observedFailure": "thumbnail child disconnected503; code/signal not recorded; unresolved"
+            }
+          ],
+          "boundary": "Original full run retained; focused success cannot close compile stability, unresolved runtime exits, G3 or full candidate integration."
+        },
+        "focusedSource": {
+          "exitCode": 0,
+          "durationSeconds": 63.514724016189575,
+          "command": [
+            "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "test/system-bus-owner.test.ts",
+            "test/machine-provider.test.ts",
+            "test/legacy-node-install-bootstrap.test.ts",
+            "test/fixed-node-install.test.ts",
+            "test/host-recovery-journal.test.ts",
+            "test/product-host-control.test.ts",
+            "test/machine-control.test.ts",
+            "test/system-services.test.ts",
+            "test/configured-server.test.ts",
+            "test/product-host-api.test.ts",
+            "test/supervisor-group-control.test.ts"
+          ],
+          "testFiles": [
+            "system-bus-owner",
+            "machine-provider",
+            "legacy-node-install-bootstrap",
+            "fixed-node-install",
+            "host-recovery-journal",
+            "product-host-control",
+            "machine-control",
+            "system-services",
+            "configured-server",
+            "product-host-api",
+            "supervisor-group-control"
+          ],
+          "node": "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+          "counts": {
+            "tests": 103,
+            "pass": 103,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "configuredServerActuallyExecuted": {
+          "file": "host/test/configured-server.test.ts",
+          "expectedCases": 14,
+          "cases": [
+            {
+              "name": "network binding reads upstream defaults and rejects invalid or imprecise settings",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "file-backed startup binds settings, metadata, authorization and actual WebSocket capacity",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "unused configuration warnings retain names without revealing values and survive lifecycle updates",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "occupied port failure closes owned resources and unregisters metadata",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "startup and shutdown race does not leak a listener or claim startup success",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "configuration errors and missing authorization reject before a listener is constructed",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "failed shutdown retains owned registrations until active requests actually settle",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "invalid configured Klippy path fails load before network startup",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "server seals component table registration before exposing its listener",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "database discovery initializes authenticated backup listing and survives information replacement",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "owned sensors sample after listening, publish changes and close with the server",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "failed network startup closes transferred sensor store and releases query routes",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "sensor sampling failure stops the timer and exposes component failure without leaking details",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "network changes use real authorized WebSocket dispatch while system queries stay cached",
+              "focusedPass": true,
+              "fullPass": true
+            }
+          ]
+        },
+        "newSupervisorActuallyExecuted": {
+          "file": "host/test/supervisor-group-control.test.ts",
+          "expectedCases": 12,
+          "cases": [
+            {
+              "name": "supervisor read catalogue keeps group names, same bare names and actual process instance identity",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "supervisor status rejects duplicate, wildcard and malformed names; systemd snapshots still reject colon",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "supervisor trusted descriptor rejects malformed and duplicate scopes without relaxing systemd units",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "provider accepts only its explicit supervisor descriptor and preserves legacy flat descriptor",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "exact grouped identity, control arguments and device retirement cannot alias another group",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "every permitted grouped device must be stopped with zero PID before acquisition",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "grouped EndpointRegistry and JSON-RPC admission retains the raw name through response handoff and durable journal",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "grouped submitted unknown inside cleanup aggregate remains durable interrupted and never auto replays",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "read-only default supervisor catalogue includes grouped standard services without a write descriptor",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "real isolated CLI child failure and cancellation wrap submitted unknown only after spawn and join close",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "automatic grouped klipper retirement and exclusivity do not depend on explicit device process declarations",
+              "focusedPass": true,
+              "fullPass": true
+            },
+            {
+              "name": "bare supervisor all is denied before any command while group:all remains an exact allowed process",
+              "focusedPass": true,
+              "fullPass": true
+            }
+          ]
+        },
+        "independentJavaScriptInitial": {
+          "exitCode": 1,
+          "durationSeconds": 113.83947253227234,
+          "command": [
+            "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+            "--no-experimental-strip-types",
+            "--import",
+            "/home/dek02/.codex/worktrees/supervisor-group-compat/evidence/deny-ts.mjs",
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "test/system-bus-owner.test.js",
+            "test/machine-provider.test.js",
+            "test/legacy-node-install-bootstrap.test.js",
+            "test/fixed-node-install.test.js",
+            "test/host-recovery-journal.test.js",
+            "test/product-host-control.test.js",
+            "test/machine-control.test.js",
+            "test/system-services.test.js",
+            "test/configured-server.test.js",
+            "test/product-host-api.test.js",
+            "test/supervisor-group-control.test.js"
+          ],
+          "counts": {
+            "tests": 71,
+            "pass": 57,
+            "fail": 14,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "acceptanceBundle": {
+            "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/product",
+            "manifestSha256": "f6b2dd80d00b56bd95bb7ff86e88d87615a5f845996faa9bc76f57e0afc230a1",
+            "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+          },
+          "runtimeSource": "/home/dek02/.codex/worktrees/supervisor-group-compat/independent-js/host/src",
+          "nativeBuild": "/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER/host/build",
+          "scope": "Original assertions; independent emitted JS or actual 724-file product runtime; TS imports prohibited in parent and descendants; no actual devices"
+        },
+        "independentJavaScriptSupplement": {
+          "exitCode": 0,
+          "durationSeconds": 42.41504788398743,
+          "command": [
+            "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+            "--no-experimental-strip-types",
+            "--import",
+            "/home/dek02/.codex/worktrees/supervisor-group-compat/evidence/deny-ts.mjs",
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "test/configured-server.test.js",
+            "test/legacy-node-install-bootstrap.test.js",
+            "test/system-bus-owner.test.js"
+          ],
+          "counts": {
+            "tests": 48,
+            "pass": 48,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "acceptanceBundle": {
+            "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/product",
+            "manifestSha256": "f6b2dd80d00b56bd95bb7ff86e88d87615a5f845996faa9bc76f57e0afc230a1",
+            "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+          },
+          "scope": "Only initial failed files after verified fixture support repair; no merged single103 pass claim; original assertions and runtime bytes unchanged"
+        },
+        "actualProductInitial": {
+          "exitCode": 1,
+          "durationSeconds": 20.808656215667725,
+          "command": [
+            "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+            "--no-experimental-strip-types",
+            "--import",
+            "/home/dek02/.codex/worktrees/supervisor-group-compat/evidence/deny-ts.mjs",
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "test/system-bus-owner.test.js",
+            "test/machine-provider.test.js",
+            "test/legacy-node-install-bootstrap.test.js",
+            "test/fixed-node-install.test.js",
+            "test/host-recovery-journal.test.js",
+            "test/product-host-control.test.js",
+            "test/machine-control.test.js",
+            "test/system-services.test.js",
+            "test/configured-server.test.js",
+            "test/product-host-api.test.js",
+            "test/supervisor-group-control.test.js"
+          ],
+          "counts": {
+            "tests": 65,
+            "pass": 62,
+            "fail": 3,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "acceptanceBundle": {
+            "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/product",
+            "manifestSha256": "f6b2dd80d00b56bd95bb7ff86e88d87615a5f845996faa9bc76f57e0afc230a1",
+            "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+          },
+          "runtimeSource": "/home/dek02/.codex/worktrees/supervisor-group-compat/actual-product-tests/host/src",
+          "nativeBuild": "/home/dek02/.codex/worktrees/supervisor-group-compat/product/host/build",
+          "scope": "Original assertions; independent emitted JS or actual 724-file product runtime; TS imports prohibited in parent and descendants; no actual devices"
+        },
+        "actualProductSupplement": {
+          "exitCode": 0,
+          "durationSeconds": 26.639421939849854,
+          "command": [
+            "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+            "--no-experimental-strip-types",
+            "--import",
+            "/home/dek02/.codex/worktrees/supervisor-group-compat/evidence/deny-ts.mjs",
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "test/fixed-node-install.test.js",
+            "test/legacy-node-install-bootstrap.test.js",
+            "test/system-bus-owner.test.js"
+          ],
+          "counts": {
+            "tests": 41,
+            "pass": 41,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "acceptanceBundle": {
+            "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/product",
+            "manifestSha256": "f6b2dd80d00b56bd95bb7ff86e88d87615a5f845996faa9bc76f57e0afc230a1",
+            "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+          },
+          "scope": "Only initial failed files after verified fixture support repair; no merged single103 pass claim; original assertions and runtime bytes unchanged"
+        },
+        "fixtureBoundary": "IndependentJS initial71/57pass14fail:12 configured asset errors plus2 missingpty.c module failures. Actualproduct initial65/62pass3fail:fixed/legacy/system-bus root scripts path missing. Original logs retained. Only failed3 files each supplemented after currentpty.c SHA verification and original asset/package scripts support;48/48 and41/41. Never concatenate into single103 pass claim. Actualproduct configured14 and Supervisor12 passed in initial run. TS forbidden parent/descendants. IndependentJS uses source-pretest freshaddons; actualproduct uses freshproduct12outputs. Known failed independent configured module stopped with exact verified ownedPID SIGTERM after handles remained; original interruption receipt retained.",
+        "whitespace": {
+          "exitCode": 0,
+          "durationSeconds": 0.38560009002685547,
+          "command": [
+            "bash",
+            "scripts/check_whitespace.sh"
+          ],
+          "boundary": "First wrapper failed127 because task Node path absent; retained separately; this uses existing dedicated Node26.11.1 PATH for process only"
+        },
+        "whitespaceFirstSetupFailure": {
+          "exitCode": 127,
+          "command": [
+            "bash",
+            "scripts/check_whitespace.sh"
+          ]
+        },
+        "scope": "No full42/28 rerun, no new sanitizer/protocol/LinuxMCU checks, no isolated runtime exit diagnostics, no fresh current exactcommitCI. Full run failed and G3 remains open."
+      },
+      "finalWorktreeState": {
+        "evidence": "linux-final-worktree-process-state.json",
+        "oldHead": "72d09f5141fbb303e8158059f7af3ae004675962",
+        "oldStatusItems": 39,
+        "isolatedStatusItems": 11,
+        "leftoverValidationProcesses": 0
+      }
+    },
+    "archive": {
+      "path": "supervisor-group-evidence.tar.gz",
+      "sha256": "bef275ecd7600965905dba8671cf8fabee25968ce823a4f9b621d5e98cb3fa36",
+      "bytes": 355563,
+      "members": 55,
+      "manifest": "supervisor-evidence-manifest.json",
+      "manifestSha256": "384ad4cb37cd915c794330b29192d4d47f30ce25bbc648c8468a673eea6a98eb",
+      "allMemberBytesAndHashesMatch": true,
+      "previousWindowsArchiveRetainedEvidence": true
+    },
+    "remaining": [
+      "Full ordinary npm test11 failures remain:8 fresh compiled/native build failures (RustSIGSEGV/E0275/metadata panic and GCCLMDB ICE), unknown product-host early child exit, source-brake explicitSIGSEGV(G3), unknown thumbnail503disconnect; no repeat-green closure",
+      "Current batch exactcommitCI/develop-master integration, protocol-native/LinuxMCU/sanitizer new checks and Linux42/28 budgets not executed",
+      "Supervisor installation-property extraction,none semantics,full Moonraker/Python/macros/G3/ARM64/real device acceptance remain open"
+    ]
+  }
 }

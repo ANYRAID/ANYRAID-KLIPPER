@@ -1,5 +1,42 @@
 # Klipper 与 Moonraker 集成交付计划
 
+## 2026-10-15 Supervisor 分组进程兼容候选
+
+本批保持完整 `group:name`：读取目录、显式可信描述符、当前 PID、
+控制参数、API 准入、设备退役与持久收据一致；相同进程名不同组
+不串控。只读默认目录无需写描述符；写能力仍显式，systemd 单元
+范围不放宽。裸 `all` 批量目标拒绝，精确 `group:all` 保留；自身
+不能 start／stop，group:klipper 自动保留独占和退役检查。
+Windows Node26.9 新12项＋旧控制／API11项单次23／23、全仓锁定
+Windows TS7类型检查通过；实际隔离Node CLI子进程与真实SQLite
+持久恢复已验。运动／数学／运动学／G-code／原生111个生产输入
+与51f583ae逐字节相等；下述Linux新编产物仍不宣称物理精度。服务处理层
+AB／BA／AB窄比较9项最高1.133倍，64分组目录中位0.126毫秒，
+不包含真实HTTP、持久入队、退役或CLI I/O，也不替代原42／28。
+前序51f583ae新头CI host失败：5342项／5341通过／1失败，仅
+configured-server完整配置预期遗漏已消费machine默认三键；已最小
+补齐预期，全部原网络／权限／WS断言保留。该头Build／motion成功，
+ASAN／UBSAN各153根汇总、1234通过；protocol-native／Linux MCU
+后续跳过。原失败不重跑覆写，本修复自身CI尚未执行。
+Windows整configured-server因旧ELF插件无法导入，POSIX journal
+及Linux来源分支失败保留；已创建184独立开发工作树并保护旧树，
+用户明确授权11源码／测试传入隔离树，全部SHA与Windows／输入归档一致。
+Linux Node26.11.1标准类型检查通过；源11文件103／103，包括原配置网络
+14项和新增Supervisor12项。标准新产品724文件、690JS（host/src683＋辅助7）
+逐文件与独立TS7发射相等，当前84原生输入新编12输出；CPU0／Cargo jobs1
+仅约束构建，普通测试使用原多核。产品依赖独立按锁安装，身份在测试后未变。
+独立JS初轮71／57通过／14失败（缺资产与pty.c夹具），只补失败三文件48／48；
+实际包初轮65／62通过／3失败（缺原产品scripts辅助路径），补三文件41／41。
+原日志、资产／helper来源和精确PID收口全部保留，不拼成单次103全绿。
+实际包初轮原configured14和Supervisor12全部执行通过，TS加载显式禁止。
+单次标准全量npm test含独立fresh C／Rust pretest：5354／5343通过／11失败。
+8项为新编产品／原生构建失败，含rustc SIGSEGV、napi E0275及metadata panic、
+GCC LMDB ICE；另宿主提前退出和thumbnail503原因未知，source-brake模块明确
+SIGSEGV。原失败不覆写；G3、默认编译稳定性和候选集成仍开放。标准空白检查
+通过，初次shell缺任务Node路径127亦保留；本批协议／Linux MCU／sanitizer、
+原42／28、精确新头CI及集成发布未执行，不以focused通过替代。
+详细记录见[既有验收的Supervisor后续批次](../host/contracts/system-bus-provider-acceptance.json)。
+
 ## 2026-10-14 共享 D-Bus 默认进程路线候选
 
 可信 `createProcess` 工厂实际采用默认 systemd_dbus，共享 Unix／EXTERNAL

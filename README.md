@@ -28,6 +28,11 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 新进程不重放；备份换代先释放首轮真实 socket。默认入口的软件与模拟验证、
 其他 provider 的兼容边界见[共享总线验收](host/contracts/system-bus-provider-acceptance.json)
 和[启动装配](docs/Node_Host_Startup.md#共享-d-bus-进程所有者)。
+Supervisor 分组进程候选现保留完整 `group:name` 与显式控制范围，
+Windows Node26.9 新旧23项通过；Linux源103项通过，实际724文件包及独立JS
+按初轮失败和补验分别保留证据。全量5354项仍有11失败，G3及集成未关闭。
+前序51f583ae CI的唯一配置预期失败已最小修复，原失败保留；
+本批证据与未验边界见[交付计划](docs/Node_Host_Delivery_Plan.md)。
 旧安装迁移现接入真实 Node 进程工厂：在取得进程资源前只读导入原
 LMDB／复用旧 SQLite 身份，保留原 API key、JWT 和原记录数值字节；
 旧物理目录以受控别名接线，文本／UFP 模型导入独立发布库并保留源文件。

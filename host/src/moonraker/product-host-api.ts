@@ -1,3 +1,4 @@
+import {validServiceName} from './service-name.ts';
 import {RestartAdmissionError,type ProductHostControl} from '../runtime/product-host-control.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 import {ApiError} from './rpc.ts';
@@ -29,7 +30,7 @@ export function registerProductHostControl(registry:EndpointRegistry,control:Pro
   catch(error){throw new ApiError(error instanceof RestartAdmissionError?error.status:error instanceof MachineControlError&&error.code==='not_allowed'?403:control.status.storage_failed?503:409,error instanceof Error?error.message:'Machine action rejected');}
  });
  const serviceActions=(['start','stop','restart'] as const).map(action=>machine('/machine/services/'+action,params=>{
-  if(Object.keys(params).length!==1||typeof params.service!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_.@-]{0,239}$/u.test(params.service))throw new ApiError(400,'Expected an allowed service name');return {kind:'service',action,service:params.service};
+  if(Object.keys(params).length!==1||typeof params.service!=='string'||!validServiceName(params.service))throw new ApiError(400,'Expected an allowed service name');return {kind:'service',action,service:params.service};
  }));
  const processActions=(['server_restart','reboot','shutdown'] as const).map(kind=>machine(kind==='server_restart'?'/server/restart':'/machine/'+kind,params=>{
   if(Object.keys(params).length)throw new ApiError(400,'Machine action takes no arguments');return {kind};

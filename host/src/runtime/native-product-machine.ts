@@ -281,7 +281,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    if('processLogs' in processResources.server)throw new TypeError('Native process owns logging');
    const providerReader=new ConfigurationReader(await loadConfiguration(config.moonrakerConfig));readMachineProvider(providerReader);
    if(processResources.server.systemServices?.source&&processOptions!.machineProvider)throw new TypeError('Explicit service source conflicts with machine provider capabilities');
-   if(processResources.machineControl&&processOptions!.machineProvider?.control)throw new TypeError('Explicit machine control conflicts with provider control descriptor');
+   if(processResources.machineControl&&(processOptions!.machineProvider?.control||processOptions!.machineProvider?.supervisorControl))throw new TypeError('Explicit machine control conflicts with provider control descriptor');
    if(!processResources.server.systemServices?.source){machineProvider=new MachineSystemProvider(providerReader,processOptions!.machineProvider,true);processResources.server={...processResources.server,systemServices:machineProvider.services};if(machineProvider.control)processResources.machineControl=machineProvider.control;}
    await machineProvider?.prepare(s);s.throwIfAborted();
    processResources.server={...processResources.server,...machineProvider?.warnings.length?{information:{...processResources.server.information,warnings:[...processResources.server.information.warnings,...machineProvider.warnings]}}:{},templates:{dataPath:processOptions!.dataPath}};

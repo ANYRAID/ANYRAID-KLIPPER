@@ -1,3 +1,4 @@
+import {validServiceName} from '../moonraker/service-name.ts';
 import {parentPort,workerData} from 'node:worker_threads';
 import {DatabaseSync} from 'node:sqlite';
 import {openSync,closeSync,fstatSync,constants} from 'node:fs';
@@ -19,7 +20,7 @@ function checked(value:unknown):RecoveryRecord{
  const r=value as RecoveryRecord;
  if(!r||typeof r!=='object'||Array.isArray(r)||Object.keys(r).some(k=>!['request_id','state_token','state','error','kind','service'].includes(k))||!valid(r.request_id)||!valid(r.state_token)||!states.includes(r.state)||r.error!==null&&(typeof r.error!=='string'||r.error.length>256)||r.kind!==undefined&&!recordKinds.includes(r.kind))throw new Error('Invalid recovery record');
  const service=serviceKinds.includes(r.kind??'');
- if(service?(typeof r.service!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_.@-]{0,239}$/u.test(r.service)):r.service!==undefined)throw new Error('Invalid recovery service');
+ if(service?(typeof r.service!=='string'||!validServiceName(r.service)):r.service!==undefined)throw new Error('Invalid recovery service');
  return {request_id:r.request_id,state_token:r.state_token,state:r.state,error:r.error,...r.kind?{kind:r.kind}:{},...service?{service:r.service}:{}};
 }
 function row(r:Record<string,unknown>):RecoveryRecord{return checked({request_id:r.id,state_token:r.token,state:r.state,error:r.error,...r.kind!==undefined&&r.kind!=='reinitialize'?{kind:r.kind}:{},...r.service!==undefined&&r.service!==null?{service:r.service}:{}});}
