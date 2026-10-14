@@ -1,5 +1,54 @@
 # Node 主机启动与机器集成
 
+## 旧安装迁移的可信工厂装配
+
+此候选接通 `createNativeProductHostFactory` 的 `createProcess` 路线。
+`legacyDatabase` 明确旧 SQLite 目标、LMDB 源、停写确认及原身份 issuer，
+在任何进程 DB／日志／文件打开前执行只读导入。`createProcess` 必须消费
+第三参数 `opened.database`，不能另开空库掩盖旧身份。常规 JSON API 的数值
+预算保持；原持久 record 与 unsafe integer 词法保留不等于公开 API 任意精度。
+
+`legacyPaths` 的 dataPath 和各 physical directory 必须与实际清单、DB、
+配置 owner 一致。别名发布前检查已占用／损坏路径；资源仍用物理目录，
+默认日志改用独立私有 `node-private-logs`，旧 logs 保留。`legacyGcodes`
+明确停写源与独立 recoveryRoot，源、恢复、发布目录不得重叠。支持 `.gcode`
+`.g` `.gco` `.nc`／UFP 模型、受限 PNG 与源时间；原树保留。硬链接、符号
+链接、未知文件、来源变更及容量超限拒绝，不自动删除旧树或清 journal。
+
+实际 `installation` 原 SUDO queue 执行 service/config/version 顺序，原密码
+在内存及受限 stdin 传递，HTTP 配置对继承密码副本脱敏。多来源配置候选
+由原解析器重读：批准目标删项、其他 DEFAULT 继承值物化保留、所有来源
+摘要确认。未知保存结果阻断重播；成功后仍须旧进程退役，新进程验证部署
+只读证明、配置／paths／gcodes 摘要和独立 Node marker 后才能取得设备。
+原 install_version 缺失补 1，既有版本保留原 force 语义，不能据其直接 ready。
+
+validate_config=false 保留原来源 bytes 和 gcode_path，但 Node 证明仍强制。
+validate_service=false 须额外可信 `externalService` 验证实际 unit／部署摘要并
+提供 `requestRestart`；没有证明 blocked，不制造 root 许可或调用 root install。
+非法 boolean 属于 ConfigurationError，不吞成运营 blocked。journal 损坏、
+源变化、部署证明不一致属于 blocked，不伪装配置错误触发备份。
+
+`legacyConfiguration.backupFile` 是调用方批准的最近有效配置。主配置解析或
+真实组件构造／初始化发生 ConfigurationError 时只尝试一次；先成功关闭
+首代已转移能力，保持其他 server／caller owner，清理错误不回退。组件回退
+须 `installation.reopenBackend` 返回与旧后端不同的新实例；旧密码和 closed
+后端不可复用。持久 alias／SQLite／模型成果从 journal 恢复，配置换代重新
+保留私密 secrets 和 TLS 路径；主备私密路径均禁止标准 HTTP 文件读写。
+backup 只提供恢复查询，安装和设备保持 blocked。普通错误、server 初始化／
+运行阶段错误及第二次配置错误都不再回退，关闭失败必须按实际错误处理。
+
+本机标准 CLI 新编完整 12 原生输出的 717 文件包已核验；受影响 66 文件在
+源码、独立 JS（WAL URL 分次补验）、实际包和最低 26.9 验证，实际原 key
+安装后完整旅程和文本／UFP 模拟打印通过。部署／系统证明是普通 UID 隔离
+文件和注入受限执行器，真实 root/PAM/systemd 与 MCU 硬件尚未执行；完整
+Moonraker／Python／宏／实机交付未完成。详细失败与范围见
+[本批交付记录](Node_Host_Delivery_Plan.md#当前旧安装迁移候选2026-10-14未发布)和
+[旧安装生命周期验收](../host/contracts/legacy-install-lifecycle-acceptance.json)。
+
+以下固定布局说明是前序单文件／既有 SQLite 批次的受限路线。
+旧布局及 LMDB／include 限制由上节的显式迁移能力扩展，不自动改变默认
+Python 入口、polkit／NNP 或授予真实特权部署权限。
+
 ## 固定 Node 安装校验与 SUDO 消费者
 
 此可信装配在已有固定 Node 布局上接通真实安装消费者：等待密码、
@@ -17,7 +66,8 @@
 SQLite／namespace_store 和 record codec；保留的 `data.mdb` 可以是
 已完成转换后的备份，不因此拒绝，不自动转换／删除它。这里只核对
 安装相关 record 和现有存储身份，没有遍历所有表或证明全库整数精度。
-旧 `file_manager.gcode_path`、实际 LMDB 转换／旧目录迁移仍拒绝。
+该前序固定布局路线拒绝旧 `file_manager.gcode_path`、LMDB 转换与旧目录迁移；
+本批显式迁移路线见[旧安装装配](#旧安装迁移的可信工厂装配)。
 
 配置在日志、数据库及其他进程资源打开后校验，因此绝不移动这些
 路径。只删除主文件拥有且等于现有默认路径的 database/config/log/
@@ -167,9 +217,10 @@ unit replace／daemon-reload 副作用前耐久写 unknown，原 unit 和 env
 副作用不会因 child 已结束就被解释为回滚。进程关闭等待在途密码／
 安装工作，再关闭公告、配置 lease、鉴权、数据库；cleanup 错误保留。
 
-固定 Node 消费者尚未逐项接入上游 force_validation、validate_service、
-validate_config、配置备份回退行为；旧布局 pre-open 迁移、LMDB 导入、
-全库精度巡检、完整服务/env兼容同样开放。完整 Moonraker/Python/宏、
+前序固定 Node 消费者当时未接入 force_validation／validate_service／
+validate_config、配置备份回退、旧布局 pre-open／LMDB 导入和全库原字节验证；
+本次的实际接入与限制见[旧安装装配](#旧安装迁移的可信工厂装配)。
+完整历史服务/env兼容仍不以本候选的固定 unit／注入执行器证据泛称完成。完整 Moonraker/Python/宏、
 历史 UI/G3、ARM64、目标板／真实打印／发布门禁未关闭。软件范围与
 分次失败、产品身份及原预算见
 [安装生命周期验收](../host/contracts/sudo-install-lifecycle-acceptance.json)。
@@ -179,7 +230,8 @@ validate_config、配置备份回退行为；旧布局 pre-open 迁移、LMDB �
 245／245。最终标准npm typecheck26.9 exit0，23编译输入冻结。标准
 构建API复用核验过的75／11原生指纹，704包667运行时JS加独立helper
 与独立emit668项一致；实际编译profile CLI首次／fresh退出0，生产
-路径拒绝例exit1。未执行完整构建CLI或新原生构建。
+路径拒绝例exit1。该前序未执行完整构建CLI或新原生构建；
+本次717包完整CLI及12原生新编见本页旧安装段。
 
 原42预算均通过，最大1.130倍、auth最高3.516微秒；原五场同包模拟
 打印分别59.931／59.967／61.360／64.021／60.329秒、全部exit0。第六场

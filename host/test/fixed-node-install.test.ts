@@ -36,3 +36,16 @@ test('installation buffer copy is wiped even when authorization fails before a w
  const f=await fixedInstallFixture();let a:Awaited<ReturnType<typeof opened>>|undefined;const original=Buffer.from;let captured:Buffer|undefined;const input=Buffer.from('synthetic private config');
  try{a=await opened(f);Buffer.from=((value:unknown,...args:unknown[])=>{const copy=(original as Function)(value,...args) as Buffer;if(value===input)captured=copy;return copy;}) as typeof Buffer.from;const operation=a.files.installationTransaction('moonraker.conf',input,'0'.repeat(64),{...context(),authorize(){throw Error('revoked before lease');}},async()=>assert.fail('Must not run privileged step'));Buffer.from=original;await assert.rejects(operation,/revoked/);assert(captured);assert(captured.every(b=>b===0));assert.equal(input.toString(),'synthetic private config');assert.equal(a.leases,0);assert.deepEqual(f.commands,[]);}finally{Buffer.from=original;await a?.close();await f.close();}
 });
+test('present planned batch cannot borrow an old marker as completion, while absent batch preserves confirmed old-layout compatibility',async()=>{
+ const f=await fixedInstallFixture();let a:Awaited<ReturnType<typeof opened>>|undefined;try{
+  a=await opened(f);await a.sudo.setPassword('fixture-password',context());await a.close();a=undefined;
+  const batch=f.options.recoveryPath+'.config-batch.json';await writeFile(batch,JSON.stringify({schema:1,candidateSha256:f.options.candidateSha256,phase:'planned',files:[]}),{mode:0o600});
+  a=await opened(f);assert.equal(a.validator.status.state,'pending');assert.throws(()=>a!.validator.assertReady());await a.close();a=undefined;
+  const {unlink}=await import('node:fs/promises');await unlink(batch);a=await opened(f);assert.equal(a.validator.status.state,'ready');
+ }finally{await a?.close();await f.close();}
+});
+test('validator close waits an accepted installation while the fixed service executor is still pending',async()=>{
+ const f=await fixedInstallFixture(),entered=Promise.withResolvers<void>(),finish=Promise.withResolvers<void>();let a:Awaited<ReturnType<typeof opened>>|undefined;
+ try{a=await opened(f);f.setEffect(async()=>{entered.resolve();await finish.promise;});const installing=a.sudo.setPassword('fixture-password',context());void installing.catch(()=>{});await entered.promise;let closed=false;const closing=a.validator.close().then(()=>{closed=true;});await new Promise(r=>setImmediate(r));assert.equal(closed,false);assert.equal(a.leases,1);finish.resolve();await installing;await closing;assert.equal(a.leases,0);assert.equal(JSON.parse(await readFile(f.options.recoveryPath+'.config-batch.json','utf8')).phase,'confirmed');assert.equal(JSON.parse(await readFile(f.options.recoveryPath,'utf8')).phase,'version-confirmed');
+ }finally{finish.resolve();await a?.close();await f.close();}
+});

@@ -104,18 +104,21 @@ export class SecretsStore {
 }
 const expand=resolveConfigurationPath;
 async function regular(path:string):Promise<boolean>{try{return (await stat(path)).isFile();}catch(error){if(['ENOENT','ENOTDIR'].includes((error as NodeJS.ErrnoException).code??''))return false;throw new ConfigurationError('Unable to inspect secrets file');}}
+/** Private startup selection, also used to reserve the actual physical source
+ * before public configuration capabilities open. Never returns secret bytes. */
+export async function selectSecretsMaterialPath(reader:ConfigurationReader,dataPath:string):Promise<{file:string;found:boolean;legacyConfigured:boolean}>{
+ if(typeof dataPath!=='string'||!isAbsolute(dataPath)||dataPath.includes('\0'))throw new ConfigurationError('Secrets require an absolute data directory');
+ const legacy=reader.section('secrets').get('secrets_path',{defaultValue:null,deprecate:true});if(legacy!==null&&legacy.includes('\0'))throw new ConfigurationError('Invalid legacy secrets filename');
+ let file=join(dataPath,'moonraker.secrets'),found=await regular(file);if(!found&&legacy!==null){file=expand(legacy);found=await regular(file);}return {file,found,legacyConfigured:legacy!==null};
+}
 /** Explicit dependency assembly for template/configuration owners. No public
  * snapshot, database namespace, network endpoint, watcher or per-request I/O.
  * The data-directory file wins even if invalid; legacy files never silently
  * replace an existing selected file. Caller owns the returned generation. */
 export async function loadSecrets(reader:ConfigurationReader,context:SecretsContext):Promise<SecretsStore>{
  const maximum=limits(context);
- if(typeof context.dataPath!=='string'||!isAbsolute(context.dataPath)||context.dataPath.includes('\0'))throw new ConfigurationError('Secrets require an absolute data directory');
- const config=reader.section('secrets'),legacy=config.get('secrets_path',{defaultValue:null,deprecate:true});
- if(legacy!==null&&legacy.includes('\0'))throw new ConfigurationError('Invalid legacy secrets filename');
- let file=join(context.dataPath,'moonraker.secrets'),found=await regular(file);
- if(!found&&legacy!==null){file=expand(legacy);found=await regular(file);}
- if(!found){if(legacy!==null)reader.warn('[secrets]: Configured secrets file does not exist.');return new SecretsStore(file,'invalid',Object.freeze(dictionary<SecretValue>()));}
+ const {file,found,legacyConfigured}=await selectSecretsMaterialPath(reader,context.dataPath);
+ if(!found){if(legacyConfigured)reader.warn('[secrets]: Configured secrets file does not exist.');return new SecretsStore(file,'invalid',Object.freeze(dictionary<SecretValue>()));}
  let handle:Awaited<ReturnType<typeof open>>|undefined,text:string;
  try{
   handle=await open(file,constants.O_RDONLY|constants.O_NONBLOCK);const info=await handle.stat();if(!info.isFile()||info.size>maximum.bytes)invalid();

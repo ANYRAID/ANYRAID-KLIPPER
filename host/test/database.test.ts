@@ -66,7 +66,7 @@ test('API response budget failures occur before writes or deletes commit',()=>di
 }));
 test('acknowledged WAL records survive abrupt process termination without a graceful close',()=>directory(async dir=>{
  const {spawn}=await import('node:child_process'),{once}=await import('node:events'),path=join(dir,'crash.sqlite');
- const script=`const {DatabaseStore}=await import(${JSON.stringify(new URL('../src/moonraker/database.ts',import.meta.url).href)});const store=await DatabaseStore.open({path:${JSON.stringify(path)}});for(let i=0;i<20;i++)await store.insert('ui','key'+i,{value:i});process.stdout.write('committed');`;
+ const script=`const {DatabaseStore}=await import(${JSON.stringify(new URL('../src/moonraker/database'+(import.meta.url.endsWith('.ts')?'.ts':'.js'),import.meta.url).href)});const store=await DatabaseStore.open({path:${JSON.stringify(path)}});for(let i=0;i<20;i++)await store.insert('ui','key'+i,{value:i});process.stdout.write('committed');`;
  const child=spawn(process.execPath,['--input-type=module','-e',script],{stdio:['ignore','pipe','pipe']});let diagnostics='';child.stderr.on('data',data=>{diagnostics+=data;});const exited=once(child,'exit');
  try{const ready=once(child.stdout,'data');const outcome=await Promise.race([ready.then(([data])=>String(data)),exited.then(()=>{throw new Error('Child exited before committing: '+diagnostics);})]);assert.equal(outcome,'committed');child.kill('SIGKILL');await exited;
   const store=await DatabaseStore.open({path});try{for(let i=0;i<20;i++)assert.deepEqual(await store.get('ui','key'+i),{value:i});}finally{await store.close();}

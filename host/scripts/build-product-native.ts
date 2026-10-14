@@ -7,8 +7,8 @@ import {existsSync} from 'node:fs';
 import {homedir} from 'node:os';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 export const productAddons=['trapq','stepcompress','serialqueue','unix-peer','sealed-file','file-events','can-query','ar100-flash','template'] as const;
-export const productExecutables=['fatfs-helper','file-write-lease'] as const;
-const scripts=['build-fatfs.ts','build-file-write-lease.ts','build-native.ts',...productAddons.slice(1).map(name=>'build-'+name+'.ts')];
+export const productExecutables=['fatfs-helper','file-write-lease','lmdb-read'] as const;
+const scripts=['build-fatfs.ts','build-file-write-lease.ts','build-lmdb-read.ts','build-native.ts',...productAddons.slice(1).map(name=>'build-'+name+'.ts')];
 /** Compile a private snapshot of the required C and Rust sources. No existing addon or
  * Python file is copied; callers publish the result only after the whole build. */
 export async function buildProductNative(destination:string):Promise<void>{
@@ -17,6 +17,7 @@ export async function buildProductNative(destination:string):Promise<void>{
   const sources:Record<string,string>={},digest=(bytes:Buffer)=>createHash('sha256').update(bytes).digest('hex');
   const capture=async(path:string)=>{const source=join(root,path),info=await lstat(source);if(!info.isFile()||info.isSymbolicLink())throw new Error('Invalid native source: '+path);const bytes=await readFile(source),to=join(scratch,path);await mkdir(dirname(to),{recursive:true});await writeFile(to,bytes);sources[path]=digest(bytes);};
   for(const directory of ['host/native','klippy/chelper','lib/fatfs'])for(const name of (await readdir(join(root,directory))).sort())if(/\.(?:c|h|inc)$/.test(name))await capture(directory+'/'+name);
+  for(const name of ['mdb.c','midl.c','lmdb.h','midl.h','LICENSE','COPYRIGHT','SOURCE.json'])await capture('host/native/lmdb/'+name);
   await capture('lib/fatfs/LICENSE.txt');await capture('src/compiler.h');for(const name of scripts)await capture('host/scripts/'+name);
   for(const name of ['Cargo.toml','Cargo.lock','build.rs','src/lib.rs','src/async_text.rs','src/sync_functions.rs','src/sensor_text.rs'])await capture('host/native/template/'+name);
   await writeFile(join(scratch,'package.json'),' {"type":"module"}\n');

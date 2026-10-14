@@ -1,3 +1,5 @@
+import {migrateLegacyAuthorization,type LegacyAuthorizationStartup} from './legacy-authorization-startup.ts';
+import {legacyRecordMember,replaceLegacyRecordMembers} from './legacy-record.ts';
 import {executeSql,releaseSqlPlans,type SqlOperation,type SqlResult} from './database-sql.ts';
 import {migrateTable,tableDefinition,type DatabaseTableDefinition} from './database-table.ts';
 import {statSync} from 'node:fs';
@@ -5,7 +7,7 @@ import {DatabaseSync,backup,type StatementSync} from 'node:sqlite';
 import {roundHistoryDecimal} from './history-round.ts';
 import {ApiError,type Json} from './rpc.ts';
 import {databaseNamespace,databaseKey,databaseBatchKeys,databaseObject,ownDatabaseField,encodeDatabaseRecord,decodeDatabaseRecord,type DatabaseKey} from './database-record.ts';
-export interface DatabaseOptions {path:string;maxRecordBytes?:number;maxDatabaseBytes?:number;maxReplyBytes?:number;}
+export interface DatabaseOptions {path:string;maxRecordBytes?:number;maxDatabaseBytes?:number;maxReplyBytes?:number;legacyAuthorization?:LegacyAuthorizationStartup;}
 // Python sorted() orders Unicode code points, including astral namespace names.
 function namespaceOrder(a:string,b:string):number{let i=0,j=0;while(i<a.length&&j<b.length){const x=a.codePointAt(i)!,y=b.codePointAt(j)!;if(x!==y)return x-y;i+=x>65535?2:1;j+=y>65535?2:1;}return a.length-i-(b.length-j);}
 const prototype='namespace_store (\n    namespace TEXT NOT NULL,\n    key TEXT NOT NULL,\n    value record NOT NULL,\n    PRIMARY KEY (namespace, key)\n)';
@@ -35,6 +37,7 @@ export class DatabaseEngine {
    this.#transaction(()=>{this.#db.exec(`CREATE TABLE IF NOT EXISTS ${prototype}; CREATE TABLE IF NOT EXISTS table_registry (name TEXT NOT NULL PRIMARY KEY, prototype TEXT NOT NULL, version INT)`);
    const schema=this.#prepare('PRAGMA table_info(namespace_store)').all();if(schema.length!==3||schema.some((r,i)=>r.name!==['namespace','key','value'][i]||r.type!==['TEXT','TEXT','record'][i]||r.pk!==[1,2,0][i]||r.notnull!==1))throw new ApiError(422,'Unsupported namespace table schema');
    this.#prepare('INSERT INTO table_registry VALUES(?,?,?) ON CONFLICT(name) DO NOTHING').run('namespace_store',prototype,1);});
+   if(options.legacyAuthorization)migrateLegacyAuthorization(this.#db,options.legacyAuthorization,this.#recordBytes);
    for(const row of this.#prepare('SELECT DISTINCT namespace FROM namespace_store').iterate()){if(typeof row.namespace!=='string')throw new ApiError(422,'Invalid persisted namespace');this.registerNamespace(row.namespace);}
   }catch(error){this.#db.close();throw error;}
  }
@@ -43,6 +46,27 @@ export class DatabaseEngine {
  #lookup(namespace:string,key:string):Json|undefined{const row=this.#prepare('SELECT value FROM namespace_store WHERE namespace=? AND key=?').get(namespace,key);if(!row)return undefined;if(!(row.value instanceof Uint8Array)||row.value.byteLength>this.#recordBytes)throw new ApiError(422,'Invalid or oversized persisted record');return decodeDatabaseRecord(row.value);}
  #write(namespace:string,key:string,value:Json){const data=encodeDatabaseRecord(value);if(data.length>this.#recordBytes)throw new ApiError(413,'Database record exceeds limit');this.#prepare('INSERT INTO namespace_store VALUES(?,?,?) ON CONFLICT(namespace,key) DO UPDATE SET value=excluded.value').run(namespace,key,data);}
  #transaction<T>(action:()=>T):T{this.#db.exec('BEGIN IMMEDIATE');try{const result=action();this.#db.exec('COMMIT');return result;}catch(error){try{this.#db.exec('ROLLBACK');}catch{}throw error;}}
+ #installationRaw(key:string):Uint8Array|undefined{const row=this.#prepare('SELECT value FROM namespace_store WHERE namespace=? AND key=?').get('moonraker',key);if(!row)return;if(!(row.value instanceof Uint8Array)||row.value.length>this.#recordBytes)throw new ApiError(422,'Invalid installation metadata');return row.value;}
+ legacyInstallationMetadata():Json{
+  const member=(record:string,key:string)=>{const raw=legacyRecordMember(this.#installationRaw(record),key);return raw===undefined?null:decodeDatabaseRecord(raw);};
+  return {install_version:member('validate_install','install_version'),node_layout:member('validate_install','node_layout'),gcode_path:member('file_manager','gcode_path')};
+ }
+ initializeLegacyInstallationVersion():Json{
+  this.#checkNamespaceCapacity('moonraker');
+  const result=this.#transaction(()=>{const raw=legacyRecordMember(this.#installationRaw('validate_install'),'install_version');if(raw!==undefined&&decodeDatabaseRecord(raw)!==null)return decodeDatabaseRecord(raw);const updated=replaceLegacyRecordMembers(this.#installationRaw('validate_install'),new Map([['install_version',encodeDatabaseRecord(1)]]));if(updated.length>this.#recordBytes)throw new ApiError(413,'Installation metadata exceeds record capacity');this.#prepare('INSERT INTO namespace_store VALUES(?,?,?) ON CONFLICT(namespace,key) DO UPDATE SET value=excluded.value').run('moonraker','validate_install',updated);return 1;});this.registerNamespace('moonraker');return result;
+ }
+ /** Trusted consumer only, absent from HTTP/RPC. Completion and old-path
+  * removal share one transaction; unrelated numeric lexemes stay unrounded. */
+ confirmLegacyInstallation(expectedGcodePath:string|null,marker:Json,upstreamComplete:boolean,clearGcodePath=true):void{
+  if(expectedGcodePath!==null&&typeof expectedGcodePath!=='string'||typeof upstreamComplete!=='boolean'||typeof clearGcodePath!=='boolean'||!databaseObject(marker)||marker.version!==2||typeof marker.candidate_sha256!=='string'||!/^[a-f0-9]{64}$/u.test(marker.candidate_sha256)||typeof marker.config_sha256!=='string'||!/^[a-f0-9]{64}$/u.test(marker.config_sha256)||typeof marker.paths_sha256!=='string'||!/^[a-f0-9]{64}$/u.test(marker.paths_sha256)||typeof marker.gcodes_sha256!=='string'||!/^[a-f0-9]{64}$/u.test(marker.gcodes_sha256)||Object.keys(marker).length!==5)throw new ApiError(400,'Invalid legacy installation completion');
+  this.#checkNamespaceCapacity('moonraker');this.#transaction(()=>{
+   if((this.legacyInstallationMetadata() as Record<string,Json>).gcode_path!==expectedGcodePath)throw new ApiError(409,'Legacy gcode path changed before completion');
+   const changes=new Map<string,Uint8Array|null>([['node_layout',encodeDatabaseRecord(marker)]]);if(upstreamComplete)changes.set('install_version',encodeDatabaseRecord(1));
+   const validate=replaceLegacyRecordMembers(this.#installationRaw('validate_install'),changes),manager=this.#installationRaw('file_manager'),updated=manager&&expectedGcodePath!==null&&clearGcodePath?replaceLegacyRecordMembers(manager,new Map([['gcode_path',null]])):undefined;
+   if(validate.length>this.#recordBytes||updated&&updated.length>this.#recordBytes)throw new ApiError(413,'Installation metadata exceeds record capacity');
+   const put=this.#prepare('INSERT INTO namespace_store VALUES(?,?,?) ON CONFLICT(namespace,key) DO UPDATE SET value=excluded.value');put.run('moonraker','validate_install',validate);if(updated)put.run('moonraker','file_manager',updated);
+  });this.registerNamespace('moonraker');
+ }
  get(namespace:string,key?:DatabaseKey|null):Json{
   databaseNamespace(namespace);
   if(key===undefined||key===null){const result:Record<string,Json>={};let bytes=2;for(const row of this.#prepare('SELECT key,value FROM namespace_store WHERE namespace=?').iterate(namespace)){const raw=row.value;if(!(raw instanceof Uint8Array)||typeof row.key!=='string')throw new ApiError(422,'Invalid persisted record');if(raw.byteLength>this.#recordBytes)throw new ApiError(413,'Database record exceeds limit');const decoded=decodeDatabaseRecord(raw);bytes+=Buffer.byteLength(JSON.stringify(decoded))+Buffer.byteLength(JSON.stringify(String(row.key)))+2;if(bytes>this.#replyBytes||raw.byteLength>this.#recordBytes)throw new ApiError(413,'Database namespace exceeds reply limit');ownDatabaseField(result,String(row.key),decoded);}if(!this.#namespaces.has(namespace))throw new ApiError(404,'Database namespace not found');return result;}

@@ -37,6 +37,8 @@ export async function buildProductHost(output=join(host,'build/product-host'),co
   await copyFile(join(host,'../COPYING'),join(stage,'COPYING'));
   await cp(join(host,'licenses'),join(stage,'host/licenses'),{recursive:true});
   await copyFile(join(host,'../lib/fatfs/LICENSE.txt'),join(stage,'host/licenses/FatFs.txt'));
+  await mkdir(join(stage,'host/licenses/lmdb'),{recursive:true});
+  for(const name of ['LICENSE','COPYRIGHT','SOURCE.json'])await copyFile(join(host,'native/lmdb',name),join(stage,'host/licenses/lmdb',name));
   await cp(join(host,'assets'),join(stage,'host/assets'),{recursive:true});
   const files:Record<string,string>={};
   const inventory=async(dir:string):Promise<void>=>{for(const entry of (await readdir(dir,{withFileTypes:true})).sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0)){const path=join(dir,entry.name);if(entry.isDirectory())await inventory(path);else{if(!entry.isFile())throw new Error('Unexpected product build entry');files[relative(stage!,path).replaceAll('\\','/')]=createHash('sha256').update(await readFile(path)).digest('hex');}}};

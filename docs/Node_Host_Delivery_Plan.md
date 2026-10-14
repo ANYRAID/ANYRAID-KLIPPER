@@ -1,5 +1,83 @@
 # Klipper 与 Moonraker 集成交付计划
 
+## 当前旧安装迁移候选（2026-10-14，未发布）
+
+本批沿真实进程工厂接通旧物理路径、数据库身份、模型和配置恢复所有者。
+旧 LMDB 0.9.33 由新编的只读 C helper 导出，SQLite 导入在 Worker 建表前
+完成；已有 SQLite 直接迁移原授权表。原 API key／JWT 保持，正常 record
+保留原字节，迁移 JSON 使用原整数词法避免 Number 舍入。安装相关元数据
+写入的 namespace 容量在事务前拒绝，413 不产生 SQLite 新记录。
+
+可信调用方须确认旧源已停写，物理配置／数据库路径与清单一致；逻辑别名
+不替代 NOFOLLOW 物理所有者。文本、UFP 的模型／PNG 在独立发布目录导入，
+原树保留；内容摘要、源时间、目录／容量预检及有锁恢复 journal 决定幂等发布。
+不读取任意非模型文件，也不把旧树变成可持续写入的导入 inbox。
+
+配置删项支持明确批准的跨 include／DEFAULT 来源，其他继承值精确保留。
+多文件恢复只确认已计划的保存结果；未知／变化源阻断，不重放配置和安装。
+完成部署后修改未被编辑的 include 同样阻断 fresh 准入，原 key HTTP 可见
+修复状态，设备取得为零。原 install_version 缺失时补 1，原 force_validation
+和版本启用语义保持；Node journal／marker／所有源摘要仍独立强制验证。
+validate_config=false 保留全部原配置字节及 gcode_path；validate_service=false
+必须装配可信 externalService 证明和重启能力，禁用标志自身不授予 root 权限。
+
+主配置解析或真实组件构造／准备的 ConfigurationError 可一次选用可信
+backupFile。先关闭首轮 DB、文件、日志、配置、journal、私密路径与 SUDO
+活能力，失败清理或普通错误均不回退。首轮已取得的资源分阶段转移，拒绝
+其他 server 的借入所有权不关闭原 owner。第二轮恢复持久成果、重算主备
+secrets／TLS 保留路径，并取得新后端；缺失／复用／打开失败均拒绝回退。
+备份进程可用原 key HTTP 查询，但 installation blocked，设备取得为零。
+
+本机 Node 26.10 受影响 66 文件拆为互不重叠 35+13+18：源码 498+67+180，
+实际标准产品包 498+67+180，最低 26.9 同包 498+67+180，三层各 745 项。
+独立 JS 首两组 498+67，追加组 179/180 因 WAL 子进程测试 URL 固定 `.ts`
+失败；只改按当前模块后缀选 `.ts/.js`，源码与独立 WAL 各补 1/1，原 179
+不重跑，不写单次 180/180。另一模型 SIGKILL 子进程也作同样 test-only URL
+修正，严格重编后 683 项产品 JS 仍全同 hash。各通过组完整根 TAP 的
+fail/cancelled/skipped/todo 均为零。首轮合并执行在 runner 总 150 秒被截断，
+只有 224 个 ok、无完整根汇总，不记通过，也不改任何单例原 deadline。
+
+标准 `npm run build:product-host -- <全新目录>` 完整 CLI exit0，40.470 秒；
+由私有来源快照新编 9 addon+3 executable 共 12 个原生输出，不复用旧 11。
+新包 717 文件／676 运行时 JS，独立严格 emit 对照 683 JS 全相等；84 原生
+来源、2810 Node header 和 18 生产依赖逐摘要核验。LMDB LICENSE、COPYRIGHT
+及 SOURCE.json 已纳入包摘要。前序包为 704 文件／667 运行时 JS，数据不混算。
+普通 UID 标准 npm typecheck 已恢复通过；先前 resolver 子进程空 stdout 的
+两次异常、测试字段类型错误和首次环境启动失败保留，未证明环境异常根因。
+
+同一新包的旧 SQLite／原 API key 实际 profile CLI 完成安装、fresh ready
+及原 1000 次运动／并发 API／两代恢复／故障退出的完整旅程，全部原门限
+先完成；另开新进程后只用原 API key 下载并打印导入文本和 UFP，当前 MCU
+运动 0→38→78、两条历史 completed，源 bytes 和安装／导入 journal 不变。
+通过 1/1，根 TAP 76.086 秒；追加阶段 9.079 秒。前三次追加 start 首失败／
+诊断保留：ready 后 9.112 毫秒两个耗材 sensor 均 valid=false；仅追加原
+waitFilament 的 5 秒状态等待，实际确认 1992.863 毫秒后通过，不改产品、
+运动内容、预算或原固定断言。该旅程从旧 SQLite 起步，LMDB 是独立迁移验证。
+
+原五场同一717包模拟打印各根 1/1、exit0：原并发、TLS＋Unicode 前缀、
+欢迎页面、借入日志、实际生产日志，分别 64.428／63.150／66.042／64.480／
+62.352 秒。保留原1000 moves、两代恢复／ADC／退出和全部原门限。
+原42预算按 AB／BA／AB 串行新采36controls，无旧结果复用；每轮14比较
+全部通过，最高 1.084465／1.111938／1.095448，鉴权最高3.668208微秒，
+原1.5倍及严格小于10微秒保持。原28次启动仍为每版3warm＋11samples
+交替配对，median355.840→367.480毫秒、ratio1.032713，p95486.026→532.537；
+该启动场景 installation 关闭且不取得设备，安装准入由上述完整旅程单验。
+
+最终 Node26.9 标准 `npm run typecheck` exit0；只读再核验2459冻结输入，
+仅两处记录的test-only URL变化。717包、683独立JS、84原生来源、12输出、
+2810Node headers和18依赖摘要均保持。文档／验收JSON不属于编译冻结输入。
+完整身份、实际失败、文件映射、复现与采样见
+[旧安装生命周期验收](../host/contracts/legacy-install-lifecycle-acceptance.json)。
+本候选尚未发布，新提交自身CI与正常集成仍须完成；前序9dd57635
+的5244／5244和15 jobs不覆盖本批。真实 root／sudo／
+PAM／systemd、生产部署、目标板／实机、ARM64 执行、完整 Moonraker／宏／历史 UI／G3、任务→develop→master 发布仍开放。
+klippy 仍有 177 个 Python 文件，其他 Python 与完整替代未完成。
+
+## 前序固定布局安装候选记录
+
+以下记录只代表前序 704 文件包；本批新包／新原生／旧安装验证见上节，
+前序“未完整接入／未执行 CLI”的历史限制不能当作当前批次结论。
+
 本轮接通已有固定 Node 布局的真实 InstallValidator 消费者，沿原进程
 HTTP、身份／CORS、FIFO、维护／配置 writer、响应提交和退役重启所有者
 执行密码校验、固定服务与 env 备份、批准配置原子保存及单独 Node 版本

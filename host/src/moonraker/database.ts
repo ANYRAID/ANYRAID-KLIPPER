@@ -1,3 +1,4 @@
+import {validateLegacyAuthorizationStartup} from './legacy-authorization-startup.ts';
 import {workerEntry} from '../runtime/worker-entry.ts';
 import type {SqlOperation,SqlResult} from './database-sql.ts';
 import {tableDefinition,type DatabaseTableDefinition} from './database-table.ts';
@@ -12,7 +13,18 @@ import {databaseNamespace,databaseKey,databaseBatchKeys,type DatabaseKey} from '
 import type {DatabaseOptions} from './database-engine.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 export interface DatabaseStoreOptions extends DatabaseOptions {backupDirectory?:string;maxPending?:number;maxPendingBytes?:number;maxReadCacheBytes?:number;}
-type ResolvedDatabaseOptions=Required<Omit<DatabaseStoreOptions,'backupDirectory'>>&{backupDirectory?:string};
+type ResolvedDatabaseOptions=Required<Omit<DatabaseStoreOptions,'backupDirectory'|'legacyAuthorization'>>&Pick<DatabaseStoreOptions,'backupDirectory'|'legacyAuthorization'>;
+/** Pure trusted-owner validation, also used before pre-open side effects. */
+export function resolveDatabaseStoreOptions(options:DatabaseStoreOptions):ResolvedDatabaseOptions{
+  if(!options||typeof options.path!=='string'||!isAbsolute(options.path)||options.path.includes('\0')||Buffer.byteLength(options.path)>4096)throw new ApiError(400,'Invalid database path');
+  if(options.backupDirectory!==undefined&&(!isAbsolute(options.backupDirectory)||options.backupDirectory.includes('\0')))throw new ApiError(400,'Invalid backup directory');
+  const legacyAuthorization=options.legacyAuthorization?Object.freeze(structuredClone(options.legacyAuthorization)):undefined;
+  if(legacyAuthorization)validateLegacyAuthorizationStartup(legacyAuthorization);
+  const limits={maxReadCacheBytes:options.maxReadCacheBytes??8*1024*1024,maxRecordBytes:options.maxRecordBytes??1024*1024,maxDatabaseBytes:options.maxDatabaseBytes??256*1024*1024,maxReplyBytes:options.maxReplyBytes??8*1024*1024,maxPending:options.maxPending??64,maxPendingBytes:options.maxPendingBytes??8*1024*1024};
+  for(const [name,value] of Object.entries(limits))if(!Number.isSafeInteger(value)||value<(name==='maxReadCacheBytes'?0:1)||value>(name==='maxPending'?1024:name==='maxDatabaseBytes'?2**32:64*1024*1024))throw new ApiError(400,'Invalid database limits');
+  if(limits.maxDatabaseBytes<65536)throw new ApiError(400,'Database capacity too small');
+ return Object.freeze({...options,...limits,...legacyAuthorization?{legacyAuthorization}:{}});
+}
 interface Pending {resolve(value:Json):void;reject(error:unknown):void;bytes:number;}
 /** FIFO durable operations. Accepted writes are never retried or cancelled:
  * caller disconnect does not prove that a transaction failed to commit. */
@@ -29,15 +41,12 @@ export class DatabaseStore {
   this.#worker.on('error',()=>fail(new ApiError(503,'Database worker failed')));this.#exited=new Promise(resolve=>this.#worker.once('exit',()=>{fail(new ApiError(503,'Database worker exited'));resolve();}));
  }
  static async open(options:DatabaseStoreOptions):Promise<DatabaseStore>{
-  if(!options||typeof options.path!=='string'||!isAbsolute(options.path)||options.path.includes('\0')||Buffer.byteLength(options.path)>4096)throw new ApiError(400,'Invalid database path');
-  if(options.backupDirectory!==undefined&&(!isAbsolute(options.backupDirectory)||options.backupDirectory.includes('\0')))throw new ApiError(400,'Invalid backup directory');
-  const limits={maxReadCacheBytes:options.maxReadCacheBytes??8*1024*1024,maxRecordBytes:options.maxRecordBytes??1024*1024,maxDatabaseBytes:options.maxDatabaseBytes??256*1024*1024,maxReplyBytes:options.maxReplyBytes??8*1024*1024,maxPending:options.maxPending??64,maxPendingBytes:options.maxPendingBytes??8*1024*1024};
-  for(const [name,value] of Object.entries(limits))if(!Number.isSafeInteger(value)||value<(name==='maxReadCacheBytes'?0:1)||value>(name==='maxPending'?1024:name==='maxDatabaseBytes'?2**32:64*1024*1024))throw new ApiError(400,'Invalid database limits');
-  if(limits.maxDatabaseBytes<65536)throw new ApiError(400,'Database capacity too small');
-  try{if(!(await lstat(options.path)).isFile())throw new ApiError(400,'Database path must be a regular file');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
-  const owner=new DatabaseStore({...options,...limits});try{await owner.#ready;return owner;}catch(error){await owner.#worker.terminate();await owner.#exited;throw error;}
+  const resolved=resolveDatabaseStoreOptions(options);
+  try{if(!(await lstat(resolved.path)).isFile())throw new ApiError(400,'Database path must be a regular file');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+  const owner=new DatabaseStore(resolved);try{await owner.#ready;return owner;}catch(error){await owner.#worker.terminate();await owner.#exited;throw error;}
  }
  /** Trusted startup composition only; never included in public status. */
+ get legacyAuthorizationIssuers(){const value=this.#options.legacyAuthorization;return value?{issuer:value.issuer,legacyIssuer:value.legacyIssuer}:undefined;}
  get storagePaths(){return {path:this.#options.path,backupDirectory:this.#options.backupDirectory};}
  get status(){return {readCache:{...this.#readCache},restoreState:this.#restoreState,closed:this.#closed,closing:!!this.#closing,pending:this.#pending.size,pendingBytes:this.#bytes};}
  #call(method:string,args:Json[],closing=false):Promise<Json>{
@@ -51,6 +60,10 @@ export class DatabaseStore {
  sql(tables:string[],operations:SqlOperation[]):Promise<SqlResult[]>{return this.#call('sql',[tables,operations as unknown as Json]) as unknown as Promise<SqlResult[]>;}
  /** One read-only statement uses SQLite's statement snapshot, without a write lock. */
  sqlRead(tables:string[],operation:SqlOperation):Promise<SqlResult>{return this.#call('sql-read',[tables,operation as unknown as Json]) as unknown as Promise<SqlResult>;}
+ /** Trusted installation metadata boundary, deliberately absent from RPC. */
+ legacyInstallationMetadata():Promise<{install_version:Json;node_layout:Json;gcode_path:Json}>{return this.#call('legacy-installation-metadata',[]) as Promise<{install_version:Json;node_layout:Json;gcode_path:Json}>;}
+ initializeLegacyInstallationVersion():Promise<Json>{return this.#call('initialize-legacy-installation-version',[]);}
+ confirmLegacyInstallation(expectedGcodePath:string|null,marker:Json,upstreamComplete:boolean,clearGcodePath=true):Promise<Json>{return this.#call('confirm-legacy-installation',[expectedGcodePath,marker,upstreamComplete,clearGcodePath]);}
  sealTableRegistration(){return this.#call('seal-tables',[]);}
  async registerLocalNamespace(namespace:string,options:{forbidden?:boolean;parseKeys?:boolean}={}):Promise<DatabaseNamespace>{databaseNamespace(namespace);if(typeof (options.forbidden??false)!=='boolean'||typeof (options.parseKeys??false)!=='boolean')throw new ApiError(400,'Invalid namespace registration options');const wrapper=new DatabaseNamespace(this,namespace,options.parseKeys??false);await this.#call('register-local-namespace',[namespace,options.forbidden??false]);return wrapper;}
  unregisterLocalNamespace(namespace:string){databaseNamespace(namespace);return this.#call('unregister-local-namespace',[namespace]);}

@@ -1,17 +1,21 @@
 import {constants} from 'node:fs';
 import {open,lstat,mkdir,rename,unlink} from 'node:fs/promises';
-import {join,dirname,resolve,isAbsolute,relative} from 'node:path';
+import {join,dirname,resolve,isAbsolute} from 'node:path';
 import {createHash,randomUUID} from 'node:crypto';
 import {ApiError,authorizedContext,type Json,type RpcContext} from './rpc.ts';
 import type {ConfigurationReader} from './config-reader.ts';
 import {loadConfiguration} from './config-source.ts';
+import {LegacyConfigCommitOwner} from './legacy-config-commit.ts';
 import type {NativeConfigFiles} from './native-config-files.ts';
 import type {DatabaseStore} from './database.ts';
 import type {ProcessSudoOwner,SudoConsumerResult} from './sudo-owner.ts';
+import type {LegacyNodeInstallDeclaration} from './legacy-node-install.ts';
 
 export interface FixedNodeInstallOptions {
  dataPath:string;configRoot:string;configFile:string;databasePath:string;logsRoot:string;gcodesRoot:string;
  unit:string;candidateSha256:string;recoveryPath:string;
+ /** Factory-produced pre-open proof; selects the actual legacy consumer. */
+ legacy?:LegacyNodeInstallDeclaration;
 }
 type InstallState='checking'|'pending'|'running'|'restart_required'|'ready'|'blocked';
 interface InstallJournal {schema:1;unit:string;candidateSha256:string;configBefore:string;configAfter:string;phase:'planned'|'service-started'|'service-confirmed'|'config-started'|'config-confirmed'|'version-confirmed';user:string;}
@@ -22,9 +26,9 @@ export class InstallReadinessError extends ApiError {readonly state:InstallState
 /** Actual installation queue consumer for an already fixed Node layout.
  * Legacy relocation/LMDB conversion never runs after these process files open. */
 export class FixedNodeInstallValidator {
- readonly #options:Readonly<FixedNodeInstallOptions>;readonly #reader:ConfigurationReader;readonly #files:NativeConfigFiles;readonly #db:DatabaseStore;readonly #sudo:ProcessSudoOwner;readonly #confirmed:()=>Promise<void>;
+ readonly #configurationCommit:LegacyConfigCommitOwner;readonly #options:Readonly<FixedNodeInstallOptions>;readonly #reader:ConfigurationReader;readonly #files:NativeConfigFiles;readonly #db:DatabaseStore;readonly #sudo:ProcessSudoOwner;readonly #confirmed:()=>Promise<void>;
  #state:InstallState='checking';#before:Buffer|undefined;#after:Buffer|undefined;#pending:Promise<unknown>|undefined;#release=()=>{};#reason='Installation validation not completed';
- constructor(options:FixedNodeInstallOptions,reader:ConfigurationReader,files:NativeConfigFiles,db:DatabaseStore,sudo:ProcessSudoOwner,confirmed:()=>Promise<void>=async()=>{}){this.#options=Object.freeze({...options});this.#reader=reader;this.#files=files;this.#db=db;this.#sudo=sudo;this.#confirmed=confirmed;}
+ constructor(options:FixedNodeInstallOptions,reader:ConfigurationReader,files:NativeConfigFiles,db:DatabaseStore,sudo:ProcessSudoOwner,confirmed:()=>Promise<void>=async()=>{}){this.#options=Object.freeze({...options});this.#configurationCommit=new LegacyConfigCommitOwner(options.recoveryPath+'.config-batch.json');this.#reader=reader;this.#files=files;this.#db=db;this.#sudo=sudo;this.#confirmed=confirmed;}
  get status(){return {state:this.#state,ready:this.#state==='ready',restart_required:this.#state==='restart_required',running:this.#state==='running',message:this.#reason};}
  assertReady(){if(this.#state!=='ready')throw new InstallReadinessError(this.#state);}
  #blocked(){this.#state='blocked';this.#reason='Fixed Node layout or installation outcome requires administrator reconciliation';}
@@ -46,12 +50,16 @@ export class FixedNodeInstallValidator {
    try{await this.#db.get('moonraker','file_manager.gcode_path');throw Error('Legacy gcode path remains');}catch(e){if(!(e instanceof ApiError&&e.status===404))throw e;}
    // This fixed-layout consumer does not inspect/migrate every namespace or SQL
    // table. Existing record codec precision boundaries remain unchanged.
+   const configurationPhase=await this.#configurationCommit.inspect([o.configFile],o.candidateSha256,signal);
    let previous:InstallJournal|undefined;try{previous=JSON.parse((await boundedFile(o.recoveryPath,65536)).toString()) as InstallJournal;if(previous.schema!==1||Object.keys(previous).some(k=>!['schema','unit','candidateSha256','configBefore','configAfter','phase','user'].includes(k))||previous.unit!==o.unit||previous.candidateSha256!==o.candidateSha256||!['planned','version-confirmed'].includes(previous.phase)||![previous.configBefore,previous.configAfter].every(h=>typeof h==='string'&&/^[a-f0-9]{64}$/u.test(h)))throw Error('Unknown installation journal');}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
    let marker:Json|null=null;try{marker=await this.#db.get('moonraker','validate_install.node_layout');}catch(e){if(!(e instanceof ApiError&&e.status===404))throw e;}
    if(marker&&!previous)throw Error('Version marker has no confirmed recovery journal');
+   // Old fixed-layout installs predate this batch owner. Only an absent batch
+   // record can use their existing confirmed single-file journal/marker proof;
+   // a present planned record is never a completion proof.
    let rootStatus;try{rootStatus=await this.#sudo.operation('status',signal);}catch{signal.throwIfAborted();/* An authenticated password request may acquire status later. */}
    if(rootStatus&&rootStatus.candidateSha256!==o.candidateSha256||rootStatus?.phase==='unknown'&&rootStatus.backup!==null)throw Error('Privileged outcome requires reconciliation');
-   if(marker&&typeof marker==='object'&&!Array.isArray(marker)&&marker.version===1&&marker.candidate_sha256===o.candidateSha256&&marker.config_sha256===hash(this.#before)&&hash(this.#before)===hash(this.#after)&&previous?.phase==='version-confirmed'&&previous.configAfter===hash(this.#before)&&rootStatus?.phase==='installed'&&rootStatus.unitSha256===o.candidateSha256){this.#state='ready';this.#reason='Fixed Node installation revalidated in this process';return;}
+   if(marker&&typeof marker==='object'&&!Array.isArray(marker)&&marker.version===1&&marker.candidate_sha256===o.candidateSha256&&marker.config_sha256===hash(this.#before)&&hash(this.#before)===hash(this.#after)&&previous?.phase==='version-confirmed'&&(configurationPhase==='confirmed'||configurationPhase==='absent')&&previous.configAfter===hash(this.#before)&&rootStatus?.phase==='installed'&&rootStatus.unitSha256===o.candidateSha256){this.#state='ready';this.#reason='Fixed Node installation revalidated in this process';return;}
    this.#state='pending';this.#reason='Sudo password required for fixed Node installation validation';this.#release=this.#sudo.register('fixed-node-install',this.#reason,c=>this.#install(c));
   }catch{this.#blocked();}
  }
@@ -61,10 +69,13 @@ export class FixedNodeInstallValidator {
    let bound=authorizedContext(context,await context.authorize('machine.sudo.password',{}));const o=this.#options,record:InstallJournal={schema:1,unit:o.unit,candidateSha256:o.candidateSha256,configBefore:hash(this.#before!),configAfter:hash(this.#after!),phase:'planned',user:bound.user?.username??'authorized'};
    const latest=await loadConfiguration(o.configFile);if(JSON.stringify(latest.original)!==JSON.stringify(this.#reader.source.original)||JSON.stringify(latest.files)!==JSON.stringify(this.#reader.source.files)||hash(await boundedFile(o.configFile))!==record.configBefore)throw new ApiError(409,'Installation source changed before admission');
    await mkdir(dirname(o.recoveryPath),{recursive:true,mode:0o700});await journal(o.recoveryPath,record);
-   return this.#files.installationTransaction(relative(o.configRoot,o.configFile),this.#after!,record.configBefore,bound,async(signal,commit)=>{
+   const edits=record.configBefore===record.configAfter?[]:[{filename:o.configFile,sourceFilename:o.configFile,before:this.#before!,after:this.#after!,beforeSha256:record.configBefore,afterSha256:record.configAfter,removed:[],materialized:[]}];
+   return this.#files.installationBatchTransaction(edits.map(e=>({filename:e.filename,bytes:e.after,expected:e.beforeSha256})),bound,async(signal,commit)=>{
+    await this.#configurationCommit.plan(edits,o.candidateSha256,signal);
     bound=authorizedContext(bound,await bound.authorize('machine.sudo.password',{}));signal.throwIfAborted();record.phase='service-started';await journal(o.recoveryPath,record);sideEffects=true;
     const receipt=await this.#sudo.operation('install',signal);if(receipt.phase!=='installed'||receipt.candidateSha256!==o.candidateSha256||receipt.unitSha256!==o.candidateSha256)throw Error('Privileged installation not confirmed');record.phase='service-confirmed';await journal(o.recoveryPath,record);
-    if(record.configBefore!==record.configAfter){record.phase='config-started';await journal(o.recoveryPath,record);await commit();if(hash(await boundedFile(o.configFile))!==record.configAfter)throw Error('Configuration confirmation failed');}
+    if(record.configBefore!==record.configAfter){record.phase='config-started';await journal(o.recoveryPath,record);await this.#configurationCommit.commitAll(commit,signal);if(hash(await boundedFile(o.configFile))!==record.configAfter)throw Error('Configuration confirmation failed');}
+    if(!edits.length)await this.#configurationCommit.commitAll(commit,signal);
     record.phase='config-confirmed';await journal(o.recoveryPath,record);bound=authorizedContext(bound,await bound.authorize('machine.sudo.password',{}));signal.throwIfAborted();
     // Separate Node marker; never overwrite upstream install_version and claim
     // that unsupported legacy directory/LMDB migration has completed.
@@ -73,5 +84,6 @@ export class FixedNodeInstallValidator {
    });
   })();this.#pending=task;return task.catch(e=>{if(sideEffects)this.#blocked();else{this.#state='pending';this.#reason='Installation admission failed before privileged/config effects; explicit retry permitted';}throw e;}).finally(()=>{this.#pending=undefined;});
  }
- async close(){this.#release();try{await this.#pending;}finally{this.#before?.fill(0);this.#after?.fill(0);}}
+ async close(){this.#release();const results=await Promise.allSettled([this.#pending]);try{await this.#configurationCommit.close();}catch(error){results.push({status:'rejected',reason:error});}finally{this.#before?.fill(0);this.#after?.fill(0);}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Installation validator close failed');}
+ async requestRestart(signal:AbortSignal):Promise<void>{if(this.#state!=='restart_required'&&this.#state!=='ready')throw new ApiError(409,'Confirmed installation restart unavailable');await this.#sudo.operation('restart',signal);}
 }

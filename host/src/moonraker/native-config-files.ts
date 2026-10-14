@@ -1,5 +1,5 @@
 import {constants} from 'node:fs';
-import {open,type FileHandle} from 'node:fs/promises';
+import {open,realpath,type FileHandle} from 'node:fs/promises';
 import {basename,dirname,isAbsolute,resolve,relative,sep} from 'node:path';
 import {createHash} from 'node:crypto';
 import {configBackupCapacity,isConfigBackup,managedConfigBackup,deleteNativeConfigBackup} from '../config/native-config-backups.ts';
@@ -15,6 +15,9 @@ export interface NativeConfigFilesOptions {
  root:string;
  /** Existing files permitted for editor saves; omitted means read-only. */
  writable?:readonly string[];
+ /** Trusted installation-only absolute file capabilities. They never expand
+  * the public download/list/editor root, including when outside that root. */
+ installationWritable?:readonly string[];
  /** Relative paths excluded from reads; reserved directory descendants included. */
  reserved?:readonly string[];
  maxFileBytes?:number;maxDownloads?:number;
@@ -26,6 +29,7 @@ type ConfigDownload={record:{id:string;name:string};reader:Awaited<ReturnType<ty
 export class NativeConfigFiles {
  readonly #root:FileHandle;readonly #listing:FileListing;readonly #reserved:readonly string[];
  readonly #max:number;readonly #capacity:number;readonly #budget:PrintSnapshotBudget;
+ readonly #installationFiles=new Map<string,NativeConfigFiles>();readonly #installationOwners=new Set<NativeConfigFiles>();
  readonly #writable=new Set<string>();#writer:((context:RpcContext)=>{release:()=>void;signal:AbortSignal})|undefined;#writing=false;
  readonly #changes=new Set<(event:Json)=>void>();
  #backupReads=0;
@@ -40,7 +44,10 @@ export class NativeConfigFiles {
   const path=resolve(options.root),root=await open(path,constants.O_RDONLY|constants.O_DIRECTORY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
   const writable=options.writable??[];if(!Array.isArray(writable)||writable.length>256){await root.close();throw new TypeError('Invalid writable config paths');}
   try{for(const name of writable){NativeConfigFiles.#name(name);if(name.split('/').includes('.git')||reserved.some(p=>name===p||name.startsWith(p+'/')))throw new TypeError('Writable config path is reserved');}
-   const listing=await FileListing.open({...options.listing,confined:true,roots:[{name:'config',path,writable:false,descriptor:root.fd}],reserved:reserved.map(name=>({path:resolve(path,name),canRead:false}))});const owner=new NativeConfigFiles(root,listing,[...reserved],max,capacity);for(const name of writable)owner.#writable.add(name);return owner;}
+   const listing=await FileListing.open({...options.listing,confined:true,roots:[{name:'config',path,writable:false,descriptor:root.fd}],reserved:reserved.map(name=>({path:resolve(path,name),canRead:false}))});const owner=new NativeConfigFiles(root,listing,[...reserved],max,capacity);for(const name of writable)owner.#writable.add(name);
+   try{const extra=options.installationWritable??[];if(!Array.isArray(extra)||extra.length>256||new Set(extra).size!==extra.length)throw new TypeError('Invalid private installation file capabilities');const groups=new Map<string,string[]>();for(const file of extra){if(typeof file!=='string'||!isAbsolute(file)||resolve(file)!==file||/[\0\r\n]/u.test(file)||Buffer.byteLength(file)>4096||await realpath(file)!==file)throw new TypeError('Installation file capability must name an existing physical file');NativeConfigFiles.#name(basename(file));if(owner.contains(file))owner.#allowed(relative(path,file));const directory=dirname(file),names=groups.get(directory)??[];names.push(basename(file));groups.set(directory,names);}
+    for(const [directory,names]of groups){const internal=await NativeConfigFiles.open({root:directory,writable:names,maxFileBytes:max,maxDownloads:1,listing:options.listing});owner.#installationOwners.add(internal);for(const name of names)owner.#installationFiles.set(joinPhysical(directory,name),internal);}return owner;
+   }catch(error){await owner.close();throw error;}}
   catch(error){await root.close();throw error;}
  }
  static #name(value:unknown):asserts value is string{
@@ -106,15 +113,31 @@ export class NativeConfigFiles {
   * writer/maintenance lease across privileged confirmation and one atomic save.
   * No endpoint accepts a callback, arbitrary root or replacement plan. */
  installationTransaction<T>(name:string,bytes:Buffer,expected:string,context:RpcContext,run:(signal:AbortSignal,commit:()=>Promise<Json>)=>Promise<T>):Promise<T>{
-  const copy=Buffer.from(bytes);let result:T;
-  return this.#mutate(context,async signal=>{
-   authorizedContext(context,await context.authorize('machine.sudo.password',{}));signal.throwIfAborted();this.#allowed(name);if(!this.#writable.has(name)||!this.#writer)throw new ApiError(403,'Installation config requires the existing explicit writable capability');
-   const lease=this.#writer(context),owned=AbortSignal.any([signal,lease.signal]);let committed=false;
-   try{result=await run(owned,()=>{if(committed)return Promise.reject(new ApiError(409,'Installation config already committed'));committed=true;return this.#save(name,copy,expected,context,owned,lease);});return null;}finally{lease.release();}
-  }).then(()=>result).finally(()=>copy.fill(0));
+  NativeConfigFiles.#name(name);this.#allowed(name);
+  return this.installationBatchTransaction([{filename:joinPhysical(this.root().path,name),bytes,expected}],context,(signal,commit)=>run(signal,()=>commit(0)));
  }
- async #save(name:string,bytes:Buffer,expected:string|undefined,context:RpcContext,signal:AbortSignal,held?:{release:()=>void;signal:AbortSignal}):Promise<Json>{
-   authorizedContext(context,await context.authorize('server.files.upload',{root:'config',path:name,size:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}));signal.throwIfAborted();this.#allowed(name);
+ /** One existing writer/maintenance lease spans all approved files. Filesystem
+  * replacements remain individual commits: the install consumer must durably
+  * journal before/after state for each and block on any uncertain outcome. */
+ installationBatchTransaction<T>(edits:readonly {filename:string;bytes:Buffer;expected:string}[],context:RpcContext,run:(signal:AbortSignal,commit:(index:number)=>Promise<Json>)=>Promise<T>):Promise<T>{
+  if(!Array.isArray(edits)||edits.length>256||new Set(edits.map(e=>e.filename)).size!==edits.length)return Promise.reject(new ApiError(400,'Invalid installation configuration batch'));
+  let total=0;for(const edit of edits){if(!Buffer.isBuffer(edit.bytes)||edit.bytes.length>this.#max||!/^[a-f0-9]{64}$/u.test(edit.expected))return Promise.reject(new ApiError(400,'Invalid installation configuration file'));total+=edit.bytes.length;if(total>8*1024*1024)return Promise.reject(new ApiError(413,'Installation configuration batch exceeds capacity'));}
+  const copies=edits.map(edit=>({...edit,bytes:Buffer.from(edit.bytes)}));let result:T;
+  return this.#mutate(context,async signal=>{
+   let bound=authorizedContext(context,await context.authorize('machine.sudo.password',{}));signal.throwIfAborted();if(!this.#writer)throw new ApiError(403,'Installation requires the existing config maintenance writer');
+   const capabilities=copies.map(edit=>{let owner:NativeConfigFiles,name:string;if(this.contains(edit.filename)){owner=this;name=relative(this.root().path,edit.filename);this.#allowed(name);if(!this.#writable.has(name)){const internal=this.#installationFiles.get(edit.filename);if(!internal)throw new ApiError(403,'Installation source is not explicitly writable');owner=internal;name=basename(edit.filename);}}else{const internal=this.#installationFiles.get(edit.filename);if(!internal)throw new ApiError(403,'External installation source is not approved');owner=internal;name=basename(edit.filename);}owner.#allowed(name);if(!owner.#writable.has(name))throw new ApiError(403,'Installation source is read-only');return {owner,name};});
+   // The private capability is authorized by its approved physical target,
+   // never by an indistinguishable public-root basename. Recheck on commit.
+   for(const edit of copies){bound=authorizedContext(bound,await bound.authorize('machine.sudo.password',installationAuthorization(edit.filename,edit.bytes,edit.expected)));signal.throwIfAborted();}
+   let sourceBytes=0;for(let i=0;i<capabilities.length;i++){const {owner,name}=capabilities[i]!,source=await owner.#source(name,signal);try{const before=await source.stat({bigint:true});sourceBytes+=Number(before.size);if(before.uid!==BigInt(process.getuid!())||before.nlink!==1n||(before.mode&0o7000n)!==0n||before.size>BigInt(owner.#max)||sourceBytes>8*1024*1024)throw new ApiError(409,'Installation source ownership, mode or capacity requires reconciliation');const hash=createHash('sha256'),buffer=Buffer.alloc(65536);let at=0;try{while(at<Number(before.size)){signal.throwIfAborted();const r=await source.read(buffer,0,Math.min(buffer.length,Number(before.size)-at),at);if(!r.bytesRead)throw new ApiError(409,'Installation source changed');hash.update(buffer.subarray(0,r.bytesRead));at+=r.bytesRead;}}finally{buffer.fill(0);}const after=await source.stat({bigint:true});if(before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs||hash.digest('hex')!==copies[i]!.expected)throw new ApiError(409,'Installation source changed before admission');}finally{await source.close();}}
+   const lease=this.#writer(bound),owned=AbortSignal.any([signal,lease.signal]),committed=new Set<number>(),pending:Promise<Json>[]=[];let accepting=true,failed=false,failure:unknown;
+   try{try{result=await run(owned,index=>{if(!accepting||!Number.isSafeInteger(index)||index<0||index>=copies.length||committed.has(index))return Promise.reject(new ApiError(409,'Invalid, late or repeated installation file commit'));committed.add(index);const {owner,name}=capabilities[index]!,edit=copies[index]!,task=owner.#save(name,edit.bytes,edit.expected,bound,owned,lease,edit.filename);pending.push(task);void task.catch(()=>{});return task;});}catch(error){failed=true;failure=error;}finally{accepting=false;}
+    const settled=await Promise.allSettled(pending),errors=settled.filter(r=>r.status==='rejected').map(r=>r.reason);if(failed)errors.unshift(failure);const distinct=[...new Set(errors)];if(distinct.length)throw distinct.length===1?distinct[0]:new AggregateError(distinct,'Installation configuration batch failed');return null;
+   }finally{lease.release();}
+  }).then(()=>result).finally(()=>{for(const edit of copies)edit.bytes.fill(0);});
+ }
+ async #save(name:string,bytes:Buffer,expected:string|undefined,context:RpcContext,signal:AbortSignal,held?:{release:()=>void;signal:AbortSignal},installationTarget?:string):Promise<Json>{
+   context=authorizedContext(context,await context.authorize(installationTarget===undefined?'server.files.upload':'machine.sudo.password',installationTarget===undefined?{root:'config',path:name,size:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}:installationAuthorization(installationTarget,bytes,expected)));signal.throwIfAborted();this.#allowed(name);
    if(!this.#writable.has(name))throw new ApiError(403,'Config file is read-only');
    if(bytes.length>this.#max)throw new ApiError(413,'Config size limit exceeded');if(expected!==undefined&&!/^[a-f0-9]{64}$/.test(expected))throw new ApiError(400,'Invalid previous config digest');
    // Binary and invalid UTF-8 config cannot enter the parser; invalid textual
@@ -166,6 +189,9 @@ export class NativeConfigFiles {
  async drainWrites():Promise<void>{await Promise.allSettled([...this.#pending]);}
  close():Promise<void>{
   if(this.#closing)return this.#closing;this.#stop.abort(new ApiError(503,'Config files closed'));
-  return this.#closing=(async()=>{await Promise.allSettled([...this.#pending]);try{await this.#listing.close();}finally{await this.#root.close();}})();
+  return this.#closing=(async()=>{await Promise.allSettled([...this.#pending]);const results=await Promise.allSettled([this.#listing.close(),...this.#installationOwners].map(owner=>owner instanceof NativeConfigFiles?owner.close():owner));try{await this.#root.close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Configuration file owners failed to close');})();
  }
 }
+function joinPhysical(directory:string,name:string):string{return directory==='/'?'/'+name:directory+'/'+name;}
+
+function installationAuthorization(target:string,bytes:Buffer,expected:string|undefined):Readonly<Record<string,Json>>{return {installation_target:target,expected_sha256:expected??null,size:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};}

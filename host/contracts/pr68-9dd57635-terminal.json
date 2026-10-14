@@ -1,0 +1,496 @@
+{
+  "schema": 1,
+  "status": "exact-head-all-required-ci-success",
+  "head": "9dd576352b2048f544fee02b24133228bf2bd122",
+  "parentHead": "fad45d3a228868cc6033e1fa07d40ffc5b731323",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "actualMerge": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+  "pullRequest": {
+    "number": 68,
+    "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/68",
+    "head": "9dd576352b2048f544fee02b24133228bf2bd122",
+    "headRef": "devac/moonraker-template-owner",
+    "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+    "baseRef": "develop",
+    "mergeCommitMetadataCandidate": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+    "draft": true,
+    "merged": false,
+    "state": "open",
+    "updatedAt": "2026-10-13T20:47:18Z"
+  },
+  "runs": [
+    {
+      "id": 38465486920,
+      "name": "Node motion diagnostics",
+      "head_sha": "9dd576352b2048f544fee02b24133228bf2bd122",
+      "event": "pull_request",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38465486920",
+      "pull_requests": [
+        {
+          "number": 68,
+          "head": "9dd576352b2048f544fee02b24133228bf2bd122",
+          "base": "9c63d3c56c0141f81047ccd31833078ba32f299c"
+        }
+      ],
+      "created_at": "2026-10-13T20:46:36Z",
+      "updated_at": "2026-10-13T21:02:10Z"
+    },
+    {
+      "id": 38465486735,
+      "name": "Build test",
+      "head_sha": "9dd576352b2048f544fee02b24133228bf2bd122",
+      "event": "pull_request",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38465486735",
+      "pull_requests": [
+        {
+          "number": 68,
+          "head": "9dd576352b2048f544fee02b24133228bf2bd122",
+          "base": "9c63d3c56c0141f81047ccd31833078ba32f299c"
+        }
+      ],
+      "created_at": "2026-10-13T20:46:36Z",
+      "updated_at": "2026-10-13T20:56:50Z"
+    },
+    {
+      "id": 38465486770,
+      "name": "Node host",
+      "head_sha": "9dd576352b2048f544fee02b24133228bf2bd122",
+      "event": "pull_request",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38465486770",
+      "pull_requests": [
+        {
+          "number": 68,
+          "head": "9dd576352b2048f544fee02b24133228bf2bd122",
+          "base": "9c63d3c56c0141f81047ccd31833078ba32f299c"
+        }
+      ],
+      "created_at": "2026-10-13T20:46:36Z",
+      "updated_at": "2026-10-13T21:01:58Z"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 115531056879,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486735,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531057078,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486770,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531057415,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486770,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531057469,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486770,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115537765766,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486770,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531058330,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486920,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531058537,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486920,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531058576,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486920,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531058578,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486920,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531058617,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486920,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531058632,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486920,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531058645,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486920,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531058653,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486920,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531058676,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486920,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 115531058794,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38465486920,
+      "logs_url": null,
+      "steps": null
+    }
+  ],
+  "requiredRunCount": 3,
+  "requiredJobCount": 15,
+  "allFirstAttempt": true,
+  "ordinaryTests": {
+    "jobId": 115531057415,
+    "command": "npm test",
+    "summary": {
+      "tests": 5244,
+      "suites": 0,
+      "pass": 5244,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 820026.756932
+    },
+    "startedCommandLogLine": "2026-10-13T20:47:16.1864966Z ##[group]Run npm test",
+    "terminalSummaryLogLine": "2026-10-13T21:01:32.0958129Z ℹ duration_ms 820026.756932",
+    "followingUnmaskedCommandLogLine": "2026-10-13T21:01:32.1073649Z ##[group]Run npm run test:protocol-native",
+    "exitCodeFromDirectUnmaskedCommandAndSuccessfulJob": 0,
+    "literalExitZeroLineObserved": false,
+    "exitEvidence": "Immutable workflow runs npm test directly without continue-on-error; ordinary test all-pass summary is followed by protocol-native command and successful checks job. Zero exit is inferred from this unmasked successful command progression, not a literal exit-code line.",
+    "workflow": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/node-host-9dd57635.yaml",
+    "workflowSha256": "fd55a297389a39cd74304a50296bde59f24b134e62689dfc0799043a2dc79dd8"
+  },
+  "checkoutEvidence": {
+    "actualMerge": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+    "source": "14 actual checkout job logs git fetch merge-ref plus HEAD merge line",
+    "checkoutJobCount": 14,
+    "noCheckoutGateJobId": 115537765766,
+    "metadataMergeNotUsedAsCheckoutEvidence": true
+  },
+  "logs": [
+    {
+      "jobId": 115531056879,
+      "name": "build",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531056879.log",
+      "characters": 1687544,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:46:52.6545053Z HEAD is now at e7c6d1e Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 1688727,
+      "sha256": "521e08b659f3b486be9a61f86c38a4ccd372be4e17435341d4e401128b896bd9",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531057078,
+      "name": "sanitizer (ubsan)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531057078.log",
+      "characters": 635919,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:46:50.9189182Z HEAD is now at e7c6d1e4 Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 636258,
+      "sha256": "3ed031fdba402b85553be721175a10d3aa228814b9e4237f5036f471b5737332",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531057415,
+      "name": "checks",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531057415.log",
+      "characters": 772052,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:46:49.2395810Z HEAD is now at e7c6d1e4 Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 782943,
+      "sha256": "2a12afe58dfe62c9e157a100d5e40bde6c63a6022909dcee68cb9dfe61011429",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531057469,
+      "name": "sanitizer (asan)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531057469.log",
+      "characters": 635282,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:46:48.9514241Z HEAD is now at e7c6d1e4 Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 635621,
+      "sha256": "11e3b9d74067aaf97dbad80ceac29bfcedd01c44b94ce9cf120a195d1a115199",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531058330,
+      "name": "motion (26.9.0, default, source)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531058330.log",
+      "characters": 18159,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:46:56.4450536Z HEAD is now at e7c6d1e Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 18162,
+      "sha256": "22fc7dc6be5031d8b0689c3bc90991b9186a54eb104565cc72a4043f490f2464",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531058537,
+      "name": "motion (26.10.0, off, source)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531058537.log",
+      "characters": 17452,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:52:43.8577464Z HEAD is now at e7c6d1e Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 17455,
+      "sha256": "038016e61a85d65d9bd2eba05d4f2ff5bda9a57051fd67abb2de14f587e456f1",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531058576,
+      "name": "motion (26.9.0, off, compiled)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531058576.log",
+      "characters": 18642,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:47:46.4226048Z HEAD is now at e7c6d1e Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 18645,
+      "sha256": "95aaf0607cfc2f052fbf5cb03eb14837d8c262651f2eb832c333c38514d68f06",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531058578,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531058578.log",
+      "characters": 17984,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:57:15.4874385Z HEAD is now at e7c6d1e Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 17987,
+      "sha256": "25dd10c26677f28f24aa75374238c8b1ad72a7362eb40fc7eaa801335ecf0efa",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531058617,
+      "name": "motion (26.9.0, default, compiled)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531058617.log",
+      "characters": 18163,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:46:55.2815780Z HEAD is now at e7c6d1e Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 18166,
+      "sha256": "d37586412c4dd12807aa33bbe635e8cb8f7a147a8fd0ba1cf228d682af02dfad",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531058632,
+      "name": "motion (26.10.0, off, compiled)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531058632.log",
+      "characters": 18654,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:53:16.0951888Z HEAD is now at e7c6d1e Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 18657,
+      "sha256": "a16ad808086bad2febc41a4e4836285d8b22f928f11cc2e6f08702b8aed7d36f",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531058645,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531058645.log",
+      "characters": 18658,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:57:04.3016682Z HEAD is now at e7c6d1e Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 18661,
+      "sha256": "3c7e7334da35f993a513dc2d2f8818f75b291f15b744f9b93bced766bf5a7515",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531058653,
+      "name": "motion (26.10.0, default, source)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531058653.log",
+      "characters": 18172,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:51:45.7070991Z HEAD is now at e7c6d1e Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 18175,
+      "sha256": "fd88a7578a1add7c1f01d58f3b66f25bb6838b6c411cae1a5fbf8ed50a5a8382",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531058676,
+      "name": "motion (26.9.0, off, source)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531058676.log",
+      "characters": 17439,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:47:36.7008302Z HEAD is now at e7c6d1e Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 17442,
+      "sha256": "fab7e2004c871ed8191e485f2e0a7617f1eba476512244e86d4eb16868d14014",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115531058794,
+      "name": "motion (26.10.0, default, compiled)",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115531058794.log",
+      "characters": 17988,
+      "redacted": false,
+      "actualMergeFromFetchLine": "e7c6d1e4bbffe14a8c4a2b062417ba7b5e9532cb",
+      "checkoutLine": "2026-10-13T20:52:36.3120251Z HEAD is now at e7c6d1e Merge 9dd576352b2048f544fee02b24133228bf2bd122 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "headAndBaseInCheckout": true,
+      "bytes": 17991,
+      "sha256": "77c1376db16d4cdd9792311eff003bb6051a3e6a4c479bbdbae0429efa063038",
+      "scope": "Completed decoded job log; actual merge checkout verified from git fetch and HEAD lines"
+    },
+    {
+      "jobId": 115537765766,
+      "name": "host",
+      "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/ci-9dd57635/job-115537765766.log",
+      "characters": 2281,
+      "redacted": false,
+      "actualMergeFromFetchLine": null,
+      "checkoutLine": null,
+      "headAndBaseInCheckout": false,
+      "bytes": 2284,
+      "sha256": "f660933046a430c41bd6ff18fa704392f5d0158440c3c45c047bbe7447aebb56",
+      "scope": "Dependency result gate; no checkout or ordinary tests"
+    }
+  ],
+  "compilerEntryObservation": {
+    "standardTypecheckCommandLogLine": "2026-10-13T20:47:12.9836729Z ##[group]Run npm run typecheck",
+    "cliCancellationCaseLine": "2026-10-13T21:01:26.4405257Z ✔ actual Node runner and builder CLIs join native cancellation before exiting (537.987762ms)",
+    "fullSuccessfulProductBuildCLI": "Not established by this CI. Immutable Node host workflow has no npm run build:product-host step. Actual CLI cancellation test is not a complete successful standard product build CLI with fresh native compilation."
+  },
+  "observerErrors": [
+    {
+      "file": "observation-003.json",
+      "i": 5,
+      "error": [
+        {
+          "type": "text",
+          "text": "ReadTimeout: "
+        }
+      ]
+    },
+    {
+      "file": "observation-006.json",
+      "i": 5,
+      "error": [
+        {
+          "type": "text",
+          "text": "ReadTimeout: "
+        }
+      ]
+    },
+    {
+      "file": "observation-007.json",
+      "i": 1,
+      "error": [
+        {
+          "type": "text",
+          "text": "ReadTimeout: "
+        }
+      ]
+    },
+    {
+      "file": "motion-last-single-job-response.json",
+      "error": "Connector generic /actions/jobs endpoint rejected with HTTP400; fallback workflow job listing returned terminal success."
+    },
+    {
+      "file": "node-host-raw-jobs-read-error.json",
+      "error": "Optional raw job/step metadata read ReadTimeout after terminal success; no workflow failure or rerun. Step-by-step API timings unavailable."
+    }
+  ],
+  "ciFailures": [],
+  "workflowRerun": false,
+  "localMatrixRerun": false,
+  "observedAt": "2026-10-13T21:09:00.298Z",
+  "scope": "Read-only first-attempt CI for PR68 SUDO installation head 9dd57635 at synthetic merge e7c6d1e4 into develop9c63d3c. All three workflows and 15 jobs succeeded. Does not establish a develop/master merge, production release, root/sudo/PAM/PTY/systemd deployment, physical hardware/target-board/power-loss acceptance, full standard product-build CLI/fresh native build, ARM64 execution, legacy migration, or closure of historical execve/UI/G3/native stability causes. No CI rerun, local matrix, browser, source change, commit, merge or push by this observer; only this acceptance contract is added uncommitted."
+}
