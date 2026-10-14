@@ -1,3 +1,4 @@
+import {tmpdir} from 'node:os';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,open,utimes,rm} from 'node:fs/promises';
@@ -5,7 +6,7 @@ import {join} from 'node:path';
 import {PrintSnapshotBudget} from '../src/gcode/snapshot-budget.ts';
 import {PublishedPrintFiles} from '../src/storage/published-files.ts';
 const signal=()=>new AbortController().signal;
-async function fixture(){const directory=await mkdtemp(join(process.env.TMPDIR??'/home/dek02/.cache/codex/tmp','legacy-published-')),source=join(directory,'original'),backing=join(directory,'published');await mkdir(source,{mode:0o755});const store=await PublishedPrintFiles.open(backing);return {directory,source,backing,store,async close(){await store.close();await rm(directory,{recursive:true,force:true});}};}
+async function fixture(){const directory=await mkdtemp(join(tmpdir(),'legacy-published-')),source=join(directory,'original'),backing=join(directory,'published');await mkdir(source,{mode:0o755});const store=await PublishedPrintFiles.open(backing);return {directory,source,backing,store,async close(){await store.close();await rm(directory,{recursive:true,force:true});}};}
 test('trusted publication preserves original model and Unicode/empty directory mtimes through a fresh store',async()=>{
  const f=await fixture();let sourceDirectory:Awaited<ReturnType<typeof open>>|undefined,file:typeof sourceDirectory,empty:typeof sourceDirectory,fresh:PublishedPrintFiles|undefined;
  try{const path=join(f.source,'中文😀'),model=join(path,'原模型.gco');await mkdir(path);await writeFile(model,'G1 X1\n');await utimes(model,1700000000.125,1700000000.125);await utimes(path,1600000000.25,1600000000.25);sourceDirectory=await open(path,'r');file=await open(model,'r');const sourceFileTime=(await file.stat()).mtimeMs/1000,sourceDirectoryTime=(await sourceDirectory.stat()).mtimeMs/1000;

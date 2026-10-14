@@ -1,6 +1,7 @@
 import {parentPort,workerData} from 'node:worker_threads';
 import {DatabaseSync} from 'node:sqlite';
-import {spawn,type ChildProcess} from 'node:child_process';
+import {spawn} from 'node:child_process';
+import {ownLegacyExportChild} from './legacy-database-export-child.ts';
 import {open,realpath,link,unlink,lstat,rename} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {createRequire} from 'node:module';
@@ -25,7 +26,7 @@ async function run():Promise<LegacyDatabasePreopenReceipt>{
  validateLegacyDatabasePreopen(options);const signal=AbortSignal.any([cancel.signal,AbortSignal.timeout(120000)]);signal.throwIfAborted();
  phase='destination-open';const destination=dirname(options.databasePath);if(await realpath(destination)!==destination)throw new Error('Legacy destination must be a pinned physical directory');
  const owner=await open(destination,constants.O_RDONLY|constants.O_DIRECTORY|constants.O_NOFOLLOW);
- let source:Awaited<ReturnType<typeof open>>|undefined,db:DatabaseSync|undefined,stage:string|undefined,published=false,ownedChild:ChildProcess|undefined,ownedClose:Promise<unknown>|undefined,recovery:Recovery|undefined;
+ let source:Awaited<ReturnType<typeof open>>|undefined,db:DatabaseSync|undefined,stage:string|undefined,published=false,ownedChild:ReturnType<typeof ownLegacyExportChild>|undefined,recovery:Recovery|undefined;
  const pinnedDestination='/proc/self/fd/'+owner.fd,selected=join(pinnedDestination,basename(options.databasePath));
  const journal=join(pinnedDestination,'.'+basename(options.databasePath)+'.legacy-import.json');
  const writeRecovery=async(row:Recovery,initial=false)=>{const temporary=initial?journal:journal+'.tmp-'+randomUUID(),fd=await open(temporary,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);try{await fd.writeFile(JSON.stringify(row)+'\n');await fd.sync();}finally{await fd.close();}if(!initial)await rename(temporary,journal);await owner.sync();recovery=row;};
@@ -52,11 +53,11 @@ async function run():Promise<LegacyDatabasePreopenReceipt>{
   phase='stage-allocation';stage=join(pinnedDestination,'.legacy-import-'+randomUUID()+'.sqlite');const allocated=await open(stage,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await allocated.close();
   await writeRecovery({schema:1,phase:'preparing',database:basename(options.databasePath),source:options.sourceDirectory,sourceDev:String(sourceInfo.dev),sourceIno:String(sourceInfo.ino),sourceSha256,helperSha256,stage:basename(stage),records:null,transaction:null},true);
   phase='stage-schema';db=new DatabaseSync(stage);db.exec('PRAGMA trusted_schema=OFF; PRAGMA journal_mode=DELETE; PRAGMA synchronous=FULL; PRAGMA max_page_count=65536');db.exec(`CREATE TABLE ${prototype}; CREATE TABLE table_registry(name TEXT NOT NULL PRIMARY KEY, prototype TEXT NOT NULL, version INT);`);db.prepare('INSERT INTO table_registry VALUES(?,?,?)').run('namespace_store',prototype,1);
-  phase='helper-spawn';const child=spawn(helper,[],{stdio:['ignore','pipe','pipe',source.fd],env:{LANG:'C'}}),closed=Promise.withResolvers<{code:number|null;signal:NodeJS.Signals|null}>();let spawnError:unknown,diagnosticBytes=0;
-  ownedChild=child;ownedClose=closed.promise;
-  child.on('error',error=>{spawnError=error;});child.once('close',(code,signal)=>{if(child.pid)port.postMessage({process:{event:'closed',pid:child.pid,status:code,signal}});closed.resolve({code,signal});});child.stderr!.on('data',bytes=>{diagnosticBytes+=bytes.length;if(diagnosticBytes>65536)child.kill('SIGKILL');});
+  phase='helper-spawn';const child=spawn(helper,[],{stdio:['ignore','pipe','pipe',source.fd],env:{LANG:'C'}}),owned=ownLegacyExportChild(child,({code,signal})=>{if(child.pid)port.postMessage({process:{event:'closed',pid:child.pid,status:code,signal}});});let diagnosticBytes=0;
+  ownedChild=owned;
+  child.stderr!.on('data',bytes=>{diagnosticBytes+=bytes.length;if(diagnosticBytes>65536)void owned.stop().catch(()=>{});});
   if(child.pid)port.postMessage({process:{event:'started',pid:child.pid}});
-  const abort=()=>child.kill('SIGKILL');signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();
+  const abort=()=>{void owned.stop().catch(()=>{});};signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();
   const iterator=child.stdout![Symbol.asyncIterator]();let buffer=Buffer.alloc(0),outputBytes=0;
   const read=async(size:number)=>{const parts:Buffer[]=[];let left=size;while(left){signal.throwIfAborted();if(!buffer.length){const next=await iterator.next();if(next.done)throw new Error('Incomplete legacy snapshot');buffer=Buffer.from(next.value);outputBytes+=buffer.length;if(outputBytes>256*1024*1024+40)throw new Error('Legacy snapshot exceeds capacity');}const take=Math.min(left,buffer.length);parts.push(buffer.subarray(0,take));buffer=buffer.subarray(take);left-=take;}return Buffer.concat(parts,size);};
   const number=async()=>{const value=(await read(8)).readBigUInt64BE();if(value>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('Invalid legacy snapshot length');return Number(value);};
@@ -67,10 +68,10 @@ async function run():Promise<LegacyDatabasePreopenReceipt>{
     if(namespace==='moonraker'&&key==='database'){const metadata=splitLegacyDatabaseMetadata(value);if(metadata){for(const entry of metadata)insert.run('database',entry.key,entry.value);continue;}}
     insert.run(namespace==='moonraker'&&key==='database_version'?'database':namespace,key,value);
    }
-   if(buffer.length)throw new Error('Trailing legacy snapshot bytes');const remainder=await iterator.next();if(!remainder.done)throw new Error('Trailing legacy snapshot bytes');const end=await closed.promise;if(spawnError||end.code!==0||end.signal||diagnosticBytes>65536)throw new Error('Legacy snapshot helper failed');signal.throwIfAborted();
+   if(buffer.length)throw new Error('Trailing legacy snapshot bytes');const remainder=await iterator.next();if(!remainder.done)throw new Error('Trailing legacy snapshot bytes');const end=await owned.closed;if(owned.spawnError||owned.observationError||end.code!==0||end.signal||diagnosticBytes>65536)throw new Error('Legacy snapshot helper failed');signal.throwIfAborted();
    if(await hash(sourceFile,signal,200*1024*1024)!==sourceSha256)throw new Error('Legacy source changed during migration');
    db.exec('CREATE TABLE native_legacy_import(schema INTEGER NOT NULL, source TEXT NOT NULL, source_dev TEXT NOT NULL, source_ino TEXT NOT NULL, source_sha256 TEXT NOT NULL, transaction_id TEXT NOT NULL, records INTEGER NOT NULL, helper_sha256 TEXT NOT NULL)');db.prepare('INSERT INTO native_legacy_import VALUES(?,?,?,?,?,?,?,?)').run(1,options.sourceDirectory,String(sourceInfo.dev),String(sourceInfo.ino),sourceSha256,transaction,records,helperSha256);db.exec('COMMIT');
-  }catch(error){abort();await closed.promise;try{db.exec('ROLLBACK');}catch{}throw error;}finally{signal.removeEventListener('abort',abort);}
+  }catch(error){await owned.stop();try{db.exec('ROLLBACK');}catch{}throw error;}finally{signal.removeEventListener('abort',abort);}
   phase='identity-import';migrateLegacyAuthorization(db,options.authorization,1024*1024);const checks=db.prepare('PRAGMA integrity_check').all();if(checks.length!==1||checks[0]!.integrity_check!=='ok')throw new Error('Legacy SQLite integrity rejected');db.close();db=undefined;signal.throwIfAborted();
   const finished=await open(stage,constants.O_RDONLY|constants.O_NOFOLLOW);try{await finished.sync();}finally{await finished.close();}
   phase='publication';await writeRecovery({...recovery!,phase:'committed',records,transaction});signal.throwIfAborted();
@@ -78,6 +79,14 @@ async function run():Promise<LegacyDatabasePreopenReceipt>{
   // overwritten. The source and original LMDB are retained for recovery.
   await assertDestination();await link(stage,selected);published=true;await owner.sync();await unlink(stage);stage=undefined;await owner.sync();await assertDestination();await writeRecovery({...recovery!,phase:'published'});
   return {schema:1,mode:'imported-lmdb',records,sourceSha256,transaction,helperSha256};
- }finally{ownedChild?.kill('SIGKILL');await ownedClose;db?.close();if(stage&&!published&&!recovery){await unlink(stage).catch(()=>{});await unlink(stage+'-journal').catch(()=>{});}await source?.close();await owner.close();}
+ }finally{
+  try{await ownedChild?.stop();}finally{
+   try{db?.close();}finally{
+    try{if(stage&&!published&&!recovery){await unlink(stage).catch(()=>{});await unlink(stage+'-journal').catch(()=>{});}}finally{
+     try{await source?.close();}finally{await owner.close();}
+    }
+   }
+  }
+ }
 }
 try{port.postMessage({receipt:await run()});}catch{port.postMessage({error:'Legacy database pre-open failed at '+phase+'; retained source requires administrator reconciliation'});}finally{port.close();}

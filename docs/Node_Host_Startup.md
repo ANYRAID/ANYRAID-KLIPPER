@@ -2,6 +2,15 @@
 
 ## 旧安装迁移的可信工厂装配
 
+LMDB 导出子进程在失败／取消时先终止、关闭尚未消费的 stdout／stderr，
+再等待实际 close；只收到 exit 不代表管道已收口。SQLite 和持有目录
+无论清理或观察回调失败都继续关闭；未知 stage／journal 保留供核对，
+不终止持有 helper 的 Worker 来假装清理完成。正常导入仍验证完整 trailer、
+真实退出状态、源摘要和事务收据。构建使用稳定相对 C 来源路径及显式 cwd，
+保留 LMDB assert 的源码诊断，避免随机快照路径进入产物摘要。
+本次软件验收的控制构建和普通调度边界、原失败及可追踪原始证据见
+[移植性与取消验收](../host/contracts/legacy-ci-portability-acceptance.json)。
+
 此候选接通 `createNativeProductHostFactory` 的 `createProcess` 路线。
 `legacyDatabase` 明确旧 SQLite 目标、LMDB 源、停写确认及原身份 issuer，
 在任何进程 DB／日志／文件打开前执行只读导入。`createProcess` 必须消费

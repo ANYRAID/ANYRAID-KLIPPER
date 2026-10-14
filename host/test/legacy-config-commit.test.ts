@@ -1,3 +1,4 @@
+import {tmpdir} from 'node:os';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,readFile,readdir,rm} from 'node:fs/promises';
@@ -11,7 +12,7 @@ import {ApiError,type RpcContext} from '../src/moonraker/rpc.ts';
 const sha=(value:string|Buffer)=>createHash('sha256').update(value).digest('hex'),candidate='c'.repeat(64);
 const ctx=():RpcContext=>({transport:'http',signal:new AbortController().signal,authorize(){return {username:'original-user'};}});
 async function fixture(){
- const directory=await mkdtemp(join(process.env.TMPDIR??'/home/dek02/.cache/codex/tmp','legacy-config-commit-')),root=join(directory,'config'),externalRoot=join(directory,'include'),state=join(directory,'state');await mkdir(root);await mkdir(externalRoot);await mkdir(state,{mode:0o700});
+ const directory=await mkdtemp(join(tmpdir(),'legacy-config-commit-')),root=join(directory,'config'),externalRoot=join(directory,'include'),state=join(directory,'state');await mkdir(root);await mkdir(externalRoot);await mkdir(state,{mode:0o700});
  const primary=join(root,'moonraker.conf'),external=join(externalRoot,'server.conf'),journal=join(state,'configuration.json');await writeFile(primary,`[include ${external}]\n[database]\ndatabase_path: /legacy/database\n`);await writeFile(external,'[server]\nlog_path: /legacy/logs\nport: 7125\n');
  const before=[await readFile(primary),await readFile(external)],signal=new AbortController().signal,edits=await planLegacyConfiguration(await loadConfiguration(primary),['database.database_path','server.log_path'],signal),files=await NativeConfigFiles.open({root,writable:['moonraker.conf'],installationWritable:[external]}),owner=new LegacyConfigCommitOwner(journal);let leases=0;
  files.bindWriter(c=>{assert.equal(leases,0);leases++;return {signal:c.signal,release(){leases--;}};});

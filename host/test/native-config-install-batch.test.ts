@@ -1,3 +1,4 @@
+import {tmpdir} from 'node:os';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,readFile,readdir,rm} from 'node:fs/promises';
@@ -9,7 +10,7 @@ import {ApiError,type RpcContext,type Json} from '../src/moonraker/rpc.ts';
 const hash=(b:string|Buffer)=>createHash('sha256').update(b).digest('hex');
 const context=():RpcContext=>({transport:'http',signal:new AbortController().signal,authorize(){}});
 async function fixture(){
- const dir=await mkdtemp(join(process.env.TMPDIR??'/home/dek02/.cache/codex/tmp','config-install-batch-')),root=join(dir,'config'),outside=join(dir,'outside');
+ const dir=await mkdtemp(join(tmpdir(),'config-install-batch-')),root=join(dir,'config'),outside=join(dir,'outside');
  await mkdir(root);await mkdir(outside);const primary=join(root,'shared.conf'),external=join(outside,'shared.conf');await writeFile(primary,'primary before\n');await writeFile(external,'external before\n');
  const files=await NativeConfigFiles.open({root,writable:['shared.conf'],installationWritable:[external]}),gate=new MaintenanceGate();let acquired=0,released=0;
  files.bindWriter(c=>{acquired++;const release=gate.acquire();return {signal:c.signal,release(){released++;release();}};});

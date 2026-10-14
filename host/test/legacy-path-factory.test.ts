@@ -1,3 +1,4 @@
+import {tmpdir} from 'node:os';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
@@ -10,7 +11,7 @@ import type {DatabaseStore} from '../src/moonraker/database.ts';
 import {ufpFixture} from './helpers/ufp-fixture.ts';
 import {mqttCertificate} from './helpers/mqtt-certificate.ts';
 async function fixture(){
- const root=await mkdtemp(join(process.env.TMPDIR??'/home/dek02/.cache/codex/tmp','legacy-path-factory-')),data=join(root,'node-data'),directories={database:join(root,'old-db'),config:join(root,'old-config'),logs:join(root,'old-logs'),gcodes:join(root,'old-gcodes')};await mkdir(data,{mode:0o700});for(const p of Object.values(directories))await mkdir(p,{mode:0o755});
+ const root=await mkdtemp(join(tmpdir(),'legacy-path-factory-')),data=join(root,'node-data'),directories={database:join(root,'old-db'),config:join(root,'old-config'),logs:join(root,'old-logs'),gcodes:join(root,'old-gcodes')};await mkdir(data,{mode:0o700});for(const p of Object.values(directories))await mkdir(p,{mode:0o755});
  const config=join(directories.config,'moonraker.conf'),printer=join(directories.config,'printer.cfg'),key=join(directories.config,'private.key'),secrets=join(directories.config,'private.secrets'),path=join(root,'machine.json'),databasePath=join(directories.database,'moonraker-sql.db'),apiKey='00112233445566778899aabbccddeeff';
  await writeFile(key,'synthetic-private-key',{mode:0o600});await writeFile(secrets,'{"private":"synthetic-secret"}',{mode:0o600});await writeFile(printer,'[printer]\nkinematics:cartesian\n');await writeFile(config,`[server]\nhost:127.0.0.1\nport:0\n[secrets]\nsecrets_path:${secrets}\n`);await writeFile(join(directories.logs,'moonraker.log'),'original log preserved\n');
  await writeFile(path,JSON.stringify({version:1,deviceId:'fixture',printerConfig:printer,moonrakerConfig:config,journalPath:join(data,'print.db'),mcus:{mcu:{transport:'pipe'}},machine:{enableLeadTime:.001,fanMinimumScheduleTime:.001},limits:{maxNozzle:300,maxBed:130},print:{motorCompletion:'hold',startupHoming:{mode:'home',axes:[0,1,2]},parking:{parkXY:[0,0],retract:1,lift:1,travelSpeed:100,liftSpeed:10,retractSpeed:10}}}));

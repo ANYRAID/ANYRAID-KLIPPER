@@ -41,9 +41,16 @@ LMDB／复用旧 SQLite 身份，保留原 API key、JWT 和原记录数值字�
 执行、真实特权部署与实机验收仍开放；klippy 仍有 177 个 Python 文件，
 其他 Python 与完整替代尚未完成，新头 CI、集成和主线发布须另行完成。
 
-首次新头CI因LMDB测试C夹具行长失败，纯格式修复的全仓门禁和源码／实际包
-各6项补验通过，产品与预算证据保持；修复新头CI仍待终态，见
-[格式补验](host/contracts/legacy-lmdb-fixture-format-followup.json)。
+首次新头CI因LMDB测试C夹具行长失败，纯格式补验保留。随后7e5ca444
+的Build／motion成功，host在Node26.11.1的5313项中5279通过、34失败：
+33项依赖本机临时目录，1项LMDB构建随机路径破坏字节可复现。当前修复
+使用平台临时目录和稳定C来源路径，并修正导入取消时未读管道阻塞退出；
+原CI失败及本机Rust崩溃保留。新718包的684 JS严格编译逐项相等，
+源码／独立JS／实际包／最低26.9各65项及同包完整原key模拟旅程通过；
+构建采用CPU0＋jobs1控制条件，应用验收为普通调度，默认稳定性未证。
+本候选尚待自身CI与正常集成，见
+[移植性与取消验收](host/contracts/legacy-ci-portability-acceptance.json)。
+历史[格式补验](host/contracts/legacy-lmdb-fixture-format-followup.json)不覆写。
 
 以下固定布局、编译进程与日志数据均为前序批次记录；其“未执行完整
 构建 CLI／旧安装迁移未接入”的范围由本次上述证据更新，历史失败保留。

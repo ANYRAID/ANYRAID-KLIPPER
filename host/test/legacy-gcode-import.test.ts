@@ -1,3 +1,4 @@
+import {tmpdir} from 'node:os';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,readFile,readdir,lstat,open,utimes,symlink,rm} from 'node:fs/promises';
@@ -12,7 +13,7 @@ import {pathToFileURL,fileURLToPath} from 'node:url';
 import {setTimeout as delay} from 'node:timers/promises';
 const signal=()=>new AbortController().signal,sha=(b:Buffer)=>createHash('sha256').update(b).digest('hex');
 async function fixture(simple=false,limits:Parameters<typeof PublishedPrintFiles.open>[1]={}){
- const directory=await mkdtemp(join(process.env.TMPDIR??'/home/dek02/.cache/codex/tmp','legacy-gcodes-')),sourceRoot=join(directory,'old-gcodes'),recoveryRoot=join(directory,'migration-state'),backing=join(directory,'node-backing');await mkdir(sourceRoot,{mode:0o755});
+ const directory=await mkdtemp(join(tmpdir(),'legacy-gcodes-')),sourceRoot=join(directory,'old-gcodes'),recoveryRoot=join(directory,'migration-state'),backing=join(directory,'node-backing');await mkdir(sourceRoot,{mode:0o755});
  const originals=new Map<string,Buffer>();for(const name of simple?['a.gcode','b.gcode']:['a.gcode','model.g','model.gco','program.nc']){const bytes=Buffer.from('G1 X'+(originals.size+1)+'\n');originals.set(name,bytes);await writeFile(join(sourceRoot,name),bytes);await utimes(join(sourceRoot,name),1700000000.125,1700000000.125);}
  let largest:Buffer|undefined;if(!simple){await mkdir(join(sourceRoot,'中文😀'),{mode:0o755});await mkdir(join(sourceRoot,'中文😀','.thumbs'),{mode:0o755});await mkdir(join(sourceRoot,'空目录'),{mode:0o755});originals.set('中文😀/层.gcode',Buffer.from('G1 X0.12345678901234567\n'));await writeFile(join(sourceRoot,'中文😀','层.gcode'),originals.get('中文😀/层.gcode')!);await utimes(join(sourceRoot,'中文😀','层.gcode'),1700000000.125,1700000000.125);for(const size of [32,64]){const bytes=await sharp({create:{width:size,height:size,channels:3,background:'red'}}).png().toBuffer();await writeFile(join(sourceRoot,'中文😀','.thumbs',`层-${size}x${size}.png`),bytes);if(size===64)largest=bytes;}for(const name of ['中文😀','空目录'])await utimes(join(sourceRoot,name),1600000000.25,1600000000.25);}
  let store=await PublishedPrintFiles.open(backing,limits);const options={sourceRoot,recoveryRoot,sourceQuiescent:true as const};return {directory,sourceRoot,recoveryRoot,backing,originals,largest,options,get store(){return store;},async reopen(){await store.close();store=await PublishedPrintFiles.open(backing,limits);},async close(){await store.close();await rm(directory,{recursive:true,force:true});}};

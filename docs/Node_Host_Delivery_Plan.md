@@ -83,6 +83,29 @@ whitespace exit0，源码／实际717包直接受影响两文件分别6/6，原�
 不重复已覆盖的42预算／28启动／五场；修复新头自身CI仍须核实。见
 [测试夹具格式补验](../host/contracts/legacy-lmdb-fixture-format-followup.json)。
 
+## 旧安装 CI 移植性与取消修复候选
+
+`7e5ca444` 的Build／motion成功，host在Node26.11.1的5313项中5279通过、
+34失败：33项测试依赖本机临时目录，1项LMDB随机来源路径破坏完整产品
+字节可复现。协议／Linux MCU后续步骤skipped；原失败不重跑、不覆写。
+七个fixture改用os.tmpdir，本机大产物仍注入数据盘TMPDIR；LMDB编译改用
+稳定相对C来源和显式cwd，保留assert诊断及全部产物相等断言。
+新helper回归另定位取消死等：真实exit已到，未读stdout阻塞close。私有
+子进程owner统一幂等终止、关闭管道再join，正常trailer／退出校验保持；
+观察回调失败在join后传播，嵌套finally继续释放SQLite和持有目录，未知
+stage／journal及原LMDB保留。最终五文件24／24、15.447秒通过；新增实际
+缓冲取消、观察失败和spawn失败回归，原恢复断言保持。
+完整产品门禁分次：普通调度jobs1的smoke／性能与产物可复现2项通过，
+随后CPU0＋jobs1的原失败2项通过，完整标准fresh CLI在该控制条件下成功；
+release／LTO、运行门限和生产默认值不变，Rust崩溃及根因仍开放。
+新包718文件／677运行时JS，独立严格编译684JS全相等；12个新编原生只
+LMDB helper字节改变，682公共JS与其他11原生不变，复用已验18依赖且
+摘要相等。普通CPU0..5调度的源码／独立JS／实包／最低26.9各65／65；
+新包原SQLite／old key完整1000moves及text／UFP旅程1／1、76.151秒通过。
+最终两版标准类型及全仓格式门禁通过；候选自身CI和正常集成仍须完成。
+详细首失败、控制边界、hash与可追踪压缩原始证据见
+[移植性与取消验收](../host/contracts/legacy-ci-portability-acceptance.json)。
+
 ## 前序固定布局安装候选记录
 
 以下记录只代表前序 704 文件包；本批新包／新原生／旧安装验证见上节，
