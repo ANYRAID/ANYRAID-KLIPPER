@@ -37,14 +37,27 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 后续客户端默认仅验 Mainsail；历史 Fluidd 证据和失败保留，用户另行指定时才追加，
 不要求每批重复双客户端。
 
-当前已推送头8e282285（合成检出4fd6c30c）的普通CI为5398／5401通过、3失败，
-均在服务安装进程测试；Build、十项motion及ASAN／UBSAN成功，后续协议与Linux MCU
-步骤因普通测试失败未执行。测试夹具候选现按实际cgroup选择同一服务名，保留原身份
-检查与20秒期限；184的Node26.11.1全仓类型通过，两版26.11.1／26.9.0三文件各30／30，
-复用cd91产品／0b530依赖且未重建。成对诊断仅证明环境不自洽机制，GitHub实际cgroup
-尚未取得，候选仍待自身新头CI和正常集成；与历史本机11失败／G3分开记录。
-原失败、输入与有限补验见[CI夹具验收](host/contracts/system-bus-provider-acceptance.json)
-的ciFixtureFollowUp；服务重获2.62602倍超原1.5、完整预算及实机门禁仍开放。
+当前已推送头435938218（实际合成检出13a65f031）的三组CI已全部成功。
+Node26.12普通测试5402／5402、零失败／取消／跳过；原三项安装进程测试通过，
+该轮实际cgroup为system.slice/hosted-compute-agent.service且夹具名称一致。
+协议36624字节／661帧／10002时钟比较和Linux MCU步骤成功；Build两轮各37文件239例，
+十项motion各50次零失败，ASAN／UBSAN各153根TAP汇总1234通过、零失败。
+8e2原5398／5401三失败和184两版各30项候选补验原样保留；旧轮未记录cgroup，
+不能将新轮观测倒推为旧轮根因实证。正常集成、服务重获2.62602超原1.5、
+历史本机11失败／G3与实机等独立门禁仍开放。
+原失败、输入、有限补验及435终态见[CI夹具验收](host/contracts/system-bus-provider-acceptance.json)
+的ciFixtureFollowUp。
+
+同包Mainsail2.19.0的A4有限场已验证真实上传、测试printer.cfg仅追加注释后保存／
+重开／严格回读，以及忙时入队、暂停／恢复、长任务完成不自动续打、明确清台后
+不同短任务完成。清台确认在产品自有/_client/queue页，不冒称Mainsail原生按钮。
+原菜单下载canceled、两层轨迹未证均保留。独立944字节下载对照显示自定义CDP allow
+取消，而Playwright默认所有权能实际saveAs并核同SHA；只支持工具配置差异，不计
+Mainsail下载通过。随后600秒窄补验仅完成两文件上传，工具与菜单操作超时，
+下载／两层仍未闭；所有资源在591396毫秒内清理，无打印／归位／配置／队列／故障动作。
+本轮实际子代理IAB不可用，使用已授权共享Playwright＋私有Edge、默认sandbox；
+仅JWT网关路线，可信网络／TLS／队列跨进程持久恢复及完整客户端出口未验。
+证据见[客户端验收](host/contracts/client-recovery-followup-acceptance.json)的mainsailA4FollowUp，历史失败和旧归档不覆盖。
 
 当前同包客户端恢复候选增加单条 `SDCARD_RESET_FILE` 兼容入口，始终复用原生
 取消／重置所有者、原请求与代际准入，不自动重启固件、归位或打印。
@@ -64,7 +77,7 @@ Windows19及类型通过；Linux源码重点22项，独立JS、实际726项产�
 最低26.9源码／产品四层各112项通过；692个生产JS与独立发射一致，原生和依赖明确复用。
 预注册冷启动1.06765倍通过；重获优化后仍2.62602倍，超过原1.5门限，
 两轮完整56样本和首次失败保留。候选81d019bfb未发布；8e2普通CI三失败与夹具修正
-按上述独立记录，性能／候选自身新头CI／正常集成及
+按上述独立记录，435新头CI已过；性能／正常集成及
 同包完整客户端／实机门禁均未关闭，详见[服务属性与安装验收](host/contracts/system-bus-provider-acceptance.json)。
 
 前序 none 显式电源候选已通过Windows19项，以及184的Linux源码30＋80项、

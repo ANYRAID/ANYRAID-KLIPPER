@@ -809,7 +809,7 @@
         "scope": "Read-only API corroboration of observed page actions. No authentication/state tokens recorded; simulated MCU only."
       },
       "rehomed": {
-        "at": "2026-10-12T13:40:49.820Z",
+        "at": "2026-10-12T13:40:49.82Z",
         "scene": "r34",
         "phase": "rehomed",
         "printer": {
@@ -1012,7 +1012,7 @@
     "Own documentation CI and develop -> master integration; other models last"
   ],
   "externalResetFollowUp": {
-    "status": "validated_candidate_pending_ci_and_integration",
+    "status": "validated_candidate_ci_passed_pending_integration_and_wider_mainsail",
     "candidateCommit": "81d019bfbec721ca837f80c23bbdddc12c7c9bff",
     "baselineManifestSha256": "cc312dc2c23dcdca94c44438c1503c1dde873da0943765062a3fe0254cbdf3a6",
     "performanceRegistrationFileSha256": "081bb6fb99f804a4b0e8dff8c56f425e4fcfbf9021bd072dbba9335662e3a669",
@@ -1100,7 +1100,7 @@
       "Bounded external process fault recovery passed on this same cd91 simulated product in Fluidd and Mainsail; historical R18/R19 preview/download and R39/R42 other workflows remain separate package evidence",
       "Service-info reacquire ratio2.62602209255 still exceeds original1.5 and remains open; this adapter action budget does not close it",
       "Original full-suite11 failures, G3, complete42/28 budgets, ARM64, actual root/sudo policy, physical safety/precision and real printing remain open",
-      "Current candidate commit CI, task->develop->master integration and broader same-package client acceptance still required; no deployment/publish/merge authorization implied"
+      "Head435 CI passed on merge13a65f; task->develop->master integration and broader same-package Mainsail acceptance still required; no deployment/publish/merge authorization implied"
     ],
     "candidate": {
       "manifestSha256": "cd91f2e3242a2cd392e8489f7026fd3cd730470ec8cf03d9113332546cfc67d3",
@@ -1309,6 +1309,138 @@
       "format": "manifest.members array of relative path,bytes,sha256; all regular files; no duplicates/traversal",
       "allMembersVerified": true,
       "sensitivityPatternFindings": 0
+    }
+  },
+  "mainsailA4FollowUp": {
+    "status": "partial_same_package_client_acceptance",
+    "sourceHead": "435938218e81a498dc590f734f3720e2015a9bf0",
+    "testedCiMerge": "13a65f031ee7138bb216892104a2b4c0630e9405",
+    "client": "Mainsail2.19.0 only by default; historical Fluidd evidence preserved",
+    "product": {
+      "manifestSha256": "cd91f2e3242a2cd392e8489f7026fd3cd730470ec8cf03d9113332546cfc67d3",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+      "productionNativeDependenciesRebuilt": false
+    },
+    "a4Scene": {
+      "status": "partial",
+      "limitMs": 900000,
+      "elapsedThroughCleanupVerificationMs": 872537,
+      "passes": [
+        "Real chooser upload",
+        "Visible single-square trajectory only",
+        "Test printer.cfg ASCII comment actual Save/reopen/strict bytes",
+        "Mainsail busy Add to Queue plus pause/resume",
+        "Long completed; queued short stayed paused without automatic start",
+        "Separate product/_client/queue explicit clearance; different short completed/history2/queue empty paused"
+      ],
+      "download": "terminal canceled, received0/total944, no landed file",
+      "twoLayers": "not demonstrated by byte slider or layer text",
+      "clearanceOwner": "Product queue page; not Mainsail native clearance UI"
+    },
+    "independentDownloadDiagnostics": [
+      {
+        "name": "download-loopback-once",
+        "status": "setup_failed_before_click",
+        "clicks": 0,
+        "elapsedThroughOwnedCleanupMs": 60323,
+        "limitMs": 60000,
+        "totalDeadlinePassed": false,
+        "precisionBug": "Windows ticks numeric JSON lost precision; exact string ticks/profile used for cleanup; original receipt within60s refers only1921ms driver"
+      },
+      {
+        "name": "download-loopback-ready-fix",
+        "status": "custom_cdp_allow_canceled",
+        "clicks": 1,
+        "receivedPeakBytes": 944,
+        "terminal": "canceled",
+        "landedFiles": 0,
+        "noNavigation": true,
+        "finalNoResidualVerificationMs": 22442
+      },
+      {
+        "name": "download-loopback-playwright-owner",
+        "status": "independent_default_owner_success",
+        "clicks": 1,
+        "failure": null,
+        "artifactAndSaveAs": {
+          "bytes": 944,
+          "sha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f"
+        },
+        "finalNoResidualVerificationMs": 28728,
+        "inference": "Supports tool download ownership configuration difference only; not a Mainsail product download pass"
+      }
+    ],
+    "narrowFollowUp": {
+      "status": "partial_no_terminal_menu_download_or_preview",
+      "limitMs": 600000,
+      "stopNewActionsMs": 480000,
+      "elapsedThroughCleanupVerificationMs": 591396,
+      "actualUploads": [
+        "944-byte download fixture",
+        "1000-byte distinct geometry synthetic preview-only fixture"
+      ],
+      "previewFixture": {
+        "sha256": "8a3e1d38d31cf50aadddddb135f985e51b19df9c3bd15fdce3400c7e94945fc9",
+        "layerEndsExclusive": [
+          844,
+          995
+        ],
+        "neverPrinted": true
+      },
+      "toolFailures": "NodeREPL reset/fonts screenshot timeout; incidental Start Job confirmations cancelled; original owned Edge exited; one approved same-scene reconstruction; hidden Download menuitem/offscreen drawer/actionability failures",
+      "printSubmitted": false,
+      "downloadTerminalReached": false,
+      "twoLayersPassed": false,
+      "cleanup": "CLOSE stdin closed; original watchdog SIGTERM at480021ms, root/gateway exit0 and remaining[], final Windows absent/ports[] before600s",
+      "actionabilityEvidence": "scenes/mainsail-download-preview-followup/actionability-review.md"
+    },
+    "boundaries": [
+      "Only JWT-backed true product gateway route; no trusted-network/TLS/refresh claim",
+      "PW1.62.1+private Edge default sandbox after child IAB unavailable; profiles/auth/session/cookie/headers excluded",
+      "No API mutation substituted for real UI; no product/native/dependency rebuild",
+      "Prior external SIGKILL page recovery evidence reused without rerun",
+      "Original failures and all older evidence archives retained unchanged",
+      "No new performance sample;2.62602209255 remains above unchanged1.5",
+      "Default Python entry/full replacement, historical local11/G3, full42/28, ARM64, privileged deployment, physical device/precision and normal integration/release remain open"
+    ],
+    "githubCi": {
+      "head": "435938218e81a498dc590f734f3720e2015a9bf0",
+      "testedMerge": "13a65f031ee7138bb216892104a2b4c0630e9405",
+      "ordinary": {
+        "tests": 5402,
+        "pass": 5402,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "threeWorkflowConclusions": "success",
+      "evidence": "ci/pr68-435-terminal-ci-audit.json"
+    },
+    "evidenceArchive": {
+      "path": "host/contracts/mainsail-a4-download-followup-evidence.tar.gz",
+      "bytes": 1279045,
+      "sha256": "c28a47d230ec93bddde37fa4b018b0a548bead5e04a6947a01d983bdef160229",
+      "members": 96,
+      "evidenceFiles": 95,
+      "manifest": "manifest.json",
+      "manifestSha256": "a5986fc127a91d6de5749f55c5b4d666a84c1a0e81f90142468af93c3240fd66",
+      "uniqueSafeRegularMembers": true,
+      "allMemberBytesAndHashesMatch": true,
+      "sensitivePatternHits": {
+        "privateKey": 0,
+        "githubToken": 0,
+        "jwt": 0,
+        "bearer": 0,
+        "cookieValue": 0
+      },
+      "excluded": [
+        "Entire edge-profile directories",
+        "auth.sqlite and other credential/session databases",
+        "HAR/cookie/header/session/login records",
+        "Private keys, environment contents",
+        "Unrelated old CI runs and old Fluidd scenes"
+      ]
     }
   }
 }

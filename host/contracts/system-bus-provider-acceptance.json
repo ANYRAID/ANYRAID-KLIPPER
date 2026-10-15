@@ -3295,7 +3295,7 @@
   },
   "currentCandidateBaseline": "4d9819229420268c9c08003ff70288481d398475",
   "ciFixtureFollowUp": {
-    "status": "linux_validated_test_fixture_candidate_pending_github_ci_and_integration",
+    "status": "github_exact_head_ci_passed_pending_normal_integration",
     "baseline": "8e28228562cfa5c7e39438469ec6631822d04fad",
     "testedMerge": "4fd6c30c34bec6d119a7b333d058960698de034a",
     "originalCi": {
@@ -3520,10 +3520,49 @@
     ],
     "clientPolicy": "Default Mainsail is the sole client acceptance target unless the user explicitly requests Fluidd. Historical Fluidd evidence and failures remain, without a mandatory dual-client gate.",
     "remainingGates": [
-      "Candidate exact-head GitHub CI, including actual runner cgroup observations; modeled scope/service comparison and two local30/30 suites do not prove the GitHub root cause or close original3 failures.",
+      "Exact-head435 CI passed on observed merge13a65f, including all3 former failing tests; original8e2 lacked cgroup and its root cause is not retroactively observed. Normal task->develop->master integration remains required.",
       "Service reacquire2.62602209255 remains above unchanged1.5. No new performance samples.",
       "Historical local11 failures and intermittent G3 are separate from original8e2 CI3; full42/28, true root/sudo deployment, ARM64, real devices/physical precision, normal integration, Python retirement and release remain open.",
       "Default Mainsail wider full same-package acceptance remains; do not require repeated Fluidd acceptance without a new user request."
-    ]
+    ],
+    "githubTerminal": {
+      "head": "435938218e81a498dc590f734f3720e2015a9bf0",
+      "testedMerge": "13a65f031ee7138bb216892104a2b4c0630e9405",
+      "run": 38746529926,
+      "checksJob": 116461536258,
+      "aggregateJob": 116473893635,
+      "conclusion": "success",
+      "node": "v26.12.0",
+      "tests": 5402,
+      "pass": 5402,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "testsDurationMs": 1354914.702197,
+      "previousThreeTestsPass": [
+        "2026-10-15T14:12:39.1812418Z ✔ default CLI factory installs over real HTTP from Node running under an old Python declaration and only a fresh target process acquires devices (89696.336168ms)",
+        "2026-10-15T14:15:34.1246280Z ✔ default installation consumer diagnoses none and refuses source account or extra environment facts before any helper effect (174943.011717ms)",
+        "2026-10-15T14:17:25.6739657Z ✔ a second device acquisition observes changed CLI attributes; close during the bounded read joins it before process release (111548.766481ms)"
+      ],
+      "actualCgroups": [
+        "0::/system.slice/hosted-compute-agent.service\n"
+      ],
+      "diagnosticSamples": 10,
+      "protocol": {
+        "corruptedStreamBytes": 36624,
+        "recoveredFrames": 661,
+        "exactClockComparisons": 10002
+      },
+      "linuxMcu": "completed successfully in same checks job",
+      "rootCauseBoundary": "Current GitHub runner actual service cgroup is observed and aligned fixture passes. Previous 8e2 run did not record its cgroup; do not retroactively claim direct observation.",
+      "remaining": "2.626 reacquire performance, historical local11/G3, full Mainsail gaps, full migration and normal integration remain open",
+      "evidenceArchive": "host/contracts/mainsail-a4-download-followup-evidence.tar.gz",
+      "evidenceMember": "ci/pr68-435-terminal-ci-audit.json",
+      "buildRun": 38746529915,
+      "motionRun": 38746529940,
+      "allThreeWorkflows": "completed_success",
+      "historyPreserved": true
+    }
   }
 }
