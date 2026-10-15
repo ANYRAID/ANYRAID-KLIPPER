@@ -2001,8 +2001,869 @@
     },
     "remaining": [
       "Full ordinary npm test11 failures remain:8 fresh compiled/native build failures (RustSIGSEGV/E0275/metadata panic and GCCLMDB ICE), unknown product-host early child exit, source-brake explicitSIGSEGV(G3), unknown thumbnail503disconnect; no repeat-green closure",
-      "Current batch exactcommitCI/develop-master integration, protocol-native/LinuxMCU/sanitizer new checks and Linux42/28 budgets not executed",
+      "be2 exact-head15CI passed on merge8bc80548; develop/master integration and release remain open. Original isolatedLinux11failures/G3 remain; no current unpublishednone exactcommitCI or original42/28 rerun.",
       "Supervisor installation-property extraction,none semantics,full Moonraker/Python/macros/G3/ARM64/real device acceptance remain open"
-    ]
+    ],
+    "committedHeadCi": {
+      "head": "be2dda7b589c9bddffec681d3ebaa780df01e995",
+      "mergeCheckout": "8bc80548",
+      "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "pr": 68,
+      "draft": true,
+      "merged": false,
+      "runs": {
+        "host": {
+          "id": 38641967943,
+          "conclusion": "success"
+        },
+        "build": {
+          "id": 38641968002,
+          "conclusion": "success"
+        },
+        "motion": {
+          "id": 38641967977,
+          "conclusion": "success"
+        }
+      },
+      "checks": {
+        "job": 116119453602,
+        "tests": 5354,
+        "pass": 5354,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 1059354.534483
+      },
+      "buildTests": {
+        "files": 37,
+        "cases": 239
+      },
+      "sanitizers": {
+        "ASAN": {
+          "rootTapSummaries": 153,
+          "tests": 1234,
+          "pass": 1234,
+          "fail": 0,
+          "job": 116119454172
+        },
+        "UBSAN": {
+          "job": 116119454353,
+          "rootTapSummaries": 153,
+          "tests": 1234,
+          "pass": 1234,
+          "fail": 0
+        }
+      },
+      "protocol": {
+        "corruptedStreamBytes": 36624,
+        "recoveredFrames": 661,
+        "exactClockComparisons": 10002,
+        "conclusion": "success"
+      },
+      "linuxMCU": "success",
+      "motionJobs": 10,
+      "aggregate": {
+        "job": 116127521230,
+        "conclusion": "success"
+      },
+      "scope": "Final15checks for publishedbe2 mergedcheckout only; parent independently read terminal rawlogs. Historical local11failures/G3 preserved; does notcover unpublishednone batch, hardware,develop/mastermerge or release."
+    }
+  },
+  "nonePowerFollowUp": {
+    "status": "isolated_linux_source_js_product_min269_and_narrow_performance_passed_pending_review_and_exact_head_ci",
+    "baseline": "be2dda7b589c9bddffec681d3ebaa780df01e995",
+    "scope": "Onlyexplicitnone power capability, realfactory borroweddeviceguard lifecycle and dedicatedunavailable503. Installationproperties/CLI/Supervisor automaticdiscovery remain separate; no removaloffixedsystemdinstallation proof.",
+    "implementation": {
+      "descriptor": {
+        "nonePower": {
+          "allowedActions": [
+            "reboot",
+            "shutdown"
+          ]
+        }
+      },
+      "factoryGuard": "machineDeviceGuard is borrowed from realcreateProcess resourceowner; must provideassertDeviceAvailable, never entersJSON/structuredClone; conflictingmachineControl/control/supervisorControl/bus and malformed/missingguard reject. Originalrelease receiver retained; controllerclose aborts/joins ownproof/commands withoutclosingguard.",
+      "processProof": "Actual currentprocess.pid and /proc/self/stat startTicks proved through realfactory Linux HTTP fixtures; class identity-change/cancellation unit cases also pass. No fullprocess scan or systemdunit requirement.",
+      "powerSelection": "Fixed executable names and argv through snapshots of launchPATH, no shell/sudo/interactivepassword. Existingusable systemctl chosen even when currentprocess notmanaged; ifabsent/unusable then bare reboot/poweroff/halt. Unlike upstreamHAS_SYSCTL shutil.which(mode=F_OK), implementation additionallyrequiresX_OK; nonexecutablefall-back actual Linuxfake fixture passed. Container fixedmarkers/cgroup/PID1 schedule proof, unavailableproof failsclosed.",
+      "outcome": "Childclose confirmedsuccess cannot be revoked by a laterabort; spawnedfailed/cancelled child close marksMachineActionUncertain. Aggregatecleanup retainsinterrupted and freshowner neverreplays.",
+      "lifecycleBoundary": "Factoryclose joinscontrol before processresource release; guardwrapper is notanindependentatomiclease or guaranteeagainst arbitraryexternalrelease after a finishedguard call. Actualdevice guard and existingtransport atomicexclusion remainrequired.",
+      "installationBoundary": "Explicitinstallation stillunit.service plusdata/systemd, deploymentdigest/physicalpath/journal/freshprocess proofs; none doesnotbypass359 fallback or claimSupervisor/systemdpropertyequivalence."
+    },
+    "sourceTestManifest": {
+      "base": "be2dda7b589c9bddffec681d3ebaa780df01e995",
+      "purpose": "Newnone explicit capability source/test isolatedLinuxvalidation; not prior11 Supervisor permission nor17 pushbatch",
+      "destination": "10.0.0.184:/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER",
+      "files": [
+        {
+          "path": "host/src/moonraker/machine-control.ts",
+          "bytes": 12683,
+          "sha256": "0b71268e1c4ccd0bcc1da6ddef4c2cfb4dca55c73e365b25136f3b5e32978f99",
+          "beforeSha256": "4c6518dd21f4c592d70d835787ade51d952ecc37d390006f8eab0f66edae38b8"
+        },
+        {
+          "path": "host/src/moonraker/machine-provider.ts",
+          "bytes": 8196,
+          "sha256": "be31f827b59b5223d80930350a90be51533df839ed8fd38a7cc5aeb08f3abd53",
+          "beforeSha256": "219bccb8c21417eda69f2466b85339afa9240db933e29fe53324500e6213f4f9"
+        },
+        {
+          "path": "host/src/moonraker/product-host-api.ts",
+          "bytes": 6915,
+          "sha256": "da3712a15d0eb43f2245a2950e57d94bc48ea4abcd2ed113d58537a28a88883f",
+          "beforeSha256": "88b3166fdab5a7ab429741f3a40f9781aa5ed2b3af957e36f2aac157392d812d"
+        },
+        {
+          "path": "host/src/moonraker/none-machine-control.ts",
+          "bytes": 9249,
+          "sha256": "c37648b009c014a5845d40162db221b615a1dc9b0a7599473ee56baec3fe7929",
+          "beforeSha256": null
+        },
+        {
+          "path": "host/src/runtime/native-product-machine.ts",
+          "bytes": 48496,
+          "sha256": "e05c90ce56658b0eb5ee68f68dbdf3d0dbc5af5561c5e210f51aed794118d877",
+          "beforeSha256": "f3263566906a702dc37fa7c1a99ddd0f3d95b02b61502d3b0e48c2bf48531257"
+        },
+        {
+          "path": "host/test/machine-provider.test.ts",
+          "bytes": 5758,
+          "sha256": "e114e6f05832f6d9e2b92e2301206ba4d9566571045ae9c98bc5a63e77ec74c7",
+          "beforeSha256": "d0d43212ebec317380e2e3192790907860e90e54c9b6b184dd61225a3e4826e3"
+        },
+        {
+          "path": "host/test/none-power-control.test.ts",
+          "bytes": 12645,
+          "sha256": "8b42c525f5612507a63a14fb325d370e0ebdb0677492ad594efae78555c8668c",
+          "beforeSha256": null
+        },
+        {
+          "path": "host/test/none-native-factory.test.ts",
+          "bytes": 12465,
+          "sha256": "3f88c14ed6313a4828a4d5a75a1815542cbf5d5a9fa1238dd1ef4684d65e3e43",
+          "beforeSha256": null
+        }
+      ],
+      "boundary": "Exactly8 source/test files; no docs/evidence sent, original72tree39 untouched, no deploy or actualsystem/power/devicecommand. Existing newtestPATH onlyfakeexecutables; all actualNode paths absolute."
+    },
+    "transfer": {
+      "sent": true,
+      "archive": "none-input.tar.gz",
+      "bytes": 28783,
+      "sha256": "d99bd93bd3004a4a9540aa77aadba0b6619a1070429ac66b15cc68961298dd43",
+      "destination": "10.0.0.184:/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER",
+      "approvalHistory": "Automaticreview rejected new8source/testSCP because prior11batchauthorization doesnotcover newcontents/destination. Directuser question pending; no workaround orsecondattempt.",
+      "authorization": {
+        "userText": "总是以10.0.0.184作为本项目的linux环境，总是允许在其上调试。",
+        "sourceUserMessage": "01a13ed0-a934-7e92-97cc-f375e09a5bb1",
+        "boundary": "Project source transfer and isolated debugging; no actualdevice/power/deploy/merge/push"
+      },
+      "beforeShaMatch": true,
+      "afterShaMatch": true,
+      "receipt": "linux/linux-transfer.json"
+    },
+    "windows": {
+      "node": "26.9.0 officialportable existingvalidatedruntime",
+      "firstTests": {
+        "file": "none-power-control.test.ts",
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 915.9727,
+        "log": "windows-none-first.log"
+      },
+      "affectedTests": {
+        "files": [
+          "none-power-control.test.ts",
+          "product-host-control.test.ts",
+          "product-host-api.test.ts"
+        ],
+        "tests": 19,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 1366.2459,
+        "log": "windows-control-api.log"
+      },
+      "typecheck": {
+        "exitCode": 0,
+        "command": [
+          "C:\\Devs\\Codex\\from-184\\.cache\\codex\\tmp\\anyraid-moonraker-composition-integration\\host\\node_modules\\@typescript\\typescript-win32-x64\\lib\\tsc.exe",
+          "-p",
+          "C:\\Devs\\Codex\\from-184\\.cache\\codex\\tmp\\anyraid-moonraker-composition-integration\\host\\tsconfig.json"
+        ],
+        "log": "windows-prefreeze-typecheck.log",
+        "sourceManifest": "none-input.json",
+        "boundary": "Receipt from actual command exit0; empty stdout is not itself successproof"
+      },
+      "firstTypeFailures": [
+        {
+          "exitCode": 1,
+          "diagnostics": [
+            "none-power-control.test.ts53 TS2345 fixture retirement return process too narrow forMachineControlPort",
+            "none-power-control.test.ts54 TS2345 fixture retirement return process too narrow forLinux/Supervisor"
+          ],
+          "boundary": "Testfixture type error only; no runtime tests before correction"
+        },
+        {
+          "exitCode": 1,
+          "log": "windows-typecheck-second-failed.log",
+          "codes": [
+            "TS2304",
+            "TS18046"
+          ],
+          "cause": "New explicitUnavailable assertion oldmachine-provider test lackedclassimport; corrected"
+        }
+      ],
+      "scope": "Windows unitfixtures injectidentity/container/probeIO. Registryinvoke is handlerchain, not actualHTTP. RealNodefakechildren andSQLite durableinterrupted/reopen verified. ActualLinuxfactory results separately recorded below."
+    },
+    "performance": {
+      "registration": {
+        "baseline": "be2dda7b589c9bddffec681d3ebaa780df01e995",
+        "baselineAPIOriginalGitSha256": "88b3166fdab5a7ab429741f3a40f9781aa5ed2b3af957e36f2aac157392d812d",
+        "ratioLimit": 1.5,
+        "thresholdSource": "Existing system-bus-provider-acceptance.json original42/28 policy, unchanged; new narrowworkloads below do not claim those originalfullbudgets",
+        "API": {
+          "routes": [
+            "/machine/services/start",
+            "/machine/services/stop",
+            "/machine/services/restart"
+          ],
+          "input": {
+            "service": "crowsnest"
+          },
+          "registry": "actual EndpointRegistry authorization+actual APIhandler, immediate injectedadmission",
+          "rounds": 3,
+          "order": [
+            "before-after",
+            "after-before",
+            "before-after"
+          ],
+          "warmupRequestsPerRouteVariant": 30000,
+          "samplesPerRouteVariant": 5,
+          "requestsPerSample": 30000,
+          "scope": "SameNode/machine; no HTTPtransport/durablewrites/retirement/CLI IO included; unsupported503 correctness measured by realHTTPfunctionalfixtures separately"
+        },
+        "defaultImport": {
+          "entry": "host/src/runtime/native-product-machine.js",
+          "before": "existing fresh724-file product with690JS verified againstbe2 source-equivalent inputs; freeze build-info f6b2dd80d00b56bd95bb7ff86e88d87615a5f845996faa9bc76f57e0afc230a1",
+          "after": "freshcurrentcompiled product; exactJS/native/dependencies identity frozen before sampling",
+          "freshChildrenPerVariant": 28,
+          "order": "alternating AB/BA, absoluteNode --no-experimental-strip-types; no CPU/JITchange",
+          "scope": "Cold defaultprocessfactory import cost only, not fullHTTPbootstrap/defaultD-Busdaemonstartup or original28bootbudget"
+        },
+        "power": "Fixturecold realfakeCLI latency report absolute ms and individual sample; never printerperformance",
+        "motion": "Before sampling verify111native/math/motion/kinematics/gcode inputs+package/lock againstbe2; sourceonlyproof, historicalG3 remainsopen"
+      },
+      "registrationSha256": "baf96942e3780cfb1bcc9a3a2b101862f47e5f5fd856cc1f1c47f60b87fdfd0a",
+      "baselineIdentity": {
+        "head": "be2dda7b589c9bddffec681d3ebaa780df01e995",
+        "originalGitSha256": "88b3166fdab5a7ab429741f3a40f9781aa5ed2b3af957e36f2aac157392d812d",
+        "relocatedModuleSha256": "6af2ad7e5974bed105760b1313de6e38572286eea3ae2607af8718b7a37cfd83",
+        "baselineDelta": "Importspecifiers only; handler statements byte-equivalent after reversing relocations; sharedcurrentregistry and injectedadmission apply both variants",
+        "benchmarkSha256": "cfdc4d47973596a30a49f4f1bf5067cb8282477d50f7d7a7aceb6a63a368d98d",
+        "performancePreRegistrationSha256": "baf96942e3780cfb1bcc9a3a2b101862f47e5f5fd856cc1f1c47f60b87fdfd0a"
+      },
+      "API": {
+        "node": "v26.9.0",
+        "platform": "win32",
+        "beforeHead": "be2dda7b589c9bddffec681d3ebaa780df01e995",
+        "beforeSourceSha256": "6af2ad7e5974bed105760b1313de6e38572286eea3ae2607af8718b7a37cfd83",
+        "afterSourceSha256": "da3712a15d0eb43f2245a2950e57d94bc48ea4abcd2ed113d58537a28a88883f",
+        "iterations": 30000,
+        "warmup": 1,
+        "retained": 5,
+        "controls": [
+          {
+            "pair": 0,
+            "route": "/machine/services/restart",
+            "variant": 0,
+            "samples": [
+              24.0334,
+              23.820899999999995,
+              24.15439999999998,
+              22.507000000000005,
+              22.388599999999997
+            ],
+            "medianMs": 23.820899999999995,
+            "microsecondsPerRequest": 0.7940299999999998
+          },
+          {
+            "pair": 0,
+            "route": "/machine/services/restart",
+            "variant": 1,
+            "samples": [
+              23.103700000000003,
+              23.668799999999976,
+              28.928200000000004,
+              21.422200000000032,
+              21.683400000000006
+            ],
+            "medianMs": 23.103700000000003,
+            "microsecondsPerRequest": 0.7701233333333335
+          },
+          {
+            "pair": 0,
+            "route": "/machine/services/start",
+            "variant": 0,
+            "samples": [
+              30.463899999999967,
+              26.891700000000014,
+              22.02589999999998,
+              21.558700000000044,
+              21.0865
+            ],
+            "medianMs": 22.02589999999998,
+            "microsecondsPerRequest": 0.7341966666666659
+          },
+          {
+            "pair": 0,
+            "route": "/machine/services/start",
+            "variant": 1,
+            "samples": [
+              22.26520000000005,
+              29.975399999999922,
+              25.256899999999973,
+              22.334699999999998,
+              22.547300000000064
+            ],
+            "medianMs": 22.547300000000064,
+            "microsecondsPerRequest": 0.7515766666666688
+          },
+          {
+            "pair": 0,
+            "route": "/machine/services/stop",
+            "variant": 0,
+            "samples": [
+              23.148199999999974,
+              23.08960000000002,
+              23.058400000000006,
+              25.813999999999965,
+              23.646499999999946
+            ],
+            "medianMs": 23.148199999999974,
+            "microsecondsPerRequest": 0.7716066666666659
+          },
+          {
+            "pair": 0,
+            "route": "/machine/services/stop",
+            "variant": 1,
+            "samples": [
+              21.76490000000001,
+              23.533900000000017,
+              21.59450000000004,
+              22.148500000000013,
+              21.638400000000047
+            ],
+            "medianMs": 21.76490000000001,
+            "microsecondsPerRequest": 0.7254966666666671
+          },
+          {
+            "pair": 1,
+            "route": "/machine/services/restart",
+            "variant": 1,
+            "samples": [
+              25.02150000000006,
+              22.108099999999922,
+              21.547599999999875,
+              21.3141999999998,
+              23.209499999999935
+            ],
+            "medianMs": 22.108099999999922,
+            "microsecondsPerRequest": 0.736936666666664
+          },
+          {
+            "pair": 1,
+            "route": "/machine/services/restart",
+            "variant": 0,
+            "samples": [
+              21.299000000000206,
+              23.06360000000018,
+              21.179399999999987,
+              21.159400000000005,
+              21.2974999999999
+            ],
+            "medianMs": 21.2974999999999,
+            "microsecondsPerRequest": 0.7099166666666633
+          },
+          {
+            "pair": 1,
+            "route": "/machine/services/start",
+            "variant": 1,
+            "samples": [
+              21.318199999999933,
+              21.462600000000066,
+              21.58719999999994,
+              21.531200000000126,
+              21.434499999999844
+            ],
+            "medianMs": 21.462600000000066,
+            "microsecondsPerRequest": 0.7154200000000022
+          },
+          {
+            "pair": 1,
+            "route": "/machine/services/start",
+            "variant": 0,
+            "samples": [
+              21.105400000000145,
+              21.25649999999996,
+              21.000300000000152,
+              21.071199999999862,
+              20.93230000000017
+            ],
+            "medianMs": 21.071199999999862,
+            "microsecondsPerRequest": 0.7023733333333287
+          },
+          {
+            "pair": 1,
+            "route": "/machine/services/stop",
+            "variant": 1,
+            "samples": [
+              22.027700000000095,
+              21.5150000000001,
+              21.626600000000053,
+              21.68250000000012,
+              21.406900000000178
+            ],
+            "medianMs": 21.626600000000053,
+            "microsecondsPerRequest": 0.7208866666666685
+          },
+          {
+            "pair": 1,
+            "route": "/machine/services/stop",
+            "variant": 0,
+            "samples": [
+              22.075599999999895,
+              21.102100000000064,
+              20.219700000000103,
+              24.916200000000117,
+              26.104700000000093
+            ],
+            "medianMs": 22.075599999999895,
+            "microsecondsPerRequest": 0.7358533333333299
+          },
+          {
+            "pair": 2,
+            "route": "/machine/services/restart",
+            "variant": 0,
+            "samples": [
+              28.940399999999954,
+              19.81100000000015,
+              19.889699999999948,
+              19.084499999999935,
+              19.116899999999987
+            ],
+            "medianMs": 19.81100000000015,
+            "microsecondsPerRequest": 0.6603666666666717
+          },
+          {
+            "pair": 2,
+            "route": "/machine/services/restart",
+            "variant": 1,
+            "samples": [
+              20.28800000000001,
+              24.684799999999996,
+              19.74279999999999,
+              19.952200000000175,
+              19.404899999999998
+            ],
+            "medianMs": 19.952200000000175,
+            "microsecondsPerRequest": 0.6650733333333392
+          },
+          {
+            "pair": 2,
+            "route": "/machine/services/start",
+            "variant": 0,
+            "samples": [
+              19.04340000000002,
+              19.425000000000182,
+              19.045399999999972,
+              19.54170000000022,
+              20.02449999999999
+            ],
+            "medianMs": 19.425000000000182,
+            "microsecondsPerRequest": 0.6475000000000061
+          },
+          {
+            "pair": 2,
+            "route": "/machine/services/start",
+            "variant": 1,
+            "samples": [
+              19.322200000000066,
+              19.12559999999985,
+              19.107700000000023,
+              19.662000000000262,
+              20.302200000000084
+            ],
+            "medianMs": 19.322200000000066,
+            "microsecondsPerRequest": 0.6440733333333355
+          },
+          {
+            "pair": 2,
+            "route": "/machine/services/stop",
+            "variant": 0,
+            "samples": [
+              27.566899999999805,
+              19.602600000000166,
+              19.560199999999895,
+              20.040799999999763,
+              19.36369999999988
+            ],
+            "medianMs": 19.602600000000166,
+            "microsecondsPerRequest": 0.6534200000000056
+          },
+          {
+            "pair": 2,
+            "route": "/machine/services/stop",
+            "variant": 1,
+            "samples": [
+              19.14150000000018,
+              19.45609999999988,
+              20.891299999999774,
+              27.722999999999956,
+              19.349499999999807
+            ],
+            "medianMs": 19.45609999999988,
+            "microsecondsPerRequest": 0.6485366666666627
+          }
+        ],
+        "comparisons": [
+          {
+            "pair": 0,
+            "route": "/machine/services/restart",
+            "beforeMs": 23.820899999999995,
+            "afterMs": 23.103700000000003,
+            "ratio": 0.9698919856092763,
+            "limit": 1.5,
+            "pass": true
+          },
+          {
+            "pair": 0,
+            "route": "/machine/services/start",
+            "beforeMs": 22.02589999999998,
+            "afterMs": 22.547300000000064,
+            "ratio": 1.023672131445257,
+            "limit": 1.5,
+            "pass": true
+          },
+          {
+            "pair": 0,
+            "route": "/machine/services/stop",
+            "beforeMs": 23.148199999999974,
+            "afterMs": 21.76490000000001,
+            "ratio": 0.9402415738588761,
+            "limit": 1.5,
+            "pass": true
+          },
+          {
+            "pair": 1,
+            "route": "/machine/services/restart",
+            "beforeMs": 21.2974999999999,
+            "afterMs": 22.108099999999922,
+            "ratio": 1.0380608052588345,
+            "limit": 1.5,
+            "pass": true
+          },
+          {
+            "pair": 1,
+            "route": "/machine/services/start",
+            "beforeMs": 21.071199999999862,
+            "afterMs": 21.462600000000066,
+            "ratio": 1.018575116747039,
+            "limit": 1.5,
+            "pass": true
+          },
+          {
+            "pair": 1,
+            "route": "/machine/services/stop",
+            "beforeMs": 22.075599999999895,
+            "afterMs": 21.626600000000053,
+            "ratio": 0.9796608019714144,
+            "limit": 1.5,
+            "pass": true
+          },
+          {
+            "pair": 2,
+            "route": "/machine/services/restart",
+            "beforeMs": 19.81100000000015,
+            "afterMs": 19.952200000000175,
+            "ratio": 1.0071273534904863,
+            "limit": 1.5,
+            "pass": true
+          },
+          {
+            "pair": 2,
+            "route": "/machine/services/start",
+            "beforeMs": 19.425000000000182,
+            "afterMs": 19.322200000000066,
+            "ratio": 0.9947078507078448,
+            "limit": 1.5,
+            "pass": true
+          },
+          {
+            "pair": 2,
+            "route": "/machine/services/stop",
+            "beforeMs": 19.602600000000166,
+            "afterMs": 19.45609999999988,
+            "ratio": 0.9925265015865097,
+            "limit": 1.5,
+            "pass": true
+          }
+        ],
+        "maximumRatio": 1.0380608052588345,
+        "authorizations": 3240000,
+        "admissions": 3240000,
+        "scope": "Same-machine Windows Node26.9 before/after EndpointRegistry authorization and actual product service handler parameter validation with injected immediate admission. Excludes HTTP transport, durable writes, process retirement and CLI IO. Preregistered AB/BA/AB9comparisons,1warmup+5retainedx30000 perroute/variant/pair; originalbe2 handler only importspecifiers relocated. No Linux/defaultcoldimport/full42/28 or physicalclaim."
+      },
+      "observationBoundary": "Only Windows EndpointRegistry/actualhandler+immediateinjectedcontrol,3.24millioncalls,9ratios<=1.5,max1.0380608. Baseline/hashpreparation command initiallyyielded before samplerlaunch; exactbackgroundoverlap notrecorded, noisolated-loadclaim. Actualdefaultfactoryimport,CLIabsolute latency,Linuxoriginal42/28 notmeasured."
+    },
+    "unchangedInputs": {
+      "evidence": "none-unchanged-motion-inputs.json",
+      "productionFiles": 111,
+      "packageAndLock": 2,
+      "allByteEqualBe2": true,
+      "scope": "Sourcebytes only; doesnotprovefreshnumericalruntime/physicalprecision orcloseG3."
+    },
+    "linux": {
+      "node": "26.11.1",
+      "minimumNode": "26.9.0 official SHA-verified task-only extraction",
+      "typecheck": {
+        "command": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+          "scripts/run-typescript.ts",
+          "-p",
+          "tsconfig.json"
+        ],
+        "cwd": "/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER/host",
+        "pid": 307482,
+        "exitCode": 0,
+        "elapsedSeconds": 3.2987319490057416,
+        "log": "/home/dek02/.codex/worktrees/supervisor-group-compat/evidence/none/linux-typecheck.log"
+      },
+      "minimumTypecheck": {
+        "command": [
+          "/home/dek02/.codex/worktrees/supervisor-group-compat/node26.9/node-v26.9.0-linux-x64/bin/node",
+          "scripts/run-typescript.ts",
+          "-p",
+          "tsconfig.json"
+        ],
+        "cwd": "/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER/host",
+        "pid": 310676,
+        "exitCode": 0,
+        "elapsedSeconds": 3.1964596770121716,
+        "strictNoTS": false
+      },
+      "testsRun": true,
+      "independentJavaScriptRun": true,
+      "actualFactoryHTTPRun": true,
+      "minimum26_9Run": true,
+      "statistics": {
+        "linux-source-first": {
+          "tests": 30,
+          "pass": 30,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "durationMs": 8628.502792
+        },
+        "linux-source-regression": {
+          "tests": 80,
+          "pass": 80,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "durationMs": 51503.431431
+        },
+        "linux-independent-js": {
+          "tests": 110,
+          "pass": 110,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "durationMs": 53717.322986
+        },
+        "linux-actual-product": {
+          "tests": 110,
+          "pass": 110,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "durationMs": 53698.513552
+        },
+        "linux-min269-source": {
+          "tests": 110,
+          "pass": 110,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "durationMs": 60047.781359
+        },
+        "linux-min269-actual-product": {
+          "tests": 110,
+          "pass": 110,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "durationMs": 53675.42703
+        }
+      },
+      "configuredServer": "Original14 HTTP/WS cases actually execute within each13-file group; no module preflight masquerades as pass",
+      "factory": "ActualHTTP loopback,current/proc,originalSQLite byrequest_id succeeded/interrupted reopen,7scenarios withonlyfakepower/simulatedMCU; no actualOS/device",
+      "product": {
+        "product": "/home/dek02/.codex/worktrees/supervisor-group-compat/none-product",
+        "files": 725,
+        "javaScriptFiles": 691,
+        "hostSrcJavaScript": 684,
+        "independentJSHashMatch": true,
+        "actualRuntimeJSHashMatch": true,
+        "manifestSha256": "85e233de1fd8e90e72fe9324e9b57cea984646ec731f26f5641761ad17349bd8",
+        "native": "Reused frozen prior product after84sources/12outputs identity verification; not rebuilt",
+        "dependencies": "Copied byte-identical independently installed prior locked production dependencies; no fresh install or developmentTS dependencies",
+        "fixtureSupport": {
+          "assets": "from current none-product",
+          "native": "frozen reused outputs",
+          "pty.c": "d0be1baa4217068c6dd1918035739a436cc77f241cdcee045043e60a8575372e"
+        },
+        "boundary": "Fresh standard product TS emit; all runtimeJS identical strict independent compiler output. Test JS/helpers emitted independently; no TS file loading."
+      },
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+      "nativeReuse": {
+        "sources": 84,
+        "outputs": 12,
+        "sourceManifestSha256": "9a7b975087e78c80ee7aa13f390b2ef069cf28e61c16e6efb74396a7045955ec",
+        "origin": "Prior Supervisor isolated standard product build at51f583ae+11source equivalentbe2, CPU0/Cargo jobs1",
+        "boundary": "84 source input hashes and12 outputs match current; reused, not rebuilt for none"
+      },
+      "minimumRuntime": {
+        "url": "https://nodejs.org/dist/v26.9.0/node-v26.9.0-linux-x64.tar.xz",
+        "checksumsUrl": "https://nodejs.org/dist/v26.9.0/SHASUMS256.txt",
+        "archiveSha256": "c6ecd8efc1c1d395265891675319da7a7b3785c6be174bd78933cf4f057624d1",
+        "bytes": 33857948,
+        "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+        "node": "/home/dek02/.codex/worktrees/supervisor-group-compat/node26.9/node-v26.9.0-linux-x64/bin/node",
+        "version": "v26.9.0",
+        "boundary": "Official TLS distribution verified against official SHA; user task-only extraction, no system install/PATH change"
+      },
+      "whitespace": {
+        "command": [
+          "/home/dek02/.codex/worktrees/supervisor-group-compat/node26.9/node-v26.9.0-linux-x64/bin/node",
+          "bench/whitespace.ts"
+        ],
+        "cwd": "/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER/host",
+        "pid": 312805,
+        "exitCode": 0,
+        "elapsedSeconds": 35.81221902600373,
+        "strictNoTS": false
+      },
+      "finalState": "linux/linux-final-state.json",
+      "residualTaskNodeProcesses": [],
+      "preparationFailures": {
+        "events": [
+          {
+            "phase": "read-only beforeSHA precheck",
+            "error": "SyntaxError: unterminated string literal (detected at line3)",
+            "effect": "No source write or test; corrected manifest base64 representation then beforeSHA matched8/8"
+          },
+          {
+            "phase": "performance start guard",
+            "error": "AssertionError: Wait for required checks to finish",
+            "effect": "Whitespace check still active; no sampling child started. First sampling only after whitespace completion."
+          }
+        ],
+        "boundary": "Preparation errors retained; no runtime/test failure in new none Linux batch"
+      },
+      "boundary": "No full5354 rerun or newexactheadCI, no freshnative rebuild/npm install, no original42/28 fullbudgets or realdevice claim. Original11failures andG3 retained.",
+      "artifactIdentities": "linux/linux-final-artifact-identities.json",
+      "productManifest": "linux/linux-product-build-info.json",
+      "nativeManifest": "linux/linux-product-native-build-info.json",
+      "denyTypeScript": "linux/deny-ts.mjs"
+    },
+    "remaining": [
+      "Parent finalcandidate review, currentexactheadCI and task→develop→master integration/release; no commit or push yet",
+      "Historical isolatedLinux11failures/G3 remain unresolved; be2greenCI and oncegdb18pass do not establish cause or closure",
+      "FullMoonraker/Python retirement, originalfull42/28 affected release gates and hardware/privileged deployment acceptance remain separate",
+      "Provider service_info/installationattribute normalization remains next consumer task; do not forgeSupervisor properties as systemd identity or bypassfixeddeploymentproof"
+    ],
+    "archive": {
+      "path": "host/contracts/none-power-evidence.tar.gz",
+      "bytes": 179886,
+      "sha256": "dad15533aedfd71a759e52fd069b9d4170d148641a29281043e48fe5cece853f",
+      "members": 85,
+      "evidenceFiles": 84,
+      "manifest": "none-evidence-manifest.json",
+      "manifestSha256": "95c6bd935157fb1b3f3741005fd6a1d22c4445937cf00ececd162e19f48b7338",
+      "verifiedBytesAndHashes": true,
+      "scope": "Windows and isolatedLinux source/strictJS/actualproduct/min269/narrowperformance; frozen8 source unchanged, historicalfirstfailures/G3 retained; no newCI/physical/production proof"
+    },
+    "linuxPerformance": {
+      "preRegistrationSha256": "baf96942e3780cfb1bcc9a3a2b101862f47e5f5fd856cc1f1c47f60b87fdfd0a",
+      "preSampling": "linux/linux-performance-pre-sampling.json",
+      "API": {
+        "evidence": "linux/linux-api-handler-performance.json",
+        "comparisons": 9,
+        "maximumRatio": 1.0852268199269528,
+        "limit": 1.5,
+        "authorizations": 3240000,
+        "admissions": 3240000,
+        "scope": "Same-machine Linux Node26.9 compiled JS before/after EndpointRegistry authorization and actual product service handler parameter validation with injected immediate admission. Excludes HTTP transport, durable writes, process retirement and CLI IO. Preregistered AB/BA/AB9comparisons,1warmup+5retainedx30000 perroute/variant/pair; originalbe2-equivalent compiled old724 product handler, current shared registry/control for both variants. No defaultcoldimport/full42/28 or physicalclaim."
+      },
+      "defaultImport": {
+        "evidence": "linux/linux-default-import-performance.json",
+        "childrenPerVariant": 28,
+        "mediansMs": [
+          190.19886,
+          190.773607
+        ],
+        "ratio": 1.0030218214767428,
+        "limit": 1.5,
+        "pass": true,
+        "scope": "28 fresh children per variant AB/BA. Cold module import only, not full bootstrap/HTTP/D-Bus/printing or original28 startup budget."
+      },
+      "fakeCLI": {
+        "node": "v26.9.0",
+        "commands": [
+          {
+            "binary": "systemctl",
+            "args": [
+              "--no-pager",
+              "--no-ask-password",
+              "--no-block",
+              "halt"
+            ],
+            "elapsedMs": 22.307447000001048
+          },
+          {
+            "binary": "reboot",
+            "args": [],
+            "elapsedMs": 24.80030699999952
+          },
+          {
+            "binary": "poweroff",
+            "args": [],
+            "elapsedMs": 22.025345000000016
+          },
+          {
+            "binary": "halt",
+            "args": [],
+            "elapsedMs": 23.16779300000053
+          }
+        ],
+        "scope": "One child close per fixed fake CLI name, PATH contains only four fake executables and absolute Node shebangs. Absolute cold command helper cost, no guard/retirement/HTTP/OS action and no speed claim."
+      },
+      "identitiesUnchanged": true,
+      "firstSamplingReceipt": "linux/linux-performance.json",
+      "boundary": "Narrow preregistered workloads only; no full42/28, printing or physical precision evidence. API current shared registry/control and compiledbe2-equivalent baseline, immediateinjectedadmission."
+    }
   }
 }

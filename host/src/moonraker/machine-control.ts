@@ -32,6 +32,8 @@ export class MachineControlError extends Error {
  readonly code:'unavailable'|'not_allowed'|'busy'|'identity'|'container'|'unit'|'command';
  constructor(code:MachineControlError['code'],message:string){super(message);this.code=code;}
 }
+/** Unsupported none-provider service actions are unavailable, not an allowlist rejection. */
+export class NoneProviderUnavailable extends MachineControlError {constructor(){super('unavailable','The none provider exposes reboot and shutdown only; service actions are unavailable');}}
 /** A submitted external action has no confirmed result; it must not replay. */
 export class MachineActionUncertain extends MachineControlError {readonly outcome='unknown';constructor(message:string,cause?:unknown){super('command',message);this.cause=cause;}}
 async function readCgroup(signal:AbortSignal):Promise<string>{

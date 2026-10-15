@@ -1,5 +1,62 @@
 # Node 主机启动与机器集成
 
+## Linux 开发与调试环境
+
+本项目固定使用 `10.0.0.184`，用户持续允许在该机传输项目源码和调试。
+当前 none／Supervisor 任务隔离目录为
+`/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER`。
+每项工作先核对分支、未提交状态及覆盖前哈希；后续任务新建独立工作树，
+保留旧任务修改。普通用户执行，无系统安装或权限变更；需要实际系统／
+设备操作、部署或发布时仍按对应流程与授权范围处理。电源验收只允许
+受控 PATH 内的假可执行文件，Node 使用绝对路径，设备使用模拟 MCU。
+
+## none 显式电源候选（2026-10-15，未发布）
+
+配置 `provider:none` 自身不授予系统控制权限，默认保留空服务目录和零命令。
+可信进程工厂另声明 `machineProvider.nonePower.allowedActions`，仅允许
+`reboot`／`shutdown`，并从其真实资源所有者返回 `machineDeviceGuard`。
+guard 必须有有效 `assertDeviceAvailable`，缺失／畸形／与既有控制冲突
+均拒绝；函数不进入 JSON 配置克隆。工厂保留原 release 的 this，先等待
+控制器在途操作收口再释放资源。guard 仅借用，控制器不调用其 close。
+这不替代实际 transport 原子独占，也不是任意外部 release 竞态的独立 lease。
+
+新控制器从实际 `/proc/self/stat` 核对当前 PID 和 startTicks，无 systemd
+unit 身份要求。仅电源调用使用固定名字／参数和启动 PATH 快照，不使用
+shell／交互 sudo。可执行 systemctl 存在时仍优先选它，即使当前进程
+未受其托管；缺失或不可执行时选择 bare reboot／poweroff／halt。
+固定上游探测传 F_OK；这里额外要求 X_OK，不能声称完全相同。
+容器标记／cgroup／PID1 schedule 无法证明时阻断。实际 child close
+确认成功后不因晚取消撤销 ack；已启动后失败／取消保留 unknown 收据。
+none 服务／server restart 不可用503在耐久准入前拒绝；其他 provider
+权限范围拒绝仍403。旧 none.control 的显式 systemd 身份边界保留。
+
+显式 installation 仍是固定 `.service`／data/systemd 部署契约；部署摘要、
+物理路径、安装 journal 和 fresh 进程证明继续强制，不能借 none 绕过。
+Windows Node26.9新8项＋原控制／API11项19／19和锁定TS7类型通过；
+两次首次类型失败保留。新增8文件的历史SCP因旧授权范围不足被拒，收到
+项目184长期调试授权后正常审批传输成功，覆盖前与落地SHA全部一致。
+Linux26.11.1标准类型通过，源码首轮5文件30／30及旧8文件80／80分次通过；
+独立JS和实际产品13文件各110／110。最低26.9标准类型及源码／产品各110／110，
+fail／cancel／skip／todo均为零，原configured-server14项每轮实际执行。
+这些包含真实loopback HTTP、默认/proc当前进程身份和原SQLite按request_id重开，
+三种假systemctl选择分支、guard拒绝／缺失／畸形／冲突、release接收者、
+close等待和unknown不重放均验证。设备为模拟MCU，PATH仅含四个假电源程序。
+
+标准buildProductHost API新发射725项清单（build-info本身另计），其中691个
+JS＝host/src684＋辅助7，与严格独立TS7发射逐SHA相等；测试父子禁止TS加载。
+原生12输出来自前序受控产品，84来源输入及输出摘要对当前逐项一致后复用，
+本批没有重建原生。生产依赖从原锁定独立安装按字节复制，新旧依赖摘要相等，
+不声称本批重新npm安装。运行时、版本、构建和依赖摘要见既有验收及新none归档。
+
+预注册同机Node26.9窄handler9比较最高1.08523倍；其实际产品API处理链使用
+即时注入准入，不含HTTP／SQLite／退役／CLI。默认工厂模块冷导入每版28个
+新进程，190.198860→190.773607ms，1.00302倍，沿用1.5门限；不代替完整
+原42／28预算或完整服务启动。四个真实fake CLI child close为22.025–24.800ms，
+仅绝对成本，不是打印速度。111生产输入＋package/lock对be2逐字节一致，
+不代表新运动运行时或物理精度。原11失败／G3／新头CI／集成和实机仍开放。
+原准备脚本SyntaxError与性能启动保护等待错误保留，均未启动失败测试／采样。
+终态任务Node残留为零，源码8项冻结未变，未提交推送或部署。
+
 ## Supervisor 分组进程候选（2026-10-15）
 
 `supervisord_cli` 现在按完整 `group:name` 读取和控制进程，状态目录、

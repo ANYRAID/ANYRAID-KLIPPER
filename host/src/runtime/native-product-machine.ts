@@ -1,3 +1,4 @@
+import type {MachineDeviceGuard} from '../moonraker/none-machine-control.ts';
 import {expandConfigurationUserPath,resolveConfigurationPath} from '../moonraker/config-path.ts';
 import {ProcessLogs,validateProcessLogging,type ProcessLoggingOptions} from '../moonraker/process-logs.ts';
 import {loadWelcomeSource} from '../moonraker/welcome-application.ts';
@@ -69,6 +70,8 @@ export interface NativeProductProcessResources {
  diskImportContext?:NativeUfpDiskImportOptions['context'];
  /** Optional writable capability; host owns final cancellation and joins. */
  machineControl?:MachineControlPort;
+ /** Borrowed actual device guard; process release owns its lifetime. Not JSON configuration. */
+ machineDeviceGuard?:MachineDeviceGuard;
  /** Runs after final server closure, or failed pre-server startup. Managed
   * server components have transferred to the server; release other resources
   * and close any components that never transferred. Must be idempotent. */
@@ -281,8 +284,8 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    if('processLogs' in processResources.server)throw new TypeError('Native process owns logging');
    const providerReader=new ConfigurationReader(await loadConfiguration(config.moonrakerConfig));readMachineProvider(providerReader);
    if(processResources.server.systemServices?.source&&processOptions!.machineProvider)throw new TypeError('Explicit service source conflicts with machine provider capabilities');
-   if(processResources.machineControl&&(processOptions!.machineProvider?.control||processOptions!.machineProvider?.supervisorControl))throw new TypeError('Explicit machine control conflicts with provider control descriptor');
-   if(!processResources.server.systemServices?.source){machineProvider=new MachineSystemProvider(providerReader,processOptions!.machineProvider,true);processResources.server={...processResources.server,systemServices:machineProvider.services};if(machineProvider.control)processResources.machineControl=machineProvider.control;}
+   if(processResources.machineControl&&(processOptions!.machineProvider?.control||processOptions!.machineProvider?.supervisorControl||processOptions!.machineProvider?.nonePower))throw new TypeError('Explicit machine control conflicts with provider control descriptor');
+   if(!processResources.server.systemServices?.source){let guardReleased=false;const guard=processResources.machineDeviceGuard,guardOwner=processResources;if(guard!==undefined&&(!guard||typeof guard.assertDeviceAvailable!=='function'))throw new TypeError('Invalid borrowed machine device guard');if(guard){const release=guardOwner.release;processResources.release=async()=>{guardReleased=true;await release.call(guardOwner);};}const deviceGuard=guard?{async assertDeviceAvailable(signal:AbortSignal){if(guardReleased)throw new ApiError(503,'Borrowed device guard is released');await guard.assertDeviceAvailable(signal);signal.throwIfAborted();if(guardReleased)throw new ApiError(503,'Borrowed device guard retired during proof');}}:undefined;machineProvider=new MachineSystemProvider(providerReader,processOptions!.machineProvider,true,{deviceGuard});processResources.server={...processResources.server,systemServices:machineProvider.services};if(machineProvider.control)processResources.machineControl=machineProvider.control;}
    await machineProvider?.prepare(s);s.throwIfAborted();
    processResources.server={...processResources.server,...machineProvider?.warnings.length?{information:{...processResources.server.information,warnings:[...processResources.server.information.warnings,...machineProvider.warnings]}}:{},templates:{dataPath:processOptions!.dataPath}};
    if(snapshot.diskImports&&typeof processResources.diskImportContext!=='function')throw new TypeError('Disk imports require the current process filesystem policy');

@@ -2,7 +2,7 @@ import {validServiceName} from './service-name.ts';
 import {RestartAdmissionError,type ProductHostControl} from '../runtime/product-host-control.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 import {ApiError} from './rpc.ts';
-import {MachineControlError,type MachineAction} from './machine-control.ts';
+import {NoneProviderUnavailable,MachineControlError,type MachineAction} from './machine-control.ts';
 import {parseCommand} from '../gcode/parser.ts';
 /** Explicit product operation, separate from legacy Klippy restart semantics.
  * EndpointRegistry authorizes every status and mutation before this handler. */
@@ -27,7 +27,7 @@ export function registerProductHostControl(registry:EndpointRegistry,control:Pro
  const machine=(endpoint:string,action:(params:Record<string,unknown>)=>MachineAction)=>registry.register({endpoint,methods:['POST'],transports:['http','websocket']},async(params,_verb,context)=>{
   const request=action(params);if(!context.afterResponse)throw new ApiError(503,'Response handoff is unavailable');
   try{await control.requestMachineAction(request,context.nativeGenerationSignal,context.nativeGenerationRetiredAtAdmission,callback=>context.afterResponse!(callback));return 'ok';}
-  catch(error){throw new ApiError(error instanceof RestartAdmissionError?error.status:error instanceof MachineControlError&&error.code==='not_allowed'?403:control.status.storage_failed?503:409,error instanceof Error?error.message:'Machine action rejected');}
+  catch(error){throw new ApiError(error instanceof RestartAdmissionError?error.status:error instanceof NoneProviderUnavailable?503:error instanceof MachineControlError&&error.code==='not_allowed'?403:control.status.storage_failed?503:409,error instanceof Error?error.message:'Machine action rejected');}
  });
  const serviceActions=(['start','stop','restart'] as const).map(action=>machine('/machine/services/'+action,params=>{
   if(Object.keys(params).length!==1||typeof params.service!=='string'||!validServiceName(params.service))throw new ApiError(400,'Expected an allowed service name');return {kind:'service',action,service:params.service};

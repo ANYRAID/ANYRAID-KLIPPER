@@ -28,6 +28,20 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 新进程不重放；备份换代先释放首轮真实 socket。默认入口的软件与模拟验证、
 其他 provider 的兼容边界见[共享总线验收](host/contracts/system-bus-provider-acceptance.json)
 和[启动装配](docs/Node_Host_Startup.md#共享-d-bus-进程所有者)。
+本项目固定使用 `10.0.0.184` 作为 Linux 开发与调试环境，用户持续允许
+在该机隔离调试及传输本项目所需源码。当前任务专用工作树为
+`/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER`；
+后续任务继续使用独立任务分支与工作树，不覆盖已有修改。此约定不授权
+真实设备／系统电源操作、生产部署或绕过任务→develop→主线的PR流程。
+
+未发布 none 显式电源候选已通过Windows19项，以及184的Linux源码30＋80项、
+独立JS／实际725文件包各110项、最低Node26.9源码／产品各110项和类型检查。
+真实loopback HTTP、原SQLite重开、当前/proc身份、guard生命周期及假电源命令
+均在隔离夹具验证；691运行时JS与独立发射相等，原生／锁定依赖明确复用。
+窄API9比较最高1.0853倍，28次／版冷导入1.0031倍（均1.5阈值），不替代
+完整42／28预算。PR #68 be2十五项CI只覆盖前序；本批尚未提交或运行新头CI，
+历史本机11失败、G3和实机门禁保留，详见[验收](host/contracts/system-bus-provider-acceptance.json)。
+
 Supervisor 分组进程候选现保留完整 `group:name` 与显式控制范围，
 Windows Node26.9 新旧23项通过；Linux源103项通过，实际724文件包及独立JS
 按初轮失败和补验分别保留证据。全量5354项仍有11失败，G3及集成未关闭。

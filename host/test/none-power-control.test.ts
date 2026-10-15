@@ -1,0 +1,63 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {execFile} from 'node:child_process';
+import {mkdtemp,rm,writeFile,readFile,access} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {NonePowerControl,nonePowerCommand,validateNonePowerOptions,type NonePowerIO,type PowerExec,type NonePowerOptions} from '../src/moonraker/none-machine-control.ts';
+import {LinuxMachineControl,MachineActionUncertain,NoneProviderUnavailable,type MachineControlPort} from '../src/moonraker/machine-control.ts';
+import {MachineSystemProvider} from '../src/moonraker/machine-provider.ts';
+import {SupervisorMachineControl} from '../src/moonraker/supervisor-machine-control.ts';
+import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
+import {loadConfiguration} from '../src/moonraker/config-source.ts';
+import {ProductHostControl,recoveryMachineAction} from '../src/runtime/product-host-control.ts';
+import {EndpointRegistry} from '../src/moonraker/endpoints.ts';
+import {JsonRpcDispatcher,ApiError,type RpcContext} from '../src/moonraker/rpc.ts';
+import {registerProductHostControl} from '../src/moonraker/product-host-api.ts';
+const signal=()=>new AbortController().signal,options:NonePowerOptions={allowedActions:['reboot','shutdown']};
+async function until(check:()=>boolean|Promise<boolean>){const end=performance.now()+5000;while(!await check()){assert(performance.now()<end,'None control test deadline');await new Promise(resolve=>setTimeout(resolve,5));}}
+function fixture(){let ticks='101',pid=process.pid,contained=false,systemctl=true,guards=0;const calls:{binary:string;args:string[]}[]=[],io:NonePowerIO={readIdentity:async()=>({pid,startTicks:ticks}),insideContainer:async()=>contained,hasSystemctl:async()=>systemctl,command:async(binary,args)=>{calls.push({binary,args:[...args]});}},guard={async assertDeviceAvailable(s:AbortSignal){s.throwIfAborted();guards++;}};return {io,guard,calls,get guards(){return guards;},ticks(value:string){ticks=value;},pid(value:number){pid=value;},container(){contained=true;},bare(){systemctl=false;}};}
+
+test('none power requires explicit bounded actions and a real borrowed guard; retirement never grants services',async()=>{
+ for(const value of [{allowedActions:[]},{allowedActions:['reboot','reboot']},{allowedActions:['service']},{allowedActions:['reboot'],ownUnit:'x.service'},{allowedActions:['shutdown'],allowed:()=>{}}])assert.throws(()=>validateNonePowerOptions(value as NonePowerOptions),TypeError);assert.throws(()=>new NonePowerControl(options,{} as any),TypeError);
+ const f=fixture(),control=new NonePowerControl({allowedActions:['shutdown']},f.guard,'poweroff',f.io);try{assert.equal(control.retirement({kind:'shutdown'}),'process');assert.throws(()=>control.retirement({kind:'reboot'}),/scope/);for(const action of [{kind:'service',action:'restart',service:'all'},{kind:'server_restart'}] as const)assert.throws(()=>control.retirement(action),NoneProviderUnavailable);assert.equal(f.calls.length,0);}finally{await control.close();}
+});
+
+test('power selection retains existing systemctl even for a free process and uses each bare verb when absent',async()=>{
+ for(const shutdown of ['poweroff','halt'] as const)for(const bare of [false,true]){const f=fixture();if(bare)f.bare();const control=new NonePowerControl(options,f.guard,shutdown,f.io);try{await control.prepare(signal());await control.assertDeviceAvailable(signal());await control.execute({kind:'reboot'},signal());await control.execute({kind:'shutdown'},signal());assert.deepEqual(f.calls,bare?[{binary:'reboot',args:[]},{binary:shutdown,args:[]}]:[{binary:'systemctl',args:['--no-pager','--no-ask-password','--no-block','reboot']},{binary:'systemctl',args:['--no-pager','--no-ask-password','--no-block',shutdown]}]);assert.equal(f.guards,5);}finally{await control.close();}}
+});
+
+test('current PID and startTicks are checked across guard waits and container denial precedes every command',async()=>{
+ for(const change of ['pid','ticks','container'] as const){const f=fixture(),control=new NonePowerControl(options,f.guard,'poweroff',f.io);try{await control.prepare(signal());if(change==='pid')f.pid(process.pid+1);if(change==='ticks')f.ticks('102');if(change==='container')f.container();await assert.rejects(control.execute({kind:'reboot'},signal()),/identity|container/);assert.equal(f.calls.length,0);}finally{await control.close();}}
+ const f=fixture(),guard={async assertDeviceAvailable(){f.ticks('202');}},control=new NonePowerControl(options,guard,'poweroff',f.io);try{await control.prepare(signal());await assert.rejects(control.assertDeviceAvailable(signal()),/identity/);assert.equal(f.calls.length,0);}finally{await control.close();}
+});
+
+test('guard errors and cancellation prevent power; close joins its own guard wait without closing the borrowed owner',async()=>{
+ const f=fixture(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>();let closed=false,borrowedCloses=0;const guard={async assertDeviceAvailable(){entered.resolve();await release.promise;},async close(){borrowedCloses++;}};const control=new NonePowerControl(options,guard,'poweroff',f.io);await control.prepare(signal());const work=control.assertDeviceAvailable(signal());void work.catch(()=>{});await entered.promise;const closing=control.close().then(()=>{closed=true;});await new Promise(resolve=>setImmediate(resolve));assert.equal(closed,false);release.resolve();await assert.rejects(work,/closed/);await closing;assert.equal(borrowedCloses,0);assert.equal(f.calls.length,0);await assert.rejects(control.assertDeviceAvailable(signal()),/closed/);
+ const rejected=new NonePowerControl(options,{async assertDeviceAvailable(){throw Error('Actual device lease busy');}},'poweroff',f.io);try{await assert.rejects(rejected.execute({kind:'shutdown'},signal()),/lease busy/);assert.equal(f.calls.length,0);}finally{await rejected.close();}
+ const cancel=new AbortController();cancel.abort(new Error('Admission cancelled'));const cancelled=new NonePowerControl(options,f.guard,'poweroff',f.io);try{await assert.rejects(cancelled.assertDeviceAvailable(cancel.signal),/Admission cancelled/);assert.equal(f.calls.length,0);}finally{await cancelled.close();}
+});
+
+test('concurrent requests are refused and the admitted power action is immutable across asynchronous proof',async()=>{
+ const f=fixture(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>();let checks=0;const control=new NonePowerControl(options,{async assertDeviceAvailable(){if(++checks===1){entered.resolve();await release.promise;}}},'poweroff',f.io),action:{kind:'reboot'|'shutdown'}={kind:'reboot'};try{const pending=control.execute(action,signal());await entered.promise;action.kind='shutdown';await assert.rejects(control.execute({kind:'shutdown'},signal()),/pending/);release.resolve();await pending;assert.equal(f.calls[0].args.at(-1),'reboot');}finally{release.resolve();await control.close();}
+});
+
+test('confirmed command close is not revoked by a later cancellation',async()=>{
+ const f=fixture(),cancel=new AbortController(),control=new NonePowerControl(options,f.guard,'poweroff',{...f.io,command:async(binary,args)=>{f.calls.push({binary,args:[...args]});cancel.abort(new Error('Late abort after confirmed close'));}});try{await control.execute({kind:'shutdown'},cancel.signal);assert.equal(f.calls.length,1);}finally{await control.close();}
+});
+
+test('none unsupported service503 precedes durable admission, including legacy control; other provider allowlist403 remains',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'none-provider-admission-')),journal={path:join(root,'recovery.sqlite'),deviceId:'none-provider'},host=new ProductHostControl(),registry=new EndpointRegistry(new JsonRpcDispatcher()),f=fixture(),none=new NonePowerControl(options,f.guard,'poweroff',f.io),systemd=new LinuxMachineControl({ownUnit:'moonraker.service'}),supervisor=new SupervisorMachineControl({ownProcess:'farm:moonraker'},'','poweroff',async()=>{assert.fail('No command allowed');});let detach=()=>{};
+ try{await host.configure(journal);registerProductHostControl(registry,host);const context:RpcContext={transport:'http',signal:signal(),authorize(){},afterResponse(){assert.fail('Rejected action cannot hand off');}};
+  const bind=(control:Pick<MachineControlPort,'retirement'>)=>{detach();detach=host.attach(async()=>{assert.fail('No admitted operation');},(kind,name)=>{control.retirement(recoveryMachineAction(kind,name)!);},{kinds:['service_restart','server_restart']});};bind(none);await assert.rejects(registry.invoke('/machine/services/restart','POST',{service:'klipper'},context),e=>e instanceof ApiError&&e.status===503);await assert.rejects(registry.invoke('/server/restart','POST',{},context),e=>e instanceof ApiError&&e.status===503);
+  const path=join(root,'moonraker.conf');await writeFile(path,'[server]\n[machine]\nprovider:none\n');const reader=new ConfigurationReader(await loadConfiguration(path));assert.throws(()=>new MachineSystemProvider(reader,{nonePower:options}),/guard/);const legacy=new MachineSystemProvider(reader,{control:{ownUnit:'moonraker.service'}});try{bind(legacy.control!);await assert.rejects(registry.invoke('/machine/services/restart','POST',{service:'klipper'},context),e=>e instanceof ApiError&&e.status===503);}finally{await legacy.close();}
+  for(const controller of [systemd,supervisor]){bind(controller);await assert.rejects(registry.invoke('/machine/services/restart','POST',{service:'foreign'},context),e=>e instanceof ApiError&&e.status===403);}assert.equal(host.status.machine_control.operations.length,0);assert.equal(f.calls.length,0);
+ }finally{detach();await host.close();await none.close();await systemd.close();await supervisor.close();await rm(root,{recursive:true,force:true});}
+});
+
+test('real fake child close joins cancellation and failure; postspawn unknown stays durable interrupted and never replays',{timeout:15000},async()=>{
+ const root=await mkdtemp(join(tmpdir(),'none-power-child-')),script=join(root,'fake.mjs'),marker=join(root,'ready'),journal={path:join(root,'recovery.sqlite'),deviceId:'none-child'};try{await writeFile(script,`import {writeFileSync} from 'node:fs';if(process.argv[2]==='poweroff')process.exitCode=1;else {writeFileSync(${JSON.stringify(marker)},String(process.pid));setInterval(()=>{},100);}`);const executor:PowerExec=(binary,args,settings,callback)=>{assert(['reboot','poweroff','halt','systemctl'].includes(binary));return execFile(process.execPath,[script,binary,...args],settings,callback);};await assert.rejects(nonePowerCommand('poweroff',[],signal(),executor),MachineActionUncertain);
+  const cancel=new AbortController(),pending=nonePowerCommand('reboot',[],cancel.signal,executor);void pending.catch(()=>{});try{await until(async()=>{try{await access(marker);return true;}catch{return false;}});}catch(error){cancel.abort(error);await pending.catch(()=>{});throw error;}const pid=Number(await readFile(marker,'utf8'));cancel.abort(new Error('Cancelled before child close'));await assert.rejects(pending,e=>e instanceof MachineActionUncertain&&e.cause===cancel.signal.reason);assert.throws(()=>process.kill(pid,0));const missing:PowerExec=(_binary,args,settings,callback)=>execFile(join(root,'missing'),[...args],settings,callback);await assert.rejects(nonePowerCommand('reboot',[],signal(),missing),e=>!(e instanceof MachineActionUncertain)&&(e as NodeJS.ErrnoException).code==='ENOENT');
+  const f=fixture();f.bare();let commands=0;const machine=new NonePowerControl(options,f.guard,'poweroff',{...f.io,command:async(binary,args,s)=>{commands++;await nonePowerCommand(binary,args,s,executor);}}),host=new ProductHostControl();try{await host.configure(journal);host.attach(async(kind,name)=>{try{await machine.execute(recoveryMachineAction(kind,name)!,signal());}catch(error){throw new AggregateError([error,new Error('Independent cleanup failure')],'Retirement wrapper');}},(kind,name)=>{machine.retirement(recoveryMachineAction(kind,name)!);},{kinds:['machine_shutdown']});const record=await host.requestMachineAction({kind:'shutdown'},undefined,undefined,cb=>cb(true));await until(()=>host.operation(record.request_id)?.state==='interrupted');await host.close();const fresh=new ProductHostControl();try{await fresh.configure(journal);fresh.attach(async()=>assert.fail('No replay'),()=>{},{kinds:['machine_shutdown']});assert.equal(fresh.operation(record.request_id)?.state,'interrupted');assert.equal(commands,1);}finally{await fresh.close();}}finally{await host.close();await machine.close();}
+ }finally{await rm(root,{recursive:true,force:true});}
+});
