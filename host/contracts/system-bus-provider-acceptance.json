@@ -2904,7 +2904,7 @@
     }
   },
   "serviceInfoFollowUp": {
-    "status": "functional_software_candidate_passed_reacquire_performance_budget_open_awaiting_review",
+    "status": "functional_candidate_reacquire_budget_open_pending_ci_and_integration",
     "baseline": "4d9819229420268c9c08003ff70288481d398475",
     "performanceRegistration": {
       "schema": 1,
@@ -2945,7 +2945,8 @@
       "Existing confirmed records get actual target proof compatibility, no blanket rejection or fake transition fields",
       "Historical none/Supervisor archives and all first failures/G3 preserved; no real OS/device/deploy/merge/push"
     ],
-    "uncommitted": true,
+    "uncommitted": false,
+    "candidateCommit": "81d019bfbec721ca837f80c23bbdddc12c7c9bff",
     "sourceFiles": 16,
     "productionChangedJavaScript": 10,
     "productionAddedJavaScript": 1,
