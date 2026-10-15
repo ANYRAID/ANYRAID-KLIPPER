@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "local-candidate-awaiting-parent-review",
+  "status": "service-info-functional-candidate-reacquire-performance-open-awaiting-review",
   "scope": "Shared process-owned default systemd_dbus for trusted createProcess path, typed control and read/installation lifecycle; not complete Moonraker/provider/hardware acceptance.",
   "existingCommittedHead": "72d09f5141fbb303e8158059f7af3ae004675962",
   "existingHeadCi": "15 jobs successful, PR merge checkout d7ce760eb06e2d33f1047007353ffcb11d2562a5; does not cover this uncommitted D-Bus batch",
@@ -968,7 +968,7 @@
     "repair": "Only add machine={provider:systemd_dbus,shutdown_action:poweroff,supervisord_config_path:empty} to the original full deepEqual; preserve original network/permission/WebSocket assertions. Windows module import is ELF-incompatible; entire original file still requires Linux validation. Original failed run is not rerun or overwritten."
   },
   "supervisorGroupFollowUp": {
-    "status": "uncommitted-candidate-windows-validation-complete-linux-validation-pending",
+    "status": "published_be2_software_ci_passed_historical_local11_and_G3_retained",
     "baseHead": "51f583ae46eb13bb9aa37cde5154c0c22ce48d61",
     "scope": "Exact supervisor group:name catalogue/control/PID/device retirement/API/recovery compatibility with explicit ownProcess/allowedProcesses/deviceProcesses; preserves old flat control descriptor without broadening systemd units. No installation property derivation or other provider closure.",
     "upstream": {
@@ -2071,7 +2071,7 @@
     }
   },
   "nonePowerFollowUp": {
-    "status": "isolated_linux_source_js_product_min269_and_narrow_performance_passed_pending_review_and_exact_head_ci",
+    "status": "published_4d_software_validation_passed_parent_reported_partial_ci_not_current_service_info_coverage",
     "baseline": "be2dda7b589c9bddffec681d3ebaa780df01e995",
     "scope": "Onlyexplicitnone power capability, realfactory borroweddeviceguard lifecycle and dedicatedunavailable503. Installationproperties/CLI/Supervisor automaticdiscovery remain separate; no removaloffixedsystemdinstallation proof.",
     "implementation": {
@@ -2864,6 +2864,433 @@
       "identitiesUnchanged": true,
       "firstSamplingReceipt": "linux/linux-performance.json",
       "boundary": "Narrow preregistered workloads only; no full42/28, printing or physical precision evidence. API current shared registry/control and compiledbe2-equivalent baseline, immediateinjectedadmission."
+    },
+    "publishedHead": "4d9819229420268c9c08003ff70288481d398475",
+    "publishedHeadCiSnapshot": {
+      "mergeCheckout": "e28e2f4b1c55ff3773017fa20a50d3ba80667d19",
+      "runs": {
+        "host": 38712946126,
+        "build": 38712945719,
+        "motion": 38712945739
+      },
+      "motion": {
+        "jobs": 10,
+        "runsEach": 50,
+        "failures": 0,
+        "parentReadEachRawJob": true
+      },
+      "sanitizers": {
+        "ASAN": {
+          "rootTapSummaries": 153,
+          "tests": 1234,
+          "pass": 1234,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "UBSAN": {
+          "rootTapSummaries": 153,
+          "tests": 1234,
+          "pass": 1234,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      "ordinaryChecks": "Last parent observation npm test still running; do not mark overall green, terminal result separately required",
+      "scope": "Parent audit snapshot for committed4d only, not this uncommitted service-info batch, physical or release evidence"
     }
-  }
+  },
+  "serviceInfoFollowUp": {
+    "status": "functional_software_candidate_passed_reacquire_performance_budget_open_awaiting_review",
+    "baseline": "4d9819229420268c9c08003ff70288481d398475",
+    "performanceRegistration": {
+      "schema": 1,
+      "baseline": "4d9819229420268c9c08003ff70288481d398475",
+      "phase": "preregistered_before_implementation_and_sampling",
+      "threshold": 1.5,
+      "thresholdSource": "Existing project1.5 policy unchanged; narrow actualfactory fixture cold/reacquire workloads below are not originalfull42/28",
+      "runtime": "Same official Linux Node26.9 absolute executable, no JIT/CPU affinity changes",
+      "baselineProduct": {
+        "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/none-product",
+        "manifestSha256": "85e233de1fd8e90e72fe9324e9b57cea984646ec731f26f5641761ad17349bd8",
+        "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+      },
+      "after": "Fresh current productTS, exact independentJS/native/dependency identity frozen before sampling",
+      "fixture": "Actual createNativeProductHostFactory and runProductHost, installation enabled, confirmed legacy-success record plus candidate root proof seeded equally before timed startup. Fake systemctl PATH only and simulated MCU; no real service/device/privilege. Same trusted deployment facts supplied to both variants; baseline ignores new optional readonly metadata. Real Node process identity and valid target argv/profile in fresh child.",
+      "cold": {
+        "freshChildrenPerVariant": 28,
+        "order": "AB/BA alternating per pair",
+        "measurement": "Parent monotonic spawn-to-real listening+device-ready IPC; includes module/profile loading, factory bootstrap, installation validation and first adapter acquisition. Parent prepares identical isolated fixture data outside timed region. No reused server child."
+      },
+      "reacquire": {
+        "observationsPerVariant": 28,
+        "measurement": "One authorized real loopback POST /printer/restart per cold child; after response handoff wait for second simulated adapter-ready; same inputs, no repeated warmup.",
+        "order": "Inherited AB/BA child order"
+      },
+      "installation": "Actual HTTP sudo installation oldPython-declared/currentNode transition and fresh child correctness separately; report absolute cold CLI reads/install times, never printing speed",
+      "inputs": "Before sampling reverify prior111 production numerical/motion/native inputs and package/lock byte-identical4d; sourceonly, no G3/physical claim",
+      "validation": "Linux source, strict independentJS, real compiled product and minimum26.9 affected tests; retain first failures. No unrelated5354 rerun unless new failure requires."
+    },
+    "registrationSha256": "a8159cb800ff9605896f9200b6b8d72cd969b065156ec0f9ac87b283e6573d44",
+    "invariants": [
+      "Internal provider facts only; no public service_info/environment API",
+      "OldPython ExecStart declaration is not actual running executable; PID/startTicks/current service identity separate",
+      "Observed metadata does not grant install/read/execute authority; fixed root manifest/helper paths and all digests remain",
+      "Systemd source→confirmed target→fresh phases; source fingerprint must not block lawful target transition",
+      "Supervisor never gains forged systemd identity, none auto service installation unsupported; explicitexternal deployment remains separate",
+      "CLI fresh reads at install effect/device acquisition, no always-current/TTL proof or motion hotpath polling",
+      "Existing confirmed records get actual target proof compatibility, no blanket rejection or fake transition fields",
+      "Historical none/Supervisor archives and all first failures/G3 preserved; no real OS/device/deploy/merge/push"
+    ],
+    "uncommitted": true,
+    "sourceFiles": 16,
+    "productionChangedJavaScript": 10,
+    "productionAddedJavaScript": 1,
+    "upstream": {
+      "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "machinePySha256": "2ad8c81824d487c58f6dd92d08ad8a013c255a5a88a251ba99d75188cd7d1dbe",
+      "internalFacts": "component_init291 stores moonraker_service_info; no public environment/service_info API",
+      "cli": "1084-1149 current PID status then show; full strict cgroup membership first, bounded unique first heading fallback only for no service membership",
+      "dbus": "1343-1410 typed Unit/Service properties and exact argv; full environment list kept internally",
+      "supervisor": "1534-1607 original program section facts; no forged FragmentPath or automatic systemd install",
+      "installation": "1736none unavailable,1749missing FragmentPath manual update,1795User/1811FragmentPath actual consumers",
+      "systemdDisplay": "v256 systemctl-show.c1273 joins argv with spaces, display is not an argv proof; actual bounded proc NUL argv + exe/PID/startTicks/currentservice/manifest/root bytes required",
+      "showNumeric": "v256 systemctl-show.c2160-2166 numeric show argument is job ID, not PID"
+    },
+    "consumers": {
+      "owner": "MachineSystemProvider.serviceInfo borrowed by real createNativeProductHostFactory default path; closed before shared bus; private frozen proofs and latest sequence",
+      "sudo": "ownBackend and backup reopen forward optional deployment preserving receiver/closed state; readonly view shares exact actual install manifest digest",
+      "helper": "Optional third64lowerhex argv, read manifest once/hash before parse or any effect; old twoargs compatible; new consumer never falls back to unbound invocation",
+      "source": "Current Node may run under old Python-declared unit; declaration is not actual executable. Current service/PID/startTicks/current account/layout and prior bytes stay bound",
+      "targetFresh": "Existing journal optional transition, same installing PID/startTicks rejected even after object rebuild; real new Node child proves NUL argv/exe/targetmanifest/account/workingdir/environment/rootbytes",
+      "oldSuccess": "Actual original success journal without transition passes strong target/root/config proof; no fabricated historical fields or reinstall",
+      "acquire": "Async property refresh immediately before actual createAdapter and fresh rootstatus/externalverify byte check. Static sync checks remain fast early refusal",
+      "cliOptimization": "Only a complete previously successful same-cgroup route hint; fresh status+show concurrent, results must agree; allSettled joins actual children; failure/mismatch/abort clears hint and proof; changed cgroup rediscovery, no retry/newunit inside failed read, no TTL/proof cache"
+    },
+    "validation": {
+      "windows": {
+        "serviceInfoInitial": {
+          "tests": 12,
+          "pass": 12,
+          "fail": 0,
+          "durationMs": 253.9298
+        },
+        "serviceInfoFinal": {
+          "tests": 19,
+          "pass": 19,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "durationMs": 408.576
+        },
+        "finalTypecheck": {
+          "exitCode": 0,
+          "toolChunk": "3575e5"
+        }
+      },
+      "linuxInitial": {
+        "existingSource": {
+          "actualFiles": 9,
+          "tests": 94,
+          "pass": 94,
+          "fail": 0,
+          "commandSelectors": 10,
+          "missingSelector": "sudo-backend.test.ts; actual sudo backend behavior covered by sudo-owner/helper fixtures, do not claim nonexistent file ran"
+        },
+        "realHTTPFirst": {
+          "tests": 15,
+          "pass": 13,
+          "fail": 2,
+          "reasons": [
+            "Generated test status heading bytes used Windows default encoding",
+            "Fixture printer config outside explicit root before HTTP started"
+          ]
+        },
+        "realHTTPCorrection": {
+          "tests": 15,
+          "pass": 15,
+          "fail": 0
+        },
+        "negativeAndHelper": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0
+        },
+        "newDefaultDbusConsumer": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "nativeInstallBootstrap": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0
+        },
+        "independentJS": {
+          "tests": 107,
+          "pass": 107,
+          "fail": 0
+        },
+        "minimum269Source": {
+          "tests": 107,
+          "pass": 107,
+          "fail": 0
+        },
+        "actualProductInitialBothRuntimes": {
+          "perRunTests": 107,
+          "perRunPass": 105,
+          "perRunFail": 2,
+          "cause": "dbus-native duplicated constructor realms in test copy vs actual app, same entry bytes but DBusError and TimeoutError constructors differed",
+          "correction": "Only test context dependency layout now borrows same independently installed actual app node_modules; no assertion/product/error relaxation",
+          "eachRuntimeFailedFileCorrection": {
+            "tests": 23,
+            "pass": 23,
+            "fail": 0
+          }
+        }
+      },
+      "linuxFinalParallel": {
+        "typecheckExitCode": 0,
+        "sourceFocused": {
+          "files": 2,
+          "tests": 22,
+          "pass": 22,
+          "fail": 0
+        },
+        "independentJS": {
+          "files": 11,
+          "tests": 112,
+          "pass": 112,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "actualProduct": {
+          "files": 11,
+          "tests": 112,
+          "pass": 112,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "minimum269Source": {
+          "files": 11,
+          "tests": 112,
+          "pass": 112,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "minimum269Product": {
+          "files": 11,
+          "tests": 112,
+          "pass": 112,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "tsLoading": "Independent/actual JS parent and descendants use no-strip plus resolve hook rejects TS; actual factory child uses pinned app launcher",
+        "functionScope": "Real loopback authorized installation HTTP, real SQLite/config/rootfixture journal + fresh Node process, simulated MCU/atomic fixture lease, private D-Bus typed serviceInfo-to-validator and old legacy identity compatibility; no full npm5354 rerun"
+      }
+    },
+    "product": {
+      "manifestSha256": "cc312dc2c23dcdca94c44438c1503c1dde873da0943765062a3fe0254cbdf3a6",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+      "inventoryFiles": 726,
+      "buildInfoExcluded": true,
+      "runtimeJavaScript": 692,
+      "hostSrcJavaScript": 685,
+      "rootHelpersJavaScript": 7,
+      "strictIndependentMatchingJavaScript": 692,
+      "native": "Reused prior controlled12outputs,84source inputs/current digests matched; no fresh native build",
+      "dependencies": "Reused bytes from prior independently installed locked tree, relative links preserved; no new npm install",
+      "otherProductBytesIdenticalBaseline": true,
+      "originalProductRetained": "ffafabde3adec5587defcdcc4f85239636249ce93926fc85b5760142554eb1a5"
+    },
+    "performanceResults": {
+      "threshold": 1.5,
+      "scope": "Original preregistered same Node26.9 actual installation-enabled factory fresh cold start and one authorized HTTP device reacquire per child;28/variant ABBA. Not original complete42/28 or printing speed",
+      "original": {
+        "derivedFrom": "linux-factory-performance.json",
+        "rawSha256": "9378a4dd1b014c5ee455965236b873128dfdb16190215b7318f9f6577da2b441",
+        "summaries": {
+          "coldMs": {
+            "beforeCount": 28,
+            "afterCount": 28,
+            "beforeMedian": 1539.1484215000037,
+            "afterMedian": 1687.2947149999964,
+            "ratio": 1.0962521167098453,
+            "beforeRange": [
+              1531.895583000005,
+              1549.8781299999973
+            ],
+            "afterRange": [
+              1674.3595710000009,
+              1709.939362000001
+            ],
+            "threshold": 1.5,
+            "passed": true
+          },
+          "reacquireMs": {
+            "beforeCount": 28,
+            "afterCount": 28,
+            "beforeMedian": 15.137671999998929,
+            "afterMedian": 61.85363650000181,
+            "ratio": 4.086073241645491,
+            "beforeRange": [
+              14.779638000007253,
+              16.945182999999815
+            ],
+            "afterRange": [
+              60.387788,
+              67.5321539999859
+            ],
+            "threshold": 1.5,
+            "passed": false
+          }
+        },
+        "absoluteFakeCli": [
+          {
+            "variant": "before",
+            "command": "fixed fake systemctl status",
+            "elapsedMs": 22.44482599999992,
+            "scope": "Absolute cold fake CLI child close only; not service-info authorization or printing performance"
+          },
+          {
+            "variant": "after",
+            "command": "fixed fake systemctl status",
+            "elapsedMs": 23.21735499999977,
+            "scope": "Absolute cold fake CLI child close only; not service-info authorization or printing performance"
+          }
+        ],
+        "installationPreparation": [
+          {
+            "variant": "before",
+            "installHttpMs": 506.2329739999999,
+            "journalPhase": "version-confirmed",
+            "transitionPresent": false,
+            "outsideTimedSampling": true
+          },
+          {
+            "variant": "after",
+            "installHttpMs": 605.2291030000001,
+            "journalPhase": "version-confirmed",
+            "transitionPresent": false,
+            "outsideTimedSampling": true
+          }
+        ],
+        "originalRunnerExit": 1,
+        "originalFailure": "AssertionError [ERR_ASSERTION]: {\"beforeMedian\":15.137671999998929,\"afterMedian\":61.85363650000181,\"ratio\":4.086073241645491,\"threshold\":1.5}\n    at file:///home/dek02/.codex/worktrees/supervisor-group-compat/evidence/service-info/service-info-factory-performance.mjs:32:331\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)",
+        "scope": "Postprocess original complete56 rows only; no rerun, new sample, changed threshold or exclusion"
+      },
+      "singleDiagnostic": {
+        "receipt": "linux/linux-factory-once-trace.json",
+        "runnerExitCode": 0,
+        "children": 1,
+        "reacquires": 1,
+        "boundary": "Separate observation only; parent and child clocks disclosed, nested deployment/backend intervals not summed; no complete causal inference from before/after differences"
+      },
+      "parallelNecessaryRerun": {
+        "derivedFrom": "linux-factory-parallel-performance.json",
+        "rawSha256": "486c405165f7af201767302cd338d3f512fd34e1a2567dabcea4c08b58c4e299",
+        "summaries": {
+          "coldMs": {
+            "beforeCount": 28,
+            "afterCount": 28,
+            "beforeMedian": 1538.955429499998,
+            "afterMedian": 1643.0594144999995,
+            "ratio": 1.0676458739508945,
+            "threshold": 1.5,
+            "passed": true
+          },
+          "reacquireMs": {
+            "beforeCount": 28,
+            "afterCount": 28,
+            "beforeMedian": 15.578824000000168,
+            "afterMedian": 40.91033599999446,
+            "ratio": 2.6260220925529434,
+            "threshold": 1.5,
+            "passed": false
+          }
+        },
+        "absoluteFakeCli": [
+          {
+            "variant": "before",
+            "command": "fixed fake systemctl status",
+            "elapsedMs": 24.20772399999987,
+            "scope": "Absolute cold fake CLI child close only; not service-info authorization or printing performance"
+          },
+          {
+            "variant": "after",
+            "command": "fixed fake systemctl status",
+            "elapsedMs": 23.106842000000142,
+            "scope": "Absolute cold fake CLI child close only; not service-info authorization or printing performance"
+          }
+        ],
+        "installationPreparation": [
+          {
+            "variant": "before",
+            "installHttpMs": 796.115058,
+            "journalPhase": "version-confirmed",
+            "transitionPresent": false,
+            "outsideTimedSampling": true
+          },
+          {
+            "variant": "after",
+            "installHttpMs": 527.427529,
+            "journalPhase": "version-confirmed",
+            "transitionPresent": false,
+            "outsideTimedSampling": true
+          }
+        ],
+        "originalFailure": "AssertionError [ERR_ASSERTION]: {\"beforeMedian\":15.578824000000168,\"afterMedian\":40.91033599999446,\"ratio\":2.6260220925529434,\"threshold\":1.5}\n    at file:///home/dek02/.codex/worktrees/supervisor-group-compat/evidence/service-info/service-info-factory-parallel-performance.mjs:32:331\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)",
+        "scope": "Postprocess complete necessary second56 only, no exclusions/threshold change; original first56 also retained"
+      },
+      "gate": "OPEN: cold ratio1.067646 passes, reacquire2.626022 exceeds1.5 after concurrency. Both complete56 row failures retained, no exclusions/threshold changes or further sampling."
+    },
+    "firstFailureEvidence": [
+      "windows/windows-service-info-first.log pre-module EPERM; only permitted12 run counts",
+      "windows/windows-process-typecheck-first.json two nullability errors, corrected before functional runs",
+      "linux/linux-product-process-first.log dependency-copy absolute .bin symlink rejected by independent acceptance inspector; restored baseline relative links",
+      "linux/linux-installation-http-first.log15/13/2; corrected fixture UTF8/title and explicit config root,15/15 next run",
+      "linux/linux-product-focused-first.log and linux-minimum-product-first.log each107/105/2; constructor realm diagnostics and23/23 each correction retained",
+      "linux/linux-factory-performance-run-first.log and linux-factory-parallel-performance-run.log complete original and necessary second56 row budget failures",
+      "linux/linux-final-state-first-script-error.json readonly summary eval SyntaxError; no test or sampling started, corrected readonly result separate"
+    ],
+    "archive": {
+      "path": "host/contracts/service-info-installation-evidence.tar.gz",
+      "bytes": 535578,
+      "sha256": "3e58c721928e693569d91ae3794f829bab92dc6ac8b3638ff9c0a58d7bba207d",
+      "members": 135,
+      "evidenceFiles": 134,
+      "manifest": "service-info-evidence-manifest.json",
+      "manifestSha256": "12a9c69e68ad561f3ec7340c97712b49d0c09508b077e5f9248a0f363dc7fe52",
+      "allMemberBytesAndHashesMatch": true
+    },
+    "finalIdentity": {
+      "source16Unchanged": true,
+      "numericalNativeInputsUnchangedFrom4d": 111,
+      "packageAndLockUnchanged": 2,
+      "matchingLiveTaskNodes": 0,
+      "old72Tree39ChangesRetained": true,
+      "oldNoneArchiveUnchanged": true,
+      "oldSupervisorArchiveUnchanged": true
+    },
+    "remainingGates": [
+      "Actual reacquisition performance ratio2.626022 exceeds unchanged1.5; candidate not performance accepted",
+      "True root-owned createTrustedSudoBackend + sudo/sudoers/PAM/setpriv happy path remains administrator target-system gate; fixtures use ordinary-UID isolated root-directory fixtures and fake callbacks only",
+      "No real systemd launch/restart or device/power/hardware/physical precision acceptance",
+      "Historical local11 failures and G3 remain, no full42/28 budget closure",
+      "Uncommitted candidate exact-head CI/review/normal develop then master integration and latest same-package client/full external recovery/release remain"
+    ]
+  },
+  "currentCandidateBaseline": "4d9819229420268c9c08003ff70288481d398475"
 }

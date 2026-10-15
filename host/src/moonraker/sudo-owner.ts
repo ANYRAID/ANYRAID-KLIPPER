@@ -1,7 +1,7 @@
 import {userInfo} from 'node:os';
 import {ApiError,authorizedContext,type Json,type RpcContext} from './rpc.ts';
 import type {EndpointRegistry} from './endpoints.ts';
-import type {SudoBackend,SudoOperation,SudoInstallReceipt} from './sudo-backend.ts';
+import type {SudoBackend,SudoOperation,SudoInstallReceipt,SudoDeploymentDeclaration} from './sudo-backend.ts';
 
 export interface SudoConsumerResult {message:string;restart:boolean;}
 type Consumer={id:string;message:string;run(context:RpcContext):Promise<SudoConsumerResult>};
@@ -23,6 +23,9 @@ export class ProcessSudoOwner {
   if(this.#stop.signal.aborted)return Promise.reject(new ApiError(503,'Sudo owner closed'));if(this.#operations>=4)return Promise.reject(new ApiError(429,'Sudo operation capacity exceeded'));
   this.#operations++;const password=this.#password?Buffer.from(this.#password):undefined;
   const task=Promise.resolve().then(()=>this.#backend.execute(operation,password,AbortSignal.any([signal,this.#stop.signal])));this.#pending.add(task);return task.finally(()=>{password?.fill(0);this.#pending.delete(task);this.#operations--;});
+ }
+ deployment(signal:AbortSignal):Promise<SudoDeploymentDeclaration|undefined>{
+  if(this.#stop.signal.aborted)return Promise.reject(new ApiError(503,'Sudo owner closed'));if(!this.#backend.deployment)return Promise.resolve(undefined);if(this.#operations>=4)return Promise.reject(new ApiError(429,'Sudo operation capacity exceeded'));this.#operations++;const task=Promise.resolve().then(()=>this.#backend.deployment!(AbortSignal.any([signal,this.#stop.signal])));this.#pending.add(task);return task.finally(()=>{this.#pending.delete(task);this.#operations--;});
  }
  async info(check=false,signal:AbortSignal):Promise<Json>{let sudo_access:boolean|null=null;if(check)try{await this.operation('probe',signal);sudo_access=true;}catch{signal.throwIfAborted();sudo_access=false;}return {sudo_access,linux_user:this.snapshot.linux_user,sudo_requested:this.snapshot.sudo_requested,request_messages:this.snapshot.request_messages};}
  setPassword(password:string,context:RpcContext):Promise<Json>{

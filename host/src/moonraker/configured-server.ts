@@ -515,6 +515,7 @@ export class ConfiguredMoonraker {
  }
  get installationStatus(){return this.#installer?.status;}
  assertInstallationReady():void{this.#installer?.assertReady();}
+ async assertInstallationReadyFresh(signal:AbortSignal):Promise<void>{await this.#installer?.assertReadyFresh(signal);}
  async executeInstallationRestart(signal:AbortSignal):Promise<void>{if(!this.#sudo||!this.#installer?.status.restart_required&&!this.#installer?.status.ready)throw new ApiError(409,'Confirmed installation restart unavailable');await this.#installer!.requestRestart(signal);}
  async #initializeInstallation():Promise<void>{
   if(!this.#installer)return;

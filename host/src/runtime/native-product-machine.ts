@@ -245,7 +245,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  if(logging)validateProcessLogging(logging);
  let bootstrapping:ReturnType<NonNullable<ProductHostFactory['bootstrap']>>|undefined;
  let resources:NativeProductFileResources|undefined,pending:Promise<ProductHostProfile>|undefined,active=false,closing:Promise<void>|undefined;
- const ownBackend=(backend:SudoBackend):SudoBackend=>{let closed:Promise<void>|undefined;return {execute:(operation,password,signal)=>closed?Promise.reject(new ApiError(503,'Installation backend is closed')):backend.execute(operation,password,signal),close:()=>closed??=Promise.resolve().then(()=>backend.close())};};
+ const ownBackend=(backend:SudoBackend):SudoBackend=>{let closed:Promise<void>|undefined;return {...backend.deployment?{deployment:(signal:AbortSignal)=>closed?Promise.reject(new ApiError(503,'Installation backend is closed')):backend.deployment!(signal)}:{},execute:(operation,password,signal)=>closed?Promise.reject(new ApiError(503,'Installation backend is closed')):backend.execute(operation,password,signal),close:()=>closed??=Promise.resolve().then(()=>backend.close())};};
  let installationBackend=processOptions?.installation?ownBackend(processOptions.installation.backend):undefined;
  let processCleanup:Promise<void>|undefined;
  const closeProcessResources=()=>processCleanup??=(async()=>{
@@ -321,6 +321,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
     await ensureProcess(config,s);
     installationServer?.assertInstallationReady();
     createAdapter=async(c,signal,g)=>{
+     await installationServer?.assertInstallationReadyFresh(signal);signal.throwIfAborted();
      const device=await processOptions.createAdapter(c,signal,g,processResources!.server,reload);
      if(device&&'server' in device){const error=new TypeError('Process-mode adapter must own only device resources');try{await device.release?.();}catch(cleanup){throw new AggregateError([error,cleanup],'Invalid native device cleanup failed');}throw error;}
      return {...device,server:processResources!.server};
@@ -353,7 +354,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
     const signal=AbortSignal.any([incoming,stopped.signal]),config=await readProductMachine(path,signal);
     const attempt=async()=>{await ensureProcess(config,signal);
     const process=processResources!.server,files=await resources!.processFiles(snapshot.uploads),serviceProvider=machineProvider;
-    const installation=processOptions.installation?{...processOptions.installation,backend:installationBackend!,options:{...processOptions.installation.options,configFile:config.moonrakerConfig,...serviceProvider?.bus?{serviceIdentity:{read:(signal:AbortSignal)=>serviceProvider.installationProperties(signal),current:(proof:import('../moonraker/system-bus-owner.ts').SystemdProperties)=>!!serviceProvider.bus?.installationCurrent(proof)}}:{},...legacyPaths?{legacy:{bindings:pathOwner!.mapping,gcodeImport:legacyGcodeReceipt!,backupConfiguration:selectedBackupConfiguration,...processOptions.installation.externalService?{externalService:processOptions.installation.externalService}:{}}}:{}}}:undefined;
+    const installation=processOptions.installation?{...processOptions.installation,backend:installationBackend!,options:{...processOptions.installation.options,configFile:config.moonrakerConfig,...serviceProvider&&!processOptions.installation.options.serviceIdentity&&!processOptions.installation.options.serviceInfo?{serviceInfo:serviceProvider.serviceInfo}:{},...legacyPaths?{legacy:{bindings:pathOwner!.mapping,gcodeImport:legacyGcodeReceipt!,backupConfiguration:selectedBackupConfiguration,...processOptions.installation.externalService?{externalService:processOptions.installation.externalService}:{}}}:{}}}:undefined;
     const serverOptions={nativeDetached:true as const,configFiles,nativeProcessFiles:files,nativeProcessHistory:processJournal!,productHostControl:control,...installation?{installation}:{},
      nativePrinterIdentity:{configFile:config.printerConfig,softwareVersion:process.information.version},systemInformation:process.systemInformation??{},systemServices:process.systemServices??{},procStats:process.procStats??{},gcodeStore:process.gcodeStore??{},temperatureStore:{...process.temperatureStore,previous:undefined}};
     const server=process.authorization?await ConfiguredMoonraker.loadAuthorized(config.moonrakerConfig,{...process,...serverOptions}):await ConfiguredMoonraker.load(config.moonrakerConfig,{...process,...serverOptions});

@@ -38,9 +38,35 @@ export function registerProductHostControl(registry:EndpointRegistry,control:Pro
  const script=registry.register({endpoint:'/printer/gcode/script',methods:['POST'],transports:['http','websocket']},async(params,_verb,context)=>{
   if(Object.keys(params).some(k=>k!=='script')||typeof params.script!=='string')throw new ApiError(400,'Expected a native compatibility script');
   const script=params.script.trim(),command=script.toUpperCase();
+  if(command==='SDCARD_RESET_FILE'){
+   // An external clear-file command owns only the request and device generation
+   // observed here. Never translate a delayed command onto a replacement job.
+   if(!context.nativeGenerationSignal||context.nativeGenerationRetiredAtAdmission)throw new ApiError(503,'Native clear-file generation is unavailable');
+   const bound={...context,signal:AbortSignal.any([context.signal,context.nativeGenerationSignal,AbortSignal.timeout(30000)])};bound.signal.throwIfAborted();
+   const read=async()=>{
+    const value=await registry.invoke('/printer/print/status','GET',{},bound);bound.signal.throwIfAborted();
+    if(!value||typeof value!=='object'||Array.isArray(value)||typeof value.state!=='string'||typeof value.state_token!=='string'||!value.state_token||value.closed!==false||typeof value.pending_device_actions!=='number'||typeof value.safe_stop_pending!=='boolean')throw new ApiError(503,'Native clear-file state is unavailable');
+    const request=value.request;
+    if(request!==null&&(!request||typeof request!=='object'||Array.isArray(request)||typeof request.request_id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/u.test(request.request_id)))throw new ApiError(503,'Native clear-file request is unavailable');
+    return {state:value.state,token:value.state_token,id:request===null?null:(request as {request_id:string}).request_id,pending:value.pending_device_actions,stopping:value.safe_stop_pending};
+   };
+   let state=await read();
+   if(state.state==='idle'){
+    if(state.id!==null||state.pending!==0||state.stopping)throw new ApiError(409,'Native clear-file cleanup is still pending');
+    bound.signal.throwIfAborted();return 'ok';
+   }
+   const id=state.id;if(!id)throw new ApiError(409,'Native clear-file requires the current request');
+   if(!['completed','cancelled'].includes(state.state)){
+    await registry.invoke('/printer/print/cancel','POST',{request_id:id,state_token:state.token},bound);bound.signal.throwIfAborted();
+    state=await read();
+    if(state.id!==id||state.state!=='cancelled')throw new ApiError(409,'Native clear-file request changed before reset');
+   }
+   bound.signal.throwIfAborted();
+   await registry.invoke('/printer/print/reset','POST',{request_id:id,state_token:state.token},bound);bound.signal.throwIfAborted();return 'ok';
+  }
   if(!['RESTART','FIRMWARE_RESTART'].includes(command)){
    let parsed;try{parsed=parseCommand(script);}catch{throw new ApiError(400,'Expected one supported native command');}
-   if(parsed.command!=='G28'||Object.keys(parsed.params).some(key=>!['G','X','Y','Z'].includes(key)))throw new ApiError(400,'Native script compatibility supports restart and G28 commands');
+   if(parsed.command!=='G28'||Object.keys(parsed.params).some(key=>!['G','X','Y','Z'].includes(key)))throw new ApiError(400,'Native script compatibility supports restart, G28 and SDCARD_RESET_FILE commands');
    // A legacy G28 has no caller token. Capture its existing network generation,
    // then consume the canonical typed operation's token in that same lifetime.
    // Never obtain a new generation to replay a delayed legacy request.

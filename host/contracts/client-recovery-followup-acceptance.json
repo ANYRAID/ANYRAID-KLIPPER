@@ -1010,5 +1010,304 @@
     "Filechooser/configuration edits/queue failure/SIGKILL client journeys",
     "Original UI/native-build/G3/target Cycnumbris500 performance and precision",
     "Own documentation CI and develop -> master integration; other models last"
-  ]
+  ],
+  "externalResetFollowUp": {
+    "status": "validated_bounded_same_product_external_fault_recovery_fluidd_and_mainsail_uncommitted",
+    "baselineManifestSha256": "cc312dc2c23dcdca94c44438c1503c1dde873da0943765062a3fe0254cbdf3a6",
+    "performanceRegistrationFileSha256": "081bb6fb99f804a4b0e8dff8c56f425e4fcfbf9021bd072dbba9335662e3a669",
+    "performanceRegistration": {
+      "schema": 1,
+      "status": "preregistered_before_adapter_implementation_and_sampling",
+      "scope": "Isolated real factory, SQLite, immutable compiled product and real product gateway; simulated MCU only. No browser or hardware claim.",
+      "node": "26.9.0 linux-x64",
+      "baseline": {
+        "manifestSha256": "cc312dc2c23dcdca94c44438c1503c1dde873da0943765062a3fe0254cbdf3a6",
+        "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+      },
+      "candidate": "New independently frozen product; identity must be verified before samples. Baseline is never overwritten.",
+      "task": {
+        "bytes": 18785,
+        "sha256": "12dfa06ce998ed9d72e3107c5fee40141cc51df5c72fed2b0625229c45ab077b",
+        "source": "client-browser-long-r39-oct13.gcode",
+        "admission": "Every sample creates fresh factory/SQLite/process, actual G28, same task reaches printing before timing."
+      },
+      "variants": {
+        "B": "baseline canonical GET status -> same id/token cancel -> GET new status -> same id/new token reset",
+        "A": "candidate identical canonical sequence",
+        "S": "candidate single explicit SDCARD_RESET_FILE through real gateway, canonical owners internally"
+      },
+      "warmups": {
+        "countPerVariant": 1,
+        "order": [
+          "B",
+          "A",
+          "S"
+        ],
+        "retainedButExcluded": true
+      },
+      "formal": {
+        "samplesPerVariant": 8,
+        "order": [
+          "B",
+          "A",
+          "S",
+          "S",
+          "A",
+          "B",
+          "B",
+          "A",
+          "S",
+          "S",
+          "A",
+          "B",
+          "B",
+          "A",
+          "S",
+          "S",
+          "A",
+          "B",
+          "B",
+          "A",
+          "S",
+          "S",
+          "A",
+          "B"
+        ]
+      },
+      "clock": "Parent performance.now monotonic; full action wall time through confirmed idle AND original SQLite request cancelled. Include all predicate waits; internal step intervals are diagnostic and cannot replace total.",
+      "setupAndCleanup": "Reported separately; no task/temperature/configuration change between variants. No concurrent test/build or sampler.",
+      "limits": {
+        "canonicalCandidateOverBaselineMedian": 1.5,
+        "scriptOverCandidateCanonicalMedian": 1.5,
+        "driverSeconds": 900,
+        "abortOnAnyVariantFailure": true,
+        "automaticRetryOrAdditionalSamples": false
+      },
+      "failurePolicy": "Preserve every raw row/receipt and any first failure; timeout closes only owned processes and saves partial rows; no continuation or budget revision.",
+      "boundaries": [
+        "Unsupported baseline script HTTP400 is never a performance control.",
+        "Old service reacquire ratio2.62602209255 remains an open independent gate.",
+        "No motion/math/native source changes; verify frozen input identities. Full original42/28 and G3 remain open."
+      ]
+    },
+    "historicalToolingValidation": {
+      "externalFirst": "1 test, 0 pass, 1 failure: explicit cancel then G28 HTTP409; original log retained",
+      "externalExplicitRecoveryFix": "1/1 passed; explicit cancel, reset, firmware restart, home, distinct job; API/tooling only",
+      "originalClientProbeRegression": "2/2 passed on cc312; graceful rebuild and websocket reconnection are not SIGKILL recovery"
+    },
+    "boundaries": [
+      "Bounded external process fault recovery passed on this same cd91 simulated product in Fluidd and Mainsail; historical R18/R19 preview/download and R39/R42 other workflows remain separate package evidence",
+      "Service-info reacquire ratio2.62602209255 still exceeds original1.5 and remains open; this adapter action budget does not close it",
+      "Original full-suite11 failures, G3, complete42/28 budgets, ARM64, actual root/sudo policy, physical safety/precision and real printing remain open",
+      "Current uncommitted candidate own CI, task->develop->master integration and broader same-package client acceptance still required; no deployment/publish/merge authorization implied"
+    ],
+    "candidate": {
+      "manifestSha256": "cd91f2e3242a2cd392e8489f7026fd3cd730470ec8cf03d9113332546cfc67d3",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+      "independentProductionJsMatched": 692,
+      "nativeInputsMatched": 84,
+      "nativeOutputsReused": 12,
+      "nativeRebuilt": false,
+      "dependenciesReused": true,
+      "sourceInputs": [
+        {
+          "path": "host/test/helpers/compiled-client-host.ts",
+          "bytes": 10445,
+          "sha256": "ab5c94d40da269334fe4c2d1478e5b92066ba4c6d5f7ba35547d3cc6d749467b"
+        },
+        {
+          "path": "host/acceptance/client-fault-runner.ts",
+          "bytes": 9228,
+          "sha256": "3ea68a718b2f2a4b813063913dcdccc0017f578c59708500b60d2f6af197cca2"
+        },
+        {
+          "path": "host/acceptance/client-external-fault.test.ts",
+          "bytes": 8543,
+          "sha256": "faf4200bfd252bd4fa3c681aa8ce235edc3996f5afda3d6bd5d88cd31726b9ff"
+        },
+        {
+          "path": "host/src/moonraker/product-host-api.ts",
+          "bytes": 9245,
+          "sha256": "112e5529e41f6e830ac0d972c963cf45f34b858852a245a82ca8ddc985224cba"
+        },
+        {
+          "path": "host/test/product-host-api.test.ts",
+          "bytes": 14381,
+          "sha256": "3b801b115c39309921b4f8f96709426d161e5491fba701eb41d2271e736234fd"
+        },
+        {
+          "path": "host/test/machine-recovery-journal.test.ts",
+          "bytes": 7719,
+          "sha256": "685c9ec12e212de3fa3d7ea934563f2e6f52426de33e018e0d946ac307f08e43"
+        }
+      ]
+    },
+    "behavior": {
+      "command": "One parameter-free case-insensitive SDCARD_RESET_FILE only; surrounding whitespace allowed; parameters and multiple-command scripts rejected",
+      "ownership": "Original native generation signal and same request_id/state_token; canonical registry authorization, cancel and reset owners only",
+      "interruptedOrActive": "Canonical cancel ACK must complete and same request must be durably cancelled before reset with its new token; no retry, new request or generation crossing",
+      "terminalOrIdle": "Completed/cancelled reset directly; idle without a request still checks original live generation and safe pending/closed state",
+      "automaticActions": "No automatic firmware restart, home or new print"
+    },
+    "validation": {
+      "windowsFirstAdapter": {
+        "tests": 12,
+        "pass": 12,
+        "rawToolChunk": "a824ed",
+        "beforeAdditionalRealScopeCase": true
+      },
+      "windowsFinalTypecheck": {
+        "logBytes": 0,
+        "exitCode": 0,
+        "command": "host/node_modules/@typescript/typescript-win32-x64/lib/tsc.exe -p host/tsconfig.json",
+        "cwd": "C:/Devs/Codex/from-184/.cache/codex/tmp/anyraid-moonraker-composition-integration",
+        "ended": "2026-10-15T12:31:48.4064776Z",
+        "started": "2026-10-15T12:31:44.4030537Z"
+      },
+      "linuxTypecheck": {
+        "exitCode": 0,
+        "elapsedMs": 3157
+      },
+      "linuxSource": {
+        "files": 5,
+        "tests": 42,
+        "pass": 42,
+        "fail": 0
+      },
+      "independentJsFirst": {
+        "tests": 42,
+        "pass": 41,
+        "fail": 1,
+        "cause": "Existing machine-recovery-journal inline child hardcoded .ts; strict deny-TS hook correctly rejected it"
+      },
+      "independentJsFix": {
+        "tests": 5,
+        "pass": 5,
+        "scope": "Only affected original file after runtime URL extension fix; no widened hook/assertions"
+      },
+      "sourceUrlFix": {
+        "tests": 5,
+        "pass": 5
+      },
+      "actualProduct": {
+        "tests": 42,
+        "pass": 42,
+        "externalClearFile": {
+          "tests": 1,
+          "pass": 1
+        }
+      },
+      "minimumNode26_9": {
+        "source": {
+          "tests": 42,
+          "pass": 42
+        },
+        "product": {
+          "tests": 42,
+          "pass": 42
+        },
+        "externalClearFile": {
+          "tests": 1,
+          "pass": 1
+        }
+      },
+      "firmwareFirstTargeted": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "tapDurationMs": 18561.353153,
+        "runnerElapsedMs": 18609,
+        "scope": "Only firmware-first branch; unchanged clear-file branch not rerun; same real gateway and SQLite, fake MCU motion45,0 unchanged before home"
+      },
+      "finalTypecheckScope": "Final parameterized external test and all current source; no functional/performance/browser reruns for documentation"
+    },
+    "performanceResult": {
+      "registrationUnchanged": true,
+      "registrationFileSha256": "081bb6fb99f804a4b0e8dff8c56f425e4fcfbf9021bd072dbba9335662e3a669",
+      "rawSamplesFile": "linux/external-reset-performance.json",
+      "rawSamplesSha256": "0126c410fe101547d3550e36b861b937ccbae79e021e14ab2d8f78f7fefd8726",
+      "warmups": 3,
+      "formalSamplesPerVariant": 8,
+      "rows": 27,
+      "failedSamples": 0,
+      "elapsedMs": 205089,
+      "mediansMs": {
+        "baselineCanonical": 12.68170099999952,
+        "candidateCanonical": 12.085903499999858,
+        "candidateScript": 9.265394500000184
+      },
+      "ratios": {
+        "candidateCanonicalOverBaseline": 0.9530191178612645,
+        "scriptOverCandidateCanonical": 0.7666282045028981
+      },
+      "thresholdEach": 1.5,
+      "passed": true,
+      "scope": "Actual gateway/factory/SQLite complete action through durable cancelled plus idle; synthetic task/MCU only; no claim of motion speed/physical precision/full42or28 budget"
+    },
+    "browserScenes": {
+      "originalFluiddResetFirst": {
+        "result": "Reset-first route unavailable while interrupted; not a finding that all UI recovery is unavailable",
+        "toolContextDestroyed": true,
+        "explicitNewPageLogin": true,
+        "resetCancelControlsVisible": false,
+        "cleanupCancelledIsUiSuccess": false,
+        "originalEvidencePreserved": true
+      },
+      "fluiddFirmwareFirst": {
+        "client": "1.37.6",
+        "elapsedMs": 358427,
+        "limitMs": 900000,
+        "deadline": 1792067256973,
+        "passed": true,
+        "samePersistentPage": true,
+        "toolReconnectRetainedPage": true,
+        "path": "Real chooser upload -> page home -> long job -> precise owned SIGKILL -> actual gateway502/offline -> explicit runner RECOVER -> page reconnect -> visible Firmware Restart -> durable succeeded/old cancelled/new idle/unhomed -> page home -> different short job completed",
+        "evidence": "scenes/fluidd-firmware-scene; completion uses body+status/history+business WS, not off-card screenshot alone"
+      },
+      "mainsailFirmwareFirst": {
+        "client": "2.19.0",
+        "elapsedMs": 614838,
+        "limitMs": 900000,
+        "deadline": 1792067720844,
+        "passed": true,
+        "samePersistentPage": true,
+        "path": "Real chooser upload -> page home -> long job -> precise owned SIGKILL -> Connection failed -> explicit runner RECOVER -> page try again -> visible Firmware Restart -> durable succeeded/old cancelled/new idle/unhomed -> page home -> explicitly approved different short job completed -> visible Clear print stats",
+        "clearScript": "Single SDCARD_RESET_FILE WS70 acknowledged; idle/null request and both historical rows retained",
+        "offline502Captured": false,
+        "offlineEvidence": "SIGKILL close/IPC/simulation joined receipt plus actual Connection failed screenshot/body; HTTP snapshot after RECOVER was200",
+        "approvalBoundary": "Original two automatic approval rejections preserved; after isolated dualPTY evidence and direct human permission for this specific synthetic short print submission, same original PRINT dialog continued",
+        "evidence": "scenes/mainsail-firmware-scene"
+      },
+      "sharedBoundaries": [
+        "Real immutable product-client gateway directly connects fixed loopback product listener; no test proxy",
+        "Only one armed exact own child SIGKILL per scene; new process always explicit after close/IPC/simulation join",
+        "No browser evaluate(fetch) or direct API product mutation substitutes for page print/firmware/home/clear actions; readonly status/history corroboration only",
+        "Both passing scenes used external Edge default persistent context and existing shared Playwright after in-app browser unavailable; default sandbox retained",
+        "Entire private browser profiles, auth databases, login/session responses, cookies and authorization headers excluded",
+        "All owned runner/product/gateway/watchdog/browser processes closed, no active scene listeners; product and dependency hashes unchanged"
+      ]
+    },
+    "firstFailuresRetained": [
+      "Original cancel then G28 HTTP409, 0/1; corrected explicit recovery tooling1/1 kept separate",
+      "Strict independentJS first41/42 and exact affected5/5 URL fix kept separate",
+      "Windows sandbox EPERM before module load; helper TS1294 before minimal class fix; launcher and archive-preparation errors recorded as tool references, not tests",
+      "Original Fluidd Reset-first inaccessible route plus tool context destruction/new login retained separately",
+      "Mainsail automatic approval rejections, accessible-name lookup failures and screenshot tool timeouts retained; offline502 not claimed"
+    ],
+    "evidenceArchive": {
+      "path": "host/contracts/client-external-recovery-evidence.tar.gz",
+      "bytes": 1978567,
+      "sha256": "3460080cf5a0ea3f266049ec43d0429c0a5750764dff73cf0d0e346bdf096d21",
+      "members": 232,
+      "evidenceFiles": 231,
+      "manifest": "manifest.json",
+      "manifestSha256": "67e9d1eada915550adcef5ae3588a08f7bc34ce1830636a10cb36dcd14bbe90f",
+      "format": "manifest.members array of relative path,bytes,sha256; all regular files; no duplicates/traversal",
+      "allMembersVerified": true,
+      "sensitivityPatternFindings": 0
+    }
+  }
 }

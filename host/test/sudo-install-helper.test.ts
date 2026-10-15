@@ -44,3 +44,11 @@ test('two actual helper fixture child processes cannot both install or overwrite
  const child=()=>{const promise=new Promise<number|null>((resolveResult,reject)=>{const c=spawn(process.execPath,['--input-type=module','-e',code,f.manifestPath,f.root,calls,marker,release],{stdio:'ignore'});c.once('error',reject);c.once('close',resolveResult);});children.push(promise);return promise;};
  try{const first=child();let entered=false;for(let i=0;i<1000;i++){try{entered=(await readFile(marker,'utf8'))==='entered';if(entered)break;}catch{}await new Promise(r=>setTimeout(r,10));}assert(entered,'first actual helper child must hold lock before receipt/effects');await assert.rejects(lstat(join(f.state,'receipt.json')),{code:'ENOENT'});const second=child();assert.equal(await second,1);await writeFile(release,'release');assert.equal(await first,0);assert.equal(await readFile(calls,'utf8'),'reload\n');assert.equal(await readFile(join(f.state,'previous.service'),'utf8'),f.old);}finally{await writeFile(release,'release').catch(()=>{});await Promise.allSettled(children);await f.close();}
 });
+
+test('bound deployment digest rejects a replaced manifest before any privileged side effect; original optional-digest call stays compatible',async()=>{
+ const f=await fixture();let calls=0;try{
+  const original=await readFile(f.manifestPath),expected=hash(original),io={root:f.root,async command(){calls++;}};await writeFile(f.manifestPath,JSON.stringify({...f.manifest,user:'other'}));
+  await assert.rejects(runFixedInstallHelper(f.manifestPath,'install',io,new AbortController().signal,expected),/manifest identity changed/);assert.equal(calls,0);assert.equal(await readFile(f.unitPath,'utf8'),f.old);assert.equal(await readFile(join(f.dataPath,'systemd/moonraker.env'),'utf8'),f.env);await assert.rejects(lstat(f.state),{code:'ENOENT'});
+  await writeFile(f.manifestPath,original);const old=await runFixedInstallHelper(f.manifestPath,'probe',io);assert.equal(old.phase,'unknown');assert.equal(calls,0);const installed=await runFixedInstallHelper(f.manifestPath,'install',io,new AbortController().signal,expected);assert.equal(installed.phase,'installed');assert.equal(calls,1);
+ }finally{await f.close();}
+});

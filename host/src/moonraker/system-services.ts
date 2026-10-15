@@ -46,6 +46,7 @@ const systemctl:ServiceCommand=(args,signal)=>new Promise((resolve,reject)=>{
  const abort=()=>{child.kill('SIGKILL');};signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();
  child.once('close',()=>{signal.removeEventListener('abort',abort);if(signal.aborted)reject(signal.reason);else if(failed)reject(new Error('Service query unavailable'));else resolve(result);});
 });
+export {systemctl as readSystemctl,cgroup as readServiceCgroup};
 export function linuxServiceSource(options:{allowedUnits?:readonly string[];nativeCombined?:boolean;command?:ServiceCommand;readCgroup?:(signal:AbortSignal)=>Promise<string>}={}):ServiceSource{
  validateSystemServices({allowedUnits:options.allowedUnits});
  const extra=new Set(options.allowedUnits??[]),command=options.command??systemctl,readCgroup=options.readCgroup??cgroup;

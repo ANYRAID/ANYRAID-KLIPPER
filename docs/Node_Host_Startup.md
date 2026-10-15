@@ -10,6 +10,83 @@
 设备操作、部署或发布时仍按对应流程与授权范围处理。电源验收只允许
 受控 PATH 内的假可执行文件，Node 使用绝对路径，设备使用模拟 MCU。
 
+## 同包客户端外部故障恢复（2026-10-15，未发布）
+
+单条无参数 `SDCARD_RESET_FILE` 复用canonical取消／重置与持久journal。
+命令捕获原native generation signal和request_id/state_token；活动／暂停／
+中断／失败任务先等安全取消ACK与同一请求cancelled，再取该请求新token重置。
+完成／已取消直接重置；无任务idle仍检查原代有效且没有pending／关闭状态。
+新请求竞争、授权拒绝、取消失败、退役或超时不跨代重试，不自动执行
+Firmware Restart、G28或新打印。命令参数和多命令脚本均拒绝；允许命令前后空白。
+
+锁定cd91f2e3产品与692独立JS一致，原生84输入／12输出及依赖核验后复用。
+Linux受影响源码42项、实际产品42项、最低26.9源码／产品各42项通过；严格
+独立JS首41／42因旧测试子进程硬编码.ts被hook拒绝，按现有模式修正后仅该
+文件5／5补验，保留首失败。最终全仓Windows TS7类型检查通过。API／工具
+层两条恢复路线分别有真实gateway／SQLite／模拟MCU证明，不替代页面验收。
+
+同包Fluidd1.37.6场358.427秒、Mainsail2.19.0场614.838秒均在各自900秒内：
+真实选择上传与页面归位／长作业，监督仅杀一次精确拥有child，旧close／IPC／
+模拟器join后明确启动同地址新进程；同一页面明确重连，点击可见Firmware Restart，
+持久成功后旧任务cancelled、新状态idle且未归位，再页面归位和不同短任务完成。
+Mainsail完成卡Clear print stats实际发送单条SDCARD_RESET_FILE，idle且历史仍2条。
+前Fluidd Reset-first控件隐藏仅证明该路径不可达，不否定Firmware Restart；
+该原场工具context丢失／新登录和正常收尾取消不能记成UI恢复通过。
+Mainsail有Connection failed及SIGKILL证据，未捕获离线502；两次自动审批拒绝
+保留，具体模拟短打印收到直接用户许可后继续原对话框。整个私有浏览器profile、
+认证库和会话响应均不进入证据包；业务事件仅限允许路由，无鉴权headers。
+
+预注册27行包含3warmup＋每变体8正式，原输入与1.5门槛不变；canonical候选／
+基线0.95302倍、script／候选canonical0.76663倍通过。此为隔离完整操作延迟，
+不代表打印速度／物理精度，不关闭服务重获2.62602倍超限、G3、历史11失败、
+完整42／28、真实特权部署、ARM64、实机及当前候选CI／正常集成门禁。原始记录见
+[现有客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的externalResetFollowUp。
+
+## 内部服务属性与安装准入（2026-10-15，未发布）
+
+真实进程工厂从同一 machine provider 借用内部 `serviceInfo` 所有者，
+固定安装与旧安装消费者直接使用它；不增加公开 service_info 或环境内容接口。
+D-Bus 保留 typed argv 与全部 EnvironmentFiles；CLI 保留完整显示字符串，
+不从显示引号反推 argv；Supervisor 仅返回原 program 属性，不能伪造 systemd
+身份或自动改写其安装；none 自动服务安装明确不可用。已有显式可信
+`serviceIdentity` 和外部部署能力继续走其原边界。
+
+安装来源、目标声明和 fresh 进程分三阶段核对。旧 unit 的 ExecStart 仍写
+Python、实际进程已运行 Node 时，来源身份使用当前 PID/startTicks、服务归属、
+原 unit 字节及批准 manifest 联证，不把声明当成正在运行的可执行体。
+目标阶段还核对实际 `/proc/self/cmdline` 的 NUL 参数边界、真实 executable、
+当前账号、固定 Node unit/profile/bundle/config 摘要与 root 公共证明。
+`/proc` 参数本身可变，不能独立授予部署权限。新的 transition 记录放在原
+恢复 journal；同一 PID/startTicks 重建对象仍不能冒充 fresh 进程。旧成功
+journal 没有 transition 时，仍须通过实际目标和完整既有字节证明，不补造历史字段。
+
+安装副作用及每次真正 createAdapter 前异步刷新属性；设备准入还重新确认
+磁盘 unit/candidate 摘要，不能用未 daemon-reload 的旧 show 输出掩盖文件变更。
+CLI 先校验全部 cgroup hierarchy，再比较最深服务归属；仅有效且没有服务归属
+时查询当前 PID 的唯一首标题。已成功验证的 unit 仅可作路由提示：完整 cgroup
+不变时当次 status(PID) 与 show(hint) 并发，两结果须一致；错误、失配或取消撤销
+提示及旧证明，并等待两 child 实际退出。没有 TTL 或准入证明缓存。
+CLI 的 `show <数字>` 是 job 查询，不能替代 PID 服务发现。
+
+systemd v256 的 [show 实现](https://github.com/systemd/systemd/blob/v256/src/systemctl/systemctl-show.c#L1273)
+用空格拼接 argv，两个不同参数数组可有相同显示；因此 CLI 显示仅为事实。
+[数字参数分支](https://github.com/systemd/systemd/blob/v256/src/systemctl/systemctl-show.c#L2153)
+区分 show 的 job 与 status 的 PID。属性和环境路径均不作为 shell 指令或任意文件读取授权。
+
+Windows最终19项与类型通过；Linux并发版源码重点22项、独立JS／实际产品／
+最低26.9源码和产品四层11文件各112项通过，fail/cancel/skip/todo均零。
+726项产品清单另计build-info，692个生产JS（host/src685＋辅助7）与独立发射
+逐SHA一致；原生84来源／12输出及锁定依赖核验后复用，本批未新编原生或npm安装。
+初轮真实进程15／13／2及修正15／15、两版产品107／105／2与依赖类身份修正后
+各23／23均分次保留，不改成首次全绿。真实root-owned后端／sudoers／PAM／setpriv
+happy path仍待管理员目标环境验收；当前只是普通UID helper隔离root与固定假命令。
+
+预注册文件SHA为a8159cb8…（原文件字节口径，非紧凑JSON摘要），28／版ABBA不变。
+首轮冷启动1.09625倍、重获4.08607倍；仅一次有界计时后实施并发，必要重测冷启动
+1.06765倍通过，重获2.62602倍仍超1.5，保留两份完整56行，不追加次数求绿。
+该范围不替代完整42／28预算、实机精度或G3。原始失败、包身份与新归档见
+[现有共享总线验收的serviceInfoFollowUp](../host/contracts/system-bus-provider-acceptance.json)。
+
 ## none 显式电源候选（2026-10-15，未发布）
 
 配置 `provider:none` 自身不授予系统控制权限，默认保留空服务目录和零命令。
@@ -53,9 +130,10 @@ JS＝host/src684＋辅助7，与严格独立TS7发射逐SHA相等；测试父子
 新进程，190.198860→190.773607ms，1.00302倍，沿用1.5门限；不代替完整
 原42／28预算或完整服务启动。四个真实fake CLI child close为22.025–24.800ms，
 仅绝对成本，不是打印速度。111生产输入＋package/lock对be2逐字节一致，
-不代表新运动运行时或物理精度。原11失败／G3／新头CI／集成和实机仍开放。
+不代表新运动运行时或物理精度。原11失败／G3／集成和实机仍开放。
 原准备脚本SyntaxError与性能启动保护等待错误保留，均未启动失败测试／采样。
-终态任务Node残留为零，源码8项冻结未变，未提交推送或部署。
+该批当时终态Node残留为零、源码8项未变；后续已提交并推送4d981922，
+其motion／sanitizer成功只属于该头，普通CI终态另行核验，不覆盖本节上方当前属性增量。
 
 ## Supervisor 分组进程候选（2026-10-15）
 
@@ -332,6 +410,18 @@ helper／Node／sudo／manifest 及其全部祖先须 root-owned、无 group/wor
 可写 profile/build-info/旧 env 时使用固定 setpriv 清除 supplementary
 groups 并以服务 uid/gid 有界读取，避免 root 跟随用户路径读取秘密。
 实际 setpriv/root 隔离效果仍须管理员在目标系统验收。
+
+新内部属性消费者从受信 backend 取得同一 approved manifest 的只读声明和
+SHA-256；新安装调用必须传给独立 helper 第三个参数 `expectedManifestSha256`。
+helper 只读取一次 manifest 字节，先验证严格 64 位小写十六进制摘要再解析，
+同一快照用于后续执行；声明读取后替换 manifest 在任何命令／写入前拒绝。
+旧两参数 helper 调用仍兼容，但新消费者不降级省略摘要。
+
+项目不自动生成或安装 sudoers。管理员原先精确匹配两参数 argv 的策略须与
+独立 helper 同时审核更新：仍固定 Node/helper/manifest 路径及 probe/install/restart
+操作，额外精确匹配该份批准 manifest 的摘要字面量；不要改成任意参数或路径通配。
+`status` 继续使用普通用户可读的固定公共证明，不扩大 root 操作／路径白名单。
+manifest 更新需重新审核摘要及策略，旧策略拒绝属于显式部署诊断。
 
 helper 清除 NODE_OPTIONS／NODE_PATH／LD_* 等注入环境，固定绝对
 可执行文件和规范 unit 字段，非 root User，正确转义；不允许 HTTP
