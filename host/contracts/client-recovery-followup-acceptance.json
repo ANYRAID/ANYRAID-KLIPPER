@@ -1442,5 +1442,102 @@
         "Unrelated old CI runs and old Fluidd scenes"
       ]
     }
+  },
+  "mainsailNativeDownloadPreviewFollowUp": {
+    "status": "download_and_distinct_synthetic_two_layer_preview_validated_a4_still_partial",
+    "sourceHead": "966d6c84ed775d0f4fcd7a8e39ac0b6b69bd30b6",
+    "client": "Mainsail2.19.0",
+    "productManifestSha256": "cd91f2e3242a2cd392e8489f7026fd3cd730470ec8cf03d9113332546cfc67d3",
+    "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+    "productionNativeDependenciesRebuilt": false,
+    "download": {
+      "scene": "mainsail-native-owner-once",
+      "nativeRoute": "Single-file real checkbox then header Download; no row-click Print route",
+      "failure": null,
+      "bytes": 944,
+      "sha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f",
+      "artifactAndSaveAsVerified": true,
+      "elapsedThroughCleanupMs": 8312
+    },
+    "preview": {
+      "scene": "mainsail-preview-track-owner-once",
+      "inputBytes": 1000,
+      "inputSha256": "8a3e1d38d31cf50aadddddb135f985e51b19df9c3bd15fdce3400c7e94945fc9",
+      "nativeRoute": "Exact visible filename TD right-click -> View3D -> visible thumb ordinary center click -> natural role-slider focus/value0 unchanged -> real keyboard batches",
+      "positions": [
+        844,
+        995
+      ],
+      "screenshots": [
+        {
+          "file": "scenes/mainsail-preview-track-owner-once/08-layer1.png",
+          "sha256": "414e10156d6202da86d51e5a10d84edb8ac6e6113be926c8e472cf7afb357770"
+        },
+        {
+          "file": "scenes/mainsail-preview-track-owner-once/09-layer2.png",
+          "sha256": "9736ac5df54aa600f34312759cf974bca448d4b1f557ee7841f9f42d61424817"
+        }
+      ],
+      "visualAudit": "Root viewed outer square at844 and added smaller inner square at995, partially occluded by nozzle marker but discernible; not inferred only from values",
+      "elapsedThroughCleanupMs": 12785,
+      "neverPrinted": true,
+      "syntheticNotSlicerOrPhysicalProof": true
+    },
+    "failuresRetained": [
+      {
+        "scene": "mainsail-native-owner-once",
+        "reason": "Entire2470px TR width gate rejected preview before contextmenu; download already passed",
+        "elapsedThroughCleanupMs": 8312
+      },
+      {
+        "scene": "mainsail-preview-owner-once",
+        "reason": "View3D reached; role-slider container reported hidden, wait failed before keys/screenshots; final successful scene separately measured the positioning container as0x0",
+        "elapsedThroughCleanupMs": 17547
+      },
+      "Original c28a archive retains menu cancellation, tool reset and prior partial scene unchanged",
+      "Center surface-click script prepared but never run; static mouseup noClick branch justified visible current thumb path"
+    ],
+    "cleanup": "All three scenes closed normally; exact Windows/string ticks and Linux/startTicks ownership receipts, watchdog remaining[], fixed listener ports free; no retry/rebuild",
+    "a4ExistingEvidence": {
+      "uploadAndVisibleFileMetadata": "mainsail-a4-scene actual chooser and file table; not every slicer metadata field",
+      "startPauseResumeComplete": "mainsail-a4-scene long and distinct short both completed; pause/resume actual UI",
+      "cancel": "Firmware Restart cancels interrupted original job durably; independent active-job Cancel button remains unverified",
+      "printingRefreshDisconnect": "External SIGKILL/offline recovery passed, not ordinary printing refresh/transientWS flow",
+      "standardRestart": "FIRMWARE_RESTART passed; standard RESTART real page path remains unverified",
+      "processRecovery": "Reuse same cd91 mainsail-firmware-scene, no rerun",
+      "identity": "JWT gateway only; explicit trusted-network path needs separate record",
+      "queue": "Native Mainsail enqueue; product/_client/queue clearance is separate owner"
+    },
+    "remainingA4": [
+      "Current-package page printing refresh/transient disconnect with explicit active-job cancel and standard RESTART, then explicit different job completion",
+      "Record explicit trusted-network identity route separately from JWT; do not infer from existing JWT scenes"
+    ],
+    "boundaries": [
+      "No new browser or scene after final preview; no print/home/config/queue/fault action in these three follow-ups",
+      "Default sandbox/private owned Edge with sharedPW after actual IAB unavailable; no forceclick, DOM assignment, internal handler or API mutation",
+      "All private profiles, authentication/session databases, cookies, headers and unrelated user tab inventory excluded",
+      "No new performance sample; service reacquire2.62602209255>unchanged1.5 remains failed",
+      "Historical local11/G3, full42/28, ARM64, privileged deployment, real-device precision, Python replacement and normal integration/release remain open"
+    ],
+    "evidenceArchive": {
+      "path": "host/contracts/mainsail-native-download-preview-evidence.tar.gz",
+      "bytes": 411570,
+      "sha256": "429bbe35dfca7758c5088df20c713e39149de5b61f05222df1a99ec2dde886a3",
+      "members": 85,
+      "evidenceFiles": 84,
+      "manifest": "manifest.json",
+      "manifestSha256": "a0ce6e12bc526ac572d87340adcd2397f4773e4d618d584aa3dfe248cfc2d389",
+      "allMemberBytesAndHashesMatch": true,
+      "uniqueSafeRegularMembers": true,
+      "sensitivePatternHits": {
+        "privateKey": 0,
+        "githubToken": 0,
+        "jwt": 0,
+        "bearer": 0,
+        "cookieValue": 0
+      },
+      "rootAuditTool": "04ea11",
+      "fullFrontendBundlesIncluded": false
+    }
   }
 }

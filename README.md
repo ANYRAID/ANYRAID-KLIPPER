@@ -51,13 +51,16 @@ Node26.12普通测试5402／5402、零失败／取消／跳过；原三项安装
 同包Mainsail2.19.0的A4有限场已验证真实上传、测试printer.cfg仅追加注释后保存／
 重开／严格回读，以及忙时入队、暂停／恢复、长任务完成不自动续打、明确清台后
 不同短任务完成。清台确认在产品自有/_client/queue页，不冒称Mainsail原生按钮。
-原菜单下载canceled、两层轨迹未证均保留。独立944字节下载对照显示自定义CDP allow
-取消，而Playwright默认所有权能实际saveAs并核同SHA；只支持工具配置差异，不计
-Mainsail下载通过。随后600秒窄补验仅完成两文件上传，工具与菜单操作超时，
-下载／两层仍未闭；所有资源在591396毫秒内清理，无打印／归位／配置／队列／故障动作。
-本轮实际子代理IAB不可用，使用已授权共享Playwright＋私有Edge、默认sandbox；
-仅JWT网关路线，可信网络／TLS／队列跨进程持久恢复及完整客户端出口未验。
-证据见[客户端验收](host/contracts/client-recovery-followup-acceptance.json)的mainsailA4FollowUp，历史失败和旧归档不覆盖。
+原菜单下载canceled、原600秒窄补验工具中断与两次设施定位失败均保留。
+后续同包真实单选文件的header Download已完成：Playwright默认所有权failure=null，
+实际saveAs为944字节，SHA-256与上传输入一致。最终仅预览场通过真实可见滑块点击
+自然取得焦点，再用原生键盘选择844／995；两张实图可辨第一层外框与第二层较小内框。
+下载场8312毫秒、隐藏role容器定位失败场17547毫秒、最终预览场12785毫秒均含清理，
+各场进程及端口终态已核，旧归档不覆盖。合成输入不代表实际切片器或物理层高证明。
+本轮IAB实际不可用，使用已授权共享Playwright＋独立私有Edge、默认sandbox；
+仅JWT网关路线。A4仍缺当前包打印中刷新／短暂断连、独立明确取消、标准RESTART
+的实页组合及显式可信网络边界记录，不把FIRMWARE_RESTART或历史其他包替代这些项。
+证据见[客户端验收](host/contracts/client-recovery-followup-acceptance.json)的mainsailA4FollowUp与mainsailNativeDownloadPreviewFollowUp，历史失败和旧归档不覆盖。
 
 当前同包客户端恢复候选增加单条 `SDCARD_RESET_FILE` 兼容入口，始终复用原生
 取消／重置所有者、原请求与代际准入，不自动重启固件、归位或打印。
