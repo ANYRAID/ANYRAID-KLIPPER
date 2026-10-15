@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {writeFile,readFile,lstat} from 'node:fs/promises';
 import {join} from 'node:path';
-import {fixedInstallFixture,installHash} from './helpers/fixed-install.ts';
+import {fixedInstallFixture,fixedInstallFixtureUnit,installHash} from './helpers/fixed-install.ts';
 import {DatabaseStore} from '../src/moonraker/database.ts';
 import {NativeConfigFiles} from '../src/moonraker/native-config-files.ts';
 import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
@@ -48,4 +48,15 @@ test('validator close waits an accepted installation while the fixed service exe
  const f=await fixedInstallFixture(),entered=Promise.withResolvers<void>(),finish=Promise.withResolvers<void>();let a:Awaited<ReturnType<typeof opened>>|undefined;
  try{a=await opened(f);f.setEffect(async()=>{entered.resolve();await finish.promise;});const installing=a.sudo.setPassword('fixture-password',context());void installing.catch(()=>{});await entered.promise;let closed=false;const closing=a.validator.close().then(()=>{closed=true;});await new Promise(r=>setImmediate(r));assert.equal(closed,false);assert.equal(a.leases,1);finish.resolve();await installing;await closing;assert.equal(a.leases,0);assert.equal(JSON.parse(await readFile(f.options.recoveryPath+'.config-batch.json','utf8')).phase,'confirmed');assert.equal(JSON.parse(await readFile(f.options.recoveryPath,'utf8')).phase,'version-confirmed');
  }finally{finish.resolve();await a?.close();await f.close();}
+});
+
+test('installation fixtures align scoped and service cgroups without changing product identity checks',async()=>{
+ assert.equal(fixedInstallFixtureUnit('0::/user.slice/session.scope\n'),'anyraid.service');
+ assert.equal(fixedInstallFixtureUnit('0::/parent.service/actions.runner.fixture.service\n1:name=systemd:/actions.runner.fixture.service\n'),'actions.runner.fixture.service');
+ for(const value of ['malformed','0::/bad name.service','0::/one.service\n1:name=systemd:/two.service','0::/ok.service\nmalformed'])assert.throws(()=>fixedInstallFixtureUnit(value),TypeError);
+ for(const unit of ['../other.service','group:process.service','bad name.service','scope.scope',''])await assert.rejects(fixedInstallFixture({unit}),TypeError);
+ const f=await fixedInstallFixture({unit:'actions.runner.fixture.service'}),backend=f.backend();try{
+  assert.equal(f.manifest.unit,'actions.runner.fixture.service');assert.equal(f.options.unit,f.manifest.unit);assert.equal(f.unitPath,join(f.root,'etc/systemd/system',f.manifest.unit));assert.equal(JSON.parse(await readFile(f.manifestPath,'utf8')).unit,f.manifest.unit);
+  const installed=await backend.execute('install',Buffer.from('fixture-password'),new AbortController().signal);assert.equal(installed.phase,'installed');assert.equal((await backend.execute('status',undefined,new AbortController().signal)).unitSha256,f.manifest.candidateSha256);assert.equal(JSON.parse(await readFile(join(f.root,'var/lib/anyraid-install-attestations',f.manifest.unit+'.json'),'utf8')).unit,f.manifest.unit);
+ }finally{await backend.close();await f.close();}
 });

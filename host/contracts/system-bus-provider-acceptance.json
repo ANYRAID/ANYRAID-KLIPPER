@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "service-info-functional-candidate-reacquire-performance-open-awaiting-review",
+  "status": "service_info_reacquire_budget_open_ci8e2_failed_fixture_candidate_linux_validated",
   "scope": "Shared process-owned default systemd_dbus for trusted createProcess path, typed control and read/installation lifecycle; not complete Moonraker/provider/hardware acceptance.",
   "existingCommittedHead": "72d09f5141fbb303e8158059f7af3ae004675962",
   "existingHeadCi": "15 jobs successful, PR merge checkout d7ce760eb06e2d33f1047007353ffcb11d2562a5; does not cover this uncommitted D-Bus batch",
@@ -2904,7 +2904,7 @@
     }
   },
   "serviceInfoFollowUp": {
-    "status": "functional_candidate_reacquire_budget_open_pending_ci_and_integration",
+    "status": "functional_candidate_reacquire_budget_open_ci8e2_failed_fixture_followup_pending_ci",
     "baseline": "4d9819229420268c9c08003ff70288481d398475",
     "performanceRegistration": {
       "schema": 1,
@@ -3290,8 +3290,240 @@
       "True root-owned createTrustedSudoBackend + sudo/sudoers/PAM/setpriv happy path remains administrator target-system gate; fixtures use ordinary-UID isolated root-directory fixtures and fake callbacks only",
       "No real systemd launch/restart or device/power/hardware/physical precision acceptance",
       "Historical local11 failures and G3 remain, no full42/28 budget closure",
-      "Uncommitted candidate exact-head CI/review/normal develop then master integration and latest same-package client/full external recovery/release remain"
+      "Committed8e2 ordinary CI failed3; fixture candidate still requires its own exact-head CI/review and normal develop then master integration. Default Mainsail full same-package acceptance and release remain."
     ]
   },
-  "currentCandidateBaseline": "4d9819229420268c9c08003ff70288481d398475"
+  "currentCandidateBaseline": "4d9819229420268c9c08003ff70288481d398475",
+  "ciFixtureFollowUp": {
+    "status": "linux_validated_test_fixture_candidate_pending_github_ci_and_integration",
+    "baseline": "8e28228562cfa5c7e39438469ec6631822d04fad",
+    "testedMerge": "4fd6c30c34bec6d119a7b333d058960698de034a",
+    "originalCi": {
+      "head": "8e28228562cfa5c7e39438469ec6631822d04fad",
+      "testedMerge": "4fd6c30c34bec6d119a7b333d058960698de034a",
+      "node": "v26.12.0",
+      "hostRun": 38737418072,
+      "checksJob": 116430150401,
+      "checksConclusion": "failure",
+      "aggregateHostJob": 116439406055,
+      "aggregateHostConclusion": "failure",
+      "tests": 5401,
+      "passed": 5398,
+      "failed": 3,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        {
+          "file": "host/test/service-installation-process.test.ts",
+          "line": 36,
+          "assertion": "sudo_requested expected true, actual false"
+        },
+        {
+          "file": "host/test/service-installation-process.test.ts",
+          "line": 47,
+          "assertion": "expected account diagnostic, actual generic installation reconciliation"
+        },
+        {
+          "file": "host/test/service-installation-process.test.ts",
+          "line": 50,
+          "assertion": "Installation process deadline while waiting for recorded helper restart in installAndStop"
+        }
+      ],
+      "rootCause": "Not established on GitHub: no original child cgroup/CLI diagnostics. A bounded modeled comparison demonstrates the fixture inconsistency mechanism only.",
+      "otherChecks": "Build success; ASAN and UBSAN each 1234 passed; motion 10 jobs each 50 runs zero failures, all same merge.",
+      "boundary": "No rerun, cancellation, merge or release. Original failures retained; not the historical 11 local failures.",
+      "workflows": {
+        "host": {
+          "run": 38737418072,
+          "conclusion": "failure"
+        },
+        "build": {
+          "run": 38737418063,
+          "conclusion": "success"
+        },
+        "motion": {
+          "run": 38737418059,
+          "conclusion": "success"
+        }
+      },
+      "protocolNativeAndLinuxMcuSteps": "Not executed after ordinary npm test failure; not a pass",
+      "evidence": "ci/pr68-8e2-checks-failed.log; three audit snapshots preserve their original observation times"
+    },
+    "mechanism": {
+      "samePid": 367624,
+      "actualHostCgroup": "scope environment; full observed value is in diagnostic/ci-service-cgroup-pair-result.json",
+      "modeledInputs": [
+        "0::/user.slice/session.scope",
+        "0::/system.slice/actions.runner.synthetic.service"
+      ],
+      "scope": "pending, sudo_requested=true",
+      "service": "blocked with generic reconciliation, sudo_requested=false; password probe returns is_restarting=false without helper restart",
+      "cliCalls": "Rows are cumulative: the service row adds only its final show command, not the preceding two scope calls",
+      "elapsedMs": 450,
+      "exitCode": 0,
+      "remaining": [],
+      "githubActualCgroupCaptured": false
+    },
+    "changes": [
+      "Test fixture optional unit is strictly validated before directory creation; default anyraid.service remains unchanged for other callers. Manifest, unitPath, options, backend and attestation share the chosen unit.",
+      "Process fixture selects the deepest consistent service from actual complete cgroup hierarchies; valid scope-only input falls back to anyraid.service. Malformed/conflicting inputs reject. Product identity checks are unchanged.",
+      "Child diagnostics print only selected PID/cgroup/CLI argv/installation status/exit fields. No IPC API key, environment dump or authentication session is logged. Diagnostic read failures record fixed categories and do not change bootstrap behavior.",
+      "Original20s wait and test timeouts are unchanged. Timeout diagnostics are evaluated only at deadline exhaustion."
+    ],
+    "inputs": [
+      {
+        "path": "host/test/helpers/fixed-install.ts",
+        "beforeSha256": "ae08284545e4add3e8445b6316b57e5c4189186509ed3c0d6f237f4c8a49427f",
+        "sha256": "e5547c573e3fae3df246aa43ab49f8e42808535376b9593405d30bc74bb20775",
+        "bytes": 5701
+      },
+      {
+        "path": "host/test/helpers/service-installation-process.ts",
+        "beforeSha256": "126ebf01cbfffac90579269497b22de68561ed5c4451d514744f3187211378ea",
+        "sha256": "33465d8d514b09414af0c4035d7d34d6c38a2198eb7354f4d4668f5532b24717",
+        "bytes": 9996
+      },
+      {
+        "path": "host/test/service-installation-process.test.ts",
+        "beforeSha256": "2ae14366792192d6f084fc14ab9a55e9abc63f782b0235d4f0ef0fd4f4d183c6",
+        "sha256": "2c92628d67fe5937943c0c4a4b6baa28ae676350ffb7be76dc548e867d73399d",
+        "bytes": 14822
+      },
+      {
+        "path": "host/test/fixed-node-install.test.ts",
+        "beforeSha256": "1cb084b4f77e2c1139146b451a597a29669ba16d25798733827f4b2c0290959a",
+        "sha256": "d3df932a54abae0ff990a7f7da9d7ee37a98b35e1953ccc2522c8f46e57b60c8",
+        "bytes": 11200
+      }
+    ],
+    "validation": {
+      "linuxTypecheck": {
+        "command": [
+          "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+          "host/scripts/run-typescript.ts",
+          "-p",
+          "host/tsconfig.json"
+        ],
+        "exitCode": 0,
+        "elapsedMs": 3235,
+        "log": "linux/ci-fixture-linux-typecheck.log",
+        "receipt": "linux/ci-fixture-linux-typecheck.json",
+        "emptyLogIsNotTheExitProof": true
+      },
+      "threeFiles": [
+        "host/test/fixed-node-install.test.ts",
+        "host/test/service-info.test.ts",
+        "host/test/service-installation-process.test.ts"
+      ],
+      "observations": [
+        {
+          "label": "ci-fixture-linux-26.11-three",
+          "node": "26.11.1",
+          "tests": 30,
+          "pass": 30,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 23766.11229,
+          "command": [
+            "/home/dek02/.cache/codex/tmp/legacy-install-oct14/node26.11.1/node-v26.11.1-linux-x64/bin/node",
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "host/test/fixed-node-install.test.ts",
+            "host/test/service-info.test.ts",
+            "host/test/service-installation-process.test.ts"
+          ],
+          "exitCode": 0,
+          "runnerElapsedMs": 23816,
+          "timeout": false,
+          "remaining": []
+        },
+        {
+          "label": "ci-fixture-linux-26.9-three",
+          "node": "26.9.0",
+          "tests": 30,
+          "pass": 30,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 18603.100431,
+          "command": [
+            "/home/dek02/.codex/worktrees/supervisor-group-compat/node26.9/node-v26.9.0-linux-x64/bin/node",
+            "--test",
+            "--test-concurrency=1",
+            "--test-reporter=tap",
+            "host/test/fixed-node-install.test.ts",
+            "host/test/service-info.test.ts",
+            "host/test/service-installation-process.test.ts"
+          ],
+          "exitCode": 0,
+          "runnerElapsedMs": 18644,
+          "timeout": false,
+          "remaining": []
+        }
+      ],
+      "limitSecondsPerBatch": 600,
+      "scope": "TS test drivers and helpers; actual installation children run the retained compiled cd91 product with TypeScript stripping disabled. No new strict-independent production matrix, full npm test or performance sampling.",
+      "productBeforeAndAfter": {
+        "finished": 1792071686921,
+        "before": {
+          "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/client-reset-product",
+          "manifestSha256": "cd91f2e3242a2cd392e8489f7026fd3cd730470ec8cf03d9113332546cfc67d3",
+          "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+        },
+        "after": {
+          "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/client-reset-product",
+          "manifestSha256": "cd91f2e3242a2cd392e8489f7026fd3cd730470ec8cf03d9113332546cfc67d3",
+          "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+        },
+        "inputsUnchanged": true,
+        "productionRebuilt": false,
+        "nativeRebuilt": false,
+        "dependenciesReinstalled": false
+      },
+      "productionChanges": false,
+      "originalGithubFailuresNotOverwritten": true
+    },
+    "archive": {
+      "path": "host/contracts/ci-service-installation-fixture-evidence.tar.gz",
+      "bytes": 290695,
+      "sha256": "8cd366d3305dd35158ae2b79138a2d9fac99cc212bde044faf8fb7dffede8b5c",
+      "members": 36,
+      "evidenceFiles": 35,
+      "manifest": "ci-fixture-evidence-manifest.json",
+      "manifestSha256": "45c3804f8653a17b945832f49c483dfb0f572878eca1fdd99a432886d3ed95d3",
+      "allMemberBytesAndHashesMatch": true,
+      "sensitivePatternHits": {
+        "privateKey": 0,
+        "githubToken": 0,
+        "jwt": 0,
+        "bearer": 0,
+        "cookieValue": 0
+      },
+      "excludes": "No Fluidd scene, browser profiles, auth databases, session/cookie/header records, private keys or environment dumps; fixed fixture-password is a synthetic test literal"
+    },
+    "previousArchives": [
+      {
+        "path": "host/contracts/service-info-installation-evidence.tar.gz",
+        "sha256": "3e58c721928e693569d91ae3794f829bab92dc6ac8b3638ff9c0a58d7bba207d",
+        "unchanged": true
+      },
+      {
+        "path": "host/contracts/client-external-recovery-evidence.tar.gz",
+        "sha256": "3460080cf5a0ea3f266049ec43d0429c0a5750764dff73cf0d0e346bdf096d21",
+        "unchanged": true
+      }
+    ],
+    "clientPolicy": "Default Mainsail is the sole client acceptance target unless the user explicitly requests Fluidd. Historical Fluidd evidence and failures remain, without a mandatory dual-client gate.",
+    "remainingGates": [
+      "Candidate exact-head GitHub CI, including actual runner cgroup observations; modeled scope/service comparison and two local30/30 suites do not prove the GitHub root cause or close original3 failures.",
+      "Service reacquire2.62602209255 remains above unchanged1.5. No new performance samples.",
+      "Historical local11 failures and intermittent G3 are separate from original8e2 CI3; full42/28, true root/sudo deployment, ARM64, real devices/physical precision, normal integration, Python retirement and release remain open.",
+      "Default Mainsail wider full same-package acceptance remains; do not require repeated Fluidd acceptance without a new user request."
+    ]
+  }
 }

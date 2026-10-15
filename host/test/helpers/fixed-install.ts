@@ -8,8 +8,16 @@ import type {SudoBackend,SudoOperation,SudoInstallReceipt} from '../../src/moonr
 import {ApiError} from '../../src/moonraker/rpc.ts';
 import type {FixedNodeInstallOptions} from '../../src/moonraker/fixed-node-install.ts';
 export const installHash=(b:Uint8Array|string)=>createHash('sha256').update(b).digest('hex');
-export async function fixedInstallFixture(){
- const root=await mkdtemp(join(tmpdir(),'fixed-node-install-')),dataPath=join(root,'data'),configRoot=join(dataPath,'config'),configFile=join(configRoot,'moonraker.conf'),databasePath=join(dataPath,'database/moonraker-sql.db'),logsRoot=join(dataPath,'logs'),gcodesRoot=join(dataPath,'gcodes'),bundle=join(root,'bundle'),profile=join(root,'profile.mjs'),manifestPath=join(root,'root-manifest.json'),unit='anyraid.service',unitPath=join(root,'etc/systemd/system',unit);
+const fixtureUnitPattern=/^[A-Za-z0-9][A-Za-z0-9_.@-]{0,239}\.service$/u;
+/** Test-only layout selection; never overrides the product's actual cgroup proof. */
+export function fixedInstallFixtureUnit(cgroup:string):string{
+ if(typeof cgroup!=='string'||!cgroup.isWellFormed()||Buffer.byteLength(cgroup)>65536||!cgroup.trim()||cgroup.includes('\0'))throw new TypeError('Invalid fixture cgroup');const units=new Set<string>();
+ for(const line of cgroup.trimEnd().split('\n')){const match=/^\d+:[^:\r\n]*:(\/[^\r\n]*)$/u.exec(line);if(!match)throw new TypeError('Invalid fixture cgroup');let deepest:string|undefined;for(const component of match[1].split('/'))if(component.endsWith('.service')){if(!fixtureUnitPattern.test(component))throw new TypeError('Invalid fixture service unit');deepest=component;}if(deepest)units.add(deepest);}
+ if(units.size>1)throw new TypeError('Conflicting fixture service units');return units.values().next().value??'anyraid.service';
+}
+export async function fixedInstallFixture(fixtureOptions:{unit?:string}={}){
+ const unit=fixtureOptions.unit??'anyraid.service';if(typeof unit!=='string'||!fixtureUnitPattern.test(unit))throw new TypeError('Invalid fixture service unit');
+ const root=await mkdtemp(join(tmpdir(),'fixed-node-install-')),dataPath=join(root,'data'),configRoot=join(dataPath,'config'),configFile=join(configRoot,'moonraker.conf'),databasePath=join(dataPath,'database/moonraker-sql.db'),logsRoot=join(dataPath,'logs'),gcodesRoot=join(dataPath,'gcodes'),bundle=join(root,'bundle'),profile=join(root,'profile.mjs'),manifestPath=join(root,'root-manifest.json'),unitPath=join(root,'etc/systemd/system',unit);
  await Promise.all([configRoot,dirnameDatabase(databasePath),logsRoot,gcodesRoot,join(dataPath,'systemd'),join(root,'etc/systemd/system'),join(root,'var/lib'),bundle].map(p=>mkdir(p,{recursive:true,mode:0o700})));
  const original=`[server]\n  host:127.0.0.1\n  port:0\n  route_prefix:printer\n  config_path:${configRoot}\n  log_path:${logsRoot}\n[database]\n  database_path:${dirnameDatabase(databasePath)}\n[secrets]\n  secrets_path:${join(dataPath,'moonraker.secrets')}\n`,oldUnit='[Service]\nUser=printer\nEnvironmentFile=/legacy/moonraker.env\n';
  const profileSource='throw Error("Never evaluate this profile in root helper");\n',bundleInfo='{"product":"isolated-fixture"}\n';
