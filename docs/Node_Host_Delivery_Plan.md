@@ -6,6 +6,24 @@
 自行使用10.0.0.184”，包括该固定 Linux 开发机的本项目源码传输与调试。修复仍在独立任务分支和工作树中完成，
 不扩大到真实设备操作、生产部署或绕过任务 → develop → 主线的 PR 流程。
 
+## 2026-10-16 进程日志故障注入标记的限定修复
+
+f956d3cc／合成检出f878f9a31539的原Node26.12 CI中，ASAN、UBSAN成功，普通5417项中5416通过、1失败；
+process-logs的published边界用例读取标记得到空串，精确内容断言在parent发出SIGKILL及恢复检查之前失败。
+原checks与aggregate均失败，协议及Linux MCU后续步骤skipped；不能将其它头的结果补为本轮通过。
+
+本次仅改测试故障注入preload：先wx写同目录独立临时标记，再用hook前捕获的原rename原子发布，避免递归hook。
+原精确内容断言、5秒期限、link／rename注入边界、SIGKILL及恢复断言不变；生产日志已先写header再rename，未修改。
+一次固定IPC屏障对照显式拆开open／write：旧目标在open后可读空串；新方式发布前目标始终ENOENT，发布后内容完整。
+该53ms对照验证文件可见性机制，不声称暂停或重放Node内部writeFileSync单步，也没有随机重采。
+
+184同Node26.12标准类型检查及process-logs14／14首轮通过；复用19个已登记native输出，非fresh build。
+2794个输入除这一测试外均未变，固定1735产物及依赖前后一致。8个登记PID现均不存在、两进程组无残留；
+短运行未取得独立live快照，部分child／guard未采startTicks，不将末态不存在表述为完整生命周期证明。
+[原CI失败、固定探针与首轮回归证据](../host/contracts/process-log-marker-evidence.tar.gz)共36成员／35payload，SHA256
+`737e322b8faa44d233387142bcff2604302a45865799a18275e216efb15ab837`；原失败完整保留。
+本地定向回归不等于新头完整CI／产品验收，服务重获预算、G3及实机边界不变。
+
 ## 2026-10-16 热时钟只读查询的限定修复与验证
 
 6cc050fc2／合成检出663738489的原CI：Build、motion、普通5413／5413、协议／Linux MCU及UBSAN成功；
