@@ -38,26 +38,33 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 保留身份查询候选现为可信 IP／API Key 的 GET /access/user 与 WS access.get_user
 返回 username／source／created_on，JWT 继续返回注册用户资料；旧安装原创建时间
 从留存源核摘要恢复，轮换／重开保留。新候选1735的隔离回归与窄鉴权预算已验，
-完整同包客户端A4、完整预算、正常集成与实机仍开放，见[本批验收](host/contracts/client-recovery-followup-acceptance.json)的reservedIdentityFollowUp。
+同包客户端A4现按下述固定包映射闭合；完整预算、正常集成与实机仍开放，见[本批验收](host/contracts/client-recovery-followup-acceptance.json)的reservedIdentityFollowUp。
 
 同1735包的Mainsail2.19.0可信回环有限场已验证真实chooser上传、打印中reload，
 1012断连后通过原生TRY AGAIN显式重连，同job／request及单次start保持、进度增加；
 经必要Pause后直接Cancel（默认无确认弹窗），标准printer.restart保持产品进程、
 模拟设备generation增加，另一短job完成且旧job仍cancelled。最终场277.702秒、
-24张截图和两端清理终态齐全；前四失败分场保留，不称自动重连或完整A4通过。
+24张截图和两端清理终态齐全；前四失败分场保留，不称自动重连；本场仅覆盖其有限条目。
 见同一验收的mainsailTrustedLifecycleFollowUp；cd91旧包证据归属不变。
 
 同1735包的JWT文件维护现分场验证原生chooser上传／metadata、944字节单选下载、
 下载后View3D与844／995不同层路径，以及CodeMirror仅追加注释后Save／Close／重开
 和74字节精确回读。原N导航原因未定，N-diag与独立配置专场的部分／成功结果分别保留，
-不倒写原失败；其后队列补验见下段，故障恢复及完整同包A4仍开放。
+不倒写原失败；后续队列及故障恢复见下段，分场结论各自保留。
 见同一验收的mainsailJwtMaintenanceFollowUp；没有产品更改或实际设备操作。
 
 同1735包的JWT队列专场现完成忙时入队、同job／request的原生Pause／Resume和恢复推进；
 长任务完成后两次相隔29.191秒的状态保持history1／队列暂停且未续打，随后在产品自有
 清台页请求确认、勾选并明确开始不同短任务，最终两条completed／空队列paused。
 该唯一场653.001秒、九检查点截图齐全、清理0错；额外扩展／非任务页只观察不操作，
-不称私有profile无扩展。见同一验收的mainsailJwtQueueFollowUp；故障恢复和完整A4仍开放。
+不称私有profile无扩展。见同一验收的mainsailJwtQueueFollowUp；同包A4汇总见下段。
+
+同1735包的JWT外部故障恢复唯一场411.328秒完成：真实joined SIGKILL及离线502，
+显式RECOVER新PID后旧任务interrupted，经原生TRY AGAIN／Firmware Restart转为旧cancelled，
+重新归位后不同短任务completed，再原生Clear print stats保持两条history并回idle。
+原owner保留fault_business_pass_screenshot_missing和三缺图；018独立恢复实图补充视读，
+不倒写017。原定义A4九项现由同1735固定Mainsail各独立场覆盖，详见Delivery映射与
+同一验收的mainsailJwtFaultRecoveryFollowUp；全A集成／完整预算／G3／实机等仍开放。
 
 后续客户端默认仅验 Mainsail；历史 Fluidd 证据和失败保留，用户另行指定时才追加，
 不要求每批重复双客户端。

@@ -2887,5 +2887,633 @@
       "No product/source implementation change, push/merge/deploy; evidence packaging snapshot before local commit",
       "Old N failures belong to prior independent archive, not this successful single queue scene"
     ]
+  },
+  "mainsailJwtFaultRecoveryFollowUp": {
+    "schema": 1,
+    "date": "2026-10-16",
+    "sourceHead": "4161e57afac01b77953f2ed73ababdc9b05bd641",
+    "status": "Accepted finite same1735 external recovery business closure with original screenshot-missing status retained",
+    "product": {
+      "manifestSha256": "173565dc6b94d2d0380ec911f4f175d5a5b9f644880e8378245315eddf55e774",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+      "unchanged": true,
+      "rebuild": false
+    },
+    "client": {
+      "version": "2.19.0",
+      "commit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
+      "cleanAtRead": true,
+      "files": [
+        {
+          "path": "StatusPanel.vue",
+          "sha256": "c277ed2cf3a1068ecde6dcfa192de04e10810d36e37aa6c14c27e337a2fa0972"
+        },
+        {
+          "path": "KlippyStatePanel.vue",
+          "sha256": "94a4745a4860930b07075f701cadce7bcca53ba737505248a1104f7d68cf918a"
+        }
+      ]
+    },
+    "scene": {
+      "directory": "mainsail-jwt-fault-once",
+      "archivePrefix": "scenes/mainsail-jwt-fault-once/",
+      "status": "fault_business_pass_screenshot_missing",
+      "businessAcceptedByRoot": true,
+      "strictOwnerCandidate": false,
+      "elapsedThroughCleanupMs": 411328,
+      "onlyOneSceneNoFailureRelaunch": true,
+      "checkpoints": {
+        "before-fault": {
+          "at": 1792140631920,
+          "productCount": 1,
+          "pid": 422824,
+          "historyCount": 1,
+          "jobId": "000001",
+          "requestId": "compat-52faf7be-12e6-4bf6-8c31-e509e21472cd",
+          "longStatus": "in_progress",
+          "state": "printing",
+          "progress": 0,
+          "starts": 1,
+          "firmwareRestarts": 0,
+          "deviceGenerations": [
+            {
+              "at": 1792140508651,
+              "productIndex": 1,
+              "pid": 422824,
+              "generation": 1
+            }
+          ],
+          "ui": {
+            "observation": 12,
+            "screenshotCaptured": true
+          }
+        },
+        "offline": {
+          "at": 1792140661221,
+          "productCount": 1,
+          "pid": 422824,
+          "starts": 1,
+          "firmwareRestarts": 0,
+          "deviceGenerations": [
+            {
+              "at": 1792140508651,
+              "productIndex": 1,
+              "pid": 422824,
+              "generation": 1
+            }
+          ],
+          "joined": {
+            "at": 1792140652464,
+            "event": "external-product-close",
+            "pid": 422824,
+            "code": null,
+            "signal": "SIGKILL",
+            "simulationClosed": true,
+            "requestsJoined": true,
+            "generation": 1
+          },
+          "httpStatuses": {
+            "identity": 502,
+            "status": 502,
+            "objects": 502,
+            "host": 502,
+            "info": 502,
+            "history": 502
+          },
+          "ui": {
+            "observation": 14,
+            "screenshotCaptured": true
+          }
+        },
+        "recovered-interrupted": {
+          "at": 1792140711718,
+          "productCount": 2,
+          "pid": 423106,
+          "historyCount": 1,
+          "jobId": "000001",
+          "requestId": "compat-52faf7be-12e6-4bf6-8c31-e509e21472cd",
+          "longStatus": "interrupted",
+          "state": "interrupted",
+          "progress": 0,
+          "starts": 1,
+          "firmwareRestarts": 0,
+          "deviceGenerations": [
+            {
+              "at": 1792140508651,
+              "productIndex": 1,
+              "pid": 422824,
+              "generation": 1
+            },
+            {
+              "at": 1792140674756,
+              "productIndex": 2,
+              "pid": 423106,
+              "generation": 1
+            }
+          ],
+          "ui": {
+            "observation": 17,
+            "screenshotCaptured": false
+          }
+        },
+        "firmware-recovered": {
+          "at": 1792140762709,
+          "productCount": 2,
+          "pid": 423106,
+          "historyCount": 1,
+          "jobId": "000001",
+          "requestId": "compat-52faf7be-12e6-4bf6-8c31-e509e21472cd",
+          "longStatus": "cancelled",
+          "state": "idle",
+          "progress": 0,
+          "starts": 1,
+          "firmwareRestarts": 1,
+          "deviceGenerations": [
+            {
+              "at": 1792140508651,
+              "productIndex": 1,
+              "pid": 422824,
+              "generation": 1
+            },
+            {
+              "at": 1792140674756,
+              "productIndex": 2,
+              "pid": 423106,
+              "generation": 1
+            },
+            {
+              "at": 1792140747466,
+              "productIndex": 2,
+              "pid": 423106,
+              "generation": 2
+            }
+          ],
+          "ui": {
+            "observation": 20,
+            "screenshotCaptured": true
+          }
+        },
+        "short-complete": {
+          "at": 1792140821994,
+          "productCount": 2,
+          "pid": 423106,
+          "historyCount": 2,
+          "jobId": "000001",
+          "requestId": "compat-52faf7be-12e6-4bf6-8c31-e509e21472cd",
+          "longStatus": "cancelled",
+          "state": "completed",
+          "progress": 1,
+          "starts": 2,
+          "firmwareRestarts": 1,
+          "deviceGenerations": [
+            {
+              "at": 1792140508651,
+              "productIndex": 1,
+              "pid": 422824,
+              "generation": 1
+            },
+            {
+              "at": 1792140674756,
+              "productIndex": 2,
+              "pid": 423106,
+              "generation": 1
+            },
+            {
+              "at": 1792140747466,
+              "productIndex": 2,
+              "pid": 423106,
+              "generation": 2
+            }
+          ],
+          "shortJobId": "000002",
+          "shortRequestId": "compat-d9eb4318-4db0-403c-9bea-0e1d4952ba5a",
+          "ui": {
+            "observation": 24,
+            "screenshotCaptured": true
+          }
+        },
+        "stats-cleared": {
+          "at": 1792140908294,
+          "productCount": 2,
+          "pid": 423106,
+          "historyCount": 2,
+          "jobId": "000001",
+          "requestId": "compat-52faf7be-12e6-4bf6-8c31-e509e21472cd",
+          "longStatus": "cancelled",
+          "state": "idle",
+          "progress": 1,
+          "starts": 2,
+          "firmwareRestarts": 1,
+          "deviceGenerations": [
+            {
+              "at": 1792140508651,
+              "productIndex": 1,
+              "pid": 422824,
+              "generation": 1
+            },
+            {
+              "at": 1792140674756,
+              "productIndex": 2,
+              "pid": 423106,
+              "generation": 1
+            },
+            {
+              "at": 1792140747466,
+              "productIndex": 2,
+              "pid": 423106,
+              "generation": 2
+            }
+          ],
+          "shortJobId": "000002",
+          "shortRequestId": "compat-d9eb4318-4db0-403c-9bea-0e1d4952ba5a",
+          "ui": {
+            "observation": 26,
+            "screenshotCaptured": true
+          }
+        }
+      },
+      "products": [
+        {
+          "index": 1,
+          "pid": 422824,
+          "startTicks": "17119320",
+          "parent": 422795,
+          "root": "/tmp/anyraid-client-external-ZVe2hp",
+          "profile": "/tmp/anyraid-client-external-ZVe2hp/client-machine.mjs",
+          "at": 1792140507601
+        },
+        {
+          "index": 2,
+          "pid": 423106,
+          "startTicks": "17135890",
+          "parent": 422795,
+          "root": "/tmp/anyraid-client-external-ZVe2hp",
+          "profile": "/tmp/anyraid-client-external-ZVe2hp/client-machine.mjs",
+          "at": 1792140673299
+        }
+      ],
+      "business": [
+        {
+          "at": 1792140603715,
+          "method": "printer.gcode.script",
+          "id": 28,
+          "script": "G28"
+        },
+        {
+          "at": 1792140623119,
+          "method": "printer.print.start",
+          "id": 29,
+          "filename": "trusted-lifecycle-long-oct16.gcode"
+        },
+        {
+          "at": 1792140744351,
+          "method": "printer.firmware_restart",
+          "id": 70
+        },
+        {
+          "at": 1792140779585,
+          "method": "printer.gcode.script",
+          "id": 79,
+          "script": "G28"
+        },
+        {
+          "at": 1792140809594,
+          "method": "printer.print.start",
+          "id": 80,
+          "filename": "trusted-lifecycle-short-oct16.gcode"
+        },
+        {
+          "at": 1792140892815,
+          "method": "printer.gcode.script",
+          "id": 84,
+          "script": "SDCARD_RESET_FILE"
+        }
+      ],
+      "stdin": [
+        {
+          "at": 1792140643424,
+          "command": "ARM"
+        },
+        {
+          "at": 1792140652239,
+          "command": "CRASH"
+        },
+        {
+          "at": 1792140673097,
+          "command": "RECOVER"
+        }
+      ],
+      "runnerEvents": [
+        {
+          "at": 1792140508652,
+          "event": "product-ready",
+          "generation": 1,
+          "pid": 422824,
+          "upstream": "http://127.0.0.1:18432"
+        },
+        {
+          "at": 1792140643426,
+          "event": "fault-armed",
+          "pid": 422824,
+          "generation": 1
+        },
+        {
+          "at": 1792140652464,
+          "event": "external-product-close",
+          "pid": 422824,
+          "code": null,
+          "signal": "SIGKILL",
+          "simulationClosed": true,
+          "requestsJoined": true,
+          "generation": 1
+        },
+        {
+          "at": 1792140674758,
+          "event": "product-ready",
+          "generation": 2,
+          "pid": 423106,
+          "upstream": "http://127.0.0.1:18432"
+        },
+        {
+          "at": 1792140674758,
+          "event": "explicit-process-recovery",
+          "generation": 2,
+          "pid": 423106
+        },
+        {
+          "at": 1792140747467,
+          "event": "product-ready",
+          "generation": 2,
+          "pid": 423106,
+          "upstream": "http://127.0.0.1:18432"
+        }
+      ],
+      "generations": [
+        {
+          "at": 1792140508651,
+          "productIndex": 1,
+          "pid": 422824,
+          "generation": 1
+        },
+        {
+          "at": 1792140674756,
+          "productIndex": 2,
+          "pid": 423106,
+          "generation": 1
+        },
+        {
+          "at": 1792140747466,
+          "productIndex": 2,
+          "pid": 423106,
+          "generation": 2
+        }
+      ],
+      "websocketOpenEvents": 7,
+      "handshakeAttemptEvents": 7,
+      "successfulRecoveryHandshake": "After explicit TRY AGAIN at1792140696190/1792140696191, actual initialized interrupted state and native firmware RPC; earlier6 include offline attempts, not6 successful connections",
+      "monotonicBusinessTimeline": [
+        1792140631920,
+        1792140643424,
+        1792140643426,
+        1792140652239,
+        1792140652464,
+        1792140661221,
+        1792140673097,
+        1792140674758,
+        1792140711718,
+        1792140744351,
+        1792140762709,
+        1792140809594,
+        1792140821994,
+        1792140892815,
+        1792140908294
+      ],
+      "screenshots": {
+        "captured": 23,
+        "checkpointCaptured": 5,
+        "missing": [
+          {
+            "label": "login-submitted",
+            "name": "TimeoutError",
+            "message": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+          },
+          {
+            "label": "checkpoint-recovered-interrupted",
+            "name": "TimeoutError",
+            "message": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+          },
+          {
+            "label": "native-firmware-restart",
+            "name": "TimeoutError",
+            "message": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+          }
+        ],
+        "supplemental": "018-recovered-interrupted-visible.png; no business between017 missing screenshot and018; same process/job/request retained"
+      },
+      "commands": {
+        "count": 52,
+        "results": 52,
+        "monotonic": true,
+        "consumedExactlyOnce": true
+      },
+      "cleanup": {
+        "errors": [],
+        "within900s": true,
+        "remoteAllAbsent": true,
+        "edgeAbsent": true,
+        "localPortsFree": [
+          {
+            "port": 19236,
+            "free": true
+          },
+          {
+            "port": 18434,
+            "free": true
+          }
+        ],
+        "linuxWatchdogRemaining": [],
+        "windowsWatchdogRemaining": [],
+        "linuxGuardStage": 0
+      }
+    },
+    "rootVisualAudit": {
+      "passed": true,
+      "files": [
+        "014-checkpoint-offline.png",
+        "018-recovered-interrupted-visible.png",
+        "020-checkpoint-firmware-recovered.png",
+        "024-checkpoint-short-complete.png",
+        "026-checkpoint-stats-cleared.png"
+      ],
+      "meaning": "Connection failed/TRY AGAIN; interrupted explicit recovery/Firmware Restart; Standby/unhomed; different short Complete X4/Y2/E0.10; stats clear Standby retainingX4/Y2",
+      "missingOriginalCheckpoint": "017-checkpoint-recovered-interrupted.png remains missing;018 is independent supplemental evidence, not rewritten017"
+    },
+    "offlineBoundary": "All6 read-only GET statuses actually502. Raw offline historyCount0 is parser fallback from unavailable API, not observed empty history. No offline DB read; recovered history1/interrupted proves retention.",
+    "processGenerationBoundary": "Runner session1->2 uses different PID/startTicks; each new compiled host device begins1; second product FirmwareRestart device1->2 without changing itsPID. No global device1->2->3 claim.",
+    "environment": {
+      "privateProfile": true,
+      "defaultSandbox": true,
+      "extensionFreeClaim": false,
+      "selectedTaskPage": "p1 only; exact gateway control and unique registered Mainsail iframe",
+      "additionalPagesObserved": [
+        {
+          "pageId": "p2",
+          "origin": "chrome-extension:",
+          "path": "[non-network-path-omitted]",
+          "openerPageId": null
+        },
+        {
+          "pageId": "p3",
+          "origin": "https://darkreader.org",
+          "path": "/help/zh-CN/",
+          "openerPageId": null
+        },
+        {
+          "pageId": "p4",
+          "origin": "chrome-extension:",
+          "path": "[non-network-path-omitted]",
+          "openerPageId": null
+        },
+        {
+          "pageId": "p5",
+          "origin": "https://www.gwdang.com",
+          "path": "/app/extension/",
+          "openerPageId": null
+        },
+        {
+          "pageId": "p6",
+          "origin": "https://chatgpt.com",
+          "path": "/auth/login",
+          "openerPageId": null
+        },
+        {
+          "pageId": "p7",
+          "origin": "https://www.tampermonkey.net",
+          "path": "/index.php",
+          "openerPageId": null
+        }
+      ],
+      "limitation": "Additional extension/non-task pages only bounded diagnostic metadata; no selection/click/navigation/DOM reading, no causal attribution",
+      "profileOrDbTraversed": false
+    },
+    "owner": {
+      "absoluteDeadlineMs": 900000,
+      "stopNewActionsMs": 780000,
+      "forcedCleanupMs": 870000,
+      "stdinOnly": [
+        "ARM",
+        "CRASH",
+        "RECOVER",
+        "CLOSE"
+      ],
+      "automaticRelaunch": false
+    },
+    "credentialEvidencePolicy": {
+      "originalRunnerSha256": "3ea68a718b2f2a4b813063913dcdccc0017f578c59708500b60d2f6af197cca2",
+      "archivedRedactedRunnerSha256": "19e43271f3ef9614a0bf60c4e728945ba40259522bb3bc1840ea742a267b1e32",
+      "transformation": "Known synthetic account literal pair replaced only in archived runner copy; exact known fixture password rejected across all selected text"
+    },
+    "evidenceArchive": {
+      "path": "host/contracts/mainsail-jwt-fault-evidence.tar.gz",
+      "bytes": 2188119,
+      "sha256": "469ac87172ee177caf559e472a094abef860cbd431b8c9eb8adf21ce03ca098b",
+      "members": 221,
+      "evidenceFiles": 220,
+      "manifest": "manifest.json",
+      "manifestSha256": "72878a0337091b9e67c02e7cbb3077ced47113246c4de0eb977243a47906680d",
+      "allMemberBytesAndHashesMatch": true,
+      "gzipCrcAndSizeVerified": true,
+      "tarHeaderChecksumsVerified": true,
+      "uniqueSafeRegularMembers": true,
+      "selection": "Explicit scene top-level,52 consumed commands/results,6 original checkpoint files, selected scripts/fixed sources only; never traverse Edge profile/DB",
+      "sensitivePatternHits": {
+        "fixturePassword": 0,
+        "privateKey": 0,
+        "githubToken": 0,
+        "jwt": 0,
+        "bearer": 0,
+        "cookieValue": 0
+      }
+    },
+    "previousArchives": [
+      {
+        "path": "host/contracts/mainsail-jwt-queue-evidence.tar.gz",
+        "sha256": "0ee1514de27489801298ce3a9da2b0f9851b5293467500029df4db1abd16926f",
+        "unchanged": true
+      },
+      {
+        "path": "host/contracts/mainsail-jwt-file-maintenance-evidence.tar.gz",
+        "sha256": "1657bbd9b8b38356e3f16089d23e60eb7068f3a424fb1579bda8f9581b5aee6b",
+        "unchanged": true
+      },
+      {
+        "path": "host/contracts/mainsail-trusted-lifecycle-evidence.tar.gz",
+        "sha256": "433ec47ed71e7d2d456fd1776ddc89fd07bca196d425dc7c623bd8691c088bb3",
+        "unchanged": true
+      }
+    ],
+    "a4SamePackageMapping": {
+      "status": "Finite A4 client definition covered across explicitly identified same1735 scenes; not complete A integration",
+      "manifestSha256": "173565dc6b94d2d0380ec911f4f175d5a5b9f644880e8378245315eddf55e774",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+      "client": "Mainsail2.19.0",
+      "items": [
+        {
+          "item": "上传／元数据",
+          "evidence": "mainsailJwtMaintenanceFollowUp",
+          "result": "原生chooser与metadata；队列／故障场必要固定长短chooser分别留证"
+        },
+        {
+          "item": "开始／暂停恢复／完成",
+          "evidence": "mainsailJwtQueueFollowUp",
+          "result": "原生长Print、Pause／Resume各一次、同job/request恢复推进、长及不同短completed"
+        },
+        {
+          "item": "取消",
+          "evidence": "mainsailTrustedLifecycleFollowUp",
+          "result": "必要Pause后原生直接Cancel，默认无确认modal，旧任务耐久cancelled"
+        },
+        {
+          "item": "打印中刷新／断连",
+          "evidence": "mainsailTrustedLifecycleFollowUp",
+          "result": "printing reload保持同job/request；1012后原生TRY AGAIN显式重连，持续推进/start1；不声称自动重连"
+        },
+        {
+          "item": "标准重启",
+          "evidence": "mainsailTrustedLifecycleFollowUp",
+          "result": "原生printer.restart，同产品PID、设备generation增加；不同新job完成"
+        },
+        {
+          "item": "进程恢复",
+          "evidence": "mainsailJwtFaultRecoveryFollowUp",
+          "result": "一次ARM/CRASH，真实joined SIGKILL及offline502；显式RECOVER新PID、旧interrupted；原生Firmware Restart后旧cancelled、新短completed、Clear print stats保持history2"
+        },
+        {
+          "item": "身份边界",
+          "evidence": "reservedIdentityFollowUp + mainsailTrustedLifecycleFollowUp + mainsailJwtMaintenanceFollowUp + mainsailJwtQueueFollowUp + mainsailJwtFaultRecoveryFollowUp",
+          "result": "显式可信回环与真实JWT gateway独立记录，不相互推定；不要求每种身份重做全部条目"
+        },
+        {
+          "item": "下载／预览／配置",
+          "evidence": "mainsailJwtMaintenanceFollowUp",
+          "result": "944字节header Download同SHA；844／995不同层路径实图；CodeMirror原28字节追加ASCII注释至74字节，Save/Close/重开严格回读；原N异常不明保留"
+        },
+        {
+          "item": "队列",
+          "evidence": "mainsailJwtQueueFollowUp",
+          "result": "busy原生Add to Queue、长完成暂停不自动续打；产品自有/_client/queue明确准备/勾选/确认后不同短完成；不称Mainsail原生清台"
+        }
+      ],
+      "missingScreenshotBoundary": "Original017 remains absent;018 independent supplemental visual evidence root audited without intervening business. Strict owner candidate=false remains unchanged.",
+      "historical": "All cd91 and earlier archives/contracts remain scoped historical; no old results relabeled1735",
+      "remaining": "Normal integration/full performance/service reacquire2.62602/42and28/historical11/G3/physical/Python/macros/release remain independent open gates"
+    },
+    "boundaries": [
+      "Same1735 finite external recovery business closure; strict screenshot candidate false retained",
+      "No repeat file maintenance or queue; no product/source implementation change or real device operation",
+      "Native Firmware Restart and stats clear do not replace previous standardRESTART or directCancel evidence",
+      "Normal integration/full budgets/service2.62602/42and28/G3/physical/Python/macros remain separate open gates",
+      "No commit/push/merge/deploy at evidence packaging snapshot; subsequent local commit needs root review"
+    ]
   }
 }

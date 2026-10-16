@@ -15,6 +15,19 @@
 
 今后客户端默认以 Mainsail 为唯一验收客户端，不要求每批重复 Fluidd。历史 Fluidd 证据与失败保留，但不作为后续必需的双客户端门禁；只有用户另行指定 Fluidd 时才追加。
 
+## 1735 JWT外部故障恢复与A4有限出口（2026-10-16）
+
+同173565dc／0b53079c和固定Mainsail2.19.0的隔离流程要求外部进程退出已join后，
+才能显式恢复进程；旧任务保持interrupted，经页面Firmware Restart明确取消，重新归位后
+才开始不同新任务。页面Clear print stats只重置当前状态，不删除旧cancelled／新completed历史。
+会话代际与每个产品内部设备代际分别记录；离线API不可用不能推断数据库为空。
+
+当前原定义A4九项已按同包独立场映射闭合有限客户端出口，详见[Delivery当前映射](Node_Host_Delivery_Plan.md)
+及[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的mainsailJwtFaultRecoveryFollowUp。
+原owner的fault_business_pass_screenshot_missing与三缺图保留；017恢复检查点缺图由无间隔业务的
+018独立实图补充视读，不倒写原回执。完整A集成／预算／G3／实机／Python及宏等门禁仍独立开放。
+本批按本地提交流程收口，未推送／合并／部署。
+
 ## 1735 JWT队列与暂停恢复有限出口（2026-10-16）
 
 同173565dc／0b53079c、Mainsail2.19.0与184双PTY，唯一队列场653.001秒完成。
@@ -32,7 +45,7 @@
 专用私有Edge profile仍出现扩展及非任务页，仅观察必要路径／元数据，不选择、点击或读取
 其DOM；不能称无扩展环境，也不据此归因旧N导航异常。数值状态与随后截图采集时刻不同，
 不强求画面百分比等于先前快照。证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
-的mainsailJwtQueueFollowUp；故障恢复、完整A4、正常集成与其余门禁仍开放。
+的mainsailJwtQueueFollowUp；故障恢复与A4汇总见上段，正常集成及其余门禁仍开放。
 
 ## 1735 JWT文件维护分场出口（2026-10-16）
 
@@ -52,7 +65,7 @@ Save／Close／重新打开和磁盘严格回读通过：原28字节变74字节�
 三场独立780／870／900秒边界均未延长，清理0错、两端守卫无残留、端口空闲；
 原N缺4张截图，N-diag与配置场各缺1张login-submitted，原件／regex启动前失败均保留。
 该文件维护分场没有产品更改或打印／队列／设备／重启／进程故障操作；其后队列补验见上段，
-故障恢复和完整A4仍待独立出口。证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+故障恢复与A4汇总见上段。证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
 的mainsailJwtMaintenanceFollowUp；历史cd91和原可信回环场归属不变。
 
 ## 1735可信回环Mainsail有限旅程（2026-10-16）
@@ -72,7 +85,7 @@ Windows5／Linux3个已登记PID均不存在、两watchdog remaining为空。
 原once／fix1的观察与定位失败、fix2已发一次长start后的截图超时、fix3过早重连断言均
 独立保留；fix3错误标签ws-reconnected不改原件，实际DOM／截图为Connection failed。
 本批IAB不可用，使用已授权共享Playwright与专用私有Edge默认sandbox；没有真实设备操作。
-本1735场未重测下载／双层预览／SIGKILL，不关闭完整A4、完整预算或物理门禁；
+本1735可信场未重测下载／双层预览／SIGKILL，其余A4条目按上文分场汇总；完整预算和物理门禁不关；
 见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的mainsailTrustedLifecycleFollowUp。
 
 ## 历史cd91包同包Mainsail A4有限补验

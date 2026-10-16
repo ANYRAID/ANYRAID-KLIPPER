@@ -26,10 +26,37 @@ Windows ELF限制原日志保留。独立JS及候选实际模块＋测试壳各1
 API key为0.98582倍，可信IP为1.09849倍（约增加9.85%），均在新1.5窄门限内；
 16阶段含收口22.122秒，小于300秒，无替换样本。该比较不含HTTP网络、GET序列化或启动，
 不能关闭原服务重获2.62602＞1.5、完整42／28、历史11失败、G3或物理精度门禁。
-1735的同包可信回环Mainsail有限旅程已追加如下；完整同包A4、Moonraker／Python与宏、
+1735的同包Mainsail原定义A4现由下述独立场映射闭合；完整A集成、Moonraker／Python与宏、
 ARM64、CI、正常集成和发布仍待完成。
 本批仅本地提交，未推送／合并／部署；原6394复现包与全部旧A4记录保留，证据见
 [客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的reservedIdentityFollowUp。
+
+## 2026-10-16 1735 JWT外部故障恢复与A4有限出口
+
+不改173565dc／0b53079c包及Mainsail2.19.0，唯一双PTY故障场411.328秒内完成及清理。
+旧long实际printing／job000001／同request后，仅一次ARM／CRASH；固定runner回执明确
+旧PID422824真实SIGKILL、code:null、simulationClosed／requestsJoined均true。离线页面
+Connection failed／TRY AGAIN，六GET当时均502；原offline historyCount0仅缺失API的解析默认值，
+不能解释为历史被清空，也未读取离线DB。
+
+一次显式RECOVER产生新PID423106／新startTicks，runner会话1→2；新产品设备计数从1起。
+原生TRY AGAIN后真实握手与初始化可见，旧job／request/history1保持interrupted，无自动重放。
+随后原生printer.firmware_restart一次，耐久operation succeeded、旧cancelled、idle／request null／
+unhomed；新PID保持，内部设备generation1→2。再次原生G28并Print不同短任务000002完成，
+最后原生Clear print stats只发一条SDCARD_RESET_FILE，idle／request null且两条history保留。
+不混淆会话与设备计数，也不把Firmware Restart替代前场标准RESTART或直接Cancel。
+
+六业务检查点通过；原owner严格保留fault_business_pass_screenshot_missing，三缺图为
+login-submitted／checkpoint-recovered-interrupted／native-firmware-restart。017缺图不改写，
+无间隔业务的018独立实图补充恢复状态视读；014／018／020／024／026五图根审通过。
+52命令按序消费一次；双代进程、gateway、root、两guard和本地端口均清理，无错误或重跑。
+专用私有profile仍观察到额外扩展页，只保留有界安全元数据，不操作其DOM、不称无扩展环境。
+
+据原A4定义，当前1735固定包的可信生命周期、JWT文件维护／配置、队列及本故障场现按
+Delivery九行映射闭合有限客户端出口；JWT与可信网络分列，不要求两种身份重复每项动作。
+历史cd91归属不变。完整A集成、正常CI／预算、服务重获2.62602、完整42／28、历史11失败、
+G3、实机、Python退役及完整宏仍独立开放。证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+的mainsailJwtFaultRecoveryFollowUp。本批按本地提交流程收口，未推送／合并／部署。
 
 ## 2026-10-16 1735 JWT队列／Pause Resume／明确清台出口
 
@@ -50,7 +77,7 @@ login-submitted／inputs-ready／long-dialog三次非关键缺图保留，不称
 
 本场无失败重跑，不混入旧N失败；只做必要长短输入上传，不重复下载／预览／cfg维护。
 新独立归档与旧档均保留，见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
-的mainsailJwtQueueFollowUp。本批仅本地整理验收，未推送／合并／部署；故障恢复／完整A4、
+的mainsailJwtQueueFollowUp。本批仅本地整理验收，未推送／合并／部署；故障恢复和A4汇总见上段，
 正常集成、原服务重获2.62602／完整预算／42／28／G3／物理等门禁保持开放。
 
 ## 2026-10-16 1735 JWT文件维护分场补验
@@ -70,7 +97,7 @@ Close后重新打开、必需截图视读和74字节精确回读（d4b30bcca95a�
 原regex启动前失败、原N4张缺图及后两场各1张login-submitted缺图、两次归档预检失败
 均保留。仅白名单归档，不遍历Edge profile／DB；含旧合成密码的两个历史脚本副本及
 runner仅在归档中脱敏并列原／归档SHA，原文件未改，最终凭据扫描零命中。
-该文件维护批次未覆盖Pause／Resume或队列／清台；其后对应补验见上段，故障恢复和完整A4仍开放；原cd91范围、
+该文件维护批次未覆盖Pause／Resume或队列／清台；其后对应补验及A4汇总见上段；原cd91范围、
 完整预算／服务重获2.62602／42／28／G3／物理与正常集成门禁不变。
 本批按本地提交流程收口，未推送／合并／部署；见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
 的mainsailJwtMaintenanceFollowUp及新独立归档，历史归档不改。
@@ -92,7 +119,7 @@ fix2 120.676秒已发长start后截图超时、fix3 159.072秒未点TRY AGAIN便
 
 IAB实际不可用后使用已授权共享Playwright与私有Edge默认sandbox；每场独立780秒停止动作、
 870秒强制清理、900秒绝对期限，未延长或复用旧场。本次不重测下载／双层预览／SIGKILL，
-不以cd91旧包证据关闭1735完整A4；完整预算、服务重获2.62602、42／28、历史11失败、G3、
+本可信场不以cd91旧证据补项；1735其余条目按上文及下方九行映射闭合。完整预算、服务重获2.62602、42／28、历史11失败、G3、
 物理、完整Python／宏及正常集成仍开放。原身份归档不改，新独立归档与全部成员SHA见
 [客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的mainsailTrustedLifecycleFollowUp。
 
@@ -3383,7 +3410,7 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 
 | 顺序 | 用户可见交付结果 | 退出条件 |
 | --- | --- | --- |
-| 当前收口 | PR #68头435938218在合成13a65f的三组CI全成功：普通5402／5402、协议／Linux MCU、Build、motion及sanitizer通过。Mainsail同cd91包真实下载落盘SHA与合成两层轨迹已补齐；原菜单／工具失败保留。A4仍缺当前包打印中刷新／短暂断连、明确取消、标准RESTART实页组合和显式可信网络记录。既有112项与有限故障恢复保留，重获2.62602倍仍超原1.5预算 | 先审当前候选与未过性能门槛，再按正常集成和同包客户端出口推进，不新开外围批次；前序be2 CI、本机11失败、G3、完整42／28、真实root／实机及发布边界分别保留 |
+| 当前收口 | PR #68头435938218在合成13a65f的三组CI全成功：普通5402／5402、协议／Linux MCU、Build、motion及sanitizer通过。Mainsail同1735固定包原A4九项由可信生命周期、JWT文件维护／配置、队列及故障恢复分场映射闭合；原菜单／工具／截图失败与历史cd91归属保留，严格owner截图候选false不改写。既有112项与各场有限证据保留，重获2.62602倍仍超原1.5预算 | 先审当前候选与未过性能门槛，再按正常集成和同包客户端出口推进，不新开外围批次；前序be2 CI、本机11失败、G3、完整42／28、真实root／实机及发布边界分别保留 |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |
@@ -3537,10 +3564,30 @@ A4 使用同一编译包及固定 Mainsail 2.19.0，完成页面上传、
 进程恢复；JWT 与显式可信网络分别记录，API 上传或预置打印不替代页面。
 已有按钮、配置读写和部分历史流程按各自产物复用；最终完整流程仍须同包封存。
 
-当前cd91／0b530与Mainsail2.19.0同包证据映射如下；不同包的R18／R19／R39／R42
+当前173565dc／0b53079c与固定Mainsail2.19.0的A4九项映射如下。各场同一不可变包，
+JWT与显式可信网络独立分列；不拿历史cd91补当前缺项，也不任意追加TLS或每身份重做全部动作。
+
+| A4项目 | 当前1735同包证据及边界 |
+| --- | --- |
+| 上传／元数据 | mainsailJwtMaintenanceFollowUp：原生chooser与metadata；队列／故障场必要固定长短chooser分别留证 |
+| 开始／暂停恢复／完成 | mainsailJwtQueueFollowUp：原生长Print、Pause／Resume各一次、同job/request恢复推进、长及不同短completed |
+| 取消 | mainsailTrustedLifecycleFollowUp：必要Pause后原生直接Cancel，默认无确认modal，旧任务耐久cancelled |
+| 打印中刷新／断连 | mainsailTrustedLifecycleFollowUp：printing reload保持同job/request；1012后原生TRY AGAIN显式重连，持续推进/start1；不声称自动重连 |
+| 标准重启 | mainsailTrustedLifecycleFollowUp：原生printer.restart，同产品PID、设备generation增加；不同新job完成 |
+| 进程恢复 | mainsailJwtFaultRecoveryFollowUp：一次ARM/CRASH，真实joined SIGKILL及offline502；显式RECOVER新PID、旧interrupted；原生Firmware Restart后旧cancelled、新短completed、Clear print stats保持history2 |
+| 身份边界 | reservedIdentityFollowUp + mainsailTrustedLifecycleFollowUp + mainsailJwtMaintenanceFollowUp + mainsailJwtQueueFollowUp + mainsailJwtFaultRecoveryFollowUp：显式可信回环与真实JWT gateway独立记录，不相互推定；不要求每种身份重做全部条目 |
+| 下载／预览／配置 | mainsailJwtMaintenanceFollowUp：944字节header Download同SHA；844／995不同层路径实图；CodeMirror原28字节追加ASCII注释至74字节，Save/Close/重开严格回读；原N异常不明保留 |
+| 队列 | mainsailJwtQueueFollowUp：busy原生Add to Queue、长完成暂停不自动续打；产品自有/_client/queue明确准备/勾选/确认后不同短完成；不称Mainsail原生清台 |
+
+上述有限客户端A4按原定义闭合；故障场原严格截图candidate=false和三缺图保留，018作为
+独立补充恢复实图根审，不改017。全部证据见client-recovery-followup-acceptance.json对应字段。
+下一步回到正常集成与既有性能失败／完整预算出口，不再无理由重复同包页面场次。
+完整A集成、服务重获2.62602超原1.5、42／28、历史11失败／G3、实机、Python退役与宏仍开放。
+
+以下为历史cd91／0b530与Mainsail2.19.0当时的证据映射及待验快照；不同包的R18／R19／R39／R42
 仅按历史各自范围保留，不补记为当前包通过。
 
-| A4项目 | 当前同包证据及边界 |
+| A4项目 | 历史cd91同包证据及当时边界 |
 | --- | --- |
 | 上传／元数据 | mainsail-a4-scene真实chooser与文件表元数据可见；合成样本不证明全部切片器字段 |
 | 开始／暂停恢复／完成 | 同场长作业由页面开始、暂停恢复，历史completed；明确清台后不同短作业completed |
