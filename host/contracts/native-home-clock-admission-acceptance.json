@@ -805,5 +805,55 @@
     "177 Python files, default Python entry and Python benchmark/CI references",
     "Full Moonraker consumers/templates, consumer macro scenarios and complete client upload/config/queue/SIGKILL",
     "Original UI 1.5 budget, native-build stability, G3 precision and target Cycnumbris500 hardware/printing gates; other models last"
-  ]
+  ],
+  "reauthorizationFollowUp": {
+    "baselineHead": "032dd3733b326128358f04d9c138d26fdc9db611",
+    "sourceSha256": {
+      "host/src/moonraker/native-probe.ts": "cd6e3842a3e4ad2928d3ebc7fd666d4e43cbb638353a52f016cecec1c1da9e6f",
+      "host/test/native-home-clock-admission.test.ts": "61d5342dcdc563a8a1905bdae5975166844e66c0b2550ce4a337c7a3e36a3713"
+    },
+    "behavior": "After the existing idle worker retires, second home authorization races its owned cancellation/deadline. Listener removed in finally; changed username rejects403. Cancellation before begin releases admission without physical action or safety stop; late resolve/reject cannot run motion.",
+    "limit": "Third-party authorize Promise is not forcibly cancelled or joined. Existing120s deadline, physical-failure stop and dispatch/gate contracts remain; only actual home reserve wiring is affected.",
+    "validation": {
+      "fixedOriginalProbe": {
+        "platform": "win32",
+        "node": "26.9.0",
+        "cases": 3
+      },
+      "windowsFirst": {
+        "tests": 66,
+        "pass": 63,
+        "fail": 3,
+        "homeTests": 22,
+        "newTests": 14,
+        "scope": "Windows Node26.9.0; 7 selected files in one original invocation",
+        "firstFailures": [
+          "maintenance-gate database operation failed",
+          "maintenance-gate expected aborted but database failed, then waits deferred entered",
+          "native-probe-endpoint Linux serialqueue.node not a Win32 application"
+        ],
+        "cleanup": "Only the matching maintenance-gate child was stopped at 16:04:05.3839391Z; parent naturally exited1. Per-test15000ms existed, but no external process deadline had been preset; preserved as validation setup limitation."
+      },
+      "linux": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "node": "26.12.0",
+        "typecheck": "passed standard full host configuration",
+        "sourceInputs": 3157,
+        "changedInputs": 2,
+        "nativeRebuilt": false,
+        "elapsedMs": 4851,
+        "cleanup": "Owner and two registered stage PIDs observed absent; short child ticks were not captured, so no full child-lifetime assertion."
+      }
+    },
+    "performance": "Low-frequency home admission listener/Promise only. No motion math, per-step or temperature hot-path change. No target-board latency measured.",
+    "evidence": {
+      "path": "host/contracts/native-home-reauthorization-evidence.json.gz",
+      "sha256": "dfc6957d2bb56fc7e61343514f1e1242c12de034c816c18e96d4fe7db2156891",
+      "bytes": 256422,
+      "entries": 23
+    },
+    "remaining": "Current fix has not run exact-head CI or a new product/package/UI validation. Prior032dd CI and55dc package do not cover this source change. Normal PR integration and existing service budget/G3/physical release boundaries remain separate."
+  }
 }

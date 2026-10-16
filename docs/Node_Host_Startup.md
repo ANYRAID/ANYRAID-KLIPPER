@@ -1232,6 +1232,8 @@ webcam_enabled=true
 以下为前序候选的锁定记录；其“须自身 CI”不替代上方精确头终态。
 
 
+归位二次授权现在与原120秒期限、请求取消及代际退役共同受控；授权用户名变化时拒绝执行。未开始物理动作时释放调度准入，不触发安全停止；迟到授权不能启动归位。外部授权 Promise 本身仍不可强制取消或 join。固定反例、首轮 Windows 环境失败、home22项通过及 Linux12项／标准类型检查见[归位契约](../host/contracts/native-home-clock-admission-acceptance.json)的 reauthorizationFollowUp；不据此声明新锁包、页面或目标板延迟已验证。
+
 Fluidd 页面 G28 的空闲时钟竞争已修复。诊断 R35 捕获真实脚本
 G28 与 portBusy，R36 确认是后台 clock 阶段；其首个页面 G28 没有
 失败，不将采样诊断包计作产品或性能通过。归位现只跟随原调度

@@ -26,7 +26,11 @@ export function registerNativeProbe(registry:EndpointRegistry,gate:MaintenanceGa
    ownedSignal.throwIfAborted();
    // The existing clock worker may have owned the lane before this request.
    // Recheck authority and all original guards after that ownership retires.
-   if(reserve)authorizedContext({...context,signal:ownedSignal},await context.authorize('printer.calibration.post_'+kind,params));
+   if(reserve){
+    let abort=()=>{};const cancelled=new Promise<never>((_resolve,reject)=>{abort=()=>reject(ownedSignal.reason);ownedSignal.addEventListener('abort',abort,{once:true});});
+    try{const identity=authorizedContext(context,await Promise.race([Promise.resolve().then(()=>{ownedSignal.throwIfAborted();return context.authorize('printer.calibration.post_'+kind,params);}),cancelled]));if(identity.user?.username!==context.user?.username)throw new ApiError(403,'Probe identity changed');}
+    finally{ownedSignal.removeEventListener('abort',abort);}
+   }
    ownedSignal.throwIfAborted();if(closed)throw new ApiError(503,'Probe owner closed');
    if(last?.token===params.state_token){if(last.axes!==axesKey)throw new ApiError(409,'Consumed home token belongs to different axes');return structuredClone(last.receipt);}
    if(params.state_token!==token)throw new ApiError(409,'Stale probe state token');

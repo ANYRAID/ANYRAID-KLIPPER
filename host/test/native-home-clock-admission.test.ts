@@ -70,3 +70,32 @@ test('the original 120-second deadline includes waiting for clock ownership, wit
   const result=await request;assert(result instanceof Error&&result.message==='Probe deadline exceeded');assert.equal(f.measures,0);assert.equal(f.stops,0);assert.equal(f.gate.status.closed,false);
  }finally{clock.finish();await clock.task;await f.close();}
 });
+
+for(const entry of ['standard G28','typed home'] as const){
+ for(const cancellation of ['caller','close','deadline'] as const)for(const late of ['resolve','reject'] as const){
+  test(entry+' cancels pending home reauthorization on '+cancellation+' before late '+late,async t=>{
+   t.mock.timers.enable({apis:['setTimeout']});const f=fixture(),cancel=new AbortController(),entered=Promise.withResolvers<void>(),grant=Promise.withResolvers<{username:string}>();let checks=0,settled=false,closing:Promise<void>|undefined;
+   const context:RpcContext={...f.context,signal:cancel.signal,authorize(method){if(method==='printer.calibration.post_home'&&++checks===2){entered.resolve();return grant.promise;}return {username:'operator'};}};
+   const state=await f.registry.invoke('/printer/calibration/home','GET',{},f.context) as {state_token:string};
+   const request=(entry==='standard G28'?f.registry.invoke('/printer/gcode/script','POST',{script:'G28'},context):f.registry.invoke('/printer/calibration/home','POST',{version:1,state_token:state.state_token},context)).then(value=>{settled=true;return value;},error=>{settled=true;return error;});
+   try{
+    await entered.promise;assert.equal(checks,2);assert.equal(f.lane.canFollowIdleWork,false);assert.equal(f.measures,0);
+    if(cancellation==='caller')cancel.abort(new Error('Caller cancelled'));else if(cancellation==='close')closing=f.closeProbe();else t.mock.timers.tick(120001);
+    // A fixed turn observes settlement without allowing the deferred authority
+    // to finish. Release it in finally even if the regression fails.
+    await new Promise(resolve=>setImmediate(resolve));assert.equal(settled,true);const error=await request;assert(error instanceof Error);assert.equal(error.message,cancellation==='caller'?'Caller cancelled':cancellation==='close'?'Probe owner closed':'Probe deadline exceeded');await closing;
+    assert.equal(f.lane.canFollowIdleWork,true);assert.equal(f.measures,0);assert.equal(f.stops,0);assert.equal(f.gate.status.closed,false);
+    if(late==='resolve')grant.resolve({username:'operator'});else grant.reject(new Error('Late authorization failure'));
+    await new Promise(resolve=>setImmediate(resolve));assert.equal(f.measures,0);assert.equal(f.stops,0);assert.equal(f.lane.canFollowIdleWork,true);assert.equal(f.gate.status.closed,false);
+   }finally{grant.resolve({username:'operator'});await request;await closing;await f.close();}
+  });
+ }
+ test(entry+' rejects a changed identity at the final home admission',async()=>{
+  const f=fixture();let checks=0;try{
+   const state=await f.registry.invoke('/printer/calibration/home','GET',{},f.context) as {state_token:string};
+   const context:RpcContext={...f.context,authorize(method){return {username:method==='printer.calibration.post_home'&&++checks===2?'different-operator':'operator'};}};
+   await assert.rejects(entry==='standard G28'?f.registry.invoke('/printer/gcode/script','POST',{script:'G28'},context):f.registry.invoke('/printer/calibration/home','POST',{version:1,state_token:state.state_token},context),error=>error instanceof ApiError&&error.status===403&&error.message==='Probe identity changed');
+   assert.equal(checks,2);assert.equal(f.measures,0);assert.equal(f.stops,0);assert.equal(f.gate.status.closed,false);await new Promise(resolve=>setImmediate(resolve));assert.equal(f.lane.canFollowIdleWork,true);
+  }finally{await f.close();}
+ });
+}

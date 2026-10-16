@@ -1269,6 +1269,8 @@ eca53e86，见[终态](../host/contracts/pr68-5c934-terminal.json)。
 以下为前序候选的锁定记录；其“须自身 CI”不替代上方精确头终态。
 
 
+本次 PR 源码审阅收口于 home 二次授权：修复 pending 回调阻塞取消／关闭及用户名变化仍执行的问题，不扩大为整份 PR 已审。标准 G28／typed home 新增14项全部通过（home 共22项）；Windows 首轮66项63过3失败原样保留，Linux 仅补两受环境影响文件12／12并完成标准类型检查。只新增低频准入取消／身份检查，未改运动数学，也未测目标板延迟。证据见[现有归位契约](../host/contracts/native-home-clock-admission-acceptance.json)的 reauthorizationFollowUp；新修改仍须自身精确头 CI 及正常集成，旧032dd绿色与55dc锁包不替代。
+
 Fluidd 页面 G28 的空闲时钟竞争已修复。诊断 R35 捕获真实脚本
 G28 与 portBusy，R36 确认是后台 clock 阶段；其首个页面 G28 没有
 失败，不将采样诊断包计作产品或性能通过。归位现只跟随原调度
