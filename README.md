@@ -35,6 +35,9 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 后续任务继续使用独立任务分支与工作树，不覆盖已有修改。此约定不授权
 真实设备／系统电源操作、生产部署或绕过任务→develop→主线的PR流程。
 
+当前Linux普通并发诊断仍有16失败；两入口24次窄解析仅有限未复现，历史11失败／G3未解，
+见[诊断验收](host/contracts/system-bus-provider-acceptance.json)的currentLinuxExitDiagnostic及交付计划。
+
 保留身份查询候选现为可信 IP／API Key 的 GET /access/user 与 WS access.get_user
 返回 username／source／created_on，JWT 继续返回注册用户资料；旧安装原创建时间
 从留存源核摘要恢复，轮换／重开保留。新候选1735的隔离回归与窄鉴权预算已验，

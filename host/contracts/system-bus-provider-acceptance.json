@@ -3576,5 +3576,152 @@
       "allThreeWorkflows": "completed_success",
       "historyPreserved": true
     }
+  },
+  "currentLinuxExitDiagnostic": {
+    "status": "current_candidate_full_test16_failures_retained_public_strip24_not_reproduced",
+    "sourceHead": "70c64329c76df5affab8f1b3812592cc0378d163",
+    "node": "v26.11.1",
+    "nodeSha256": "5a7b8a3cf5ccb57d297519754fd73238f64cf560afd0ef19a2f9bf7384cbb657",
+    "historical": {
+      "archive": "host/contracts/supervisor-group-evidence.tar.gz",
+      "sha256": "bef275ecd7600965905dba8671cf8fabee25968ce823a4f9b621d5e98cb3fa36",
+      "tests": 5354,
+      "pass": 5343,
+      "fail": 11,
+      "preserved": true
+    },
+    "preparationFailure": {
+      "name": "once",
+      "meaning": "Environment preparation failure",
+      "pretestExitCode": 1,
+      "pretestSignal": null,
+      "error": "build-template spawnSync cargo ENOENT after C build; no Rust compiler or full test stage started",
+      "overwritten": false
+    },
+    "currentFullDiagnostic": {
+      "pretestExitCode": 0,
+      "pretestDurationMs": 34738,
+      "test": {
+        "exitCode": 1,
+        "signal": null,
+        "durationMs": 440299,
+        "tests": 5341,
+        "pass": 5325,
+        "fail": 16,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "elapsedThroughOwnerMs": 475784,
+      "classification": {
+        "compilerFailures": 11,
+        "rust": 8,
+        "gccIce": 1,
+        "goTypeScript": 2,
+        "runtimeTestProcessSigsegv": 3,
+        "nodeBuiltinTypeStripInternalErrors": 2,
+        "ordinaryProjectAssertionOrTimeoutFailures": 0,
+        "resourceClue": "service-installation-process:50 includes indexmap memory allocation of1024 bytes failed/SIGABRT and parallel memchr rustcSIGSEGV."
+      },
+      "scope": "Current1822 inputs matched remote; ordinary default concurrency, no compiler flag/jobs override. Current set differs from historical5354; historical toolenv/jobs unknown. Full details remain in archive."
+    },
+    "observer": {
+      "files": 898,
+      "targetCaps": 0,
+      "otherCaps": 4,
+      "coverage": "SelfRole presence, child-spawn classification and child-exit are separate evidence.424 thumbnail exits are child processes, not424 tests. Observer has0 SIGSEGV events; three runtime signals are from test reporter, without unique crashPID/preceding-kill linkage."
+    },
+    "cleanup": {
+      "ownerErrors": 0,
+      "guardTermAfterRootExit": 1,
+      "remaining": 0,
+      "guardRole": "Only other-child association; registered test role unknown. Cleanup TERM is not original crash evidence."
+    },
+    "resourceBoundary": {
+      "fullRunLimitsOrCgroupSampled": false,
+      "fullRunBeforeAfterCountersAvailable": false,
+      "postRunSsh": "New session891 memory.events0/current limits are not the ended test session; cannot infer noOOM in full diagnostic.",
+      "kernelEvidence": "Historical failure-window journal inaccessible/no entries and dmesg EPERM without sudo; no absence-of-MCE/EDAC/OOM conclusion.",
+      "core": "Post-run core_pattern=core/core_uses_pid=1/current SSH core soft0. No associated file found in exact host cwd; temporary child cwd locations not searched."
+    },
+    "publicStripObservation": {
+      "checks": 24,
+      "perEntry": 12,
+      "elapsedMs": 1884,
+      "exitCodes": [
+        0
+      ],
+      "signals": [
+        null
+      ],
+      "outputSha256": {
+        "publishedCopy": "751993e8cce456b0ccfe28bd6bc2b46019500315b8368618b338d376d105e0b1",
+        "ufpArchive": "72eea5683a9a5a04014dfe35b06b3e58f47ebf1095944faa06bd564de9064a8a"
+      },
+      "actualChildLimitsSamples": 24,
+      "cgroupSnapshots": 48,
+      "cgroupPath": "/user.slice/user-1000.slice/session-898.scope",
+      "memoryMax": "max",
+      "eventsAndLocalAllZeroAtSampleTimes": true,
+      "resourceScope": "Only actual narrowA session898; not full-test resource evidence.",
+      "cleanup": {
+        "ownerErrors": 0,
+        "guardEvents": 0,
+        "remaining": 0,
+        "ownedPidsAbsent": 26
+      },
+      "conclusion": "Finite non-reproduction on these entry bytes only. Original failed TS filename unknown; not determinism, repair, full-test pass or resolution of16 failures/G3.",
+      "mode": "Public node:module.stripTypeScriptTypes strip-only downstream, no loader/cache/transitive execution; --check rejected statically because it does not follow target strip path for current module package."
+    },
+    "archives": [
+      {
+        "path": "host/contracts/linux-exit-diagnostic-evidence.tar.gz",
+        "sha256": "3a56d9c9c7658bc24d0b894a1402192ac4c1189ed4c42666e14ad1cc29c5bbe5",
+        "bytes": 765385,
+        "members": 947,
+        "evidenceFiles": 946,
+        "manifest": "manifest.json",
+        "manifestSha256": "44afbb5ca1fc63252cd291e15a7a2b4de4a156b2acae5e9e154b859e3ebe6469",
+        "scope": "Approved v2 bytes unchanged; first ENOENT/full fix1 failures, scripts/input hashes/toolchain/898observer/raw logs/cleanup and readonly context."
+      },
+      {
+        "path": "host/contracts/linux-typescript-strip-evidence.tar.gz",
+        "sha256": "4c13a826738d1a0596c9430d0afc348043a6bbd262fb980c0457407d55017f85",
+        "bytes": 98685,
+        "members": 100,
+        "evidenceFiles": 99,
+        "manifest": "manifest.json",
+        "manifestSha256": "42a915a1f18fea353bc6ed4485e20b35b0e7729c59e091d59e6883a07082d862",
+        "scope": "A scripts/builtin/source inputs/manifest/24raw checks/summary/owned terminal."
+      }
+    ],
+    "fixedProduct": {
+      "manifestSha256": "173565dc6b94d2d0380ec911f4f175d5a5b9f644880e8378245315eddf55e774",
+      "dependenciesManifestSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+      "files": 726,
+      "nativeAddons": 9,
+      "fullDiagnosticPrePostVerifiedUnchanged": true,
+      "sourceBuildOutputIsFixedProduct": false
+    },
+    "archiveChecks": {
+      "allMemberBytesAndHashesMatch": true,
+      "gzipCrcAndSizeVerified": true,
+      "tarHeaderChecksumsVerified": true,
+      "uniqueSafeRegularMembers": true,
+      "knownFixturePasswordHits": 0,
+      "secretPatternHits": 0,
+      "profileOrNodeModulesIncluded": false
+    },
+    "nextResourceHypothesis": {
+      "status": "Plan only; no further load started",
+      "reason": "Cross Rust/GCC/Go/Node failures plus1024-byte allocation failure warrant observing resource conditions during equivalent concurrent load, without presuming OOM or hardware.",
+      "requiredEvidence": "Actual live workload PID/startTicks/limits/cgroup; pre-run and periodic+exit memory.events/local, memory.current/peak/high/max, swap current/max and cgroup pressure; same-time system MemAvailable/SwapFree and memory pressure, with monotonic timestamps and exit/kill correlation. Need counter deltas/peak context, not newSSH post-run snapshots.",
+      "controls": "Preserve original test concurrency/compiler flags/tool identities; separately review bounded owner/sampling plan before any load. Shared cgroup changes cannot automatically be attributed to one child; zero events do not rule out allocation/runtime/compiler faults."
+    },
+    "remainingGates": [
+      "Historical11/current16 causes and G3 unresolved; no additional low-load sampling or green-run closure.",
+      "A4 same1735 finite client mapping unchanged; full integration, original42/28/reacquire2.62602, real devices/ARM64, Python/macros and release remain open.",
+      "This batch follows local Chinese commit only; no push/merge/deploy."
+    ]
   }
 }

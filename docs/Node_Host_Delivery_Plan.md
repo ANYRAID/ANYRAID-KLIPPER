@@ -6,6 +6,30 @@
 自行使用10.0.0.184”，包括该固定 Linux 开发机的本项目源码传输与调试。修复仍在独立任务分支和工作树中完成，
 不扩大到真实设备操作、生产部署或绕过任务 → develop → 主线的 PR 流程。
 
+## 2026-10-16 当前Linux退出诊断（原因未定）
+
+在70c64329当前源码与固定Node26.11.1上仅执行一次普通默认并发诊断。首次once在C构建后
+因cargo ENOENT停止，属于环境准备失败；独立fix1补齐已有工具路径后pretest通过，
+全测5341项中5325通过、16失败，总475.784秒。历史5354／5343／11和旧包证据不覆盖；
+当前测试集合不同，历史工具环境／Cargo jobs未记录，不称完全复现。
+
+16项分为11项编译失败（Rust8／GCC ICE1／Go版TS2）、三项测试进程SIGSEGV、
+两项Node内置TS剥离ERR_INTERNAL_ASSERTION。service-install:50明确含1024字节分配失败、
+SIGABRT及另一个rustc SIGSEGV；不足以直接归因项目逻辑、OOM或硬件。原三目标本轮
+未失败仅为有限未复现。observer 898文件、target cap0／other cap4；424个thumbnail退出
+均已有kill在前，不能计作424测试。守卫在root退出后TERM一个角色未明的other-child，
+终态无残留；不称全程无干预。全测未采实际limits／cgroup前后，事后新SSH计数不能补证。
+
+随后固定两入口各12次fresh公开stripTypeScriptTypes观察仅1.884秒、24次均code0／signull，
+两输出SHA分别一致；实际24份limits与48个cgroup前后快照齐全、清理无残留。
+这只覆盖公开API的相同parseTypeScript下游，排除loader／cache／传递模块和全量并发；
+原失败TS文件名未知，不能称确定性判别、修复或关闭16失败／G3。固定1735产品未更改。
+
+下一步只规划同等并发实际运行期间的cgroup memory事件／限额／峰值、系统MemAvailable／
+Swap／pressure及进程limits采样，需前后差量和退出时序；不改并发／编译器flags，尚未启动。
+原失败与A观察分别归档，见[共享总线验收](../host/contracts/system-bus-provider-acceptance.json)
+的currentLinuxExitDiagnostic。本批仅本地提交，未推送／合并／部署；A4状态和其余门禁不变。
+
 ## 2026-10-16 保留身份查询候选（未发布）
 
 GET /access/user 与 WS access.get_user 现在通过原鉴权所有者返回当前主体的
