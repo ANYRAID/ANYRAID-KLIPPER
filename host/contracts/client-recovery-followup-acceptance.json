@@ -2169,5 +2169,347 @@
       "Original service reacquire2.62602>1.5/full42/28/local11/G3 and complete budgets remain open",
       "No source/product modification, commit/push/merge/deploy in this UI evidence batch"
     ]
+  },
+  "mainsailJwtMaintenanceFollowUp": {
+    "schema": 1,
+    "date": "2026-10-16",
+    "sourceHead": "2d470229b46e77553bf6cfa30f63a6631edeb281",
+    "status": "Finite JWT file maintenance items accepted across separate scenes; complete same-package A4 remains open",
+    "product": {
+      "manifestSha256": "173565dc6b94d2d0380ec911f4f175d5a5b9f644880e8378245315eddf55e774",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+      "unchanged": true,
+      "rebuild": false
+    },
+    "client": {
+      "name": "Mainsail",
+      "version": "2.19.0",
+      "upstreamCommit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
+      "route": "Actual JWT gateway login via native UI; synthetic account remains runtime-only",
+      "websocket": "One observed gateway handshake per scene; cookie present as expected; no raw Authorization/API key/access-token header or credential query"
+    },
+    "prelaunchFailure": {
+      "path": "scripts/mainsail-jwt-maintenance-review/launcher-first-failure.json",
+      "ownerStarted": false,
+      "reason": "PowerShell literal/regex escaping mismatch; fixed literal pieces escaped and unique fixed fixture match checked, no runtime credentials retained"
+    },
+    "scenes": [
+      {
+        "directory": "mainsail-jwt-maintenance-once",
+        "archivePrefix": "scenes/mainsail-jwt-maintenance-once/",
+        "status": "failed_or_partial",
+        "elapsedThroughCleanupMs": 214969,
+        "error": {
+          "name": "Error",
+          "message": "N maintenance evidence incomplete"
+        },
+        "websocketConnections": 1,
+        "wsHandshakeChecked": 1,
+        "business": [],
+        "preview": [],
+        "configVerified": null,
+        "configScreenshots": null,
+        "screenshots": {
+          "captured": 11,
+          "missing": [
+            {
+              "label": "login-submitted",
+              "name": "TimeoutError",
+              "message": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+            },
+            {
+              "label": "preview-loaded",
+              "name": "TimeoutError",
+              "message": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+            },
+            {
+              "label": "viewer-page",
+              "name": "TimeoutError",
+              "message": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+            },
+            {
+              "label": "viewer-settled",
+              "name": "TimeoutError",
+              "message": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+            }
+          ]
+        },
+        "commands": {
+          "commands": 28,
+          "results": 27,
+          "monotonic": true,
+          "consumedExactlyOnce": true,
+          "lastConsumedFailedWithoutResult": 1
+        },
+        "cleanup": {
+          "within900s": true,
+          "errors": [],
+          "windowsWatchdogRemaining": [],
+          "linuxWatchdogRemaining": [],
+          "linuxGuardStage": 0,
+          "remoteAllAbsent": true,
+          "edgeAbsent": true,
+          "localPortsFree": [
+            {
+              "port": 19236,
+              "free": true
+            },
+            {
+              "port": 18434,
+              "free": true
+            }
+          ]
+        },
+        "conclusion": "JWT/chooser/metadata/944-byte native download passed; View3D remained at/files, cause inconclusive because pages/frames/errors were not fully observed; config untouched, not accepted"
+      },
+      {
+        "directory": "mainsail-jwt-maintenance-diag-once",
+        "archivePrefix": "scenes/mainsail-jwt-maintenance-diag-once/",
+        "status": "failed_or_partial",
+        "elapsedThroughCleanupMs": 438950,
+        "error": {
+          "name": "Error",
+          "message": "N maintenance evidence incomplete"
+        },
+        "websocketConnections": 1,
+        "wsHandshakeChecked": 1,
+        "business": [],
+        "preview": [
+          {
+            "position": 844,
+            "observation": 15,
+            "screenshotCaptured": true,
+            "label": "preview-layer-one"
+          },
+          {
+            "position": 995,
+            "observation": 16,
+            "screenshotCaptured": true,
+            "label": "preview-layer-two"
+          }
+        ],
+        "configVerified": null,
+        "configScreenshots": null,
+        "screenshots": {
+          "captured": 18,
+          "missing": [
+            {
+              "label": "login-submitted",
+              "name": "TimeoutError",
+              "message": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+            }
+          ]
+        },
+        "commands": {
+          "commands": 49,
+          "results": 48,
+          "monotonic": true,
+          "consumedExactlyOnce": true,
+          "lastConsumedFailedWithoutResult": 1
+        },
+        "cleanup": {
+          "within900s": true,
+          "errors": [],
+          "windowsWatchdogRemaining": [],
+          "linuxWatchdogRemaining": [],
+          "linuxGuardStage": 0,
+          "remoteAllAbsent": true,
+          "edgeAbsent": true,
+          "localPortsFree": [
+            {
+              "port": 19236,
+              "free": true
+            },
+            {
+              "port": 18434,
+              "free": true
+            }
+          ]
+        },
+        "conclusion": "Same download-before-View3D order reached/viewer in original p1/f2 with different layer paths visible at844/995; root visually read both images, nozzle partly occludes paths; config not edited because facility wrongly assumed Monaco"
+      },
+      {
+        "directory": "mainsail-jwt-config-once",
+        "archivePrefix": "scenes/mainsail-jwt-config-once/",
+        "status": "validated_config_save_reopen",
+        "elapsedThroughCleanupMs": 144146,
+        "error": null,
+        "websocketConnections": 1,
+        "wsHandshakeChecked": 1,
+        "business": [],
+        "preview": [],
+        "configVerified": {
+          "bytes": 74,
+          "sha256": "d4b30bcca95af48f7241c046f6b34e77757f226eb68d0b50280da9cf9bf96b67",
+          "exactOriginalPlusComment": true,
+          "reopenedCommentVisible": true
+        },
+        "configScreenshots": {
+          "config-save": {
+            "observation": 9,
+            "captured": true,
+            "label": "config-saved"
+          },
+          "config-close": {
+            "observation": 10,
+            "captured": true,
+            "label": "config-closed"
+          },
+          "config-reopen": {
+            "observation": 11,
+            "captured": true,
+            "label": "config-reopened"
+          }
+        },
+        "screenshots": {
+          "captured": 10,
+          "missing": [
+            {
+              "label": "login-submitted",
+              "name": "TimeoutError",
+              "message": "page.screenshot: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+            }
+          ]
+        },
+        "commands": {
+          "commands": 26,
+          "results": 26,
+          "monotonic": true,
+          "consumedExactlyOnce": true,
+          "lastConsumedFailedWithoutResult": 0
+        },
+        "cleanup": {
+          "within900s": true,
+          "errors": [],
+          "windowsWatchdogRemaining": [],
+          "linuxWatchdogRemaining": [],
+          "linuxGuardStage": 0,
+          "remoteAllAbsent": true,
+          "edgeAbsent": true,
+          "localPortsFree": [
+            {
+              "port": 19236,
+              "free": true
+            },
+            {
+              "port": 18434,
+              "free": true
+            }
+          ]
+        },
+        "conclusion": "Independent native CodeMirror contenteditable focus/end-of-document append, real Save icon(save(null)),Close/reopen and74-byte exact original+comment verified; root visually read Close/reopen images"
+      }
+    ],
+    "download": {
+      "bytes": 944,
+      "sha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f",
+      "actualPlaywrightArtifactAndSaveAsMatch": true,
+      "nativeSingleFileSelection": true
+    },
+    "preview": {
+      "scene": "mainsail-jwt-maintenance-diag-once",
+      "sameOriginalOrder": "Download before native View3D; no order substitution",
+      "actualFrameTransition": "p1/f2 /files -> /viewer",
+      "nativeKeyboardPositions": [
+        844,
+        995
+      ],
+      "screenshots": [
+        "scenes/mainsail-jwt-maintenance-diag-once/015-preview-layer-one.png",
+        "scenes/mainsail-jwt-maintenance-diag-once/016-preview-layer-two.png"
+      ],
+      "rootVisualAudit": "Different layer paths visible; nozzle partly occludes them; no geometric/physical accuracy claim",
+      "originalNavigationCause": "Unresolved; normal diagnostic scene does not establish a product fix or original frame-selection error"
+    },
+    "configuration": {
+      "scene": "mainsail-jwt-config-once",
+      "editor": "Native CodeMirror .cm-content[contenteditable=true]; natural focus, Control+End and DOM caret-end checked before registered ASCII insertText",
+      "beforeBytes": 28,
+      "beforeSha256": "5910577ee77e76af7b1f9ee17efaf6adda54479af819cb6fb6d54b698edfa7cd",
+      "afterBytes": 74,
+      "afterSha256": "d4b30bcca95af48f7241c046f6b34e77757f226eb68d0b50280da9cf9bf96b67",
+      "exactOriginalPlusRegisteredComment": true,
+      "save": "Observed native Save icon and SVG/source order; fixed TheEditor.vue invokes save(null); Save & Restart never clicked",
+      "closeThenReopen": true,
+      "rootVisualAuditPassed": true,
+      "requiredScreenshots": [
+        "scenes/mainsail-jwt-config-once/010-config-closed.png",
+        "scenes/mainsail-jwt-config-once/011-config-reopened.png"
+      ]
+    },
+    "owner": {
+      "absoluteDeadlineMs": 900000,
+      "stopNewActionsMs": 780000,
+      "forcedCleanupMs": 870000,
+      "independentPerScene": true,
+      "automaticRelaunch": false,
+      "stdinOnly": [
+        "CLOSE"
+      ],
+      "privateEdgeDefaultSandbox": true
+    },
+    "credentialEvidencePolicy": {
+      "credentialRedactions": [
+        {
+          "path": "scripts/mainsail-jwt-maintenance-review/owner.patch",
+          "originalSha256": "da1e70cc0b53c45a594bf0f0b6a08cd771a2446dbad2edda7c44951d39dc3623",
+          "archivedSha256": "de145ea789239c626e5699a3bd21c42e8f9b3f493c091118ac5b186287df78f9",
+          "transformation": "Known synthetic password literal replaced with runtime-only marker; original file unchanged"
+        },
+        {
+          "path": "scripts/mainsail-jwt-maintenance-review/prepare-owner.cjs",
+          "originalSha256": "d515b3e2851de7d8cf3f543e9f2fbc429ef951b8f4b620bd75afda518652cbc8",
+          "archivedSha256": "9c3e7dcbace63b3322f9e63ad1ff5ff71262c1a054bde09722bbc3d9240a1d34",
+          "transformation": "Known synthetic password literal replaced with runtime-only marker; original file unchanged"
+        }
+      ],
+      "originalRunnerSha256": "3ea68a718b2f2a4b813063913dcdccc0017f578c59708500b60d2f6af197cca2",
+      "archivedRedactedRunnerSha256": "19e43271f3ef9614a0bf60c4e728945ba40259522bb3bc1840ea742a267b1e32",
+      "onlyTransformation": "Synthetic username/password literal pair replaced with runtime-only markers; original runner not altered. Exact known fixture password rejected from every selected text payload."
+    },
+    "evidenceArchive": {
+      "path": "host/contracts/mainsail-jwt-file-maintenance-evidence.tar.gz",
+      "bytes": 3052353,
+      "sha256": "1657bbd9b8b38356e3f16089d23e60eb7068f3a424fb1579bda8f9581b5aee6b",
+      "members": 429,
+      "evidenceFiles": 428,
+      "manifest": "manifest.json",
+      "manifestSha256": "3bc255307d83ea20f178a3a4687c0e4c5398844e55f6b70c917302f8e1460369",
+      "allMemberBytesAndHashesMatch": true,
+      "gzipCrcAndSizeVerified": true,
+      "tarHeaderChecksumsVerified": true,
+      "uniqueSafeRegularMembers": true,
+      "selection": "Explicit top-level output/script/source filenames and command/result regexes only; Edge profile and runtime DB are never traversed",
+      "sensitivePatternHits": {
+        "fixturePassword": 0,
+        "privateKey": 0,
+        "githubToken": 0,
+        "jwt": 0,
+        "bearer": 0,
+        "cookieValue": 0
+      }
+    },
+    "previousArchives": [
+      {
+        "path": "host/contracts/reserved-user-identity-fix-evidence.tar.gz",
+        "sha256": "6e72a5b8e0a2eec3ae4c00f62017fdad2490c6a64a30b28118fe96aafa9ab82c",
+        "unchanged": true
+      },
+      {
+        "path": "host/contracts/mainsail-trusted-lifecycle-evidence.tar.gz",
+        "sha256": "433ec47ed71e7d2d456fd1776ddc89fd07bca196d425dc7c623bd8691c088bb3",
+        "unchanged": true
+      }
+    ],
+    "boundaries": [
+      "Original N navigation cause remains unresolved; diagnostic normal result does not prove a product fix or old frame-selection error",
+      "N-diag new Edge page console identified downloads-hub; only safe protocol was retained for non-network page URLs",
+      "All three login-submitted screenshot timeouts retained; original N additionally missed preview-loaded/viewer-page/viewer-settled screenshots",
+      "No print, queue, restart, MCU/device action, process fault or complete A4 acceptance in these scenes",
+      "No product/source change, real device, print/queue/restart/process-fault, push/merge/deploy in this evidence batch",
+      "Original N and N-diag remain partial; independent configuration pass is not backfilled into either receipt",
+      "Same1735 Pause/Resume, busy queue, explicit clear, fault recovery and complete A4 still require their own evidence",
+      "Historical cd91 attribution, service reacquire2.62602>1.5/full42/28/local11/G3/full budgets/physical/Python/macros and normal integration remain open"
+    ]
   }
 }

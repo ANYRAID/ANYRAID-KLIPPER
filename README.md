@@ -47,6 +47,12 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 24张截图和两端清理终态齐全；前四失败分场保留，不称自动重连或完整A4通过。
 见同一验收的mainsailTrustedLifecycleFollowUp；cd91旧包证据归属不变。
 
+同1735包的JWT文件维护现分场验证原生chooser上传／metadata、944字节单选下载、
+下载后View3D与844／995不同层路径，以及CodeMirror仅追加注释后Save／Close／重开
+和74字节精确回读。原N导航原因未定，N-diag与独立配置专场的部分／成功结果分别保留，
+不倒写原失败；Pause／Resume、忙时队列与显式清台、故障恢复及完整同包A4仍开放。
+见同一验收的mainsailJwtMaintenanceFollowUp；没有产品更改或实际设备操作。
+
 后续客户端默认仅验 Mainsail；历史 Fluidd 证据和失败保留，用户另行指定时才追加，
 不要求每批重复双客户端。
 

@@ -31,6 +31,28 @@ ARM64、CI、正常集成和发布仍待完成。
 本批仅本地提交，未推送／合并／部署；原6394复现包与全部旧A4记录保留，证据见
 [客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的reservedIdentityFollowUp。
 
+## 2026-10-16 1735 JWT文件维护分场补验
+
+本批仅证据和文档，没有产品更改或重建。原N／N-diag／独立配置场分别为214.969／
+438.950／144.146秒，各自冻结780秒停止动作、870秒强制清理、900秒绝对期限；
+全部清理0错、两守卫无残留且端口空闲，没有延长或自动重开。
+
+原N只完成JWT、chooser上传／metadata与944字节真实下载，View3D停留/files的原因
+仍不明。N-diag保持先下载后View3D，唯一注册iframe p1/f2到/viewer，844／995两张
+原生键盘截图可见不同层路径，喷头局部遮挡；不能称原异常已修复。N-diag因测试设施
+误认Monaco而未改cfg，原两场的failed_or_partial原receipt保持。
+独立CodeMirror配置场才验证自然聚焦文末仅追加预注册注释、实际Save图标save(null)、
+Close后重新打开、必需截图视读和74字节精确回读（d4b30bcca95a…）；未点Save & Restart。
+三场各1次实际WS握手为JWT cookie路线，和既有无凭据可信回环结论分别记录。
+
+原regex启动前失败、原N4张缺图及后两场各1张login-submitted缺图、两次归档预检失败
+均保留。仅白名单归档，不遍历Edge profile／DB；含旧合成密码的两个历史脚本副本及
+runner仅在归档中脱敏并列原／归档SHA，原文件未改，最终凭据扫描零命中。
+当前包Pause／Resume、忙时队列／显式清台、故障恢复和完整A4仍开放；原cd91范围、
+完整预算／服务重获2.62602／42／28／G3／物理与正常集成门禁不变。
+本批按本地提交流程收口，未推送／合并／部署；见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+的mainsailJwtMaintenanceFollowUp及新独立归档，历史归档不改。
+
 ## 2026-10-16 1735可信回环Mainsail有限出口
 
 不改173565dc／0b53079c产品，Mainsail2.19.0实页chooser上传独立长短合成文件，

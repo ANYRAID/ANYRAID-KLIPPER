@@ -15,6 +15,27 @@
 
 今后客户端默认以 Mainsail 为唯一验收客户端，不要求每批重复 Fluidd。历史 Fluidd 证据与失败保留，但不作为后续必需的双客户端门禁；只有用户另行指定 Fluidd 时才追加。
 
+## 1735 JWT文件维护分场出口（2026-10-16）
+
+固定173565dc／0b53079c与Mainsail2.19.0，继续184双PTY和真实JWT登录。
+原N场214.969秒完成chooser两文件、metadata及944字节原生下载／saveAs哈希一致，
+View3D仍停在/files，缺完整页／frame／错误观察，原因未定；配置未改，不计整场通过。
+N-diag场438.950秒保持先下载再View3D，在同p1/f2进入/viewer，自然键盘到844／995，
+两图可见不同层路径，喷头遮挡局部；不能倒推原N根因或称产品已修复。
+该场因设施误认Monaco而未改配置，仍为部分完成。
+
+独立配置专场144.146秒按固定CodeMirror DOM／工具栏SVG及源码顺序选择Save图标
+（save(null)，禁止Save & Restart）。自然焦点与文末追加唯一既定ASCII注释后，
+Save／Close／重新打开和磁盘严格回读通过：原28字节变74字节，SHA为d4b30bcca95a…；
+关闭与重开两张必需截图已视读。三场各1次实际WS握手，JWT cookie存在符合网关契约，
+无原始Authorization／API key／access-token头或凭据query。
+
+三场独立780／870／900秒边界均未延长，清理0错、两端守卫无残留、端口空闲；
+原N缺4张截图，N-diag与配置场各缺1张login-submitted，原件／regex启动前失败均保留。
+没有产品更改、打印／队列／设备／重启／进程故障操作；完整A4仍缺当前包Pause／Resume、
+忙时队列／显式清台及故障恢复等独立出口。证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+的mainsailJwtMaintenanceFollowUp；历史cd91和原可信回环场归属不变。
+
 ## 1735可信回环Mainsail有限旅程（2026-10-16）
 
 固定173565dc／0b53079c包与Mainsail2.19.0，在184双PTY模拟MCU、独立实际产品子进程
