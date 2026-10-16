@@ -6,6 +6,25 @@
 自行使用10.0.0.184”，包括该固定 Linux 开发机的本项目源码传输与调试。修复仍在独立任务分支和工作树中完成，
 不扩大到真实设备操作、生产部署或绕过任务 → develop → 主线的 PR 流程。
 
+## 2026-10-16 全量并发资源观察（14失败保留）
+
+同55a登记1822输入／829入口与原工具、默认并发，仅执行一次；缓存复用，不称完全复制
+旧调度／缓存状态。pretest5.717秒通过，全测5402／5388通过／14失败，总453.824秒。
+细类为Rust SIGSEGV6、LLVM分配失败SIGABRT1、Go版TS SIGSEGV2、Node构建脚本V8 fatal1、
+product-host自然SIGSEGV1、测试文件SIGSEGV2及motion真实数值失配1；旧16／11均不覆盖。
+
+461样本、最大间隙1.002706秒、无漏周期；session及祖先memory事件差量全0、祖先旧峰值不增。
+MemAvailable最低11196332KiB，Committed_AS最高10553420KiB；PSI均值0且累计增量很小。
+实际观测削弱本场全局／cgroup耗尽解释，但LLVM分配失败仍保留；current含缓存、peak累计、
+overcommit0下CommitLimit非严格硬限，不排除亚秒／叶进程限制、allocator、runtime或硬件问题。
+
+product-host直接子481604无先行kill而SIGSEGV，已按实际mono关联前后样本389／390。
+motion source关闭Maglev／Turbofan仍记录index10708的1.4013e-5对0失配，同进程重算值0；
+报告、夹具及两原捕获已封存，七源仅事后核SHA匹配，不称运行时冻结输入，也未重跑替代。
+固定1735不变、守卫无干预／残留。见[诊断验收](../host/contracts/system-bus-provider-acceptance.json)
+currentLinuxExitDiagnostic.resourceObservation及独立归档；G3和完整集成仍开放。
+内存工具仅备选，未下载／安装／执行；本批仅本地提交，未推送／合并／部署。
+
 ## 2026-10-16 当前Linux退出诊断（原因未定）
 
 在70c64329当前源码与固定Node26.11.1上仅执行一次普通默认并发诊断。首次once在C构建后

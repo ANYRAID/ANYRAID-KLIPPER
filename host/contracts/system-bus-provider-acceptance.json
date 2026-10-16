@@ -3722,6 +3722,155 @@
       "Historical11/current16 causes and G3 unresolved; no additional low-load sampling or green-run closure.",
       "A4 same1735 finite client mapping unchanged; full integration, original42/28/reacquire2.62602, real devices/ARM64, Python/macros and release remain open.",
       "This batch follows local Chinese commit only; no push/merge/deploy."
-    ]
+    ],
+    "resourceObservation": {
+      "status": "single_full_resource_observation14_failures_retained",
+      "sourceHead": "55a94cfe7dc274a7da706543d8147e2f50c4e492",
+      "registeredSourceInputs": 1822,
+      "sourceDifferences": 0,
+      "testEntries": 829,
+      "mode": "Same registered Node/Rust/GCC/GoTS identities and default concurrency; caches reused, not identical scheduling/cache/memory state. Child environment CARGO_HOME/RUSTUP_HOME unchanged; no systemHOME change.",
+      "validation": {
+        "pretestExitCode": 0,
+        "pretestDurationMs": 5717,
+        "testDurationMs": 447316,
+        "elapsedThroughOwnerMs": 453824,
+        "within900s": true,
+        "counts": {
+          "tests": 5402,
+          "failed": 14,
+          "passed": 5388,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "topLevel": 5402,
+          "suites": 0
+        },
+        "classification": {
+          "motion-numerical-mismatch": 1,
+          "rust-compiler-sigsegv": 6,
+          "rust-compiler-allocation-failure": 1,
+          "product-host-natural-sigsegv": 1,
+          "build-script-node-v8-fatal": 1,
+          "typescript-go-compiler-sigsegv": 2,
+          "runtime-test-file-sigsegv": 2
+        }
+      },
+      "resources": {
+        "samples": 461,
+        "bytes": 3429197,
+        "maxGapMs": 1002.706098,
+        "skippedCadences": 0,
+        "failed": false,
+        "actualLimitsSamples": {
+          "owner": 461,
+          "pretest": 7,
+          "test": 448
+        },
+        "cgroup": "session-911.scope plus user-1000.slice/user.slice/root",
+        "rootMemoryFiles": "Some root memory files not-supported; availability retained per field",
+        "sessionAndAncestorMemoryEventsDeltasAllZero": true,
+        "ancestorHistoricalPeaksUnchanged": true,
+        "sessionMemoryPeak": {
+          "before": 181514240,
+          "after": 2486931456
+        },
+        "sessionMemoryCurrentSampleMax": 2173452288,
+        "memAvailableMinKiB": 11196332,
+        "swapFreeKiB": {
+          "min": 15600940,
+          "max": 15600944
+        },
+        "committedAsMaxKiB": 10553420,
+        "commitLimitKiB": 24931760,
+        "overcommitMemory": 0,
+        "systemMemoryPsiDeltaUs": {
+          "some": 247,
+          "full": 104
+        },
+        "psiAveragesAllZero": true,
+        "scope": "Current includes file cache, notRSS; cumulative peak/counter before-values retained. Overcommit0 meansCommitLimit is not a strict hard cap.1s non-atomic sampling does not exclude subsecond or per-grandchild conditions."
+      },
+      "productHost": {
+        "directChildPid": 481604,
+        "startTicks": "17648198",
+        "exitCode": null,
+        "signal": "SIGSEGV",
+        "priorObservedKill": false,
+        "observerSequences": [
+          49,
+          50,
+          51
+        ],
+        "resourceBracketSequences": [
+          389,
+          390
+        ],
+        "scope": "Actual child exit mono used; later report-received/footer time is not crash time."
+      },
+      "motion": {
+        "execution": "source",
+        "jsOptimization": "off",
+        "asan": "off",
+        "status": 1,
+        "signal": null,
+        "run": 0,
+        "panel": 0,
+        "curve": 0,
+        "index": 10708,
+        "actual": 0.000014013039617566392,
+        "expected": 0,
+        "repeated": 0,
+        "xor": "0x3eed633180000000",
+        "fixtureSha256": "503c522dd2bcc8c8feb26832d7e2a67fde9dbe3de8db977980bf60261696cefb",
+        "captures": [
+          {
+            "bytes": 4690926,
+            "sha256": "969d62323504ec2a5e84e9beed22278b061939a2127c78beaeb6ea1f232ee6a8"
+          },
+          {
+            "bytes": 2139444,
+            "sha256": "e17eaaeb47aad77efaa7a8029db183d3641b6e263f98dc54044da5204bd0b617"
+          }
+        ],
+        "postRunModuleHashesMatched": 7,
+        "scope": "Four retained originals sealed without rerun; report frozenSourceHashes/compiledHashes empty. Seven remote/current55a sources matched report hashes after run and were copied; not runtime immutable-input proof."
+      },
+      "observer": {
+        "files": 899,
+        "targetCaps": 0,
+        "otherCaps": 4
+      },
+      "cleanup": {
+        "ownerErrors": 0,
+        "facilities": 0,
+        "guardEvents": 0,
+        "guardRemaining": 0,
+        "ownedOwnerGuardPretestTestAbsent": true
+      },
+      "fixed1735PrePostUnchanged": true,
+      "archive": {
+        "path": "host/contracts/linux-resource-observation-evidence.tar.gz",
+        "sha256": "fd257072eb574734f810fba42b75a8020e64e06269a9d256f9f764c82fff8cd7",
+        "bytes": 4272480,
+        "members": 948,
+        "evidenceFiles": 947,
+        "manifest": "manifest.json",
+        "manifestSha256": "7d2e1571d5f04ece0143edc1167c8b0642e16248d8b6eaaf50d868ca25a4ed4c",
+        "allMemberBytesAndHashesMatch": true,
+        "uniqueSafeRegularMembers": true,
+        "gzipCrcAndTarChecksumsVerified": true,
+        "sensitivePatternAndKnownFixtureHits": 0,
+        "excludes": "No profile/node_modules traversal or inclusion; binary numerical captures scanned for known fixture bytes; regex patterns applied to selected text."
+      },
+      "interpretation": "Failures recur with observed memory/commit headroom and no session/ancestor memory event increments, weakening this run global/cgroup exhaustion explanation. LLVM explicitly reports allocator failure; per-process/subsecond/allocator/runtime/compiler/hardware causes are not excluded. Historical11, prior16 and G3 remain unresolved.",
+      "priorRecordBoundary": "All previous currentLinuxExitDiagnostic fields and two archives remain historical snapshots unchanged; this separately executes the prior resource plan without overwriting old failure counts or A4.",
+      "nextAlternative": {
+        "status": "Proposal only; no download/install/execution",
+        "idea": "Separately review one bounded ordinary-user memory test using a trusted existingAPT package unpacked only inside task directory; not a system install or root operation.",
+        "boundary": "Positive supports an environment/memory-integrity problem without proving hardware; negative cannot exclude intermittent faults. No further low-load parse/full-test samples authorized by this record."
+      },
+      "publication": "Local Chinese commit only after root review; no push/merge/deploy."
+    }
   }
 }
