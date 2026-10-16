@@ -1,0 +1,20 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+import {decode,round,hex,controls} from '../../docs/diagnostics/node26-motion-capture-20261008/anyraid-captured-ieee-core.mjs';
+assert.equal(process.argv.length,4,'Usage: node motion-capture-exact-window.mjs <audit.json> <new-output.json>');
+const raw=readFileSync(process.argv[2]),audit=JSON.parse(raw),sha=b=>createHash('sha256').update(b).digest('hex');
+const gcd=(a,b)=>{while(b)[a,b]=[b,a%b];return a<0n?-a:a;};
+const n=83n;let coefficientSum=0n;for(let d=-n;d<n;d++)coefficientSum+=(n*n-d*d)**2n;
+const rows=audit.window.map(window=>{
+ assert.equal(window.count,166);assert.equal(window.inputDistinctBits.length,1);
+ const operand=decode(BigInt(window.inputDistinctBits[0]));let num=operand.m*coefficientSum*15n,den=16n*n**5n;
+ if(operand.e>=0)num<<=BigInt(operand.e);else den<<=BigInt(-operand.e);
+ const common=gcd(num,den);num/=common;den/=common;
+ const result=round(num,den),bits=hex(result),bytes=Buffer.alloc(8);bytes.writeBigUInt64LE(result.bits);
+ return {index:window.index,operandBits:window.inputDistinctBits[0],exactNumerator:num.toString(),exactDenominator:den.toString(),roundedBinary64:bytes.readDoubleLE(),roundedBits:bits,savedUpdatedBits:window.savedUpdated.bits,matchesSavedUpdated:bits===window.savedUpdated.bits};
+});
+const core=new URL('../../docs/diagnostics/node26-motion-capture-20261008/anyraid-captured-ieee-core.mjs',import.meta.url);
+const output={schema:1,mode:'Exact BigInt rational arithmetic on three saved constant166-value windows, rounded once with existing nearest-even binary64 core. Not original internal operation replay; no product imports or fixture execution.',runtime:{node:process.version,platform:process.platform,arch:process.arch},auditInputSha256:sha(raw),roundingCore:{path:'docs/diagnostics/node26-motion-capture-20261008/anyraid-captured-ieee-core.mjs',sha256:sha(readFileSync(core)),controls},rows,independentPriorCheck:{method:'Temporary reviewer Python Fraction calculation, not a project execution entry or dependency.',exactNumerator:'1523186346113572547627055',exactDenominator:'53433319192807346274304',roundedBits:'0x403c819d05e3de7e',agreesWithAllThreeNodeRows:rows.every(row=>row.exactNumerator==='1523186346113572547627055'&&row.exactDenominator==='53433319192807346274304'&&row.roundedBits==='0x403c819d05e3de7e')},scope:'Only three windows audited; complete updated vs offline filter was not evaluated. Final values cannot identify internal transient operations or hardware cause.'};
+writeFileSync(process.argv[3],JSON.stringify(output,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({rows:rows.length,priorCheckAgrees:output.independentPriorCheck.agreesWithAllThreeNodeRows,outputSha256:sha(readFileSync(process.argv[3]))}));

@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "head": "6f0277089cf2792da39e011230f578bbae2c2200",
+  "checkout": "a7b1646a5df8301e606c2dc1f6d141f35fd6fa15",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "status": "all-current-head-ci-success",
+  "workflowRuns": [
+    {
+      "id": 38178928048,
+      "head": "6f0277089cf2792da39e011230f578bbae2c2200",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38178928048"
+    },
+    {
+      "id": 38178928153,
+      "head": "6f0277089cf2792da39e011230f578bbae2c2200",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38178928153"
+    },
+    {
+      "id": 38178928005,
+      "head": "6f0277089cf2792da39e011230f578bbae2c2200",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38178928005"
+    }
+  ],
+  "jobs": [
+    {
+      "runId": 38178928048,
+      "jobId": 114587138377,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928048,
+      "jobId": 114587138701,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928048,
+      "jobId": 114587138842,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928048,
+      "jobId": 114590380284,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928153,
+      "jobId": 114587138663,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928005,
+      "jobId": 114587138622,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928005,
+      "jobId": 114587138689,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928005,
+      "jobId": 114587138696,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928005,
+      "jobId": 114587138697,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928005,
+      "jobId": 114587138708,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928005,
+      "jobId": 114587138714,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928005,
+      "jobId": 114587138762,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928005,
+      "jobId": 114587138775,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928005,
+      "jobId": 114587138779,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38178928005,
+      "jobId": 114587138807,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "tests": 4736,
+    "pass": 4736,
+    "fail": 0
+  },
+  "rawLog": "pr68-6f0-checks-oct12.log",
+  "scope": "Exact previous native-build evidence head and real merge checkout; not current encoder changes, local Rust ICE, UI budget, G3 or full clients."
+}

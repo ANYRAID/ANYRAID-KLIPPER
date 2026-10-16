@@ -1,3 +1,4 @@
+import {loadWelcomeSource} from '../moonraker/welcome-application.ts';
 import {open,constants} from 'node:fs/promises';
 import {isAbsolute} from 'node:path';
 import {parseProductMachine,type ProductMachineConfiguration} from '../config/product-machine.ts';
@@ -7,6 +8,7 @@ import {loadConfiguration} from '../moonraker/config-source.ts';
 import {KlipperSaveSession} from '../config/klipper-save-session.ts';
 import {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {readNetworkBinding} from '../moonraker/configured-server.ts';
+import {readTlsConfiguration} from '../moonraker/tls-configuration.ts';
 import {assertProductAuthorization} from './product-authorization.ts';
 import {ServerInformation} from '../moonraker/metadata.ts';
 import {PrintJournal} from '../operations/print-journal.ts';
@@ -58,6 +60,8 @@ export async function loadProductMachineProfile(path:string,createBindings:Produ
   bindings=await createBindings(structuredClone(config),signal,gate);signal.throwIfAborted();
   if(!bindings||typeof bindings.release!=='function'||!bindings.stops||bindings.stops.size!==provisional.size||typeof bindings.print?.open!=='function'||typeof bindings.print?.output!=='function')throw new TypeError('Incomplete machine bindings');
   assertProductAuthorization(bindings.server,false,moonraker);
+  await loadWelcomeSource();signal.throwIfAborted();
+  await readTlsConfiguration(moonraker,bindings.server.templates?.dataPath??bindings.server.authorization?.templateSecrets?.dataPath);signal.throwIfAborted();
   for(const key of ['prepare','start','finishOutputs','stopOutputs'] as const)if(typeof bindings.print.lifecycle?.[key]!=='function')throw new TypeError('Incomplete machine lifecycle');
   new ServerInformation(bindings.server.information);
   const policies=new Map<string,MCUMachinePolicy>();for(const [id,p] of Object.entries(config.mcus)){const stopDevice=bindings.stops.get(id);if(typeof stopDevice!=='function')throw new TypeError('Missing physical stop binding: '+id);policies.set(id,{...p,stopDevice} as MCUMachinePolicy);}

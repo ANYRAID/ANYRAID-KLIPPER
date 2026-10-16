@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "head": "080a1b190a894c082397338c09919dd62be091e4",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "mergeReference": "65d99d002e995c7047079c8ece7b01e46f02773e",
+  "pullRequest": 68,
+  "allSuccess": true,
+  "status": "All 15 candidate CI jobs succeeded; original local failures retained; draft unmerged",
+  "jobs": [
+    {
+      "id": 114339095910,
+      "name": "checks",
+      "run": 38095037045,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339096023,
+      "name": "sanitizer (ubsan)",
+      "run": 38095037045,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339096039,
+      "name": "sanitizer (asan)",
+      "run": 38095037045,
+      "conclusion": "success"
+    },
+    {
+      "id": 114341717992,
+      "name": "host",
+      "run": 38095037045,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339095881,
+      "name": "motion (26.9.0, off, source)",
+      "run": 38095037044,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339096052,
+      "name": "motion (26.10.0, off, compiled)",
+      "run": 38095037044,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339096061,
+      "name": "motion (26.10.0, default, compiled)",
+      "run": 38095037044,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339096065,
+      "name": "motion (26.10.0, default, source)",
+      "run": 38095037044,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339096068,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "run": 38095037044,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339096074,
+      "name": "motion (26.10.0, off, source)",
+      "run": 38095037044,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339096091,
+      "name": "motion (26.9.0, default, source)",
+      "run": 38095037044,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339096097,
+      "name": "motion (26.9.0, default, compiled)",
+      "run": 38095037044,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339096117,
+      "name": "motion (26.9.0, off, compiled)",
+      "run": 38095037044,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339096159,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "run": 38095037044,
+      "conclusion": "success"
+    },
+    {
+      "id": 114339095601,
+      "name": "build",
+      "run": 38095036986,
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "node": "v26.11.1",
+    "tests": 4533,
+    "pass": 4533,
+    "fail": 0,
+    "protocol": "success",
+    "linuxMcu": "success"
+  },
+  "sanitizers": {
+    "commands": 324,
+    "exactFrozenLegacyAndExtension": true,
+    "allStatusZero": true
+  },
+  "motion": {
+    "groups": 10,
+    "freshProcesses": 500,
+    "failed": 0,
+    "notG3Closure": true
+  },
+  "localFull": {
+    "tests": 4417,
+    "pass": 4371,
+    "fail": 46,
+    "rootCause": "Unconfirmed compiler/runtime and nested CLI failures; prior report retained",
+    "reference": "product-client-worker-migration-acceptance.json"
+  },
+  "limits": [
+    "CI green does not close local regression failures",
+    "No develop or main merge, no default Python entry change",
+    "No target board or physical hardware acceptance; G3 remains open"
+  ],
+  "evidence": {
+    "path": "pr68-080a-terminal.evidence.json.gz",
+    "sha256": "92742197be38da41368b724454b152b8c05b70551db26b6e7ce601383dcdebcd",
+    "bytes": 975026,
+    "entries": 18
+  }
+}

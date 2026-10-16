@@ -21,6 +21,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install pinned native template toolchain
+        run: rustup toolchain install 1.89.0 --profile minimal
+      - name: Select native template toolchain
+        run: echo 'RUSTUP_TOOLCHAIN=1.89.0' >> "$GITHUB_ENV"
       - name: Install PDF regression reader and renderer
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Check source whitespace with Node

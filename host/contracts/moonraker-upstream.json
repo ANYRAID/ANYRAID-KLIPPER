@@ -79,12 +79,14 @@
     {
       "name": "http_client",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "http-client.ts implements Node HTTP/HTTPS request/get/post/delete, conditional cache, response/errors/JSON, GitHub rate metadata, prepared wrappers, getFile, streamed staged download/progress and cancel/close/drain. ConfiguredMoonraker owns one process client, advertises http_client and lends it to standard announcements; persisted feed ETags remain catalogue-owned. HTTP/announcement source and independent JS/worker closure regressions are 43/43; later download BasicAuth and post-commit cleanup corrections have affected HTTP source/JS 15/15 and unchanged other runtime hashes. Post-commit cleanup failures are diagnosed without falsely failing or retrying a committed download. Three paired fixed announcement and Node transport benchmarks pass the unchanged 1.5 desktop budget; no Python or printing-throughput comparison. Evidence is moonraker-http-client-acceptance.json. Exact HTTP integer POST/response/304 reuse now uses json-exact.ts with BigInt beyond i128 and unchanged public RPC/motion fencing. HTTP/secret/template/announcement source and guarded independent JS each pass 136 tests, including 1000 mixed trees; original fixed six-path desktop budgets pass after preserving two initial slow variants. See http-exact-json-acceptance.json for source, raw samples and resource limits. All consumers, broader encoding/full numeric parity, exact current-head CI, new full product package/client/hardware and complete Moonraker/Python retirement remain open. Standard webcams now borrow the same process client; probe drains and limits decoded streams without retaining images or accessing the shared cache. Source and guarded independent JS each pass 26 tests and the three fixed desktop probe/list pairs stay below the original 1.5 limit. See webcam-http-owner-acceptance.json; full current package, clients and remaining consumers remain open."
     },
     {
       "name": "job_queue",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "native-job-queue.ts and ConfiguredMoonraker implement authorized status/job/start/pause/jump, bounded durable private catalogue, published-file identity, original PrintController/PrintJournal admission and paused recovery. Native automatic continuation and per-job operator clearance are covered separately by native-job-queue-acceptance.json, native-queue-clearance-acceptance.json, queue-clearance-clock-acceptance.json and product-queue-panel-acceptance.json. PAUSE-only legacy transition maps to clearance; load_on_startup, arbitrary transition scripts and legacy remote methods remain incomplete. native-home-compatibility-acceptance.json records same-package real client queue observations, not complete M3, hardware or pinned component closure."
     },
     {
       "name": "job_state",
@@ -107,7 +109,8 @@
     {
       "name": "ldap",
       "tier": "optional",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "ldap-authorization.ts and ldap-config.ts connect directory identity, bounded ldapts LDAP/LDAPS transport and standard configuration to the local-user owner. Evidence: native-ldap-identity-acceptance.json, native-ldap-transport-acceptance.json, native-ldap-configuration-acceptance.json and moonraker-template-factory-acceptance.json. These scoped software contracts do not establish production directory/TLS policy, full pinned parity or complete product delivery."
     },
     {
       "name": "machine",
@@ -150,12 +153,14 @@
     {
       "name": "secrets",
       "tier": "optional",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "secrets.ts implements the immutable process private-file owner consumed by the shared configuration templates. Evidence: native-secrets-owner-acceptance.json, native-secrets-negative-zero-acceptance.json, moonraker-template-factory-acceptance.json and http-exact-json-acceptance.json. Exact integer parsing and isolation are scoped by those recorded resource limits; full native Jinja integer/language parity, product/hardware closure and Python retirement remain incomplete."
     },
     {
       "name": "sensor",
       "tier": "optional",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "shared-sensor-components-acceptance.json records configured MQTT sensor templates consuming the shared private process factory and trusted native history fields. This is scoped MQTT/history integration, not all pinned sensor types, protocol coverage, target sensing, complete Moonraker or hardware acceptance."
     },
     {
       "name": "shell_command",
@@ -191,7 +196,7 @@
       "name": "webcam",
       "tier": "core",
       "status": "partial",
-      "evidence": "host/contracts/native-webcams-acceptance.json"
+      "evidence": "host/contracts/native-webcams-acceptance.json; webcam-http-owner-acceptance.json adds shared process HTTP and stream-discard probe ownership, shutdown and fixed performance evidence; complete pinned URL/network and target camera acceptance remain open."
     },
     {
       "name": "websockets",
@@ -651,7 +656,8 @@
       "line": 55,
       "method": "register_notification",
       "targetExpression": "\"job_queue:job_queue_changed\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "native-job-queue.ts and ConfiguredMoonraker; native-job-queue-acceptance.json/native-queue-clearance-acceptance.json and same-package client records establish scoped HTTP/RPC/notification behavior. Original startup/transition/legacy remote-method parity and complete M3 remain open."
     },
     {
       "file": "moonraker/components/job_queue.py",
@@ -672,35 +678,40 @@
       "line": 59,
       "method": "register_endpoint",
       "targetExpression": "\"/server/job_queue/job\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "native-job-queue.ts and ConfiguredMoonraker; native-job-queue-acceptance.json/native-queue-clearance-acceptance.json and same-package client records establish scoped HTTP/RPC/notification behavior. Original startup/transition/legacy remote-method parity and complete M3 remain open."
     },
     {
       "file": "moonraker/components/job_queue.py",
       "line": 63,
       "method": "register_endpoint",
       "targetExpression": "\"/server/job_queue/pause\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "native-job-queue.ts and ConfiguredMoonraker; native-job-queue-acceptance.json/native-queue-clearance-acceptance.json and same-package client records establish scoped HTTP/RPC/notification behavior. Original startup/transition/legacy remote-method parity and complete M3 remain open."
     },
     {
       "file": "moonraker/components/job_queue.py",
       "line": 66,
       "method": "register_endpoint",
       "targetExpression": "\"/server/job_queue/start\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "native-job-queue.ts and ConfiguredMoonraker; native-job-queue-acceptance.json/native-queue-clearance-acceptance.json and same-package client records establish scoped HTTP/RPC/notification behavior. Original startup/transition/legacy remote-method parity and complete M3 remain open."
     },
     {
       "file": "moonraker/components/job_queue.py",
       "line": 69,
       "method": "register_endpoint",
       "targetExpression": "\"/server/job_queue/status\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "native-job-queue.ts and ConfiguredMoonraker; native-job-queue-acceptance.json/native-queue-clearance-acceptance.json and same-package client records establish scoped HTTP/RPC/notification behavior. Original startup/transition/legacy remote-method parity and complete M3 remain open."
     },
     {
       "file": "moonraker/components/job_queue.py",
       "line": 72,
       "method": "register_endpoint",
       "targetExpression": "\"/server/job_queue/jump\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "native-job-queue.ts and ConfiguredMoonraker; native-job-queue-acceptance.json/native-queue-clearance-acceptance.json and same-package client records establish scoped HTTP/RPC/notification behavior. Original startup/transition/legacy remote-method parity and complete M3 remain open."
     },
     {
       "file": "moonraker/components/klippy_apis.py",

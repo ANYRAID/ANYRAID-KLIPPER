@@ -5,6 +5,8 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createServer} from 'node:http';
 import {once} from 'node:events';
+import {gzipSync} from 'node:zlib';
+import {MoonrakerHttpClient} from '../src/moonraker/http-client.ts';
 import {DatabaseStore} from '../src/moonraker/database.ts';
 import {Webcams} from '../src/moonraker/webcams.ts';
 import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
@@ -36,6 +38,19 @@ test('failed webcam persistence publishes no change and requires restart',async(
  const root=await mkdtemp(join(tmpdir(),'webcam-fault-')),db=await DatabaseStore.open({path:join(root,'db.sqlite')}),events:Json[]=[],cams=new Webcams(config(),db,event=>events.push(event)),insert=db.insert;
  try{await cams.start();db.insert=async()=>{throw Error('injected persistence failure');};await assert.rejects(cams.mutate({name:'lost',stream_url:'/stream'}),/persistence failure/);assert.deepEqual(events,[]);assert.throws(()=>cams.list(),/unavailable/);assert.deepEqual(await db.get('webcams'),{});
  }finally{db.insert=insert;await cams.close();await db.close();await rm(root,{recursive:true,force:true});}
+});
+test('borrowed HTTP webcam probes retain admission, decoded limits, uncached status and owner lifetime',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'webcam-http-owner-')),db=await DatabaseStore.open({path:join(root,'db.sqlite')}),client=new MoonrakerHttpClient(),cams=new Webcams(config(),db,()=>{},client),entered=Promise.withResolvers<void>();let hanging=0;
+ const server=createServer((req,res)=>{if(req.url==='/slow'){if(++hanging===4)entered.resolve();return;}if(req.url==='/not-modified'){res.writeHead(304);res.end();return;}res.setHeader('etag','"snapshot"');if(req.url==='/compressed'){res.setHeader('content-encoding','gzip');res.end(gzipSync(Buffer.alloc(8388609)));return;}res.end('snapshot');});
+ try{
+  server.listen(0,'127.0.0.1');await once(server,'listening');const address=server.address();assert(address&&typeof address!=='string');const base=`http://127.0.0.1:${address.port}`;await cams.start();await cams.mutate({name:'probe',stream_url:'/stream',snapshot_url:base+'/ok'});
+  assert.equal((await cams.test({name:'probe'}) as any).snapshot_reachable,true);assert.equal((await cams.test({name:'probe'}) as any).snapshot_reachable,true);assert.equal(client.status.cacheEntries,0);
+  await client.get(base+'/ok');assert.equal(client.status.cacheEntries,1);assert.equal((await cams.test({name:'probe'}) as any).snapshot_reachable,true);assert.equal(client.status.cacheEntries,1,'probe must not evict the shared owner cache');
+  for(const path of ['/not-modified','/compressed']){await cams.mutate({name:'probe',snapshot_url:base+path});assert.equal((await cams.test({name:'probe'}) as any).snapshot_reachable,false);}
+  await cams.mutate({name:'probe',snapshot_url:base+'/slow'});const probes=Array.from({length:4},()=>cams.test({name:'probe'}));await entered.promise;assert.equal(client.status.pending,4);assert.throws(()=>cams.test({name:'probe'}),/capacity/);
+  await cams.close();assert((await Promise.all(probes)).every((row:any)=>row.snapshot_reachable===false));assert.equal(client.status.pending,0);assert.equal(client.status.closed,false);
+  assert.equal((await client.get(base+'/ok',{enableCache:false})).statusCode,200);await client.close();assert.equal(client.status.closed,true);
+ }finally{await cams.close();await client.close();server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));await db.close();await rm(root,{recursive:true,force:true});}
 });
 test('webcam close refuses new operations and waits accepted durable write',async()=>{
  const root=await mkdtemp(join(tmpdir(),'webcam-drain-')),db=await DatabaseStore.open({path:join(root,'db.sqlite')}),cams=new Webcams(config(),db,()=>{}),insert=db.insert;

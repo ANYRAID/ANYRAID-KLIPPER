@@ -1,7 +1,9 @@
+import {validServiceName} from './service-name.ts';
 import {RestartAdmissionError,type ProductHostControl} from '../runtime/product-host-control.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 import {ApiError} from './rpc.ts';
-import {MachineControlError,type MachineAction} from './machine-control.ts';
+import {NoneProviderUnavailable,MachineControlError,type MachineAction} from './machine-control.ts';
+import {parseCommand} from '../gcode/parser.ts';
 /** Explicit product operation, separate from legacy Klippy restart semantics.
  * EndpointRegistry authorizes every status and mutation before this handler. */
 export function registerProductHostControl(registry:EndpointRegistry,control:ProductHostControl):()=>void{
@@ -25,16 +27,57 @@ export function registerProductHostControl(registry:EndpointRegistry,control:Pro
  const machine=(endpoint:string,action:(params:Record<string,unknown>)=>MachineAction)=>registry.register({endpoint,methods:['POST'],transports:['http','websocket']},async(params,_verb,context)=>{
   const request=action(params);if(!context.afterResponse)throw new ApiError(503,'Response handoff is unavailable');
   try{await control.requestMachineAction(request,context.nativeGenerationSignal,context.nativeGenerationRetiredAtAdmission,callback=>context.afterResponse!(callback));return 'ok';}
-  catch(error){throw new ApiError(error instanceof RestartAdmissionError?error.status:error instanceof MachineControlError&&error.code==='not_allowed'?403:control.status.storage_failed?503:409,error instanceof Error?error.message:'Machine action rejected');}
+  catch(error){throw new ApiError(error instanceof RestartAdmissionError?error.status:error instanceof NoneProviderUnavailable?503:error instanceof MachineControlError&&error.code==='not_allowed'?403:control.status.storage_failed?503:409,error instanceof Error?error.message:'Machine action rejected');}
  });
  const serviceActions=(['start','stop','restart'] as const).map(action=>machine('/machine/services/'+action,params=>{
-  if(Object.keys(params).length!==1||typeof params.service!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_.@-]{0,239}$/u.test(params.service))throw new ApiError(400,'Expected an allowed service name');return {kind:'service',action,service:params.service};
+  if(Object.keys(params).length!==1||typeof params.service!=='string'||!validServiceName(params.service))throw new ApiError(400,'Expected an allowed service name');return {kind:'service',action,service:params.service};
  }));
  const processActions=(['server_restart','reboot','shutdown'] as const).map(kind=>machine(kind==='server_restart'?'/server/restart':'/machine/'+kind,params=>{
   if(Object.keys(params).length)throw new ApiError(400,'Machine action takes no arguments');return {kind};
  }));
  const script=registry.register({endpoint:'/printer/gcode/script',methods:['POST'],transports:['http','websocket']},async(params,_verb,context)=>{
-  if(Object.keys(params).some(k=>k!=='script')||typeof params.script!=='string'||!['RESTART','FIRMWARE_RESTART'].includes(params.script.trim().toUpperCase()))throw new ApiError(400,'Native script compatibility supports only standard restart commands');
+  if(Object.keys(params).some(k=>k!=='script')||typeof params.script!=='string')throw new ApiError(400,'Expected a native compatibility script');
+  const script=params.script.trim(),command=script.toUpperCase();
+  if(command==='SDCARD_RESET_FILE'){
+   // An external clear-file command owns only the request and device generation
+   // observed here. Never translate a delayed command onto a replacement job.
+   if(!context.nativeGenerationSignal||context.nativeGenerationRetiredAtAdmission)throw new ApiError(503,'Native clear-file generation is unavailable');
+   const bound={...context,signal:AbortSignal.any([context.signal,context.nativeGenerationSignal,AbortSignal.timeout(30000)])};bound.signal.throwIfAborted();
+   const read=async()=>{
+    const value=await registry.invoke('/printer/print/status','GET',{},bound);bound.signal.throwIfAborted();
+    if(!value||typeof value!=='object'||Array.isArray(value)||typeof value.state!=='string'||typeof value.state_token!=='string'||!value.state_token||value.closed!==false||typeof value.pending_device_actions!=='number'||typeof value.safe_stop_pending!=='boolean')throw new ApiError(503,'Native clear-file state is unavailable');
+    const request=value.request;
+    if(request!==null&&(!request||typeof request!=='object'||Array.isArray(request)||typeof request.request_id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/u.test(request.request_id)))throw new ApiError(503,'Native clear-file request is unavailable');
+    return {state:value.state,token:value.state_token,id:request===null?null:(request as {request_id:string}).request_id,pending:value.pending_device_actions,stopping:value.safe_stop_pending};
+   };
+   let state=await read();
+   if(state.state==='idle'){
+    if(state.id!==null||state.pending!==0||state.stopping)throw new ApiError(409,'Native clear-file cleanup is still pending');
+    bound.signal.throwIfAborted();return 'ok';
+   }
+   const id=state.id;if(!id)throw new ApiError(409,'Native clear-file requires the current request');
+   if(!['completed','cancelled'].includes(state.state)){
+    await registry.invoke('/printer/print/cancel','POST',{request_id:id,state_token:state.token},bound);bound.signal.throwIfAborted();
+    state=await read();
+    if(state.id!==id||state.state!=='cancelled')throw new ApiError(409,'Native clear-file request changed before reset');
+   }
+   bound.signal.throwIfAborted();
+   await registry.invoke('/printer/print/reset','POST',{request_id:id,state_token:state.token},bound);bound.signal.throwIfAborted();return 'ok';
+  }
+  if(!['RESTART','FIRMWARE_RESTART'].includes(command)){
+   let parsed;try{parsed=parseCommand(script);}catch{throw new ApiError(400,'Expected one supported native command');}
+   if(parsed.command!=='G28'||Object.keys(parsed.params).some(key=>!['G','X','Y','Z'].includes(key)))throw new ApiError(400,'Native script compatibility supports restart, G28 and SDCARD_RESET_FILE commands');
+   // A legacy G28 has no caller token. Capture its existing network generation,
+   // then consume the canonical typed operation's token in that same lifetime.
+   // Never obtain a new generation to replay a delayed legacy request.
+   if(!context.nativeGenerationSignal||context.nativeGenerationRetiredAtAdmission)throw new ApiError(503,'Native homing generation is unavailable');
+   const bound={...context,signal:AbortSignal.any([context.signal,context.nativeGenerationSignal])};bound.signal.throwIfAborted();
+   const endpoint='/printer/calibration/home';if(!registry.allowed(endpoint))throw new ApiError(503,'Native homing owner is unavailable');
+   const state=await registry.invoke(endpoint,'GET',{},bound);
+   if(!state||typeof state!=='object'||Array.isArray(state)||typeof state.state_token!=='string')throw new ApiError(503,'Native homing state is unavailable');
+   bound.signal.throwIfAborted();const selected=([0,1,2] as const).filter(axis=>Object.hasOwn(parsed.params,'XYZ'[axis]));
+   await registry.invoke(endpoint,'POST',{version:1,state_token:state.state_token,axes:selected.length?selected:[0,1,2]},bound);return 'ok';
+  }
   if(!context.afterResponse)throw new ApiError(503,'Response handoff is unavailable');
   try{const request=params.script.trim().toUpperCase()==='RESTART'?control.requestRestart.bind(control):control.requestFirmwareRestart.bind(control);await request(context.nativeGenerationSignal,context.nativeGenerationRetiredAtAdmission,callback=>context.afterResponse!(callback));return 'ok';}
   catch(error){throw new ApiError(error instanceof RestartAdmissionError?error.status:control.status.storage_failed?503:409,error instanceof Error?error.message:'Restart rejected');}

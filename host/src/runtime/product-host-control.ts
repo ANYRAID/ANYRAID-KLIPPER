@@ -1,6 +1,13 @@
+import {validServiceName} from '../moonraker/service-name.ts';
+import {SystemBusActionUncertain} from '../moonraker/system-bus-owner.ts';
 import {randomUUID} from 'node:crypto';
 import {HostRecoveryJournal,recoveryCapacity,type RecoveryRecord,type RecoveryJournalOptions,type RecoveryKind,type MachineRecoveryKind} from './host-recovery-journal.ts';
-import type {MachineAction} from '../moonraker/machine-control.ts';
+import {MachineActionUncertain,type MachineAction} from '../moonraker/machine-control.ts';
+function uncertainMachineResult(error:unknown):boolean{
+ const pending:unknown[]=[error],seen=new Set<Error>();
+ while(pending.length&&seen.size<32){const item=pending.pop();if(!(item instanceof Error)||seen.has(item))continue;seen.add(item);if(item instanceof SystemBusActionUncertain||item instanceof MachineActionUncertain)return true;if(item instanceof AggregateError)pending.push(...item.errors.slice(0,32));if(item.cause instanceof Error)pending.push(item.cause);}
+ return false;
+}
 export type HostReloadKind='reinitialize'|RecoveryKind;
 type StandardReloadKind='restart'|'firmware_restart';
 export const machineRecoveryKinds=['service_start','service_stop','service_restart','server_restart','machine_reboot','machine_shutdown'] as const;
@@ -46,7 +53,7 @@ export class ProductHostControl {
   if(!action||typeof action!=='object'||Array.isArray(action))return Promise.reject(new RestartAdmissionError(409,'Invalid machine action'));
   let kind:MachineRecoveryKind,service:string|undefined;
   if(action.kind==='service'){
-   if(Object.keys(action).length!==3||!['start','stop','restart'].includes(action.action)||typeof action.service!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_.@-]{0,239}$/u.test(action.service))return Promise.reject(new RestartAdmissionError(409,'Invalid service action'));
+   if(Object.keys(action).length!==3||!['start','stop','restart'].includes(action.action)||typeof action.service!=='string'||!validServiceName(action.service))return Promise.reject(new RestartAdmissionError(409,'Invalid service action'));
    kind=('service_'+action.action) as MachineRecoveryKind;service=action.service;
   }else{if(Object.keys(action).length!==1||!['server_restart','reboot','shutdown'].includes(action.kind))return Promise.reject(new RestartAdmissionError(409,'Invalid machine action'));kind=action.kind==='server_restart'?'server_restart':action.kind==='reboot'?'machine_reboot':'machine_shutdown';}
   if(this.#generationSignal&&(generationSignal!==this.#generationSignal||generationSignal.aborted&&!retiredAtAdmission))return Promise.reject(new RestartAdmissionError(503,'Machine request belongs to a retired device'));
@@ -92,7 +99,7 @@ export class ProductHostControl {
    await this.#save({...record,state:'running'});
    if(this.#closed||record.state_token!==this.#token)throw new Error('Host stopped before recovery');
    await this.#begin(kind,record.service);await this.#save({...record,state:'succeeded',error:null});
-  }catch(error){if(!this.#storageFault)await this.#save({...record,state:'failed',error:'Reinitialization failed; inspect host readiness and process error'});}
+  }catch(error){if(!this.#storageFault)await this.#save({...record,state:uncertainMachineResult(error)?'interrupted':'failed',error:uncertainMachineResult(error)?'System action result is unknown; inspect the daemon and do not replay this request':'Reinitialization failed; inspect host readiness and process error'});}
   finally{this.#remoteBusy=false;}
  }
  attach(handler:(kind:HostReloadKind,service?:string)=>Promise<void>,validate:(kind:HostReloadKind,service?:string)=>void=()=>{},options:{kinds?:readonly HostReloadKind[];generationSignal?:AbortSignal}={}):()=>void{

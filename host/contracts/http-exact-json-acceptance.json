@@ -1,0 +1,224 @@
+{
+  "schema": 1,
+  "baselineHead": "791457592853d6ce930807540e652c08067c1436",
+  "node": "v26.10.0",
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "jsonWrapperSha256": "6d9161eadd5d8d186b88889292122e3882d38dd43a943ee5b74109dd0996beb2",
+    "integerDocumentation": "https://msgspec.dev/supported-types#int",
+    "reference": "moonraker-secrets-reference.json: actual pinned stdlib fallback only; no msgspec runtime parity claim"
+  },
+  "sourceSha256": {
+    "host/src/moonraker/json-exact.ts": "ea032bcf0526d32c95a29ca58e5b0e22346bca32eea9db05172a5e09b3858f72",
+    "host/src/moonraker/http-client.ts": "44332bd6af9dec5348dface68d7db68bfed998d5dbf2ce1b52b83491e22f78fb",
+    "host/src/moonraker/secrets.ts": "c32963ceedee1b0e23c24bb0632f43ac2c3ccb54c5ab7d4b85430799595cf9a3",
+    "host/test/json-exact.test.ts": "ff1d7ae8bfa74240e3355b255e3ae0425c12bb516315021a8e0ef47e17ca0a89",
+    "host/test/http-client.test.ts": "bd2d63106f53ea80b45223298a1521fc2769cf09635078d2d57c4d24ba2dd135"
+  },
+  "implementation": {
+    "parser": "Extracted existing exact private lexical semantics into json-exact.ts; ordinary Number/native JSON fast path, unsafe integer BigInt and decimal/exponent binary64; native grammar validation always retained",
+    "http": "Response json and object/array POST bodies support exact BigInts as numeric tokens, including beyond i128 and 304 body reuse; negative zero retained; large integral Numbers explicitly encode as floating-point exponents",
+    "bounds": "Default 4096 integer digits; response helper accepts explicit caller capacity; existing private limits, frozen source/type/immutability and public RPC/motion gates remain unchanged",
+    "dispatch": "Pre-parse hint skips escaped strings and enters reviver only for real unsafe integers, integer -0, digit overflow or nonfinite floats"
+  },
+  "validation": {
+    "source": 136,
+    "compiled": 136,
+    "fail": 0,
+    "mixedTrees": 1000,
+    "typescriptLoading": false,
+    "externalPrograms": false,
+    "workersAlsoGuarded": true,
+    "performanceInheritance": [
+      "test/json-exact.test.js"
+    ],
+    "scope": "Independent JS closure with snapshot native modules/installed dependencies; not a full current product build"
+  },
+  "performance": {
+    "limit": 1.5,
+    "paired": [
+      {
+        "round": 0,
+        "name": "ordinary status",
+        "baselineMs": 10.438744,
+        "candidateMs": 10.822649999999996,
+        "ratio": 1.0367770298802228,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "name": "wide coordinates",
+        "baselineMs": 23.614739999999983,
+        "candidateMs": 25.850745000000018,
+        "ratio": 1.094686835425672,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "name": "scientific floats",
+        "baselineMs": 10.549095000000023,
+        "candidateMs": 10.247160000000008,
+        "ratio": 0.9713781134779795,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "name": "strings resembling numbers",
+        "baselineMs": 1.4756929999999784,
+        "candidateMs": 1.4575230000000374,
+        "ratio": 0.9876871408891,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "name": "existing private JSON",
+        "baselineMs": 24.621306000000004,
+        "candidateMs": 24.428713000000016,
+        "ratio": 0.9921777910562507,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "name": "ordinary status",
+        "baselineMs": 10.560586,
+        "candidateMs": 10.856530000000006,
+        "ratio": 1.0280234449111068,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "name": "wide coordinates",
+        "baselineMs": 23.272973999999977,
+        "candidateMs": 25.54594,
+        "ratio": 1.0976654724058914,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "name": "scientific floats",
+        "baselineMs": 12.413334999999961,
+        "candidateMs": 11.362738000000036,
+        "ratio": 0.9153654517500793,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "name": "strings resembling numbers",
+        "baselineMs": 1.5605539999999678,
+        "candidateMs": 1.4719219999999495,
+        "ratio": 0.9432047849673769,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "name": "existing private JSON",
+        "baselineMs": 24.527934000000073,
+        "candidateMs": 24.616315999999983,
+        "ratio": 1.0036033201981018,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "name": "ordinary status",
+        "baselineMs": 10.575745999999995,
+        "candidateMs": 10.854699999999994,
+        "ratio": 1.0263767681258607,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "name": "wide coordinates",
+        "baselineMs": 23.414557000000002,
+        "candidateMs": 25.642231000000038,
+        "ratio": 1.0951405572183166,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "name": "scientific floats",
+        "baselineMs": 10.305382000000009,
+        "candidateMs": 10.178729000000033,
+        "ratio": 0.9877100140489721,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "name": "strings resembling numbers",
+        "baselineMs": 1.45451300000002,
+        "candidateMs": 1.4773930000000064,
+        "ratio": 1.0157303509834468,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "name": "existing private JSON",
+        "baselineMs": 24.376601999999934,
+        "candidateMs": 24.974740999999995,
+        "ratio": 1.0245374232224844,
+        "limit": 1.5,
+        "pass": true
+      }
+    ],
+    "bigint": [
+      {
+        "round": 0,
+        "ratio": 0.9436530203090221,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "ratio": 0.9521430039530486,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "ratio": 0.954445664052809,
+        "limit": 1.5,
+        "pass": true
+      }
+    ],
+    "initialFailures": [
+      {
+        "name": "scientific floats",
+        "ratio": 2.8458849895430256
+      },
+      {
+        "name": "strings resembling numbers",
+        "ratio": 1.8428006199144857
+      }
+    ],
+    "pass": true,
+    "scope": "Three fixed desktop paired JSON/secret comparisons, no Python/target-board/print-throughput or motion G3 closure"
+  },
+  "previousCi": "pr68-791457-terminal.json: exact prior head fifteen success, ordinary 4784/4784, excludes this increment",
+  "open": [
+    "current exact JSON head CI",
+    "all HTTP consumers and wider encoding conformance",
+    "arbitrary native Jinja integer language",
+    "full package/complete same-package client journeys",
+    "original UI/native-build and motion G3/target-board gates",
+    "complete Moonraker/Python retirement and consumer macros"
+  ],
+  "evidence": {
+    "path": "http-exact-json-evidence.json.gz",
+    "sha256": "ea77aae10c4fe836e5685df2195d52c889af7e32043f14f5dbf898c0d564081e",
+    "bytes": 1565078,
+    "entries": 612
+  }
+}

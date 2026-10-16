@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "baselineHead": "3d9f439a9c0fe969ed7e53b72ac3b4bef11c6cff",
+  "sourceSha256": {
+    "host/src/moonraker/native-print-uploads.ts": "a57bd93701595beaec78a7a47c267f3e686ab54786cffaf59e274e4be9699266",
+    "host/test/native-print-uploads.test.ts": "4b8c09f1ba1ff20825ab0530f665552409757a3d4868aac5f88e6ce71715525e",
+    "host/bench/native-print-uploads.ts": "749d90eefadd4206be034136a822cfb0eaa90ea0e1340386efb8b1dd16d80a03"
+  },
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "path": "components/file_manager/file_manager.py",
+    "sha256": "a4bc7348613558fe98c282cb9c82b1c8014a3ac48e7223b339bac6f0729b893d",
+    "scope": "Pinned source root-relative upload directory semantics; no new Python execution"
+  },
+  "implementation": {
+    "directory": "Multipart path is relative to selected root. Strip only boundary slashes, including / for root; canonical internal segments, percent literals, traversal/reserved-name limits remain.",
+    "owners": "Same immutable publication, per-ancestor authorization, UFP, print/queue owners and scoped config writer; legacy IDs without path retain issued addresses.",
+    "precision": "Native/motion/math files and outputs unchanged"
+  },
+  "tests": {
+    "source": {
+      "tests": 118,
+      "pass": 118,
+      "fail": 0,
+      "skipped": 0
+    },
+    "compiled": {
+      "tests": 118,
+      "pass": 118,
+      "fail": 0,
+      "skipped": 0
+    },
+    "product": {
+      "tests": 118,
+      "pass": 118,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "typecheck": "Full host typecheck passed without diagnostics",
+  "performance": {
+    "baselineHead": "3d9f439a9c0fe969ed7e53b72ac3b4bef11c6cff",
+    "workload": "Original native-print-uploads.ts unchanged: 4/16 MiB, 2 warmups/7 samples, exact hashes/bytes and direct publication controls; installed baseline/candidate, predetermined AB/BA/AB pairs, no own concurrent tests or build",
+    "budgets": [
+      {
+        "round": 0,
+        "size": 4194304,
+        "metric": "existing multipart HTTP median",
+        "ratio": 0.9856540809334144,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "size": 16777216,
+        "metric": "existing multipart HTTP median",
+        "ratio": 0.9819752452383036,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "size": 4194304,
+        "metric": "existing multipart HTTP median",
+        "ratio": 0.969764774588441,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "size": 16777216,
+        "metric": "existing multipart HTTP median",
+        "ratio": 0.994084378230317,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "size": 4194304,
+        "metric": "existing multipart HTTP median",
+        "ratio": 0.92675046054229,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "size": 16777216,
+        "metric": "existing multipart HTTP median",
+        "ratio": 0.9448886950686763,
+        "limit": 1.5,
+        "pass": true
+      }
+    ],
+    "maximumRatio": 0.994084378230317,
+    "pass": true,
+    "scope": "Desktop original multipart path only; newly accepted root spellings had no usable prior path and are verified functionally. No printing-tail-latency, target-board or hardware claim."
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/product-host-client-upload-path-oct13",
+    "manifestSha256": "53a55d480e35a941d8c28ece409227eab673f5527dabf3947fa90d53b1e9dc69",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+  },
+  "assembly": {
+    "files": 688,
+    "changed": [
+      "host/src/moonraker/native-print-uploads.js"
+    ],
+    "nativeSourcesVerified": 75,
+    "manifestSha256": "53a55d480e35a941d8c28ece409227eab673f5527dabf3947fa90d53b1e9dc69",
+    "scope": "Full TS production build, identical verified original native outputs reused",
+    "dependencies": 18
+  },
+  "client": {
+    "name": "Fluidd 1.37.6",
+    "baselineFailure": {
+      "scene": "r38",
+      "status": 400,
+      "cause": "Actual path=/ rejected as nativeFilename; chooser/setFiles returned immediately",
+      "elapsedMs": 161412
+    },
+    "verified": {
+      "scene": "r39",
+      "fileChooserUploads": [
+        {
+          "filename": "client-browser-long-r39-oct13.gcode",
+          "size": 18785,
+          "sha256": "12dfa06ce998ed9d72e3107c5fee40141cc51df5c72fed2b0625229c45ab077b"
+        },
+        {
+          "filename": "client-browser-upload-r39-oct13.gcode",
+          "size": 944,
+          "sha256": "9107b8c876da7984cf583b35d805c96721370c0a2343a59fb4bfb4f30085033f"
+        }
+      ],
+      "completedJobs": [
+        {
+          "filename": "client-browser-upload-r39-oct13.gcode",
+          "status": "completed",
+          "job_id": "000003",
+          "request_id": "queue-cb3f5307-bd2a-4bf0-b975-61bbb6b18e80",
+          "total_duration": 13.66531869,
+          "print_duration": 9.751490006
+        },
+        {
+          "filename": "client-browser-upload-r39-oct13.gcode",
+          "status": "completed",
+          "job_id": "000002",
+          "request_id": "upload-88fd4661-21d9-4eb1-839f-9ad3bddd1ca3",
+          "total_duration": 10.687498820000007,
+          "print_duration": 9.750868438000005
+        },
+        {
+          "filename": "client-browser-long-r39-oct13.gcode",
+          "status": "completed",
+          "job_id": "000001",
+          "request_id": "upload-878ab9a3-5cb2-469b-9d57-9ac88aa73b15",
+          "total_duration": 104.18229330300001,
+          "print_duration": 100.25895986699999
+        }
+      ],
+      "queueRestoredPaused": {
+        "state": "paused",
+        "jobs": [
+          {
+            "job_id": "7BF4EC4548ED9A8A",
+            "filename": "client-browser-upload-r39-oct13.gcode"
+          }
+        ],
+        "transitionPhase": null,
+        "transition_available": true
+      },
+      "oldHistoryPreserved": true,
+      "freshConfirmationRequired": true,
+      "configEdit": {
+        "path": "config/printer.cfg",
+        "bytes": 58,
+        "sha256": "b3a81e545db53696e34b31d1b0c4727d861a6b657c75e5e5899e8fe7decde51b"
+      },
+      "elapsedMs": 605146,
+      "gracefulProcessRebuild": true,
+      "samePackage": true
+    },
+    "scope": "Actual two unseeded file chooser uploads and direct prints, explicit file-menu queue, same-package product process rebuild with original MCU objects and persisted IDs, page rehome/fresh clearance then distinct third completion, page comment-only config save. API is read-only corroboration. Busy Upload-and-print was disabled by Fluidd, so busy multipart queue is not claimed; source/product tests remain separate."
+  },
+  "evidence": {
+    "path": "host/contracts/client-upload-path-evidence.json.gz",
+    "sha256": "3cfdb4aca011109defa2f0c8990b914dc93e19a84bc569ccae24b67930d48b01",
+    "bytes": 2754807,
+    "entries": 775
+  },
+  "remaining": [
+    "Own new-head CI and task -> develop -> master integration",
+    "Same final package Mainsail upload/config/queue/recovery; Fluidd busy upload and SIGKILL/crash/fault journeys",
+    "Complete Moonraker/Jinja/msgspec/consumer macros and 177 tracked Python files/default entry/benchmark retirement",
+    "Original UI/native compiler/G3/Cycnumbris500 target printing precision/throughput/hardware/release gates; other models last"
+  ]
+}

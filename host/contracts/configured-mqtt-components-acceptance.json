@@ -1,0 +1,284 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "baseHead": "9aea5294c01e43d35dd339655f074ead7b0c2efc",
+  "status": "draft-partial",
+  "scope": "Default standard load/loadAuthorized and ordinary native product process assemble one configuration-owned MQTT and sensor generation. Shared private credential rendering; sensor messages still use their dedicated native template adapter.",
+  "functionality": {
+    "sourceInitial": {
+      "tests": 64,
+      "pass": 63,
+      "fail": 1
+    },
+    "sourceAffectedFixed": {
+      "tests": 11,
+      "pass": 11,
+      "fail": 0
+    },
+    "compiledCore": {
+      "tests": 58,
+      "pass": 58,
+      "fail": 0,
+      "noStripTypes": true,
+      "allChildProcessAPIsForbidden": true,
+      "testIsolation": "none"
+    },
+    "compiledNativeProduct": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "noStripTypes": true,
+      "existingPtyFixtureChildAllowed": true
+    },
+    "typecheck": "passed",
+    "contracts": [
+      "No connection before start; real CONNECT credentials, telemetry, authenticated HTTP and redacted public config",
+      "Configured MQTT without sensors owns presence and publish routes",
+      "Invalid configuration and competing owner rejected before broker access",
+      "HTTP bind failure releases transport, store and private factory",
+      "Authorized loader assembles same generation before user initialization",
+      "Real history gates exclude pre-job and paused samples and persist completed value 5",
+      "Product bootstrap and two device profile replacements retain one connection and one private generation; exit releases once"
+    ],
+    "nativeAddons": {
+      "template.node": "5a382f0395d58a07424aaffd455b07874b531e6cea1b9fa14833b609c6dd3455",
+      "unix-peer.node": "452966303dbeb2e1bbe1ea7e4183705ac2015958630b88772118e2954d44212e",
+      "sealed-file.node": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+      "file-events.node": "0c0c6bf4d8702b37514da7c0a3b524682c666830fcafabac50d249c18cdd802c",
+      "trapq.node": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+      "stepcompress.node": "255a84728574d1534bad1796883d9232d56cb5089581676fc47c5cb202a9cb95",
+      "serialqueue.node": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac"
+    },
+    "dependencies": {
+      "host/package.json": "08f8f0c0c7a28e845044463c6f4c453389da15453b31bedaf3577e904d53dd6a",
+      "host/package-lock.json": "b890eff34a349b721afd6013f53d6e2c3fa14538ce8ae6bc0bd580ec328da389"
+    },
+    "compiledComparison": {
+      "baselineModules": 161,
+      "candidateModules": 521,
+      "differentCommonModules": [
+        "moonraker/configured-server.js"
+      ],
+      "commentOnlySource": "host/src/moonraker/native-sensor-config.ts; compiled bytes unchanged"
+    },
+    "buildBoundary": "Independent TS export; cached native addons and dependencies reused. No fresh Rust build, new C source or complete product bundle."
+  },
+  "performance": {
+    "node": "v26.10.0",
+    "warmups": 2,
+    "samples": [
+      {
+        "startupMs": 33.914907,
+        "mixedMs": 88.94128999999998,
+        "messages": 1000
+      },
+      {
+        "startupMs": 3.380217000000016,
+        "mixedMs": 60.22670800000003,
+        "messages": 1000
+      },
+      {
+        "startupMs": 2.3001009999999837,
+        "mixedMs": 52.012726999999984,
+        "messages": 1000
+      },
+      {
+        "startupMs": 2.266791000000012,
+        "mixedMs": 53.89209699999998,
+        "messages": 1000
+      },
+      {
+        "startupMs": 2.53983199999999,
+        "mixedMs": 54.651470000000074,
+        "messages": 1000
+      },
+      {
+        "startupMs": 3.5362870000000157,
+        "mixedMs": 55.35248300000001,
+        "messages": 1000
+      },
+      {
+        "startupMs": 2.1290010000000166,
+        "mixedMs": 51.74390600000004,
+        "messages": 1000
+      },
+      {
+        "startupMs": 2.0101000000000795,
+        "mixedMs": 49.43184500000007,
+        "messages": 1000
+      },
+      {
+        "startupMs": 2.0931499999999232,
+        "mixedMs": 49.649396000000024,
+        "messages": 1000
+      }
+    ],
+    "medians": {
+      "startupMs": 2.266791000000012,
+      "mixedMs": 52.012726999999984
+    },
+    "budgets": [
+      {
+        "key": "startupMs",
+        "median": 2.266791000000012,
+        "ratio": 1.0096479936573803,
+        "limit": 1.5,
+        "passed": true
+      },
+      {
+        "key": "mixedMs",
+        "median": 52.012726999999984,
+        "ratio": 1.0236393783754743,
+        "limit": 1.5,
+        "passed": true
+      }
+    ],
+    "scope": "Prepared process loads, actual loopback MQTT CONNECT/SUBACK, HTTP listen and 100 metadata queries mixed with 1000 telemetry messages. Manual external private generation baseline vs configuration-owned generation; no device, printing or target board.",
+    "baseline": {
+      "node": "v26.10.0",
+      "warmups": 2,
+      "samples": [
+        {
+          "startupMs": 34.691586,
+          "mixedMs": 92.28898999999998,
+          "messages": 1000
+        },
+        {
+          "startupMs": 3.410825999999986,
+          "mixedMs": 60.99637000000001,
+          "messages": 1000
+        },
+        {
+          "startupMs": 2.468192999999985,
+          "mixedMs": 50.66360099999997,
+          "messages": 1000
+        },
+        {
+          "startupMs": 2.289691000000005,
+          "mixedMs": 50.212514999999996,
+          "messages": 1000
+        },
+        {
+          "startupMs": 2.8289180000000442,
+          "mixedMs": 51.48252200000002,
+          "messages": 1000
+        },
+        {
+          "startupMs": 2.118649000000005,
+          "mixedMs": 55.36615400000005,
+          "messages": 1000
+        },
+        {
+          "startupMs": 2.045586999999955,
+          "mixedMs": 52.69279800000004,
+          "messages": 1000
+        },
+        {
+          "startupMs": 2.2262799999999743,
+          "mixedMs": 50.61724000000004,
+          "messages": 1000
+        },
+        {
+          "startupMs": 2.2451300000000174,
+          "mixedMs": 50.81157299999995,
+          "messages": 1000
+        }
+      ],
+      "medians": {
+        "startupMs": 2.2451300000000174,
+        "mixedMs": 50.81157299999995
+      },
+      "maxRatio": 1.5,
+      "baseHead": "9aea5294c01e43d35dd339655f074ead7b0c2efc",
+      "scope": "Manual explicit sensor generation with external private owner, actual local MQTT/HTTP startup and fixed mixed telemetry/queries. Prepared imports and fixture writes excluded; no printer or target-board claim.",
+      "sourceSha256": "97263c31244054566fcc892b48d409e1bdcdaa40301c58ee15342703e4416386"
+    },
+    "referenceSha256": "1c678d89ef5d8a5b90083902ef479f6ab17a9eef9e0f4bed97e6eb17ae9f36b1",
+    "environment": {
+      "platform": "linux",
+      "architecture": "x64",
+      "kernel": "6.18.36-amd64-desktop-rolling",
+      "cpu": "AMD Ryzen 5 3500X 6-Core Processor"
+    },
+    "baselineFrozenBeforeProductionEdits": true,
+    "budgetFrozenBeforeProductionEdits": true,
+    "interpretation": "Sequential desktop medians pass unchanged 1.5 ratio. Startup excludes imports and fixture preparation; mixed test includes actual loopback telemetry and authenticated metadata queries. Does not prove printing speed, target-board performance or a statistical speedup."
+  },
+  "failuresRetained": [
+    "Initial bench TS array inference failure fixed before baseline freeze; log preserved",
+    "Source initial 63/64: history fixture used unchanged total_duration through resume, which upstream correctly treated as a new job; fixture now monotonic, same one-job/value assertions retained, affected 11/11 passed",
+    "No alteration of motion source, paused exclusion, history assertions or frozen performance budget"
+  ],
+  "ci": {
+    "previousHead": "9aea5294c01e43d35dd339655f074ead7b0c2efc",
+    "jobs": 15,
+    "all": "success",
+    "ordinary": {
+      "tests": 4684,
+      "pass": 4684,
+      "fail": 0
+    },
+    "record": "pr68-9aea-terminal.json",
+    "currentCandidate": "requires own CI"
+  },
+  "remaining": [
+    "Sensor messages consuming shared template environment with unchanged high-frequency performance contract",
+    "Native product history journal auxiliary fields and composition with existing auxiliary owners",
+    "Complete template language and general component assembly; async/UI budgets and fresh native build",
+    "Full same-bundle Fluidd/Mainsail and external fault recovery acceptance",
+    "All Python retirement, consumer product macros, G3 precision/timing and Cycnumbris 500 target-board acceptance",
+    "Normal develop/mainline integration and release; other machine families last"
+  ],
+  "evidence": {
+    "file": "configured-mqtt-components-evidence.json.gz",
+    "sha256": "4c2849466fdb79be0d07bb5723affefe8c344843f833487fde41977615c1fc0c",
+    "bytes": 296361,
+    "entries": 33
+  },
+  "bindings": [
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "12ce6ca253a35fb1fba56500605beae047139ec6019800c5944fee48a3c25bf0"
+    },
+    {
+      "path": "README.md",
+      "sha256": "5c460e9198ba4506acfe0ce28018f9bd7636739098377448d25f610c0db25fdc"
+    },
+    {
+      "path": "docs/Node_Host_Delivery_Plan.md",
+      "sha256": "e787e2505510968daeb2abb9ddfd7c3768d319d86c4bb88c53b6a7874fc99f31"
+    },
+    {
+      "path": "docs/Node_Host_Startup.md",
+      "sha256": "f0ca81d717b8666157bb1e597c3646816fc45161ad498f6bb0dcc2b8691a5793"
+    },
+    {
+      "path": "host/src/moonraker/configured-server.ts",
+      "sha256": "d14e1995c304f031c28b96ea00c0c27766f26cb6b503c665ca9fabe8e0f78578"
+    },
+    {
+      "path": "host/src/moonraker/native-sensor-config.ts",
+      "sha256": "a8356130c4b5376076bcd5c6a8dcc8931971d6229ca0acff01d9fedb0aecbeb1"
+    },
+    {
+      "path": "host/test/configured-mqtt-components.test.ts",
+      "sha256": "97180873107ab7511ef389d49d593d41e8f643945c6cd1e1452e897144d1db76"
+    },
+    {
+      "path": "host/test/native-product-components.test.ts",
+      "sha256": "4be0b0435bb87817a2d646b720d4b244fbc6a98db7ba3f94ab4f848cb5dd97c9"
+    },
+    {
+      "path": "host/bench/configured-mqtt-components.ts",
+      "sha256": "97263c31244054566fcc892b48d409e1bdcdaa40301c58ee15342703e4416386"
+    },
+    {
+      "path": "host/contracts/configured-mqtt-components-reference.json",
+      "sha256": "1c678d89ef5d8a5b90083902ef479f6ab17a9eef9e0f4bed97e6eb17ae9f36b1"
+    },
+    {
+      "path": "host/contracts/pr68-9aea-terminal.json",
+      "sha256": "5d182482b5eb23082640009d3cb265ddeeef99a76e0a7f4a20446754730a8794"
+    }
+  ]
+}

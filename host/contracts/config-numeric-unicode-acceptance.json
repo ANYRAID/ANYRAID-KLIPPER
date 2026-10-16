@@ -1,0 +1,1050 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "baseHead": "1e61688b61a9f40e37c2f0fe3486e4ac91c86250",
+  "scope": "Optimizes pinned Unicode decimal normalization in the actual configuration/template primitive conversion path. No input memoization, arithmetic, native template engine, motion or clock change. Closes only the measured desktop primitive historical-ratio gap, not full template, board or printing performance.",
+  "sources": {
+    "host/src/moonraker/config-reader.ts": "3a8c2cbbd80fbb41060cb4c09138e949db2b08cbfbb25b2e96f3516f45621298",
+    "host/bench/template-numbers.ts": "39862323ca9acff118df5a097869d35d69164e2f417129daf4a992ff44383f8a",
+    "host/test/config-numeric-unicode.test.ts": "bb71ecaf9cba229e1453642c0ab164e5c9f1300b6552de131fdf0f2b30c848d5",
+    "host/contracts/config-numeric-unicode-ranges.json": "eb433298f3f602f8b018b95a90f0d243e95458f9247a15f93b66c84ff60072d8"
+  },
+  "originalRuntimeSourceSha256": "0d95a8b6c0cfff7823ed654d64f4cbc4d080dec4cccb47c4b4422cd55e681b8e",
+  "normalization": {
+    "bmpTableBytes": 65536,
+    "supplementaryDigits": 310,
+    "scripts": 68,
+    "pinnedDigitRangeUnchanged": true,
+    "noInputCache": true,
+    "lexicalRulesUnchanged": true
+  },
+  "validation": {
+    "node": "v26.10.0",
+    "compiler": "7.0.2",
+    "related": {
+      "total": 89,
+      "passed": 89,
+      "failed": 0,
+      "isolation": "none"
+    },
+    "sourceAndCompiledNumbers": {
+      "sourceTests": 5,
+      "compiledTests": 7,
+      "overlappingCoverage": true,
+      "roundCases": 42744,
+      "newBoundaryTests": 2,
+      "allPinnedDigits": 680
+    },
+    "typecheck": true,
+    "whitespace": true,
+    "isolatedNumericExecution": {
+      "path": "/nonexistent",
+      "python": "/nonexistent",
+      "allowChildProcess": false,
+      "compiledTypeScriptLoading": false,
+      "nativeAddonExplicitlyAllowed": true,
+      "nativeSandboxClaim": false
+    },
+    "nativeAddon": {
+      "rebuilt": false,
+      "sha256": "b4ba54aaf6abfa26bea46e2b60bc95d2529c2430f87bbde56e47300943feb20e"
+    },
+    "preservedObservations": [
+      {
+        "file": "evaluate-unicode-normalization-oct11.log",
+        "reason": "Temporary normalization evaluation attempted to JSON.parse hexadecimal source literals and failed before any measurements; control extraction fixed, product code unaffected."
+      },
+      {
+        "file": "config-unicode-related-tests-oct11.log",
+        "reason": "Process runner returned eight file aggregates; exact unit-case evidence is the subsequent explicit in-process 89/89 run of unchanged tests. No process or compiler root cause inferred."
+      },
+      {
+        "file": "config-unicode-compiled-candidate-oct11.log",
+        "exit": 1,
+        "reason": "Strict JS template compatibility gate still fails direct syntax and JSON/callback floating types; runtime optimization does not claim this gate passed."
+      }
+    ]
+  },
+  "performance": {
+    "source": {
+      "node": "v26.10.0",
+      "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+      "iterations": 100000,
+      "warmup": 2,
+      "samples": 7,
+      "medianBudget": 1.5,
+      "scope": "Primitive numeric filters including loop/dispatch, with exact aggregate comparison; excludes typed bridge and templates",
+      "results": [
+        {
+          "mode": "float",
+          "node": {
+            "samplesMs": [
+              8.754339000000002,
+              10.421784000000017,
+              9.142905000000013,
+              8.080748,
+              7.914265,
+              7.968334999999996,
+              8.792169000000001
+            ],
+            "medianMs": 8.754339000000002,
+            "p95Ms": 10.421784000000017
+          },
+          "frozenPython": {
+            "samplesMs": [
+              23.63060205243528,
+              23.332553973887116,
+              24.369038990698755,
+              23.284304013941437,
+              23.33805395755917,
+              23.30838399939239,
+              23.75991496955976
+            ],
+            "medianMs": 23.33805395755917,
+            "p95Ms": 24.369038990698755
+          },
+          "medianRatio": 0.3751100676997313
+        },
+        {
+          "mode": "unicode",
+          "node": {
+            "samplesMs": [
+              38.984346000000016,
+              39.84680000000003,
+              36.48913600000003,
+              36.29521299999999,
+              36.990174000000025,
+              36.54615799999999,
+              36.472036
+            ],
+            "medianMs": 36.54615799999999,
+            "p95Ms": 39.84680000000003
+          },
+          "frozenPython": {
+            "samplesMs": [
+              26.676883979234844,
+              27.630436001345515,
+              26.69212396722287,
+              26.621063007041812,
+              26.627342973370105,
+              27.050073025748134,
+              26.790165982674807
+            ],
+            "medianMs": 26.69212396722287,
+            "p95Ms": 27.630436001345515
+          },
+          "medianRatio": 1.3691738448719024
+        },
+        {
+          "mode": "round",
+          "node": {
+            "samplesMs": [
+              17.640709000000015,
+              18.874188000000004,
+              18.242998000000057,
+              18.856388000000038,
+              18.13104599999997,
+              17.904923000000053,
+              18.816516999999976
+            ],
+            "medianMs": 18.242998000000057,
+            "p95Ms": 18.874188000000004
+          },
+          "frozenPython": {
+            "samplesMs": [
+              51.84035201091319,
+              51.52806401019916,
+              51.887673034798354,
+              51.54968495480716,
+              51.82746099308133,
+              51.54141300590709,
+              52.265331032685935
+            ],
+            "medianMs": 51.82746099308133,
+            "p95Ms": 52.265331032685935
+          },
+          "medianRatio": 0.35199482379496444
+        },
+        {
+          "mode": "ceil",
+          "node": {
+            "samplesMs": [
+              18.71765599999992,
+              18.73109599999998,
+              19.569649000000027,
+              18.683144999999968,
+              18.67821499999991,
+              18.897669000000064,
+              18.711185
+            ],
+            "medianMs": 18.71765599999992,
+            "p95Ms": 19.569649000000027
+          },
+          "frozenPython": {
+            "samplesMs": [
+              41.57280700746924,
+              40.730037027969956,
+              41.36905196355656,
+              40.67462601233274,
+              41.03943501831964,
+              41.02249402785674,
+              40.656164987012744
+            ],
+            "medianMs": 41.02249402785674,
+            "p95Ms": 41.57280700746924
+          },
+          "medianRatio": 0.4562778651948735
+        },
+        {
+          "mode": "floor",
+          "node": {
+            "samplesMs": [
+              19.608249,
+              20.813548999999966,
+              19.749952000000008,
+              20.55065400000001,
+              19.599990000000048,
+              19.816883000000075,
+              20.758458000000132
+            ],
+            "medianMs": 19.816883000000075,
+            "p95Ms": 20.813548999999966
+          },
+          "frozenPython": {
+            "samplesMs": [
+              42.00655804015696,
+              41.43848398234695,
+              41.12556600011885,
+              41.998667002189904,
+              41.466985014267266,
+              41.691470018122345,
+              41.353021981194615
+            ],
+            "medianMs": 41.466985014267266,
+            "p95Ms": 42.00655804015696
+          },
+          "medianRatio": 0.4778954388215544
+        }
+      ]
+    },
+    "numbers": {
+      "node": "v26.10.0",
+      "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+      "iterations": 100000,
+      "warmup": 2,
+      "samples": 7,
+      "medianBudget": 1.5,
+      "scope": "Primitive numeric filters including loop/dispatch, with exact aggregate comparison; excludes typed bridge and templates",
+      "results": [
+        {
+          "mode": "float",
+          "node": {
+            "samplesMs": [
+              7.634036999999999,
+              8.514789999999998,
+              8.796824999999998,
+              7.526464000000004,
+              7.503805,
+              7.592976000000007,
+              7.590126000000012
+            ],
+            "medianMs": 7.592976000000007,
+            "p95Ms": 8.796824999999998
+          },
+          "frozenPython": {
+            "samplesMs": [
+              23.63060205243528,
+              23.332553973887116,
+              24.369038990698755,
+              23.284304013941437,
+              23.33805395755917,
+              23.30838399939239,
+              23.75991496955976
+            ],
+            "medianMs": 23.33805395755917,
+            "p95Ms": 24.369038990698755
+          },
+          "medianRatio": 0.32534743530064775
+        },
+        {
+          "mode": "unicode",
+          "node": {
+            "samplesMs": [
+              36.81445200000002,
+              38.64450999999997,
+              36.43257599999998,
+              36.42636600000003,
+              36.49467699999997,
+              36.34952500000003,
+              36.68834000000004
+            ],
+            "medianMs": 36.49467699999997,
+            "p95Ms": 38.64450999999997
+          },
+          "frozenPython": {
+            "samplesMs": [
+              26.676883979234844,
+              27.630436001345515,
+              26.69212396722287,
+              26.621063007041812,
+              26.627342973370105,
+              27.050073025748134,
+              26.790165982674807
+            ],
+            "medianMs": 26.69212396722287,
+            "p95Ms": 27.630436001345515
+          },
+          "medianRatio": 1.3672451485994273
+        },
+        {
+          "mode": "round",
+          "node": {
+            "samplesMs": [
+              17.695869999999957,
+              19.090481000000068,
+              17.840442999999937,
+              17.84003199999995,
+              17.81899199999998,
+              17.87412299999994,
+              18.020515000000046
+            ],
+            "medianMs": 17.840442999999937,
+            "p95Ms": 19.090481000000068
+          },
+          "frozenPython": {
+            "samplesMs": [
+              51.84035201091319,
+              51.52806401019916,
+              51.887673034798354,
+              51.54968495480716,
+              51.82746099308133,
+              51.54141300590709,
+              52.265331032685935
+            ],
+            "medianMs": 51.82746099308133,
+            "p95Ms": 52.265331032685935
+          },
+          "medianRatio": 0.3442276094208345
+        },
+        {
+          "mode": "ceil",
+          "node": {
+            "samplesMs": [
+              18.34782999999993,
+              18.405681000000072,
+              18.361200000000053,
+              18.398600999999985,
+              18.359640000000013,
+              18.314200000000028,
+              18.378051000000028
+            ],
+            "medianMs": 18.361200000000053,
+            "p95Ms": 18.405681000000072
+          },
+          "frozenPython": {
+            "samplesMs": [
+              41.57280700746924,
+              40.730037027969956,
+              41.36905196355656,
+              40.67462601233274,
+              41.03943501831964,
+              41.02249402785674,
+              40.656164987012744
+            ],
+            "medianMs": 41.02249402785674,
+            "p95Ms": 41.57280700746924
+          },
+          "medianRatio": 0.44758858365685167
+        },
+        {
+          "mode": "floor",
+          "node": {
+            "samplesMs": [
+              18.71182500000009,
+              18.66805499999998,
+              18.792957,
+              18.695505000000026,
+              18.6082550000001,
+              18.648443999999927,
+              18.602934000000005
+            ],
+            "medianMs": 18.66805499999998,
+            "p95Ms": 18.792957
+          },
+          "frozenPython": {
+            "samplesMs": [
+              42.00655804015696,
+              41.43848398234695,
+              41.12556600011885,
+              41.998667002189904,
+              41.466985014267266,
+              41.691470018122345,
+              41.353021981194615
+            ],
+            "medianMs": 41.466985014267266,
+            "p95Ms": 42.00655804015696
+          },
+          "medianRatio": 0.45019079620997254
+        }
+      ]
+    },
+    "pairs": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "warmups": 3,
+      "samples": 11,
+      "pairedOrder": "Alternating original-first and candidate-first in the same process",
+      "medianBudget": 1.5,
+      "scope": "Primitive conversion with mixed finite values and strict error cases; no input memoization, no native bridge, printing or target-board claim",
+      "inputs": [
+        {
+          "name": "ascii-float",
+          "method": "parsePythonFloat",
+          "values": [
+            "12.675",
+            "-1.005",
+            "1.25e-3",
+            "1e20"
+          ],
+          "count": 100000
+        },
+        {
+          "name": "unicode-bmp-float",
+          "method": "parsePythonFloat",
+          "values": [
+            "١_٢.５",
+            "-１２.３４",
+            "१२.५e-१",
+            "۱۲.۵"
+          ],
+          "count": 100000
+        },
+        {
+          "name": "unicode-supplementary-float",
+          "method": "parsePythonFloat",
+          "values": [
+            "𝟙_𝟚.𝟝",
+            "-𑁧𑁨.𑁫",
+            "𝟏.𝟐e-𝟑",
+            "１_𝟤.٥"
+          ],
+          "count": 100000
+        },
+        {
+          "name": "unicode-whitespace-float",
+          "method": "parseConfigurationFloat",
+          "values": [
+            " ١_٢.５ ",
+            "\t１２.３４\n",
+            "۱۲.۵　",
+            " -𝟙.𝟝 "
+          ],
+          "count": 100000
+        },
+        {
+          "name": "mixed-integer",
+          "method": "parseConfigurationInteger",
+          "values": [
+            "1_234",
+            "١_٢",
+            "-𝟛𝟜",
+            " １２３ "
+          ],
+          "count": 100000
+        },
+        {
+          "name": "invalid-token",
+          "method": "parsePythonFloat",
+          "values": [
+            "١__٢",
+            "𝟙e_𝟚",
+            "1😀2",
+            "\ud8001"
+          ],
+          "count": 10000
+        }
+      ],
+      "results": [
+        {
+          "name": "ascii-float",
+          "count": 100000,
+          "baseline": {
+            "samplesMs": [
+              9.431477000000001,
+              9.647530000000017,
+              9.549448000000012,
+              9.660120000000006,
+              9.52277700000002,
+              9.511837999999983,
+              9.648619999999966,
+              9.52083799999997,
+              9.57122899999996,
+              9.413086000000021,
+              9.561778000000004
+            ],
+            "medianMs": 9.549448000000012,
+            "p95Ms": 9.660120000000006
+          },
+          "candidate": {
+            "samplesMs": [
+              9.324633999999975,
+              9.198622,
+              9.442706000000015,
+              9.317724999999996,
+              9.37878600000002,
+              9.307603999999998,
+              9.280614000000014,
+              9.271493999999961,
+              9.276662999999985,
+              9.313543999999979,
+              9.23881399999999
+            ],
+            "medianMs": 9.307603999999998,
+            "p95Ms": 9.442706000000015
+          },
+          "medianRatio": 0.9746745571052888
+        },
+        {
+          "name": "unicode-bmp-float",
+          "count": 100000,
+          "baseline": {
+            "samplesMs": [
+              73.06265400000007,
+              73.08472299999994,
+              73.87138600000003,
+              73.394049,
+              73.760534,
+              74.08345899999995,
+              74.58457699999985,
+              74.89806199999998,
+              74.11038899999994,
+              161.09466900000007,
+              87.13153199999988
+            ],
+            "medianMs": 74.08345899999995,
+            "p95Ms": 161.09466900000007
+          },
+          "candidate": {
+            "samplesMs": [
+              35.627621999999974,
+              35.900896999999986,
+              35.67918300000008,
+              35.72126400000002,
+              36.84266099999991,
+              36.26335300000005,
+              36.235631999999896,
+              36.3800839999999,
+              36.08177999999998,
+              36.17570100000012,
+              36.15404000000012
+            ],
+            "medianMs": 36.15404000000012,
+            "p95Ms": 36.84266099999991
+          },
+          "medianRatio": 0.4880177098642242
+        },
+        {
+          "name": "unicode-supplementary-float",
+          "count": 100000,
+          "baseline": {
+            "samplesMs": [
+              102.03121199999987,
+              105.75923999999986,
+              79.93550000000005,
+              92.05634800000007,
+              81.70550699999967,
+              79.8279379999999,
+              71.01539099999991,
+              71.16112399999975,
+              71.05965199999991,
+              70.51477299999988,
+              70.68446600000016
+            ],
+            "medianMs": 79.8279379999999,
+            "p95Ms": 105.75923999999986
+          },
+          "candidate": {
+            "samplesMs": [
+              51.878373999999894,
+              45.2274309999998,
+              50.315110000000004,
+              54.62121700000034,
+              53.916146000000026,
+              40.01323999999977,
+              41.13410799999974,
+              39.21391799999992,
+              39.15100700000039,
+              38.74631099999988,
+              38.95321399999966
+            ],
+            "medianMs": 41.13410799999974,
+            "p95Ms": 54.62121700000034
+          },
+          "medianRatio": 0.5152846112597796
+        },
+        {
+          "name": "unicode-whitespace-float",
+          "count": 100000,
+          "baseline": {
+            "samplesMs": [
+              92.24443999999949,
+              91.58945999999924,
+              93.19232499999998,
+              92.23208999999952,
+              93.86195500000031,
+              90.75898700000016,
+              90.32589000000007,
+              90.45781199999965,
+              89.8312420000002,
+              90.17040799999995,
+              90.11340699999982
+            ],
+            "medianMs": 90.75898700000016,
+            "p95Ms": 93.86195500000031
+          },
+          "candidate": {
+            "samplesMs": [
+              53.25168600000052,
+              53.16667400000006,
+              53.119832999999744,
+              54.64445700000033,
+              57.31749899999977,
+              53.19202399999995,
+              53.36088800000016,
+              53.33803699999953,
+              52.881389999999556,
+              52.72683699999925,
+              52.46091299999989
+            ],
+            "medianMs": 53.19202399999995,
+            "p95Ms": 57.31749899999977
+          },
+          "medianRatio": 0.5860799658330238
+        },
+        {
+          "name": "mixed-integer",
+          "count": 100000,
+          "baseline": {
+            "samplesMs": [
+              59.21828800000003,
+              59.2996890000004,
+              59.12206699999933,
+              59.37833000000046,
+              59.30383900000015,
+              59.002534000000196,
+              59.643723999999565,
+              59.39484999999968,
+              59.40931100000034,
+              59.243437999999514,
+              59.4214809999994
+            ],
+            "medianMs": 59.30383900000015,
+            "p95Ms": 59.643723999999565
+          },
+          "candidate": {
+            "samplesMs": [
+              38.972303999999895,
+              38.990004000000226,
+              38.78551100000004,
+              39.10175600000002,
+              38.74413000000004,
+              38.97963400000026,
+              38.58144799999991,
+              38.87617299999965,
+              38.863532000000305,
+              38.9734840000001,
+              38.893332999999984
+            ],
+            "medianMs": 38.893332999999984,
+            "p95Ms": 39.10175600000002
+          },
+          "medianRatio": 0.6558316233119391
+        },
+        {
+          "name": "invalid-token",
+          "count": 10000,
+          "baseline": {
+            "samplesMs": [
+              42.38681700000052,
+              41.72659599999952,
+              42.3717859999997,
+              42.023331000000326,
+              41.983799999999974,
+              42.04016200000024,
+              42.06394199999977,
+              41.97958000000017,
+              42.01293100000112,
+              41.66112600000088,
+              41.752026999998634
+            ],
+            "medianMs": 42.01293100000112,
+            "p95Ms": 42.38681700000052
+          },
+          "candidate": {
+            "samplesMs": [
+              38.9362629999996,
+              38.71567999999934,
+              38.85633299999972,
+              39.11777699999948,
+              39.23714799999925,
+              38.86519200000021,
+              39.22052799999983,
+              39.1301969999995,
+              39.191006999999445,
+              38.60657800000081,
+              38.74448999999913
+            ],
+            "medianMs": 38.9362629999996,
+            "p95Ms": 39.23714799999925
+          },
+          "medianRatio": 0.9267685465695922
+        }
+      ]
+    },
+    "native": {
+      "native-template": {
+        "node": "v26.10.0",
+        "engine": "minijinja-2.24.0 via N-API",
+        "rust": "1.89.0",
+        "renders": 3000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Original Moonraker Shelly syntax, native typed JSON/filters/readings versus Jinja2; no MQTT or SensorStore",
+        "native": {
+          "samplesMs": [
+            26.366573000000002,
+            26.228579999999994,
+            25.75492299999999,
+            26.24078,
+            25.775023000000004,
+            25.738542999999993,
+            25.646701000000007
+          ],
+          "medianMs": 25.775023000000004,
+          "p95Ms": 26.366573000000002
+        },
+        "frozenPython": {
+          "samplesMs": [
+            32.241357024759054,
+            32.008150999899954,
+            32.17986598610878,
+            32.231196004431695,
+            32.04640204785392,
+            32.15026395628229,
+            32.46409201528877
+          ],
+          "medianMs": 32.17986598610878,
+          "p95Ms": 32.46409201528877
+        },
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "medianBudget": 1.5,
+        "medianRatio": 0.8009673816269595
+      },
+      "native-template-round": {
+        "node": "v26.10.0",
+        "renders": 4000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Mixed integer, boolean and binary64 round inside native/Jinja templates; excludes MQTT, storage and printing",
+        "native": {
+          "samplesMs": [
+            15.320634000000005,
+            15.112780999999998,
+            15.010508999999999,
+            15.235483000000002,
+            15.369824999999992,
+            15.007588999999996,
+            14.962839000000002
+          ],
+          "medianMs": 15.112780999999998,
+          "p95Ms": 15.369824999999992
+        },
+        "frozenPython": {
+          "samplesMs": [
+            44.0673180273734,
+            44.055767997633666,
+            44.031917001120746,
+            43.92025398556143,
+            43.95725502399728,
+            43.941904965322465,
+            43.59365697018802
+          ],
+          "medianMs": 43.95725502399728,
+          "p95Ms": 44.0673180273734
+        },
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "medianBudget": 1.5,
+        "medianRatio": 0.3438062952691105
+      },
+      "native-sensor-messages": {
+        "node": "v26.10.0",
+        "frames": 10000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Byte decoding, original template syntax, typed JSON and four callbacks, SensorStore and average history; excludes MQTT and printing",
+        "native": {
+          "samplesMs": [
+            106.12414899999999,
+            105.36102800000003,
+            104.72516799999994,
+            104.39059300000008,
+            104.66812700000003,
+            105.17454499999997,
+            106.27527100000009
+          ],
+          "medianMs": 105.17454499999997,
+          "p95Ms": 106.27527100000009
+        },
+        "frozenPython": {
+          "samplesMs": [
+            149.81284399982542,
+            152.6231609750539,
+            153.70535699184984,
+            153.73078698758036,
+            151.24121500412002,
+            150.63378104241565,
+            151.9443319994025
+          ],
+          "medianMs": 151.9443319994025,
+          "p95Ms": 153.73078698758036
+        },
+        "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+        "medianBudget": 1.5,
+        "medianRatio": 0.6921913020119339
+      }
+    },
+    "jsCandidate": {
+      "node": "v26.10.0",
+      "candidate": "minijinja-js@2.24.0",
+      "frozenPython": "Jinja2@3.1.6",
+      "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+      "productionEnabled": false,
+      "numericAdapter": true,
+      "compatible": false,
+      "directMoonrakerSyntax": false,
+      "results": [
+        {
+          "name": "integer literal",
+          "expression": "1 is integer",
+          "python": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "float literal",
+          "expression": "1.0 is float",
+          "python": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "Python decimal rounding",
+          "expression": "2.675|round(2)",
+          "python": {
+            "ok": true,
+            "rendered": "2.67"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "2.67"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "negative tie rounding",
+          "expression": "(-2.675)|round(2)",
+          "python": {
+            "ok": true,
+            "rendered": "-2.67"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "-2.67"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "integer intermediate cancellation",
+          "expression": "9007199254740993 - 9007199254740992",
+          "python": {
+            "ok": true,
+            "rendered": "1"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "1"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "JSON integer type",
+          "expression": "(payload|fromjson).i is integer",
+          "python": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "JSON float type",
+          "expression": "(payload|fromjson).f is float",
+          "python": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "False"
+          },
+          "equivalent": false
+        },
+        {
+          "name": "callback float type",
+          "expression": "kind(1.0)",
+          "python": {
+            "ok": true,
+            "rendered": "float"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "integer"
+          },
+          "equivalent": false
+        },
+        {
+          "name": "Unicode float conversion",
+          "expression": "\"١_٢.５\"|float",
+          "python": {
+            "ok": true,
+            "rendered": "12.5"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "12.5"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "round result float type",
+          "expression": "(1.0|round(0)) is float",
+          "python": {
+            "ok": true,
+            "rendered": "True"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "False"
+          },
+          "equivalent": false
+        },
+        {
+          "name": "negative floor division",
+          "expression": "(-5)//2",
+          "python": {
+            "ok": true,
+            "rendered": "-3"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "-3"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "Python dictionary method",
+          "expression": "(payload|fromjson).keys()|list|length",
+          "python": {
+            "ok": true,
+            "rendered": "6"
+          },
+          "candidate": {
+            "ok": true,
+            "rendered": "6"
+          },
+          "equivalent": true
+        },
+        {
+          "name": "undefined attribute",
+          "expression": "missing.child.value",
+          "python": {
+            "ok": false
+          },
+          "candidate": {
+            "ok": false
+          },
+          "equivalent": true
+        }
+      ],
+      "performance": {
+        "renders": 3000,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Explicitly adapted Shelly template; JSON decode and four numeric callbacks; no MQTT, storage or native typed binding",
+        "node": {
+          "samplesMs": [
+            51.66690800000001,
+            49.95613199999997,
+            49.25426199999998,
+            49.037487999999996,
+            48.986647000000005,
+            48.87024600000001,
+            48.729903999999976
+          ],
+          "medianMs": 49.037487999999996,
+          "p95Ms": 51.66690800000001
+        },
+        "python": {
+          "samplesMs": [
+            31.457388016860932,
+            31.70755400788039,
+            31.714843993540853,
+            31.772405956871808,
+            31.767705047968775,
+            31.793684989679605,
+            31.83426702162251
+          ],
+          "medianMs": 31.767705047968775,
+          "p95Ms": 31.83426702162251
+        }
+      }
+    },
+    "medianBudgets": {
+      "historicalRatio": 1.5,
+      "pairedRatio": 1.5,
+      "fixedBeforeProductCandidateMeasurements": true
+    },
+    "comparison": "Original immutable Python/Jinja peer; mixed-input Node baseline/candidate pairs alternate order in one process. No same-run Python, statistical speedup, printing or target-board claim.",
+    "priorGapEvidence": "template-benchmark-retirement.json",
+    "desktopPrimitiveGapClosed": true
+  },
+  "openGates": [
+    "Full asynchronous, callable and UI template factory including Python big integers and isolated execution",
+    "Full Moonraker and complete Python retirement",
+    "Original full local regression failures and compiler/process root cause",
+    "Original motion precision root cause, target-board print performance and G3",
+    "Cycnumbris 500 hardware acceptance",
+    "Normal develop integration and master release"
+  ],
+  "evidence": {
+    "path": "config-numeric-unicode-acceptance.evidence.json.gz",
+    "sha256": "6374cd230172eb50119e2798c2076bd77e956cd60aef34cf491add84fe0ba389",
+    "entries": 30,
+    "bytes": 44213
+  }
+}

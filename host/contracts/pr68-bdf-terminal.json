@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "head": "bdf232468e652914a6186d925c40369dbd4012c5",
+  "checkout": "8358377bd05acc4b6c8ade4db325cc62100b7a59",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "status": "all-current-head-ci-success",
+  "workflowRuns": [
+    {
+      "id": 38175877516,
+      "head": "bdf232468e652914a6186d925c40369dbd4012c5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38175877516"
+    },
+    {
+      "id": 38175877448,
+      "head": "bdf232468e652914a6186d925c40369dbd4012c5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38175877448"
+    },
+    {
+      "id": 38175877495,
+      "head": "bdf232468e652914a6186d925c40369dbd4012c5",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38175877495"
+    }
+  ],
+  "jobs": [
+    {
+      "runId": 38175877516,
+      "jobId": 114578044936,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877516,
+      "jobId": 114578045067,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877516,
+      "jobId": 114578045077,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877516,
+      "jobId": 114581831583,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877448,
+      "jobId": 114578044475,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877495,
+      "jobId": 114578044615,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877495,
+      "jobId": 114578044746,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877495,
+      "jobId": 114578044763,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877495,
+      "jobId": 114578044792,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877495,
+      "jobId": 114578044797,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877495,
+      "jobId": 114578044823,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877495,
+      "jobId": 114578044852,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877495,
+      "jobId": 114578044856,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877495,
+      "jobId": 114578044889,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38175877495,
+      "jobId": 114578044919,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "tests": 4732,
+    "pass": 4732,
+    "fail": 0,
+    "jobId": 114578045077
+  },
+  "scope": "Exact previous head only. Does not clear 95353207 diagnostic deadlines, historical motion numerical errors, G3, local full-suite failures, new async source, fresh product builds, full Python retirement or hardware acceptance."
+}

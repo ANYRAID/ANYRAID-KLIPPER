@@ -1,0 +1,451 @@
+{
+  "schema": {
+    "version": 6,
+    "tables": [
+      "request_auxiliary: bounded BLOB using existing Moonraker float record encoding, WITHOUT ROWID",
+      "history_auxiliary_totals: reporting flags and exact decimal rounding, WITHOUT ROWID with insertion ordinal"
+    ],
+    "previousPrototype": "18 empty 4096-byte pages exceeded existing 64 KiB minimum; compact tables reduce to 16 pages; actual storage-full regression passes",
+    "rollback": "Old code cannot directly read version 6; preserve pre-upgrade copy. This turn only uses temporary development databases; no production entry switch."
+  },
+  "date": "2026-10-12",
+  "baseHead": "fb7abf088baf1d76e36076ab0c58419b43daba39",
+  "status": "draft-partial",
+  "scope": "Native durable journal gains optional ingress-frozen initial/final auxiliary snapshots; first outcome, statistics, auxiliary totals and events share one transaction. Default request/restore projections retain original metadata scope, full history is explicit.",
+  "functionality": {
+    "source": {
+      "tests": 274,
+      "pass": 274,
+      "fail": 0,
+      "allChildProcessAPIsForbidden": true
+    },
+    "compiled": {
+      "tests": 274,
+      "pass": 274,
+      "fail": 0,
+      "noStripTypes": true,
+      "allChildProcessAPIsForbidden": true
+    },
+    "sourceProductRecovery": {
+      "tests": 13,
+      "pass": 13,
+      "fail": 0
+    },
+    "compiledProductRecovery": {
+      "tests": 13,
+      "pass": 13,
+      "fail": 0,
+      "noStripTypes": true,
+      "existingPtyAndSigkillFixtureAllowed": true
+    },
+    "typecheck": "passed",
+    "projectWhitespace": "passed",
+    "upstream": "Same original 35 binary64 inputs and reporting/precision changes validated against SHA-bound pinned reference; existing decimal rounding corpus also included without Python execution",
+    "contracts": [
+      "Ingress clone, canonical float record encoding including negative zero, duplicate/size/nonfinite bounds",
+      "Same transaction captures first outcome and auxiliary totals; numeric overflow rolls back state/statistics/earlier fields and admits valid retry",
+      "Reset touches declared providers only; hide, restart and failure acknowledgement retain original snapshot and count exactly once",
+      "Version 1-5 migration into version 6 does not invent old snapshots; wrong device rolls back",
+      "Ordinary get/active/scan omit unrequested blobs; get(id,true) and history endpoints expose actual full snapshots",
+      "Authenticated HTTP and RPC publish stored data; observer snapshots do not mutate durable data",
+      "Original 64 KiB capacity and actual SIGKILL restore preserve acknowledgement/replay protection"
+    ]
+  },
+  "retirement": {
+    "file": "host/bench/print-journal.ts",
+    "removed": "Python raw SQLite verification and stat subprocess",
+    "replacement": "Independent read-only Node SQLite validates all acknowledged rows after worker closes; statfsSync reports filesystem type",
+    "validation": "Verifier positive/negative source and JS tests; used on every database in final frozen benches. Original 13x200 daily benchmark not rerun."
+  },
+  "performance": {
+    "reference": {
+      "schema": 1,
+      "baseHead": "fb7abf088baf1d76e36076ab0c58419b43daba39",
+      "node": "v26.10.0",
+      "jobs": 100,
+      "warmup": 2,
+      "runs": 7,
+      "samples": [
+        7323.548778000002,
+        7129.775143999999,
+        6928.036027999999,
+        7503.021657999998,
+        6699.162462,
+        6976.7572199999995,
+        7349.226316
+      ],
+      "starts": [
+        38.163902000000235,
+        41.71831399999792,
+        41.58244199999899,
+        39.44054100000358,
+        35.97256899999775,
+        41.59145200000057,
+        35.78837599999679
+      ],
+      "queries": [
+        7.708693000000494,
+        6.862192000000505,
+        8.700687999997172,
+        7.412979000000632,
+        7.223615999995673,
+        6.794149000001198,
+        6.89303099999961
+      ],
+      "median": 7129.775143999999,
+      "startupMedian": 39.44054100000358,
+      "queryMedian": 7.223615999995673,
+      "limit": 1.5,
+      "scope": "Separate real SQLite DELETE/EXTRA files, worker IPC, reserve/start/completed commits and 100 reads; no auxiliary fields, controller, motion or target board.",
+      "frozenBeforeProductionEdits": true
+    },
+    "referenceSha256": "711d4c3bc02e59f812fde972d4f0015affb095d0a6ae70e880fa7defbe23861b",
+    "baselineAndLimitFrozenBeforeProductionEdits": true,
+    "initialDefault": {
+      "node": "v26.10.0",
+      "fields": 0,
+      "jobs": 100,
+      "warmup": 2,
+      "runs": 7,
+      "samples": [
+        6678.980730000001,
+        6872.354574000001,
+        6908.772337000002,
+        7149.949739999996,
+        6812.7629769999985,
+        6881.460399000003,
+        6973.771097999997
+      ],
+      "starts": [
+        39.79268299999967,
+        38.560491000000184,
+        38.84659599999941,
+        39.718667000001005,
+        42.83793200000218,
+        42.16362599999411,
+        38.601598000001104
+      ],
+      "queries": [
+        6.829795000001468,
+        6.423800000000483,
+        6.7949139999982435,
+        6.281498999996984,
+        6.658732999996573,
+        6.157977999995637,
+        6.167218000002322
+      ],
+      "median": 6881.460399000003,
+      "startupMedian": 39.718667000001005,
+      "queryMedian": 6.423800000000483,
+      "ratio": 0.9651721491933777,
+      "startupRatio": 1.0070517795381508,
+      "queryRatio": 0.8892776138715474,
+      "limit": 1.5,
+      "passed": true,
+      "scope": "Separate real SQLite DELETE/EXTRA files, worker IPC, reserve/start/completed commits and 100 reads; no auxiliary fields, controller, motion or target board.",
+      "auxiliaryScope": "0/4/64 provider fields are captured with initial and final snapshots, counted atomically and returned by each read. Prepared desktop journal only, not motion or board."
+    },
+    "initial64": {
+      "node": "v26.10.0",
+      "fields": 64,
+      "jobs": 100,
+      "warmup": 2,
+      "runs": 7,
+      "samples": [
+        7890.6826949999995,
+        7843.983455999998,
+        7992.401238000002,
+        7942.374347999998,
+        7960.308381000003,
+        7833.249116999999,
+        7640.240938000003
+      ],
+      "starts": [
+        38.50550199999998,
+        43.237927000001946,
+        39.486305000002176,
+        39.80924100000266,
+        39.0833930000008,
+        42.13818999999785,
+        41.80695800000103
+      ],
+      "queries": [
+        104.65694699999949,
+        100.20554099999936,
+        110.87354499999492,
+        101.59547300000122,
+        104.79513299999962,
+        100.36167600000044,
+        100.44836999999825
+      ],
+      "median": 7890.6826949999995,
+      "startupMedian": 39.80924100000266,
+      "queryMedian": 101.59547300000122,
+      "ratio": 1.1067225172788704,
+      "startupRatio": 1.0093482490516306,
+      "queryRatio": 14.064351288892167,
+      "limit": 1.5,
+      "passed": false,
+      "scope": "Separate real SQLite DELETE/EXTRA files, worker IPC, reserve/start/completed commits and 100 reads; no auxiliary fields, controller, motion or target board.",
+      "auxiliaryScope": "0/4/64 provider fields are captured with initial and final snapshots, counted atomically and returned by each read. Prepared desktop journal only, not motion or board."
+    },
+    "finalDefault": {
+      "node": "v26.10.0",
+      "fields": 0,
+      "jobs": 100,
+      "warmup": 2,
+      "runs": 7,
+      "samples": [
+        7474.035227,
+        6790.954074999998,
+        6715.077970999999,
+        7650.559019,
+        6620.013582,
+        7153.580652999997,
+        7005.892728999999
+      ],
+      "starts": [
+        42.28643499999998,
+        38.14403500000117,
+        42.9693159999988,
+        38.05382500000269,
+        42.41969000000245,
+        42.22624799999903,
+        46.91391700000531
+      ],
+      "queries": [
+        5.90471400000024,
+        5.833972000000358,
+        5.817562000003818,
+        5.868502999997872,
+        5.7082809999992605,
+        14.975486999996065,
+        6.153206999995746
+      ],
+      "details": [],
+      "median": 7005.892728999999,
+      "startupMedian": 42.28643499999998,
+      "queryMedian": 5.868502999997872,
+      "detailMedian": null,
+      "ratio": 0.9826246392771233,
+      "startupRatio": 1.0721565660064385,
+      "queryRatio": 0.8124051721466629,
+      "limit": 1.5,
+      "passed": true,
+      "scope": "Separate real SQLite DELETE/EXTRA files, worker IPC, reserve/start/completed commits and 100 reads; no auxiliary fields, controller, motion or target board.",
+      "auxiliaryScope": "0/4/64 provider fields are captured with initial and final snapshots and counted atomically. All 100 ordinary request reads use the original metadata scope; 100 complete history detail reads additionally validate every field and are timed separately without an equivalence claim to the empty original payload. Prepared desktop only, not motion or board."
+    },
+    "final64": {
+      "node": "v26.10.0",
+      "fields": 64,
+      "jobs": 100,
+      "warmup": 2,
+      "runs": 7,
+      "samples": [
+        7629.442670999997,
+        8408.178894000004,
+        7933.287172999997,
+        8320.225821,
+        8272.799013000003,
+        8144.390974999995,
+        8359.141057999994
+      ],
+      "starts": [
+        39.39125499999864,
+        37.47541099999944,
+        38.67233699999633,
+        42.68315799999982,
+        42.85229100000288,
+        38.57938799999829,
+        41.42109399999026
+      ],
+      "queries": [
+        5.9387449999994715,
+        6.67716400000063,
+        6.376421000000846,
+        6.493222000004607,
+        5.787343000003602,
+        6.600863999992725,
+        5.930095999996411
+      ],
+      "details": [
+        103.53102199999921,
+        104.95215199999802,
+        104.66696000000229,
+        105.25396900000487,
+        103.39280800000415,
+        107.46282100000826,
+        103.2428179999988
+      ],
+      "median": 8272.799013000003,
+      "startupMedian": 39.39125499999864,
+      "queryMedian": 6.376421000000846,
+      "detailMedian": 104.66696000000229,
+      "ratio": 1.1603169589383062,
+      "startupRatio": 0.9987503721106428,
+      "queryRatio": 0.8827187104082866,
+      "limit": 1.5,
+      "passed": true,
+      "scope": "Separate real SQLite DELETE/EXTRA files, worker IPC, reserve/start/completed commits and 100 reads; no auxiliary fields, controller, motion or target board.",
+      "auxiliaryScope": "0/4/64 provider fields are captured with initial and final snapshots and counted atomically. All 100 ordinary request reads use the original metadata scope; 100 complete history detail reads additionally validate every field and are timed separately without an equivalence claim to the empty original payload. Prepared desktop only, not motion or board."
+    },
+    "interpretation": "Original startup, durable 100-job write and ordinary 100-request metadata read workloads use unchanged 1.5 ceilings. Original full hydration of 64 auxiliary fields failed request budget; project to metadata without losing full historical data. Detailed 100-job history reads measured separately with complete 64 fields, not compared as equivalent to an empty original payload. Sequential desktop samples do not prove statistical speedup, MCU timing or board printing.",
+    "environment": {
+      "node": "v26.10.0",
+      "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+      "architecture": "x64",
+      "kernel": "6.18.36-amd64-desktop-rolling"
+    }
+  },
+  "compiledModules": {
+    "baseline": 522,
+    "candidate": 524,
+    "changed": [
+      "moonraker/history-repository.js",
+      "moonraker/native-history.js",
+      "operations/print-history-totals.js",
+      "operations/print-journal-worker.js",
+      "operations/print-journal.js"
+    ],
+    "added": [
+      "moonraker/history-auxiliary.js",
+      "operations/print-history-auxiliary.js"
+    ],
+    "motionChanges": []
+  },
+  "failuresRetained": {
+    "firstCompiled": {
+      "tests": 58,
+      "pass": 55,
+      "fail": 3
+    },
+    "reason": "Three SHA-only original history harness .ts files absent from independent export; original bytes restored, never loaded as TS or executed",
+    "firstProductCompiled": {
+      "tests": 13,
+      "pass": 12,
+      "fail": 1
+    },
+    "productReason": "SIGKILL child fixture used literal .ts import in compiled build; use existing workerEntry resolver and no-strip child flag",
+    "export": "Initial export named nonexistent history-round.test.ts; actual history-auxiliary.test.ts included; rounding reference verified",
+    "initial64": "Initial ordinary request query fully decoded auxiliary blob: 14.064x metadata-only original baseline. Retain failed sample; explicit metadata projection and complete detail interface now tested."
+  },
+  "ci": {
+    "head": "fb7abf088baf1d76e36076ab0c58419b43daba39",
+    "jobs": 15,
+    "all": "success",
+    "ordinary": {
+      "tests": 4709,
+      "pass": 4709,
+      "fail": 0
+    },
+    "record": "pr68-fb7-terminal.json",
+    "currentCandidate": "requires own CI"
+  },
+  "remaining": [
+    "Automatic native configured sensor/print pause/task gate and auxiliary provider composition, shutdown binding and actual product end-to-end history",
+    "Complete template language and general components, async/UI and fresh native/full product builds",
+    "Full same-bundle Fluidd/Mainsail, fault/layer recovery and complete Python retirement/default printing migration",
+    "Consumer product macros, G3 precision/timing and Cycnumbris 500 target board; other families last",
+    "Develop/mainline integration and release"
+  ],
+  "evidence": {
+    "file": "native-history-auxiliary-evidence.json.gz",
+    "sha256": "708beefc971e8094c4e6383c2175d864fa47472fe66fe8cdaf72f0efda492c85",
+    "bytes": 321112,
+    "entries": 58
+  },
+  "bindings": [
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "1be9a4dc3429f11e7b1cf44693589d5c833f7d715455842697e4a7ff6c0f8655"
+    },
+    {
+      "path": "README.md",
+      "sha256": "5c75a79cbd7a187fb90894b8196eb06b21fc07365bc9e78647d6f2057d2fb443"
+    },
+    {
+      "path": "docs/Node_Host_Delivery_Plan.md",
+      "sha256": "51cde9242cafe3651ad35f3a0b2211dd7d50d9f2db10007ca7d19cf1180541ab"
+    },
+    {
+      "path": "docs/Node_Host_Startup.md",
+      "sha256": "512ad99127287f8c93535783b1c76798bec1de90e8741085c17f8dbf70d78ead"
+    },
+    {
+      "path": "host/src/moonraker/history-auxiliary.ts",
+      "sha256": "e2c2583501f0315d9b6253567982b0f362d708afe0360964aa81aefbc41edf40"
+    },
+    {
+      "path": "host/src/moonraker/history-repository.ts",
+      "sha256": "9e6573bddd25bb6b58cb062a2ed7da4f35d97b1ed051d71f4512a572a85c2a56"
+    },
+    {
+      "path": "host/src/moonraker/native-history.ts",
+      "sha256": "c5add797d69f6ae324b06ca386c55f14bdb0fe7b608f1b9c8706f19e95af94f0"
+    },
+    {
+      "path": "host/src/operations/print-history-auxiliary.ts",
+      "sha256": "f944d424a7a4526159f95ba29e19b53cda1d358b4f8337095386b6870839ec0c"
+    },
+    {
+      "path": "host/src/operations/print-history-totals.ts",
+      "sha256": "d86527401560ca905f8ec7ce122671cad3d8680fa7eadfa5b637f920e5037093"
+    },
+    {
+      "path": "host/src/operations/print-journal-types.ts",
+      "sha256": "0dba7a5f6a68e714004a414134498da0bdcf494b17a14d35206f27c6d0a5092b"
+    },
+    {
+      "path": "host/src/operations/print-journal-worker.ts",
+      "sha256": "6c36e0ceeb2f5d3e6a7e873742df2877c24ee7a03960b2f7e51fe25df212ee96"
+    },
+    {
+      "path": "host/src/operations/print-journal.ts",
+      "sha256": "2d043c129abd5fdcf417b97ef5c9c16d275ab02b6a19669050039be04abdbba8"
+    },
+    {
+      "path": "host/test/native-history-auxiliary.test.ts",
+      "sha256": "cb22fc80fce5455ffd92810c144c903f7b5c54bf6a37cd5f40b7f8affba8e891"
+    },
+    {
+      "path": "host/test/native-history-delete.test.ts",
+      "sha256": "1ec9d8b04d9fe22693c8c33631a7ee4cc8f43317d1e693103c2ba5a3e85d11bf"
+    },
+    {
+      "path": "host/test/native-history-totals.test.ts",
+      "sha256": "eb5170e27e32c8e90755423ef891f0cd9f9ba90b8236e4700202058c67caa9f8"
+    },
+    {
+      "path": "host/test/print-journal-scan.test.ts",
+      "sha256": "46f64dd439949458b35b5f581ed042815daa3f9b657b7ac0081714689453739b"
+    },
+    {
+      "path": "host/test/print-journal.test.ts",
+      "sha256": "f72653c4ba5052fe6020e01e3fe62d5d18d4a974963faff478789f0a5c0ede29"
+    },
+    {
+      "path": "host/test/print-statistics-journal.test.ts",
+      "sha256": "41f6e079ece51635ba573c3053ff576d51a6bca4e6bb66e68b31c79c5a6af761"
+    },
+    {
+      "path": "host/bench/print-journal.ts",
+      "sha256": "cc2d67a90721a829c482508e43f5ada230d6c551d2ddf9e52415f6becfa1661f"
+    },
+    {
+      "path": "host/bench/helpers/journal-rows.ts",
+      "sha256": "e1b907e584c106f1998477da7f8a8642d2df08f9cebe9abc9467cb89f852239e"
+    },
+    {
+      "path": "host/bench/native-history-auxiliary.ts",
+      "sha256": "62b51e1fdd051144d0f6583533706a83c4e5aa7d9b5b5752af7e982f769ca026"
+    },
+    {
+      "path": "host/contracts/native-history-auxiliary-reference.json",
+      "sha256": "711d4c3bc02e59f812fde972d4f0015affb095d0a6ae70e880fa7defbe23861b"
+    },
+    {
+      "path": "host/contracts/pr68-fb7-terminal.json",
+      "sha256": "8c80428304f73e30c0cef26d70556bf24a663ca2bf5d0cdfd8ec5a87678223c1"
+    }
+  ]
+}

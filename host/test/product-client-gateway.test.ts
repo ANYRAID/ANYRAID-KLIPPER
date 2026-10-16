@@ -39,7 +39,7 @@ async function setup(options:Partial<ProductClientGatewayOptions>,clock?:()=>num
 }
 test('gateway accepts only an explicit origin and fixed private native listener',()=>{
  const good={origin,upstream:'http://127.0.0.1:7125',loopbackHttp:true};
- for(const option of [{loopbackHttp:false},{origin:'http://printer.example.com'},{upstream:'http://example.com'},{upstream:'http://127.0.0.1:7125/server'},{upstream:'http://operator:secret@127.0.0.1:7125'},{maxSessions:0}])assert.throws(()=>new ProductClientGateway({...good,...option}),/Invalid/);
+ for(const option of [{loopbackHttp:false},{origin:'http://printer.example.com'},{upstream:'http://example.com'},{upstream:'http://127.0.0.1:7125/server?token=not-an-upstream-prefix'},{upstream:'http://operator:secret@127.0.0.1:7125'},{maxSessions:0}])assert.throws(()=>new ProductClientGateway({...good,...option}),/Invalid/);
  const unopened=new ProductClientGateway(good);assert.equal(unopened.status.sessions,0);return unopened.close();
 });
 test('unchanged client HTTP and websocket use native per-user identity; cookie never exposes JWT or grants anonymous access',()=>fixture(async f=>{
@@ -87,13 +87,28 @@ test('gateway close during listener startup joins startup and leaves no live lis
 test('queue operation page uses the same native identity, login redirect and revoked-cookie boundary',async()=>{
  const root=await mkdtemp(join(tmpdir(),'queue-panel-assets-'));
  try{
-  await writeFile(join(root,'index.html'),'<html>unchanged client</html>');const client=await productClientAssets(root);
+  await writeFile(join(root,'index.html'),'<html>unchanged client</html>');const client=await productClientAssets(root,origin);
   await fixture(async f=>{
    assert.equal((await f.http('/_client/queue','GET',undefined,undefined,{accept:'text/html'})).code,303);
    const cookie=await f.login();const page=await f.http('/_client/queue','GET',undefined,cookie,{accept:'text/html'});assert.equal(page.code,200);assert(page.raw.includes('打印台已清空'));assert(!page.raw.includes(f.alice.token));
    assert.equal((await f.http('/_client/queue','GET',undefined,cookie,{origin:'https://foreign.example'})).code,403);
    assert.equal((await f.native('/access/logout','POST',{},f.alice.token)).code,200);
    assert.equal((await f.http('/_client/queue','GET',undefined,cookie,{accept:'text/html'})).code,303);assert.equal((await f.http('/server/job_queue/status','GET',undefined,cookie)).code,401);
+  },{client});
+ }finally{await rm(root,{recursive:true,force:true});}
+});
+
+test('expired browser sessions can update the original worker and reach an uncached login without anonymous API or file access',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'worker-migration-assets-'));
+ try{
+  await writeFile(join(root,'index.html'),'<html>official client</html>');const client=await productClientAssets(root,origin);
+  await fixture(async f=>{
+   for(const method of ['GET','HEAD']){const worker=await f.http('/sw.js',method);assert.equal(worker.code,200);if(method==='GET')assert(worker.raw.includes('self.skipWaiting()'));else assert.equal(worker.raw,'');}
+   for(const path of ['/access/client-login','/_client/login']){const page=await f.http(path,'GET',undefined,undefined,{accept:'text/html'});assert.equal(page.code,200);assert(page.raw.includes('登录账号'));assert(!page.raw.includes(f.alice.token));}
+   for(const path of ['/server/info','/access/user','/index.html','/_client/upstream-worker.js','/_client/control'])assert.equal((await f.http(path)).code,401);
+   for(const path of ['/sw.js','/access/client-login']){assert.equal((await f.http(path,'GET',undefined,undefined,{host:'foreign.example'})).code,403);assert.equal((await f.http(path,'POST',{})).code,401);assert.equal((await f.http(path+'?unexpected=true')).code,401);}
+   const cookie=await f.login();assert.equal((await f.native('/access/logout','POST',{},f.alice.token)).code,200);
+   assert.equal((await f.http('/sw.js','GET',undefined,cookie)).code,200);assert.equal((await f.http('/access/client-login','GET',undefined,cookie)).code,200);assert.equal((await f.http('/server/info','GET',undefined,cookie)).code,401);assert.equal(f.writes(),0);assert.equal(f.gateway.status.websockets,0);
   },{client});
  }finally{await rm(root,{recursive:true,force:true});}
 });

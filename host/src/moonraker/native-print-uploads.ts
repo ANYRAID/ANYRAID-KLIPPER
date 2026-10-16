@@ -20,6 +20,7 @@ export interface NativeOfflineFileMutations {
  readonly available:boolean;
  beginFileMutations(fileIds:readonly string[]):()=>void;
 }
+interface UploadQueueBinding {closed:boolean;admit:(file:{filename:string;file_id:string},requestId:string,context:RpcContext,signal:AbortSignal)=>Promise<void>;}
 export type NativeUploadOptions={stagingRoot?:string;maxFileBytes?:number;maxUploads?:number;maxDownloads?:number;maxDownloadBytes?:number};
 import type {ThumbnailDownload} from './thumbnail-download.ts';
 export type NativeFileDownload=Awaited<ReturnType<PublishedPrintFiles['acquireBinary']>>;
@@ -39,7 +40,7 @@ export class NativePrintUploads {
  #closed=false;#published=0;
  #draining:Promise<void>|undefined;
  #print:PrintController|undefined;
- #printApi:ProductPrintApi|undefined;
+ #printApi:ProductPrintApi|undefined;#uploadQueue:UploadQueueBinding|undefined;
  #ufpValidator:Promise<ThumbnailProcessor>|undefined;
  #offlineFiles:NativeOfflineFileMutations|undefined;
  #offlineReady:(()=>boolean)|undefined;
@@ -201,11 +202,18 @@ export class NativePrintUploads {
   void pending.then(()=>this.#authorizing.delete(pending),()=>this.#authorizing.delete(pending));
   await new Promise<void>((resolve,reject)=>{const aborted=()=>reject(signal.reason);signal.addEventListener('abort',aborted,{once:true});if(signal.aborted)aborted();void pending.then(value=>{try{authorizedContext(context,value);resolve();}catch(error){reject(error);}},reject).finally(()=>signal.removeEventListener('abort',aborted));});signal.throwIfAborted();
  }
+ /** Bind only the process-owned queue. Captured requests retain this exact
+  * binding; retirement never redirects them into a later queue owner. */
+ bindUploadQueue(admit:UploadQueueBinding['admit']):()=>void{
+  if(this.#closed||this.#metadataOwner||this.#uploadQueue||typeof admit!=='function')throw new Error('Invalid upload queue owner');
+  const binding:UploadQueueBinding={closed:false,admit};this.#uploadQueue=binding;
+  return ()=>{binding.closed=true;if(this.#uploadQueue===binding)this.#uploadQueue=undefined;};
+ }
  /** Capture device ownership at HTTP admission, before the network work queue. */
- captureUpload(configFiles?:NativeConfigFiles){const binding=this.#deviceFiles;return (request:IncomingMessage,context:RpcContext)=>this.#receiveOwned(request,context,binding,configFiles);}
- receive(request:IncomingMessage,context:RpcContext):Promise<Json>{return this.#receiveOwned(request,context,this.#deviceFiles);}
- #receiveOwned(request:IncomingMessage,context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined,configFiles?:NativeConfigFiles):Promise<Json>{
-  return this.#admitUpload(context,binding,(signal,deviceGate,printOwner,api)=>this.#receive(request,context,signal,deviceGate,configFiles,printOwner,api));
+ captureUpload(configFiles?:NativeConfigFiles,octoprint?:{enableUfp:boolean}){const binding=this.#deviceFiles,queue=this.#uploadQueue;return (request:IncomingMessage,context:RpcContext)=>this.#receiveOwned(request,context,binding,configFiles,octoprint,queue);}
+ receive(request:IncomingMessage,context:RpcContext):Promise<Json>{return this.#receiveOwned(request,context,this.#deviceFiles,undefined,undefined,this.#uploadQueue);}
+ #receiveOwned(request:IncomingMessage,context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined,configFiles?:NativeConfigFiles,octoprint?:{enableUfp:boolean},queue?:UploadQueueBinding):Promise<Json>{
+  return this.#admitUpload(context,binding,(signal,deviceGate,printOwner,api)=>this.#receive(request,context,signal,deviceGate,configFiles,printOwner,api,octoprint,queue));
  }
  #admitUpload(context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined,work:(signal:AbortSignal,deviceGate:MaintenanceGate|undefined,printOwner:Pick<PrintController,'beginFileMutation'>|undefined,api:ProductPrintApi|undefined)=>Promise<Json>):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native uploads are closed'));
@@ -260,7 +268,7 @@ export class NativePrintUploads {
    if(errors.length)throw new AggregateError([...primary===undefined?[]:[primary],...errors],'Disk import staging cleanup failed',{cause:primary});
   }
  }
- async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate,configFiles?:NativeConfigFiles,printOwner?:Pick<PrintController,'beginFileMutation'>,api?:ProductPrintApi):Promise<Json>{
+ async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate,configFiles?:NativeConfigFiles,printOwner?:Pick<PrintController,'beginFileMutation'>,api?:ProductPrintApi,octoprint?:{enableUfp:boolean},queue?:UploadQueueBinding):Promise<Json>{
   signal.throwIfAborted();let release:()=>void;
   try{release=this.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks file uploads');}
   let releaseDevice:(()=>void)|undefined;try{if(deviceGate&&deviceGate!==this.#gate)releaseDevice=deviceGate.activity();}catch{release();throw new ApiError(409,'Maintenance blocks file uploads');}
@@ -272,10 +280,10 @@ export class NativePrintUploads {
    const length=request.headers['content-length'];if(length!==undefined&&(!/^\d+$/.test(length)||Number(length)>this.#max+65536))throw new ApiError(413,'Upload body limit exceeded');
    await this.#authorize(context,{},signal);signal.throwIfAborted();
    directory=await mkdtemp(join(this.#root,'anyraid-upload-'));file=await open(join(directory,'source'),'wx+',0o600);
-   let parser:ReturnType<typeof busboy>;try{parser=busboy({headers:request.headers,preservePath:true,defParamCharset:'utf8',highWaterMark:65536,fileHwm:65536,limits:{fileSize:this.#max+1,files:1,fields:5,fieldNameSize:128,fieldSize:1024,parts:7}});}catch{throw new ApiError(400,'Invalid multipart content type');}
+   let parser:ReturnType<typeof busboy>;try{parser=busboy({headers:request.headers,preservePath:true,defParamCharset:'utf8',highWaterMark:65536,fileHwm:65536,limits:{fileSize:this.#max+1,files:1,fields:octoprint?6:5,fieldNameSize:128,fieldSize:1024,parts:octoprint?8:7}});}catch{throw new ApiError(400,'Invalid multipart content type');}
    const fields:Record<string,string>=Object.create(null),hash=createHash('sha256');let filename:string|undefined,bytes=0,bodyBytes=0,fileTask:Promise<void>|undefined;
    const invalid=(message:string)=>parser.destroy(new ApiError(400,message));
-   parser.on('field',(name,value,info)=>{if(info.nameTruncated||info.valueTruncated||Object.hasOwn(fields,name)||!['root','path','print','checksum','file_id'].includes(name))invalid('Invalid or duplicate upload field');else fields[name]=value;});
+   parser.on('field',(name,value,info)=>{if(info.nameTruncated||info.valueTruncated||Object.hasOwn(fields,name)||!['root','path','print','checksum','file_id',...octoprint?['select']:[]].includes(name))invalid('Invalid or duplicate upload field');else fields[name]=value;});
    for(const event of ['filesLimit','fieldsLimit','partsLimit'] as const)parser.on(event,()=>invalid('Multipart part capacity exceeded'));
    parser.on('file',(name,source,info)=>{
     source.on('error',()=>{});
@@ -290,10 +298,14 @@ export class NativePrintUploads {
    catch(error){await fileTask?.catch(()=>{});if(signal.aborted)throw signal.reason;if(error instanceof ApiError)throw error;throw new ApiError(400,'Invalid multipart upload');}
    finally{request.unpipe(limiter);request.removeListener('error',failed);}
    signal.throwIfAborted();if(!filename||!fileTask)throw new ApiError(400,'Upload file is missing');
+   if(octoprint&&(fields.root!==undefined&&fields.root!=='gcodes'||fields.select!==undefined&&!['false','0','','true'].includes(fields.select)||!octoprint.enableUfp&&/\.ufp$/i.test(filename)))throw new ApiError(400,'Invalid OctoPrint upload configuration or selection');
+   // Client upload directories are root-relative, including the root spelling
+   // "/". Strip only boundary separators; retain canonical segment validation.
+   const uploadPath=fields.path?.replace(/^\/+|\/+$/gu,'')??'',visibleDirectory=uploadPath?nativeFilename(uploadPath):'';
    if(fields.root==='config'&&configFiles){
     if(fields.file_id!==undefined||fields.print!==undefined&&!['false','0',''].includes(fields.print)||fields.checksum!==undefined&&(!/^[a-fA-F0-9]{64}$/.test(fields.checksum)||fields.checksum.toLowerCase()!==hash.digest('hex')))throw new ApiError(422,'Invalid config upload fields or checksum');
     if(bytes>configFiles.status.maxFileBytes)throw new ApiError(413,'Config size limit exceeded');const content=Buffer.alloc(bytes);let at=0;while(at<bytes){signal.throwIfAborted();const r=await file.read(content,at,Math.min(65536,bytes-at),at);if(!r.bytesRead)throw new ApiError(400,'Config staging truncated');at+=r.bytesRead;}
-    const name=fields.path?fields.path+'/'+filename:filename;const condition=request.headers['if-match'];if(condition!==undefined&&typeof condition!=='string')throw new ApiError(400,'Expected one config version digest');
+    const name=visibleDirectory?visibleDirectory+'/'+filename:filename;const condition=request.headers['if-match'];if(condition!==undefined&&typeof condition!=='string')throw new ApiError(400,'Expected one config version digest');
     releaseDevice?.();releaseDevice=undefined;release();return await configFiles.save(name,content,condition?.replace(/^"|"$/g,''),context);
    }
    if(!/\.(gcode|gco|g|ufp)$/i.test(filename))throw new ApiError(400,'Expected one named G-code or UFP file');
@@ -301,7 +313,7 @@ export class NativePrintUploads {
    const id=fields.file_id??randomUUID();let sha256=hash.digest('hex');if(!validId(id))throw new ApiError(400,'Invalid upload file ID');
    // Explicit legacy IDs without a path retain their already issued addresses.
    // Standard multipart clients publish the actual filename in the visible tree.
-   const visibleDirectory=fields.path?nativeFilename(fields.path):'';let visible=fields.file_id!==undefined&&fields.path===undefined?undefined:nativeFilename((visibleDirectory?visibleDirectory+'/':'')+filename);
+   let visible=fields.file_id!==undefined&&fields.path===undefined?undefined:nativeFilename((visibleDirectory?visibleDirectory+'/':'')+filename);
    if(fields.checksum!==undefined&&(!/^[a-fA-F0-9]{64}$/.test(fields.checksum)||fields.checksum.toLowerCase()!==sha256))throw new ApiError(422,'Upload checksum mismatch');
    await this.#authorize(context,{root:'gcodes',filename,...visible?{path:visible}:{},file_id:id,size:bytes,sha256},signal);signal.throwIfAborted();
    if(/\.ufp$/i.test(filename)){
@@ -332,6 +344,13 @@ export class NativePrintUploads {
      return {...receipt,print_started:true,print_request_id:requestId};
     }catch(error){
      if(signal.aborted)throw signal.reason;
+     if(queue&&(!api||api.isUnadmittedPublished(error,requestId))&&!(error instanceof ApiError&&[401,403,499].includes(error.status))){
+      try{
+       if(queue.closed)throw new ApiError(503,'Upload queue owner retired');
+       await queue.admit({filename:visibleFilePath(record),file_id:record.id},requestId,context,signal);signal.throwIfAborted();
+       return {...receipt,print_queued:true,print_request_id:requestId};
+      }catch(queueError){if(signal.aborted)throw signal.reason;error=queueError;}
+     }
      // Publication is durable. A failed print admission cannot roll it back,
      // replay the intent or pretend the controller accepted the operation.
      return {...receipt,print_request_id:requestId,print_error:{code:error instanceof ApiError?error.status:503,message:error instanceof ApiError?error.message:'Uploaded file could not be admitted; query print request state'}};

@@ -4,6 +4,18 @@ import {access,copyFile,lstat,mkdir,readFile,rename,rm} from 'node:fs/promises';
 import {dirname,isAbsolute,join,resolve} from 'node:path';
 import {verifyProductBundle} from './product-service-unit.ts';
 const execute=promisify(execFile);
+const npmFailureCodes=new Set(['EAI_AGAIN','ENOTFOUND','ECONNREFUSED','ECONNRESET','ETIMEDOUT','EINTEGRITY','EACCES','EPERM','ENOSPC','ENOENT','EUSAGE','E401','E403','E404','ELOCKVERIFY','EBADENGINE']);
+/** npm output can include registry credentials. Publish only known categories,
+ * never its raw message, command, stdout, stderr or nested cause. */
+function installFailure(error:unknown):Error{
+ const failure=error as {code?:unknown;signal?:unknown;killed?:unknown;stderr?:unknown};
+ const exitCode=typeof failure?.code==='number'&&Number.isInteger(failure.code)&&failure.code>=0&&failure.code<=255?failure.code:null;
+ const childSignal=typeof failure?.signal==='string'&&['SIGTERM','SIGKILL','SIGSEGV','SIGABRT','SIGBUS','SIGILL','SIGPIPE'].includes(failure.signal)?failure.signal:null;
+ const candidate=typeof failure?.stderr==='string'?/^npm (?:error|ERR!) code (E[A-Z0-9_]+)\s*$/mu.exec(failure.stderr)?.[1]:undefined;
+ const npmCode=candidate&&npmFailureCodes.has(candidate)?candidate:null;
+ const outputLimit=failure?.code==='ERR_CHILD_PROCESS_STDIO_MAXBUFFER',timedOut=!outputLimit&&failure?.killed===true&&childSignal==='SIGTERM';
+ return Object.assign(new Error('Product dependency installation failed'+(timedOut?' (timeout)':outputLimit?' (output limit)':' (exit='+String(exitCode)+', signal='+String(childSignal)+', npm='+String(npmCode)+')')),{code:'ERR_PRODUCT_DEPENDENCY_INSTALL',exitCode,signal:childSignal,npmCode,timedOut,outputLimit});
+}
 /** Explicit fresh production dependency install. Does not replace an existing
  * dependency tree, import machine modules, touch services or open hardware. */
 export async function installProductDependencies(output:string,signal:AbortSignal,npmPath?:string):Promise<{durationMs:number;dependencies:number}>{
@@ -21,7 +33,7 @@ export async function installProductDependencies(output:string,signal:AbortSigna
   const begin=performance.now(),env={...process.env,PATH:'/no-programs',NODE_OPTIONS:'--no-experimental-strip-types',NODE_PATH:'',NODE_DISABLE_COMPILE_CACHE:'1'};
   const pending=execute(process.execPath,[resolve(npm),'ci','--omit=dev','--include=optional','--ignore-scripts','--no-audit','--no-fund'],{cwd:lock,env,signal,timeout:120000,maxBuffer:2*1024**2});
   const closed=new Promise<void>(done=>pending.child.once('close',()=>done()));
-  try{await pending;}catch(error){pending.child.kill('SIGKILL');await closed;throw error;}
+  try{await pending;}catch(error){pending.child.kill('SIGKILL');await closed;if(signal.aborted)throw error;throw installFailure(error);}
   await closed;
   signal.throwIfAborted();const tree=await lstat(join(lock,'node_modules'));if(!tree.isDirectory()||tree.isSymbolicLink())throw new Error('Product dependencies must be independently installed');
   const project=JSON.parse(await readFile(join(bundle,'package.json'),'utf8'));

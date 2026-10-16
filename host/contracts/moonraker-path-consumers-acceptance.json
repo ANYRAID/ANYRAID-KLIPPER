@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "baselineHead": "bb96740549ab0fa46cc69c4d3441ca749b6e2c62",
+  "node": "v26.10.0",
+  "upstream": "1cfb0c41e468645951a371621f06d32777b6107c",
+  "upstreamMqttSha256": "b5ffbc08d07158a613e56b09256152f0990de97177858495c67bb2a880011944",
+  "sourceSha256": {
+    "host/src/moonraker/config-path.ts": "5fb579033c40143f8c278eda5de09839affabee8d755afc56f8555fcaf9ad915",
+    "host/src/moonraker/klippy-config.ts": "0e055b6170e6ea620e0cf5639890cd3395f76b48009df9fd8d5a122520cb7d69",
+    "host/src/moonraker/mqtt-config.ts": "52e0b7291d2c856b7b9760831d3d188ba91e428789d906c0f24ae557c16fa704",
+    "host/test/klippy-config.test.ts": "cddb5d9170f13f492e9a532dbfec490c403425d18939a08ff1b6e37ece1b22eb",
+    "host/test/mqtt-config.test.ts": "5543f03a10fcc557fa686cd78b3bbc4ba07b4d3acd41843b485bb53d8247e533",
+    "host/test/klippy-config-frozen.test.ts": "f8f2550ed3cd13846c0aa3cd815e203e8e5d12da69766909292e539f7c3cd58a",
+    "host/bench/klippy-config.ts": "8418fc14db9a291ea00760e13838114dd013ffa84987beb391d5b2655190decc"
+  },
+  "implementation": {
+    "namedHomes": "existing libc NSS addon; no subprocess",
+    "mqtt": "raw Path expanduser/absolute file semantics; braces stay literal; symlink parent traversal occurs in the kernel; regular-file and UTF-8/size guards retained",
+    "klippy": "physical resolution, valid long symlink chains, private shared owner under explicit cwd/home; missing defaults remain unrendered; socket bounds preserved",
+    "benchmark": "daily Klippy binding benchmark migrated from live Python/AST to frozen actual getpath reference"
+  },
+  "validation": {
+    "source": {
+      "tests": 137,
+      "pass": 137,
+      "fail": 0
+    },
+    "compiled": {
+      "tests": 137,
+      "pass": 137,
+      "fail": 0,
+      "typeStripping": false,
+      "externalPrograms": false,
+      "scope": "Independent JS closure with snapshot native addons and shared installed dependencies; not a new full product package"
+    },
+    "frozenExplicitContexts": 24
+  },
+  "performance": {
+    "maximumRatio": 1.5,
+    "coldRejected": 2.818044481920582,
+    "coldFinal": 1.3248361331870988,
+    "hotFinalMaximum": 1.3212499933776736,
+    "hotFinalPass": true,
+    "initialConsumerPairSummaryPass": false,
+    "initialBaselineFailure": "one frozen MQTT file budget baseline 1.5040095078756872 > 1.5; preserved, not attributed or rerun away",
+    "frozenMqttAndGetpath": "all initial candidate budgets passed; these runtime JS modules are byte-identical in final export; only klippy-config.js changed",
+    "bindingSource": [
+      {
+        "name": "relative",
+        "ratio": 0.23589512124899406,
+        "pass": true
+      },
+      {
+        "name": "symlink parent",
+        "ratio": 0.2707289351599748,
+        "pass": true
+      },
+      {
+        "name": "named user",
+        "ratio": 0.3100577977132178,
+        "pass": true
+      }
+    ],
+    "bindingCompiled": [
+      {
+        "name": "relative",
+        "ratio": 0.23553660476768146,
+        "pass": true
+      },
+      {
+        "name": "symlink parent",
+        "ratio": 0.26196084268295966,
+        "pass": true
+      },
+      {
+        "name": "named user",
+        "ratio": 0.30950328728817045,
+        "pass": true
+      }
+    ],
+    "scope": "Desktop startup only; no motion throughput, statistical speedup or target-board claim"
+  },
+  "previousCi": "pr68-bb967-terminal.json: exact prior head 15 success; not current changes",
+  "open": [
+    "current head CI",
+    "complete Moonraker and Python retirement",
+    "complete Fluidd/Mainsail journeys",
+    "original async/UI budgets and native build stability",
+    "motion G3 and Cycnumbris500 hardware gates",
+    "consumer macro redesign",
+    "mainline release and production validation"
+  ],
+  "evidence": {
+    "path": "moonraker-path-consumers-evidence.json.gz",
+    "sha256": "b05e834446236ab758ef602f012463410f81c12e31fbe4b3aeb2ce625f3f5600",
+    "bytes": 1639103,
+    "entries": 797
+  }
+}

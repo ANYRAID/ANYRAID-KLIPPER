@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "host": "127.0.0.1",
+  "clients": {
+    "fluidd": {"probePort": 18428, "gatewayPort": 18430, "browserOrigin": "http://127.0.0.1:18430"},
+    "mainsail": {"probePort": 18432, "gatewayPort": 18434, "browserOrigin": "http://127.0.0.1:18434"}
+  },
+  "maximumSessionMs": 900000,
+  "includesStartup": true,
+  "automaticPortFallback": false,
+  "automaticExpiryExtensionOrRelaunch": false,
+  "policy": "Reuse these origins across finite local sessions. Verify the preceding owned fixture has exited; fail on an occupied port instead of allocating a new browser origin or stopping an unrelated listener. Keep generated logs, receipts and fixture data unique per session. Product-private upstream ports may remain dynamic because browsers access only the gateway origin.",
+  "scope": "Local simulated-client acceptance only; does not change production listeners, browser security settings, or authorize real hardware. Port stability alone is not proof that upload/download tooling is unblocked."
+}

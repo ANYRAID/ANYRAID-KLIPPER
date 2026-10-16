@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "sourceBase": "e96c0a36c4ad845c60fa801a6b3a428b0ad53527",
+  "sourceFiles": {
+    "host/src/runtime/product-install.ts": "02951a855db7f57a303c50e7af9d5072faa508b26e397ba060b06ada80823ddd",
+    "host/test/product-install.test.ts": "4535ff05c8bab6a77d55d3f804836b6be1431805d398bf2a82d3a12ca3147568"
+  },
+  "status": "Local installer diagnostics verified; historical failures and full delivery gates remain open",
+  "compiled": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "sourceBase": "e96c0a36c4ad845c60fa801a6b3a428b0ad53527",
+    "runtimeSha256": "02951a855db7f57a303c50e7af9d5072faa508b26e397ba060b06ada80823ddd",
+    "bundle": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-template-diagnostic-product-oct10",
+      "manifestSha256": "a5ca9b14232729d296ab38b92af8a837af5979cd173f3eeb70ad04dd47f3835a",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "nativeOrigin": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-template-default-product-oct10",
+      "manifestSha256": "dc5fbe9b51abaa0847786d1337dce40788d298be579c3f8126bdea04ebd7b596",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "nativeSourcesVerified": true,
+    "nativeOutputsVerified": true,
+    "freshRustBuild": false,
+    "typeStrippingDisabled": true,
+    "failedInstall": {
+      "diagnostic": "Product Install Error: Product dependency installation failed (exit=9, signal=null, npm=ENOTFOUND)\n",
+      "privateOutputDiscarded": true,
+      "partialTreeNotPublished": true,
+      "lockRemoved": true,
+      "manifestUnchanged": true
+    },
+    "independentOfflineInstall": {
+      "durationMs": 853.887399,
+      "dependencies": 18
+    },
+    "oldBundleUnchanged": true,
+    "scope": "Compiled CLI and locked independent dependency installation. No client page, MCU, physical precision or historical compiler root-cause claim."
+  },
+  "unit": {
+    "tests": 8,
+    "pass": 8,
+    "fail": 0,
+    "unrestrictedExecution": true,
+    "actualSyntheticChildFailures": true,
+    "knownAndUnknownNpmCodes": true,
+    "privateOutputDiscarded": true,
+    "outputLimitDistinctFromTimeout": true,
+    "cancellationJoined": true,
+    "failedStagingRemoved": true
+  },
+  "environmentObservation": {
+    "source": "Manually normalized actual tool outputs from bounded Node child-process probes; not an archived syscall trace",
+    "restricted": {
+      "stderrFd": 2,
+      "fstatSocket": true,
+      "stderrConstructor": "Writable",
+      "asyncWriteCaptured": false,
+      "syncWriteCaptured": true
+    },
+    "unrestricted": {
+      "stderrFd": 2,
+      "fstatSocket": true,
+      "stderrConstructor": "Socket",
+      "asyncWriteCaptured": true
+    },
+    "versionsCompared": [
+      "22.22.3",
+      "26.10.0"
+    ],
+    "notNode26Specific": true,
+    "scope": "Establishes execution-environment-dependent stdio loss only; not the cause of historical installation, compiler, motion or Python child failures"
+  },
+  "compiledAuthorizationControl": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "originalAssertionsAndBudgets": true,
+    "node": "26.10.0",
+    "maxElapsedSeconds": 240,
+    "offlinePrivateCache": true,
+    "rustCompilerThreadStackBytes": 16777216,
+    "unrestrictedExecution": true,
+    "preliminaryDiagnosticSource": true,
+    "notFinalBundleEvidence": true,
+    "notHistoricalRootCauseProof": true
+  },
+  "performanceScope": "Installer failure and error reporting only; no printing/motion hot-path, math, native output or original runtime performance-budget change. Compiled identity control retains its original sequential desktop budgets.",
+  "limitations": [
+    "Historical 4515/4511/4 ordinary failures remain retained",
+    "Original default Rust compiler SIGSEGV remains unexplained; stack condition is not a product default",
+    "No source-brake or G3 root-cause inference from stdio observation",
+    "Latest candidate CI and actual develop integration checks not completed by this local report",
+    "No actual Fluidd/Mainsail page, target board, physical motion or Python retirement closure"
+  ],
+  "evidence": {
+    "path": "product-install-diagnostics.evidence.json.gz",
+    "sha256": "1bf877ade95faf2f392a7efb8736b7ea299818f9a88e9b16b01aa5a3f43da39a",
+    "bytes": 13244,
+    "entries": 11,
+    "format": "Decoded local process outputs and source snapshots; initial failed observations retained"
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "schema": 1,
+  "baselineHead": "13859b3e86d86ee31543257a158f595d1091ffb9",
+  "node": "v26.10.0",
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "httpClientSourceSha256": "811b8e8529acecf31fce5ba58eea0643e48f0e83df80188ef3e91b7e6733805f"
+  },
+  "sourceSha256": {
+    "host/src/moonraker/http-client.ts": "6171cc7dc4f12172894add63a22fb49fc9f2f67469e64bf01ef1533baf407b00",
+    "host/src/moonraker/announcements.ts": "16b5bec50565d424c52e689e0f8f789630b02722179c26651c0e7ac41fb1b123",
+    "host/src/moonraker/configured-server.ts": "e673e87891d8a41498398825c4f34b37088f2012de8fc178f1d99ab80d43b2bb",
+    "host/test/http-client.test.ts": "6f00878014d5a78fb41599be1aee161bb9844b1d535c5e8513e8616b79e58bfa",
+    "host/test/http-client-announcements.test.ts": "58218b1ed03ab06a1e7c31bc199a17e89487df3614d1f99c32255f8f251bedbd",
+    "host/test/announcements-network.test.ts": "f79cb29762ed9f59c362555aefe08259794d945cce99a7e488890902256af0f1"
+  },
+  "implementation": {
+    "backend": "Node HTTP/HTTPS agents; no Python/global dispatcher",
+    "interfaces": [
+      "request/get/post/delete",
+      "ETag and Last-Modified cache and registration",
+      "response bytes/text/JSON/errors",
+      "GitHub API/rate metadata",
+      "getFile and bounded streaming download/progress",
+      "prepared request wrapper",
+      "abort/close/drain"
+    ],
+    "assembly": "ConfiguredMoonraker owns one process HTTP component and advertises http_client; standard announcements borrow it, catalogue still owns persistent ETags; injected legacy fetch retains its test behavior",
+    "guards": "32 admissions, 64 cached URLs and 512 MiB aggregate cache; per-response 512 MiB maximum, announcement 1 MiB; certificate validation retained; redirect credentials dropped across origins; trusted absolute download destinations staged, synced and renamed; post-commit cleanup failures increment a diagnostic, not retry a committed download",
+    "precision": "negative zero preserved on JSON requests; strict UTF-8, BOM JSON, ASCII/Latin-1 and existing finite/safe-integer response JSON guard"
+  },
+  "validation": {
+    "source": {
+      "tests": 43,
+      "pass": 43,
+      "fail": 0
+    },
+    "compiled": {
+      "tests": 43,
+      "pass": 43,
+      "fail": 0,
+      "typescriptLoading": false,
+      "externalPrograms": false,
+      "workersAlsoGuarded": true
+    },
+    "laterDownloadAuth": {
+      "source": 14,
+      "compiled": 14,
+      "fail": 0
+    },
+    "postCommitCleanup": {
+      "source": 15,
+      "compiled": 15,
+      "fail": 0
+    },
+    "inheritance": [
+      "src/moonraker/http-client.js",
+      "test/http-client.test.js"
+    ],
+    "scope": "Independent compiled closure with copied native modules and shared installed dependencies; not a new full product package"
+  },
+  "performance": {
+    "budget": 1.5,
+    "announcement": [
+      {
+        "round": 0,
+        "kind": "announcement",
+        "baselineMs": 50.77343900000005,
+        "candidateMs": 49.70018600000003,
+        "ratio": 0.9788619203044328,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "kind": "announcement",
+        "baselineMs": 51.092213000000015,
+        "candidateMs": 50.274863000000096,
+        "ratio": 0.9840024545423406,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "kind": "announcement",
+        "baselineMs": 51.37869699999999,
+        "candidateMs": 51.227134999999976,
+        "ratio": 0.9970501003557951,
+        "limit": 1.5,
+        "pass": true
+      }
+    ],
+    "wireBeforeDownloadAuth": [
+      {
+        "round": 0,
+        "kind": "wire",
+        "baselineMs": 30.755302999999998,
+        "candidateMs": 24.25734,
+        "ratio": 0.7887205663361535,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "kind": "wire",
+        "baselineMs": 29.13723300000001,
+        "candidateMs": 24.92223900000002,
+        "ratio": 0.8553399356761162,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "kind": "wire",
+        "baselineMs": 30.150475,
+        "candidateMs": 25.12489100000002,
+        "ratio": 0.8333165895396347,
+        "limit": 1.5,
+        "pass": true
+      }
+    ],
+    "wireFinal": [
+      {
+        "round": 0,
+        "kind": "wire",
+        "baselineMs": 29.813356000000027,
+        "candidateMs": 25.542565999999994,
+        "ratio": 0.8567491026505023,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "kind": "wire",
+        "baselineMs": 29.051386999999977,
+        "candidateMs": 23.863265000000013,
+        "ratio": 0.821415686624533,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "kind": "wire",
+        "baselineMs": 28.331508999999983,
+        "candidateMs": 24.791786000000002,
+        "ratio": 0.8750605553696422,
+        "limit": 1.5,
+        "pass": true
+      }
+    ],
+    "pass": true,
+    "scope": "Three paired desktop comparisons, fixed 32 cached entries/1000 calls or 32 KiB bytes/100 requests, two warmups/seven samples; Node direct fetch transport baseline, not Python timing, download fsync throughput or printing/target-board proof"
+  },
+  "negativeEvidence": {
+    "initialSource": "one cancellation assertion failed, leaving a fixture live; identified own PIDs 1323832/1323826 and explicitly stopped them; later assertion accepts native AbortError cause and finally always cleans resources",
+    "baselineSetup": "missing dynamic database worker in inherited old export caused setup failure; rebuilt a baseline with explicit worker entries before announcement edits",
+    "initialTypecheck": "callback returned ServerResponse while typed void; fixed; shell originally continued to tests after the failed compiler; final standalone typecheck succeeds"
+  },
+  "previousCi": "pr68-13859-terminal.json: 15 success and ordinary 4768/4768; excludes current HTTP changes",
+  "open": [
+    "current HTTP head CI",
+    "fresh full package and full same-package Fluidd/Mainsail journeys",
+    "all HTTP consumers/complete upstream conformance including broader encoding/arbitrary integers",
+    "complete Moonraker/Python retirement and consumer macros",
+    "original UI/native-build gates",
+    "motion G3/Cycnumbris500 and mainline deployment"
+  ],
+  "evidence": {
+    "path": "moonraker-http-client-evidence.json.gz",
+    "sha256": "bcd67c527ce6026ac0ca5f0971fbe70fcb27155f99cbc55d14efecb422e00840",
+    "bytes": 2046811,
+    "entries": 843
+  }
+}

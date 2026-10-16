@@ -16,11 +16,11 @@ import {ApiError} from '../src/moonraker/rpc.ts';
 import type {NativePrintCompatibility} from '../src/moonraker/product-print-api.ts';
 const wait=async(check:()=>boolean)=>{const end=performance.now()+4000;while(!check()){assert(performance.now()<end,'Print intent condition timed out');await new Promise(r=>setTimeout(r,5));}};
 const form=(print:string|undefined,name='控制验收 50%.gcode',data='G1 X1.000001\nG1 X2\n')=>{const body=new FormData();body.append('file',new Blob([data]),name);if(print!==undefined)body.append('print',print);return body;};
-async function fixture(options:{authorize?:ConfiguredServerOptions['authorize'];policy?:NativePrintCompatibility;compatibility?:boolean}={}){
+async function fixture(options:{authorize?:ConfiguredServerOptions['authorize'];policy?:NativePrintCompatibility;compatibility?:boolean;octoprint?:boolean}={}){
  const dir=await mkdtemp(join(tmpdir(),'upload-print-intent-')),files=await PublishedPrintFiles.open(join(dir,'files')),gate=new MaintenanceGate(),journal=await PrintJournal.open({path:join(dir,'journal.db'),deviceId:'printer'}),uploads=new NativePrintUploads(files,gate,{stagingRoot:dir}),finish=Promise.withResolvers<void>(),commands:string[]=[],calls:string[]=[];
  const dispatch=new GCodeDispatch({output(){},shutdown(){}});dispatch.register('G1',c=>{commands.push(c.rawParameters());});
  const device=new FilePrintDevice({async prepare(){calls.push('prepare');dispatch.setReady(true);},async start(){calls.push('start');},async pause(){},async resume(){},async finish(){await finish.promise;},async stop(){finish.resolve();}},dispatch,(id,signal)=>files.acquire(id,signal));
- const controller=new PrintController(device,{maxNozzle:300,maxBed:120},{},{journal,maintenanceGate:gate}),path=join(dir,'moonraker.conf');await writeFile(path,'[server]\nhost=127.0.0.1\nport=0');
+ const controller=new PrintController(device,{maxNozzle:300,maxBed:120},{},{journal,maintenanceGate:gate}),path=join(dir,'moonraker.conf');await writeFile(path,'[server]\nhost=127.0.0.1\nport=0'+(options.octoprint?'\n[octoprint_compat]\nenable_ufp=false':''));
  const policy=options.policy??{async start(filename,signal){return {fileId:await files.resolvePath(filename,signal),nozzle:0,bed:0};}};
  const service=await ConfiguredMoonraker.load(path,{nativeUploads:uploads,maintenanceGate:gate,productPrint:controller,productPrintCompatibility:options.compatibility===false?undefined:policy,information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize:options.authorize??(()=>({username:'operator'}))});
  const address=await service.start(),base='http://127.0.0.1:'+address.port;
@@ -80,4 +80,27 @@ test('disconnect during print authorization preserves upload and never admits th
   const status=await (await fetch(f.base+'/printer/print/status')).json();assert.equal(status.result.pending_compatibility,1);assert.deepEqual(f.calls,[]);
   release.resolve();await wait(()=>f.controller.pendingDeviceActions===0);await new Promise<void>(resolve=>setImmediate(resolve));assert.equal(await f.journal.get(requestId!),null);assert.deepEqual(f.calls,[]);assert.equal(f.controller.state,'idle');
  }finally{release.resolve();await f.close();}
+});
+
+for(const direct of [false,true])test('OctoPrint alias follows the same sealed publication and print journal: '+direct,async()=>{
+ const f=await fixture({octoprint:true});try{
+  const body=form(direct?'true':'false');body.append('select','true');const response=await fetch(f.base+'/api/files/local',{method:'POST',body});assert.equal(response.status,201);const receipt=await response.json();assert.equal(receipt.print_started,direct);const location=response.headers.get('location')!;assert.equal(location,f.base+'/api/files/moonraker/gcodes/%E6%8E%A7%E5%88%B6%E9%AA%8C%E6%94%B6%2050%25.gcode');
+  if(!direct){assert.deepEqual(f.calls,[]);assert.equal((await fetch(location,{method:'POST',headers:{'content-type':'application/json'},body:'{"command":"select"}'})).status,204);assert.deepEqual(f.calls,[]);const selected=await fetch(location,{method:'POST',headers:{'content-type':'application/json'},body:'{"command":"select","print":true}'});assert.equal(selected.status,204);assert.equal(await selected.text(),'');}
+  await wait(()=>f.commands.length===2);assert.deepEqual(f.commands,['X1.000001','X2']);assert.deepEqual(f.calls,['prepare','start']);assert.equal(f.controller.currentRequest!.fileId,receipt.file.id);const requestId=f.controller.currentRequest!.requestId;assert.equal((await f.journal.get(requestId))!.request.fileId,receipt.file.id);
+  f.finish.resolve();await wait(()=>f.controller.state==='completed');assert.equal((await f.journal.get(requestId))!.state,'completed');
+ }finally{await f.close();}
+});
+test('OctoPrint upload aliases cannot bypass either API or file authority and never expose config',async()=>{
+ for(const denied of ['api.files.local','server.files.upload']){
+  const f=await fixture({octoprint:true,authorize(method){if(method===denied)throw new ApiError(403,'Denied');return {username:'operator'};}});try{const response=await fetch(f.base+'/api/files/local',{method:'POST',body:form('false')});assert.equal(response.status,403);assert.equal(f.files.status.publishedFiles,0);assert.deepEqual(f.calls,[]);}finally{await f.close();}
+ }
+ const f=await fixture({octoprint:true});try{for(const kind of ['config','ufp']){const body=form('false',kind==='ufp'?'part.ufp':'part.gcode');if(kind==='config')body.append('root','config');const response=await fetch(f.base+'/api/files/local',{method:'POST',body});assert.equal(response.status,400);assert.equal(f.files.status.publishedFiles,0);assert.deepEqual(f.calls,[]);}}finally{await f.close();}
+});
+test('OctoPrint selection reauthorizes print identity and has no device effects when denied',async()=>{
+ const f=await fixture({octoprint:true,authorize(method){if(method==='printer.print.start')throw new ApiError(403,'Print denied');return {username:'operator'};}});try{
+  const created=await fetch(f.base+'/api/files/local',{method:'POST',body:form('false')});assert.equal(created.status,201);const location=created.headers.get('location')!;const selected=await fetch(location,{method:'POST',headers:{'content-type':'application/json'},body:'{"command":"select","print":true}'});assert.equal(selected.status,403);assert.deepEqual(f.calls,[]);assert.equal(f.controller.state,'idle');assert.equal(f.files.status.publishedFiles,1);
+ }finally{await f.close();}
+});
+test('OctoPrint upload is absent without configuration and standard upload remains available',async()=>{
+ const f=await fixture();try{assert.equal((await fetch(f.base+'/api/files/local',{method:'POST',body:form('false')})).status,404);assert.equal(f.files.status.publishedFiles,0);assert.equal((await f.post(form('false'))).status,201);}finally{await f.close();}
 });

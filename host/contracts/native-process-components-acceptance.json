@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "parent": "4e886e50df323046db17d33c3f8d6c9265ffd4a2",
+  "node": "v26.10.0",
+  "scope": "Default native process factory owns explicit dataPath and one template/secrets generation; normal device replacement retains it; final server close releases it. Ordinary standard-server and legacy non-process APIs remain separate, not full component loading.",
+  "regressions": {
+    "sourceGroup": {
+      "tests": 156,
+      "pass": 156,
+      "fail": 0,
+      "duration_ms": 177997.109087
+    },
+    "initialCompiledGroup": {
+      "tests": 88,
+      "pass": 80,
+      "fail": 8,
+      "duration_ms": 4166.102016
+    },
+    "compiledAfterPtyFixtureRepair": {
+      "tests": 156,
+      "pass": 152,
+      "fail": 4,
+      "duration_ms": 160331.160651
+    },
+    "affectedCliSource": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "duration_ms": 12412.730911
+    },
+    "affectedCliCompiled": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "duration_ms": 10913.571628
+    },
+    "productionComparison": {
+      "files": 518,
+      "changed": []
+    },
+    "finalCoverage": "156 cases covered by unchanged 147 compiled cases plus repaired 9-case CLI file. No claim of one final all-green 156-case group execution."
+  },
+  "performance": {
+    "referenceSha256": "a71ef8a84534bc50dae339e156a806176621f21068be34541e231db5a0a0511c",
+    "runnerSha256": "a2f56a15c288e8ae42717ef2e921d5e3244a7e9cf706268fa0dc1d59b6e8d9c8",
+    "results": {
+      "startupMs": {
+        "median": 342.480868,
+        "ratio": 1.0073968206468669,
+        "limit": 1.5,
+        "passed": true
+      },
+      "queriesMs": {
+        "median": 116.908774,
+        "ratio": 0.992929673759262,
+        "limit": 1.5,
+        "passed": true
+      }
+    },
+    "warmups": 3,
+    "samples": 11,
+    "queriesPerProcess": 200,
+    "budgetUnchanged": 1.5
+  },
+  "failuresRetained": [
+    "Initial compiler implicit array type error",
+    "Baseline omitted dynamic worker and thumbnail child",
+    "Initial compiled group omitted PTY C fixture",
+    "Compiler emitted JSON through contract symlink; original bytes restored after parsed-value equality, then contracts physically copied",
+    "Four existing CLI cases hardcoded .ts paths, repaired with workerEntry and compiled parent/child no-strip check",
+    "Original full local failures, async/UI budget, G3 and Rust SIGSEGV remain open"
+  ],
+  "verification": {
+    "typecheck": true,
+    "whitespace": true,
+    "newNativeCode": false,
+    "freshNativeBuild": false,
+    "fullProductPackage": false,
+    "newBrowserAcceptance": false,
+    "hardware": false,
+    "printingDefaultSwitched": false
+  },
+  "openGates": [
+    "Generic component assembly and remaining template consumers",
+    "Full template language, shared mutable globals, large integers and isolation",
+    "Async/UI performance and fresh default Rust build",
+    "Full same-bundle Fluidd/Mainsail and external fault journeys",
+    "Original full local regression failures",
+    "G3, Cycnumbris 500 target-board timing/precision and hardware",
+    "Full Python retirement, consumer macro redesign, develop/master integration"
+  ],
+  "bindings": {
+    "CHANGELOG.md": "205961610c02880b36583c67b990ea9d437e5a1be2c3a18d33781143d19240d0",
+    "README.md": "be09b070a52d8220de3bd60924cd267acaad351bdfc259abd43fc2d81ced0203",
+    "docs/Node_Host_Delivery_Plan.md": "96d34806f6af7c9796d533ea89e11fc793e4f31e5222ba31ecc31d758c2abbba",
+    "docs/Node_Host_Startup.md": "106be9abf42de9549d740382b9ef291a03041cae11d4714eb779755bdb04be47",
+    "host/acceptance/product-compiled-journey.test.ts": "5227168e7c57be4c97b749b067fc0c16f7d35ba6fd9131afad3e513f8620a413",
+    "host/acceptance/product-compiled-restart-faults.test.ts": "c1e9192520cd4893c05b5c095510b8ed4051879e318abd1faf6734b6dadb74c4",
+    "host/acceptance/product-compiled-restart.test.ts": "bda6b4a8a3ee38122229ccb986a372690ecaf5097ce8426abb857f521f41fdab",
+    "host/src/runtime/native-product-machine.ts": "905c06e4cc0c99c52b18c584096bb895473f28edddb89162b824b1a6dbfc2b63",
+    "host/test/helpers/compiled-client-host.ts": "ef2b4343a9b5e2826e81d2f66736b0e63500a71ff58f030a7ead90497d426a30",
+    "host/test/native-product-bootstrap.test.ts": "7cee09934fccd03ae304138d56a7d62232830e6ccf7f7784e07d8333ae22552b",
+    "host/test/native-product-disk-imports.test.ts": "39337105072a0b7024bbd9affcc736a9cc5079c2e20cc0fc94019aaf5b9ef3b6",
+    "host/test/native-product-machine-control.test.ts": "de889cc6169c560bef286665b113aeaa8dbaac7cf9d82ef333ce3e487c3c38eb",
+    "host/test/native-product-process-lifetime.test.ts": "4dc61992622d97d0b4e43cd9de4bf142e79b386cc3b309cd2f9a5dcad695ad7f",
+    "host/test/native-product-restart.test.ts": "20b6bbd1b98b346396452a8d471e01656a74596a60c59367a23b238faa84cb1c",
+    "host/test/product-host.test.ts": "84b0b45b7f7ca0d13e3b555d6556aff7749954286a7c8a827db49449b39a9e1e",
+    "host/bench/native-process-components.ts": "a2f56a15c288e8ae42717ef2e921d5e3244a7e9cf706268fa0dc1d59b6e8d9c8",
+    "host/test/native-product-components.test.ts": "de7587f7a558ee31bc5d74f4d758412febf424ba18ca8920be3a10a46f1a0ee4"
+  },
+  "native": {
+    "ar100-flash-test.node": "268c5135784be143b8cfab3d945a1a445337770286100e1a0cdba0aaadf3d75a",
+    "ar100-flash.node": "5018b82bbf784653d7a55678ed768e52d5eb3acb8f05702b71ceb8d9627215f9",
+    "can-query.node": "33135adc0307937ed196ce305c4b52003dc617ec5a9c1550c21b8c22e00a760a",
+    "file-events.node": "0c0c6bf4d8702b37514da7c0a3b524682c666830fcafabac50d249c18cdd802c",
+    "sealed-file.node": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+    "serialqueue.node": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac",
+    "stepcompress.node": "255a84728574d1534bad1796883d9232d56cb5089581676fc47c5cb202a9cb95",
+    "template.node": "5a382f0395d58a07424aaffd455b07874b531e6cea1b9fa14833b609c6dd3455",
+    "trapq.node": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+    "unix-peer-asan.node": "59269418a0d9f0bf39140ecb00a315201695c0fb2d508d79dd8cbdb5edb68127",
+    "unix-peer-ubsan.node": "7a8d3c1f818dd8c7f11f2b4ec97321c911005129b1684e977c4a147cc091c31e",
+    "unix-peer.node": "452966303dbeb2e1bbe1ea7e4183705ac2015958630b88772118e2954d44212e"
+  },
+  "evidence": {
+    "file": "native-process-components-evidence.json.gz",
+    "sha256": "b43c501933ca11f56cae72b4ec1d837971e3458b75c903672686b00f451c523e",
+    "bytes": 46340,
+    "entries": 33
+  }
+}

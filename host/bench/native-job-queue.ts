@@ -20,6 +20,7 @@ const options = {
   activePrint: () => undefined,
   async resolveFile(filename: string) { return filename.replace('.gcode', ''); },
   canStart: () => false,
+  clearanceAvailable: () => false,
   async start() { throw new Error('Benchmark must not start a print'); },
 };
 let queue = await NativeJobQueue.open(options);

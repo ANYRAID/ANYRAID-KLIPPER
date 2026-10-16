@@ -24,6 +24,7 @@ export class ProductPrintApi {
  readonly #gate:MaintenanceGate;
  readonly #observers=new AbortController();
  readonly #pressure:PressureAdvancePort|undefined;
+ readonly #unadmittedPublished=new WeakMap<object,string>();
  readonly #compatibility:NativePrintCompatibility|undefined;readonly #compatPending=new Set<Promise<unknown>>();
  constructor(controller:PrintController,gate:MaintenanceGate,pressure?:PressureAdvancePort,compatibility?:NativePrintCompatibility){
   if(!(controller instanceof PrintController)||!controller.durable||!controller.usesMaintenanceGate(gate)||owners.has(controller))throw new ApiError(400,'Native printing requires an unowned durable controller and shared maintenance gate');
@@ -45,7 +46,11 @@ export class ProductPrintApi {
  async startUploaded(file:Pick<QueuedNativeJob,'filename'|'file_id'>,requestId:string,context:RpcContext):Promise<void>{
   return this.#startPublished(file,requestId,context,{});
  }
+ /** Only this owner can prove that no controller start was invoked. Never
+  * infer that proof from a 409/503 or a possibly delayed journal query. */
+ isUnadmittedPublished(error:unknown,requestId:string):boolean{return error!==null&&(typeof error==='object'||typeof error==='function')&&this.#unadmittedPublished.get(error)===requestId;}
  async #startPublished(job:Pick<QueuedNativeJob,'filename'|'file_id'>,requestId:string,context:RpcContext,authority:Readonly<Record<string,Json>>):Promise<void>{
+  let enteringController=false;try{
   if(this.#closed||!this.#compatibility)throw new ApiError(503,'Native printing unavailable');
   if(!validJournalId(requestId)||!validJournalId(job.file_id)||printFilename(job.filename)!==job.filename)throw new ApiError(400,'Invalid published print identity');
   if(this.#compatPending.size>=4)throw new ApiError(429,'Standard print policy capacity exceeded');
@@ -63,7 +68,8 @@ export class ProductPrintApi {
   const resolved=await new Promise<Awaited<typeof policy>>((resolve,reject)=>{const abort=()=>reject(new ApiError(499,'Print policy cancelled; no operation admitted'));signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();void policy.then(resolve,reject).finally(()=>signal.removeEventListener('abort',abort));});
   signal.throwIfAborted();if(this.#closed||this.#controller.stateToken!==token)throw new ApiError(409,'Print state changed during authorization');
   if(state!=='idle')try{this.#controller.reset(current!.requestId);}catch{throw new ApiError(409,'Previous print cleanup is still pending');}
-  await this.call('start',resolved.translated,resolved.authorized);
+  enteringController=true;await this.call('start',resolved.translated,resolved.authorized);
+  }catch(error){if(error!==null&&(typeof error==='object'||typeof error==='function')){if(!enteringController)this.#unadmittedPublished.set(error,requestId);else if(this.#unadmittedPublished.get(error)===requestId)this.#unadmittedPublished.delete(error);}throw error;}
  }
  async call(action:Action,params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
   context.signal.throwIfAborted();if(this.#closed)throw new ApiError(503,'Native print API is closed');

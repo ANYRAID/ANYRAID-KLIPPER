@@ -4,10 +4,19 @@ import {mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {once} from 'node:events';
+import {createServer} from 'node:http';
 import {WebSocket} from 'ws';
 import {DatabaseStore} from '../src/moonraker/database.ts';
 import {ConfiguredMoonraker} from '../src/moonraker/configured-server.ts';
 const information={connected:false,state:'disconnected' as const,components:[],failedComponents:[],directories:[],warnings:[],version:'webcam-test',missingRequirements:[]};
+test('configured snapshot HTTP shares the process owner and aborts during service shutdown',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'webcam-shared-network-')),db=await DatabaseStore.open({path:join(root,'db.sqlite')}),config=join(root,'moonraker.conf'),entered=Promise.withResolvers<void>(),snapshot=createServer(()=>entered.resolve());let service:ConfiguredMoonraker|undefined,pending:Promise<unknown>|undefined;
+ try{snapshot.listen(0,'127.0.0.1');await once(snapshot,'listening');const address=snapshot.address();assert(address&&typeof address!=='string');await writeFile(config,`[server]\nhost=127.0.0.1\nport=0\n[announcements]\nenable_moonlight=false\n[webcam static]\nstream_url=/stream\nsnapshot_url=http://127.0.0.1:${address.port}/snapshot\n`);
+  service=await ConfiguredMoonraker.loadAuthorized(config,{information,database:db,authorization:{issuer:'http://printer.test'}});const owner=service.httpClient,started=await service.start();
+  pending=fetch(`http://127.0.0.1:${started.port}/server/webcams/test`,{method:'POST',headers:{'x-api-key':service.authorization!.localApiKey(),'content-type':'application/json'},body:JSON.stringify({name:'static'}),signal:AbortSignal.timeout(5000)}).then(response=>response.json()).catch(()=>null);
+  await entered.promise;assert.equal(owner.status.pending,1);await service.close();await pending;assert.equal(owner.status.closed,true);assert.equal(owner.status.pending,0);assert.equal(db.status.closed,true);
+ }finally{await service?.close();await pending;snapshot.closeAllConnections();await new Promise<void>(resolve=>snapshot.close(()=>resolve()));await db.close();await rm(root,{recursive:true,force:true});}
+});
 test('configured webcams authorize HTTP/RPC and changed notifications; retain persistence after restart',async()=>{
  const root=await mkdtemp(join(tmpdir(),'webcams-network-')),path=join(root,'db.sqlite'),config=join(root,'moonraker.conf');let db=await DatabaseStore.open({path}),server:ConfiguredMoonraker|undefined;const sockets:WebSocket[]=[];
  try{await writeFile(config,'[server]\nhost:127.0.0.1\nport:0\n[webcam static]\nstream_url:/static\n');server=await ConfiguredMoonraker.loadAuthorized(config,{information,database:db,authorization:{issuer:'http://printer.test'}});const key=server.authorization!.localApiKey(),address=await server.start(),base=`http://127.0.0.1:${address.port}`,headers={'x-api-key':key,'content-type':'application/json'};

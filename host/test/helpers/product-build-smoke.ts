@@ -18,9 +18,13 @@ import {TrapQueue} from './host/src/motion/trap-queue.js';
 import {dwellMove} from './host/src/motion/dwell.js';
 import {planArc} from './host/src/gcode/arcs.js';
 import {VelocityLimits} from './host/src/motion/velocity-limits.js';
+import {SecretsStore,parseSecretsText} from './host/src/moonraker/secrets.js';
+import {MoonrakerTemplateOwner} from './host/src/moonraker/template-owner.js';
 import {motionLimits} from './host/src/motion/lookahead.js';
 import {diagnosticPdf} from './host/src/diagnostics/diagnostic-pdf.js';
 const dir=${JSON.stringify(work)},signal=new AbortController().signal;
+const parsed=parseSecretsText('{"i":1,"f":1.0,"large":9007199254740993}'),secrets=new SecretsStore('/synthetic/private','json',parsed.values),templates=new MoonrakerTemplateOwner(secrets);
+try{const template=templates.createTemplate('{secrets["i"] is integer}/{secrets["f"] is float}/{secrets["large"]}');try{assert.equal(template.render(),'True/True/9007199254740993');}finally{template.close();}assert.throws(()=>template.render(),/closed/);}finally{templates.close();secrets.close();}
 const arc=planArc([0,0,0,0],true,{X:2,I:1},true);assert.equal(arc.segments,3);assert.deepEqual(Array.from(arc.points.slice(-4)),[2,0,0,0]);
 const dynamic=new VelocityLimits(motionLimits(100,1000));dynamic.update({maxAccel:200},limits=>assert.equal(limits.mcrPseudoAccel,100));assert.equal(dynamic.objectStatus.max_accel,200);
 const journal=await PrintJournal.open({path:dir+'/journal.db',deviceId:'printer'});

@@ -17,12 +17,14 @@ test('standard configured Moonraker owns announcement REST/RPC, persistent notif
   await writeFile(path,'[server]\nhost=127.0.0.1\nport=0\n[announcements]\nenable_moonlight=false\nsubscriptions=mainsail');
   await db.insert('announcements','000000',{entry_id:'moonraker/test',title:'Fixture notice',description:null,url:null,priority:'normal',date:1700000000,dismissed:false,date_dismissed:null,dismiss_wake:null,source:'moonlight',feed:'moonraker'});
   service=await ConfiguredMoonraker.loadAuthorized(path,{database:db,authorization:{issuer:'http://announcement.test'},information:info()});
+  const httpOwner=service.httpClient;assert.equal(httpOwner.status.closed,false);
   const key=service.authorization!.localApiKey(),headers={'x-api-key':key},address=await service.start(),base='http://127.0.0.1:'+address.port;
   assert.equal((await fetch(base+'/server/announcements/list')).status,401);
   for(const state of ['disconnected','shutdown','ready'] as const){
    service.setInformation({...info(),state,connected:state!=='disconnected'});
    const discovered:any=await(await fetch(base+'/server/info',{headers})).json();
    assert.equal(discovered.result.components.filter((name:string)=>name==='announcements').length,1);
+   assert.equal(discovered.result.components.filter((name:string)=>name==='http_client').length,1);
    assert.equal(discovered.result.klippy_state,state);
   }
   const listed:any=await(await fetch(base+'/server/announcements/list',{headers})).json();
@@ -49,6 +51,7 @@ test('standard configured Moonraker owns announcement REST/RPC, persistent notif
   await service.authorization!.rotate();const revoked=await request('server.announcements.list');assert.equal(revoked.error.code,-32602);assert.equal(revoked.error.message,'Invalid API Key');
   assert.equal((await fetch(base+'/server/announcements/list',{headers})).status,401);
   socket.terminate();anonymous.terminate();await service.close();
+  assert.equal(service.httpClient,httpOwner);assert.equal(httpOwner.status.closed,true);assert.equal(httpOwner.status.pending,0);
   assert.equal(service.rpc.has('server.announcements.list'),false);assert.equal(db.status.closed,true);
  }finally{socket?.terminate();anonymous?.terminate();await service?.close();await db.close();await rm(root,{recursive:true,force:true});}
 });

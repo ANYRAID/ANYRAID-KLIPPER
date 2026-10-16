@@ -1,29 +1,25 @@
+// Frozen real upstream getpath; daily runs require no Python or source checkout.
 import assert from 'node:assert/strict';
-import {mkdtemp,mkdir,symlink,rm} from 'node:fs/promises';
-import {readFileSync} from 'node:fs';
+import {readFile,mkdtemp,mkdir,writeFile,symlink,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {spawnSync} from 'node:child_process';
-import {performance} from 'node:perf_hooks';
-import {resolveKlippyPath} from '../src/moonraker/klippy-config.ts';
-const source=process.env.MOONRAKER_SOURCE;if(!source)throw new Error('Set MOONRAKER_SOURCE');const pin=JSON.parse(readFileSync(new URL('../contracts/moonraker-upstream.json',import.meta.url),'utf8')).commit;
-const root=await mkdtemp(join(tmpdir(),'kpc-'));
-try{await mkdir(join(root,'real','nested'),{recursive:true});await symlink(join(root,'real','nested'),join(root,'link'));await symlink('absent/nested',join(root,'dangling'));
- const fixtures=['/tmp/klippy_uds','socket','link/../api.sock','dangling/../api.sock','~/api.sock','\x1c/tmp/klippy_uds\x1c','\ufeffsocket'];
- const python=String.raw`
-import pathlib,os,sys,json,ast,subprocess,time
-source=subprocess.check_output(['git','-C',sys.argv[1],'show',sys.argv[2]+':moonraker/components/klippy_connection.py'],text=True)
-call=next(n for n in ast.walk(ast.parse(source)) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute) and n.func.attr=='getpath' and n.args and isinstance(n.args[0],ast.Constant) and n.args[0].value=='klippy_uds_address')
-default=call.args[1].args[0].value
-os.chdir(sys.argv[3]);os.environ['HOME']=sys.argv[3]
-fixtures=json.load(sys.stdin);results=[str(pathlib.Path(p.strip()).expanduser().resolve()) for p in fixtures];samples=[]
-for run in range(54):
- start=time.perf_counter()
- for i in range(100):pathlib.Path('link/../api.sock').resolve()
- if run>=3:samples.append((time.perf_counter()-start)*1000)
-print(json.dumps({'default':default,'results':results,'samples':samples,'python':sys.version.split()[0]}))
-`;
- const result=spawnSync('/usr/bin/python3',['-c',python,source,pin,root],{input:JSON.stringify(fixtures),encoding:'utf8'});assert.equal(result.status,0,result.stderr);const oracle=JSON.parse(result.stdout);assert.equal(oracle.default,'/tmp/klippy_uds');assert.deepEqual(await Promise.all(fixtures.map(f=>resolveKlippyPath(f,{cwd:root,home:root}))),oracle.results);
- const samples:number[]=[];for(let run=0;run<54;run++){const start=performance.now();for(let i=0;i<100;i++)assert.equal(await resolveKlippyPath('link/../api.sock',{cwd:root}),join(root,'real','api.sock'));if(run>=3)samples.push(performance.now()-start);}
- const stats=(values:number[])=>{values.sort((a,b)=>a-b);return {medianMs:values[25],p95Ms:values[48]};};console.log(JSON.stringify({node:process.version,python:oracle.python,contracts:fixtures.length,upstream:pin,samples:51,resolutionsPerSample:100,nodePath:stats(samples),pythonPath:stats(oracle.samples),scope:'Filesystem startup path resolution only, including symlink-before-dot-dot and dangling links; Python pathlib oracle plus pinned default. No Jinja or printing throughput equivalence claim.'},null,2));
-}finally{await rm(root,{recursive:true,force:true});}
+import {createHash} from 'node:crypto';
+import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
+import {ConfigurationSource} from '../src/moonraker/config-source.ts';
+import {MoonrakerTemplateFactory} from '../src/moonraker/template-factory.ts';
+import {readKlippyBinding} from '../src/moonraker/klippy-config.ts';
+const bytes=await readFile(new URL('../contracts/moonraker-config-path-reference.json',import.meta.url)),referenceSha256='1acad838310da914e1f8766eb9e8cf1799cf919f2ef063cf6aed26045d9d813d';
+assert.equal(createHash('sha256').update(bytes).digest('hex'),referenceSha256);
+const reference=JSON.parse(bytes.toString()) as {upstream:{revision:string;runtime:string};graph:{directories:string[];files:string[];symlinks:Record<string,string>};benchmarks:{name:string;source:string;output:string;iterations:number;warmups:number;samples:number;medianMs:number;maximumMedianRatio:number}[]};
+const root=await mkdtemp(join(tmpdir(),'kp-')),cwd=process.cwd(),home=process.env.HOME,results=[];
+try{
+ for(const dir of reference.graph.directories)await mkdir(join(root,dir),{recursive:true});for(const file of reference.graph.files)await writeFile(join(root,file),'synthetic');for(const [name,target]of Object.entries(reference.graph.symlinks))await symlink(target.replaceAll('$ROOT',root),join(root,name));
+ process.chdir(root);process.env.HOME=join(root,'home');
+ for(const row of reference.benchmarks){const config=new ConfigurationReader(new ConfigurationSource('/synthetic/config',{server:{klippy_uds_address:row.source}},[])),owner=await MoonrakerTemplateFactory.load(config,{dataPath:root});
+  try{const batch=async()=>{for(let i=0;i<row.iterations;i++)assert.equal((await readKlippyBinding(config)).path,row.output.replaceAll('$ROOT',root));assert.equal(owner.toJSON().templates,0);};
+   for(let i=0;i<row.warmups;i++)await batch();const sampleMs=[];for(let i=0;i<row.samples;i++){const start=performance.now();await batch();sampleMs.push(performance.now()-start);}
+   const medianMs=[...sampleMs].sort((a,b)=>a-b)[Math.floor(sampleMs.length/2)],ratio=medianMs/row.medianMs;results.push({name:row.name,iterations:row.iterations,warmups:row.warmups,samples:row.samples,sampleMs,medianMs,referenceMedianMs:row.medianMs,ratio,maximumMedianRatio:row.maximumMedianRatio,pass:ratio<=row.maximumMedianRatio});
+  }finally{owner.close();}
+ }
+}finally{process.chdir(cwd);if(home===undefined)delete process.env.HOME;else process.env.HOME=home;await rm(root,{recursive:true,force:true});}
+const pass=results.every(row=>row.pass);console.log(JSON.stringify({schema:1,node:process.version,upstream:reference.upstream,referenceSha256,results,pass,scope:'Prepared shared Klippy binding: compile/render, expanduser, physical resolve and socket bounds against original getpath startup budget; excludes factory setup, printing and target-board timing.'},null,2));if(!pass)process.exitCode=1;

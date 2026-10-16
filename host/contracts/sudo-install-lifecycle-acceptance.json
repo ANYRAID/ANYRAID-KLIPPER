@@ -1,0 +1,2589 @@
+{
+  "schema": 1,
+  "status": "local-fixed-node-install-consumer-validated-awaiting-review-and-new-head-ci",
+  "scope": "Existing fixed Node layout actual installation FIFO consumer and process ownership. Ordinary UID files/child processes/simulated MCU plus injected fixed systemctl executor; not root/sudo/PAM/PTY/systemd or hardware acceptance.",
+  "baseHead": "fad45d3a228868cc6033e1fa07d40ffc5b731323",
+  "branch": "devac/moonraker-template-owner",
+  "sourceFreeze": {
+    "schema": 1,
+    "base": "fad45d3a228868cc6033e1fa07d40ffc5b731323",
+    "changedCompiledInputs": [
+      "host/src/moonraker/config-reader.ts",
+      "host/src/moonraker/configured-server.ts",
+      "host/src/moonraker/native-config-files.ts",
+      "host/src/moonraker/template-factory.ts",
+      "host/src/runtime/native-product-machine.ts",
+      "host/src/runtime/product-host.ts",
+      "host/src/runtime/product-service-unit.ts",
+      "host/tsconfig.product-host.json",
+      "host/src/moonraker/fixed-node-install.ts",
+      "host/src/moonraker/sudo-backend.ts",
+      "host/src/moonraker/sudo-owner.ts",
+      "host/test/fixed-node-install.test.ts",
+      "host/test/helpers/fixed-install.ts",
+      "host/test/native-install-bootstrap.test.ts",
+      "host/test/sudo-install-helper.test.ts",
+      "host/test/sudo-owner.test.ts",
+      "scripts/product-install-helper.ts"
+    ],
+    "inputs": {
+      "host/src/moonraker/config-reader.ts": "c0c16784ed4ec6ab6f698abe92d65a987bd247cbe711a3d5a3b2329c10dfad26",
+      "host/src/moonraker/configured-server.ts": "27c94641502f608f010d84981f07bd83500da37a7ab8940dc055294c998cb965",
+      "host/src/moonraker/native-config-files.ts": "a1da0aad6d47e0ca9d7eef6c08a4137bb7de98758f23337961d162395de843f4",
+      "host/src/moonraker/template-factory.ts": "f6e85ec2241723a17a650b5e38f562f45dfb5c18bc61a249dbb064f3cdb41a20",
+      "host/src/runtime/native-product-machine.ts": "6a70c5937e9ab4b989253b7fecd95b2a905b6911e892ad3d186b9df9a9988c42",
+      "host/src/runtime/product-host.ts": "a76f8e9b7cf4f350bfeacad6ee7867dcc3a8425a0e1aa958450f50103d266dd1",
+      "host/src/runtime/product-service-unit.ts": "19fc18caa149d935d5fa114cf4be44ababc9914e8f534bbb537a4dd13628d9fe",
+      "host/tsconfig.product-host.json": "15d7f5196419a43edf57e4e11b6229df21379fbe6c7d5575776a36a7b6514528",
+      "host/src/moonraker/fixed-node-install.ts": "e442fc67354ae99d089d801648691c266a573dfb1a2ba7c064fb11a0c8fcbc5f",
+      "host/src/moonraker/sudo-backend.ts": "a2825d16619b3a7650ed4bb309c3cb12f5ea4a327232200995863481743ff5a4",
+      "host/src/moonraker/sudo-owner.ts": "8db1c41022f3227a328798d22b99f0317bc01b7128b11fe059a51fdff0210d57",
+      "host/test/fixed-node-install.test.ts": "82694753392aab314a919653734c2ace91e860863fca7f753af8d7b169951a6a",
+      "host/test/helpers/fixed-install.ts": "ae08284545e4add3e8445b6316b57e5c4189186509ed3c0d6f237f4c8a49427f",
+      "host/test/native-install-bootstrap.test.ts": "ff11d2094d8eaf74ac93ba2d97c529d7497265d95cab825034a414e83dc45d1b",
+      "host/test/sudo-install-helper.test.ts": "f429a20e467f1124bf72374b4bee11ed2de9a8c68a054ed4d4772c25427698dd",
+      "host/test/sudo-owner.test.ts": "8bbb15d2e01faaede026204ef9bbded0a9047b7f29e1f38dfbc649d739cbab74",
+      "scripts/product-install-helper.ts": "0085485462c3fddbee9c9a45e0da13770c5e79aef16f07054a476cf54c0d056f",
+      "host/package.json": "fbfd8781252ee5eb7f09797e4550fdeb9aaa00cb3160b2f4dc6011d7371a5427",
+      "host/package-lock.json": "b890eff34a349b721afd6013f53d6e2c3fa14538ce8ae6bc0bd580ec328da389",
+      "host/tsconfig.json": "cc149684d8684887342b42ef0b43a1d63e16a0f3de115c581c1f70a60f100ce1",
+      "host/scripts/build-product-host.ts": "7cbf1433cc93c0e03dd42c14f034afc8dde0daad1bbbe2889071a0db38331b20",
+      "host/scripts/run-typescript.ts": "1ca2f78e59291fc554d5ec2322277c8682cf665386290abec19d3a702f129d97",
+      "host/scripts/typescript-resolver.mjs": "1d5b3337cf28ffa8512ccdce23f150d02fd1866feb737055b4f5105306fe9362"
+    },
+    "scope": "Source/test compilation freeze; docs and evidence-only JSON excluded; product runtime unchanged since standard build"
+  },
+  "product": {
+    "schema": 1,
+    "before": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-compiler-owner-oct14",
+      "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "after": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+      "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "files": 704,
+    "runtimeJs": 667,
+    "changes": [
+      "host/src/moonraker/config-reader.js",
+      "host/src/moonraker/configured-server.js",
+      "host/src/moonraker/fixed-node-install.js",
+      "host/src/moonraker/native-config-files.js",
+      "host/src/moonraker/sudo-backend.js",
+      "host/src/moonraker/sudo-owner.js",
+      "host/src/moonraker/template-factory.js",
+      "host/src/runtime/native-product-machine.js",
+      "host/src/runtime/product-host.js",
+      "host/src/runtime/product-service-unit.js",
+      "scripts/product-install-helper.js"
+    ],
+    "runtimeJsChanged": 10,
+    "nativeSources": 75,
+    "nativeOutputs": 11,
+    "scope": "Dependency bytes reused unchanged; new standard product emits standalone builtin-only helper and real fixed-layout installation owners. Existing native fingerprints all match."
+  },
+  "build": {
+    "entrypoint": "standard buildProductHost API",
+    "status": 0,
+    "receipt": {
+      "schema": 1,
+      "scope": "Standard buildProductHost API; existing nativeDirectory argument after75source/11output hash verification; default60s/4MiB; not npm build CLI or new native rebuild. Spawn observer forwards unchanged arguments.",
+      "node": "v26.10.0",
+      "config": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/tsconfig.product-host.json",
+      "timeoutMs": 60000,
+      "maxBuffer": 4194304,
+      "nativeSources": 75,
+      "nativeOutputs": 11,
+      "calls": [
+        {
+          "command": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+          "args": [
+            "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/scripts/typescript-resolver.mjs",
+            "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/"
+          ],
+          "options": {
+            "cwd": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration",
+            "detached": true,
+            "stdio": [
+              "ignore",
+              "pipe",
+              "pipe"
+            ]
+          },
+          "pid": 2318230,
+          "phase": "resolver",
+          "at": "2026-10-13T20:08:10.224Z",
+          "status": 0,
+          "signal": null,
+          "closedAt": "2026-10-13T20:08:10.306Z"
+        },
+        {
+          "command": "/home/dek02/.cache/codex/tmp/anyraid-client-regression-deps-oct10/node_modules/@typescript/typescript-linux-x64/lib/tsc",
+          "args": [
+            "-p",
+            "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/tsconfig.product-host.json",
+            "--outDir",
+            "/home/dek02/.cache/codex/tmp/.product-build-uhciRd"
+          ],
+          "options": {
+            "cwd": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration",
+            "detached": true,
+            "stdio": [
+              "ignore",
+              "pipe",
+              "pipe"
+            ]
+          },
+          "identity": {
+            "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+            "bytes": 24101026
+          },
+          "pid": 2318241,
+          "phase": "native",
+          "at": "2026-10-13T20:08:10.348Z",
+          "status": 0,
+          "signal": null,
+          "closedAt": "2026-10-13T20:08:11.353Z"
+        }
+      ],
+      "result": {
+        "status": 0,
+        "durationMs": 1201.896639
+      }
+    },
+    "strictEmit": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "timeoutMs": 120000,
+      "maxBuffer": 4194304,
+      "durationMs": 3776.721406,
+      "result": {
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": "",
+        "pid": 2318385,
+        "phase": "compile",
+        "groupStopped": true,
+        "cleanupComplete": true,
+        "execution": {
+          "schema": 1,
+          "binary": "/home/dek02/.cache/codex/tmp/anyraid-client-regression-deps-oct10/node_modules/@typescript/typescript-linux-x64/lib/tsc",
+          "typescript": "7.0.2",
+          "nativePackage": "@typescript/typescript-linux-x64",
+          "nativeVersion": "7.0.2",
+          "platform": "linux",
+          "arch": "x64",
+          "sha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+          "bytes": 24101026,
+          "dev": 2053,
+          "ino": 17867826,
+          "mode": 33277,
+          "mtimeMs": 1791566762188.2415,
+          "resolverPid": 2318374,
+          "resolverGroupStopped": true,
+          "scope": "Official locked platform executable selected and bytes rechecked immediately before direct spawn; no PATH lookup or execve launcher. Pre-launch identity does not attest loaded memory or concurrent replacement.",
+          "compilerPid": 2318385,
+          "compilerGroupStopped": true
+        }
+      }
+    },
+    "independentRuntimeMatch": {
+      "schema": 1,
+      "product": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+      "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+      "runtimeJs": 667,
+      "standaloneHelper": 1,
+      "matches": 668,
+      "differing": 0,
+      "scope": "All independently emitted runtime JS plus helper are byte-identical to standard product before fixture-only core symlink routing."
+    },
+    "necessaryTestUrlCompile": {
+      "schema": 1,
+      "source": "host/test/sudo-install-helper.test.ts",
+      "sourceSha256": "f429a20e467f1124bf72374b4bee11ed2de9a8c68a054ed4d4772c25427698dd",
+      "before": "186631c3a7402969c8d37c2755be3f46ff405ecd9cbbcdbdc87da05d14aa31ab",
+      "after": "dd8267048407631cab1e13c615f2ea9122e167ad78dea5fa618b020e30e3e855",
+      "matchedRuntimeAndHelper": 668,
+      "otherFixtureJS": "unchanged; only this test JS copied from locked compiler output"
+    },
+    "finalStrictTypecheck": {
+      "command": "PATH=<Node26.9-bin>:$PATH npm run typecheck",
+      "cwd": "host",
+      "node": "v26.9.0",
+      "status": 0,
+      "deadlineMs": 120000,
+      "maxBufferPerStream": 4194304,
+      "logSha256": "37634a704dc42c947510a8f43cea5ffc8dc4d3da2225218f83c75bd8f940b01e"
+    },
+    "limitations": [
+      "Native75source/11output hash-verified reuse; no fresh native build",
+      "Full npm build:product-host CLI not executed",
+      "Existing execve hang root cause remains unproved",
+      "Pre-launch compiler identity not TOCTOU-free execution proof"
+    ]
+  },
+  "tests": {
+    "expandedSourceAttempt": {
+      "tests": 23,
+      "pass": 22,
+      "fail": 1,
+      "status": 1,
+      "reason": "Temporary CORS driver expected401; actual403 correct. Only assertion repaired, no authorization allowlist change."
+    },
+    "corsDriverRepair": {
+      "tests": 1,
+      "pass": 1,
+      "status": 0
+    },
+    "minimum26": {
+      "node": "v26.9.0",
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "status": 0,
+      "durationMs": 8123.237304,
+      "inputs": {
+        "schema": 1,
+        "node": "v26.9.0",
+        "files": [
+          {
+            "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/sudo-install-helper.test.js",
+            "sha256": "dd8267048407631cab1e13c615f2ea9122e167ad78dea5fa618b020e30e3e855"
+          },
+          {
+            "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/sudo-owner.test.js",
+            "sha256": "44873ddde725c6b1b4f476e58691f1cea28da2bbf9af8e8771a70f790d28e9db"
+          },
+          {
+            "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/fixed-node-install.test.js",
+            "sha256": "fff6c7bb2cbbcc515028edefd8fdeaca431d6166b3e64756c0616770f7094726"
+          },
+          {
+            "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/native-install-bootstrap.test.js",
+            "sha256": "5e620bb770a8cb2bc8fb53ad74a324d9827022b8f463b587b7f7a9ad2bdf80f5"
+          }
+        ],
+        "guardSha256": "a19c9f2c770d5e6be9e6255aead4db3b4ba22f290c1afdcebaa3d56c83527548",
+        "productIdentity": {
+          "schema": 1,
+          "before": {
+            "path": "/home/dek02/.cache/codex/tmp/product-host-compiler-owner-oct14",
+            "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+            "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+          },
+          "after": {
+            "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+            "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+            "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+          },
+          "files": 704,
+          "runtimeJs": 667,
+          "changes": [
+            "host/src/moonraker/config-reader.js",
+            "host/src/moonraker/configured-server.js",
+            "host/src/moonraker/fixed-node-install.js",
+            "host/src/moonraker/native-config-files.js",
+            "host/src/moonraker/sudo-backend.js",
+            "host/src/moonraker/sudo-owner.js",
+            "host/src/moonraker/template-factory.js",
+            "host/src/runtime/native-product-machine.js",
+            "host/src/runtime/product-host.js",
+            "host/src/runtime/product-service-unit.js",
+            "scripts/product-install-helper.js"
+          ],
+          "runtimeJsChanged": 10,
+          "nativeSources": 75,
+          "nativeOutputs": 11,
+          "scope": "Dependency bytes reused unchanged; new standard product emits standalone builtin-only helper and real fixed-layout installation owners. Existing native fingerprints all match."
+        },
+        "timeoutMs": 120000,
+        "maxBuffer": 16777216,
+        "scope": "Compiled tests against exact standard-product core; isolated ordinary UID files/processes and injected systemctl executor; no root/sudo/systemd deployment"
+      }
+    },
+    "oldAffected": {
+      "selection": {
+        "schema": 1,
+        "sourceFiles": [
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/trusted-proxy-network.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/trusted-domains-network.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/authorization-policy-network.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/api-key-authorization.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/configured-server.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/authorization-config.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/authorization-identity.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/authorization-events.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/trusted-clients-network.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/trusted-clients.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/proxy-protocol-upload.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/native-print-uploads.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/octoprint-compat.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/product-native-authorization.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/route-prefix.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/product-client-gateway.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/direct-tls-network.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/moonraker-network.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/product-service.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/application-redirect.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/cors-policy.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/configured-cors.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/cors-trusted-domain-owner.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/application-welcome.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/template-factory.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/template-async.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/template-sync.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/template-sync-functions.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/template-numbers.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/template-message-metadata.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/announcements-network.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/system-information.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/configured-system-services.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/moonraker-metadata.test.ts",
+          "/home/dek02/.cache/codex/tmp/anyraid-moonraker-composition-integration/host/test/application-log-files.test.ts"
+        ],
+        "compiledFiles": [
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/trusted-proxy-network.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/trusted-domains-network.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/authorization-policy-network.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/api-key-authorization.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/configured-server.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/authorization-config.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/authorization-identity.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/authorization-events.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/trusted-clients-network.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/trusted-clients.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/proxy-protocol-upload.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/native-print-uploads.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/octoprint-compat.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/product-native-authorization.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/route-prefix.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/product-client-gateway.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/direct-tls-network.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/moonraker-network.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/product-service.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/application-redirect.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/cors-policy.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/configured-cors.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/cors-trusted-domain-owner.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/application-welcome.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/template-factory.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/template-async.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/template-sync.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/template-sync-functions.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/template-numbers.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/template-message-metadata.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/announcements-network.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/system-information.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/configured-system-services.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/moonraker-metadata.test.js",
+          "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/test/application-log-files.test.js"
+        ],
+        "count": 35,
+        "guardSha256": "25681e7019555fea528818717d9e95c4803e5eedf652c09b29f3a902c0fbe05d",
+        "product": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+        "scope": "Original35 frozen ordinary regression files, directly importing the current actual standard product core; original fixed subprocess allowlist preserved, TS loading denied."
+      },
+      "original": {
+        "tests": 262,
+        "pass": 253,
+        "fail": 9,
+        "status": 1,
+        "durationMs": 72195.301529,
+        "reason": "Missing test reference/resources:6 file load failures plus3 template-numbers cases"
+      },
+      "repairOnly7Files": {
+        "tests": 245,
+        "pass": 245,
+        "fail": 0,
+        "status": 0,
+        "durationMs": 820.489334
+      },
+      "distinctActualPassed": 498,
+      "notSingle35FileGreenRun": true,
+      "referenceResourceCount": 1040,
+      "referenceIncludesTs": true,
+      "referenceRepairSha256": "9e66bba680377043970a53d28d626c9700aa319ad1c6f3217233619775dfeae9",
+      "referenceValuesAndProductThresholdsUnchanged": true
+    }
+  },
+  "compiledProfileCli": {
+    "schema": 1,
+    "status": 0,
+    "node": "v26.10.0",
+    "durationMs": 2736.312319,
+    "product": {
+      "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+      "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+      "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+    },
+    "profileSha256": "5f357fa70860bcde427b3ca61a28e3056d2a9d95773f20dcd7bfa689c3d01f37",
+    "runs": [
+      {
+        "name": "actual-compiled-first",
+        "pid": 2320084,
+        "args": [
+          "--no-experimental-strip-types",
+          "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14/scripts/product-host.js",
+          "--profile",
+          "/home/dek02/.cache/codex/tmp/fixed-node-install-iROgeA/actual-profile.mjs"
+        ],
+        "events": [
+          {
+            "event": "listening",
+            "address": {
+              "address": "127.0.0.1",
+              "family": "IPv4",
+              "port": 36607,
+              "routePrefix": "/printer"
+            }
+          }
+        ],
+        "result": {
+          "status": 0,
+          "signal": null
+        },
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 0
+      },
+      {
+        "name": "actual-compiled-fresh",
+        "pid": 2320126,
+        "args": [
+          "--no-experimental-strip-types",
+          "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14/scripts/product-host.js",
+          "--profile",
+          "/home/dek02/.cache/codex/tmp/fixed-node-install-iROgeA/actual-profile.mjs"
+        ],
+        "events": [
+          {
+            "event": "listening",
+            "address": {
+              "address": "127.0.0.1",
+              "family": "IPv4",
+              "port": 41803,
+              "routePrefix": "/printer"
+            }
+          },
+          {
+            "event": "ready",
+            "address": {
+              "address": "127.0.0.1",
+              "family": "IPv4",
+              "port": 41803,
+              "routePrefix": "/printer"
+            }
+          }
+        ],
+        "result": {
+          "status": 0,
+          "signal": null
+        },
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 0
+      }
+    ],
+    "actions": [
+      [
+        "daemon-reload"
+      ],
+      [
+        "--no-block",
+        "restart",
+        "--",
+        "anyraid.service"
+      ],
+      {
+        "device": "acquired"
+      },
+      {
+        "original": {
+          "kind": "server_restart"
+        }
+      }
+    ],
+    "productionGuard": {
+      "pid": 2320165,
+      "status": 1,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrSha256": "deef424763108faac8100c791b663008f3c6da2a180e24ba71c8a7c482b4dc5f"
+    },
+    "scope": "Actual compiled standard CLI/profile with strip-types disabled and actual bundle core. Isolated filesystem and ordinary UID; fixed executor simulates privileged systemctl/root ownership. Production backend rejects untrusted deployment before listening. IPC API key was memory-only and omitted from all receipts."
+  },
+  "compiledProfileFailureLimits": {
+    "firstStatus": 1,
+    "firstChildJoined": true,
+    "firstProfileShaNotCaptured": true,
+    "originalChildStderrNotArchived": true,
+    "secondStatus": 1,
+    "observedSecondFailure": "cc1: fatal error: compiled-fixtures/host/test/helpers/pty.c: No such file or directory; compilation terminated.",
+    "secondChildLogsLaterOverwrittenBySuccessfulDriver": true,
+    "repair": "Copied unmodified source PTY C asset; exact input hash retained; package/runtime unchanged",
+    "finalStatus": 0,
+    "scope": "Production createTrustedSudoBackend invoked from compiled profile rejects untrusted deployment before listen; happy-path actual CLI uses isolated executor, not real sudo"
+  },
+  "performance": {
+    "order": "AB/BA/AB",
+    "controls": 36,
+    "comparisons": [
+      {
+        "pair": 0,
+        "kind": "auth",
+        "route": "status",
+        "before": 194.437324,
+        "after": 193.31821800000012,
+        "ratio": 0.9942443869470253,
+        "limit": 1.5,
+        "absoluteUs": 1.933182180000001,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "auth",
+        "route": "file",
+        "before": 312.0429069999998,
+        "after": 299.1193679999999,
+        "ratio": 0.9585840962569936,
+        "limit": 1.5,
+        "absoluteUs": 2.991193679999999,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "auth",
+        "route": "image",
+        "before": 363.615464,
+        "after": 339.71647600000006,
+        "ratio": 0.9342740054641903,
+        "limit": 1.5,
+        "absoluteUs": 3.397164760000001,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "auth",
+        "route": "anonymous-image",
+        "before": 151.48192500000005,
+        "after": 136.905667,
+        "ratio": 0.9037755956692519,
+        "limit": 1.5,
+        "absoluteUs": 1.36905667,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "network",
+        "route": "manual/http",
+        "before": 43.417333999999755,
+        "after": 41.91869499999984,
+        "ratio": 0.9654829336135673,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "network",
+        "route": "manual/ws",
+        "before": 30.050563999999895,
+        "after": 27.960597000000007,
+        "ratio": 0.9304516547509759,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "network",
+        "route": "manual/startup",
+        "before": 8.544949000000088,
+        "after": 9.4753910000004,
+        "ratio": 1.1088879524032622,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "network",
+        "route": "configured/http",
+        "before": 44.00920199999996,
+        "after": 42.56611299999986,
+        "ratio": 0.9672093804382069,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "network",
+        "route": "configured/ws",
+        "before": 30.946024999999963,
+        "after": 25.906680999999935,
+        "ratio": 0.8371569854286606,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "network",
+        "route": "configured/startup",
+        "before": 14.775959000000057,
+        "after": 15.525988000000325,
+        "ratio": 1.0507600894128268,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "uploads",
+        "size": 4194304,
+        "mode": "direct",
+        "before": {
+          "medianMs": 40.503926999999976,
+          "p95Ms": 45.812605000000076,
+          "medianMiBPerSecond": 98.75585643831529,
+          "eventLoopMaximumMs": 2.889727
+        },
+        "after": {
+          "medianMs": 39.85269799999992,
+          "p95Ms": 58.95894299999986,
+          "medianMiBPerSecond": 100.3696161298793,
+          "eventLoopMaximumMs": 10.444799
+        },
+        "ratio": 0.9839218305918817,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "uploads",
+        "size": 4194304,
+        "mode": "http",
+        "before": {
+          "medianMs": 59.30368699999997,
+          "p95Ms": 62.10234299999996,
+          "medianMiBPerSecond": 67.4494319383549,
+          "eventLoopMaximumMs": 3.330047
+        },
+        "after": {
+          "medianMs": 61.42836399999999,
+          "p95Ms": 87.30979400000001,
+          "medianMiBPerSecond": 65.11649895152671,
+          "eventLoopMaximumMs": 10.051583
+        },
+        "ratio": 1.0358270641756224,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "uploads",
+        "size": 16777216,
+        "mode": "direct",
+        "before": {
+          "medianMs": 98.85958299999993,
+          "p95Ms": 130.62467800000013,
+          "medianMiBPerSecond": 161.84571605971686,
+          "eventLoopMaximumMs": 5.488639
+        },
+        "after": {
+          "medianMs": 93.8910579999997,
+          "p95Ms": 102.5138079999997,
+          "medianMiBPerSecond": 170.41026420215704,
+          "eventLoopMaximumMs": 5.787647
+        },
+        "ratio": 0.9497415946008975,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 0,
+        "kind": "uploads",
+        "size": 16777216,
+        "mode": "http",
+        "before": {
+          "medianMs": 146.78603399999974,
+          "p95Ms": 157.5114910000002,
+          "medianMiBPerSecond": 109.00219567210344,
+          "eventLoopMaximumMs": 7.532543
+        },
+        "after": {
+          "medianMs": 145.47790699999996,
+          "p95Ms": 149.81403199999977,
+          "medianMiBPerSecond": 109.98233566832938,
+          "eventLoopMaximumMs": 7.397375
+        },
+        "ratio": 0.9910882052988789,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "auth",
+        "route": "status",
+        "before": 210.47980400000006,
+        "after": 211.16356399999995,
+        "ratio": 1.0032485777115219,
+        "limit": 1.5,
+        "absoluteUs": 2.1116356399999994,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "auth",
+        "route": "file",
+        "before": 333.5481619999998,
+        "after": 299.69157300000006,
+        "ratio": 0.8984956511317853,
+        "limit": 1.5,
+        "absoluteUs": 2.9969157300000004,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "auth",
+        "route": "image",
+        "before": 361.8744830000003,
+        "after": 341.81637999999975,
+        "ratio": 0.9445716569078995,
+        "limit": 1.5,
+        "absoluteUs": 3.4181637999999976,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "auth",
+        "route": "anonymous-image",
+        "before": 135.43951700000002,
+        "after": 140.77674500000012,
+        "ratio": 1.0394067264726004,
+        "limit": 1.5,
+        "absoluteUs": 1.4077674500000013,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "network",
+        "route": "manual/http",
+        "before": 39.220470000000205,
+        "after": 40.31296400000019,
+        "ratio": 1.0278551990835394,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "network",
+        "route": "manual/ws",
+        "before": 30.4084670000002,
+        "after": 29.52929599999993,
+        "ratio": 0.9710879538912546,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "network",
+        "route": "manual/startup",
+        "before": 8.669130999999652,
+        "after": 8.649439999999686,
+        "ratio": 0.997728607400215,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "network",
+        "route": "configured/http",
+        "before": 40.230833000000075,
+        "after": 39.770507999999836,
+        "ratio": 0.9885579053259912,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "network",
+        "route": "configured/ws",
+        "before": 30.748272000000043,
+        "after": 29.85807099999988,
+        "ratio": 0.9710487470645452,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "network",
+        "route": "configured/startup",
+        "before": 15.370265999999901,
+        "after": 16.7899239999997,
+        "ratio": 1.0923639187506455,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "uploads",
+        "size": 4194304,
+        "mode": "direct",
+        "before": {
+          "medianMs": 40.17496200000005,
+          "p95Ms": 42.12790699999994,
+          "medianMiBPerSecond": 99.5644998992157,
+          "eventLoopMaximumMs": 1.806335
+        },
+        "after": {
+          "medianMs": 40.93963199999996,
+          "p95Ms": 43.979360999999926,
+          "medianMiBPerSecond": 97.70483525596917,
+          "eventLoopMaximumMs": 1.944575
+        },
+        "ratio": 1.0190334965344812,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "uploads",
+        "size": 4194304,
+        "mode": "http",
+        "before": {
+          "medianMs": 58.569635999999946,
+          "p95Ms": 65.51893500000006,
+          "medianMiBPerSecond": 68.29477308003081,
+          "eventLoopMaximumMs": 3.379199
+        },
+        "after": {
+          "medianMs": 59.73615199999995,
+          "p95Ms": 67.49602100000004,
+          "medianMiBPerSecond": 66.9611259861533,
+          "eventLoopMaximumMs": 5.214207
+        },
+        "ratio": 1.0199167363785564,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "uploads",
+        "size": 16777216,
+        "mode": "direct",
+        "before": {
+          "medianMs": 101.90291800000023,
+          "p95Ms": 107.3275779999999,
+          "medianMiBPerSecond": 157.0121868345317,
+          "eventLoopMaximumMs": 2.029567
+        },
+        "after": {
+          "medianMs": 96.26167699999996,
+          "p95Ms": 105.85905000000002,
+          "medianMiBPerSecond": 166.213601286003,
+          "eventLoopMaximumMs": 7.839743
+        },
+        "ratio": 0.9446410258830836,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 1,
+        "kind": "uploads",
+        "size": 16777216,
+        "mode": "http",
+        "before": {
+          "medianMs": 145.31333099999983,
+          "p95Ms": 152.40830200000028,
+          "medianMiBPerSecond": 110.10689721234192,
+          "eventLoopMaximumMs": 8.060927
+        },
+        "after": {
+          "medianMs": 151.8046449999997,
+          "p95Ms": 183.1806959999999,
+          "medianMiBPerSecond": 105.39861939007223,
+          "eventLoopMaximumMs": 8.757247
+        },
+        "ratio": 1.0446711527106889,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "auth",
+        "route": "status",
+        "before": 208.02420099999995,
+        "after": 194.36831499999994,
+        "ratio": 0.9343543398587552,
+        "limit": 1.5,
+        "absoluteUs": 1.9436831499999994,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "auth",
+        "route": "file",
+        "before": 322.2011150000001,
+        "after": 323.0084320000001,
+        "ratio": 1.002505630683494,
+        "limit": 1.5,
+        "absoluteUs": 3.230084320000001,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "auth",
+        "route": "image",
+        "before": 369.595998,
+        "after": 351.566335,
+        "ratio": 0.9512179160554655,
+        "limit": 1.5,
+        "absoluteUs": 3.5156633499999996,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "auth",
+        "route": "anonymous-image",
+        "before": 136.981495,
+        "after": 137.01994400000012,
+        "ratio": 1.0002806875483445,
+        "limit": 1.5,
+        "absoluteUs": 1.3701994400000013,
+        "maximumUs": 10,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "network",
+        "route": "manual/http",
+        "before": 43.551274999999805,
+        "after": 39.88444800000002,
+        "ratio": 0.9158043708249689,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "network",
+        "route": "manual/ws",
+        "before": 28.589624000000185,
+        "after": 27.179196000000047,
+        "ratio": 0.9506664375858833,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "network",
+        "route": "manual/startup",
+        "before": 8.565258999999969,
+        "after": 8.638760000000275,
+        "ratio": 1.008581293338626,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "network",
+        "route": "configured/http",
+        "before": 44.30566399999998,
+        "after": 39.717115000000035,
+        "ratio": 0.8964342572543333,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "network",
+        "route": "configured/ws",
+        "before": 28.577804000000015,
+        "after": 29.10457999999994,
+        "ratio": 1.0184330468499234,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "network",
+        "route": "configured/startup",
+        "before": 14.554316000000199,
+        "after": 16.446680000000015,
+        "ratio": 1.1300208130701428,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "uploads",
+        "size": 4194304,
+        "mode": "direct",
+        "before": {
+          "medianMs": 44.297684000000004,
+          "p95Ms": 46.47811200000001,
+          "medianMiBPerSecond": 90.29817450501474,
+          "eventLoopMaximumMs": 1.917951
+        },
+        "after": {
+          "medianMs": 40.61301700000013,
+          "p95Ms": 42.22965700000009,
+          "medianMiBPerSecond": 98.49058985201684,
+          "eventLoopMaximumMs": 1.929215
+        },
+        "ratio": 0.9168203240602855,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "uploads",
+        "size": 4194304,
+        "mode": "http",
+        "before": {
+          "medianMs": 66.29811500000005,
+          "p95Ms": 67.71546199999989,
+          "medianMiBPerSecond": 60.33354040307175,
+          "eventLoopMaximumMs": 4.038655
+        },
+        "after": {
+          "medianMs": 58.39452399999993,
+          "p95Ms": 69.85425899999996,
+          "medianMiBPerSecond": 68.4995736929032,
+          "eventLoopMaximumMs": 3.788799
+        },
+        "ratio": 0.8807870932680346,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "uploads",
+        "size": 16777216,
+        "mode": "direct",
+        "before": {
+          "medianMs": 101.88332800000035,
+          "p95Ms": 109.89843900000005,
+          "medianMiBPerSecond": 157.04237694316333,
+          "eventLoopMaximumMs": 3.958783
+        },
+        "after": {
+          "medianMs": 102.92680000000018,
+          "p95Ms": 112.15236800000002,
+          "medianMiBPerSecond": 155.4502811706958,
+          "eventLoopMaximumMs": 7.045119
+        },
+        "ratio": 1.0102418326971008,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "pair": 2,
+        "kind": "uploads",
+        "size": 16777216,
+        "mode": "http",
+        "before": {
+          "medianMs": 142.85628899999983,
+          "p95Ms": 151.91211399999975,
+          "medianMiBPerSecond": 112.0006694280013,
+          "eventLoopMaximumMs": 8.249343
+        },
+        "after": {
+          "medianMs": 150.60157600000002,
+          "p95Ms": 162.127743,
+          "medianMiBPerSecond": 106.24058807990163,
+          "eventLoopMaximumMs": 10.747903
+        },
+        "ratio": 1.054217333057001,
+        "limit": 1.5,
+        "pass": true
+      }
+    ],
+    "pass": true,
+    "maximumRatio": 1.1300208130701428,
+    "authMaximumUs": 3.5156633499999996,
+    "groupMaximumRatios": [
+      1.1088879524032622,
+      1.0923639187506455,
+      1.1300208130701428
+    ],
+    "ratioLimit": 1.5,
+    "authExclusiveMaximumUs": 10,
+    "reusedOldResults": false,
+    "resampledFailures": false,
+    "inputs": {
+      "schema": 1,
+      "identity": {
+        "schema": 1,
+        "before": {
+          "path": "/home/dek02/.cache/codex/tmp/product-host-compiler-owner-oct14",
+          "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+          "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+        },
+        "after": {
+          "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+          "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+          "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+        },
+        "files": 704,
+        "runtimeJs": 667,
+        "changes": [
+          "host/src/moonraker/config-reader.js",
+          "host/src/moonraker/configured-server.js",
+          "host/src/moonraker/fixed-node-install.js",
+          "host/src/moonraker/native-config-files.js",
+          "host/src/moonraker/sudo-backend.js",
+          "host/src/moonraker/sudo-owner.js",
+          "host/src/moonraker/template-factory.js",
+          "host/src/runtime/native-product-machine.js",
+          "host/src/runtime/product-host.js",
+          "host/src/runtime/product-service-unit.js",
+          "scripts/product-install-helper.js"
+        ],
+        "runtimeJsChanged": 10,
+        "nativeSources": 75,
+        "nativeOutputs": 11,
+        "scope": "Dependency bytes reused unchanged; new standard product emits standalone builtin-only helper and real fixed-layout installation owners. Existing native fingerprints all match."
+      },
+      "drivers": [
+        {
+          "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/bench/auth-before.mjs",
+          "sha256": "0394e3f65ef90ce6ab124912e51491d5616ead50d269c9d8005c76e5436f21b1",
+          "originalDriver": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/auth-before.mjs",
+          "originalSha256": "30cd9f70330057dd247ce40ed038a5f243ab55e208ba727b29751bbd1389ae48"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/bench/auth-after.mjs",
+          "sha256": "23395ae6f22e49c97fc2c4e97a66aa67adc89121e3164188ec3a1d47ea054a86",
+          "originalDriver": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/auth-after.mjs",
+          "originalSha256": "3211a192cbc1cb12a4bc55d4fe9184dbd0797ea53a8448d7e4cf8aedf9f7f43e"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/bench/network-before.mjs",
+          "sha256": "0b9092eb01130b9379a4e8d9459309f5a6ed1b9cb59947e2c4e62ce712c8d80d",
+          "originalDriver": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/network-before.mjs",
+          "originalSha256": "c09042dcadfebe94402c9aa43cc9fb4f3b14834ff8fe547f66bf802b1961b2e8"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/bench/network-after.mjs",
+          "sha256": "c7aec37cb9c8494f05b48c4dd6210c643411c66495f54582b91e1713f3df826a",
+          "originalDriver": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/network-after.mjs",
+          "originalSha256": "d57f9bcdf157dddf67c75d822b6e46a0149e8f393dc1c67c0f6e03ff9b87fd6b"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/bench/uploads-before.mjs",
+          "sha256": "a88fa193ec784cdcbb866fbd1e5ccd8dcd328c6194fca005cfde026475501b7d",
+          "originalDriver": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/uploads-before.mjs",
+          "originalSha256": "fb1c654c14dd522bf03bda1f3b41519c8401d745db3b6e9ab7ac602dac61b9e4"
+        },
+        {
+          "path": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/bench/uploads-after.mjs",
+          "sha256": "2331d07ad31b9310eb875aaac622afef1e1b9c19b97a5223d16221b5f30492bc",
+          "originalDriver": "/home/dek02/.cache/codex/tmp/process-log-lifecycle-oct14/bench/uploads-after.mjs",
+          "originalSha256": "c555ea6a33cce28228288136954c7f9127b0adb4fd5abf2379e4c53189d647e0"
+        }
+      ],
+      "freshBenchFiles": [
+        "network-before.mjs",
+        "network-after.mjs",
+        "auth-after.mjs",
+        "uploads-before.mjs",
+        "auth-before.mjs",
+        "node_modules",
+        "uploads-after.mjs"
+      ],
+      "order": "AB/BA/AB",
+      "thresholds": {
+        "ratio": 1.5,
+        "authorizationMicrosecondsExclusiveUpperBound": 10
+      },
+      "reusedOldResults": false,
+      "scope": "Original unchanged workload and thresholds; only exact actual-product paths changed; serial execution"
+    }
+  },
+  "originalFiveSimulatedJourneys": [
+    {
+      "name": "original-mixed",
+      "status": {
+        "status": 0,
+        "signal": null
+      },
+      "durationMs": 59930.743174,
+      "originalMoves": 1000,
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+        "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "statusP99Ms": 9.474661000000197,
+      "minimumStepLeadMs": 84.766,
+      "logSha256": "ed8678278fb28453d8a02273796ca616489944ad6005c70f8df52eebddc55c03"
+    },
+    {
+      "name": "tls-mixed",
+      "status": {
+        "status": 0,
+        "signal": null
+      },
+      "durationMs": 59967.219081,
+      "originalMoves": 1000,
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+        "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "statusP99Ms": 6.90303700000004,
+      "minimumStepLeadMs": 86.12,
+      "logSha256": "07cee98cd4a31f9613ad915ee61ba1f832b12c2d5edef5ba82ba873c4abd15bb"
+    },
+    {
+      "name": "welcome-mixed",
+      "status": {
+        "status": 0,
+        "signal": null
+      },
+      "durationMs": 61360.243814,
+      "originalMoves": 1000,
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+        "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "statusP99Ms": 5.646530999998504,
+      "minimumStepLeadMs": 87.773,
+      "logSha256": "8a500e6ea21b704e97095f105f6d51d0075b202bc39bd0787e9a71402ac18915"
+    },
+    {
+      "name": "logs-mixed",
+      "status": {
+        "status": 0,
+        "signal": null
+      },
+      "durationMs": 64021.321943,
+      "originalMoves": 1000,
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+        "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "statusP99Ms": 7.750648000001092,
+      "minimumStepLeadMs": 81.145,
+      "logSha256": "f9a955231c9da53848506f4552c3a059cb9e5fb43cc1efce8a127ecbd0130c7b"
+    },
+    {
+      "name": "produced-logs-mixed",
+      "status": {
+        "status": 0,
+        "signal": null
+      },
+      "durationMs": 60328.676296,
+      "originalMoves": 1000,
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+        "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "statusP99Ms": 7.257312000001548,
+      "minimumStepLeadMs": 84.798,
+      "logSha256": "f1f90380ec73c5b98d4b74f12303f4b48c44eb44443cabb5e1c9712ebe5ce527"
+    }
+  ],
+  "installationToFullJourney": {
+    "originalAttempt": {
+      "status": 1,
+      "durationMs": 10518.60353,
+      "reason": "Driver config list omitted actual approved save-backup. Installation and fresh ready occurred, original lane entered but did not complete."
+    },
+    "repair": {
+      "schema": 1,
+      "name": "installed-mixed-backup-repair",
+      "status": {
+        "status": 0,
+        "signal": null
+      },
+      "durationMs": 62533.741901,
+      "originalMoves": 1000,
+      "installation": {
+        "actualFirstCli": 2329860,
+        "installationClose": {
+          "code": 0,
+          "signal": null
+        },
+        "installationActions": [
+          [
+            "daemon-reload"
+          ],
+          [
+            "--no-block",
+            "restart",
+            "--",
+            "anyraid-install-journey.service"
+          ]
+        ],
+        "noDeviceBeforeRestart": true,
+        "profileSha256": "b58a4dc270042bbd2f705170dced17ec3a105d7b4372aa03f2933bb543e9b5b7",
+        "candidateSha256": "f0ed3c1594ee313934105cd3f5e4aa94ca619b4cb90f37d99c6f24f62b8ce6e3",
+        "configRemovedEqualOldAliases": true,
+        "trace": "{\"event\":\"process-open\"}\n{\"event\":\"network-source\",\"sample\":1,\"generation\":0}\n{\"event\":\"service-sample\",\"sequence\":1}\n{\"event\":\"process-closed\"}\n{\"event\":\"process-files-closed\"}\n",
+        "scope": "Ordinary UID helper and injected fixed executor in isolated root; no actual sudo/systemd"
+      },
+      "fresh": {
+        "actualCli": 2329893,
+        "withoutPassword": true,
+        "readOnlyAttestation": true,
+        "originalJourneyContinues": true,
+        "installationBackup": ".moonraker.conf.save-backup-61b6ef34-5856-48ff-9ab6-5122a35941c6",
+        "backupSha256": "4599aaf94c1857b0de98720be2f96463837e314e063a19258c58bb4fbae1a145"
+      },
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+        "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "metrics": {
+        "namespace": true,
+        "automaticQueue": false,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 10728.059202
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 11054.411528
+            },
+            "durationMs": 326.3583759999983
+          },
+          {
+            "generation": 1,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 16148.779357
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 16244.018265
+            },
+            "durationMs": 95.24404800000048
+          },
+          {
+            "generation": 1,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 19030.655245
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 19228.703906
+            },
+            "durationMs": 198.04950100000133
+          },
+          {
+            "generation": 1,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22233.838311
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22365.504228
+            },
+            "durationMs": 131.6663469999985
+          },
+          {
+            "generation": 1,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 24974.366568
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 25112.424784
+            },
+            "durationMs": 138.05537600000025
+          },
+          {
+            "generation": 1,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26631.274435
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26695.615904
+            },
+            "durationMs": 64.3420389999992
+          },
+          {
+            "generation": 1,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 27956.621682
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 28018.285108
+            },
+            "durationMs": 61.664396000000124
+          },
+          {
+            "generation": 1,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 29291.984075
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 29354.799955
+            },
+            "durationMs": 62.81640999999945
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 43464.59463
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 43530.6093
+            },
+            "durationMs": 66.015290000003
+          },
+          {
+            "generation": 2,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 45624.159691
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 45771.908508
+            },
+            "durationMs": 147.7490969999999
+          },
+          {
+            "generation": 2,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 48212.570902
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 48354.78331
+            },
+            "durationMs": 142.21267799999623
+          },
+          {
+            "generation": 2,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 50882.918312
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 51024.511332
+            },
+            "durationMs": 141.59339000000182
+          },
+          {
+            "generation": 2,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 53654.110718
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 53796.133223
+            },
+            "durationMs": 142.02270500000304
+          },
+          {
+            "generation": 2,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 55354.832636
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 55423.783653
+            },
+            "durationMs": 68.95148699999845
+          },
+          {
+            "generation": 2,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 56722.810832
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 56785.963336
+            },
+            "durationMs": 63.15300399999978
+          },
+          {
+            "generation": 2,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 58012.404592
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-62ba8e82-c28a-49b6-9d7f-8f27cc17f2fe",
+              "fileId": "authorized-file",
+              "atMs": 58073.943735
+            },
+            "durationMs": 61.539842999998655
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 1642,
+        "configListP99Ms": 10.825775999999678,
+        "configDownloads": 1641,
+        "configDownloadP99Ms": 17.508920999996917,
+        "liveMotionSamples": 5690,
+        "liveExtrusionSamples": 1361,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 10.423152723,
+          "print_duration": 4.928795696999997,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 7990,
+        "phaseP99Ms": 9.462039000000004,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 264,
+            "writes": 43
+          },
+          {
+            "statusReads": 176,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1592,
+        "historyP99Ms": 64.81734499999948,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 231.5915019999993,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 186.20480099999986,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 243.82654500000353,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 249.2747840000011,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 363.6795039999997,
+        "directoryMovesDuringPrint": 4,
+        "moveRequests": 16,
+        "moveP95Ms": 325.9359199999999,
+        "deleteRequests": 16,
+        "deleteP95Ms": 252.38507500000014,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 136.4559950000039,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 123.94256899999891,
+        "metadataRequests": 16,
+        "metadataP95Ms": 262.2030459999951,
+        "downloads": 16,
+        "downloadP95Ms": 134.38613100000293,
+        "wireCommands": 239,
+        "wireSteps": 7516,
+        "minimumStepLeadMs": 79.425,
+        "directoryRequests": 6359,
+        "directoryP99Ms": 47.99348299999838,
+        "statusRequests": 31953,
+        "uploads": 16,
+        "statusP99Ms": 8.908171999999468,
+        "uploadP95Ms": 90.16299400000207,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.844671,
+              "maxMs": 25.133055
+            },
+            "cpu": {
+              "user": 11458942,
+              "system": 2040675
+            },
+            "rss": 355799040
+          },
+          {
+            "loop": {
+              "p99Ms": 2.010111,
+              "maxMs": 18.579455
+            },
+            "cpu": {
+              "user": 6897584,
+              "system": 1439111
+            },
+            "rss": 403828736
+          }
+        ]
+      },
+      "logSha256": "52884a8469481b447eaa4c98075b81b0c9d5d31b5b53bf8e45eee7745dbb139d"
+    },
+    "driverInputs": {
+      "schema": 1,
+      "originalPath": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/acceptance/product-compiled-journey.test.js",
+      "originalSha256": "f70e904b1f42188ec9a45702825b5093098488af33ebebaebeb3f70cdc4c936c",
+      "effectivePath": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/acceptance/product-installed-journey.test.js",
+      "effectiveSha256": "bf8c01d3fd7a5e9caa203b4b808dbf139de332e503fdcd6777df05a53d87691d",
+      "changes": [
+        "isolated fixed layout",
+        "real install consumer before first device",
+        "fresh actual CLI credential-free proof",
+        "separate install trace",
+        "add actual moonraker.conf to original config list expected values"
+      ],
+      "workload": "All original movement/API/two-generation/ADC/close assertions and budgets retained; product unchanged"
+    },
+    "backupValidation": "Exactly one canonical UUIDv4 moonraker.conf save-backup; byte-identical to pre-install config. Unauthenticated GET401; authenticated GET200 and exact bytes. Original list items retained; no hidden-file filtering/deletion.",
+    "originalThresholdsAnd1000MovesRetained": true,
+    "firstCliClosedBeforeFresh": true,
+    "fixedRootExecutorOnly": true
+  },
+  "startup": {
+    "schema": 1,
+    "node": "v26.10.0",
+    "identity": {
+      "schema": 1,
+      "before": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-compiler-owner-oct14",
+        "manifestSha256": "a84af93e83a8d3fbd64ed9a4ea79fabb165cd5f53d85bfc3982d5d3616d87ac6",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "after": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+        "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "files": 704,
+      "runtimeJs": 667,
+      "changes": [
+        "host/src/moonraker/config-reader.js",
+        "host/src/moonraker/configured-server.js",
+        "host/src/moonraker/fixed-node-install.js",
+        "host/src/moonraker/native-config-files.js",
+        "host/src/moonraker/sudo-backend.js",
+        "host/src/moonraker/sudo-owner.js",
+        "host/src/moonraker/template-factory.js",
+        "host/src/runtime/native-product-machine.js",
+        "host/src/runtime/product-host.js",
+        "host/src/runtime/product-service-unit.js",
+        "scripts/product-install-helper.js"
+      ],
+      "runtimeJsChanged": 10,
+      "nativeSources": 75,
+      "nativeOutputs": 11,
+      "scope": "Dependency bytes reused unchanged; new standard product emits standalone builtin-only helper and real fixed-layout installation owners. Existing native fingerprints all match."
+    },
+    "benchmark": "/home/dek02/.cache/codex/tmp/sudo-install-oct14/compiled-fixtures/host/bench/process-log-startup.js",
+    "benchmarkSha256": "3e1e222ed9d69942d2219f8ebbb928ed8b6f239e83e3f58b9c339dd1a4fd473d",
+    "status": 0,
+    "signal": null,
+    "observations": {
+      "node": "v26.10.0",
+      "packages": [
+        "/home/dek02/.cache/codex/tmp/product-host-compiler-owner-oct14",
+        "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14"
+      ],
+      "warmup": 3,
+      "samples": 11,
+      "startupsPerVariant": 14,
+      "alternating": true,
+      "observations": [
+        {
+          "run": 0,
+          "variant": 0,
+          "ms": 408.19606799999997
+        },
+        {
+          "run": 0,
+          "variant": 1,
+          "ms": 381.62042500000007
+        },
+        {
+          "run": 1,
+          "variant": 1,
+          "ms": 377.21570900000006
+        },
+        {
+          "run": 1,
+          "variant": 0,
+          "ms": 353.83295499999986
+        },
+        {
+          "run": 2,
+          "variant": 0,
+          "ms": 364.12106400000016
+        },
+        {
+          "run": 2,
+          "variant": 1,
+          "ms": 357.1205369999998
+        },
+        {
+          "run": 3,
+          "variant": 1,
+          "ms": 363.24361299999964
+        },
+        {
+          "run": 3,
+          "variant": 0,
+          "ms": 360.12413400000014
+        },
+        {
+          "run": 4,
+          "variant": 0,
+          "ms": 354.140719
+        },
+        {
+          "run": 4,
+          "variant": 1,
+          "ms": 354.27341000000024
+        },
+        {
+          "run": 5,
+          "variant": 1,
+          "ms": 359.7439199999999
+        },
+        {
+          "run": 5,
+          "variant": 0,
+          "ms": 345.5015800000001
+        },
+        {
+          "run": 6,
+          "variant": 0,
+          "ms": 284.1396189999996
+        },
+        {
+          "run": 6,
+          "variant": 1,
+          "ms": 329.9311150000003
+        },
+        {
+          "run": 7,
+          "variant": 1,
+          "ms": 327.8079379999999
+        },
+        {
+          "run": 7,
+          "variant": 0,
+          "ms": 326.596673
+        },
+        {
+          "run": 8,
+          "variant": 0,
+          "ms": 333.9042150000005
+        },
+        {
+          "run": 8,
+          "variant": 1,
+          "ms": 331.29584200000045
+        },
+        {
+          "run": 9,
+          "variant": 1,
+          "ms": 330.6993739999998
+        },
+        {
+          "run": 9,
+          "variant": 0,
+          "ms": 337.41589900000054
+        },
+        {
+          "run": 10,
+          "variant": 0,
+          "ms": 327.78734799999893
+        },
+        {
+          "run": 10,
+          "variant": 1,
+          "ms": 338.5469830000002
+        },
+        {
+          "run": 11,
+          "variant": 1,
+          "ms": 331.6812369999989
+        },
+        {
+          "run": 11,
+          "variant": 0,
+          "ms": 328.349255000001
+        },
+        {
+          "run": 12,
+          "variant": 0,
+          "ms": 341.03183400000125
+        },
+        {
+          "run": 12,
+          "variant": 1,
+          "ms": 334.0667360000007
+        },
+        {
+          "run": 13,
+          "variant": 1,
+          "ms": 337.5323900000003
+        },
+        {
+          "run": 13,
+          "variant": 0,
+          "ms": 341.1513759999998
+        }
+      ],
+      "results": [
+        {
+          "rawMs": [
+            360.12413400000014,
+            354.140719,
+            345.5015800000001,
+            284.1396189999996,
+            326.596673,
+            333.9042150000005,
+            337.41589900000054,
+            327.78734799999893,
+            328.349255000001,
+            341.03183400000125,
+            341.1513759999998
+          ],
+          "medianMs": 337.41589900000054,
+          "p95Ms": 360.12413400000014
+        },
+        {
+          "rawMs": [
+            363.24361299999964,
+            354.27341000000024,
+            359.7439199999999,
+            329.9311150000003,
+            327.8079379999999,
+            331.29584200000045,
+            330.6993739999998,
+            338.5469830000002,
+            331.6812369999989,
+            334.0667360000007,
+            337.5323900000003
+          ],
+          "medianMs": 334.0667360000007,
+          "p95Ms": 363.24361299999964
+        }
+      ],
+      "ratio": 0.9900740806526137,
+      "maximumRatio": 1.5,
+      "scope": "Standard native process factory bootstrap, files/authorization/journals/templates/config, recovery control and actual HTTP listener. Module imports and fixture preparation excluded. Cleanup outside timing; logger worker creation and headers included. No device factory acquisition or full hardware ready; no real hardware."
+    },
+    "scope": "Unchanged3warm/11samples paired original28 starts and1.5 threshold, actual standard product factories; installation disabled here; separate installed full journey covers new gate; no hardware readiness"
+  },
+  "stateAndSecurity": {
+    "fixedLayout": "dataPath/config/moonraker.conf; database/moonraker-sql.db; logs; gcodes; systemd",
+    "preopen": "Existing selected SQLite header and immutable actual layout verified before ensureProcess opens owners. No legacy movement after resources open.",
+    "version": "Only namespace moonraker validate_install.node_layout version1 withcandidate/config hashes; original validate_install.install_version retained",
+    "ready": "Only fresh process validates public root proof+actual unit/profile/bundle/config+confirmed local journal+DB marker. No password/sudo cache required.",
+    "privilege": "Only explicit trusted-sudo; rejectNoNewPrivs; default polkit/NNP unchanged; root helper is standalone builtin-only and administrator protected before launch. approved.json contains no helperSHA; helper source independently verified against build-info.",
+    "concurrency": "Root O_EXCL owner.lock before receipt; no stale automatic recovery; unknown receipt before root effects; cleanup unknown keeps lock. Explicit two actual child barrier proves lock conflict before receipt.",
+    "cancellation": "Close stdin cooperation plus helper own60s deadline/root child group join; service UID cannot assume killing root group. Actual sudo/PAM/PTY forwarding not tested; kernelDstate may outlive deadline.",
+    "secrets": "Process Buffer snapshots/serial password task; stdin boundednewline; allsection original/settings redaction and publish; sensitive template sink disabled. Buffer wipe not universal V8string erasure.",
+    "shutdown": "Network failures retained; sudo+installer joins before announcements/config lease/auth/database, all owners still attempted; unknown stays blocked.",
+    "normalControls": "Pending bridge limited to installation self-restart; ready preserves original explicit MachineControlPort. Fixed helper does not implement arbitrary or general root service actions.",
+    "envDifference": "Old env backed up; fixed Node unit has no EnvironmentFile; no artificial unused new env.",
+    "authorizationCompatibility": "DEFAULT sudo_password inherited into authorization remains rejected by existing strict allowlist."
+  },
+  "notDelivered": [
+    "Full upstreamInstallValidator force_validation/validate_service/validate_config/backup-config fallback",
+    "Legacy pre-open paths/LMDB import/fullDBprecision migration",
+    "Complete includes/DEFAULT target ownership compatibility",
+    "Actual root runtime/helper/setpriv/supplementary-group/manifest andsudo/PAM/PTY/systemd deployment",
+    "ARM64 execution/kerneluncleanableprocess/TOCTOU-freeproof",
+    "Fresh default native rebuild stability",
+    "Complete Moonraker/Python/macros/UI/G3/hardware/realprinter/release",
+    "New-head CI/integration/merge/defaultPythonretirement"
+  ],
+  "reproduction": {
+    "minimumNode": "26.9+26.x; locked host/package-lock.json dependencies and accepted75/11 native identity",
+    "sourceTests": "Fromhost: node --test --test-isolation=none test/sudo-install-helper.test.ts test/sudo-owner.test.ts test/fixed-node-install.test.ts test/native-install-bootstrap.test.ts",
+    "compiler": "Standard npm run typecheck; buildProductHost(output,{nativeDirectory}) only with independent source/output hash match; otherwise standard fresh native build is a separate gate",
+    "compiledTests": "Locked compiler fullstrict emit --noEmit false --rewriteRelativeImportExtensions --rootDir <repo> --outDir <fixture>; compare667runtimeJS andscripts/helper to product668 hashes before routing host/src to exact product. Copy source test reference/resources+pty.c byte-identically; noTSload hook and--no-experimental-strip-types. Run same four compiled files on26.9.",
+    "originalRegression": "Exact35file selection retained above; original bounded150s/16MiB guard prohibitsTSloading and keeps fixed subprocess allowlist; copy unchanged reference/resources before execution. Evidence keeps first9assembly failures andonly7file repair.",
+    "performance": "Unchanged host/bench/{api-key-authorization,moonraker-network,native-print-uploads}.ts; compiled drivers route imports only to exact before/after product identities. Original100000x8 auth4routes; HTTP200/WS500/startup30 3warm11sample; uploads4/16MiB2warm7. SequentialAB/BA/AB, each60s/4MiB.",
+    "fiveJourneys": "Compiled host/acceptance/product-compiled-journey.test.js selected original namespace=true nativeAuthorization=true apiLoad=true load=false; acceptance bundle3identityenv; original, TLS+Unicodeprefix, +welcome, +256KiBborrowedlogs, +producedlogs/rollover. Original120s/8MiB wrapper and90s child/allthresholds.",
+    "installationDerivedDriver": "Exact temporary transform retained below so receipts are not sole reproduction instructions. Derive from locked unchanged compiler output, only layout/install prelude/list expected changes; product code unchanged. All existing original assertions remain.",
+    "installationTransformPython": "from pathlib import Path\nimport hashlib,json\nroot=Path('/home/dek02/.cache/codex/tmp/sudo-install-oct14');src=root/'compiled-fixtures/host/acceptance/product-compiled-journey.test.js';s=src.read_text()\ndef once(a,b):\n global s\n assert s.count(a)==1,(a,s.count(a));s=s.replace(a,b)\ns=\"import {fixedInstallUnit,runFixedInstallHelper} from 'file:///home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14/scripts/product-install-helper.js';\\n\"+s\nonce(\"const configRoot = join(dir, 'config')\", \"const dataPath=join(dir,'private'),installManifest=join(dir,'fixed-install-manifest.json'),installAudit=join(dir,'installation-actions.jsonl');const configRoot = join(dataPath, 'config')\")\nonce(\"configPath = join(dir, 'moonraker.conf')\",\"configPath = join(configRoot, 'moonraker.conf')\")\nonce(\"const authDatabase = join(dir, 'authorization.sqlite');\", \"const authDatabase = join(dataPath,'database/moonraker-sql.db');const installOptions={dataPath,configRoot,configFile:configPath,databasePath:authDatabase,logsRoot:join(dataPath,'logs'),gcodesRoot:join(dataPath,'gcodes'),unit:'anyraid-install-journey.service',candidateSha256:'',recoveryPath:join(dataPath,'systemd/node-install.json')};\")\nonce(\"await mkdir(configRoot);\",\"await Promise.all([configRoot,join(dataPath,'database'),join(dataPath,'logs'),join(dataPath,'gcodes'),join(dataPath,'systemd'),join(dir,'etc/systemd/system'),join(dir,'var/lib')].map(p=>mkdir(p,{recursive:true,mode:0o700})));await writeFile(join(dir,'etc/systemd/system/anyraid-install-journey.service'),'[Service]\\\\nUser=printer\\\\nEnvironmentFile=/old/moonraker.env\\\\n');await writeFile(join(dataPath,'systemd/moonraker.env'),'MOONRAKER_ARGS=legacy\\\\n');\")\ns=s.replace(\"join(dir, 'files')\",\"join(dataPath,'gcodes')\")\ns=s.replace(\"writable:['printer.cfg']\",\"writable:['printer.cfg','moonraker.conf']\")\ns=s.replace(\"['load.cfg', 'printer.cfg']\",\"[installationBackup, 'load.cfg', 'moonraker.conf', 'printer.cfg']\")\nonce(\"await writeFile(configPath, '[server]\\\\nhost=127.0.0.1\\\\nport=0'\", \"await writeFile(configPath, '[server]\\\\nconfig_path: '+configRoot+'\\\\nlog_path: '+join(dataPath,'logs')+'\\\\nhost=127.0.0.1\\\\nport=0'\")\nonce(\"const profile = join(dir, 'machine.mjs');\", \"const profile = join(dir, 'machine.mjs');const approved={schema:1,unit:installOptions.unit,user:'printer',node:process.execPath,bundle:app,profile,dataPath,profileSha256:'0'.repeat(64),bundleManifestSha256:createHash('sha256').update(await readFile(join(app,'build-info.json'))).digest('hex'),candidateSha256:'0'.repeat(64),previousUnitSha256:createHash('sha256').update(await readFile(join(dir,'etc/systemd/system',installOptions.unit))).digest('hex')};approved.candidateSha256=createHash('sha256').update(fixedInstallUnit(approved)).digest('hex');installOptions.candidateSha256=approved.candidateSha256;\")\nonce(\"let generation=0,serviceSequence=0,networkSamples=0;\", \"\"\"import {readFile} from 'node:fs/promises';import {createHash} from 'node:crypto';import {runFixedInstallHelper} from ${JSON.stringify(pathToFileURL(join(app,'scripts/product-install-helper.js')).href)};\nconst hash=b=>createHash('sha256').update(b).digest('hex'),installSpec=${JSON.stringify(installOptions)},io={root:${JSON.stringify(dir)},async command(args){await appendFile(${JSON.stringify(installAudit)},JSON.stringify(args)+'\\\\\\\\n');}};\nconst backend={async execute(op,password,signal){signal.throwIfAborted();if(op==='status'){const p=JSON.parse(await readFile(${JSON.stringify(join(dir,'var/lib/anyraid-install-attestations',installOptions.unit+'.json'))},'utf8'));if(p.candidateSha256!==installSpec.candidateSha256||hash(await readFile(${JSON.stringify(join(dir,'etc/systemd/system',installOptions.unit))}))!==p.unitSha256)throw Error('Proof differs');return {schema:1,phase:'installed',candidateSha256:p.candidateSha256,unitSha256:p.unitSha256,backup:null,envBackup:null};}if(password?.toString()!=='fixture-password')throw new ApiError(400,'Isolated credential invalid');return runFixedInstallHelper(${JSON.stringify(installManifest)},op,io,signal);},async close(){}};\nlet generation=0,serviceSequence=0,networkSamples=0;\"\"\")\nonce(\"const nativeFactory=createNativeProductHostFactory(${JSON.stringify(manifest)},{\", \"const nativeFactory=createNativeProductHostFactory(${JSON.stringify(manifest)},{installation:{options:installSpec,backend},\")\nonce(\" return {${diskImportLoad ?\", \" return {machineControl:{retirement(action){return action.kind==='service'?'none':'process';},async execute(action){await record({event:'fixture-machine-action',action});},async assertDeviceAvailable(){},async close(){}},${diskImportLoad ?\")\ns=s.replace(\"${diskImportLoad ? `createProductHostProfile.bootstrap=\", \"${true ? `createProductHostProfile.bootstrap=\")\ns=s.replace(\"${machineControlLoad ? `Object.defineProperty(createProductHostProfile,'machineControl'\", \"${true ? `Object.defineProperty(createProductHostProfile,'machineControl'\")\nonce(\"const env = { ...process.env\", \"const installationConfigBefore=await readFile(configPath);approved.profileSha256=createHash('sha256').update(await readFile(profile)).digest('hex');await writeFile(installManifest,JSON.stringify(approved));const listening=[];const env = { ...process.env\")\nonce(\"if (event.event === 'ready') {\", \"if(event.event==='listening')listening.push('http://127.0.0.1:'+event.address.port);if (event.event === 'ready') {\")\nonce(\"            spawnHost();\\n            async function waitReady\", \"\"\"            spawnHost();\n            const first=child,firstClosed=new Promise(r=>first.once('close',(code,signal)=>r({code,signal})));const deadline=Date.now()+10000;while(!listening.length){assert(first.exitCode===null,stderr);assert(Date.now()<deadline,'Installation listener deadline');await delay(5);}const installBase=listening[0],installHeaders={...requestAuth,'content-type':'application/json'};\n            const pending=await fetch(installBase+'/machine/sudo/info',{headers:installHeaders});assert.equal(pending.status,200);assert((await pending.json()).result.sudo_requested);assert.equal(ready.length,0);assert(!(await readFile(trace,'utf8')).includes('factory'));\n            const passwordResponse=await fetch(installBase+'/machine/sudo/password',{method:'POST',headers:installHeaders,body:JSON.stringify({password:'fixture-password'})});assert.equal(passwordResponse.status,200);assert((await passwordResponse.json()).result.is_restarting);for(let i=0;i<1000;i++){if((await readFile(installAudit,'utf8').catch(()=>'' )).includes('--no-block'))break;await delay(5);}const installationActions=(await readFile(installAudit,'utf8')).trim().split('\\\\n').map(JSON.parse);assert.deepEqual(installationActions,[['daemon-reload'],['--no-block','restart','--','anyraid-install-journey.service']]);assert.equal(ready.length,0);first.kill('SIGTERM');const installationClose=await firstClosed;assert.equal(installationClose.code,0);const backups=(await readdir(configRoot)).filter(p=>/^\\.moonraker\\.conf\\.save-backup-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(p));assert.equal(backups.length,1);const installationBackup=backups[0];assert.deepEqual(await readFile(join(configRoot,installationBackup)),installationConfigBefore);const installationTrace=await readFile(trace,'utf8');assert(!installationTrace.includes('factory'));t.diagnostic(JSON.stringify({fixedNodeInstallation:{actualFirstCli:first.pid,installationClose,installationActions,noDeviceBeforeRestart:true,profileSha256:approved.profileSha256,candidateSha256:approved.candidateSha256,configRemovedEqualOldAliases:!(await readFile(configPath,'utf8')).includes('config_path'),trace:installationTrace,scope:'Ordinary UID helper and injected fixed executor in isolated root; no actual sudo/systemd'}}));await writeFile(trace,'');\n            spawnHost();\n            async function waitReady\"\"\")\n# Confirm new process validated before original journey begins; private password refs cannot cross process.\nonce(\"base = ready[count - 1];\", \"base = ready[count - 1];if(count===1){const proof=await fetch(base+'/machine/sudo/info',{headers:requestAuth});assert.equal(proof.status,200);assert.equal((await proof.json()).result.sudo_requested,false);const backupUrl=base+'/server/files/config/'+encodeURIComponent(installationBackup),denied=await fetch(backupUrl);assert.equal(denied.status,401);await denied.arrayBuffer();const admitted=await fetch(backupUrl,{headers:requestAuth});assert.equal(admitted.status,200);assert.deepEqual(Buffer.from(await admitted.arrayBuffer()),installationConfigBefore);t.diagnostic(JSON.stringify({fixedNodeFreshReady:{actualCli:child.pid,withoutPassword:true,readOnlyAttestation:true,originalJourneyContinues:true,installationBackup,backupSha256:createHash('sha256').update(installationConfigBefore).digest('hex')}}));}\")\nout=src.with_name('product-installed-journey.test.js');out.write_text(s)\n(root/'installation-journey-driver-inputs.json').write_text(json.dumps({'schema':1,'originalPath':str(src),'originalSha256':hashlib.sha256(src.read_bytes()).hexdigest(),'effectivePath':str(out),'effectiveSha256':hashlib.sha256(out.read_bytes()).hexdigest(),'changes':['isolated fixed layout','real install consumer before first device','fresh actual CLI credential-free proof','separate install trace','add actual moonraker.conf to original config list expected values'],'workload':'All original movement/API/two-generation/ADC/close assertions and budgets retained; product unchanged'},indent=2)+'\\n')\n",
+    "startup": "Compiled unchanged host/bench/process-log-startup.js <before> <after>:3warm11samples/28actualstarts/1.5ratio; separate installation full journey covers newgate"
+  },
+  "attempts": [
+    {
+      "path": "bootstrap-authorized-first.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "c114fef283e5df096b6d79390345d9650dfc76e16e41348779858f50f6180da2",
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 659.095841
+    },
+    {
+      "path": "bootstrap-authorized-repair1.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "e6d899a406328843a47ff9d191b4dd262719cd260341d3888f58eeae8fa93cc3",
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1105.75512
+    },
+    {
+      "path": "bootstrap-authorized-repair2.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "d3e48ef555bbbbaadc6390cd98baa970d4c5394e11a5c2e5e75d1da70cfdfd50",
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 90160.85577
+    },
+    {
+      "path": "bootstrap-authorized-repair3.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "267b0bf730afc003c15794ac99000a4f980cec0dca13dc5eba5b7813415198ed",
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2089.737914
+    },
+    {
+      "path": "bootstrap-authorized-repair4.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "1c9b0bbff4ccd334584eaab5756c1a1422cc7cfc921b4a8e9c2d6fe1643028de",
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2047.009587
+    },
+    {
+      "path": "bootstrap-authorized-repair5.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "95bc9ef2f2f1f5664baaf69a540b9d439aa84fe6428c4958b5a3ce11283a19a0",
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3080.076868
+    },
+    {
+      "path": "bootstrap-authorized-repair6.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "9f1307ebcffb6f3d3f463d8dfa0a26c92c9d8ecf72a162d4ff36598b23d83845",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3080.153017
+    },
+    {
+      "path": "bootstrap-first.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "21f139812bfe9bc6850e665ad66f88e23da6537cd0d779c0098b856e740bdb6a",
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 784.734133
+    },
+    {
+      "path": "budget-driver.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "bd6210725a67823c4ccfeb467ead7383233b123afec24d3d4ed4d3140a0d47a2"
+    },
+    {
+      "path": "build-and-identity.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "cd85eb1f2126db62940a8e6d09f843d4511ff128cebf17006741ecd0ccbd64b9"
+    },
+    {
+      "path": "compiled-profile-cli-repair1.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "53c7d8f922eeccfe6739fa087d7afcda438b278ab4b9605dc76dfc71aec857a0"
+    },
+    {
+      "path": "compiled-profile-cli-repair2.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "313220a03e51bb077b35d2e5b42a56b51d4c5fc615d45f6b9ed7975c60edff31"
+    },
+    {
+      "path": "compiled-profile-cli.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "1474051a6993d98bfbec788f129e5f9dfa27b88eef802e2d8763f2004d23d75e"
+    },
+    {
+      "path": "default-cors-driver-repair.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "a013801d84dd373f3acca87ef57f9ebc3a2bd16d7957098d31049f31e45dd738",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1738.333028
+    },
+    {
+      "path": "helper-explicit-lock-barrier.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "f90eafaec9471b45238695c88351b9330128384a3f09e913dbfe6ec92446e107",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 322.061473
+    },
+    {
+      "path": "helper-owner-first.status",
+      "sha256": "2e6d31a5983a91251bfae5aefa1c0a19d8ba3cf601d0e8a706b4cfa9661a6b8a",
+      "observed": 9,
+      "logSha256": "af08f1b87953183e179b82f2c8ef3a8614c5fc2156e4ffff9b75d18c2f7df2dd"
+    },
+    {
+      "path": "helper-owner-node26-first.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "de801ad00b2b7b590588a929ef25ef994d092c0de70b70950aea7816c5327bf0",
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 299.644658
+    },
+    {
+      "path": "helper-owner-node26-ready.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "ddce3f8259a5e8fd92a55b03a0463789cd0e2b282e57e7224fb3cffc17e6483e",
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 840.049854
+    },
+    {
+      "path": "independent-emit.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "f14241074e9fdbbea911c8eae0c5f8e14d46cf814828c508fea06d66c00ecccb"
+    },
+    {
+      "path": "installed-backup-repair-driver.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "6e617299a179a5d2269719424d358f9d728d2f4977821e551894eee88a74f558",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 62533.741901
+    },
+    {
+      "path": "installed-driver.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "1c7413f9d1b351a301e6eef1e4798a992cf3c937a075be70b79c9c2b0b3d747c"
+    },
+    {
+      "path": "installed-mixed-backup-repair.status",
+      "sha256": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+      "observed": {
+        "status": 0,
+        "signal": null
+      },
+      "logSha256": "52884a8469481b447eaa4c98075b81b0c9d5d31b5b53bf8e45eee7745dbb139d",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 62533.741901
+    },
+    {
+      "path": "installed-mixed.status",
+      "sha256": "87247c78cdc9022660458ef5909d14182a3190471aeef6691ebd81078aa740bc",
+      "observed": {
+        "status": 1,
+        "signal": null
+      },
+      "logSha256": "c1d3192e1e6ce7f8c85c5fded86943a1588819b4502b019863bae1cb64f959ab",
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 10518.60353
+    },
+    {
+      "path": "lifecycle-expanded-first.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "abad7778a1232d00d587c09c7bf6205e987b34cb9529abb8d732bebf5255792b",
+      "tests": 21,
+      "pass": 20,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 7162.14877
+    },
+    {
+      "path": "lifecycle-expanded-repair1.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "8366d56adab0d2a2f38d2ba2bbb450cd207c5ef119fcfb4711a4875972a03bf7",
+      "tests": 23,
+      "pass": 22,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 10632.803564
+    },
+    {
+      "path": "logs-mixed.status",
+      "sha256": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+      "observed": {
+        "status": 0,
+        "signal": null
+      },
+      "logSha256": "f9a955231c9da53848506f4552c3a059cb9e5fb43cc1efce8a127ecbd0130c7b",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 64021.321943
+    },
+    {
+      "path": "minimum26-install-driver.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "48b24c007851e8d9b243679551a84c7bca34a68549f4d6d2c8266609911b2788",
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 8123.237304
+    },
+    {
+      "path": "minimum26-install.status",
+      "sha256": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+      "observed": {
+        "status": 0,
+        "signal": null
+      },
+      "logSha256": "471032340913f802ef632ba273b26a77500f93dfeb978293d1ec74fa4cc530bd",
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 8123.237304
+    },
+    {
+      "path": "mixed-driver.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "f1d6f247d8fd250cf56a16e8e3aca105e4df875c979f4f9de16df8c8f3f835d9",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 60328.676296
+    },
+    {
+      "path": "old-regression-driver.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "72ef32690a6d9b891420502004c858aa2dcf20e8f0f81139944e24d76de039f4"
+    },
+    {
+      "path": "old-regression-resource-driver.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "5761abf1b3d85836c9224662ee6fc22489c83e2536fda1ccc8b606f8fe2e7ee2",
+      "tests": 245,
+      "pass": 245,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 820.489334
+    },
+    {
+      "path": "old-regression-resource-repair.status",
+      "sha256": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+      "observed": {
+        "status": 0,
+        "signal": null
+      },
+      "logSha256": "24bba81d1303c17d90d7da2cb1bca7a3a09cec8a2c28b296ed080af174eb56e0",
+      "tests": 245,
+      "pass": 245,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 820.489334
+    },
+    {
+      "path": "old-regression.status",
+      "sha256": "87247c78cdc9022660458ef5909d14182a3190471aeef6691ebd81078aa740bc",
+      "observed": {
+        "status": 1,
+        "signal": null
+      },
+      "logSha256": "f6c9391627935d8219079286389a626fabec9f19eae9d29f3b53bae22837e72c",
+      "tests": 262,
+      "pass": 253,
+      "fail": 9,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 72195.301529
+    },
+    {
+      "path": "original-mixed.status",
+      "sha256": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+      "observed": {
+        "status": 0,
+        "signal": null
+      },
+      "logSha256": "ed8678278fb28453d8a02273796ca616489944ad6005c70f8df52eebddc55c03",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 59930.743174
+    },
+    {
+      "path": "produced-logs-mixed.status",
+      "sha256": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+      "observed": {
+        "status": 0,
+        "signal": null
+      },
+      "logSha256": "f1f90380ec73c5b98d4b74f12303f4b48c44eb44443cabb5e1c9712ebe5ce527",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 60328.676296
+    },
+    {
+      "path": "startup-driver.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "eef913108dcb0d6983c28cc7f74c96fbb19b8d1838bd2e3d3fe755c39c944a5d"
+    },
+    {
+      "path": "startup.status",
+      "sha256": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+      "observed": {
+        "status": 0,
+        "signal": null
+      },
+      "logSha256": "786d36631da246e114890db54b3fb6944407032bd1187ad27d741e3e9adddc22"
+    },
+    {
+      "path": "test-url-emit.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "62dd00d55c908903ac58af158bcf4ba729e695a962fedd9bb78d0f535fecc404"
+    },
+    {
+      "path": "tls-mixed.status",
+      "sha256": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+      "observed": {
+        "status": 0,
+        "signal": null
+      },
+      "logSha256": "07cee98cd4a31f9613ad915ee61ba1f832b12c2d5edef5ba82ba873c4abd15bb",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 59967.219081
+    },
+    {
+      "path": "typecheck-authorized-first.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "typecheck-bootstrap-stage.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "typecheck-final26.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "37634a704dc42c947510a8f43cea5ffc8dc4d3da2225218f83c75bd8f940b01e"
+    },
+    {
+      "path": "typecheck-first.status",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "observed": 1,
+      "logSha256": "8b829856e6004791ddc02fd99d1cd43c938100deeaf0f84da35c4fa85c909f3a"
+    },
+    {
+      "path": "typecheck-pre-product.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "validator-first.status",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "observed": 0,
+      "logSha256": "2a2d0a6e11b6ab8b720f41fd5dd04de17f61d6b8fe5d274804d1f461d092e8e3",
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2540.168706
+    },
+    {
+      "path": "welcome-mixed.status",
+      "sha256": "e769809a2db4132929a90c2161d9a47d9b630ae90e6e9d893c0e9545994c6b1d",
+      "observed": {
+        "status": 0,
+        "signal": null
+      },
+      "logSha256": "8a500e6ea21b704e97095f105f6d51d0075b202bc39bd0787e9a71402ac18915",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 61360.243814
+    }
+  ],
+  "temporaryEvidenceRoot": "/home/dek02/.cache/codex/tmp/sudo-install-oct14",
+  "priorCiContract": "host/contracts/pr68-fad45d3-terminal.json",
+  "priorCiDoesNotCoverCurrentChanges": true
+}

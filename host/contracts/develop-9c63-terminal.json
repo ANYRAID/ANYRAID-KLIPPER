@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "head": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "kind": "Actual develop merge commit",
+  "jobs": [
+    {
+      "id": 114209436156,
+      "name": "sanitizer (asan)",
+      "run": 38050827822,
+      "conclusion": "success"
+    },
+    {
+      "id": 114209436206,
+      "name": "sanitizer (ubsan)",
+      "run": 38050827822,
+      "conclusion": "success"
+    },
+    {
+      "id": 114209436221,
+      "name": "checks",
+      "run": 38050827822,
+      "conclusion": "success"
+    },
+    {
+      "id": 114211790409,
+      "name": "host",
+      "run": 38050827822,
+      "conclusion": "success"
+    },
+    {
+      "id": 114209436029,
+      "name": "build",
+      "run": 38050827810,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4499,
+    "pass": 4499,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "archive": {
+    "path": "develop-9c63-terminal.evidence.json.gz",
+    "sha256": "1c8db9fa5905b1df1824970da8c73fe7271351556b164620e6408dbc6b1a72f4",
+    "bytes": 581921,
+    "entries": 5
+  },
+  "scope": "PR #63 actual merge: prescribed 5 jobs. No additional motion diagnostic workflow is required for this documentation-only change. CI and simulated software checks do not close G3 or permit physical printing."
+}

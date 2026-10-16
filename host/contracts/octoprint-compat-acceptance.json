@@ -1,0 +1,321 @@
+{
+  "schema": 1,
+  "baselineHead": "5c934240c26b0e2196739e0a2ed10162c9a844bb",
+  "sourceSha256": {
+    "host/src/moonraker/octoprint-compat.ts": "46e317b911b7a6f1d511832c59ec5f1d683442441c6655235136cfe7e4795a8b",
+    "host/src/moonraker/endpoints.ts": "4862cdf9a8d460218327279238869f0a057a5c5837d6e2c408efd5196cff7a19",
+    "host/src/moonraker/server.ts": "5aedf35ddd16670325b908c2a07392ff4212f12bb45992cd896679cedac2aadc",
+    "host/src/moonraker/native-print-uploads.ts": "8534eda5ad092fb840c5be98eccca1e25c2251dd4f6b8466a7c52064852426c6",
+    "host/src/moonraker/configured-server.ts": "0221c521fed5c805270a6bb6f9576a03a456fdb115fdcee889b7915fa5ce6d6c",
+    "host/test/octoprint-compat.test.ts": "72163444b184effe31eb768f2aa6eaf63915fc5107b08aa012563b037f7b9bdc",
+    "host/test/upload-print-intent.test.ts": "181c94ca155e8c6fa7bc3e482aab78d1fbcba961693cc18b7c0da74cb71ff28e",
+    "host/bench/octoprint-compat.mjs": "6c810b64637be5bbfcbe5a65f3de127a3de137e228e4fdc47b46646d010fcdf4",
+    "host/bench/moonraker-configured-server.ts": "e77af34828c8eba75b92293c57d6bc54ab0e792825659b6bad8c50220f365831"
+  },
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "runtime": "3.12.13",
+    "sourceSha256": {
+      "components/octoprint_compat.py": "2c1516cf9fc03b0c97a74f9495f3ba12bc032ed95085f05502a291ffed874c75",
+      "common.py": "3fc12fc52c5d9c2a7e878f3babcd63904df3c37e8161a47814de15a8feb02b75",
+      "components/application.py": "def768fef23065ce807a2a34de7f23b62f25f077407757b7b765f463798b0188"
+    }
+  },
+  "referenceSha256": "d894cd77b6bc8fc39de9437497d59792850455c319515bbbe7318543abc37335",
+  "referenceCases": 106,
+  "implementation": {
+    "configuration": "Optional [octoprint_compat]; enable_ufp and webcam configuration; HTTP only",
+    "routes": "9 static raw JSON routes plus canonical suffix file selection, 204 for no-op/select; shared authenticated multipart /api/files/local",
+    "owners": "Original NativePrintUploads, UFP decoder, immutable publication, canonical print/gcode API, generation, authorization and journal; no second file or device writer",
+    "precision": "Existing CPython binary64 decimal rounding helper; exact frozen thermal responses including negative zero and huge extruder suffix; native/motion code unchanged",
+    "handshake": "Immutable response and resolved promise reused for constant per-generation version; every caller still checked for cancellation/closure",
+    "queue": "Select fallback only to an existing explicitly enabled native queue; complete upload->automatic queue behavior remains open",
+    "failures": "Original cache-retention and canonical double-slash selection failure fixed. Sandbox listen/child spawning, missing qoijs declaration, Worker closure omissions and 1.607/1.509 handshake budget failures retained."
+  },
+  "tests": {
+    "source": {
+      "tests": 156,
+      "pass": 156,
+      "fail": 0
+    },
+    "compiled": {
+      "tests": 156,
+      "pass": 156,
+      "fail": 0
+    },
+    "product": {
+      "tests": 156,
+      "pass": 156,
+      "fail": 0
+    }
+  },
+  "performance": {
+    "budgets": [
+      {
+        "round": 0,
+        "path": "/api/version",
+        "ratio": 0.8139818470297426,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "path": "/api/job",
+        "ratio": 0.15301275788130478,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "path": "/api/printer",
+        "ratio": 0.46232380324449496,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "path": "/api/version",
+        "ratio": 0.4259669365647288,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "path": "/api/job",
+        "ratio": 0.154632256634002,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "path": "/api/printer",
+        "ratio": 0.48870552934102585,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "path": "/api/version",
+        "ratio": 0.8243204758107482,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "path": "/api/job",
+        "ratio": 0.1595776240630613,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "path": "/api/printer",
+        "ratio": 0.4785989800903859,
+        "limit": 1.5,
+        "pass": true
+      }
+    ],
+    "pass": true,
+    "maximumComponentRatio": 0.8243204758107482,
+    "existingNetwork": {
+      "budgets": [
+        {
+          "kind": "existing actual network",
+          "round": 0,
+          "owner": "manual",
+          "metric": "http",
+          "ratio": 1.0035876152027159,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 0,
+          "owner": "manual",
+          "metric": "ws",
+          "ratio": 0.8614769436325768,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 0,
+          "owner": "manual",
+          "metric": "startup",
+          "ratio": 1.054496740982611,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 0,
+          "owner": "configured",
+          "metric": "http",
+          "ratio": 0.9720728550247467,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 0,
+          "owner": "configured",
+          "metric": "ws",
+          "ratio": 0.9006602195211698,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 0,
+          "owner": "configured",
+          "metric": "startup",
+          "ratio": 1.0644317289625647,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 1,
+          "owner": "manual",
+          "metric": "http",
+          "ratio": 0.9085273764497074,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 1,
+          "owner": "manual",
+          "metric": "ws",
+          "ratio": 0.941068271019654,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 1,
+          "owner": "manual",
+          "metric": "startup",
+          "ratio": 0.950585722366994,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 1,
+          "owner": "configured",
+          "metric": "http",
+          "ratio": 0.8943733157981798,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 1,
+          "owner": "configured",
+          "metric": "ws",
+          "ratio": 0.9212794171214453,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 1,
+          "owner": "configured",
+          "metric": "startup",
+          "ratio": 0.9975057043332113,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 2,
+          "owner": "manual",
+          "metric": "http",
+          "ratio": 0.9206460522237356,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 2,
+          "owner": "manual",
+          "metric": "ws",
+          "ratio": 0.961349097836849,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 2,
+          "owner": "manual",
+          "metric": "startup",
+          "ratio": 0.978865590939877,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 2,
+          "owner": "configured",
+          "metric": "http",
+          "ratio": 0.9121158934600624,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 2,
+          "owner": "configured",
+          "metric": "ws",
+          "ratio": 0.9826949904627722,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "kind": "existing actual network",
+          "round": 2,
+          "owner": "configured",
+          "metric": "startup",
+          "ratio": 0.9914492401527722,
+          "limit": 1.5,
+          "pass": true
+        }
+      ],
+      "maximumRatio": 1.0644317289625647,
+      "scope": "Original actual-package network benchmark ran before constant handshake promise optimization; verified all 687 other output files unchanged. This original workload has no octoprint_compat configuration, so that component is never instantiated. No repeated network test or inherited active-OctoPrint measurement."
+    },
+    "sourceScope": "Final installed product; original 500 iterations, 2 warmups, 7 samples, 1.5 limit. Fresh process each of 3 fixed runs; no own tests/compiler/install overlap. Original failing samples preserved."
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/product-host-octoprint-promise-oct12",
+    "manifestSha256": "91a4de748c661d8496c898eac251eaf5a1f0bf4811e40ec3a2f71c0875ec9c18",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+  },
+  "assembly": {
+    "files": 688,
+    "changedFromBaseline": [
+      "host/src/moonraker/configured-server.js",
+      "host/src/moonraker/endpoints.js",
+      "host/src/moonraker/native-print-uploads.js",
+      "host/src/moonraker/octoprint-compat.js",
+      "host/src/moonraker/server.js"
+    ],
+    "nativeSourcesVerified": 75,
+    "scope": "Full TS production build and 18 offline-installed locked dependencies; unchanged native outputs reused, not a fresh native compilation."
+  },
+  "evidence": {
+    "path": "host/contracts/octoprint-compat-evidence.json.gz",
+    "sha256": "0d4bac2ac26ae0402314381c476425fa2ed64ff03fd626af8475b7fd1f809256",
+    "bytes": 3036656,
+    "entries": 958
+  },
+  "scope": "Actual HTTP software tests execute exact sealed files and durable completed jobs via a mocked physical device. No Cura plugin page, Fluidd/Mainsail new scene, real MCU/hardware, motion precision or target printing throughput claim.",
+  "remaining": [
+    "Own new head CI and task -> develop -> master integration",
+    "Upload automatic queue compatibility and queue fallback integration acceptance",
+    "Cura plugin page and full official-client journeys",
+    "Complete Moonraker/templates/consumer macros and 177 Python files/default entry/benchmark retirement",
+    "Original UI/native-build/G3/target Cycnumbris500 gates; other models last"
+  ]
+}

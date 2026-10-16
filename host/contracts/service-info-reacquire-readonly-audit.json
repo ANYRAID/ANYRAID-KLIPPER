@@ -1,0 +1,336 @@
+{
+  "schema": 1,
+  "date": "2026-10-16",
+  "mode": "read-only historical evidence/source audit; no new samples or implementation",
+  "sourceCommit": "624ab579e07e698eaae5f7f6e93968c844677ea5",
+  "historicalArchive": {
+    "path": "host/contracts/service-info-installation-evidence.tar.gz",
+    "sha256": "3e58c721928e693569d91ae3794f829bab92dc6ac8b3638ff9c0a58d7bba207d",
+    "members": 135,
+    "allManifestMemberShaVerified": true
+  },
+  "registrationSha256": "a8159cb800ff9605896f9200b6b8d72cd969b065156ec0f9ac87b283e6573d44",
+  "originalRaw": {
+    "path": "linux/linux-factory-performance.json",
+    "sha256": "9378a4dd1b014c5ee455965236b873128dfdb16190215b7318f9f6577da2b441",
+    "rows": 56,
+    "ratio": 4.086073241645491
+  },
+  "parallelRaw": {
+    "path": "linux/linux-factory-parallel-performance.json",
+    "sha256": "486c405165f7af201767302cd338d3f512fd34e1a2567dabcea4c08b58c4e299",
+    "rows": 56,
+    "node": "v26.9.0",
+    "started": "2026-10-15T10:50:30.787Z",
+    "variants": {
+      "before": {
+        "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/none-product",
+        "manifestSha256": "85e233de1fd8e90e72fe9324e9b57cea984646ec731f26f5641761ad17349bd8",
+        "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+      },
+      "after": {
+        "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/service-info-parallel-product",
+        "manifestSha256": "cc312dc2c23dcdca94c44438c1503c1dde873da0943765062a3fe0254cbdf3a6",
+        "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+      }
+    },
+    "cold": {
+      "beforeCount": 28,
+      "afterCount": 28,
+      "beforeMedian": 1538.955429499998,
+      "afterMedian": 1643.0594144999995,
+      "deltaMs": 104.10398500000156,
+      "ratio": 1.0676458739508945,
+      "budgetMs": 2308.433144249997,
+      "rangeBefore": [
+        1528.3564449999976,
+        1550.812340999999
+      ],
+      "rangeAfter": [
+        1636.531898000001,
+        1658.8494199999986
+      ]
+    },
+    "reacquire": {
+      "beforeCount": 28,
+      "afterCount": 28,
+      "beforeMedian": 15.578824000000168,
+      "afterMedian": 40.91033599999446,
+      "deltaMs": 25.33151199999429,
+      "ratio": 2.6260220925529434,
+      "budgetMs": 23.368236000000252,
+      "rangeBefore": [
+        14.80677100000321,
+        16.35316099999909
+      ],
+      "rangeAfter": [
+        39.64302200000384,
+        47.22144400000252
+      ]
+    },
+    "threshold": 1.5,
+    "gate": "failed; unchanged"
+  },
+  "currentComparison": {
+    "matching": 14,
+    "total": 16,
+    "all11ProductionFilesByteIdentical": true,
+    "files": [
+      {
+        "path": "host/src/moonraker/configured-server.ts",
+        "measuredSourceSha256": "5337af8a89199cf6f15fcf58d9dbe8d0e2c16fb898ba3648d1b1876dd819b06c",
+        "currentSourceSha256": "5337af8a89199cf6f15fcf58d9dbe8d0e2c16fb898ba3648d1b1876dd819b06c",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/fixed-node-install.ts",
+        "measuredSourceSha256": "c139459bb4168fe844679be1e28a96fbb059e4ad888d112c4cacc0db27e368b3",
+        "currentSourceSha256": "c139459bb4168fe844679be1e28a96fbb059e4ad888d112c4cacc0db27e368b3",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/legacy-node-install.ts",
+        "measuredSourceSha256": "423fb0efe28caca0f4e75af3d5bfd0e49957624d5d2144dd74ff9ab4732a8d91",
+        "currentSourceSha256": "423fb0efe28caca0f4e75af3d5bfd0e49957624d5d2144dd74ff9ab4732a8d91",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/machine-provider.ts",
+        "measuredSourceSha256": "7245badc8b822c9241566fe7770539064cd38c4f05e7eb803c1969873ccc534f",
+        "currentSourceSha256": "7245badc8b822c9241566fe7770539064cd38c4f05e7eb803c1969873ccc534f",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/service-info.ts",
+        "measuredSourceSha256": "3512df71c2ccc9da5662a0dc970fc73ec89fc4c935cb26e3709db16ff41df123",
+        "currentSourceSha256": "3512df71c2ccc9da5662a0dc970fc73ec89fc4c935cb26e3709db16ff41df123",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/service-installation-proof.ts",
+        "measuredSourceSha256": "7e6e269accc1eca3d57ed235d80201a3706b315dd1969e14ddca5dc0d0c03899",
+        "currentSourceSha256": "7e6e269accc1eca3d57ed235d80201a3706b315dd1969e14ddca5dc0d0c03899",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/sudo-backend.ts",
+        "measuredSourceSha256": "e95a421bcf698d8c54351afa466a0a06fa13216d864d38109008478418c9bf46",
+        "currentSourceSha256": "e95a421bcf698d8c54351afa466a0a06fa13216d864d38109008478418c9bf46",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/sudo-owner.ts",
+        "measuredSourceSha256": "5be40eba0cf9685cec2b35c57e9a437f4576ff5bf451f587ca56f2975cfdd678",
+        "currentSourceSha256": "5be40eba0cf9685cec2b35c57e9a437f4576ff5bf451f587ca56f2975cfdd678",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/system-services.ts",
+        "measuredSourceSha256": "b7422f77ee890c0ec45f86924e0516cd11a2d27ffad4bc16dda8d47984d0216d",
+        "currentSourceSha256": "b7422f77ee890c0ec45f86924e0516cd11a2d27ffad4bc16dda8d47984d0216d",
+        "matches": true
+      },
+      {
+        "path": "host/src/runtime/native-product-machine.ts",
+        "measuredSourceSha256": "8818c5dce1fbc4abf92029681f18d050568738698736dcdabdf357914a631152",
+        "currentSourceSha256": "8818c5dce1fbc4abf92029681f18d050568738698736dcdabdf357914a631152",
+        "matches": true
+      },
+      {
+        "path": "host/test/helpers/service-installation-process.ts",
+        "measuredSourceSha256": "126ebf01cbfffac90579269497b22de68561ed5c4451d514744f3187211378ea",
+        "currentSourceSha256": "33465d8d514b09414af0c4035d7d34d6c38a2198eb7354f4d4668f5532b24717",
+        "matches": false
+      },
+      {
+        "path": "host/test/service-info.test.ts",
+        "measuredSourceSha256": "b08cf95ea2006feda7cfe3d1668487c18b49bc09f4c068feb3c692ec675f3865",
+        "currentSourceSha256": "b08cf95ea2006feda7cfe3d1668487c18b49bc09f4c068feb3c692ec675f3865",
+        "matches": true
+      },
+      {
+        "path": "host/test/service-installation-process.test.ts",
+        "measuredSourceSha256": "2ae14366792192d6f084fc14ab9a55e9abc63f782b0235d4f0ef0fd4f4d183c6",
+        "currentSourceSha256": "2c92628d67fe5937943c0c4a4b6baa28ae676350ffb7be76dc548e867d73399d",
+        "matches": false
+      },
+      {
+        "path": "host/test/sudo-install-helper.test.ts",
+        "measuredSourceSha256": "9bfa44c1296b841b5d01788739c9bdcf284cd432b31152aa29f398c56604a5f4",
+        "currentSourceSha256": "9bfa44c1296b841b5d01788739c9bdcf284cd432b31152aa29f398c56604a5f4",
+        "matches": true
+      },
+      {
+        "path": "host/test/system-bus-owner.test.ts",
+        "measuredSourceSha256": "d10780b272b8e9c62306e1b7eab8c5fdba358e8e2fa5339e94ca2de54eeff183",
+        "currentSourceSha256": "d10780b272b8e9c62306e1b7eab8c5fdba358e8e2fa5339e94ca2de54eeff183",
+        "matches": true
+      },
+      {
+        "path": "scripts/product-install-helper.ts",
+        "measuredSourceSha256": "8dfc94eda93df85b72771792a30d8f4f17e5f09bfd87d5ca9c217640da2dcc8c",
+        "currentSourceSha256": "8dfc94eda93df85b72771792a30d8f4f17e5f09bfd87d5ca9c217640da2dcc8c",
+        "matches": true
+      }
+    ],
+    "testDifferences": "Later CI fixture adds cgroup-derived unit naming and diagnostics; not old benchmark inputs",
+    "measuredProduct": "cc312dc2c23dcdca94c44438c1503c1dde873da0943765062a3fe0254cbdf3a6",
+    "currentProduct": {
+      "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/reserved-user-product",
+      "manifestSha256": "173565dc6b94d2d0380ec911f4f175d5a5b9f644880e8378245315eddf55e774",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+    },
+    "productionInventoryDifferences": [
+      {
+        "path": "host/src/moonraker/api-key-authorization.js",
+        "previous": "922d2cc4ee1000b6d2d5a05019b29c53ac309183059adb386805e23e0fb1fc12",
+        "current": "53f5b71812247197ff287a785d58f18058610d9147a0d9c6b648dbabfa5a8cd4"
+      },
+      {
+        "path": "host/src/moonraker/legacy-authorization-startup.js",
+        "previous": "457e741b83307e1955d6620fc92cd1de303f997e070545a6a8c86d230d92884b",
+        "current": "f69d8e547892d03c9aff5f83f517496c94705c87ac7691f44d14a51995d599fa"
+      },
+      {
+        "path": "host/src/moonraker/product-host-api.js",
+        "previous": "041eabde2c2fbe9f681752989fdc3e232bd8bf04c611d9a1970c1b3caac3e498",
+        "current": "4be4d3345dc8593dbd79f2be1e9ef3cb4113a301933ab6f3c0040996f0d77da0"
+      }
+    ],
+    "servicePathJavaScriptByteIdentical": [
+      {
+        "path": "host/src/runtime/product-host.js",
+        "sha256": "058c9c559ae694520854aff414f5257a17d7a33d4861c29c9470d6f7d7e69d8b",
+        "matches": true
+      },
+      {
+        "path": "host/src/runtime/native-product-machine.js",
+        "sha256": "70989a45c64c1998d52399b818210efa91195886cd5a535420eeb42c1d232161",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/configured-server.js",
+        "sha256": "5db8a02513756c2d4e9fcc359ff2a7312e5b3b68ef3ac7eb44d9d61b4860c33a",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/fixed-node-install.js",
+        "sha256": "f23be4d643989b02f48fe96cbfec3d867bcec112f7dcd6ad5231155b83b7e1b6",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/legacy-node-install.js",
+        "sha256": "2e5bb8f2fd32eaa759f3e3c47b468161c65656e28af93bcd0a2e1e4a074ddef0",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/service-info.js",
+        "sha256": "e663fc2cea0cd72190f3aefa7a02556c18dde179510abc3bdea68ca44d5c08ad",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/service-installation-proof.js",
+        "sha256": "42d9d2fa29de7cb6e03dfe549db25cd881ca90e1935356edab8aac3a9dbdcdd8",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/sudo-backend.js",
+        "sha256": "857dae59af1bcadd56eb593864d7b5880857424e35d893ab4dfe6c938d09a2b2",
+        "matches": true
+      },
+      {
+        "path": "host/src/moonraker/sudo-owner.js",
+        "sha256": "ab93e405fe1230476eccf651bf4c6838b93c40c0a50d4bd239e87dfbdc5bff08",
+        "matches": true
+      }
+    ],
+    "exactCurrentProductRatioMeasured": false
+  },
+  "code": [
+    {
+      "path": "host/src/runtime/native-product-machine.ts",
+      "line": 324,
+      "fact": "One assertInstallationReadyFresh immediately before actual createAdapter"
+    },
+    {
+      "path": "host/src/moonraker/fixed-node-install.ts",
+      "line": 39,
+      "fact": "Fresh target proof followed by final root receipt/unit digest verification"
+    },
+    {
+      "path": "host/src/moonraker/service-info.ts",
+      "line": 101,
+      "fact": "CLI current(proof) checks local latest/generation/fingerprint/PID/startTicks, not external property invalidation"
+    },
+    {
+      "path": "host/src/moonraker/service-info.ts",
+      "line": 108,
+      "fact": "Current cgroup route; successful hint never an admission proof; fresh status/show may run concurrently"
+    },
+    {
+      "path": "host/src/moonraker/service-info.ts",
+      "line": 118,
+      "fact": "Fresh Id/MainPID/LoadState and second cgroup agreement required"
+    },
+    {
+      "path": "host/src/moonraker/service-installation-proof.ts",
+      "line": 38,
+      "fact": "Refresh obtains fresh service facts and manifest declaration"
+    },
+    {
+      "path": "host/src/moonraker/service-installation-proof.ts",
+      "line": 53,
+      "fact": "Target confirms real proc argv/exe/account and current proof"
+    },
+    {
+      "path": "host/src/runtime/product-host.ts",
+      "line": 117,
+      "fact": "Fence producers before request handoff; fully retire prior owners before next acquisition"
+    },
+    {
+      "path": "host/src/runtime/product-host.ts",
+      "line": 121,
+      "fact": "closeGeneration must complete before next factory/adapter acquisition"
+    }
+  ],
+  "costEvidence": {
+    "scope": "Actual installation-enabled CLI factory; fake systemctl and simulated adapter; parent HTTP-to-second-ready includes bounded5ms polling; no printing-speed or real-system measurement",
+    "parallelFreshFakeStatusChildCloseMs": 23.106842000000142,
+    "addedMedianMs": 25.33151199999429,
+    "remainingReductionToExistingBudgetMs": 17.542099999994207,
+    "existingSingleTrace": {
+      "path": "linux/linux-factory-once-trace.json",
+      "phase": "before parallel optimization",
+      "lastStatusMs": 22.48655799999983,
+      "lastShowMs": 22.815312000000176,
+      "deploymentAndBackendStatus": "Approximately0.05-0.14ms each; nested, never summed",
+      "notReplacementSample": true
+    },
+    "inference": "Necessary fresh CLI child startup is the leading cost hypothesis; no second serial CLI proof found. Existing pre-parallel trace cannot establish exact parallel causal allocation."
+  },
+  "prefetchDecision": {
+    "implemented": false,
+    "safeOptimizationEstablished": false,
+    "reason": "Retirement-time CLI facts may change before actual acquire; local current(proof) does not observe external User/ExecStart/EnvironmentFiles/FragmentPath changes. Full fresh status/show after retirement preserves contract but retains primary cost.",
+    "requiredRefusals": [
+      "cgroup/unit/PID/startTicks change",
+      "manifest/deployment/unit/root byte change",
+      "service account/argv/environment/fragment change",
+      "abort or old generation cleanup failure"
+    ],
+    "proofOrTtlCacheAllowed": false,
+    "thresholdOrFixtureChangeAllowed": false
+  },
+  "decision": {
+    "keepOriginalFailure": true,
+    "budgetDesignDifference": "Baseline lacks candidate fresh CLI safety checks; record the added work without relaxing the registered1.5 budget",
+    "additional56Rows": false,
+    "additionalTrace": false,
+    "next": "Return to complete same-package Mainsail A4 and normal integration per Delivery; no optional Moonraker module or new runtime scene in this audit"
+  },
+  "boundaries": [
+    "2.626022 is historical cc312 measurement, not a new1735 ratio",
+    "Default D-Bus, real systemd/root/sudo/device, full42/28 and physical gates are not measured here",
+    "No source implementation, push, merge or deployment in this read-only audit"
+  ]
+}

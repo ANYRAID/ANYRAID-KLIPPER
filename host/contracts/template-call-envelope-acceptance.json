@@ -1,0 +1,845 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "baseHead": "6f0277089cf2792da39e011230f578bbae2c2200",
+  "status": "draft-bounded-call-envelope-only-original-ui-and-fresh-build-open",
+  "scope": "Accepted only bounded serialization of the existing tagged argument trees directly into the call envelope. Reply channels, native threads, completion protocol, original quotas and numeric kinds remain unchanged.",
+  "functionality": {
+    "source": {
+      "tests": 183,
+      "pass": 183,
+      "fail": 0
+    },
+    "compiled": {
+      "tests": 183,
+      "pass": 183,
+      "fail": 0
+    },
+    "compiledMode": "No TS loading; JS external child processes denied; existing actual localhost LDAP/HTTP and native/database workers permitted, not OS isolation",
+    "typecheck": "passed",
+    "rustfmt": "passed",
+    "whitespace": "passed",
+    "newBoundaries": [
+      "Complete call envelope exactly 65536 bytes accepted; one-byte and JSON-escaping overflow rejected before callable entry",
+      "Nested map/list kinds, i128 bounds, signed zero, float versus integer and escaped UTF-8 preserved",
+      "64 sequential native callbacks reject prior, future, duplicate and other-frame responses",
+      "Two real native lanes isolate eight jobs including a failed frame and typed sequential callbacks"
+    ],
+    "runtimeModules": {
+      "baseline": 167,
+      "candidate": 167,
+      "changed": [],
+      "hashes": {
+        "baseline": {
+          "config/klipper-autosave.js": "7c14a07218093706fe98dce57a7eca1936286f93df1f74ec92bc26cd9297e4e7",
+          "config/klipper-files.js": "0b1314497d932f48f065ebad1bfd2f9975e05902b7918bde0459e0823b8a66b5",
+          "config/klipper-save-commit.js": "8c092a9047b56766794b34982148bb8991b24ff666573988c91b234626dcd0da",
+          "config/klipper-save-preflight.js": "d5b46394b23ba9403d813f92213b497dac09e661e00d2ad7029d4b387541071e",
+          "config/klipper-save.js": "7bc871fd06441ffd63da65f0636e4b423b3106041441405c85492a16e14ba375",
+          "config/klipper-text.js": "6a857e13a7ff99ad617522ef4c7b27ad02bc1ebd867a0e118436379f3e6b091f",
+          "config/native-config-backups.js": "3989863da3b568184bd209a23e46e80f6b512908ccef18b111609fcd2cbd2cff",
+          "config/native-config-replace.js": "e9a8c1599a1b17ceec3119b72eaff858d9b6b299e8ef01671700c85bb4085f88",
+          "gcode/command-help.js": "96ae0dff3d1f8ad7b8e2fdb9fc9fec13d1b7dfe453a0203bb1097eb4de19ac52",
+          "gcode/dispatch.js": "231167f56c92c3bba94393becfe102db7cb8a76650c006cd9cf12ce2c6f5af23",
+          "gcode/extrusion-accounting.js": "e1a3ec3f40b66c1f7b559dc1d3a06a8da392d0f112da36f6addcd4019b283ed4",
+          "gcode/file-reader.js": "030673a7e43172ba2d56247faf35326005a2fe5cea3c89f482ec243f9335abeb",
+          "gcode/move.js": "81575f70f44bd3931a2272acb5a10030fe88a349a7526614590a9b39f5a52333",
+          "gcode/parser.js": "aa2f51303f2abdf1dadab64a9aeaef4271428a48fca971200433121911ec1512",
+          "gcode/pressure-advance.js": "529f5304512df0fa563cac85ecdec90acf473dda6a0a426fcc69204d55897569",
+          "gcode/sealed-file.js": "62c9b8a997b9dcac71742c6acbe2880cd6995dbc14529eeba7c4fc59f045e9cc",
+          "gcode/snapshot-budget.js": "f6637749dd7b8a6a0dc7df5846f3d10fc5ee049cb7ef4215bba16531aec6ba22",
+          "math/python-decimal.js": "272b6f519fdde601e7e3dcf4e8e7af01c8347e012d9778763e1e92e17dfcbff2",
+          "moonraker/agent-methods.js": "09431bfcbc43d1f69ef51e6a13097730daeebc06f536f69dfe76fc73829e0826",
+          "moonraker/announcements-rss.js": "50561a38804b9529246e238ed1353fcd4336448700628b12454e63f6d83ca9f4",
+          "moonraker/announcements.js": "ca213ea7be417b462ebf04078b03704176a8ff2e9dc27fd762db6c7e420da614",
+          "moonraker/api-key-authorization.js": "1b19e312ff213aa2626fc920f17853156c913c373e57b6d81e87f365d92520ab",
+          "moonraker/authorization-config.js": "024dc587628ce62826f49510b9a81a0ca50f4c319ea4310b2d9e1140910f4941",
+          "moonraker/authorization-policy.js": "d2f0a121a4760b651cf0b574769566a2df40bec91b20878d8ce616324138f809",
+          "moonraker/client-calls.js": "cb6425d9184e36ba023136c280273ab91239efbf7ca032774005630b8aaf381b",
+          "moonraker/client-requests.js": "d3f71945efae7fa72aec6534a1a143a962d562eae905e49ea3f7316541bde378",
+          "moonraker/clients.js": "d90e8b892964d95f57eedad02b4fc0192e2993c49f341043dc616c5409f6c01a",
+          "moonraker/component-subscriptions.js": "888bf105e3340b7b1b63a1be7d58216f3e053c6e2c7162510c00c427ba8fb40f",
+          "moonraker/config-path.js": "c04b045697ad4cfbf5d19492a680d660514e11c93eb73e21c5bf3e897c5928c0",
+          "moonraker/config-reader.js": "c07daf149d747fce04736d793d8de0b01253535b1896fc2a88220a157ede6735",
+          "moonraker/config-source.js": "34051fd0da258e582fee7281f1a5bf5791482d7b9d8f0ef7a7f59cf3f8faaded",
+          "moonraker/configured-server.js": "49f24850162aef8d7a3bf582492acf016cba7f84a9b13406b538a22af19234c6",
+          "moonraker/cors-policy.js": "a4e1510c4857225b208baa0b2ce984c834264f6b7ca1b8daf2e71aaf91a69007",
+          "moonraker/database-backup-files.js": "9cf18d82533af83d898628ab3b10b20029e9d47735c612afbdcc5226a654bfd3",
+          "moonraker/database-engine.js": "65bca4b76942e606c058ad4459f1f89f0bda99ddc72c443bc1c1a17de13d5ff1",
+          "moonraker/database-maintenance.js": "f112b4dcf2deb1492d4027a79b9654155e2b151124e17e2798f57cd7f4754de6",
+          "moonraker/database-namespace.js": "c4c257428ec25a9fa6528c89f259d839358d2d28289a6375abf24d7c410ab1d8",
+          "moonraker/database-record.js": "25e1e88e53112fe51c5cc5c3481d5f19585372af7caf89af1043f4cab3ff40a8",
+          "moonraker/database-sql.js": "e4a6e9b9a1391740ea09b6427768ec80079311525bc6e65d7ae008bfe95d23ba",
+          "moonraker/database-table.js": "2ed230b552ae8fa17d63c5c79652c5cb4ebee1e09b2c0892ac7d5c97fd0130de",
+          "moonraker/database-worker.js": "25ac1e4145e4f0c5bbb441e44a700fe8cb77358531ccf5a6b75b06950af6ad49",
+          "moonraker/database.js": "7e24572a1af0d9207e498dc8fc99f6aaedd4ef3b74ff21224c56f2dc4cde1a95",
+          "moonraker/endpoints.js": "908bd94cc8b70248f49481e62352b1c0beb69fd8e31b70f9c26fda9a60bccbe6",
+          "moonraker/extensions.js": "507c563cebc668263112779ce6a37aa4dc36983f5a6c7867cb95ee7536390c29",
+          "moonraker/file-list.js": "9df9d90973181d53d494bf73e712b1158f565ee94ebe91c4db83350093acee02",
+          "moonraker/file-metadata.js": "f47245a283254a004bf6c60fbe4fc429a623afab0b14116ae4253a1b4662db3e",
+          "moonraker/gcode-store.js": "b99b22dc4b171f14c687891aab6c1cc58a810b6132b4a7ddaa049436959a6b23",
+          "moonraker/history-api.js": "25a277df388bd305cf7b0fbf47a008c6d36cf5b7764f7744f0a0ac237fd1cc27",
+          "moonraker/history-attribution.js": "bce8d8a848aa8da45db6b038a10180be3d12d9ce32b1ea2294f294687bd34b77",
+          "moonraker/history-auxiliary.js": "c5b3012a42635e448d702d97b11489951e658dbe5a9cf972afef1ea18dd0860e",
+          "moonraker/history-fields.js": "51667578fb45e881d80876a4886233b1f247b3617b3417db21d769cd44bc2b46",
+          "moonraker/history-file-metadata.js": "97857dd95259663a182fd363a0ab40b9e5dc32ad9b628ceafa0d9d546f43c37f",
+          "moonraker/history-metadata.js": "ab4789d21d10bf56987454951ab51ffc0416749d919e7b88d6a989efa9b2369e",
+          "moonraker/history-repository.js": "50ef38051b4b5a4e4002a8f364244ec9457bd53dd20beb5a38c6b20a0f8d5792",
+          "moonraker/history-round.js": "e517e5d157631e917de00a3176ef8c2878921ce225f177db37958b8970a52c1f",
+          "moonraker/history-runtime.js": "d615095a23bf2af1677602c4694940efb08d3c30a6981327cbc15cc8e4e63dec",
+          "moonraker/history-tracker.js": "5d9bed09c1c0c910e69663f39fc136bcf9928c8b47132a92b9aa2808ca8f570e",
+          "moonraker/job-state.js": "05b45452074315c9629a18d391b9c9dc3e580ca68a6960d5f56188fc7d550ec2",
+          "moonraker/json-size.js": "9f86473c850c8c10d12873b8d3ac9a493b78a587e1ae1a3184c884c09af30d75",
+          "moonraker/json.js": "e4270f8e2f4e81f1818b810f0d3cb735dd1082a6df7fa5c38c520995c37c9095",
+          "moonraker/klippy-config.js": "326a29ca2b94f9d00d79000f353c42233bf4f18790cc2c567d7f66cd468256fd",
+          "moonraker/klippy-lifecycle.js": "7cd9eabb00b72964617ec52393c6e04757533aef5ce2a54efb7006a647910875",
+          "moonraker/klippy-notifications.js": "e932c97c8d29ff04b27005f536f9654bcbeb4f5b81683d4cf1941ba77d92ce31",
+          "moonraker/klippy-socket.js": "a08008427f9201eaa8b5dfc04831bfc335489562a6181f6a781325411a2c3ee5",
+          "moonraker/klippy-supervisor.js": "20497d2c0ded3d92c12486728e155965be68564608f1a31e2e9d2c93ea8b6f7f",
+          "moonraker/ldap-authorization.js": "1fe5923d4ea7509596f6fd4796ca8682fe912c3c60c85ab40e927413f3be2a3b",
+          "moonraker/ldap-config.js": "62cf6f5fe7a668bb4def9856a2ce867a36bb89323e52602b0278dbba7f963032",
+          "moonraker/local-user-authorization.js": "10eaeab1de8bf23a0638d51a419667acacf51dc8bde3a82d6577681d5e725df2",
+          "moonraker/machine-control.js": "fdb3519d28ba0f6e800256989a66d72c019cfd81daf07c072b759d803140f959",
+          "moonraker/metadata-extractor.js": "5c8641d3ad17b8e3a183f87d9207f9644680732bcd97f34cd67151db1cbf7d89",
+          "moonraker/metadata-files.js": "b56adb12bbe704607747939d12e1201b436b82d219ffe1940f99d225b3384649",
+          "moonraker/metadata-head-storage.js": "9c3ec212d41073d50c8e135f7e4a26d8d84cd0d7f17cdd7bb2cf313da32935b0",
+          "moonraker/metadata-intent-scan.js": "b2862b34bb9c8d1388d0e89c027565859b969f8194e9ac58b461349f631cc524",
+          "moonraker/metadata-intents.js": "2d9f398996ebbb043b3f0a2f3c3aedaf7cbf1d6344163814f38b035efa87ec92",
+          "moonraker/metadata-lifecycle.js": "2dab1bf6dce2b3fd5416b06aa901a01dbc10e8c957e0a98163da168b2a12f323",
+          "moonraker/metadata-retirement.js": "e7b6cd8c6faed9742b974b044f163382818897bcbe5b77cc48b57f412446ce9a",
+          "moonraker/metadata-scan.js": "1c14bf8b13b45d4c76925d52c2d3021912d10ad48d4af68d0684047da19b853b",
+          "moonraker/metadata-snapshots.js": "2296b592adf6bd2e89fb5206b65a026e5d7883ba66968f7bf7ce816904db472a",
+          "moonraker/metadata-values.js": "ffed39ad7e63a7f27073c1cb44aff3d0aeb721c24c45edcaf8ac73470038cf2a",
+          "moonraker/metadata-version-recovery.js": "9ecc61359982a8d8a9514ea6b427d8b1de4bacd2a0b7e982aca3e5106c833562",
+          "moonraker/metadata-versions.js": "5403a38c0ee5d9c75e0964001fa76a9889962e4c8543bd1e5019fc38aa1475e4",
+          "moonraker/metadata-watch.js": "4dbbf007a47accc94a9325da9e0028dad26aa627e1a2e05d865ff872c3454ea1",
+          "moonraker/metadata-window.js": "108dee01d3c8a4a15d3ad1f66f04455b94d93de1abd94ce4fcb4465735e74d74",
+          "moonraker/metadata.js": "ddeb56052f5f929248d64c95210dacc8780cdfa4c2ed0930d0ede2aae5eb5698",
+          "moonraker/mqtt-api.js": "154a54e99cad6d4afe3a5534fd05eb1b12b59bab2af3ed320f6fd9a020595b91",
+          "moonraker/mqtt-config.js": "12ec8ff3ed2ce26e61e17817520e9f49d7e24665a6627b47f7aa9832d575d9c9",
+          "moonraker/mqtt-macros.js": "78d8207fc43a26e4928d4e6d748055fb6dde8522aa0e17504393ee2e39cff3dd",
+          "moonraker/mqtt-rpc.js": "5c3a26ab54b0cf43fde0ae688fcbbea91badab5ab3126de5dc64af8e3c581cf9",
+          "moonraker/mqtt-sensors.js": "cf66c687c9003fc7ddd8f98826b4fb0df217df526c43f16fa4cc1531d64e652f",
+          "moonraker/mqtt-status-runtime.js": "16f3b5751f08433927f234342e00c9fdbe4b7b14b05f5bbc200bd36f961c951e",
+          "moonraker/mqtt-status.js": "5ceffbfbf21a8f7fcf89c5f64c2863fb3879f9d73f0177c3bc2a25e28a786ba8",
+          "moonraker/mqtt-waiters.js": "6e9ae6d40bb6c1046a21dbdfe0ed6abc296fc25584582dafc0f4314c76743178",
+          "moonraker/native-config-files.js": "23401c22c36833649806409bb0eb275b54bee2f261bac6b3a2f67ffeebd184f7",
+          "moonraker/native-file-metadata.js": "f336702c4be8aa9ea85bef9c160b5e5c8559e1904a9c7da74584b4c831486f50",
+          "moonraker/native-file-path.js": "3e1b115ccdbba5461464b8f6603db746411a85c283040468abf6144ff2ca70ac",
+          "moonraker/native-history-fields.js": "8aaa676bd3b3cdb3de0d5a809f8fb5a20d70d0f0e623d95356706377fd437180",
+          "moonraker/native-history.js": "a54c34dfc8c30394095f129dd53e498ca1179534682a93f59761454a61594a09",
+          "moonraker/native-host-notifications.js": "9477069ef7b1992c77f8f15beaab20e19fd1d4a2fe3eecf763d8be8d3ce550e2",
+          "moonraker/native-host-status.js": "a1dbe550594062902f54cb5354f4d2868b699e0d14286f6b93b95ee7fed9dba9",
+          "moonraker/native-job-queue.js": "bda7507d0fdf5b4193f7932864c42c557565f107168f1e07651b8afa3baab045",
+          "moonraker/native-metadata-source.js": "d0e96706d83d1531e3b74f24d59825e2a58ee8907f79a326e1ac80013262b59c",
+          "moonraker/native-objects.js": "0e0b4c121b7950e2d7c86c7490fda1461c9c57f80120b7fed1bbfe83aeeee0ab",
+          "moonraker/native-persistent-metadata.js": "cac6b0c809815e0b3ceb01203aa894b858575da733601fba6206de15c8e5234f",
+          "moonraker/native-print-uploads.js": "439a0121fa31f9457fb02d7aa725334e6069c8e997d29fe0a9185616c1c8b415",
+          "moonraker/native-printer-info.js": "b910b8d81b647b8acef85716ff3c37daa926128fc855a10698ba76c0fc1c705a",
+          "moonraker/native-request-scope.js": "4f97838668585d00ffa19f6766b457549f25c40eef74942077e556d340d0707f",
+          "moonraker/native-sensor-config.js": "b3594dff76b3a8e75955e1fde13a42e72be8efc358aeacc1e860c26ecc64c602",
+          "moonraker/native-subscriptions.js": "9dce10bc9a0b740ca18a5df4a99ac565eb532e6d23456dce6a0b908cd5f9ae34",
+          "moonraker/native-template.js": "69783c68c0ab0df499087ec49e1ae606da351b6276ef88ce1f32a25c433c00d0",
+          "moonraker/notifications.js": "410542c050104a950e45936921275000e97dfd12abfff4656865a89b5d14e26f",
+          "moonraker/print-api.js": "868efd5176a218eaebbe7a3d815c9b78ca6a63489664316ac9e5d21bb85cdcb3",
+          "moonraker/proc-stats.js": "fdd9116d138e0ca455ead7e8a27f302a514f2e45adedefaee015b7ed15652af5",
+          "moonraker/product-host-api.js": "73b8a4d2b9254dc4e03d4cef93576b668e536541b7a75da1e8b7011b6645c0f4",
+          "moonraker/product-print-api.js": "4143450d17f20d6792ce8164c54186fe2d4d8f85290265327d5d1b485fc60df4",
+          "moonraker/python-lower.js": "733778bc687ab4fead3d96dfa356be3a76f4c908656f1c61d49b6d7163cabbde",
+          "moonraker/rejected-upload-body.js": "53879021c35a7fa3fc6e8db0162a783356ce3ea9c57607935c463a2dfe9dc7f9",
+          "moonraker/response-completion.js": "fce12bda58d1688bee109debbad5e1a3d75d4fe3510662457ef8c32283a40b3a",
+          "moonraker/rpc.js": "6184e4cb535de9a2eefd0256d826fc8b75c4db1cef6e8c4ef87dd5449d7d5623",
+          "moonraker/secrets.js": "ec88bcfdfd001c8c83d6fe20d90d32342486427c9f7204a572a0fadeeb8f265e",
+          "moonraker/sensor-config.js": "a8fe30675a280efa2cf8769db599174fc161675a11f959f86cfef449809535b6",
+          "moonraker/sensor-messages.js": "ec767501b295087d2667d779e0f53e2c79d3fdd5da485cebb2f73b18f3139a1b",
+          "moonraker/sensors.js": "52e67b56e15d3327e6f71d5ada3a3d1e6b3416d2a5336ee3ad35cf66b9450c38",
+          "moonraker/server.js": "0035bd48696f60af89f8422409e2a5a2058247848c7b7e9766d5d833b4b525a0",
+          "moonraker/slicer-identification.js": "54bdfa6dc5aeb672e5e52d8b4646daf75f7ff8bb94ba756b6937d7173a56302f",
+          "moonraker/subscription-connection.js": "6c36fdf6489f81f807b5c50433d2a13c6ab9e243e318d354a8e917f152f5764f",
+          "moonraker/subscription-delivery.js": "a7f376657801286fc4cd5d2902ac77747a7696f372710d52ec8893158b387056",
+          "moonraker/subscription-journal.js": "3fd39ee0c373d8fa1916ba696738442393f53e9b7ccfbb29ef252ec59264e820",
+          "moonraker/subscription-manager.js": "664b373ad7639eef49955611d0894736e1c6c9e5bd1b9c628307c1b09ec28d9c",
+          "moonraker/subscription-status.js": "da77af637d9bd9630c92c061b17117bd0dc41f024491e45d446f022b33b3a5d9",
+          "moonraker/system-information.js": "e4ed2fa78338f6b432593b3baf8ecac538b47d661375193e3cfc392745255c08",
+          "moonraker/system-services.js": "04cd3d60a06e82298000e9bf1e690b368bc70e0ebd113b85cfa8f0b423ce3334",
+          "moonraker/temperature-store-runtime.js": "31cd15fa4e9407984dfc76eff92cdd06b1761faffd1d22f32c3a85f562ccdb55",
+          "moonraker/temperature-store.js": "796b1a370e4bd944c6410f3a5a93f8f8cd0ad55ec068723e81437f43003d8859",
+          "moonraker/template-async-owner.js": "d264f82e171aa8b195794a568e06096ed0492e0e2c132a6e3899a6395035e90a",
+          "moonraker/template-factory.js": "8a4152fab3120f8cb27cdeb88d610fac4595c0284256016d8c89e24178ae9851",
+          "moonraker/template-numbers.js": "6a3d3b1090d9027ff8e7f469e03b19f70fe84ee50b6e18e63423474ad5c53003",
+          "moonraker/template-owner.js": "cc6ccde589e30e33cad6d0f9a8060f1f7081461c35c5ef607b31ff49d872dddf",
+          "moonraker/template-wire.js": "1cab0750d48f3ab63b907b0483137f0d27202af55e29072a475d969fae7e3a5f",
+          "moonraker/thumbnail-blocks.js": "284fb1e90b6b82f751116f39e46ccb015065d3d2b8a88a649b9ce0cb7a3b9451",
+          "moonraker/thumbnail-download.js": "09064a311cf0af4bba8937f7ba38fa54d0dab3938738c2197a31838c7f172bae",
+          "moonraker/thumbnail-images.js": "e898db2051bb5342c323959a4b4917b7476f6472c951e5adc21c8ffde4aaca81",
+          "moonraker/thumbnail-process.js": "23922f0f29bd7e9be6f39a6e25a9f501a396bac7cd6c975a08c1747d9fea040a",
+          "moonraker/thumbnail-storage.js": "237d4fbb5e0655ab001a90b52b8916b652a8ebc85b39b33c43e49d2df6f5f53e",
+          "moonraker/trusted-clients.js": "99dc22a89058282d7d5c7fcb483f8de24cb427854b88e41e57f79426d983480a",
+          "moonraker/ufp-archive.js": "37f3432432eb5a1c08e2b95790a74081f299fa6358ccf6ae2822d1cb14dd2a33",
+          "moonraker/unix-peer.js": "fc6c70cec01bde566654a76800d356c2366688a8dd6e2d235b50770504f405e2",
+          "moonraker/webcams.js": "df17f15888ebc2bf1ca356db931cbaba4b3aa672acce859c7d7e2cb365afc8de",
+          "motion/pressure-advance-settings.js": "29fb2afa6cf3d0abcdf23287823155f37d507a267fc29eb08c3f59c2d5fe16a2",
+          "operations/maintenance-gate.js": "40035f257a604b062977243e28d1196e20efd49d1a029742f27d68d00b50b529",
+          "operations/print-deadline.js": "54b6095719081e5bb80f6d16b243df199b1a2c49145bcc00ab7f11930e7fd2a0",
+          "operations/print-history-auxiliary.js": "751b5ae8782775877a93cf3092f8202e543704fd5e51c38cc92d7998fdb5742d",
+          "operations/print-history-totals.js": "d6225454190e9721c97afbc7f7bc51aa23eb9a001fcf797e72fe4d4179097349",
+          "operations/print-journal-types.js": "0bedd748965a79620a37a95d0e5deb2dcd2e65e11e7ac3729bfefc2cbd43c19d",
+          "operations/print-journal.js": "f77afc9e75eff9af94c7ffaca53f210cb6f1d2ac01ddb9a1100efe41237f485b",
+          "operations/print-state-stream.js": "77ca7c6588a80c4b51c02b3a27b90d60d66feba59f990b15b401e0f0b20531df",
+          "operations/print.js": "b29068bd8125b37ea29e413a03e84ff091faa35803564266b45c12245dc94eee",
+          "runtime/host-recovery-journal.js": "55a9ab6a993012eb10f291f21bd2108005b76e7a30b5c562bc1646eabad70d09",
+          "runtime/product-host-control.js": "119728453da19364b3cb36a0d576b41c63849e69f459285fc808c678dae7c722",
+          "runtime/worker-entry.js": "f4f173f00286ff046ec2e334d545012997770394296594ff2db7f398825f48ab",
+          "storage/namespace-copy.js": "8cb0b3945b3b39271251c3e63fc05c40002a1a56b3a1735788200b685d12f46e",
+          "storage/namespace-delete.js": "d5177ea6f1596c30316ad6e12d582df04214bd5b53278e9a7bc331177b41b11e",
+          "storage/namespace-move.js": "ce703dd4fee2e193d84b28a0a429e1ae1dc0afa8a2eb2340bb488b3d1f4070a1",
+          "storage/namespace-replace.js": "ef338ba1539e688668aac6546b54d7c264113da8cfca3669014a674033f7578f",
+          "storage/published-files.js": "7587a2c7a775e05ee67ef526a28b5b382a06a66f61ead7f3ea30d072249cd5ee",
+          "storage/published-paths.js": "ddb4b77b80948516efec313eb2fd07387a88513a750361da83c16a5ec90f4eec",
+          "storage/published-receipt.js": "ec137c85786760f2f9304b05e94fcaeb0c3b5f3088e79d426a7c8e76d1ee7e6f",
+          "storage/sealed-buffer.js": "8ba91dc16bcc29bd8748118ae355f9532ee4795488e524c0b77d2918c5681e9c"
+        },
+        "candidate": {
+          "config/klipper-autosave.js": "7c14a07218093706fe98dce57a7eca1936286f93df1f74ec92bc26cd9297e4e7",
+          "config/klipper-files.js": "0b1314497d932f48f065ebad1bfd2f9975e05902b7918bde0459e0823b8a66b5",
+          "config/klipper-save-commit.js": "8c092a9047b56766794b34982148bb8991b24ff666573988c91b234626dcd0da",
+          "config/klipper-save-preflight.js": "d5b46394b23ba9403d813f92213b497dac09e661e00d2ad7029d4b387541071e",
+          "config/klipper-save.js": "7bc871fd06441ffd63da65f0636e4b423b3106041441405c85492a16e14ba375",
+          "config/klipper-text.js": "6a857e13a7ff99ad617522ef4c7b27ad02bc1ebd867a0e118436379f3e6b091f",
+          "config/native-config-backups.js": "3989863da3b568184bd209a23e46e80f6b512908ccef18b111609fcd2cbd2cff",
+          "config/native-config-replace.js": "e9a8c1599a1b17ceec3119b72eaff858d9b6b299e8ef01671700c85bb4085f88",
+          "gcode/command-help.js": "96ae0dff3d1f8ad7b8e2fdb9fc9fec13d1b7dfe453a0203bb1097eb4de19ac52",
+          "gcode/dispatch.js": "231167f56c92c3bba94393becfe102db7cb8a76650c006cd9cf12ce2c6f5af23",
+          "gcode/extrusion-accounting.js": "e1a3ec3f40b66c1f7b559dc1d3a06a8da392d0f112da36f6addcd4019b283ed4",
+          "gcode/file-reader.js": "030673a7e43172ba2d56247faf35326005a2fe5cea3c89f482ec243f9335abeb",
+          "gcode/move.js": "81575f70f44bd3931a2272acb5a10030fe88a349a7526614590a9b39f5a52333",
+          "gcode/parser.js": "aa2f51303f2abdf1dadab64a9aeaef4271428a48fca971200433121911ec1512",
+          "gcode/pressure-advance.js": "529f5304512df0fa563cac85ecdec90acf473dda6a0a426fcc69204d55897569",
+          "gcode/sealed-file.js": "62c9b8a997b9dcac71742c6acbe2880cd6995dbc14529eeba7c4fc59f045e9cc",
+          "gcode/snapshot-budget.js": "f6637749dd7b8a6a0dc7df5846f3d10fc5ee049cb7ef4215bba16531aec6ba22",
+          "math/python-decimal.js": "272b6f519fdde601e7e3dcf4e8e7af01c8347e012d9778763e1e92e17dfcbff2",
+          "moonraker/agent-methods.js": "09431bfcbc43d1f69ef51e6a13097730daeebc06f536f69dfe76fc73829e0826",
+          "moonraker/announcements-rss.js": "50561a38804b9529246e238ed1353fcd4336448700628b12454e63f6d83ca9f4",
+          "moonraker/announcements.js": "ca213ea7be417b462ebf04078b03704176a8ff2e9dc27fd762db6c7e420da614",
+          "moonraker/api-key-authorization.js": "1b19e312ff213aa2626fc920f17853156c913c373e57b6d81e87f365d92520ab",
+          "moonraker/authorization-config.js": "024dc587628ce62826f49510b9a81a0ca50f4c319ea4310b2d9e1140910f4941",
+          "moonraker/authorization-policy.js": "d2f0a121a4760b651cf0b574769566a2df40bec91b20878d8ce616324138f809",
+          "moonraker/client-calls.js": "cb6425d9184e36ba023136c280273ab91239efbf7ca032774005630b8aaf381b",
+          "moonraker/client-requests.js": "d3f71945efae7fa72aec6534a1a143a962d562eae905e49ea3f7316541bde378",
+          "moonraker/clients.js": "d90e8b892964d95f57eedad02b4fc0192e2993c49f341043dc616c5409f6c01a",
+          "moonraker/component-subscriptions.js": "888bf105e3340b7b1b63a1be7d58216f3e053c6e2c7162510c00c427ba8fb40f",
+          "moonraker/config-path.js": "c04b045697ad4cfbf5d19492a680d660514e11c93eb73e21c5bf3e897c5928c0",
+          "moonraker/config-reader.js": "c07daf149d747fce04736d793d8de0b01253535b1896fc2a88220a157ede6735",
+          "moonraker/config-source.js": "34051fd0da258e582fee7281f1a5bf5791482d7b9d8f0ef7a7f59cf3f8faaded",
+          "moonraker/configured-server.js": "49f24850162aef8d7a3bf582492acf016cba7f84a9b13406b538a22af19234c6",
+          "moonraker/cors-policy.js": "a4e1510c4857225b208baa0b2ce984c834264f6b7ca1b8daf2e71aaf91a69007",
+          "moonraker/database-backup-files.js": "9cf18d82533af83d898628ab3b10b20029e9d47735c612afbdcc5226a654bfd3",
+          "moonraker/database-engine.js": "65bca4b76942e606c058ad4459f1f89f0bda99ddc72c443bc1c1a17de13d5ff1",
+          "moonraker/database-maintenance.js": "f112b4dcf2deb1492d4027a79b9654155e2b151124e17e2798f57cd7f4754de6",
+          "moonraker/database-namespace.js": "c4c257428ec25a9fa6528c89f259d839358d2d28289a6375abf24d7c410ab1d8",
+          "moonraker/database-record.js": "25e1e88e53112fe51c5cc5c3481d5f19585372af7caf89af1043f4cab3ff40a8",
+          "moonraker/database-sql.js": "e4a6e9b9a1391740ea09b6427768ec80079311525bc6e65d7ae008bfe95d23ba",
+          "moonraker/database-table.js": "2ed230b552ae8fa17d63c5c79652c5cb4ebee1e09b2c0892ac7d5c97fd0130de",
+          "moonraker/database-worker.js": "25ac1e4145e4f0c5bbb441e44a700fe8cb77358531ccf5a6b75b06950af6ad49",
+          "moonraker/database.js": "7e24572a1af0d9207e498dc8fc99f6aaedd4ef3b74ff21224c56f2dc4cde1a95",
+          "moonraker/endpoints.js": "908bd94cc8b70248f49481e62352b1c0beb69fd8e31b70f9c26fda9a60bccbe6",
+          "moonraker/extensions.js": "507c563cebc668263112779ce6a37aa4dc36983f5a6c7867cb95ee7536390c29",
+          "moonraker/file-list.js": "9df9d90973181d53d494bf73e712b1158f565ee94ebe91c4db83350093acee02",
+          "moonraker/file-metadata.js": "f47245a283254a004bf6c60fbe4fc429a623afab0b14116ae4253a1b4662db3e",
+          "moonraker/gcode-store.js": "b99b22dc4b171f14c687891aab6c1cc58a810b6132b4a7ddaa049436959a6b23",
+          "moonraker/history-api.js": "25a277df388bd305cf7b0fbf47a008c6d36cf5b7764f7744f0a0ac237fd1cc27",
+          "moonraker/history-attribution.js": "bce8d8a848aa8da45db6b038a10180be3d12d9ce32b1ea2294f294687bd34b77",
+          "moonraker/history-auxiliary.js": "c5b3012a42635e448d702d97b11489951e658dbe5a9cf972afef1ea18dd0860e",
+          "moonraker/history-fields.js": "51667578fb45e881d80876a4886233b1f247b3617b3417db21d769cd44bc2b46",
+          "moonraker/history-file-metadata.js": "97857dd95259663a182fd363a0ab40b9e5dc32ad9b628ceafa0d9d546f43c37f",
+          "moonraker/history-metadata.js": "ab4789d21d10bf56987454951ab51ffc0416749d919e7b88d6a989efa9b2369e",
+          "moonraker/history-repository.js": "50ef38051b4b5a4e4002a8f364244ec9457bd53dd20beb5a38c6b20a0f8d5792",
+          "moonraker/history-round.js": "e517e5d157631e917de00a3176ef8c2878921ce225f177db37958b8970a52c1f",
+          "moonraker/history-runtime.js": "d615095a23bf2af1677602c4694940efb08d3c30a6981327cbc15cc8e4e63dec",
+          "moonraker/history-tracker.js": "5d9bed09c1c0c910e69663f39fc136bcf9928c8b47132a92b9aa2808ca8f570e",
+          "moonraker/job-state.js": "05b45452074315c9629a18d391b9c9dc3e580ca68a6960d5f56188fc7d550ec2",
+          "moonraker/json-size.js": "9f86473c850c8c10d12873b8d3ac9a493b78a587e1ae1a3184c884c09af30d75",
+          "moonraker/json.js": "e4270f8e2f4e81f1818b810f0d3cb735dd1082a6df7fa5c38c520995c37c9095",
+          "moonraker/klippy-config.js": "326a29ca2b94f9d00d79000f353c42233bf4f18790cc2c567d7f66cd468256fd",
+          "moonraker/klippy-lifecycle.js": "7cd9eabb00b72964617ec52393c6e04757533aef5ce2a54efb7006a647910875",
+          "moonraker/klippy-notifications.js": "e932c97c8d29ff04b27005f536f9654bcbeb4f5b81683d4cf1941ba77d92ce31",
+          "moonraker/klippy-socket.js": "a08008427f9201eaa8b5dfc04831bfc335489562a6181f6a781325411a2c3ee5",
+          "moonraker/klippy-supervisor.js": "20497d2c0ded3d92c12486728e155965be68564608f1a31e2e9d2c93ea8b6f7f",
+          "moonraker/ldap-authorization.js": "1fe5923d4ea7509596f6fd4796ca8682fe912c3c60c85ab40e927413f3be2a3b",
+          "moonraker/ldap-config.js": "62cf6f5fe7a668bb4def9856a2ce867a36bb89323e52602b0278dbba7f963032",
+          "moonraker/local-user-authorization.js": "10eaeab1de8bf23a0638d51a419667acacf51dc8bde3a82d6577681d5e725df2",
+          "moonraker/machine-control.js": "fdb3519d28ba0f6e800256989a66d72c019cfd81daf07c072b759d803140f959",
+          "moonraker/metadata-extractor.js": "5c8641d3ad17b8e3a183f87d9207f9644680732bcd97f34cd67151db1cbf7d89",
+          "moonraker/metadata-files.js": "b56adb12bbe704607747939d12e1201b436b82d219ffe1940f99d225b3384649",
+          "moonraker/metadata-head-storage.js": "9c3ec212d41073d50c8e135f7e4a26d8d84cd0d7f17cdd7bb2cf313da32935b0",
+          "moonraker/metadata-intent-scan.js": "b2862b34bb9c8d1388d0e89c027565859b969f8194e9ac58b461349f631cc524",
+          "moonraker/metadata-intents.js": "2d9f398996ebbb043b3f0a2f3c3aedaf7cbf1d6344163814f38b035efa87ec92",
+          "moonraker/metadata-lifecycle.js": "2dab1bf6dce2b3fd5416b06aa901a01dbc10e8c957e0a98163da168b2a12f323",
+          "moonraker/metadata-retirement.js": "e7b6cd8c6faed9742b974b044f163382818897bcbe5b77cc48b57f412446ce9a",
+          "moonraker/metadata-scan.js": "1c14bf8b13b45d4c76925d52c2d3021912d10ad48d4af68d0684047da19b853b",
+          "moonraker/metadata-snapshots.js": "2296b592adf6bd2e89fb5206b65a026e5d7883ba66968f7bf7ce816904db472a",
+          "moonraker/metadata-values.js": "ffed39ad7e63a7f27073c1cb44aff3d0aeb721c24c45edcaf8ac73470038cf2a",
+          "moonraker/metadata-version-recovery.js": "9ecc61359982a8d8a9514ea6b427d8b1de4bacd2a0b7e982aca3e5106c833562",
+          "moonraker/metadata-versions.js": "5403a38c0ee5d9c75e0964001fa76a9889962e4c8543bd1e5019fc38aa1475e4",
+          "moonraker/metadata-watch.js": "4dbbf007a47accc94a9325da9e0028dad26aa627e1a2e05d865ff872c3454ea1",
+          "moonraker/metadata-window.js": "108dee01d3c8a4a15d3ad1f66f04455b94d93de1abd94ce4fcb4465735e74d74",
+          "moonraker/metadata.js": "ddeb56052f5f929248d64c95210dacc8780cdfa4c2ed0930d0ede2aae5eb5698",
+          "moonraker/mqtt-api.js": "154a54e99cad6d4afe3a5534fd05eb1b12b59bab2af3ed320f6fd9a020595b91",
+          "moonraker/mqtt-config.js": "12ec8ff3ed2ce26e61e17817520e9f49d7e24665a6627b47f7aa9832d575d9c9",
+          "moonraker/mqtt-macros.js": "78d8207fc43a26e4928d4e6d748055fb6dde8522aa0e17504393ee2e39cff3dd",
+          "moonraker/mqtt-rpc.js": "5c3a26ab54b0cf43fde0ae688fcbbea91badab5ab3126de5dc64af8e3c581cf9",
+          "moonraker/mqtt-sensors.js": "cf66c687c9003fc7ddd8f98826b4fb0df217df526c43f16fa4cc1531d64e652f",
+          "moonraker/mqtt-status-runtime.js": "16f3b5751f08433927f234342e00c9fdbe4b7b14b05f5bbc200bd36f961c951e",
+          "moonraker/mqtt-status.js": "5ceffbfbf21a8f7fcf89c5f64c2863fb3879f9d73f0177c3bc2a25e28a786ba8",
+          "moonraker/mqtt-waiters.js": "6e9ae6d40bb6c1046a21dbdfe0ed6abc296fc25584582dafc0f4314c76743178",
+          "moonraker/native-config-files.js": "23401c22c36833649806409bb0eb275b54bee2f261bac6b3a2f67ffeebd184f7",
+          "moonraker/native-file-metadata.js": "f336702c4be8aa9ea85bef9c160b5e5c8559e1904a9c7da74584b4c831486f50",
+          "moonraker/native-file-path.js": "3e1b115ccdbba5461464b8f6603db746411a85c283040468abf6144ff2ca70ac",
+          "moonraker/native-history-fields.js": "8aaa676bd3b3cdb3de0d5a809f8fb5a20d70d0f0e623d95356706377fd437180",
+          "moonraker/native-history.js": "a54c34dfc8c30394095f129dd53e498ca1179534682a93f59761454a61594a09",
+          "moonraker/native-host-notifications.js": "9477069ef7b1992c77f8f15beaab20e19fd1d4a2fe3eecf763d8be8d3ce550e2",
+          "moonraker/native-host-status.js": "a1dbe550594062902f54cb5354f4d2868b699e0d14286f6b93b95ee7fed9dba9",
+          "moonraker/native-job-queue.js": "bda7507d0fdf5b4193f7932864c42c557565f107168f1e07651b8afa3baab045",
+          "moonraker/native-metadata-source.js": "d0e96706d83d1531e3b74f24d59825e2a58ee8907f79a326e1ac80013262b59c",
+          "moonraker/native-objects.js": "0e0b4c121b7950e2d7c86c7490fda1461c9c57f80120b7fed1bbfe83aeeee0ab",
+          "moonraker/native-persistent-metadata.js": "cac6b0c809815e0b3ceb01203aa894b858575da733601fba6206de15c8e5234f",
+          "moonraker/native-print-uploads.js": "439a0121fa31f9457fb02d7aa725334e6069c8e997d29fe0a9185616c1c8b415",
+          "moonraker/native-printer-info.js": "b910b8d81b647b8acef85716ff3c37daa926128fc855a10698ba76c0fc1c705a",
+          "moonraker/native-request-scope.js": "4f97838668585d00ffa19f6766b457549f25c40eef74942077e556d340d0707f",
+          "moonraker/native-sensor-config.js": "b3594dff76b3a8e75955e1fde13a42e72be8efc358aeacc1e860c26ecc64c602",
+          "moonraker/native-subscriptions.js": "9dce10bc9a0b740ca18a5df4a99ac565eb532e6d23456dce6a0b908cd5f9ae34",
+          "moonraker/native-template.js": "69783c68c0ab0df499087ec49e1ae606da351b6276ef88ce1f32a25c433c00d0",
+          "moonraker/notifications.js": "410542c050104a950e45936921275000e97dfd12abfff4656865a89b5d14e26f",
+          "moonraker/print-api.js": "868efd5176a218eaebbe7a3d815c9b78ca6a63489664316ac9e5d21bb85cdcb3",
+          "moonraker/proc-stats.js": "fdd9116d138e0ca455ead7e8a27f302a514f2e45adedefaee015b7ed15652af5",
+          "moonraker/product-host-api.js": "73b8a4d2b9254dc4e03d4cef93576b668e536541b7a75da1e8b7011b6645c0f4",
+          "moonraker/product-print-api.js": "4143450d17f20d6792ce8164c54186fe2d4d8f85290265327d5d1b485fc60df4",
+          "moonraker/python-lower.js": "733778bc687ab4fead3d96dfa356be3a76f4c908656f1c61d49b6d7163cabbde",
+          "moonraker/rejected-upload-body.js": "53879021c35a7fa3fc6e8db0162a783356ce3ea9c57607935c463a2dfe9dc7f9",
+          "moonraker/response-completion.js": "fce12bda58d1688bee109debbad5e1a3d75d4fe3510662457ef8c32283a40b3a",
+          "moonraker/rpc.js": "6184e4cb535de9a2eefd0256d826fc8b75c4db1cef6e8c4ef87dd5449d7d5623",
+          "moonraker/secrets.js": "ec88bcfdfd001c8c83d6fe20d90d32342486427c9f7204a572a0fadeeb8f265e",
+          "moonraker/sensor-config.js": "a8fe30675a280efa2cf8769db599174fc161675a11f959f86cfef449809535b6",
+          "moonraker/sensor-messages.js": "ec767501b295087d2667d779e0f53e2c79d3fdd5da485cebb2f73b18f3139a1b",
+          "moonraker/sensors.js": "52e67b56e15d3327e6f71d5ada3a3d1e6b3416d2a5336ee3ad35cf66b9450c38",
+          "moonraker/server.js": "0035bd48696f60af89f8422409e2a5a2058247848c7b7e9766d5d833b4b525a0",
+          "moonraker/slicer-identification.js": "54bdfa6dc5aeb672e5e52d8b4646daf75f7ff8bb94ba756b6937d7173a56302f",
+          "moonraker/subscription-connection.js": "6c36fdf6489f81f807b5c50433d2a13c6ab9e243e318d354a8e917f152f5764f",
+          "moonraker/subscription-delivery.js": "a7f376657801286fc4cd5d2902ac77747a7696f372710d52ec8893158b387056",
+          "moonraker/subscription-journal.js": "3fd39ee0c373d8fa1916ba696738442393f53e9b7ccfbb29ef252ec59264e820",
+          "moonraker/subscription-manager.js": "664b373ad7639eef49955611d0894736e1c6c9e5bd1b9c628307c1b09ec28d9c",
+          "moonraker/subscription-status.js": "da77af637d9bd9630c92c061b17117bd0dc41f024491e45d446f022b33b3a5d9",
+          "moonraker/system-information.js": "e4ed2fa78338f6b432593b3baf8ecac538b47d661375193e3cfc392745255c08",
+          "moonraker/system-services.js": "04cd3d60a06e82298000e9bf1e690b368bc70e0ebd113b85cfa8f0b423ce3334",
+          "moonraker/temperature-store-runtime.js": "31cd15fa4e9407984dfc76eff92cdd06b1761faffd1d22f32c3a85f562ccdb55",
+          "moonraker/temperature-store.js": "796b1a370e4bd944c6410f3a5a93f8f8cd0ad55ec068723e81437f43003d8859",
+          "moonraker/template-async-owner.js": "d264f82e171aa8b195794a568e06096ed0492e0e2c132a6e3899a6395035e90a",
+          "moonraker/template-factory.js": "8a4152fab3120f8cb27cdeb88d610fac4595c0284256016d8c89e24178ae9851",
+          "moonraker/template-numbers.js": "6a3d3b1090d9027ff8e7f469e03b19f70fe84ee50b6e18e63423474ad5c53003",
+          "moonraker/template-owner.js": "cc6ccde589e30e33cad6d0f9a8060f1f7081461c35c5ef607b31ff49d872dddf",
+          "moonraker/template-wire.js": "1cab0750d48f3ab63b907b0483137f0d27202af55e29072a475d969fae7e3a5f",
+          "moonraker/thumbnail-blocks.js": "284fb1e90b6b82f751116f39e46ccb015065d3d2b8a88a649b9ce0cb7a3b9451",
+          "moonraker/thumbnail-download.js": "09064a311cf0af4bba8937f7ba38fa54d0dab3938738c2197a31838c7f172bae",
+          "moonraker/thumbnail-images.js": "e898db2051bb5342c323959a4b4917b7476f6472c951e5adc21c8ffde4aaca81",
+          "moonraker/thumbnail-process.js": "23922f0f29bd7e9be6f39a6e25a9f501a396bac7cd6c975a08c1747d9fea040a",
+          "moonraker/thumbnail-storage.js": "237d4fbb5e0655ab001a90b52b8916b652a8ebc85b39b33c43e49d2df6f5f53e",
+          "moonraker/trusted-clients.js": "99dc22a89058282d7d5c7fcb483f8de24cb427854b88e41e57f79426d983480a",
+          "moonraker/ufp-archive.js": "37f3432432eb5a1c08e2b95790a74081f299fa6358ccf6ae2822d1cb14dd2a33",
+          "moonraker/unix-peer.js": "fc6c70cec01bde566654a76800d356c2366688a8dd6e2d235b50770504f405e2",
+          "moonraker/webcams.js": "df17f15888ebc2bf1ca356db931cbaba4b3aa672acce859c7d7e2cb365afc8de",
+          "motion/pressure-advance-settings.js": "29fb2afa6cf3d0abcdf23287823155f37d507a267fc29eb08c3f59c2d5fe16a2",
+          "operations/maintenance-gate.js": "40035f257a604b062977243e28d1196e20efd49d1a029742f27d68d00b50b529",
+          "operations/print-deadline.js": "54b6095719081e5bb80f6d16b243df199b1a2c49145bcc00ab7f11930e7fd2a0",
+          "operations/print-history-auxiliary.js": "751b5ae8782775877a93cf3092f8202e543704fd5e51c38cc92d7998fdb5742d",
+          "operations/print-history-totals.js": "d6225454190e9721c97afbc7f7bc51aa23eb9a001fcf797e72fe4d4179097349",
+          "operations/print-journal-types.js": "0bedd748965a79620a37a95d0e5deb2dcd2e65e11e7ac3729bfefc2cbd43c19d",
+          "operations/print-journal.js": "f77afc9e75eff9af94c7ffaca53f210cb6f1d2ac01ddb9a1100efe41237f485b",
+          "operations/print-state-stream.js": "77ca7c6588a80c4b51c02b3a27b90d60d66feba59f990b15b401e0f0b20531df",
+          "operations/print.js": "b29068bd8125b37ea29e413a03e84ff091faa35803564266b45c12245dc94eee",
+          "runtime/host-recovery-journal.js": "55a9ab6a993012eb10f291f21bd2108005b76e7a30b5c562bc1646eabad70d09",
+          "runtime/product-host-control.js": "119728453da19364b3cb36a0d576b41c63849e69f459285fc808c678dae7c722",
+          "runtime/worker-entry.js": "f4f173f00286ff046ec2e334d545012997770394296594ff2db7f398825f48ab",
+          "storage/namespace-copy.js": "8cb0b3945b3b39271251c3e63fc05c40002a1a56b3a1735788200b685d12f46e",
+          "storage/namespace-delete.js": "d5177ea6f1596c30316ad6e12d582df04214bd5b53278e9a7bc331177b41b11e",
+          "storage/namespace-move.js": "ce703dd4fee2e193d84b28a0a429e1ae1dc0afa8a2eb2340bb488b3d1f4070a1",
+          "storage/namespace-replace.js": "ef338ba1539e688668aac6546b54d7c264113da8cfca3669014a674033f7578f",
+          "storage/published-files.js": "7587a2c7a775e05ee67ef526a28b5b382a06a66f61ead7f3ea30d072249cd5ee",
+          "storage/published-paths.js": "ddb4b77b80948516efec313eb2fd07387a88513a750361da83c16a5ec90f4eec",
+          "storage/published-receipt.js": "ec137c85786760f2f9304b05e94fcaeb0c3b5f3088e79d426a7c8e76d1ee7e6f",
+          "storage/sealed-buffer.js": "8ba91dc16bcc29bd8748118ae355f9532ee4795488e524c0b77d2918c5681e9c"
+        }
+      }
+    },
+    "sources": {
+      "host/native/template/src/async_text.rs": "87132b7a1331fcf08a381e9a4ca29b33923a39e44ed4fbaeedf0cd472b6f0dcd",
+      "host/test/template-async.test.ts": "e414ec65a3cff98eeda37e620f50244038fc8fd9cf90302233a93bed3d656988",
+      "host/src/moonraker/template-async-owner.ts": "4209eadf3e6457981a4f3a37078a4b09bd7c32a218ecc2e074d718b684ddf5f5",
+      "host/src/moonraker/template-wire.ts": "f78738448bf5ae587c02dbff4e8c6f2e6a1fbe867bbb2a762074ec5c7327c4fd"
+    },
+    "native": {
+      "baseline": "9c905565742cee26416fb10a72d07323b1e944852052115a6cdae9766f068317",
+      "candidate": "f012442358e6514cd5bf703861a7708868e2998bc761c70d50ed9a45edcc86cb",
+      "build": "Only project crate recompiled with copied locked dependencies, original release flags and empty rustflags; 16.63 seconds. Not a fresh product build."
+    }
+  },
+  "performance": {
+    "method": "Three fixed alternating fresh-process pairs, original 500 renders / 2 warmups / 7 samples / 1.5 gates; all inputs, samples and failures retained",
+    "originalEnvelopeOnly": [
+      {
+        "benchmark": "template-factory",
+        "name": "sync",
+        "medians": {
+          "baseline": 1.1046759999999978,
+          "candidate": 1.0621660000000048
+        },
+        "candidateVsBaseline": 0.9615181283924037,
+        "maximumMedianRatio": 1.5,
+        "candidateOriginalRatio": 0.29736872364688427,
+        "candidateAllOriginalPass": true
+      },
+      {
+        "benchmark": "template-factory",
+        "name": "async",
+        "medians": {
+          "baseline": 4.700100000000006,
+          "candidate": 4.818771999999996
+        },
+        "candidateVsBaseline": 1.0252488244930935,
+        "maximumMedianRatio": 1.5,
+        "candidateOriginalRatio": 1.174872397267081,
+        "candidateAllOriginalPass": true
+      },
+      {
+        "benchmark": "template-factory",
+        "name": "ui",
+        "medians": {
+          "baseline": 4.7256399999999985,
+          "candidate": 4.6978500000000025
+        },
+        "candidateVsBaseline": 0.9941193150557394,
+        "maximumMedianRatio": 1.5,
+        "candidateOriginalRatio": 1.441920801313437,
+        "candidateAllOriginalPass": true
+      },
+      {
+        "benchmark": "template-async",
+        "name": "pure",
+        "medians": {
+          "baseline": 4.571868000000002,
+          "candidate": 4.536467000000002
+        },
+        "candidateVsBaseline": 0.9922567755674485,
+        "maximumMedianRatio": 1.5,
+        "candidateOriginalRatio": 0.7183294987161325,
+        "candidateAllOriginalPass": true
+      },
+      {
+        "benchmark": "template-async",
+        "name": "callback",
+        "medians": {
+          "baseline": 12.483474999999999,
+          "candidate": 11.93968700000002
+        },
+        "candidateVsBaseline": 0.9564393728509106,
+        "maximumMedianRatio": 1.5,
+        "candidateOriginalRatio": 1.241204084171793,
+        "candidateAllOriginalPass": true
+      },
+      {
+        "benchmark": "template-async",
+        "name": "ui",
+        "medians": {
+          "baseline": 17.026643000000035,
+          "candidate": 11.847585999999978
+        },
+        "candidateVsBaseline": 0.695826299993484,
+        "maximumMedianRatio": 1.5,
+        "candidateOriginalRatio": 1.429965688310199,
+        "candidateAllOriginalPass": false
+      }
+    ],
+    "status": "Independent small-UI budget remains open; at least one candidate round fails",
+    "wideArguments": {
+      "inputs": {
+        "items": 3000,
+        "iterations": 20,
+        "warmups": 2,
+        "samples": 7,
+        "runs": 6,
+        "maximumMedianRatio": 1.5
+      },
+      "medians": {
+        "baseline": 46.221608,
+        "candidate": 37.861204
+      },
+      "candidateVsBaseline": 0.8191234714292068,
+      "pass": true,
+      "peakRSS": [
+        {
+          "pair": 0,
+          "variant": "baseline",
+          "maxRSSKiB": 70880
+        },
+        {
+          "pair": 0,
+          "variant": "candidate",
+          "maxRSSKiB": 71904
+        },
+        {
+          "pair": 1,
+          "variant": "candidate",
+          "maxRSSKiB": 71624
+        },
+        {
+          "pair": 1,
+          "variant": "baseline",
+          "maxRSSKiB": 71056
+        },
+        {
+          "pair": 2,
+          "variant": "baseline",
+          "maxRSSKiB": 71764
+        },
+        {
+          "pair": 2,
+          "variant": "candidate",
+          "maxRSSKiB": 72100
+        }
+      ],
+      "scope": "Frozen new wide-argument comparison with every integer checked; not a replacement for the original small-UI gate. Process peak RSS did not decrease; no statistical speedup or target-board claim."
+    }
+  },
+  "withdrawn": [
+    {
+      "name": "ReplySlot/Condvar plus envelope",
+      "sourceSha256": "eb8ff2555971cc781a3cffb9e3e72c618d58b220bd6f40900ea433b8379c4fce",
+      "functional": {
+        "source": 181,
+        "compiled": 181
+      },
+      "performance": [
+        {
+          "benchmark": "template-factory",
+          "name": "sync",
+          "medians": {
+            "baseline": 1.0658260000000013,
+            "candidate": 1.0438260000000028
+          },
+          "candidateVsBaseline": 0.9793587321007383,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 0.292234175570892,
+          "candidateAllOriginalPass": true
+        },
+        {
+          "benchmark": "template-factory",
+          "name": "async",
+          "medians": {
+            "baseline": 4.718174000000005,
+            "candidate": 5.498006000000004
+          },
+          "candidateVsBaseline": 1.1652825860173868,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 1.3404775095000978,
+          "candidateAllOriginalPass": false
+        },
+        {
+          "benchmark": "template-factory",
+          "name": "ui",
+          "medians": {
+            "baseline": 4.688624000000004,
+            "candidate": 4.670182999999994
+          },
+          "candidateVsBaseline": 0.9960668631137813,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 1.4334289118725332,
+          "candidateAllOriginalPass": false
+        },
+        {
+          "benchmark": "template-async",
+          "name": "pure",
+          "medians": {
+            "baseline": 4.7925460000000015,
+            "candidate": 4.6802239999999955
+          },
+          "candidateVsBaseline": 0.9765631879172352,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 0.7410927842744603,
+          "candidateAllOriginalPass": true
+        },
+        {
+          "benchmark": "template-async",
+          "name": "callback",
+          "medians": {
+            "baseline": 12.367584999999991,
+            "candidate": 11.779025999999988
+          },
+          "candidateVsBaseline": 0.9524111619204555,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 1.224502382580523,
+          "candidateAllOriginalPass": true
+        },
+        {
+          "benchmark": "template-async",
+          "name": "ui",
+          "medians": {
+            "baseline": 12.389284999999973,
+            "candidate": 11.866726999999997
+          },
+          "candidateVsBaseline": 0.9578217790615055,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 1.4322759457111558,
+          "candidateAllOriginalPass": false
+        }
+      ],
+      "reason": "No stable original-budget closure; factory async median increased about 16.5 percent while UI improved about 4 percent. Entire reply-slot prototype removed."
+    },
+    {
+      "name": "Full streamed tagged argument tree plus envelope",
+      "sourceSha256": "13891811f9fab1953958e9e9f41f6b5f28052d8a7f5725633ede08051e90283d",
+      "functional": {
+        "source": 183,
+        "compiled": 183
+      },
+      "performance": [
+        {
+          "benchmark": "template-factory",
+          "name": "sync",
+          "medians": {
+            "baseline": 1.156376999999999,
+            "candidate": 1.0740649999999974
+          },
+          "candidateVsBaseline": 0.9288190616036104,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 0.30070002067830126,
+          "candidateAllOriginalPass": true
+        },
+        {
+          "benchmark": "template-factory",
+          "name": "async",
+          "medians": {
+            "baseline": 4.799758000000011,
+            "candidate": 4.923899000000006
+          },
+          "candidateVsBaseline": 1.0258640123106195,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 1.2005035768513213,
+          "candidateAllOriginalPass": true
+        },
+        {
+          "benchmark": "template-factory",
+          "name": "ui",
+          "medians": {
+            "baseline": 4.702026000000004,
+            "candidate": 4.817547999999988
+          },
+          "candidateVsBaseline": 1.0245685583193254,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 1.4786599556235138,
+          "candidateAllOriginalPass": false
+        },
+        {
+          "benchmark": "template-async",
+          "name": "pure",
+          "medians": {
+            "baseline": 4.64091599999999,
+            "candidate": 5.264734000000004
+          },
+          "candidateVsBaseline": 1.1344169987131885,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 0.8336473592982779,
+          "candidateAllOriginalPass": true
+        },
+        {
+          "benchmark": "template-async",
+          "name": "callback",
+          "medians": {
+            "baseline": 12.433885000000004,
+            "candidate": 12.805059999999997
+          },
+          "candidateVsBaseline": 1.0298518926305007,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 1.3311649434415516,
+          "candidateAllOriginalPass": false
+        },
+        {
+          "benchmark": "template-async",
+          "name": "ui",
+          "medians": {
+            "baseline": 12.36784400000002,
+            "candidate": 14.036598000000026
+          },
+          "candidateVsBaseline": 1.1349268312245857,
+          "maximumMedianRatio": 1.5,
+          "candidateOriginalRatio": 1.6941724264000815,
+          "candidateAllOriginalPass": false
+        }
+      ],
+      "reason": "UI median increased about 13.5 percent relative to baseline and other rounds exceeded budgets. Entire direct argument-tree writer removed."
+    }
+  ],
+  "freshBuild": {
+    "attemptScope": "Earlier reply-slot prototype full product build, single Cargo job and locked offline inputs; final envelope-only implementation was not rerun against unchanged failing dependency inputs.",
+    "status": "failed before project crate",
+    "crate": "regex-automata 0.4.18",
+    "compiler": "Rust 1.89.0",
+    "failure": "Internal compiler panic in rustc_mir_dataflow: length 134, index 1566621; no product output",
+    "conclusion": "Single-job scheduling does not establish compiler stability. Prior regex allocation/SIGABRT, num-bigint/minijinja/memchr SIGSEGV and all native stability gates remain open."
+  },
+  "exactPreviousHeadCI": {
+    "schema": 1,
+    "date": "2026-10-12",
+    "head": "6f0277089cf2792da39e011230f578bbae2c2200",
+    "checkout": "a7b1646a5df8301e606c2dc1f6d141f35fd6fa15",
+    "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+    "status": "all-current-head-ci-success",
+    "workflowRuns": [
+      {
+        "id": 38178928048,
+        "head": "6f0277089cf2792da39e011230f578bbae2c2200",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38178928048"
+      },
+      {
+        "id": 38178928153,
+        "head": "6f0277089cf2792da39e011230f578bbae2c2200",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38178928153"
+      },
+      {
+        "id": 38178928005,
+        "head": "6f0277089cf2792da39e011230f578bbae2c2200",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38178928005"
+      }
+    ],
+    "jobs": [
+      {
+        "runId": 38178928048,
+        "jobId": 114587138377,
+        "name": "checks",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928048,
+        "jobId": 114587138701,
+        "name": "sanitizer (ubsan)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928048,
+        "jobId": 114587138842,
+        "name": "sanitizer (asan)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928048,
+        "jobId": 114590380284,
+        "name": "host",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928153,
+        "jobId": 114587138663,
+        "name": "build",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928005,
+        "jobId": 114587138622,
+        "name": "motion (26.10.0, default, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928005,
+        "jobId": 114587138689,
+        "name": "motion (26.9.0, off, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928005,
+        "jobId": 114587138696,
+        "name": "motion (26.10.0, off, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928005,
+        "jobId": 114587138697,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928005,
+        "jobId": 114587138708,
+        "name": "motion (26.10.0, off, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928005,
+        "jobId": 114587138714,
+        "name": "motion (26.9.0, default, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928005,
+        "jobId": 114587138762,
+        "name": "motion (26.9.0, off, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928005,
+        "jobId": 114587138775,
+        "name": "motion (26.10.0, default, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928005,
+        "jobId": 114587138779,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38178928005,
+        "jobId": 114587138807,
+        "name": "motion (26.9.0, default, source)",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "ordinary": {
+      "tests": 4736,
+      "pass": 4736,
+      "fail": 0
+    },
+    "rawLog": "pr68-6f0-checks-oct12.log",
+    "scope": "Exact previous native-build evidence head and real merge checkout; not current encoder changes, local Rust ICE, UI budget, G3 or full clients."
+  },
+  "open": [
+    "Original independent UI budget and default native compiler stability",
+    "Final implementation full new package and same-package Fluidd/Mainsail recovery journeys",
+    "Complete Moonraker/components/template language and Python retirement",
+    "Consumer macro redesign, G3 precision/timing and Cycnumbris 500 target validation; other models last"
+  ],
+  "evidence": {
+    "path": "template-call-envelope-evidence.json.gz",
+    "entries": 143,
+    "bytes": 3482919,
+    "sha256": "704e95ba913c1fc1f221a2d7e90fd181c7113af606eec57a1391e73324ad4260"
+  }
+}

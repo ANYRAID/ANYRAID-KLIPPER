@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import {mkdtempSync,statfsSync,rmSync} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { spawnSync, execFileSync } from 'node:child_process';
+import {verifyJournalRows} from './helpers/journal-rows.ts';
 import { performance, monitorEventLoopDelay } from 'node:perf_hooks';
 import { PrintJournal } from '../src/operations/print-journal.ts';
 import { PrintController } from '../src/operations/print.ts';
@@ -92,16 +92,7 @@ try {
     const elapsed = performance.now() - begun;
     const delay = histogram.max / 1e6;
     await journal.close();
-    const oracle = spawnSync(
-      '/usr/bin/python3',
-      [
-        '-c',
-        "import sqlite3,sys,json;d=sqlite3.connect('file:'+sys.argv[1]+'?mode=ro',uri=True);rows=d.execute('select id,request,state,revision from requests').fetchall();assert len(rows)==200;assert len({r[0] for r in rows})==200;assert all(r[2]=='completed' and r[3]==3 and json.loads(r[1])==dict(version=1,requestId=r[0],fileId='file',nozzle=210,bed=60) for r in rows);print('verified')",
-        path,
-      ],
-      { encoding: 'utf8' },
-    );
-    assert.equal(oracle.status, 0, oracle.stderr);
+    verifyJournalRows(path,jobs,210,60);
     assert.ok(tickCount > 0);
     if (run >= 2) {
       starts.push(startup);
@@ -119,9 +110,7 @@ try {
       {
         node: process.version,
         integratedController: integrated,
-        filesystem: execFileSync('stat', ['-f', '-c', '%T', dir], {
-          encoding: 'utf8',
-        }).trim(),
+        filesystemType: statfsSync(dir).type,
         info,
         warmups: 2,
         samples: 11,
@@ -133,7 +122,7 @@ try {
         maxObservedMainLoopDelayMs: Math.max(...delays),
         minimumTimerTicks: Math.min(...ticks),
         scope:
-          'Real separate SQLite files, DELETE journal / EXTRA synchronization, Worker IPC and three committed job transitions. Python independently verifies every closed database. Local filesystem timing; not power-cut or target-board validation.',
+          'Real separate SQLite files, DELETE journal / EXTRA synchronization, Worker IPC and three committed job transitions. Independent read-only Node SQLite validates every closed database. Local filesystem timing; not power-cut or target-board validation.',
       },
       null,
       2,

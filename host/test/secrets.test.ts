@@ -41,7 +41,9 @@ test('invalid selected default file does not silently load legacy credentials',(
 test('legacy fallback, directory default and symlink target follow the selected-file contract',()=>fixture(async(dir,makeReader)=>{
  await mkdir(join(dir,'moonraker.secrets'));await writeFile(join(dir,'legacy.secrets'),'[DEFAULT]\nregion=example\n[ldap]\npassword=synthetic-value\n');await symlink('legacy.secrets',join(dir,'legacy-link.secrets'));
  const reader=await makeReader('[secrets]\nsecrets_path: '+join(dir,'legacy-link.secrets')+'\n'),owner=await loadSecrets(reader,{dataPath:dir});
- try{assert.equal(owner.getType(),'ini');assert.equal(owner.getFile(),join(dir,'legacy-link.secrets'));assert.deepEqual(normalized(owner.item('ldap')),{region:'example',password:'synthetic-value'});}finally{owner.close();}
+ // Pinned Secrets expands/resolves the legacy path before retaining it; the
+ // independent moonraker-secrets-path-probe.json confirms the physical target.
+ try{assert.equal(owner.getType(),'ini');assert.equal(owner.getFile(),join(dir,'legacy.secrets'));assert.deepEqual(normalized(owner.item('ldap')),{region:'example',password:'synthetic-value'});}finally{owner.close();}
 }));
 test('missing optional default is empty without warning, missing explicit legacy is diagnosed',()=>fixture(async(dir,makeReader)=>{
  const reader=await makeReader(),first=await loadSecrets(reader,{dataPath:dir});try{assert.equal(first.getType(),'invalid');assert.equal(first.get('absent','fallback'),'fallback');assert.deepEqual(reader.warnings(),[]);}finally{first.close();}

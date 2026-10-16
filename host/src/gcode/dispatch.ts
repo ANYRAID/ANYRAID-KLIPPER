@@ -24,6 +24,7 @@ export interface DispatchHooks {
 export class GCodeDispatch {
   #handlers=new Map<string,Registration>();#ready=false;#reason='Printer is not ready';
   #tail:Promise<void>=Promise.resolve();#pending=0;#active:AbortController|undefined;#generation=0;
+  #idleWork:Promise<void>|undefined;
   readonly #outputObservers=new Set<(message:string)=>void>();#outputObserverFailures=0;
   #hooks:DispatchHooks;#stopping=false;
   constructor(hooks:DispatchHooks) {this.#hooks=hooks;this.register('M110',()=>{}, {whenNotReady:true});}
@@ -60,14 +61,28 @@ export class GCodeDispatch {
    * owns its motion barriers and must never recursively enqueue dispatch work.
    * Retain ownership until it settles, including after cancellation. */
   runExclusive(work:(signal:AbortSignal)=>Promise<void>,signal:AbortSignal):Promise<void> {
+    return this.#exclusive(work,signal,false);
+  }
+  /** A trusted maintenance admission may follow only the current idle worker.
+   * Other scripts/actions are not a waiting room for a delayed physical action. */
+  get canFollowIdleWork():boolean{return this.#pending===0||this.#pending===1&&this.#idleWork!==undefined;}
+  /** Share the existing lane while checking authority and machine state. Call
+   * begin immediately before physical work; failure/cancellation after begin
+   * retains runExclusive's emergency stop. A rejected admission cannot stop
+   * unrelated hardware before any physical work has been admitted. */
+  runAdmissionExclusive(work:(signal:AbortSignal,begin:()=>void)=>Promise<void>,signal:AbortSignal):Promise<void>{
+    return this.#exclusive(work,signal,true);
+  }
+  #exclusive(work:(signal:AbortSignal,begin:()=>void)=>Promise<void>,signal:AbortSignal,admission:boolean):Promise<void>{
     if(typeof work!=='function'||!(signal instanceof AbortSignal))return Promise.reject(new TypeError('Invalid machine action'));
     if(this.#pending>=64)return Promise.reject(new GCodeError('G-code admission limit'));
     this.#pending++;const generation=this.#generation;
     const job=this.#tail.then(async()=>{
       signal.throwIfAborted();if(generation!==this.#generation)throw new GCodeError('Machine action invalidated by shutdown');
       const controller=new AbortController(),local=AbortSignal.any([signal,controller.signal]);this.#active=controller;
-      try{await work(local);local.throwIfAborted();}
-      catch(error){if(generation===this.#generation)this.emergencyStop('Machine action failed');throw error;}
+      let started=!admission;const begin=()=>{local.throwIfAborted();started=true;};
+      try{await work(local,begin);local.throwIfAborted();}
+      catch(error){if(started&&generation===this.#generation)this.emergencyStop('Machine action failed');throw error;}
       finally{if(this.#active===controller)this.#active=undefined;}
     });
     this.#tail=job.then(()=>{},()=>{}).finally(()=>{this.#pending--;});return job;
@@ -77,7 +92,8 @@ export class GCodeDispatch {
   runWhenIdle(work:(signal:AbortSignal)=>Promise<void>,signal:AbortSignal):Promise<boolean>{
     if(typeof work!=='function'||!(signal instanceof AbortSignal))return Promise.reject(new TypeError('Invalid idle machine action'));
     if(this.#pending)return Promise.resolve(false);
-    return this.runExclusive(work,signal).then(()=>true);
+    const job=this.runExclusive(work,signal);this.#idleWork=job;
+    return job.then(()=>{if(this.#idleWork===job)this.#idleWork=undefined;return true;},error=>{if(this.#idleWork===job)this.#idleWork=undefined;throw error;});
   }
   /** Yield before the next command without draining or discarding the suffix.
    * The owner must retain the script and drain admitted motion before parking.

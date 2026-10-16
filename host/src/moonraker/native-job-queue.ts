@@ -8,7 +8,7 @@ import { validJournalId } from '../operations/print-journal-types.ts';
 import type { JournalHistoryEvent } from '../operations/print-journal-types.ts';
 import { printFilename } from './print-api.ts';
 import { historyBoolean } from './history-api.ts';
-import { ApiError, type Json, type RpcContext } from './rpc.ts';
+import { ApiError, authorizedContext, type Json, type RpcContext } from './rpc.ts';
 import type { EndpointRegistry } from './endpoints.ts';
 
 export interface QueuedNativeJob {
@@ -35,6 +35,9 @@ export interface NativeJobQueueOptions {
   resolveFile(filename: string, signal: AbortSignal): Promise<string>;
   /** Current device availability. A queued item grants no device authority. */
   canStart(): boolean;
+  /** Optional side-effect-free view of the same device owner. This is a UI
+   * hint only; start still rechecks its authority and device admission. */
+  clearanceAvailable?(): boolean;
   /** Must use the existing print controller/journal, honor the immutable file
    * identity and reauthorize printer.print.start; never retry a device action.
    * Resolution means journal reservation, not physical print completion. */
@@ -144,6 +147,7 @@ export class NativeJobQueue {
     if (options.automaticTransition && (typeof options.captureAuthority !== 'function' || typeof options.activePrint !== 'function')) throw new TypeError('Automatic queue requires explicit print authority and controller');
     if (options.confirmClearance !== undefined && typeof options.confirmClearance !== 'boolean' || options.confirmationTimeoutMs !== undefined && (!Number.isFinite(options.confirmationTimeoutMs) || options.confirmationTimeoutMs < 1 || options.confirmationTimeoutMs > 900000)) throw new TypeError('Invalid queue confirmation policy');
     if (options.confirmClearance && typeof options.captureAuthority !== 'function') throw new TypeError('Queue confirmation requires explicit print authority');
+    if (options.clearanceAvailable !== undefined && typeof options.clearanceAvailable !== 'function') throw new TypeError('Invalid queue clearance availability provider');
     if (owners.has(options.database)) throw new TypeError('Job queue database already owned');
     owners.add(options.database);
     try {
@@ -161,10 +165,14 @@ export class NativeJobQueue {
   }
   get status() {
     const now = Date.now() / 1000;
+    let available = false;
+    if (this.#options.confirmClearance && this.#options.clearanceAvailable) {
+      try { available = !this.#closing && !this.#storageFailed && !this.#dispatch && !this.#catalogue.claim && this.#state === 'paused' && this.#catalogue.jobs.length > 0 && this.#options.clearanceAvailable() === true; } catch { /* A failed observation grants no page readiness. */ }
+    }
     return {
       queued_jobs: this.#catalogue.jobs.map(job => ({ filename: job.filename, job_id: job.job_id, time_added: job.time_added, time_in_queue: Math.max(0, now - job.time_added) })),
       queue_state: this.#state,
-      ...this.#options.confirmClearance ? { transition: this.#clearance ? {
+      ...this.#options.confirmClearance ? { ...this.#options.clearanceAvailable ? { transition_available: available } : {}, transition: this.#clearance ? {
         version: 1, phase: 'awaiting_confirmation', state_token: this.#clearance.token,
         job_id: this.#clearance.job.job_id, filename: this.#clearance.job.filename,
         completed_request_id: this.#clearance.completedRequestId, expires_at: this.#clearance.expiresAt,
@@ -270,21 +278,36 @@ export class NativeJobQueue {
     await this.#commit(next, record ? 'job_loaded' : 'state_changed');
   }
   async add(filenames: string[], reset: boolean, context: RpcContext, requestId?: string): Promise<Json> {
+    return this.#add(filenames, reset, context, requestId);
+  }
+  /** A publication receipt pins the exact immutable file, unlike an ordinary
+   * filename-only queue request. Same catalogue, transaction and recovery. */
+  async addPublished(file: Pick<QueuedNativeJob, 'filename' | 'file_id'>, context: RpcContext, requestId: string, admissionSignal?: AbortSignal): Promise<Json> {
+    if (!file || !validJournalId(file.file_id) || printFilename(file.filename) !== file.filename) throw new ApiError(400, 'Invalid published queue identity');
+    return this.#add([file.filename], false, context, requestId, [file.file_id], admissionSignal);
+  }
+  async #add(filenames: string[], reset: boolean, context: RpcContext, requestId?: string, publishedIds?: readonly string[], admissionSignal?: AbortSignal): Promise<Json> {
     if (!filenames.length || filenames.length > this.#maxJobs || typeof reset !== 'boolean' || requestId !== undefined && !validJournalId(requestId)) throw new ApiError(400, 'Invalid queue admission');
     const names = filenames.map(name => printFilename(name)), user = context.user?.username ?? null;
-    const fingerprint = createHash('sha256').update(JSON.stringify([names, reset, user])).digest('hex');
+    const fingerprint = createHash('sha256').update(JSON.stringify([names, reset, user, ...publishedIds ? [publishedIds] : []])).digest('hex');
     return this.#serialize(async () => {
-      this.#assertWritable(); context.signal.throwIfAborted();
+      this.#assertWritable(); context.signal.throwIfAborted(); admissionSignal?.throwIfAborted();
       const receipt = requestId === undefined ? undefined : this.#catalogue.receipts.find(r => r.id === requestId);
       if (receipt) { if (receipt.fingerprint !== fingerprint) throw new ApiError(409, 'Queue request identity already used'); return this.status; }
       if (reset && this.#catalogue.claim) throw new ApiError(409, 'Queue print admission is pending');
       if ((reset ? 0 : this.#catalogue.jobs.length) + names.length > this.#maxJobs) throw new ApiError(413, 'Job queue is full');
-      const signal = AbortSignal.any([context.signal, this.#lifetime.signal]);
+      const signal = AbortSignal.any([context.signal, this.#lifetime.signal, ...admissionSignal ? [admissionSignal] : []]);
       const jobs: QueuedNativeJob[] = [];
-      for (const filename of names) {
+      for (const [index, filename] of names.entries()) {
         signal.throwIfAborted(); const fileId = await this.#options.resolveFile(filename, signal);
         if (!validJournalId(fileId)) throw new ApiError(502, 'Invalid queue file identity');
-        await context.authorize('printer.print.start', { filename, file_id: fileId }); signal.throwIfAborted();
+        if (publishedIds && fileId !== publishedIds[index]) throw new ApiError(409, 'Uploaded file path changed before queue admission');
+        const identity = await context.authorize('printer.print.start', { filename, file_id: fileId }); signal.throwIfAborted();
+        if (publishedIds) {
+          if (identity !== undefined && identity !== null && (authorizedContext(context, identity).user?.username ?? null) !== user) throw new ApiError(403, 'Queue principal changed during authorization');
+          if (await this.#options.resolveFile(filename, signal) !== fileId) throw new ApiError(409, 'Uploaded file path changed during queue authorization');
+          signal.throwIfAborted();
+        }
         jobs.push({ job_id: randomBytes(8).toString('hex').toUpperCase(), filename, file_id: fileId, time_added: Date.now() / 1000, user });
       }
       const next = structuredClone(this.#catalogue); next.jobs = [...reset ? [] : next.jobs, ...jobs];

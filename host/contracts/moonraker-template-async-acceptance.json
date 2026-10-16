@@ -1,0 +1,256 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "observedUtc": "2026-10-11T16:11:33.125Z",
+  "base": "320c512821a2c77a515c58bc9ef30fc71a8502b4",
+  "scope": "Real asynchronous function/UI candidate with explicit typed values, bounded private owner and dedicated native computation. Not a full factory or completed Python retirement. Not enabled on public routes or default printer entry.",
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "reference": "moonraker-template-async-reference.json",
+    "sha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+    "cases": 16,
+    "capture": "Single pinned TemplateFactory/JinjaTemplate capture before candidate measurements. Original Python remains a one-time reference tool only; new tests and benchmarks do not spawn it."
+  },
+  "functionality": {
+    "sourceRelated": {
+      "tests": 112,
+      "pass": 112,
+      "fail": 0
+    },
+    "compiledRelated": {
+      "tests": 112,
+      "pass": 112,
+      "fail": 0
+    },
+    "compiledNoJsChildProcess": {
+      "tests": 55,
+      "pass": 55,
+      "fail": 0
+    },
+    "freshNativeSnapshot": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0
+    },
+    "typecheck": "passed",
+    "checks": [
+      "Real coroutine result and kwargs",
+      "Ordered side effects invoked once",
+      "Integer vs float, signed zero, nonfinite, exact i128 rejection",
+      "UI double braces and no implicit secrets or configuration globals",
+      "Custom globals update existing config templates",
+      "Caller cancellation reason and late-result rejection",
+      "Deadline, template close and bounded queue",
+      "Event-loop and file IO while both computation workers await callbacks",
+      "Private diagnostic, partial output, fuel and 64 KiB output limits",
+      "Cargo snapshot includes and hashes async module"
+    ],
+    "nodePermissionScope": "Compiled focused tests deny JS child processes and TypeScript loading, allow file reads and explicit native addons. Native addon allowance is not an OS process isolation proof."
+  },
+  "performance": {
+    "status": "failed-open",
+    "budgetFixedBeforeMeasurement": 1.5,
+    "source": [
+      {
+        "name": "pure",
+        "iterations": 500,
+        "warmups": 2,
+        "samples": 7,
+        "sampleMs": [
+          6.195798000000011,
+          6.038935000000009,
+          6.068116000000003,
+          7.721477000000007,
+          6.113636000000014,
+          6.017615000000006,
+          6.095196000000016
+        ],
+        "medianMs": 6.095196000000016,
+        "referenceMedianMs": 6.315300997812301,
+        "ratio": 0.9651473464386682,
+        "maximumMedianRatio": 1.5,
+        "pass": true
+      },
+      {
+        "name": "callback",
+        "iterations": 500,
+        "warmups": 2,
+        "samples": 7,
+        "sampleMs": [
+          17.75237100000001,
+          16.157792,
+          15.603994999999998,
+          15.476763000000005,
+          16.43876499999999,
+          15.704425999999955,
+          16.799350000000004
+        ],
+        "medianMs": 16.157792,
+        "referenceMedianMs": 9.619439020752907,
+        "ratio": 1.6797021079026853,
+        "maximumMedianRatio": 1.5,
+        "pass": false
+      },
+      {
+        "name": "ui",
+        "iterations": 500,
+        "warmups": 2,
+        "samples": 7,
+        "sampleMs": [
+          15.087227999999982,
+          15.233599999999967,
+          15.071867999999995,
+          14.951536999999973,
+          16.67094800000001,
+          15.374761999999976,
+          15.330840999999964
+        ],
+        "medianMs": 15.233599999999967,
+        "referenceMedianMs": 8.285223972052336,
+        "ratio": 1.8386467344016104,
+        "maximumMedianRatio": 1.5,
+        "pass": false
+      }
+    ],
+    "compiled": [
+      {
+        "name": "pure",
+        "iterations": 500,
+        "warmups": 2,
+        "samples": 7,
+        "sampleMs": [
+          7.750957,
+          6.637352,
+          8.944391999999993,
+          9.111452999999997,
+          6.336499000000003,
+          6.091555999999997,
+          5.8900739999999985
+        ],
+        "medianMs": 6.637352,
+        "referenceMedianMs": 6.315300997812301,
+        "ratio": 1.050995352762958,
+        "maximumMedianRatio": 1.5,
+        "pass": true
+      },
+      {
+        "name": "callback",
+        "iterations": 500,
+        "warmups": 2,
+        "samples": 7,
+        "sampleMs": [
+          18.351169,
+          18.95916600000001,
+          20.987430999999987,
+          17.223945000000015,
+          16.286063000000013,
+          15.47847200000001,
+          15.278710999999987
+        ],
+        "medianMs": 17.223945000000015,
+        "referenceMedianMs": 9.619439020752907,
+        "ratio": 1.790535286188852,
+        "maximumMedianRatio": 1.5,
+        "pass": false
+      },
+      {
+        "name": "ui",
+        "iterations": 500,
+        "warmups": 2,
+        "samples": 7,
+        "sampleMs": [
+          17.71160100000003,
+          15.333290999999974,
+          15.001396999999997,
+          15.24396999999999,
+          15.472041999999988,
+          15.251030000000014,
+          16.55160600000005
+        ],
+        "medianMs": 15.333290999999974,
+        "referenceMedianMs": 8.285223972052336,
+        "ratio": 1.8506791188412206,
+        "maximumMedianRatio": 1.5,
+        "pass": false
+      }
+    ],
+    "existingCompiledBenchmarks": [
+      {
+        "name": "native-template",
+        "medianRatio": 1.1948098856781249,
+        "medianBudget": 1.5
+      },
+      {
+        "name": "native-template-round",
+        "medianRatio": 0.5352904995353894,
+        "medianBudget": 1.5
+      },
+      {
+        "name": "native-sensor-messages",
+        "medianRatio": 0.73970739494542,
+        "medianBudget": 1.5
+      }
+    ],
+    "attempts": [
+      "Initial per-render native deferred failed all three budgets.",
+      "Shared completion channel alone did not demonstrate consistent speed improvement.",
+      "Reusing the completion cancellation reason and avoiding unused pure-render AbortController reduced pure-render overhead.",
+      "Primitive float reply keeps binary64 kinds without JSON reparse. Actual callback/UI budgets still fail.",
+      "Two independent queues with least-load scheduling retain sequential thread locality. Final source and compiled callable/UI budgets still fail; limited historical-reference comparison does not prove causal speedup."
+    ],
+    "noClaim": "Frozen historical reference, not contemporaneous Python speedup. No motion, firmware timing or target-board performance acceptance."
+  },
+  "retainedFailures": [
+    "Initial Rust API inference/private-method compile errors corrected without dependency/flag changes",
+    "Initial NaN text mismatch corrected to Python nan",
+    "Initial C compiler spawn denied with EPERM; original stop retained and one authorized offline independent build passed",
+    "Temporary standalone TS compile missed existing qoijs declaration; included original declaration without weakening types",
+    "Restricted Node test path discovery stopped before tests",
+    "Compiled broad test had three symlink-permission refusals; full original suite passed without Node permissions, and focused pure tests passed with JS child processes disabled",
+    "All original async performance failures remain in evidence"
+  ],
+  "limits": {
+    "templates": 64,
+    "globals": 64,
+    "activeRenders": 32,
+    "computationThreads": 2,
+    "callsPerRender": 64,
+    "renderDeadlineMsMaximum": 10000,
+    "sourceContextOutputBytes": 65536,
+    "fuel": 100000,
+    "depth": 64,
+    "wireItems": 65536,
+    "integerRuntime": "signed i128, arbitrary-size Python integer arithmetic remains open",
+    "callback": "Trusted explicit JS component capabilities; cancellation is cooperative. No forced preemption of arbitrary JS callback or native intermediate heap isolation."
+  },
+  "sourceSha256": {
+    "host/native/template/Cargo.toml": "af7d4c84ccbb9d3a5eb625847f1ddc2e6696a1586c98f85dc43bd51e12be6778",
+    "host/native/template/Cargo.lock": "d5fa08f87b0c4796387cc2c228c4d4c8c39ebd93e2eaf95ffd47fb7684baeaf0",
+    "host/native/template/src/lib.rs": "9746020a4f8d30c3ffc89fc4d8ecfce726de299fb8f79b2536e655babe4cbed0",
+    "host/native/template/src/async_text.rs": "78fee302d0a373b744c7ef6f4698aee75f52f934f9cd50aca1d0051762baa72e",
+    "host/src/moonraker/template-async-owner.ts": "397765661db16cbcadc8236ef979e06461c9e9cb76736cea49a6d22c0a6a745e",
+    "host/src/moonraker/template-wire.ts": "f78738448bf5ae587c02dbff4e8c6f2e6a1fbe867bbb2a762074ec5c7327c4fd",
+    "host/test/template-async.test.ts": "9e400e50061bf8f34c54942e0ee30798a825143f643ff2d7c2dc40073d417ecf",
+    "host/bench/template-async.ts": "700c5127f7437e40c883d1d0cbeabca9f5610753aad6a402dfd396648f291030",
+    "host/scripts/build-product-native.ts": "2692a7bdd202cd4883100f4f1ca6e1c084b0a58e0af15e8bc76858191b7f5a33",
+    "host/test/product-native-build.test.ts": "e93b214036fb0ee8c8f76c29b49816851d7c2c929ad3b320932df1c41dd32827",
+    "host/contracts/moonraker-template-async-reference.json": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a"
+  },
+  "addonSha256": "d23fad9a571cfbf9531533426292a7d216e76c11abbd5f5fb99435c6e9e1553d",
+  "archive": {
+    "file": "moonraker-template-async-acceptance.evidence.json.gz",
+    "sha256": "88b9641a5388d3aca34b6317b4e7c894dc8686ef22eb4e11069efec225d10e71",
+    "bytes": 54478,
+    "entries": 59
+  },
+  "openGates": [
+    "Async callable/UI desktop performance",
+    "Full synchronous/asynchronous callable factory, kwargs/iterator and arbitrary bigint compatibility",
+    "Persistent standard Moonraker component assembly",
+    "Native intermediate allocation and callback process isolation",
+    "Full local regression/compiler failure root cause",
+    "Full Python retirement including default klippy modules and reference tools",
+    "Motion precision/timing G3, real target board and consumer macro acceptance",
+    "Normal develop integration and master release"
+  ]
+}

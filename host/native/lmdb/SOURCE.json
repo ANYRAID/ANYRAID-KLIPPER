@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "repository": "https://github.com/LMDB/lmdb",
+  "tag": "LMDB_0.9.33",
+  "commit": "3a29a24777c82a0165de813ae696a5068b5add30",
+  "archiveSha256": "4cd124021a66bf004281adc5877d118eaf2d17c2808d287e3a2a8a86408bc1bd",
+  "files": {
+    "COPYRIGHT": "3c87f63656b6a12fda225b6f798c547fe89e3404f499e890b445761eb310fd4f",
+    "LICENSE": "310fe25c858a9515fc8c8d7d1f24a67c9496f84a91e0a0e41ea9975b1371e569",
+    "lmdb.h": "ea935082e5d5ea7ba685ee599c617f28353060710b0369d220a55f64bb07f1c2",
+    "mdb.c": "2fd45dcef13f94ecc6650da19f341af38cceb53b9d3b88e854f621cc319dc1b1",
+    "midl.c": "91110543f2e84c516188c1e3960b1f504e1c60a4766027a782349c000276ca93",
+    "midl.h": "cef8236dc7dce9b5346d212d31e8330f9158bacabe270b14ab1e99745db118c6"
+  },
+  "changes": "None; source files are byte copies of the fixed official commit."
+}

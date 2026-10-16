@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "packageEvidenceSha256": "b5665c0f4bd054aabed577b4b59047b1f93c13cac0b266ce397a296e9ffbae8a",
+  "originalFrozenEvidence": {
+    "path": "moonraker-template-sync-acceptance.evidence.json.gz",
+    "sha256": "ac660bbfbc806746189d6f84eaa7328fd4cf99ac10fc7a76645bbb230dbb1d8e",
+    "baselineEntry": "secrets-baseline.ts",
+    "baselineSha256": "44c0e48b780bee42da85d6dd0d20fcc11746a6d133ded8414c9c8117521d32d7",
+    "baselineUnchanged": true
+  },
+  "referenceFixture": {
+    "path": "moonraker-template-sync-reference.json",
+    "sha256": "34c13d8c3779362b77720ec0651086cc40df2dbf22630772dd831e6967b7e7d2"
+  },
+  "originalBenchmarkSha256": "bd2da2aa41df4e215b37d4c0e07f44801f83ba188b3794ef954c33b701f03a81",
+  "compiledBenchmarkSha256": "5c3ee8b2e7979d680202ebc82726896ed03545718e9d52d1d5f8888066ef37a6",
+  "scope": "Associates the compiled-package measurement with the unchanged previously frozen secrets source baseline and template inputs. Benchmark adaptation changes module and fixture URLs only."
+}

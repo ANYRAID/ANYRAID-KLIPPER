@@ -1,8 +1,17 @@
-use minijinja::{syntax::SyntaxConfig, value::ValueKind, Environment, Error, ErrorKind, Value};
+mod async_text;
+mod sensor_text;
+mod sync_functions;
+use minijinja::{
+    syntax::SyntaxConfig,
+    value::{Kwargs, Object, ObjectRepr, Rest, ValueKind},
+    Environment, Error, ErrorKind, State, Value,
+};
+use napi::Env;
 use napi_derive::napi;
 use num_bigint::{BigInt, BigUint};
 use num_traits::{FromPrimitive, One};
 use std::{
+    collections::HashSet,
     io,
     sync::{Arc, Mutex},
 };
@@ -372,6 +381,373 @@ impl NativeSensorTemplate {
         self.environment = None;
         if let Ok(mut readings) = self.readings.lock() {
             readings.clear();
+        }
+    }
+}
+
+// Text rendering has a separate owner; sensor side effects and text output are
+// never conflated. No process environment, filesystem or JS callback is exposed.
+struct PrivateSecrets {
+    values: Value,
+    file: String,
+    format: String,
+}
+impl std::fmt::Debug for PrivateSecrets {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PrivateSecrets <private>")
+    }
+}
+impl Object for PrivateSecrets {
+    fn repr(self: &Arc<Self>) -> ObjectRepr {
+        ObjectRepr::Plain
+    }
+    fn get_value(self: &Arc<Self>, key: &Value) -> Option<Value> {
+        let value = self.values.get_item(key).ok()?;
+        // Jinja catches Python __getitem__ KeyError and returns Undefined,
+        // which prints empty under the pinned default undefined policy.
+        if value.is_undefined() {
+            None
+        } else {
+            Some(value)
+        }
+    }
+    fn call_method(
+        self: &Arc<Self>,
+        _state: &State<'_, '_>,
+        method: &str,
+        args: &[Value],
+    ) -> Result<Value, Error> {
+        match method {
+            "get" => {
+                let (key, default): (String, Option<Value>) = minijinja::value::from_args(args)?;
+                let value = self.values.get_item(&Value::from(key))?;
+                Ok(if value.is_undefined() {
+                    default.unwrap_or(Value::from(()))
+                } else {
+                    value
+                })
+            }
+            "get_type" | "get_secrets_file" if args.is_empty() => {
+                Ok(Value::from(if method == "get_type" {
+                    self.format.clone()
+                } else {
+                    self.file.clone()
+                }))
+            }
+            _ => Err(err("Unsupported secrets method")),
+        }
+    }
+}
+struct TextOutput(Vec<u8>);
+impl io::Write for TextOutput {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        if self.0.len() + bytes.len() > 65536 {
+            return Err(io::Error::other("Template output limit"));
+        }
+        self.0.extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+fn private_error() -> napi::Error {
+    js_err("Private template operation failed")
+}
+// An inactive logging.debug validates message binding but does not format it.
+fn disabled_log_debug(args: Rest<Value>, kwargs: Kwargs) -> Result<Value, Error> {
+    let named = kwargs.args().any(|name| name == "msg");
+    if args.0.is_empty() && !named || !args.0.is_empty() && named {
+        return Err(err("Invalid debug message binding"));
+    }
+    for name in kwargs.args() {
+        let _: Value = kwargs.get(name)?;
+    }
+    kwargs.assert_all_used()?;
+    Ok(Value::from(()))
+}
+#[napi]
+pub struct NativeTextTemplate {
+    state: Mutex<Option<TextEnvironment>>,
+}
+struct TextEnvironment {
+    environment: Environment<'static>,
+    callables: Vec<String>,
+    globals: usize,
+    sensor_variables: Option<HashSet<String>>,
+    sensor_functions: bool,
+}
+impl TextEnvironment {
+    fn sensor_uses_functions(&mut self, names: &[String]) -> napi::Result<bool> {
+        if self.sensor_variables.is_none() {
+            // This environment owns only this template and has no external
+            // loader. Includes cannot introduce unseen template dependencies.
+            let variables = self
+                .environment
+                .get_template("text")
+                .map_err(|_| private_error())?
+                .undeclared_variables(false);
+            self.sensor_functions = self
+                .callables
+                .iter()
+                .any(|name| name != "payload" && name != "set_result" && variables.contains(name));
+            self.sensor_variables = Some(variables);
+        }
+        let variables = self.sensor_variables.as_ref().ok_or_else(private_error)?;
+        Ok(self.sensor_functions || names.iter().any(|name| variables.contains(name)))
+    }
+}
+#[napi]
+impl NativeTextTemplate {
+    #[napi(constructor)]
+    pub fn new(
+        source: String,
+        secrets: String,
+        file: String,
+        format: String,
+    ) -> napi::Result<Self> {
+        if source.len() > 65536
+            || secrets.len() > 1048576
+            || file.len() > 4096
+            || !matches!(format.as_str(), "json" | "ini" | "invalid")
+        {
+            return Err(private_error());
+        }
+        let values = json_value(
+            serde_json::from_str(&secrets).map_err(|_| private_error())?,
+            0,
+        )
+        .map_err(|_| private_error())?;
+        if values.kind() != ValueKind::Map {
+            return Err(private_error());
+        }
+        let mut env = Environment::new();
+        env.set_formatter(|out, state, value| {
+            if value.kind() == ValueKind::None {
+                minijinja::escape_formatter(out, state, &Value::from("None"))
+            } else if value.kind() == ValueKind::Bool {
+                minijinja::escape_formatter(
+                    out,
+                    state,
+                    &Value::from(if value.is_true() { "True" } else { "False" }),
+                )
+            } else if value.kind() == ValueKind::Number
+                && !value.is_integer()
+                && f64::try_from(value.clone())?.is_nan()
+            {
+                minijinja::escape_formatter(out, state, &Value::from("nan"))
+            } else {
+                minijinja::escape_formatter(out, state, value)
+            }
+        });
+        env.set_syntax(
+            SyntaxConfig::builder()
+                .variable_delimiters("{", "}")
+                .build()
+                .map_err(|_| private_error())?,
+        );
+        env.set_fuel(Some(100000));
+        env.set_unknown_method_callback(minijinja_contrib::pycompat::unknown_method_callback);
+        env.add_filter("fromjson", |text: String| -> Result<Value, Error> {
+            if text.len() > 65536 {
+                return Err(err("JSON payload limit"));
+            }
+            json_value(
+                serde_json::from_str(&text).map_err(|_| err("Invalid JSON"))?,
+                0,
+            )
+        });
+        env.add_filter("float", float_filter);
+        env.add_filter("round", round_filter);
+        env.add_global(
+            "secrets",
+            Value::from_object(PrivateSecrets {
+                values,
+                file,
+                format,
+            }),
+        );
+        env.add_function(
+            "raise_error",
+            |_message: String, _code: Option<i64>| -> Result<Value, Error> {
+                Err(err("Template requested error"))
+            },
+        );
+        env.add_function("log_debug", disabled_log_debug);
+        env.add_template_owned("text".to_owned(), source)
+            .map_err(|_| private_error())?;
+        Ok(Self {
+            state: Mutex::new(Some(TextEnvironment {
+                environment: env,
+                callables: Vec::new(),
+                globals: 0,
+                sensor_variables: None,
+                sensor_functions: false,
+            })),
+        })
+    }
+    #[napi]
+    pub fn render(&self, context: String) -> napi::Result<String> {
+        if context.len() > 65536 {
+            return Err(private_error());
+        }
+        let state = self.state.lock().map_err(|_| private_error())?;
+        let env = &state.as_ref().ok_or_else(private_error)?.environment;
+        let context = json_value(
+            serde_json::from_str(&context).map_err(|_| private_error())?,
+            0,
+        )
+        .map_err(|_| private_error())?;
+        if context.kind() != ValueKind::Map {
+            return Err(private_error());
+        }
+        let mut output = TextOutput(Vec::new());
+        env.get_template("text")
+            .map_err(|_| private_error())?
+            .render_captured_to(context, &mut output)
+            .map_err(|_| private_error())?;
+        String::from_utf8(output.0).map_err(|_| private_error())
+    }
+    #[napi]
+    pub fn render_sensor(&self, payload: String) -> napi::Result<Vec<TypedReading>> {
+        if payload.len() > 65536 {
+            return Err(private_error());
+        }
+        let mut state = self.state.lock().map_err(|_| private_error())?;
+        let state = state.as_mut().ok_or_else(private_error)?;
+        if state.sensor_uses_functions(&[])? {
+            return Err(private_error());
+        }
+        let frame = sensor_text::SensorFrame::new();
+        state
+            .environment
+            .get_template("text")
+            .map_err(|_| private_error())?
+            .render_captured_to(frame.context(payload), &mut BoundedOutput(0))
+            .map_err(|_| private_error())?;
+        frame.finish()
+    }
+    #[napi]
+    pub fn render_sensor_with_functions(
+        &self,
+        env: Env,
+        payload: String,
+        names: Vec<String>,
+        callback: napi::JsFunction,
+    ) -> napi::Result<Vec<TypedReading>> {
+        if payload.len() > 65536 || names.iter().any(|name| name == "set_result") {
+            return Err(private_error());
+        }
+        let prepared = {
+            let mut state = self.state.lock().map_err(|_| private_error())?;
+            let state = state.as_mut().ok_or_else(private_error)?;
+            state.sensor_uses_functions(&names)?.then(|| {
+                let globals = state
+                    .callables
+                    .iter()
+                    .filter(|name| {
+                        name.as_str() != "payload"
+                            && name.as_str() != "set_result"
+                            && state
+                                .sensor_variables
+                                .as_ref()
+                                .is_some_and(|variables| variables.contains(name.as_str()))
+                    })
+                    .cloned()
+                    .collect();
+                (state.environment.clone(), globals)
+            })
+        };
+        let Some((environment, globals)) = prepared else {
+            return self.render_sensor(payload);
+        };
+        let frame = sensor_text::SensorFrame::new();
+        sync_functions::render(
+            env,
+            environment,
+            frame.context(payload),
+            globals,
+            names,
+            callback,
+        )?;
+        if self.state.lock().map_err(|_| private_error())?.is_none() {
+            return Err(private_error());
+        }
+        frame.finish()
+    }
+    #[napi]
+    pub fn add_global(&self, name: String, value: Option<String>) -> napi::Result<()> {
+        if name.is_empty() || name.len() > 128 {
+            return Err(private_error());
+        }
+        let mut state = self.state.lock().map_err(|_| private_error())?;
+        let state = state.as_mut().ok_or_else(private_error)?;
+        if state.globals >= 64 || state.environment.globals().any(|(key, _)| key == name) {
+            return Err(private_error());
+        }
+        let value = match value {
+            Some(text) => {
+                if text.len() > 65536 {
+                    return Err(private_error());
+                }
+                async_text::unwire(
+                    &serde_json::from_str(&text).map_err(|_| private_error())?,
+                    0,
+                )
+                .map_err(|_| private_error())?
+            }
+            None => {
+                if name != "payload"
+                    && name != "set_result"
+                    && state
+                        .sensor_variables
+                        .as_ref()
+                        .is_some_and(|variables| variables.contains(&name))
+                {
+                    state.sensor_functions = true;
+                }
+                state.callables.push(name.clone());
+                Value::UNDEFINED
+            }
+        };
+        state.environment.add_global(name, value);
+        state.globals += 1;
+        Ok(())
+    }
+    #[napi]
+    pub fn render_with_functions(
+        &self,
+        env: Env,
+        context: String,
+        names: Vec<String>,
+        callback: napi::JsFunction,
+    ) -> napi::Result<String> {
+        if context.len() > 65536 {
+            return Err(private_error());
+        }
+        let context = json_value(
+            serde_json::from_str(&context).map_err(|_| private_error())?,
+            0,
+        )
+        .map_err(|_| private_error())?;
+        if context.kind() != ValueKind::Map {
+            return Err(private_error());
+        }
+        let (environment, globals) = {
+            let state = self.state.lock().map_err(|_| private_error())?;
+            let state = state.as_ref().ok_or_else(private_error)?;
+            (state.environment.clone(), state.callables.clone())
+        };
+        let result = sync_functions::render(env, environment, context, globals, names, callback)?;
+        if self.state.lock().map_err(|_| private_error())?.is_none() {
+            return Err(private_error());
+        }
+        Ok(result)
+    }
+    #[napi]
+    pub fn close(&self) {
+        if let Ok(mut state) = self.state.lock() {
+            *state = None;
         }
     }
 }

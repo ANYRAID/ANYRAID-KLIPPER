@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "head": "822e60d6cc36b542c3b294d448d9efa28595582d",
+  "pullRequest": 68,
+  "allSuccess": false,
+  "jobSummary": {
+    "total": 15,
+    "success": 14,
+    "failure": 1
+  },
+  "runs": [
+    {
+      "id": 38143972429,
+      "name": "Build test",
+      "conclusion": "success"
+    },
+    {
+      "id": 38143972441,
+      "name": "Node host",
+      "conclusion": "success"
+    },
+    {
+      "id": 38143972430,
+      "name": "Node motion diagnostics",
+      "conclusion": "failure"
+    }
+  ],
+  "failedJob": {
+    "id": 114483364073,
+    "name": "motion (26.10.0, jitless, compiled)",
+    "artifactId": 11704620387,
+    "archiveSha256": "40f62e08a2b6822f1c658bc29060eb879c7d57b5dbf45029e37049e944096020",
+    "completedProcesses": 16,
+    "index": 16,
+    "signal": "SIGKILL",
+    "termination": {
+      "reason": "deadline",
+      "signal": "SIGKILL",
+      "requestedAtMs": 10002.352247000003,
+      "sent": true
+    },
+    "verifiedIterations": 14,
+    "lastProgress": {
+      "run": 14,
+      "stage": "plots",
+      "elapsedMs": 9495.087429,
+      "resources": {
+        "userCPUTime": 9450748,
+        "systemCPUTime": 71081,
+        "maxRSS": 172244,
+        "sharedMemorySize": 0,
+        "unsharedDataSize": 0,
+        "unsharedStackSize": 0,
+        "minorPageFault": 31653,
+        "majorPageFault": 0,
+        "swappedOut": 0,
+        "fsRead": 0,
+        "fsWrite": 0,
+        "ipcSent": 0,
+        "ipcReceived": 0,
+        "signalsCount": 0,
+        "voluntaryContextSwitches": 357,
+        "involuntaryContextSwitches": 79
+      }
+    },
+    "mismatchFiles": 0,
+    "coreFiles": 0,
+    "rootCauseUnresolved": true,
+    "deadlineUnchanged": true,
+    "noManualRerun": true,
+    "interpretation": "Continued CPU computation until original deadline. A second execution mode failed; neither numerical correctness nor an infrastructure-only cause is established"
+  },
+  "evidenceArchive": {
+    "path": "pr68-822-motion.evidence.json.gz",
+    "sha256": "e8ab8c1daf81c6718bd838d58a103c7b9a65468fdeaba2cec8b654b9fda2b66c",
+    "entries": 4
+  },
+  "openGates": [
+    "Motion CI deadline failure",
+    "Original local full regression failures",
+    "Mainsail download digest and full external fault recovery",
+    "Real target motion precision and performance; default Python retained"
+  ]
+}

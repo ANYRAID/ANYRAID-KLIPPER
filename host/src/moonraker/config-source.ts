@@ -3,11 +3,17 @@ import {constants} from 'node:fs';
 import {open,opendir,realpath,stat} from 'node:fs/promises';
 import {basename,dirname,isAbsolute,join,resolve,sep} from 'node:path';
 import {homedir} from 'node:os';
+import {createHash} from 'node:crypto';
 import {ServerConfiguration,type ConfigurationSnapshot} from './metadata.ts';
 
 export class ConfigurationError extends Error {}
 export interface ConfigurationLimits {bytes?:number;files?:number;depth?:number;directoryEntries?:number;}
 type Values=Record<string,string>;
+export interface ConfigurationFragment {start:number;end:number;}
+export interface ConfigurationDefinition {section:string;option:string;order:number;fragments:readonly ConfigurationFragment[];}
+export interface ConfigurationDefinitionSource {filename:string;sha256:string;definitions:readonly ConfigurationDefinition[];headers:readonly {section:string;end:number}[];}
+type MutableDefinition={section:string;option:string;order:number;fragments:ConfigurationFragment[]};
+type ParsedLine={text:string;fragment:ConfigurationFragment};
 const dictionary=<T>():Record<string,T>=>Object.create(null);
 const fail=(message:string):never=>{throw new ConfigurationError(message);};
 // Python str.strip/splitlines whitespace, without JavaScript's BOM whitespace.
@@ -29,23 +35,41 @@ export class ConfigurationSource {
  readonly primaryFile:string;
  readonly original:Record<string,Values>;
  readonly files:readonly {filename:string;sections:readonly string[]}[];
- constructor(primaryFile:string,original:Record<string,Values>,files:{filename:string;sections:string[]}[]){
+ readonly #definitions:readonly ConfigurationDefinitionSource[];
+ constructor(primaryFile:string,original:Record<string,Values>,files:{filename:string;sections:string[]}[],definitions:ConfigurationDefinitionSource[]=[]){
   this.primaryFile=primaryFile;for(const values of Object.values(original))Object.freeze(values);this.original=Object.freeze(original);
-  this.files=Object.freeze(files.map(f=>Object.freeze({...f,sections:Object.freeze(f.sections)})));Object.freeze(this);
+  this.files=Object.freeze(files.map(f=>Object.freeze({...f,sections:Object.freeze(f.sections)})));
+  this.#definitions=Object.freeze(definitions.map(file=>Object.freeze({...file,definitions:Object.freeze(file.definitions.map(d=>Object.freeze({...d,fragments:Object.freeze(d.fragments.map(f=>Object.freeze({...f})))}))),headers:Object.freeze(file.headers.map(h=>Object.freeze({...h})))})));Object.freeze(this);
  }
+ /** Trusted startup provenance only, never part of the public config snapshot.
+  * Fragment offsets are UTF-16 string offsets into the exact decoded file. */
+ definitionSources():readonly ConfigurationDefinitionSource[]{return this.#definitions;}
  snapshot(parsed:ConfigurationSnapshot['parsed']):ConfigurationSnapshot{return {primaryFile:this.primaryFile,original:this.original,files:this.files,parsed};}
  publish(target:ServerConfiguration,parsed:ConfigurationSnapshot['parsed']):void{target.replace(this.snapshot(parsed));}
 }
 /** Read completely before publication. Includes cannot start a partial reload.
  * Async filesystem access; no writes, template execution, or device effects. */
 export async function loadConfiguration(filename:string,limits:ConfigurationLimits={},requiredSection:string|null='server'):Promise<ConfigurationSource>{
+ return readConfiguration(filename,limits,requiredSection);
+}
+/** Trusted candidate preview uses the same parser and include traversal.
+ * Replacements cannot introduce a new approved source file or write anything. */
+export async function previewConfiguration(source:ConfigurationSource,replacements:ReadonlyMap<string,Uint8Array>):Promise<ConfigurationSource>{
+ const approved=new Set(source.definitionSources().map(f=>f.filename)),copies=new Map<string,Buffer>();let size=0;
+ for(const [path,bytes]of replacements){if(!approved.has(path)||!(bytes instanceof Uint8Array))throw new ConfigurationError('Unapproved candidate configuration source');size+=bytes.byteLength;if(size>8*1024*1024)throw new ConfigurationError('Candidate configuration byte limit exceeded');}
+ for(const [path,bytes]of replacements)copies.set(path,Buffer.from(bytes));
+ const candidate=await readConfiguration(source.definitionSources()[0]?.filename??source.primaryFile,{},'server',copies,approved),consumed=new Set(candidate.definitionSources().map(f=>f.filename));
+ if(consumed.size!==approved.size||[...approved].some(path=>!consumed.has(path))||[...copies.keys()].some(path=>!consumed.has(path)))throw new ConfigurationError('Candidate changes approved source membership');return candidate;
+}
+async function readConfiguration(filename:string,limits:ConfigurationLimits,requiredSection:string|null,overrides?:ReadonlyMap<string,Buffer>,approvedSources?:ReadonlySet<string>):Promise<ConfigurationSource>{
  const maximum={bytes:limits.bytes??8*1024*1024,files:limits.files??256,depth:limits.depth??64,directoryEntries:limits.directoryEntries??16384};
  for(const n of Object.values(maximum))if(!Number.isSafeInteger(n)||n<1)fail('Invalid configuration resource limit');
  if(typeof filename!=='string'||!filename||filename.includes('\0'))fail('Invalid configuration filename');
  if(filename==='~'||filename.startsWith('~/'))filename=join(homedir(),filename.slice(2));
  const main=resolve(filename),defaults:Values=dictionary(),sections:Record<string,Values>=dictionary();
  const files:{filename:string;sections:string[]}[]=[],sectionFiles=new Map<string,number[]>(),visited=new Set<string>();
- let bytes=0,entries=0;
+ const definitionFiles:ConfigurationDefinitionSource[]=[];
+ let bytes=0,entries=0,definitionOrder=0;
  async function matches(pattern:string,base:string):Promise<string[]>{
   if(pattern.includes('\0'))fail('Invalid include filename');
   const directoriesOnly=!isAbsolute(pattern)&&pattern.endsWith('/');
@@ -73,52 +97,55 @@ export async function loadConfiguration(filename:string,limits:ConfigurationLimi
   // Python sorts Unicode code points, not UTF-16 surrogate units.
   return [...found].sort((a,b)=>{const x=[...a],y=[...b];for(let i=0;i<Math.min(x.length,y.length);i++){const d=x[i].codePointAt(0)!-y[i].codePointAt(0)!;if(d)return d;}return x.length-y.length;});
  }
- function parseBuffer(lines:string[],path:string):void{
-  let current:Values|undefined,sectionName='',option:string|undefined,previousIndent=0;
+ function parseBuffer(lines:ParsedLine[],path:string,definitions:MutableDefinition[],headers:{section:string;end:number}[]):void{
+  let current:Values|undefined,sectionName='',option:string|undefined,previousIndent=0,definition:MutableDefinition|undefined;
   const seenSections=new Set<string>(),seenOptions=new Set<string>();
-  for(const line of lines){const value=strip(line);if(!value||value.startsWith('#')||value.startsWith(';'))continue;
+  for(const parsed of lines){const line=parsed.text,value=strip(line);if(!value||value.startsWith('#')||value.startsWith(';'))continue;
    const level=indent(line);
-   if(current&&option!==undefined&&level>previousIndent){current[option]+='\n'+value;continue;}
+   if(current&&option!==undefined&&level>previousIndent){current[option]+='\n'+value;definition!.fragments.push(parsed.fragment);continue;}
    previousIndent=level;
    // ConfigParser's section expression is greedy, unlike the source scanner.
    const section=value.match(/^\[(.+)\]/s);
-   if(section){const name=section[1];sectionName=name;if(name==='DEFAULT')current=defaults;else{if(seenSections.has(name))fail(`Duplicate section in ${path}`);seenSections.add(name);current=sections[name]??(sections[name]=dictionary());}option=undefined;continue;}
+   if(section){const name=section[1];sectionName=name;if(name==='DEFAULT')current=defaults;else{if(seenSections.has(name))fail(`Duplicate section in ${path}`);seenSections.add(name);current=sections[name]??(sections[name]=dictionary());}option=undefined;definition=undefined;headers.push({section:name,end:parsed.fragment.end});continue;}
    if(!current)fail(`Option outside a section in ${path}`);
    const match=value.match(/^(.+?)(?:=|:)(.*)$/s);if(!match)fail(`Invalid configuration option in ${path}`);
    option=strip(match![1]).toLowerCase();if(!option)fail(`Empty configuration option in ${path}`);
    const key=JSON.stringify([sectionName,option]);
    if(seenOptions.has(key))fail(`Duplicate option in ${path}`);seenOptions.add(key);current![option]=strip(match![2]);
+   definition={section:sectionName,option,order:definitionOrder++,fragments:[parsed.fragment]};definitions.push(definition);
   }
  }
  async function read(path:string,depth:number):Promise<void>{
+  if(approvedSources&&!approvedSources.has(path))fail('Candidate attempted an unapproved configuration source');
   if(depth>maximum.depth||files.length>=maximum.files)fail('Configuration include limit exceeded');
   const file=await open(path,constants.O_RDONLY|constants.O_NONBLOCK);
-  let text:string;
+  let text:string,sha256:string;
   try{const info=await file.stat({bigint:true});if(!info.isFile())fail(`Configuration is not a regular file: ${path}`);const identity=`${info.dev}:${info.ino}`;if(visited.has(identity))fail(`Recursive include directive detected: ${path}`);visited.add(identity);
    if(info.size>BigInt(maximum.bytes-bytes))fail('Configuration byte limit exceeded');
-   const chunks:Buffer[]=[];for(;;){const buffer=Buffer.allocUnsafe(Math.min(65536,maximum.bytes-bytes+1));const {bytesRead}=await file.read(buffer,0,buffer.length,null);if(!bytesRead)break;bytes+=bytesRead;if(bytes>maximum.bytes)fail('Configuration byte limit exceeded');chunks.push(buffer.subarray(0,bytesRead));}
-   text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(Buffer.concat(chunks));
+   const replacement=overrides?.get(path),chunks:Buffer[]=[];if(replacement){bytes+=replacement.length;if(bytes>maximum.bytes)fail('Configuration byte limit exceeded');chunks.push(replacement);}else for(;;){const buffer=Buffer.allocUnsafe(Math.min(65536,maximum.bytes-bytes+1));const {bytesRead}=await file.read(buffer,0,buffer.length,null);if(!bytesRead)break;bytes+=bytesRead;if(bytes>maximum.bytes)fail('Configuration byte limit exceeded');chunks.push(buffer.subarray(0,bytesRead));}
+   const raw=Buffer.concat(chunks);sha256=createHash('sha256').update(raw).digest('hex');text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(raw);
   }finally{await file.close();}
-  const index=files.length;files.push({filename:path,sections:[]});let buffer:string[]=[],lastSection='',optionIndent=-1;const options=new Set<string>();
-  for(let line of text!.split(/\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/)){
+  const index=files.length;files.push({filename:path,sections:[]});const definitions:MutableDefinition[]=[],headers:{section:string;end:number}[]=[];definitionFiles.push({filename:path,sha256:sha256!,definitions,headers});let buffer:ParsedLine[]=[],lastSection='',optionIndent=-1;const options=new Set<string>();
+  for(const matchLine of text!.matchAll(/([^\r\n\v\f\x1c-\x1e\x85\u2028\u2029]*)(\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]|$)/gu)){
+   let line=matchLine[1]!;const fragment={start:matchLine.index,end:matchLine.index+matchLine[0].length};
    const trimmed=strip(line);if(!trimmed||trimmed.startsWith('#')||trimmed.startsWith(';'))continue;
    line=expandTabs(line).replace(/ +[#;].*$/s,'').replace(/ \\([#;])/g,' $1');
-   const level=indent(line);if(optionIndent!==-1&&level>optionIndent){buffer.push(line);continue;}
+   const level=indent(line);if(optionIndent!==-1&&level>optionIndent){buffer.push({text:line,fragment});continue;}
    const match=line.slice(level).match(/^\[([^\]]+)\]/s);
    if(match){optionIndent=-1;const section=match[1];if(section.startsWith('include ')){
     const pattern=strip(section.slice(8));if(!pattern)fail('Invalid include directive');const paths=await matches(pattern,dirname(path));if(!paths.length)fail(`No files matching include directive in ${path}`);
-    parseBuffer(buffer,path);buffer=[];for(const child of paths)await read(child,depth+1);continue;
+    parseBuffer(buffer,path,definitions,headers);buffer=[];for(const child of paths)await read(child,depth+1);continue;
    }
    lastSection=section;const owners=sectionFiles.get(section)??[];if(owners.includes(index))fail(`Duplicate section in ${path}`);owners.unshift(index);sectionFiles.set(section,owners);
    }else{optionIndent=level;const option=strip(line.split(/[:=]/,1)[0]),key=JSON.stringify([lastSection,option]);if(options.has(key))fail(`Duplicate option in ${path}`);options.add(key);}
-   buffer.push(line);
+   buffer.push({text:line,fragment});
   }
-  parseBuffer(buffer,path);
+  parseBuffer(buffer,path,definitions,headers);
  }
  if(requiredSection!==null&&(typeof requiredSection!=='string'||!requiredSection||requiredSection.includes('\0')))fail('Invalid required configuration section');
  try{await read(main,0);if(requiredSection!==null&&!Object.hasOwn(sections,requiredSection))fail('No section ['+requiredSection+'] in config');
   const original:Record<string,Values>=dictionary();original.DEFAULT={...defaults};for(const [key,values]of Object.entries(sections))original[key]=Object.assign(dictionary<string>(),defaults,values);
   for(const [section,owners]of sectionFiles)for(const owner of owners)files[owner].sections.push(section);
-  return new ConfigurationSource(await realpath(main),original,files);
+  return new ConfigurationSource(await realpath(main),original,files,definitionFiles);
  }catch(error){if(error instanceof ConfigurationError)throw error;throw new ConfigurationError('Unable to read configuration source',{cause:error});}
 }

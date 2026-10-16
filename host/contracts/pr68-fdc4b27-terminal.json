@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "head": "fdc4b27e629e0457777562bd1e3195f75cd63584",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "merge": "cb55e429859ade7682958c2e936651be8950c044",
+  "jobs": [
+    {
+      "id": 115094916067,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623287
+    },
+    {
+      "id": 115094916133,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623287
+    },
+    {
+      "id": 115094916155,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623287
+    },
+    {
+      "id": 115094916162,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623287
+    },
+    {
+      "id": 115094916191,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623287
+    },
+    {
+      "id": 115094916192,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623287
+    },
+    {
+      "id": 115094916195,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623287
+    },
+    {
+      "id": 115094916201,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623287
+    },
+    {
+      "id": 115094916248,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623287
+    },
+    {
+      "id": 115094916792,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623287
+    },
+    {
+      "id": 115094916321,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623304
+    },
+    {
+      "id": 115094916051,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623292
+    },
+    {
+      "id": 115094916235,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623292
+    },
+    {
+      "id": 115094916345,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623292
+    },
+    {
+      "id": 115099522379,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38335623292
+    }
+  ],
+  "ordinary": {
+    "node": "v26.11.1",
+    "tests": 5142,
+    "passed": 5142,
+    "failed": 0,
+    "jobId": 115094916051,
+    "logExcerpt": [
+      "2026-10-13T02:10:33.5194429Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/* +cb55e429859ade7682958c2e936651be8950c044:refs/remotes/pull/68/merge",
+      "2026-10-13T02:10:40.6165433Z  * [new ref]           cb55e429859ade7682958c2e936651be8950c044 -> pull/68/merge",
+      "2026-10-13T02:10:41.6286389Z HEAD is now at cb55e429 Merge fdc4b27e629e0457777562bd1e3195f75cd63584 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "2026-10-13T02:10:41.6361635Z cb55e429859ade7682958c2e936651be8950c044",
+      "2026-10-13T02:10:46.7854982Z node: v26.11.1",
+      "2026-10-13T02:28:55.0481329Z ℹ tests 5142",
+      "2026-10-13T02:28:55.0481804Z ℹ pass 5142",
+      "2026-10-13T02:28:55.0482041Z ℹ fail 0",
+      "2026-10-13T02:28:55.0483976Z {\"nodeTestObservation\":{\"schema\":1,\"node\":\"v26.11.1\",\"success\":true,\"counts\":{\"tests\":5142,\"failed\":0,\"passed\":5142,\"cancelled\":0,\"skipped\":0,\"todo\":0,\"topLevel\":5142,\"suites\":0}}}",
+      "2026-10-13T02:28:59.4210439Z Version: cb55e429"
+    ]
+  },
+  "scope": "Prior exact task head and synthetic Actions merge. Not develop integration, G3/root cause, hardware or this TLS increment."
+}

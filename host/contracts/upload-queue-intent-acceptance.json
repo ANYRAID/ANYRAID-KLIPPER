@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "baselineHead": "ff5b29bef32d9fafd8d91328365161d762750772",
+  "sourceSha256": {
+    "host/src/moonraker/configured-server.ts": "d83065e610b85b2cbd64472ba847ad42bf6f456b35d3054f604c6d8cb4c42bee",
+    "host/src/moonraker/native-job-queue.ts": "5de27cb0c9ab8352a3f4b18397bdfda9f6677ae8f770e21aff186d0c923df274",
+    "host/src/moonraker/native-print-uploads.ts": "5c051f3e5b603b5952a13a983489161828b1896042936336f9a4a004b02f84cf",
+    "host/src/moonraker/octoprint-compat.ts": "04275507ea5b8b0ccebf0c38d31cbd15f4b5f2c2701f82968edac56340722cab",
+    "host/src/moonraker/product-print-api.ts": "85a939ca5aa5cbe952443c7756f70cec8f78630412be2d9c6337dadb72d3c928",
+    "host/test/upload-queue-intent.test.ts": "d916362fdac8b1d6a3afa5ac6860e35e39411ac8b3eb9a467df42ac91829cbb4",
+    "host/test/native-job-queue.test.ts": "795fdda0b0fdb571436af3b4360de7cfb9792e67ea6a7adce4277b234abe6af8",
+    "host/test/native-automatic-job-queue.test.ts": "99cf045885b40dad0fea5fcd0300918dbd792b785242750421cffb23be68b0f9",
+    "host/test/upload-print-intent.test.ts": "181c94ca155e8c6fa7bc3e482aab78d1fbcba961693cc18b7c0da74cb71ff28e",
+    "host/test/native-configured-job-queue.test.ts": "d6b96122e9a8cd4205876bac9d4689a6a117b126d676670645dce55b7994a71d",
+    "host/test/octoprint-compat.test.ts": "72163444b184effe31eb768f2aa6eaf63915fc5107b08aa012563b037f7b9bdc",
+    "host/test/product-print-api.test.ts": "8eb82b0d4b10c8f1c5f64b542cb53df150bfce85dceaea3653f93095ba1c929b",
+    "host/test/moonraker-endpoints.test.ts": "34df866c32f7deaaf33dcc5626dc441da88df9ddd0c56a0690f8f1a96effb7b5",
+    "host/bench/native-job-queue.ts": "6e472d71e28df66d8ad6cfe1ec67792ae5b70ce86fca07865080f0b32440727f"
+  },
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "path": "components/file_manager/file_manager.py",
+    "sha256": "a4bc7348613558fe98c282cb9c82b1c8014a3ac48e7223b339bac6f0729b893d",
+    "scope": "Static pinned source for explicit start_print / queue_gcodes intent. No new Python reference execution."
+  },
+  "implementation": {
+    "configuration": "[file_manager] queue_gcode_uploads defaults false; true requires the same process [job_queue]",
+    "intent": "Only explicit multipart print=true / OctoPrint select print=true; standard and alias uploads use the same owner",
+    "identity": "Pin published immutable ID; re-resolve before and after print authorization; original catalogue, receipt fingerprint, quotas and atomic persistence",
+    "authorization": "Capture original authenticated network context; generation cancellation is a separate signal. No authorization weak-map alias or bypass.",
+    "generation": "Upload captures exact device/queue bindings; active selection rejects retired/mismatched generation; a selection admitted offline cannot start a later live generation.",
+    "uncertainAdmission": "Only the original ProductPrintApi can prove it never called the controller. Errors after controller invocation never silently queue another print, including lost acknowledgement and late preparation failure.",
+    "recovery": "Original queue restored paused with immutable file/job IDs; no restart replay. Original operator_confirmation and automatic completion require fresh clearance.",
+    "failures": "Original missing queue flags, fixture typing/wait mistakes, actual API-key capture bug, forbidden thumbnail-child guard mismatch with cleanup receipts, sandbox spawn rejection, unsupported install CLI argument, and demonstrated offline-generation red test retained."
+  },
+  "tests": {
+    "source": {
+      "tests": 225,
+      "pass": 225,
+      "fail": 0,
+      "skipped": 0
+    },
+    "compiled": {
+      "tests": 225,
+      "pass": 225,
+      "fail": 0,
+      "skipped": 0
+    },
+    "product": {
+      "tests": 225,
+      "pass": 225,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "typecheck": "Full host typecheck passed with no diagnostics",
+  "performance": {
+    "baselineHead": "ff5b29bef32d9fafd8d91328365161d762750772",
+    "original": {
+      "jobs": 128,
+      "durableMutations": 64,
+      "scope": "Original workload, assertions, 50/50/100 ms query/event-loop budgets unchanged; actual installed baseline/candidate"
+    },
+    "published": {
+      "jobs": 128,
+      "scope": "Same actual published-file resolver and durable single-job workload; expected immutable identity adds recheck, never removes it"
+    },
+    "pairs": "AB, BA, AB; predetermined fresh-process pairs, no own tests/build/install running",
+    "budgets": [
+      {
+        "round": 0,
+        "kind": "original queue",
+        "metric": "fullCatalogueReadMs",
+        "ratio": 1,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "kind": "original queue",
+        "metric": "mutationMs",
+        "ratio": 0.9716745984254374,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "kind": "new pinned publication versus same actual-file queue",
+        "metric": "admission median",
+        "ratio": 1.1044125107837892,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "kind": "original queue",
+        "metric": "fullCatalogueReadMs",
+        "ratio": 1.0239520957987018,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "kind": "original queue",
+        "metric": "mutationMs",
+        "ratio": 0.9703564458566905,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "kind": "new pinned publication versus same actual-file queue",
+        "metric": "admission median",
+        "ratio": 1.0230976463562214,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "kind": "original queue",
+        "metric": "fullCatalogueReadMs",
+        "ratio": 1.0238095238171772,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "kind": "original queue",
+        "metric": "mutationMs",
+        "ratio": 1.0977878699253796,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "kind": "new pinned publication versus same actual-file queue",
+        "metric": "admission median",
+        "ratio": 1.1071801797795258,
+        "limit": 1.5,
+        "pass": true
+      }
+    ],
+    "pass": true,
+    "hardware": false,
+    "maximumRatio": 1.1071801797795258,
+    "scope": "Actual independently installed baseline/final products, Node-only; original queue script unchanged, 3 predetermined AB/BA/AB pairs. New pinned identity adds rechecks against the same real published-file resolver. Not a target-board or printing-throughput proof."
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/product-host-upload-queue-oct13",
+    "manifestSha256": "d7ace3f174654912f2f75c3b7ed665b8f1904c34d187bb285fc2fed82a3d573e",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+  },
+  "assembly": {
+    "files": 688,
+    "changed": [
+      "host/src/moonraker/configured-server.js",
+      "host/src/moonraker/native-job-queue.js",
+      "host/src/moonraker/native-print-uploads.js",
+      "host/src/moonraker/octoprint-compat.js",
+      "host/src/moonraker/product-print-api.js"
+    ],
+    "nativeSourcesVerified": 75,
+    "manifestSha256": "d7ace3f174654912f2f75c3b7ed665b8f1904c34d187bb285fc2fed82a3d573e",
+    "scope": "Full production TS build, verified unchanged locked native outputs reused; not a fresh native build or hardware proof.",
+    "dependencies": 18,
+    "changedFromBaseline": [
+      "host/src/moonraker/configured-server.js",
+      "host/src/moonraker/native-job-queue.js",
+      "host/src/moonraker/native-print-uploads.js",
+      "host/src/moonraker/octoprint-compat.js",
+      "host/src/moonraker/product-print-api.js"
+    ]
+  },
+  "evidence": {
+    "path": "host/contracts/upload-queue-intent-evidence.json.gz",
+    "sha256": "ce17863a8f31b1ea98d78ee354be79f030efe856bfc47db4f11042d0a3de3677",
+    "bytes": 2777099,
+    "entries": 823
+  },
+  "scope": "Real HTTP software and durable job execution with a mocked physical device. Independent JS/product prohibit TS/Python/arbitrary children; only original hash-pinned Node thumbnail child under its original memory quotas is permitted. No new browser scene or physical MCU.",
+  "remaining": [
+    "Own new-head required CI and task -> develop -> master integration",
+    "Cura plugin and full Fluidd/Mainsail file chooser/configuration/queue/process recovery journeys on the same package",
+    "Complete Moonraker, templates, consumer macro scenes and all 177 tracked Python files/default entry/benchmark retirement",
+    "Original UI performance, native compiler stability, G3 precision, target Cycnumbris500 integration/printing/hardware/release gates; other models last"
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "head": "5c5549540b29f3545b025808af192eb7e7eb5403",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "merge": "cefdf3886f71a2826db65474801c778fd0e09e4d",
+  "jobs": [
+    {
+      "id": 115083862691,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081308
+    },
+    {
+      "id": 115083862653,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081291
+    },
+    {
+      "id": 115083862768,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081291
+    },
+    {
+      "id": 115083862834,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081291
+    },
+    {
+      "id": 115083862846,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081291
+    },
+    {
+      "id": 115083862849,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081291
+    },
+    {
+      "id": 115083862866,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081291
+    },
+    {
+      "id": 115083862882,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081291
+    },
+    {
+      "id": 115083862884,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081291
+    },
+    {
+      "id": 115083862890,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081291
+    },
+    {
+      "id": 115083862917,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081291
+    },
+    {
+      "id": 115083862666,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081250
+    },
+    {
+      "id": 115083862863,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081250
+    },
+    {
+      "id": 115083862985,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081250
+    },
+    {
+      "id": 115088454962,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38332081250
+    }
+  ],
+  "ordinary": {
+    "node": "v26.11.1",
+    "tests": 5137,
+    "passed": 5137,
+    "failed": 0,
+    "jobId": 115083862985,
+    "logExcerpt": [
+      "2026-10-13T01:25:48.9614642Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/* +cefdf3886f71a2826db65474801c778fd0e09e4d:refs/remotes/pull/68/merge",
+      "2026-10-13T01:25:56.6356876Z  * [new ref]           cefdf3886f71a2826db65474801c778fd0e09e4d -> pull/68/merge",
+      "2026-10-13T01:25:57.6387085Z HEAD is now at cefdf388 Merge 5c5549540b29f3545b025808af192eb7e7eb5403 into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "2026-10-13T01:25:57.6556537Z cefdf3886f71a2826db65474801c778fd0e09e4d",
+      "2026-10-13T01:26:02.7721411Z node: v26.11.1",
+      "2026-10-13T01:44:03.9758452Z ℹ tests 5137",
+      "2026-10-13T01:44:03.9758936Z ℹ pass 5137",
+      "2026-10-13T01:44:03.9759179Z ℹ fail 0",
+      "2026-10-13T01:44:03.9761166Z {\"nodeTestObservation\":{\"schema\":1,\"node\":\"v26.11.1\",\"success\":true,\"counts\":{\"tests\":5137,\"failed\":0,\"passed\":5137,\"cancelled\":0,\"skipped\":0,\"todo\":0,\"topLevel\":5137,\"suites\":0}}}"
+    ]
+  },
+  "pullRequest": {
+    "number": 68,
+    "draft": true,
+    "merged": false,
+    "state": "open"
+  },
+  "scope": "Exact prior task head CI and Actions synthetic merge checkout; not develop integration, historical failure root cause, G3 or complete delivery."
+}

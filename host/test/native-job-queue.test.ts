@@ -40,6 +40,32 @@ const automatic = {
 };
 const automaticContext = (): RpcContext => ({ ...context(), nativeGenerationSignal: new AbortController().signal });
 
+test('clearance availability is an optional read-only hint, fails closed and grants no print admission', async () => {
+  let available = true, fail = false, admissionChecks = 0;
+  const f = await fixture({ ...automatic, confirmClearance: true, activePrint: () => undefined,
+    canStart: () => { admissionChecks++; return true; },
+    clearanceAvailable: () => { if (fail) throw Error('Observer unavailable'); return available; },
+  });
+  try {
+    assert.equal(f.queue.status.transition_available, false);
+    await f.queue.add(['one.gcode'], false, automaticContext());
+    assert.equal(f.queue.status.transition_available, true); assert.equal(admissionChecks, 0); assert.equal(f.calls.length, 0);
+    available = false; assert.equal(f.queue.status.transition_available, false);
+    available = true; fail = true; assert.equal(f.queue.status.transition_available, false);
+    fail = false; await f.queue.close(); assert.equal(f.queue.status.transition_available, false);
+    assert.equal(admissionChecks, 0); assert.equal(f.calls.length, 0);
+  } finally { await f.close(); }
+});
+
+test('an unconfigured queue view keeps its original DTO and rejects an invalid availability provider', async () => {
+  const f = await fixture();
+  try {
+    assert.equal(Object.hasOwn(f.queue.status, 'transition_available'), false);
+    await assert.rejects(NativeJobQueue.open({ ...f.options, clearanceAvailable: true as unknown as () => boolean }), /availability provider/);
+    assert.equal(f.calls.length, 0);
+  } finally { await f.close(); }
+});
+
 test('clearance cannot be bypassed when the device becomes idle during queue start', async () => {
   let checks = 0;
   const f = await fixture({ ...automatic, confirmClearance: true, activePrint: () => undefined, canStart: () => ++checks > 1 });
@@ -352,4 +378,17 @@ test('REST and JSON-RPC expose the same authenticated queue with upstream shapes
     }
     assert.equal(f.calls.length, 0);
   } finally { release(); await network.close(); await f.close(); }
+});
+test('published queue receipt pins immutable identity, is idempotent and survives restart without print replay',async()=>{
+ const f=await fixture();try{const file={filename:'one.gcode',file_id:'file-one'},ctx=context();await f.queue.addPublished(file,ctx,'publication-one');const id=f.queue.status.queued_jobs[0].job_id;await f.queue.addPublished(file,ctx,'publication-one');assert.equal(f.queue.status.queued_jobs.length,1);assert.equal(f.events.filter((e:any)=>e.action==='jobs_added').length,1);
+  await assert.rejects(f.queue.add(['one.gcode'],false,ctx,'publication-one'),statusError(409));await assert.rejects(f.queue.addPublished({...file,file_id:'file-two'},ctx,'publication-one'),statusError(409));await f.reopen();await f.queue.addPublished(file,ctx,'publication-one');assert.equal(f.queue.status.queued_jobs[0].job_id,id);assert.equal(f.queue.status.queue_state,'paused');assert.deepEqual(f.calls,[]);
+ }finally{await f.close();}
+});
+test('published queue admission rejects changed paths before and during authorization, changed principals, and cancellation',async()=>{
+ for(const boundary of ['before','during','principal','cancel'] as const){const f=await fixture(),abort=new AbortController();try{if(boundary==='before')f.files.set('one.gcode','changed');const ctx=context(async()=>{if(boundary==='during')f.files.set('one.gcode','changed');if(boundary==='cancel')abort.abort(new ApiError(499,'Cancelled queue'));return {username:boundary==='principal'?'another-user':'operator'};});ctx.signal=abort.signal;
+  await assert.rejects(f.queue.addPublished({filename:'one.gcode',file_id:'file-one'},ctx,'published-'+boundary),statusError(boundary==='principal'?403:boundary==='cancel'?499:409));assert.equal(f.queue.status.queued_jobs.length,0);assert.deepEqual(f.events,[]);assert.deepEqual(f.calls,[]);
+ }finally{await f.close();}}
+});
+test('published admission cancellation remains separate from the authenticated network context',async()=>{
+ const f=await fixture(),device=new AbortController(),ctx=context(async()=>{device.abort(new ApiError(503,'Device generation retired'));return {username:'operator'};});try{await assert.rejects(f.queue.addPublished({filename:'one.gcode',file_id:'file-one'},ctx,'device-bound',device.signal),statusError(503));assert.equal(ctx.signal.aborted,false);assert.equal(f.queue.status.queued_jobs.length,0);assert.deepEqual(f.calls,[]);assert.deepEqual(f.events,[]);}finally{await f.close();}
 });

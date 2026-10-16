@@ -112,3 +112,11 @@ test('standard websocket requests use the same durable controller and return the
 test('API shutdown preserves failed job and does not act as explicit cancellation',()=>fixture(async(controller,api,journal,_calls,release)=>{
  release();await controller.start(input);await controller.fault(Error('rejected file identity'));const before=await journal.get(input.requestId);assert.equal(before?.state,'failed');await api.close();const after=await journal.get(input.requestId);assert.equal(after?.state,'failed');assert.equal(after?.revision,before?.revision);assert.equal(controller.state,'failed');
 }));
+test('a reused error object cannot retain no-admission proof after the same request reaches the controller',async t=>{
+ const shared=new Error('Reused failure object');let failPolicy=true;
+ await fixture(async(controller,api,journal,calls)=>{
+  const file={filename:'file.gcode',file_id:'file'},id='reused-proof';await assert.rejects(api.startUploaded(file,id,context()),error=>error===shared);assert.equal(api.isUnadmittedPublished(shared,id),true);assert.equal(api.isUnadmittedPublished(shared,'another-request'),false);assert.equal(await journal.get(id),null);
+  failPolicy=false;const original=api.call;t.mock.method(api,'call',async function(this:ProductPrintApi,...args:Parameters<ProductPrintApi['call']>){const value=await original.apply(this,args);if(args[0]==='start')throw shared;return value;});
+  await assert.rejects(api.startUploaded(file,id,context()),error=>error===shared);assert.equal(api.isUnadmittedPublished(shared,id),false);assert.equal((await journal.get(id))!.request.fileId,'file');assert.equal(controller.currentRequest!.requestId,id);assert.equal(calls.filter(c=>c==='prepare').length,1);t.mock.restoreAll();
+ },undefined,{async start(){if(failPolicy)throw shared;return {fileId:'file',nozzle:0,bed:0};}});
+});

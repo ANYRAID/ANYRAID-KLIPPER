@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "head": "0b2cc74713048f931f88e1d9c278927b89ec9adb",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "merge": "d5718b0cbe38904b71bb24761ccfb20e2cb1a52a",
+  "jobs": [
+    {
+      "id": 115127803797,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111066
+    },
+    {
+      "id": 115127803906,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111066
+    },
+    {
+      "id": 115127803931,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111066
+    },
+    {
+      "id": 115127803943,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111066
+    },
+    {
+      "id": 115127803948,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111066
+    },
+    {
+      "id": 115127803980,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111066
+    },
+    {
+      "id": 115127804002,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111066
+    },
+    {
+      "id": 115127804016,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111066
+    },
+    {
+      "id": 115127804065,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111066
+    },
+    {
+      "id": 115127804117,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111066
+    },
+    {
+      "id": 115127803782,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111065
+    },
+    {
+      "id": 115127803875,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111065
+    },
+    {
+      "id": 115127803976,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111065
+    },
+    {
+      "id": 115132530651,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111065
+    },
+    {
+      "id": 115127803360,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 38346111003
+    }
+  ],
+  "ordinary": {
+    "node": "v26.11.1",
+    "tests": 5164,
+    "failed": 0,
+    "passed": 5164,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "topLevel": 5164,
+    "suites": 0,
+    "jobId": 115127803976,
+    "logExcerpt": [
+      "2026-10-13T04:22:29.6240641Z HEAD is now at d5718b0c Merge 0b2cc74713048f931f88e1d9c278927b89ec9adb into 9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "2026-10-13T04:22:35.1868727Z node: v26.11.1",
+      "2026-10-13T04:40:41.3408162Z ℹ tests 5164",
+      "2026-10-13T04:40:41.3408622Z ℹ pass 5164",
+      "2026-10-13T04:40:41.3408857Z ℹ fail 0",
+      "2026-10-13T04:40:41.3410767Z {\"nodeTestObservation\":{\"schema\":1,\"node\":\"v26.11.1\",\"success\":true,\"counts\":{\"tests\":5164,\"failed\":0,\"passed\":5164,\"cancelled\":0,\"skipped\":0,\"todo\":0,\"topLevel\":5164,\"suites\":0}}}",
+      "2026-10-13T04:40:45.6041143Z Version: d5718b0c"
+    ]
+  },
+  "scope": "Prior exact redirect task head and synthetic Actions merge, not develop integration, historical cause, G3, hardware or the following welcome increment."
+}

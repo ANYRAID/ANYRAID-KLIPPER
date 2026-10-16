@@ -1,0 +1,1682 @@
+{
+  "schema": 1,
+  "accelerationAudit": [
+    {
+      "acceleration": 0,
+      "comparison": {
+        "length": 12266,
+        "bitDifferenceCount": 0,
+        "bitDifferenceIndexRanges": [],
+        "tolerance": 0,
+        "outsideToleranceCount": 0,
+        "outsideToleranceIndexRanges": [],
+        "maxAbs": 0,
+        "maxAbsIndex": null
+      }
+    },
+    {
+      "acceleration": 1,
+      "comparison": {
+        "length": 12266,
+        "bitDifferenceCount": 0,
+        "bitDifferenceIndexRanges": [],
+        "tolerance": 0,
+        "outsideToleranceCount": 0,
+        "outsideToleranceIndexRanges": [],
+        "maxAbs": 0,
+        "maxAbsIndex": null
+      }
+    },
+    {
+      "acceleration": 2,
+      "comparison": {
+        "length": 12266,
+        "bitDifferenceCount": 0,
+        "bitDifferenceIndexRanges": [],
+        "tolerance": 0,
+        "outsideToleranceCount": 0,
+        "outsideToleranceIndexRanges": [],
+        "maxAbs": 0,
+        "maxAbsIndex": null
+      }
+    },
+    {
+      "acceleration": 3,
+      "comparison": {
+        "length": 12266,
+        "bitDifferenceCount": 0,
+        "bitDifferenceIndexRanges": [],
+        "tolerance": 0,
+        "outsideToleranceCount": 0,
+        "outsideToleranceIndexRanges": [],
+        "maxAbs": 0,
+        "maxAbsIndex": null
+      }
+    }
+  ],
+  "deviationAudit": [
+    {
+      "deviation": 0,
+      "comparison": {
+        "length": 11266,
+        "bitDifferenceCount": 0,
+        "bitDifferenceIndexRanges": [],
+        "tolerance": 0,
+        "outsideToleranceCount": 0,
+        "outsideToleranceIndexRanges": [],
+        "maxAbs": 0,
+        "maxAbsIndex": null
+      }
+    },
+    {
+      "deviation": 1,
+      "comparison": {
+        "length": 11266,
+        "bitDifferenceCount": 0,
+        "bitDifferenceIndexRanges": [],
+        "tolerance": 0,
+        "outsideToleranceCount": 0,
+        "outsideToleranceIndexRanges": [],
+        "maxAbs": 0,
+        "maxAbsIndex": null
+      }
+    }
+  ],
+  "panelDifferences": {
+    "panel0curve0FirstVsReference": {
+      "count": 2,
+      "ranges": [
+        [
+          10708,
+          10709
+        ]
+      ],
+      "maxAbs": 0.000014013039617566392,
+      "outsideTolerance": 2
+    },
+    "panel0curve1FirstVsReference": {
+      "count": 0,
+      "ranges": [],
+      "maxAbs": 0,
+      "outsideTolerance": 0
+    },
+    "panel0curve2FirstVsReference": {
+      "count": 0,
+      "ranges": [],
+      "maxAbs": 0,
+      "outsideTolerance": 0
+    },
+    "panel0curve3FirstVsReference": {
+      "count": 555,
+      "ranges": [
+        [
+          10709,
+          10920
+        ],
+        [
+          10922,
+          11063
+        ],
+        [
+          11065,
+          11265
+        ]
+      ],
+      "maxAbs": 6.785683126508957e-9,
+      "outsideTolerance": 0
+    },
+    "panel1curve0FirstVsReference": {
+      "count": 3,
+      "ranges": [
+        [
+          10708,
+          10710
+        ]
+      ],
+      "maxAbs": 0.28026079235132784,
+      "outsideTolerance": 3
+    },
+    "panel1curve1FirstVsReference": {
+      "count": 0,
+      "ranges": [],
+      "maxAbs": 0,
+      "outsideTolerance": 0
+    },
+    "panel1curve2FirstVsReference": {
+      "count": 0,
+      "ranges": [],
+      "maxAbs": 0,
+      "outsideTolerance": 0
+    },
+    "panel1curve3FirstVsReference": {
+      "count": 507,
+      "ranges": [
+        [
+          10709,
+          10712
+        ],
+        [
+          10714,
+          10831
+        ],
+        [
+          10833,
+          10837
+        ],
+        [
+          10839,
+          10840
+        ],
+        [
+          10842,
+          10842
+        ],
+        [
+          10845,
+          10847
+        ],
+        [
+          10850,
+          10850
+        ],
+        [
+          10854,
+          10856
+        ],
+        [
+          10858,
+          10979
+        ],
+        [
+          10981,
+          10982
+        ],
+        [
+          10984,
+          10984
+        ],
+        [
+          10988,
+          10988
+        ],
+        [
+          10990,
+          10991
+        ],
+        [
+          10993,
+          10993
+        ],
+        [
+          10997,
+          10997
+        ],
+        [
+          10999,
+          11000
+        ],
+        [
+          11002,
+          11003
+        ],
+        [
+          11005,
+          11005
+        ],
+        [
+          11007,
+          11113
+        ],
+        [
+          11115,
+          11115
+        ],
+        [
+          11117,
+          11119
+        ],
+        [
+          11121,
+          11122
+        ],
+        [
+          11124,
+          11124
+        ],
+        [
+          11127,
+          11127
+        ],
+        [
+          11130,
+          11130
+        ],
+        [
+          11135,
+          11136
+        ],
+        [
+          11140,
+          11141
+        ],
+        [
+          11143,
+          11143
+        ],
+        [
+          11145,
+          11146
+        ],
+        [
+          11148,
+          11148
+        ],
+        [
+          11150,
+          11151
+        ],
+        [
+          11153,
+          11253
+        ],
+        [
+          11255,
+          11258
+        ],
+        [
+          11260,
+          11261
+        ],
+        [
+          11263,
+          11264
+        ]
+      ],
+      "maxAbs": 0.00006785683126508957,
+      "outsideTolerance": 0
+    },
+    "panel2curve0FirstVsReference": {
+      "count": 557,
+      "ranges": [
+        [
+          10709,
+          11265
+        ]
+      ],
+      "maxAbs": 2.8542501695483224e-11,
+      "outsideTolerance": 0
+    },
+    "panel2curve1FirstVsReference": {
+      "count": 0,
+      "ranges": [],
+      "maxAbs": 0,
+      "outsideTolerance": 0
+    }
+  },
+  "mode": "Offline deserialize of existing V8 captures only; no product imports, fixture execution, source generation, process replay or new diagnostic workload.",
+  "decoder": {
+    "node": "v26.9.0",
+    "platform": "win32",
+    "arch": "x64",
+    "execPath": "C:\\Devs\\Codex\\from-184\\.codex\\worktrees\\2eff\\ANYRAID-KLIPPER\\.cache\\supervisor-windows-validation\\node-v26.9.0-win-x64\\node.exe"
+  },
+  "inputs": [
+    {
+      "name": "motion-mismatch-477333-0.bin",
+      "bytes": 4690926,
+      "sha256": "969d62323504ec2a5e84e9beed22278b061939a2127c78beaeb6ea1f232ee6a8"
+    },
+    {
+      "name": "motion-mismatch-477333-0.bin.repeat",
+      "bytes": 2139444,
+      "sha256": "e17eaaeb47aad77efaa7a8029db183d3641b6e263f98dc54044da5204bd0b617"
+    },
+    {
+      "name": "fixture.mjs",
+      "bytes": 3830,
+      "sha256": "503c522dd2bcc8c8feb26832d7e2a67fde9dbe3de8db977980bf60261696cefb"
+    },
+    {
+      "name": "report.json",
+      "bytes": 5229,
+      "sha256": "680fbbde35dd9caf7059fe64ce0f09b2c2753488baf42b58af87cfe8d585765a"
+    }
+  ],
+  "arithmetic": {
+    "kind": "JavaScript Number binary64, not exact rational arithmetic",
+    "order": "Three saved windows only: same weighted4 branch operation order for value, compensated high/low accumulation, weight and final multiply as archived source; no product import or whole filter execution.",
+    "n": 83,
+    "sourceFilterSha256": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+    "originalCaptureRuntime": "Linux x64 Node26.11.1; this Windows x64 Node26.9 decode/arithmetic is a separate offline audit, not original runtime reproduction."
+  },
+  "earliestObservableDivergence": "Saved stages.updated[10708] is inconsistent with the three bit-identical neighboring input windows and their offline arithmetic. Filter high/low intermediates were not captured; internal transient source is not localized.",
+  "captureKeys": [
+    "version",
+    "run",
+    "panel",
+    "curve",
+    "index",
+    "comparison",
+    "positions",
+    "stages",
+    "panels",
+    "reference"
+  ],
+  "repeatKeys": [
+    "positions",
+    "panels"
+  ],
+  "comparisons": {
+    "positionsVsReference": {
+      "length": 12266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 1e-12,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "nominalVsInitialPositions": {
+      "length": 12266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "repeatPositionsVsInitial": {
+      "length": 12266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve0FirstVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 2,
+      "bitDifferenceIndexRanges": [
+        [
+          10708,
+          10709
+        ]
+      ],
+      "tolerance": 1e-8,
+      "outsideToleranceCount": 2,
+      "outsideToleranceIndexRanges": [
+        [
+          10708,
+          10709
+        ]
+      ],
+      "maxAbs": 0.000014013039617566392,
+      "maxAbsIndex": 10708
+    },
+    "panel0curve0FirstVsRepeat": {
+      "length": 11266,
+      "bitDifferenceCount": 2,
+      "bitDifferenceIndexRanges": [
+        [
+          10708,
+          10709
+        ]
+      ],
+      "tolerance": 0,
+      "outsideToleranceCount": 2,
+      "outsideToleranceIndexRanges": [
+        [
+          10708,
+          10709
+        ]
+      ],
+      "maxAbs": 0.000014013039617566392,
+      "maxAbsIndex": 10708
+    },
+    "panel0curve0RepeatVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 1e-8,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve0TimesVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve1FirstVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 1e-8,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve1FirstVsRepeat": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve1RepeatVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 1e-8,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve1TimesVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve2FirstVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 1e-8,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve2FirstVsRepeat": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve2RepeatVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 1e-8,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve2TimesVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve3FirstVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 555,
+      "bitDifferenceIndexRanges": [
+        [
+          10709,
+          10920
+        ],
+        [
+          10922,
+          11063
+        ],
+        [
+          11065,
+          11265
+        ]
+      ],
+      "tolerance": 1e-8,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 6.785683126508957e-9,
+      "maxAbsIndex": 10709
+    },
+    "panel0curve3FirstVsRepeat": {
+      "length": 11266,
+      "bitDifferenceCount": 555,
+      "bitDifferenceIndexRanges": [
+        [
+          10709,
+          10920
+        ],
+        [
+          10922,
+          11063
+        ],
+        [
+          11065,
+          11265
+        ]
+      ],
+      "tolerance": 0,
+      "outsideToleranceCount": 555,
+      "outsideToleranceIndexRanges": [
+        [
+          10709,
+          10920
+        ],
+        [
+          10922,
+          11063
+        ],
+        [
+          11065,
+          11265
+        ]
+      ],
+      "maxAbs": 6.785683126508957e-9,
+      "maxAbsIndex": 10709
+    },
+    "panel0curve3RepeatVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 1e-8,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel0curve3TimesVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve0FirstVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 3,
+      "bitDifferenceIndexRanges": [
+        [
+          10708,
+          10710
+        ]
+      ],
+      "tolerance": 0.0001,
+      "outsideToleranceCount": 3,
+      "outsideToleranceIndexRanges": [
+        [
+          10708,
+          10710
+        ]
+      ],
+      "maxAbs": 0.28026079235132784,
+      "maxAbsIndex": 10709
+    },
+    "panel1curve0FirstVsRepeat": {
+      "length": 11266,
+      "bitDifferenceCount": 3,
+      "bitDifferenceIndexRanges": [
+        [
+          10708,
+          10710
+        ]
+      ],
+      "tolerance": 0,
+      "outsideToleranceCount": 3,
+      "outsideToleranceIndexRanges": [
+        [
+          10708,
+          10710
+        ]
+      ],
+      "maxAbs": 0.28026079235132784,
+      "maxAbsIndex": 10709
+    },
+    "panel1curve0RepeatVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0.0001,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve0TimesVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve1FirstVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0.0001,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve1FirstVsRepeat": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve1RepeatVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0.0001,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve1TimesVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve2FirstVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0.0001,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve2FirstVsRepeat": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve2RepeatVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0.0001,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve2TimesVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve3FirstVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 507,
+      "bitDifferenceIndexRanges": [
+        [
+          10709,
+          10712
+        ],
+        [
+          10714,
+          10831
+        ],
+        [
+          10833,
+          10837
+        ],
+        [
+          10839,
+          10840
+        ],
+        [
+          10842,
+          10842
+        ],
+        [
+          10845,
+          10847
+        ],
+        [
+          10850,
+          10850
+        ],
+        [
+          10854,
+          10856
+        ],
+        [
+          10858,
+          10979
+        ],
+        [
+          10981,
+          10982
+        ],
+        [
+          10984,
+          10984
+        ],
+        [
+          10988,
+          10988
+        ],
+        [
+          10990,
+          10991
+        ],
+        [
+          10993,
+          10993
+        ],
+        [
+          10997,
+          10997
+        ],
+        [
+          10999,
+          11000
+        ],
+        [
+          11002,
+          11003
+        ],
+        [
+          11005,
+          11005
+        ],
+        [
+          11007,
+          11113
+        ],
+        [
+          11115,
+          11115
+        ],
+        [
+          11117,
+          11119
+        ],
+        [
+          11121,
+          11122
+        ],
+        [
+          11124,
+          11124
+        ],
+        [
+          11127,
+          11127
+        ],
+        [
+          11130,
+          11130
+        ],
+        [
+          11135,
+          11136
+        ],
+        [
+          11140,
+          11141
+        ],
+        [
+          11143,
+          11143
+        ],
+        [
+          11145,
+          11146
+        ],
+        [
+          11148,
+          11148
+        ],
+        [
+          11150,
+          11151
+        ],
+        [
+          11153,
+          11253
+        ],
+        [
+          11255,
+          11258
+        ],
+        [
+          11260,
+          11261
+        ],
+        [
+          11263,
+          11264
+        ]
+      ],
+      "tolerance": 0.0001,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0.00006785683126508957,
+      "maxAbsIndex": 10709
+    },
+    "panel1curve3FirstVsRepeat": {
+      "length": 11266,
+      "bitDifferenceCount": 507,
+      "bitDifferenceIndexRanges": [
+        [
+          10709,
+          10712
+        ],
+        [
+          10714,
+          10831
+        ],
+        [
+          10833,
+          10837
+        ],
+        [
+          10839,
+          10840
+        ],
+        [
+          10842,
+          10842
+        ],
+        [
+          10845,
+          10847
+        ],
+        [
+          10850,
+          10850
+        ],
+        [
+          10854,
+          10856
+        ],
+        [
+          10858,
+          10979
+        ],
+        [
+          10981,
+          10982
+        ],
+        [
+          10984,
+          10984
+        ],
+        [
+          10988,
+          10988
+        ],
+        [
+          10990,
+          10991
+        ],
+        [
+          10993,
+          10993
+        ],
+        [
+          10997,
+          10997
+        ],
+        [
+          10999,
+          11000
+        ],
+        [
+          11002,
+          11003
+        ],
+        [
+          11005,
+          11005
+        ],
+        [
+          11007,
+          11113
+        ],
+        [
+          11115,
+          11115
+        ],
+        [
+          11117,
+          11119
+        ],
+        [
+          11121,
+          11122
+        ],
+        [
+          11124,
+          11124
+        ],
+        [
+          11127,
+          11127
+        ],
+        [
+          11130,
+          11130
+        ],
+        [
+          11135,
+          11136
+        ],
+        [
+          11140,
+          11141
+        ],
+        [
+          11143,
+          11143
+        ],
+        [
+          11145,
+          11146
+        ],
+        [
+          11148,
+          11148
+        ],
+        [
+          11150,
+          11151
+        ],
+        [
+          11153,
+          11253
+        ],
+        [
+          11255,
+          11258
+        ],
+        [
+          11260,
+          11261
+        ],
+        [
+          11263,
+          11264
+        ]
+      ],
+      "tolerance": 0,
+      "outsideToleranceCount": 507,
+      "outsideToleranceIndexRanges": [
+        [
+          10709,
+          10712
+        ],
+        [
+          10714,
+          10831
+        ],
+        [
+          10833,
+          10837
+        ],
+        [
+          10839,
+          10840
+        ],
+        [
+          10842,
+          10842
+        ],
+        [
+          10845,
+          10847
+        ],
+        [
+          10850,
+          10850
+        ],
+        [
+          10854,
+          10856
+        ],
+        [
+          10858,
+          10979
+        ],
+        [
+          10981,
+          10982
+        ],
+        [
+          10984,
+          10984
+        ],
+        [
+          10988,
+          10988
+        ],
+        [
+          10990,
+          10991
+        ],
+        [
+          10993,
+          10993
+        ],
+        [
+          10997,
+          10997
+        ],
+        [
+          10999,
+          11000
+        ],
+        [
+          11002,
+          11003
+        ],
+        [
+          11005,
+          11005
+        ],
+        [
+          11007,
+          11113
+        ],
+        [
+          11115,
+          11115
+        ],
+        [
+          11117,
+          11119
+        ],
+        [
+          11121,
+          11122
+        ],
+        [
+          11124,
+          11124
+        ],
+        [
+          11127,
+          11127
+        ],
+        [
+          11130,
+          11130
+        ],
+        [
+          11135,
+          11136
+        ],
+        [
+          11140,
+          11141
+        ],
+        [
+          11143,
+          11143
+        ],
+        [
+          11145,
+          11146
+        ],
+        [
+          11148,
+          11148
+        ],
+        [
+          11150,
+          11151
+        ],
+        [
+          11153,
+          11253
+        ],
+        [
+          11255,
+          11258
+        ],
+        [
+          11260,
+          11261
+        ],
+        [
+          11263,
+          11264
+        ]
+      ],
+      "maxAbs": 0.00006785683126508957,
+      "maxAbsIndex": 10709
+    },
+    "panel1curve3RepeatVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0.0001,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel1curve3TimesVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel2curve0FirstVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 557,
+      "bitDifferenceIndexRanges": [
+        [
+          10709,
+          11265
+        ]
+      ],
+      "tolerance": 1e-10,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 2.8542501695483224e-11,
+      "maxAbsIndex": 10777
+    },
+    "panel2curve0FirstVsRepeat": {
+      "length": 11266,
+      "bitDifferenceCount": 557,
+      "bitDifferenceIndexRanges": [
+        [
+          10709,
+          11265
+        ]
+      ],
+      "tolerance": 0,
+      "outsideToleranceCount": 557,
+      "outsideToleranceIndexRanges": [
+        [
+          10709,
+          11265
+        ]
+      ],
+      "maxAbs": 2.8542501695483224e-11,
+      "maxAbsIndex": 10777
+    },
+    "panel2curve0RepeatVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 1e-10,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel2curve0TimesVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel2curve1FirstVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 1e-10,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel2curve1FirstVsRepeat": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel2curve1RepeatVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 1e-10,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "panel2curve1TimesVsReference": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "velocity0VsPanel0Slice": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "acceleration0VsPanel1Slice": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "velocity1VsPanel0Slice": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "acceleration1VsPanel1Slice": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "velocity2VsPanel0Slice": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "acceleration2VsPanel1Slice": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "velocity3VsPanel0Slice": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    },
+    "acceleration3VsPanel1Slice": {
+      "length": 11266,
+      "bitDifferenceCount": 0,
+      "bitDifferenceIndexRanges": [],
+      "tolerance": 0,
+      "outsideToleranceCount": 0,
+      "outsideToleranceIndexRanges": [],
+      "maxAbs": 0,
+      "maxAbsIndex": null
+    }
+  },
+  "derivativeAudit": [
+    {
+      "velocity": 0,
+      "comparison": {
+        "length": 12266,
+        "bitDifferenceCount": 0,
+        "bitDifferenceIndexRanges": [],
+        "tolerance": 0,
+        "outsideToleranceCount": 0,
+        "outsideToleranceIndexRanges": [],
+        "maxAbs": 0,
+        "maxAbsIndex": null
+      }
+    },
+    {
+      "velocity": 1,
+      "comparison": {
+        "length": 12266,
+        "bitDifferenceCount": 0,
+        "bitDifferenceIndexRanges": [],
+        "tolerance": 0,
+        "outsideToleranceCount": 0,
+        "outsideToleranceIndexRanges": [],
+        "maxAbs": 0,
+        "maxAbsIndex": null
+      }
+    },
+    {
+      "velocity": 2,
+      "comparison": {
+        "length": 12266,
+        "bitDifferenceCount": 0,
+        "bitDifferenceIndexRanges": [],
+        "tolerance": 0,
+        "outsideToleranceCount": 0,
+        "outsideToleranceIndexRanges": [],
+        "maxAbs": 0,
+        "maxAbsIndex": null
+      }
+    },
+    {
+      "velocity": 3,
+      "comparison": {
+        "length": 12266,
+        "bitDifferenceCount": 0,
+        "bitDifferenceIndexRanges": [],
+        "tolerance": 0,
+        "outsideToleranceCount": 0,
+        "outsideToleranceIndexRanges": [],
+        "maxAbs": 0,
+        "maxAbsIndex": null
+      }
+    }
+  ],
+  "window": [
+    {
+      "index": 10707,
+      "inputStart": 10624,
+      "inputEndInclusive": 10789,
+      "count": 166,
+      "inputDistinctBits": [
+        "0x403c819d06851b84"
+      ],
+      "inputBytesSha256": "3e713f69e5f175e6a9a714018fb1e1ad868a9eefa29e85a26fc3cbc933c5c536",
+      "savedUpdated": {
+        "value": 28.506302230960948,
+        "bits": "0x403c819d05e3de7e"
+      },
+      "offlineSavedOperandArithmetic": {
+        "high": 119773315274.02316,
+        "low": 0.000039981212466955185,
+        "weight": 2.3800211395787823e-10,
+        "value": 28.506302230960948,
+        "bits": "0x403c819d05e3de7e"
+      },
+      "matchesOfflineArithmetic": true
+    },
+    {
+      "index": 10708,
+      "inputStart": 10625,
+      "inputEndInclusive": 10790,
+      "count": 166,
+      "inputDistinctBits": [
+        "0x403c819d06851b84"
+      ],
+      "inputBytesSha256": "3e713f69e5f175e6a9a714018fb1e1ad868a9eefa29e85a26fc3cbc933c5c536",
+      "savedUpdated": {
+        "value": 28.506302232362252,
+        "bits": "0x403c819d05e9e33e"
+      },
+      "offlineSavedOperandArithmetic": {
+        "high": 119773315274.02316,
+        "low": 0.000039981212466955185,
+        "weight": 2.3800211395787823e-10,
+        "value": 28.506302230960948,
+        "bits": "0x403c819d05e3de7e"
+      },
+      "matchesOfflineArithmetic": false
+    },
+    {
+      "index": 10709,
+      "inputStart": 10626,
+      "inputEndInclusive": 10791,
+      "count": 166,
+      "inputDistinctBits": [
+        "0x403c819d06851b84"
+      ],
+      "inputBytesSha256": "3e713f69e5f175e6a9a714018fb1e1ad868a9eefa29e85a26fc3cbc933c5c536",
+      "savedUpdated": {
+        "value": 28.506302230960948,
+        "bits": "0x403c819d05e3de7e"
+      },
+      "offlineSavedOperandArithmetic": {
+        "high": 119773315274.02316,
+        "low": 0.000039981212466955185,
+        "weight": 2.3800211395787823e-10,
+        "value": 28.506302230960948,
+        "bits": "0x403c819d05e3de7e"
+      },
+      "matchesOfflineArithmetic": true
+    }
+  ],
+  "around": [
+    {
+      "index": 10706,
+      "positions": {
+        "value": 28.506302268502182,
+        "bits": "0x403c819d06851b84"
+      },
+      "nominal": {
+        "value": 28.506302268502182,
+        "bits": "0x403c819d06851b84"
+      },
+      "updated": {
+        "value": 28.506302230960948,
+        "bits": "0x403c819d05e3de7e"
+      },
+      "velocity": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      },
+      "panel": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      },
+      "reference": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      },
+      "repeat": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      }
+    },
+    {
+      "index": 10707,
+      "positions": {
+        "value": 28.506302268502182,
+        "bits": "0x403c819d06851b84"
+      },
+      "nominal": {
+        "value": 28.506302268502182,
+        "bits": "0x403c819d06851b84"
+      },
+      "updated": {
+        "value": 28.506302230960948,
+        "bits": "0x403c819d05e3de7e"
+      },
+      "velocity": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      },
+      "panel": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      },
+      "reference": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      },
+      "repeat": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      }
+    },
+    {
+      "index": 10708,
+      "positions": {
+        "value": 28.506302268502182,
+        "bits": "0x403c819d06851b84"
+      },
+      "nominal": {
+        "value": 28.506302268502182,
+        "bits": "0x403c819d06851b84"
+      },
+      "updated": {
+        "value": 28.506302232362252,
+        "bits": "0x403c819d05e9e33e"
+      },
+      "velocity": {
+        "value": 0.000014013039617566392,
+        "bits": "0x3eed633180000000"
+      },
+      "panel": {
+        "value": 0.000014013039617566392,
+        "bits": "0x3eed633180000000"
+      },
+      "reference": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      },
+      "repeat": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      }
+    },
+    {
+      "index": 10709,
+      "positions": {
+        "value": 28.506302268502182,
+        "bits": "0x403c819d06851b84"
+      },
+      "nominal": {
+        "value": 28.506302268502182,
+        "bits": "0x403c819d06851b84"
+      },
+      "updated": {
+        "value": 28.506302230960948,
+        "bits": "0x403c819d05e3de7e"
+      },
+      "velocity": {
+        "value": -0.000014013039617566392,
+        "bits": "0xbeed633180000000"
+      },
+      "panel": {
+        "value": -0.000014013039617566392,
+        "bits": "0xbeed633180000000"
+      },
+      "reference": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      },
+      "repeat": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      }
+    },
+    {
+      "index": 10710,
+      "positions": {
+        "value": 28.506302268502182,
+        "bits": "0x403c819d06851b84"
+      },
+      "nominal": {
+        "value": 28.506302268502182,
+        "bits": "0x403c819d06851b84"
+      },
+      "updated": {
+        "value": 28.506302230960948,
+        "bits": "0x403c819d05e3de7e"
+      },
+      "velocity": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      },
+      "panel": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      },
+      "reference": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      },
+      "repeat": {
+        "value": 0,
+        "bits": "0x0000000000000000"
+      }
+    }
+  ],
+  "scope": [
+    "First capture stores stages, original positions and reference; repeat stores independently recomputed positions and panels only, no stages.updated or filter intermediate accumulators.",
+    "Reconstructed three weighted4 windows use saved nominal operands and source arithmetic for offline consistency only, not replay of original runtime operation.",
+    "Seven module hashes were checked after the failing run; frozenSourceHashes/compiledHashes empty. Earliest inconsistency in saved data does not locate a code defect, runtime or hardware cause."
+  ]
+}

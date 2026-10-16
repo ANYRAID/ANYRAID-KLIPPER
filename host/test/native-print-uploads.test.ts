@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,readdir,readFile,rm,open} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readdir,readFile,rm,open} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
@@ -17,6 +17,7 @@ import {PrintController} from '../src/operations/print.ts';
 import {PrintJournal} from '../src/operations/print-journal.ts';
 import {FilePrintDevice} from '../src/operations/file-print-device.ts';
 import {GCodeDispatch} from '../src/gcode/dispatch.ts';
+import {NativeConfigFiles} from '../src/moonraker/native-config-files.ts';
 const until=async(check:()=>boolean)=>{const end=Date.now()+4000;while(!check()){assert.ok(Date.now()<end,'Upload condition timed out');await new Promise(r=>setTimeout(r,5));}};
 const multipart=(data:string|Uint8Array='G1 X1\n',fields:Record<string,string>={},name='part.gcode')=>{const form=new FormData();form.append('file',new Blob([typeof data==='string'?data:new Uint8Array(data)]),name);for(const [key,value] of Object.entries(fields))form.append(key,value);return form;};
 test('closed process files reject deletion even while their device delegate remains open',async()=>{
@@ -55,6 +56,25 @@ async function fixture(options:{max?:number;authorize?:MoonrakerNetworkOptions['
 const moveHttp=(f:Awaited<ReturnType<typeof fixture>>,source:string,dest:string)=>fetch(f.url+'/server/files/move',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({source,dest})});
 const copyHttp=(f:Awaited<ReturnType<typeof fixture>>,source:string,dest:string)=>fetch(f.url+'/server/files/copy',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({source,dest})});
 const deleteDirectoryHttp=(f:Awaited<ReturnType<typeof fixture>>,path:string,force:unknown=true)=>fetch(f.url+'/server/files/directory',{method:'DELETE',headers:{'content-type':'application/json'},body:JSON.stringify({path,force})});
+test('client multipart directory paths are relative to the selected root and retain exact bytes',async()=>{
+ const f=await fixture({removal:true}),signal=new AbortController().signal,data='G1 X1.000001\n; 中文与百分号 %2F\n';try{
+  for(const [index,[path,directory]] of [['',''],['/',''],['///',''],['/batch/sub/','batch/sub'],['batch/sub/','batch/sub'],['/literal%2F/','literal%2F']].entries()){
+   const name='client-'+index+'.gcode',expected=(directory?directory+'/':'')+name,response=await f.post(multipart(data,{root:'gcodes',path,print:'false'},name));assert.equal(response.status,201,await response.clone().text());const receipt=await response.json();assert.equal(receipt.item.path,expected);assert.equal(receipt.print_started,false);assert.equal(receipt.print_queued,false);assert.equal(receipt.file.sha256,createHash('sha256').update(data).digest('hex'));assert.equal(await f.files.resolvePath(expected,signal),receipt.file.id);assert.equal(response.headers.get('location'),f.url+'/server/files/gcodes/'+expected.split('/').map(encodeURIComponent).join('/'));assert.equal(await(await fetch(response.headers.get('location')!)).text(),data);assert.equal(f.controller!.state,'idle');
+  }
+  const before=f.files.status.publishedFiles;for(const path of ['/../','/batch/../outside/','/batch//sub/','/.git/','/back\\slash/']){const response=await f.post(multipart(data,{root:'gcodes',path,print:'false'},'invalid.gcode'));assert.equal(response.status,400);assert.equal(f.files.status.publishedFiles,before);}
+ }finally{await f.clean();}
+});
+test('root-relative multipart directory spelling still authorizes every ancestor before publication',async()=>{
+ const f=await fixture({authorize(method,params){if(method==='server.files.post_directory'&&params.path==='gcodes/denied/sub')throw new ApiError(403,'Denied normalized upload ancestor');}}),events:unknown[]=[],off=f.uploads.observeChanges(event=>events.push(event));try{const response=await f.post(multipart('G1 X1\n',{root:'gcodes',path:'/denied/sub/'}));assert.equal(response.status,403);assert.equal(f.files.status.publishedFiles,0);assert.equal(f.files.status.reservedBytes,0);assert.deepEqual(events,[]);assert.deepEqual(await readdir(join(f.dir,'files')),[]);}finally{off();await f.clean();}
+});
+test('config multipart root paths preserve the scoped writer, original bytes and read-only refusal',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'client-config-upload-')),root=join(dir,'config'),gate=new MaintenanceGate();await mkdir(join(root,'parts'),{recursive:true});await writeFile(join(root,'printer.cfg'),'original\n');await writeFile(join(root,'parts','axis.cfg'),'axis\n');await writeFile(join(root,'readonly.cfg'),'read only\n');
+ const files=await PublishedPrintFiles.open(join(dir,'files')),uploads=new NativePrintUploads(files,gate,{stagingRoot:dir}),config=await NativeConfigFiles.open({root,writable:['printer.cfg','parts/axis.cfg']}),policies:string[]=[];config.bindWriter(c=>({release:gate.acquire(),signal:c.signal}));const network=new MoonrakerNetwork(new JsonRpcDispatcher(),{nativeUploads:uploads,configFiles:config,authorize(method,params){if(method==='server.files.upload'&&params.root==='config'&&typeof params.path==='string')policies.push(params.path);}});const address=await network.listen(),base='http://127.0.0.1:'+address.port;
+ try{
+  for(const [path,name,target,old] of [['/','printer.cfg','printer.cfg','original\n'],['/parts/','axis.cfg','parts/axis.cfg','axis\n']]){const data='; 页面编辑\n',response=await fetch(base+'/server/files/upload',{method:'POST',body:multipart(data,{root:'config',path},name),signal:AbortSignal.timeout(5000)});assert.equal(response.status,201,await response.clone().text());const receipt=await response.json();assert.equal(receipt.phase,'replaced');assert.equal(await readFile(join(root,target),'utf8'),data);assert.equal(await readFile(join(root,receipt.backup),'utf8'),old);assert.equal(files.status.publishedFiles,0);assert.equal(gate.status.maintenance,false);}
+  assert.deepEqual(policies,['printer.cfg','parts/axis.cfg']);const denied=await fetch(base+'/server/files/upload',{method:'POST',body:multipart('changed',{root:'config',path:'/'},'readonly.cfg'),signal:AbortSignal.timeout(5000)});assert.equal(denied.status,403);assert.equal(await readFile(join(root,'readonly.cfg'),'utf8'),'read only\n');const traversal=await fetch(base+'/server/files/upload',{method:'POST',body:multipart('changed',{root:'config',path:'/../'},'printer.cfg'),signal:AbortSignal.timeout(5000)});assert.equal(traversal.status,400);assert.equal(files.status.publishedFiles,0);
+ }finally{await network.close();await uploads.close();await config.close();await files.close();await rm(dir,{recursive:true,force:true});}
+});
 for(const {name,fields,relative} of [
  {name:"50% 模型!~'()*.gcode",fields:{},relative:'50%25%20%E6%A8%A1%E5%9E%8B%21~%27%28%29%2A.gcode'},
  {name:'literal%2F.gcode',fields:{},relative:'literal%252F.gcode'},

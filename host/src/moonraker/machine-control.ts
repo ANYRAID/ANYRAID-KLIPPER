@@ -32,6 +32,10 @@ export class MachineControlError extends Error {
  readonly code:'unavailable'|'not_allowed'|'busy'|'identity'|'container'|'unit'|'command';
  constructor(code:MachineControlError['code'],message:string){super(message);this.code=code;}
 }
+/** Unsupported none-provider service actions are unavailable, not an allowlist rejection. */
+export class NoneProviderUnavailable extends MachineControlError {constructor(){super('unavailable','The none provider exposes reboot and shutdown only; service actions are unavailable');}}
+/** A submitted external action has no confirmed result; it must not replay. */
+export class MachineActionUncertain extends MachineControlError {readonly outcome='unknown';constructor(message:string,cause?:unknown){super('command',message);this.cause=cause;}}
 async function readCgroup(signal:AbortSignal):Promise<string>{
  signal.throwIfAborted();const file=await open('/proc/self/cgroup','r');
  try{const buffer=Buffer.alloc(65537);let size=0;while(size<buffer.length){signal.throwIfAborted();const read=await file.read(buffer,size,buffer.length-size,null);if(!read.bytesRead)break;size+=read.bytesRead;}signal.throwIfAborted();if(size>65536)throw new MachineControlError('identity','Process cgroup exceeds capacity');return buffer.subarray(0,size).toString('utf8');}
@@ -53,6 +57,9 @@ function runCommand(binary:'systemctl'|'systemd-detect-virt',args:readonly strin
  const abort=()=>{child.kill('SIGKILL');};signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();
  child.once('close',()=>{signal.removeEventListener('abort',abort);if(signal.aborted)reject(signal.reason);else if(failed)reject(new MachineControlError('command','System service command failed; inspect permissions and system journal'));else resolve(result);});
 });}
+/** A provider must prove its own process identity before borrowing this typed
+ * power submission. This does not grant a service catalogue. */
+export async function submitLinuxPower(action:'reboot'|'poweroff'|'halt',signal:AbortSignal):Promise<void>{if(!['reboot','poweroff','halt'].includes(action))throw new MachineControlError('not_allowed','Invalid power action');if(await insideContainer(signal))throw new MachineControlError('container','Operating system control is unavailable inside a container');await runCommand('systemctl',['--no-pager','--no-ask-password','--no-block',action],signal);}
 const command:ServiceCommand=(args,signal)=>runCommand('systemctl',args,signal);
 const systemIO:MachineControlIO={command,readCgroup,insideContainer};
 const flags=['--no-pager','--no-ask-password'] as const;
@@ -60,8 +67,9 @@ const flags=['--no-pager','--no-ask-password'] as const;
  * create one implicitly. The kernel owner, canonical unit and current load state
  * are rechecked for every request. No request can extend the unit allowlist. */
 export class LinuxMachineControl implements MachineControlPort {
- readonly #own:string;readonly #allowed:Set<string>;readonly #device:Set<string>;readonly #io:MachineControlIO;readonly #abort=new AbortController();#pending:Promise<void>|undefined;
- constructor(options:MachineControlOptions,io:Partial<MachineControlIO>={}){
+ readonly #shutdown:'poweroff'|'halt';readonly #own:string;readonly #allowed:Set<string>;readonly #device:Set<string>;readonly #io:MachineControlIO;readonly #abort=new AbortController();#pending:Promise<void>|undefined;
+ constructor(options:MachineControlOptions,io:Partial<MachineControlIO>={},shutdown:'poweroff'|'halt'='poweroff'){
+  if(!['poweroff','halt'].includes(shutdown))throw new TypeError('Invalid shutdown action');this.#shutdown=shutdown;
   validateMachineControlOptions(options);
   this.#own=options.ownUnit;this.#allowed=new Set([this.#own,...options.allowedUnits??[]]);this.#device=new Set(options.deviceUnits??[]);
   if(!io||typeof io!=='object'||Array.isArray(io)||Object.keys(io).some(k=>!['command','readCgroup','insideContainer'].includes(k))||Object.values(io).some(value=>typeof value!=='function'))throw new TypeError('Invalid machine control dependencies');
@@ -114,7 +122,7 @@ export class LinuxMachineControl implements MachineControlPort {
   if(typeof output!=='string'||Buffer.byteLength(output)>65536)throw new MachineControlError('unit','Invalid service properties');
   const properties=new Map<string,string>();for(const line of output.trim().split('\n')){const match=/^(Id|LoadState)=(.*)$/u.exec(line);if(!match||properties.has(match[1]))throw new MachineControlError('unit','Invalid service properties');properties.set(match[1],match[2]);}
   if(properties.size!==2||properties.get('Id')!==unit||properties.get('LoadState')!=='loaded')throw new MachineControlError('unit','Canonical service is not loaded');
-  const argv=action.kind==='service'?[...flags,'--no-block',action.action,'--',unit]:action.kind==='server_restart'?[...flags,'--no-block','restart','--',this.#own]:[...flags,'--no-block',action.kind==='shutdown'?'poweroff':'reboot'];
+  const argv=action.kind==='service'?[...flags,'--no-block',action.action,'--',unit]:action.kind==='server_restart'?[...flags,'--no-block','restart','--',this.#own]:[...flags,'--no-block',action.kind==='shutdown'?this.#shutdown:'reboot'];
   await this.#io.command(argv,signal);signal.throwIfAborted();
  }
  async close(){this.#abort.abort(new MachineControlError('unavailable','Machine control closed'));await this.#pending?.catch(()=>{});}

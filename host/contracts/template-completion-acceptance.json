@@ -1,0 +1,312 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "baseHead": "bdf232468e652914a6186d925c40369dbd4012c5",
+  "status": "draft-functional-performance-and-fresh-build-open",
+  "scope": "Async completion transport, immutable native environment snapshots and bounded owner deadline timer. Existing full Moonraker and Python retirement goal unchanged.",
+  "functionality": {
+    "source": {
+      "tests": 179,
+      "pass": 179,
+      "fail": 0
+    },
+    "compiled": {
+      "tests": 179,
+      "pass": 179,
+      "fail": 0
+    },
+    "jsChildren": "denied",
+    "tsLoading": "denied in compiled run",
+    "network": "actual localhost LDAP/HTTP; native addons and database workers explicitly permitted; not OS isolation",
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "rustfmt": "passed",
+    "legacyMixedProtocol": {
+      "mismatchedOldNativeRejected": true,
+      "borrowedStorePreserved": true,
+      "elapsedMs": 1.0334540000000025
+    },
+    "compiledRuntime": {
+      "baseline": 167,
+      "candidate": 167,
+      "changed": [
+        "moonraker/template-async-owner.js"
+      ]
+    },
+    "contracts": [
+      "empty, escaped and 64 KiB UTF-8 output with overflow before whitespace stripping",
+      "pure render caller microtask cancellation",
+      "active frame environment snapshot remains unchanged after late global registration",
+      "independent active and queued deadline expiry with cancellation reason preserved",
+      "existing 32-frame limits, callback at-most-once, numeric types, signed zero, secrets and UI isolation"
+    ]
+  },
+  "performance": {
+    "status": "failed-open",
+    "originalFactory": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+      "results": [
+        {
+          "name": "sync",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            1.3563680000000033,
+            3.799640999999994,
+            2.2694100000000077,
+            2.0141470000000083,
+            2.9288489999999996,
+            2.3388219999999933,
+            0.9126920000000069
+          ],
+          "medianMs": 2.2694100000000077,
+          "referenceMedianMs": 3.5718820290639997,
+          "ratio": 0.6353541302691622,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "async",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            6.4638459999999895,
+            6.037880000000001,
+            6.01048999999999,
+            5.541774000000004,
+            5.368320999999995,
+            4.741403000000005,
+            4.719992999999988
+          ],
+          "medianMs": 5.541774000000004,
+          "referenceMedianMs": 4.101527971215546,
+          "ratio": 1.3511486545726568,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "ui",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            4.757952999999986,
+            4.707022999999992,
+            4.726972999999987,
+            5.699445999999995,
+            4.750802999999991,
+            4.756854000000004,
+            8.717066000000017
+          ],
+          "medianMs": 4.756854000000004,
+          "referenceMedianMs": 3.2580499537289143,
+          "ratio": 1.4600310208735976,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        }
+      ],
+      "pass": true,
+      "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+    },
+    "originalAsync": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+      "results": [
+        {
+          "name": "pure",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            6.149271999999996,
+            5.697156,
+            5.6476260000000025,
+            4.6816419999999965,
+            4.579511000000011,
+            4.683613000000008,
+            4.577931000000007
+          ],
+          "medianMs": 4.683613000000008,
+          "referenceMedianMs": 6.315300997812301,
+          "ratio": 0.7416294174454187,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "callback",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            14.581305,
+            13.338837999999981,
+            12.959423000000015,
+            13.106493999999998,
+            12.677008999999998,
+            14.540913000000018,
+            21.539578000000006
+          ],
+          "medianMs": 13.338837999999981,
+          "referenceMedianMs": 9.619439020752907,
+          "ratio": 1.3866544578351057,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "ui",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            15.990712999999971,
+            13.784033999999963,
+            16.588821999999993,
+            14.516842999999994,
+            14.75877700000001,
+            17.15817900000002,
+            12.838311000000033
+          ],
+          "medianMs": 14.75877700000001,
+          "referenceMedianMs": 8.285223972052336,
+          "ratio": 1.7813371189220981,
+          "maximumMedianRatio": 1.5,
+          "pass": false
+        }
+      ],
+      "pass": false
+    },
+    "alternatingThreePairs": [
+      {
+        "benchmark": "template-factory",
+        "name": "sync",
+        "medians": {
+          "baseline": 1.0372640000000004,
+          "candidate": 1.089584000000002
+        },
+        "candidateVsBaseline": 1.0504403893319365,
+        "candidateAllOriginalPass": true
+      },
+      {
+        "benchmark": "template-factory",
+        "name": "async",
+        "medians": {
+          "baseline": 6.3142349999999965,
+          "candidate": 4.6985229999999945
+        },
+        "candidateVsBaseline": 0.7441159538724798,
+        "candidateAllOriginalPass": true
+      },
+      {
+        "benchmark": "template-factory",
+        "name": "ui",
+        "medians": {
+          "baseline": 6.140802000000008,
+          "candidate": 4.636801999999989
+        },
+        "candidateVsBaseline": 0.7550808510028467,
+        "candidateAllOriginalPass": true
+      },
+      {
+        "benchmark": "template-async",
+        "name": "pure",
+        "medians": {
+          "baseline": 6.960163000000001,
+          "candidate": 4.843414999999993
+        },
+        "candidateVsBaseline": 0.6958766626586177,
+        "candidateAllOriginalPass": true
+      },
+      {
+        "benchmark": "template-async",
+        "name": "callback",
+        "medians": {
+          "baseline": 16.236807,
+          "candidate": 12.892592000000008
+        },
+        "candidateVsBaseline": 0.7940349355633782,
+        "candidateAllOriginalPass": true
+      },
+      {
+        "benchmark": "template-async",
+        "name": "ui",
+        "medians": {
+          "baseline": 14.889309000000026,
+          "candidate": 12.549898000000013
+        },
+        "candidateVsBaseline": 0.8428798139658457,
+        "candidateAllOriginalPass": false
+      }
+    ],
+    "rule": "All fixed original gates remain unchanged; final independent UI and some paired samples fail. No best-sample selection, target-board or printing proof; desktop improvement is evidence only."
+  },
+  "native": {
+    "candidateSha256": "9c905565742cee26416fb10a72d07323b1e944852052115a6cdae9766f068317",
+    "baselineSha256": "8e7852747cd5c34934695d6735fa643b474aa1817c4881449668d6485e7c75f4",
+    "completionProtocol": 1,
+    "ownCrate": "offline locked builds passed using a copied existing dependency output directory; first build also recompiled dependencies; not fresh product snapshot",
+    "freshSnapshot": {
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "crate": "regex-automata",
+      "signal": "SIGABRT",
+      "reportedAllocationBytes": "504278676171520",
+      "cause": "unproven; compiler failure preserved; no fresh product output"
+    },
+    "previousSigsegv": "remains open; new SIGABRT does not establish a common root cause"
+  },
+  "previousHeadCi": {
+    "file": "pr68-bdf-terminal.json",
+    "head": "bdf232468e652914a6186d925c40369dbd4012c5",
+    "passed": 15,
+    "total": 15,
+    "ordinary": {
+      "tests": 4732,
+      "pass": 4732,
+      "fail": 0,
+      "jobId": 114578045077
+    }
+  },
+  "failures": [
+    "Original sandbox compiled combination 169/175: six localhost listen EPERM; existing authorization applied, original 175/175 then final 179/179",
+    "New output boundary initial 177/178: fixture exceeded context JSON input budget; corrected output generation; final passes",
+    "Initial paired launcher returned no measurement; parsing failure retained; authorized fixed three-pair launch completed",
+    "Completion-only and immutable-generation intermediate original UI gates failed; all raw results retained",
+    "Final independent UI and paired samples still exceed original budget",
+    "Fresh product-native-build test fails in regex-automata; previous compiler and motion failures remain"
+  ],
+  "open": [
+    "Independent asynchronous UI performance budget",
+    "Fresh reproducible full native and product package",
+    "Remaining template consumers and complete Moonraker integration",
+    "Default Python print entry and complete Python retirement",
+    "Consumer macro redesign and release integration",
+    "Full same-package Fluidd/Mainsail acceptance",
+    "G3 numerical and timing gates; Cycnumbris 500 target board; other models last"
+  ],
+  "sources": {
+    "README.md": "202c3d1c4f690f3e4b05aebada8ac01eccbea6552dda47899ae94623ca91c468",
+    "CHANGELOG.md": "73393b2227b3e9bda3d7e5173d29f70fb14123191bc2228c802942460aee1eb7",
+    "docs/Node_Host_Delivery_Plan.md": "42f3d8f0f76ebe766468bf9dd897be01bbbf19c1e4afda9d4b59a2afe40878d4",
+    "docs/Node_Host_Startup.md": "87bfeb90ad31aaa0905967d61761be87f5e4e1203ba88f6870a9d1a985432356",
+    "host/native/template/src/async_text.rs": "6d2d779d0ca7c73bbac1daff782ae56de3bf6685e383718995891761d714a5d8",
+    "host/src/moonraker/template-async-owner.ts": "4209eadf3e6457981a4f3a37078a4b09bd7c32a218ecc2e074d718b684ddf5f5",
+    "host/test/template-async.test.ts": "eece148d7c80d246114c0b910587ab6eacb203a73e4d0bae064047238c27637a",
+    "host/native/template/Cargo.toml": "af7d4c84ccbb9d3a5eb625847f1ddc2e6696a1586c98f85dc43bd51e12be6778",
+    "host/native/template/Cargo.lock": "d5fa08f87b0c4796387cc2c228c4d4c8c39ebd93e2eaf95ffd47fb7684baeaf0",
+    "host/contracts/moonraker-template-factory-reference.json": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+    "host/contracts/moonraker-template-async-reference.json": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+    "host/contracts/pr68-bdf-terminal.json": "0b0353c626824f599f5e06afa832fbc7b3627ac4d71fc8ac983eca866e2f5189"
+  },
+  "evidence": {
+    "file": "template-completion-evidence.json.gz",
+    "sha256": "65bc1eeb6ac18ec1ba27a2c66ba69037f2c2e95323d199dc8448995223794f83",
+    "bytes": 245488,
+    "entries": 75
+  }
+}

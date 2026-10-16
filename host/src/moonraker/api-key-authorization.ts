@@ -1,4 +1,6 @@
-import {TrustedClients} from './trusted-clients.ts';
+import {relativeRouteUrl} from './route-prefix.ts';
+import {transportProtocol,proxyAddress,proxyProtocol,type ProxyAddress,type RequestProtocol} from './proxy-address.ts';
+import {TrustedClients,type TrustedClientOptions} from './trusted-clients.ts';
 // Native API-key subset of pinned Moonraker authorization.py; GPL-3.0-or-later.
 import {createHash,randomBytes,timingSafeEqual} from 'node:crypto';
 import type {IncomingMessage} from 'node:http';
@@ -11,15 +13,24 @@ import {ApiError,type Json,type AuthorizedUser,type RpcContext} from './rpc.ts';
 import {anonymousThumbnailGet,authorizationAddress,LoginAttempts,OneShotTokens} from './authorization-policy.ts';
 import type {DeliveryReport} from './notifications.ts';
 export interface AuthorizationEvents {broadcast(method:string,params:readonly Json[]):Promise<DeliveryReport>;}
-export interface AuthorizationOptions extends LocalUserOptions {trustedClients?:readonly string[];maxLoginAttempts?:number;enableApiKey?:boolean;monotonicNow?:()=>number;}
+export interface AuthorizationOptions extends LocalUserOptions {trustedClients?:readonly string[];trustedClientOptions?:TrustedClientOptions;maxLoginAttempts?:number;enableApiKey?:boolean;monotonicNow?:()=>number;}
 interface UserSession {token:string;username:string;kid:string;}
-type Principal=number|UserSession|'trusted';
+type PublicReservedUser={readonly username:'_API_KEY_USER_'|'_TRUSTED_USER_';readonly source:'moonraker';readonly created_on:number;};
+interface TrustedPrincipal {readonly kind:'trusted';readonly address:string;readonly user:PublicReservedUser;}
+type Principal=number|UserSession|TrustedPrincipal;
+const isTrusted=(value:Principal):value is TrustedPrincipal=>typeof value==='object'&&'kind' in value&&value.kind==='trusted';
+function publicTime(value:unknown):number{if(typeof value!=='number'||!Number.isFinite(value)||value<0)throw new ApiError(500,'Invalid authorization identity time');return value;}
 const namespace='native_authorization',identity=Object.freeze({username:'_API_KEY_USER_'});
 const digest=(key:string)=>createHash('sha256').update(key).digest();
 /** One owner per DatabaseStore; credentials never enter the public namespace API.
- * Address admission requires explicit numeric trustedClients configuration. */
+ * Address admission requires explicit trustedClients configuration. */
 export class ApiKeyAuthorization {
  readonly #trusted:TrustedClients;
+ readonly #trustedUsers=new Map<string,{principal:TrustedPrincipal;expires:number}>();
+ readonly #userReads=new WeakMap<AbortSignal,{request:IncomingMessage;principal:Principal}>();
+ readonly #now:()=>number;readonly #apiUser:PublicReservedUser;readonly #pruneTimer:ReturnType<typeof setInterval>;
+ #nextPrune:number;
+ readonly #addresses=new WeakMap<IncomingMessage,ProxyAddress&{readonly protocol:RequestProtocol|undefined;readonly transport:RequestProtocol}>();
  readonly #database:DatabaseStore;readonly #store:DatabaseNamespace;
  readonly #connections=new WeakMap<IncomingMessage,Principal|null>();
  readonly #requests=new WeakMap<AbortSignal,IncomingMessage>();
@@ -32,25 +43,73 @@ export class ApiKeyAuthorization {
  get eventStatus(){return {...this.#eventTotals,pending:this.#eventTickets.size};}
 
  #key:string;#digest:Buffer;#generation=0;#closed=false;#rotation:Promise<string>|undefined;
- private constructor(database:DatabaseStore,store:DatabaseNamespace,key:string,options?:AuthorizationOptions){this.#trusted=new TrustedClients(options?.trustedClients);this.#attempts=new LoginAttempts(options?.maxLoginAttempts);this.#oneShots=new OneShotTokens(options?.monotonicNow);this.#enableApiKey=options?.enableApiKey??true;this.#database=database;this.#store=store;this.#key=key;this.#digest=digest(key);}
- static async open(database:DatabaseStore,options?:AuthorizationOptions){
+ private constructor(database:DatabaseStore,store:DatabaseNamespace,key:string,createdOn:number,now:number,options?:AuthorizationOptions){this.#trusted=new TrustedClients(options?.trustedClients,options?.trustedClientOptions);this.#attempts=new LoginAttempts(options?.maxLoginAttempts);this.#oneShots=new OneShotTokens(options?.monotonicNow);this.#enableApiKey=options?.enableApiKey??true;this.#database=database;this.#store=store;this.#key=key;this.#digest=digest(key);this.#now=options?.now??(()=>Date.now()/1000);this.#apiUser=Object.freeze({username:'_API_KEY_USER_',source:'moonraker',created_on:createdOn});this.#nextPrune=now+300;this.#pruneTimer=setInterval(()=>{try{this.#pruneTrusted(publicTime(this.#now()));}catch{this.#trustedUsers.clear();}},300000);this.#pruneTimer.unref();}
+ static async open(database:DatabaseStore,options?:AuthorizationOptions){ const now=publicTime((options?.now??(()=>Date.now()/1000))());
   if(options?.enableApiKey!==undefined&&typeof options.enableApiKey!=='boolean')throw new ApiError(400,'Invalid API key policy');new LoginAttempts(options?.maxLoginAttempts);new TrustedClients(options?.trustedClients);
   const store=await database.registerLocalNamespace(namespace,{forbidden:true,parseKeys:false});
-  const saved=await store.get('api_key');let key:string;
-  if(saved===null){key=randomBytes(16).toString('hex');await store.insert('api_key',key);}
-  else{if(typeof saved!=='string'||!(/^[a-f0-9]{32}$/u.test(saved)))throw new ApiError(500,'Invalid persisted API key');key=saved;}
-  const owner=new ApiKeyAuthorization(database,store,key,options);if(options)owner.#users=await LocalUserAuthorization.open(database,options);return owner;
+  const saved=await store.get('api_key'),savedTime=await store.get('api_key_created_on'),hasTime=await store.contains('api_key_created_on');let key:string,createdOn:number;
+  if(saved===null){if(hasTime)throw new ApiError(500,'Orphaned API key identity time');key=randomBytes(16).toString('hex');createdOn=now;await store.update({api_key:key,api_key_created_on:createdOn});}
+  else{
+   if(typeof saved!=='string'||!(/^[a-f0-9]{32}$/u.test(saved)))throw new ApiError(500,'Invalid persisted API key');key=saved;
+   if(!hasTime){
+    let receipt:Json|undefined;try{receipt=await database.get('native_identity_migration','receipt');}catch(error){if(!(error instanceof ApiError)||error.status!==404)throw error;}
+    if(receipt!==undefined)throw new ApiError(422,'Legacy authorization identity time requires original startup declaration');
+    createdOn=now;await store.insert('api_key_created_on',createdOn);
+   }else createdOn=publicTime(savedTime);
+  }
+  const owner=new ApiKeyAuthorization(database,store,key,createdOn,now,options);try{if(options)owner.#users=await LocalUserAuthorization.open(database,options);return owner;}catch(error){try{await owner.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Authorization startup cleanup failed');}throw error;}
+ }
+ #pruneTrusted(now:number){for(const [address,value]of this.#trustedUsers)if(value.expires<=now)this.#trustedUsers.delete(address);this.#nextPrune=now+300;}
+ #trustedPrincipal(request:IncomingMessage):TrustedPrincipal{
+  const now=publicTime(this.#now());if(now>=this.#nextPrune)this.#pruneTrusted(now);const address=this.#boundAddress(request),cached=this.#trustedUsers.get(address);
+  if(cached){cached.expires=now+3600;return cached.principal;}
+  if(this.#trustedUsers.size>=4096){this.#pruneTrusted(now);if(this.#trustedUsers.size>=4096)this.#trustedUsers.delete(this.#trustedUsers.keys().next().value!);}
+  const principal:TrustedPrincipal=Object.freeze({kind:'trusted',address,user:Object.freeze({username:'_TRUSTED_USER_',source:'moonraker',created_on:now})});this.#trustedUsers.set(address,{principal,expires:now+3600});return principal;
+ }
+ #readUser(context:RpcContext){
+  this.#active();context.signal.throwIfAborted();const binding=this.#userReads.get(context.signal),principal=this.#principals.get(context.signal);this.#userReads.delete(context.signal);
+  if(!binding||principal===undefined||binding.request!==this.#requests.get(context.signal)||binding.principal!==principal)throw new ApiError(401,'Authenticated user request context changed');
+  const username=typeof principal==='number'?identity.username:isTrusted(principal)?principal.user.username:principal.username;
+  if(context.user?.username!==username)throw new ApiError(401,'Authenticated user identity changed');
+  return typeof principal==='number'?this.#apiUser:isTrusted(principal)?principal.user:this.#users!.user(principal.username);
  }
  #active(){const status=this.#database.status;if(this.#closed||status.closed||status.closing||status.restoreState!=='ready')throw new ApiError(503,'Authorization unavailable');}
  /** Local provisioning only. Never include this value in diagnostics or logs. */
  localApiKey(){this.#active();return this.#key;}
+ /** Raw trusted-address policy for configured CORS only. This grants no RPC,
+  * session or print identity, and deliberately does not apply force_logins. */
+ resolveTrustedAddress(address:string,signal:AbortSignal):boolean|Promise<boolean>{
+  this.#active();signal.throwIfAborted();if(this.#trusted.matches(address))return true;if(!this.#trusted.hasDomains)return false;
+  return this.#trusted.resolve(address,signal).then(allowed=>{this.#active();signal.throwIfAborted();return allowed;});
+ }
  #matches(value:unknown){return this.#enableApiKey&&typeof value==='string'&&/^[a-f0-9]{32}$/u.test(value)&&timingSafeEqual(digest(value),this.#digest);}
- authorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization):AuthorizedUser|undefined{
+ #addressSnapshot(context:NetworkAuthorization):ProxyAddress&{readonly protocol:RequestProtocol|undefined;readonly transport:RequestProtocol}{let address=this.#addresses.get(context.request);if(!address){const enabled=context.useXheaders??true;address=Object.freeze({...proxyAddress(context.request,enabled),protocol:proxyProtocol(context.request,enabled),transport:transportProtocol(context.request)});this.#addresses.set(context.request,address);}return address;}
+ /** Capture headers synchronously before any network-origin/auth waits. */
+ captureRequestMetadata(context:NetworkAuthorization):void{context.signal.throwIfAborted();this.#addressSnapshot(context);}
+ /** Public status borrows the same frozen, verified address selection. */
+ requestAddress(context:NetworkAuthorization):string|undefined{this.#active();context.signal.throwIfAborted();this.#addressSnapshot(context);return this.#effectiveAddress(context.request);}
+ /** URL metadata borrows the original peer policy and NSS cache. A verified
+  * proxy may select a protocol without granting its client an API identity. */
+ resolveRequestProtocol(context:NetworkAuthorization):RequestProtocol|Promise<RequestProtocol>{
+  this.#active();context.signal.throwIfAborted();const snapshot=this.#addressSnapshot(context);
+  if(snapshot.protocol===undefined)return snapshot.transport;
+  const trusted=this.resolveTrustedAddress(snapshot.peer??'',context.signal),select=(allowed:boolean):RequestProtocol=>allowed?snapshot.protocol!:snapshot.transport;
+  return trusted instanceof Promise?trusted.then(select):select(trusted);
+ }
+ #effectiveAddress(request:IncomingMessage):string|undefined{const address=this.#addresses.get(request)!;return address.claimed&&this.#trusted.matches(address.peer)?address.claimed:address.peer;}
+ #boundAddress(request:IncomingMessage):string{const address=this.#addresses.get(request)!;if(address.invalid&&this.#trusted.matches(address.peer))throw new ApiError(401,'Invalid proxy client address');return authorizationAddress(this.#effectiveAddress(request));}
+ #proxyPending(address:ProxyAddress):boolean{return (!!address.claimed||address.invalid)&&!this.#trusted.matches(address.peer)&&this.#trusted.hasDomains;}
+ authorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization):AuthorizedUser|undefined{this.#addressSnapshot(context);return this.#authorize(method,params,context,false);}
+ #authorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization,proxyPending:boolean):AuthorizedUser|undefined{
   this.#active();context.signal.throwIfAborted();
   this.#requests.set(context.signal,context.request);
-  const optionalThumbnail=method==='server.files.download'&&context.transport==='http'&&anonymousThumbnailGet(context.request);
-  const remember=(principal:Principal)=>{this.#principals.set(context.signal,principal);if(context.transport==='websocket')this.#connections.set(context.request,principal);return typeof principal==='number'?identity:{username:principal==='trusted'?'_TRUSTED_USER_':principal.username};};
-  const validate=(principal:Principal)=>{if(typeof principal==='number'){if(!this.#enableApiKey||principal!==this.#generation)throw new ApiError(401,'Invalid API Key');}else if(principal==='trusted'){if(!this.#trusts(context.request))throw new ApiError(401,'Trusted client authorization no longer available');}else this.#users!.decode(principal.token,'access',false);return remember(principal);};
+  const optionalThumbnail=method==='server.files.download'&&context.transport==='http'&&anonymousThumbnailGet({method:context.request.method,url:relativeRouteUrl(context.request.url??'',context.routePrefix??'')});
+  const remember=(principal:Principal)=>{
+   this.#principals.set(context.signal,principal);if(context.transport==='websocket')this.#connections.set(context.request,principal);
+   if(method==='access.get_user'){const previous=this.#userReads.get(context.signal);if(previous&&previous.request!==context.request)throw new ApiError(401,'Authenticated user request context reused');this.#userReads.set(context.signal,{request:context.request,principal});}
+   return typeof principal==='number'?identity:{username:isTrusted(principal)?principal.user.username:principal.username};
+  };
+  const validate=(principal:Principal)=>{if(typeof principal==='number'){if(!this.#enableApiKey||principal!==this.#generation)throw new ApiError(401,'Invalid API Key');}else if(isTrusted(principal)){if(!this.#trusts(context.request))throw new ApiError(401,'Trusted client authorization no longer available');}else this.#users!.decode(principal.token,'access',false);return remember(principal);};
   const identify=method==='server.connection.identify',session=this.#connections.get(context.request);
   const acceptToken=(token:unknown)=>{if(!this.#users)throw new ApiError(401,'Bearer authentication is not configured');const user=this.#users.decode(token,'access',!optionalThumbnail&&!['access.login','access.refresh_jwt','access.info'].includes(method));if(context.transport==='websocket')this.#users.decode(token);return remember({token:token as string,username:user.username,kid:JSON.parse(Buffer.from((token as string).split('.')[0],'base64url').toString()).kid});};
   const acceptKey=(key:unknown)=>{if(!this.#matches(key))throw new ApiError(401,'Invalid API Key');return remember(this.#generation);};
@@ -66,18 +125,33 @@ export class ApiKeyAuthorization {
   const token=authorization!==undefined?(authorization.startsWith('Bearer ')?authorization.slice(7):authorization):context.request.headers['x-access-token']??query.at(-1);
   if(token!==undefined)return acceptToken(token);
   const cached=this.#oneShotRequests.get(context.request);if(cached!==undefined)return validate(cached);
-  if(context.request.url?.includes('token')){const oneShot=new URL(context.request.url,'http://localhost').searchParams.getAll('token').at(-1);if(oneShot!==undefined){const principal=this.#oneShots.consume(oneShot,authorizationAddress(context.request.socket.remoteAddress));if(principal!==undefined){const user=validate(principal);if(context.transport==='http')this.#oneShotRequests.set(context.request,principal);return user;}}}
+  if(context.request.url?.includes('token')){const oneShot=new URL(context.request.url,'http://localhost').searchParams.getAll('token').at(-1);if(oneShot!==undefined){if(proxyPending)throw new ApiError(401,'Proxy verification pending');const principal=this.#oneShots.consume(oneShot,this.#boundAddress(context.request));if(principal!==undefined){const user=validate(principal);if(context.transport==='http')this.#oneShotRequests.set(context.request,principal);return user;}}}
   const header=context.request.headers['x-api-key'];if(header!==undefined)return acceptKey(header);
-  if(this.#trusts(context.request))return remember('trusted');
+  if(this.#trusts(context.request))return remember(this.#trustedPrincipal(context.request));
   if(optionalThumbnail||method==='access.info'||this.#users&&(method==='access.login'||method==='access.refresh_jwt'))return;
   throw new ApiError(401,'Unauthorized');
  }
  #trusts(request:IncomingMessage){
   if(this.#users?.forceLogins&&this.#users.count>0)return false;
-  // Do not turn a trusted peer into a proxy delegation grant.
-  if(['forwarded','x-forwarded-for','x-real-ip'].some(name=>request.headers[name]!==undefined))return false;
-  return this.#trusted.matches(request.socket.remoteAddress);
+  const address=this.#addresses.get(request)!;if(address.invalid)return false;
+  // A header never delegates trust: the peer must be trusted before selecting
+  // the claimed client. Then the client must independently match the policy.
+  return this.#trusted.matches(this.#effectiveAddress(request));
  }
+ /** Numeric/cached admission retains the synchronous hot path. A domain miss
+  * can consult NSS only at the original network boundary, then runs the full
+  * credential/session and current force-login policy again. */
+ #networkAuthorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization):AuthorizedUser|undefined|Promise<AuthorizedUser|undefined>{
+  const address=this.#addressSnapshot(context),pending=this.#proxyPending(address);
+  const resolvePeer=()=>this.#trusted.resolve(address.peer,context.signal);
+  try{const grant=this.#authorize(method,params,context,pending);
+   if(pending&&['access.oneshot_token','access.login','access.info'].includes(method))return resolvePeer().then(()=>this.authorize(method,params,context));return grant;
+  }catch(error){
+   if(!(error instanceof ApiError)||error.status!==401||!['Unauthorized','Trusted client authorization no longer available','Proxy verification pending'].includes(error.message)||!this.#trusted.hasDomains||address.invalid||error.message!=='Proxy verification pending'&&this.#users?.forceLogins&&this.#users.count>0)throw error;
+   return resolvePeer().then(async peer=>{if(peer&&address.claimed&&error.message!=='Proxy verification pending')await this.#trusted.resolve(address.claimed,context.signal);return this.authorize(method,params,context);});
+  }
+ }
+
  /** Process-only print authority for an explicitly armed queue. Capture the
   * authenticated principal, never a username supplied by a request or saved
   * catalogue. Revalidate key generation/JWT expiry and revocation each time;
@@ -95,7 +169,7 @@ export class ApiKeyAuthorization {
    if(typeof principal==='number'){
     if(!this.#enableApiKey||principal!==this.#generation)throw new ApiError(401,'Queue API Key authority revoked');return identity;
    }
-   if(principal==='trusted'){
+   if(isTrusted(principal)){
     if(!this.#trusts(request))throw new ApiError(401,'Queue trusted client authority revoked');return Object.freeze({username:'_TRUSTED_USER_'});
    }
    const user=this.#users!.decode(principal.token,'access');
@@ -106,21 +180,28 @@ export class ApiKeyAuthorization {
   if(context.user?.username!==user.username)throw new ApiError(401,'Queue request identity changed');
   return Object.freeze({transport:context.transport,signal,user,nativeGenerationSignal:context.nativeGenerationSignal,nativeGenerationRetiredAtAdmission:context.nativeGenerationRetiredAtAdmission,authorize});
  }
- readonly networkOptions:Pick<MoonrakerNetworkOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'>={
-  authorize:(method,params,context)=>this.authorize(method,params,context),
+ readonly networkOptions:Pick<MoonrakerNetworkOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'|'resolveRequestProtocol'|'captureRequestMetadata'>={
+  captureRequestMetadata:context=>this.captureRequestMetadata(context),
+  resolveRequestProtocol:context=>this.resolveRequestProtocol(context),
+  authorize:(method,params,context)=>this.#networkAuthorize(method,params,context),
   authorizeNotification:(method,params,context)=>{
-   try{this.authorize('notification',{},context);}catch(error){
+   const denied=(error:unknown)=>{
     // A committed revocation may deliver only its own terminal event to the
     // old session. This grant never authorizes RPCs or other notifications.
     if(!(error instanceof ApiError)||error.status!==401)throw error;
     const session=this.#connections.get(context.request),payload=params[0];
-    if(session&&typeof session==='object'&&params.length===1&&payload&&typeof payload==='object'&&!Array.isArray(payload)&&Object.keys(payload).length===1&&payload.username===session.username){
+    if(session&&typeof session==='object'&&!isTrusted(session)&&params.length===1&&payload&&typeof payload==='object'&&!Array.isArray(payload)&&Object.keys(payload).length===1&&payload.username===session.username){
      for(const event of this.#eventGrants)if(event.kind!=='user_created'&&method==='notify_'+event.kind&&event.username===session.username&&event.revokedKid===session.kid)return;
     }
     throw error;
-   }
+   };
+   try{const grant=this.#networkAuthorize('notification',{},context);if(grant instanceof Promise)return grant.then(()=>{},denied);}catch(error){return denied(error);}
   },
-  authorizeSubscriptionConnection:(source,target)=>{const from=this.authorize('subscription',{},source),to=this.authorize('subscription',{},target);if(!from||from.username!==to?.username)throw new ApiError(403,'Subscription identity mismatch');}
+  authorizeSubscriptionConnection:(source,target)=>{
+   const from=this.#networkAuthorize('subscription',{},source),to=this.#networkAuthorize('subscription',{},target);
+   const check=(a:AuthorizedUser|undefined,b:AuthorizedUser|undefined)=>{if(!a||a.username!==b?.username)throw new ApiError(403,'Subscription identity mismatch');};
+   if(from instanceof Promise||to instanceof Promise)return Promise.all([from,to]).then(([a,b])=>check(a,b));return check(from,to);
+  }
  };
  rotate():Promise<string>{
   this.#active();if(this.#rotation)throw new ApiError(409,'API key rotation in progress');
@@ -150,20 +231,24 @@ export class ApiKeyAuthorization {
   try{
    remove.push(endpoints.register({endpoint:'/access/api_key',methods:['GET','POST'],transports:['http','websocket']},async(_params,verb)=>{this.#active();return verb==='POST'?await this.rotate():this.localApiKey();}));
    remove.push(endpoints.register({endpoint:'/access/oneshot_token',methods:['GET'],transports:['http','websocket']},(_params,_verb,ctx)=>{
-    this.#active();const request=this.#requests.get(ctx.signal),principal=this.#principals.get(ctx.signal);if(!request||principal===undefined)throw new ApiError(401,'Authenticated request context required');return this.#oneShots.issue(authorizationAddress(request.socket.remoteAddress),principal);
+    this.#active();const request=this.#requests.get(ctx.signal),principal=this.#principals.get(ctx.signal);if(!request||principal===undefined)throw new ApiError(401,'Authenticated request context required');return this.#oneShots.issue(this.#boundAddress(request),principal);
    }));
    // Trusted-network policy is not implicitly enabled.
-   remove.push(endpoints.register({endpoint:'/access/info',methods:['GET'],transports:['http','websocket']},(_params,_verb,ctx)=>{this.#active();return {default_source:this.#users?.defaultSource??'moonraker',available_sources:[...(this.#users?.availableSources??[])],login_required:!!this.#users?.forceLogins&&this.#users.count>0,trusted:this.#trusted.matches(this.#requests.get(ctx.signal)?.socket.remoteAddress)};}));
+   remove.push(endpoints.register({endpoint:'/access/info',methods:['GET'],transports:['http','websocket']},(_params,_verb,ctx)=>{
+    this.#active();const request=this.#requests.get(ctx.signal),address=request?this.#effectiveAddress(request):undefined;
+    const result=()=>{this.#active();ctx.signal.throwIfAborted();return {default_source:this.#users?.defaultSource??'moonraker',available_sources:[...(this.#users?.availableSources??[])],login_required:!!this.#users?.forceLogins&&this.#users.count>0,trusted:!!request&&!this.#addresses.get(request)!.invalid&&this.#trusted.matches(address)};};
+    if(this.#trusted.hasDomains)return this.#trusted.resolve(address,ctx.signal).then(result);return result();
+   }));
    const users=this.#users;
    if(users){
-    const login=async(params:Readonly<Record<string,Json>>,ctx:RpcContext,create=false)=>{const operation=()=>this.#mutation(ctx,create?delivery:undefined,committed=>users.login(params,ctx.signal,create,committed));const result=await (create?operation():this.#attempts.run(this.#attempts.enabled?authorizationAddress(this.#requests.get(ctx.signal)?.socket.remoteAddress):'',ctx.signal,operation));this.#active();ctx.signal.throwIfAborted();const request=this.#requests.get(ctx.signal);if(request&&ctx.transport==='websocket'&&!create)this.#connections.set(request,{token:result.token,username:result.username,kid:JSON.parse(Buffer.from(result.token.split('.')[0],'base64url').toString()).kid});return result;};
+    const login=async(params:Readonly<Record<string,Json>>,ctx:RpcContext,create=false)=>{const operation=()=>this.#mutation(ctx,create?delivery:undefined,committed=>users.login(params,ctx.signal,create,committed));const result=await (create?operation():this.#attempts.run(this.#attempts.enabled?this.#boundAddress(this.#requests.get(ctx.signal)!):'',ctx.signal,operation));this.#active();ctx.signal.throwIfAborted();const request=this.#requests.get(ctx.signal);if(request&&ctx.transport==='websocket'&&!create)this.#connections.set(request,{token:result.token,username:result.username,kid:JSON.parse(Buffer.from(result.token.split('.')[0],'base64url').toString()).kid});return result;};
     remove.push(endpoints.register({endpoint:'/access/login',methods:['POST'],transports:['http','websocket']},(params,_verb,ctx)=>login(params,ctx)));
     remove.push(endpoints.register({endpoint:'/access/refresh_jwt',methods:['POST'],transports:['http','websocket']},params=>users.refresh(params.refresh_token)));
     remove.push(endpoints.register({endpoint:'/access/logout',methods:['POST'],transports:['http','websocket']},(_params,_verb,ctx)=>this.#mutation(ctx,delivery,committed=>users.logout(ctx.user?.username??'',ctx.signal,committed))));
     remove.push(endpoints.register({endpoint:'/access/user',methods:['GET','POST','DELETE'],transports:['http','websocket']},(params,verb,ctx)=>{
      if(verb==='POST')return login(params,ctx,true);
      if(verb==='DELETE')return this.#mutation(ctx,delivery,committed=>users.delete(params.username,ctx.user?.username??'',ctx.signal,committed));
-     return ctx.user&&ctx.user.username!==identity.username?users.user(ctx.user.username):{username:null,source:null,created_on:null};
+     return this.#readUser(ctx);
     }));
     remove.push(endpoints.register({endpoint:'/access/users/list',methods:['GET'],transports:['http','websocket']},()=>users.list()));
     remove.push(endpoints.register({endpoint:'/access/user/password',methods:['POST'],transports:['http','websocket']},(params,_verb,ctx)=>users.password(ctx.user?.username??'',params,ctx.signal)));
@@ -171,5 +256,5 @@ export class ApiKeyAuthorization {
    return ()=>{for(const dispose of remove.reverse())dispose();};
   }catch(error){for(const dispose of remove.reverse())dispose();throw error;}
  }
- async close(){this.#closed=true;this.#attempts.close();this.#oneShots.close();await this.#rotation;await this.#users?.close();for(const release of this.#eventTickets)release();await Promise.all(this.#eventTasks);this.#eventGrants.clear();}
+ async close(){this.#closed=true;clearInterval(this.#pruneTimer);this.#trustedUsers.clear();this.#attempts.close();this.#oneShots.close();await this.#trusted.close();await this.#rotation;await this.#users?.close();for(const release of this.#eventTickets)release();await Promise.all(this.#eventTasks);this.#eventGrants.clear();}
 }

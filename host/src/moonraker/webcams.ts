@@ -5,6 +5,7 @@ import type {ConfigurationReader} from './config-reader.ts';
 import type {DatabaseStore} from './database.ts';
 import type {DatabaseNamespace} from './database-namespace.ts';
 import type {EndpointRegistry} from './endpoints.ts';
+import {MoonrakerHttpClient} from './http-client.ts';
 const defaults={enabled:true,icon:'mdiWebcam',aspect_ratio:'4:3',target_fps:15,target_fps_idle:5,location:'printer',service:'mjpegstreamer',snapshot_url:'',flip_horizontal:false,flip_vertical:false,rotation:0};
 const mapping:Record<string,string>={name:'name',service:'service',target_fps:'targetFps',stream_url:'urlStream',snapshot_url:'urlSnapshot',flip_horizontal:'flipX',flip_vertical:'flipY',enabled:'enabled',target_fps_idle:'targetFpsIdle',aspect_ratio:'aspectRatio',icon:'icon',location:'location',rotation:'rotation',extra_data:'extra_data'};
 export type Webcam=Record<string,Json>&{name:string;uid:string;source:'config'|'database';stream_url:string;snapshot_url:string};
@@ -26,12 +27,14 @@ function uuid5(namespace:string,name:string){const raw=Buffer.from(namespace.rep
 export class Webcams {
  readonly #db:DatabaseStore;readonly #reader:ConfigurationReader;readonly #configured:Record<string,Json>[]=[];readonly #notify:(event:Json)=>void;
  readonly #abort=new AbortController();readonly #probes=new Set<Promise<Json>>();
+ readonly #http:MoonrakerHttpClient;readonly #ownsHttp:boolean;
  #store?:DatabaseNamespace;#cams=new Map<string,Webcam>();#tail:Promise<unknown>=Promise.resolve();#pending=0;#ready=false;#closing=false;#closed=false;#fault=false;
- constructor(reader:ConfigurationReader,db:DatabaseStore,notify:(event:Json)=>void){this.#reader=reader;this.#db=db;this.#notify=notify;
+ constructor(reader:ConfigurationReader,db:DatabaseStore,notify:(event:Json)=>void,http?:MoonrakerHttpClient){this.#reader=reader;this.#db=db;this.#notify=notify;
   for(const section of reader.prefixSections('webcam ')){const config=reader.section(section),entry:Record<string,Json>={name:section.slice(7).trim(),stream_url:config.get('stream_url')};
    for(const [name,value] of Object.entries(defaults))entry[name]=typeof value==='boolean'?config.getBoolean(name,{defaultValue:value}):typeof value==='number'?config.getInt(name,{defaultValue:value}):config.get(name,{defaultValue:value});
    camera(entry,'','config');this.#configured.push(entry);
   }
+  this.#http=http??new MoonrakerHttpClient();this.#ownsHttp=http===undefined;
  }
  async start(){
   if(this.#closed)throw new ApiError(503,'Webcams closed');const metadata=await this.#db.registerLocalNamespace('native_webcam_identity',{forbidden:true}),saved=await metadata.get('instance_uuid');
@@ -68,12 +71,12 @@ export class Webcams {
   this.#active();if(this.#probes.size>=4)throw new ApiError(429,'Webcam probe capacity exceeded');const cam=this.get(params).webcam;
   const task=(async()=>{const resolve=(value:string)=>{if(!value)return '';return /^\w+:\/\/[^/]+/.test(value)?value:'http://127.0.0.1/'+value.replace(/^\/+/, '');};
    const result={name:cam.name,snapshot_reachable:false,snapshot_url:resolve(cam.snapshot_url),stream_url:resolve(cam.stream_url)};
-   if(/^https?:\/\//.test(result.snapshot_url)){const signal=AbortSignal.any([this.#abort.signal,AbortSignal.timeout(1000)]);let response:Response|undefined;
-    try{response=await fetch(result.snapshot_url,{signal});if(response.ok){let size=0;const reader=response.body?.getReader();if(reader)try{for(;;){const chunk=await reader.read();if(chunk.done)break;size+=chunk.value.length;if(size>8388608)throw new Error('Snapshot exceeds probe limit');}}finally{await reader.cancel();reader.releaseLock();}result.snapshot_reachable=true;}}
-    catch{result.snapshot_reachable=false;}finally{await response?.body?.cancel().catch(()=>{});}
+   if(/^https?:\/\//.test(result.snapshot_url)){const signal=AbortSignal.any([this.#abort.signal,AbortSignal.timeout(1000)]);
+    try{result.snapshot_reachable=await this.#http.probe(result.snapshot_url,{signal,connectTimeout:1,requestTimeout:1,maxBodyBytes:8388608});}
+    catch{result.snapshot_reachable=false;}
    }return result;
   })();this.#probes.add(task);void task.finally(()=>this.#probes.delete(task)).catch(()=>{});return task;
  }
  register(endpoints:EndpointRegistry){const release=[endpoints.register({endpoint:'/server/webcams/test',methods:['POST']},params=>this.test(params)),endpoints.register({endpoint:'/server/webcams/list',methods:['GET']},()=>this.list()),endpoints.register({endpoint:'/server/webcams/item',methods:['GET','POST','DELETE']},(params,verb)=>verb==='GET'?this.get(params):this.mutate(params,verb==='DELETE'))];return ()=>{for(const fn of release)fn();};}
- async close(){this.#closing=true;this.#abort.abort();await Promise.allSettled([this.#tail,...this.#probes]);this.#closed=true;}
+ async close(){this.#closing=true;this.#abort.abort();await Promise.allSettled([this.#tail,...this.#probes,...(this.#ownsHttp?[this.#http.close()]:[])]);this.#closed=true;}
 }

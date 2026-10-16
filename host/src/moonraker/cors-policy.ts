@@ -2,6 +2,9 @@
 // Original Copyright (C) 2020 Eric Callahan; GPL-3.0-or-later.
 import {RE2} from 're2-wasm';
 import {TrustedClients} from './trusted-clients.ts';
+import {isIP} from 'node:net';
+import {safeRedirectTarget} from './redirect-target.ts';
+export type TrustedOriginResolver=(address:string,signal:AbortSignal)=>boolean|Promise<boolean>;
 
 /** Browser read/upgrade admission only; never grants API or print authority.
  * RE2 bounds regex matching work; unsupported Python-only regex constructs
@@ -11,8 +14,10 @@ export class CorsPolicy {
  readonly #exact=new Set<string>();
  readonly #trusted:TrustedClients;
  readonly #enabled:boolean;
- constructor(domains:readonly string[],trusted:readonly string[]=[],warn:(message:string)=>void=()=>{}){
+ readonly #resolve:TrustedOriginResolver|undefined;
+ constructor(domains:readonly string[],trusted:readonly string[]=[],warn:(message:string)=>void=()=>{},resolve?:TrustedOriginResolver){
   if(!Array.isArray(domains)||domains.length>128)throw new TypeError('Invalid cors_domains capacity');
+  if(resolve!==undefined&&typeof resolve!=='function')throw new TypeError('Invalid trusted Origin resolver');this.#resolve=resolve;
   this.#trusted=new TrustedClients(trusted);
   let accepted=0;
   for(const domain of domains){
@@ -41,5 +46,25 @@ export class CorsPolicy {
   // available through the existing explicit network origins setting.
   const match=/^https?:\/\/([^/:]+)/.exec(origin);
   return !!match&&this.#trusted.matches(match[1]);
+ }
+ /** Configuration borrows the original authorization owner's NSS cache and
+  * shutdown boundary. Origin permission never becomes method authority. */
+ check(origin:unknown,signal:AbortSignal):boolean|Promise<boolean>{
+  signal.throwIfAborted();if(this.matches(origin))return true;
+  if(!this.#enabled||!this.#resolve||typeof origin!=='string'||origin.length>1024)return false;
+  try{const url=new URL(origin);if(!['http:','https:'].includes(url.protocol)||url.origin!==origin)return false;}catch{return false;}
+  const address=/^https?:\/\/([^/:]+)/.exec(origin)?.[1];if(!address||!isIP(address))return false;
+  const result=this.#resolve(address,signal);if(result instanceof Promise)return result.then(allowed=>{signal.throwIfAborted();return allowed===true;});signal.throwIfAborted();return result===true;
+ }
+ /** RedirectHandler passes a full target, stripping trailing slashes only for
+  * policy matching. Never reduce it to an origin and broaden path permission. */
+ checkRedirect(target:unknown,signal:AbortSignal):boolean|Promise<boolean>{
+  signal.throwIfAborted();const safe=safeRedirectTarget(target);if(!this.#enabled||safe===undefined)return false;
+  // Match the decoded argument before Unicode header serialization, as upstream.
+  const value=(target as string).replace(/\/+$/,'');if(this.#exact.has(value))return true;
+  for(const regex of this.#patterns){const match=regex.exec(value);if(match?.index===0&&match[0]===value)return true;}
+  const address=/^https?:\/\/([^/:]+)/.exec(value)?.[1];if(!address||!isIP(address))return false;
+  if(this.#trusted.matches(address))return true;if(!this.#resolve)return false;
+  const result=this.#resolve(address,signal);if(result instanceof Promise)return result.then(allowed=>{signal.throwIfAborted();return allowed===true;});signal.throwIfAborted();return result===true;
  }
 }

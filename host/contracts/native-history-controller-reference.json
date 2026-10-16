@@ -1,0 +1,32 @@
+{
+  "node": "v26.10.0",
+  "fields": 0,
+  "jobs": 100,
+  "warmup": 2,
+  "runs": 7,
+  "samples": [
+    7446.333384,
+    7093.969283999999,
+    7835.8195099999975,
+    6718.679575000002,
+    7224.9032670000015,
+    7470.816353999995,
+    6754.065199999997
+  ],
+  "queries": [
+    5.948569000000134,
+    6.423334999999497,
+    5.944718999999168,
+    5.92692900000111,
+    6.160812000001897,
+    5.969108999997843,
+    6.340003999997862
+  ],
+  "median": 7224.9032670000015,
+  "queryMedian": 5.969108999997843,
+  "limit": 1.5,
+  "scope": "Real SQLite DELETE/EXTRA with controller start/complete/reset, three durable commits, 100 ordinary request reads, no hardware or motion; provider inspection included only in stress candidate.",
+  "baselineHead": "953532077b81d2288e4561ac88fbe2efe75957db",
+  "baselineSha256": "6dc77a2ca0c1b65a2b514d0d176edfe61cb585613251ad2891ca5e4a36736551",
+  "probeSha256": "485e280e1c3be48a1bf5be597eda30ae5bc22e7945b5ffebea1ae21331718892"
+}

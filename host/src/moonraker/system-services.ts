@@ -1,13 +1,14 @@
 // Service-state wire fields follow Moonraker machine.py (GPL-3.0-or-later).
+import {validServiceName} from './service-name.ts';
 import {execFile} from 'node:child_process';
 import {open} from 'node:fs/promises';
 import {isDeepStrictEqual} from 'node:util';
 import type {Json} from './rpc.ts';
 
 export type ServiceState={active_state:string;sub_state:string};
-export type ServiceSnapshot={provider:'none'|'systemd_cli';available_services:string[];service_state:Record<string,ServiceState>;instance_ids:{moonraker:string;klipper:string}};
+export type ServiceSnapshot={provider:'none'|'systemd_cli'|'systemd_dbus'|'supervisord_cli';available_services:string[];service_state:Record<string,ServiceState>;instance_ids:{moonraker:string;klipper:string}};
 export type ServiceSource=(signal:AbortSignal)=>Promise<ServiceSnapshot>;
-export type SystemServicesOptions={source?:ServiceSource;allowedUnits?:readonly string[]};
+export type SystemServicesOptions={provider?:ServiceSnapshot['provider'];source?:ServiceSource;allowedUnits?:readonly string[];subscribeInvalidation?:(observer:()=>void)=>()=>void};
 export type ServiceCommand=(args:readonly string[],signal:AbortSignal)=>Promise<string>;
 const empty=():ServiceSnapshot=>({provider:'none',available_services:[],service_state:{},instance_ids:{moonraker:'',klipper:''}});
 const unitPattern=/^[A-Za-z0-9][A-Za-z0-9_.@-]{0,239}\.service$/;
@@ -17,7 +18,9 @@ const listedUnitPattern=/^(?:[A-Za-z0-9_.@-]|\\x[0-9A-Fa-f]{2}){1,256}\.service$
 const statePattern=/^[a-z][a-z0-9-]{0,63}$/;
 const defaultAllowed=(unit:string)=>/^(?:moonraker|klipper)(?:[_-]?\d+)?\.service$/.test(unit)||unit==='anyraid-node-product-host.service';
 export function validateSystemServices(options:SystemServicesOptions):void{
- if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).some(k=>!['source','allowedUnits'].includes(k)))throw new TypeError('Invalid system services options');
+ if(!options||typeof options!=='object'||Array.isArray(options)||Object.keys(options).some(k=>!['provider','source','allowedUnits','subscribeInvalidation'].includes(k)))throw new TypeError('Invalid system services options');
+ if(options.provider!==undefined&&!['none','systemd_cli','systemd_dbus','supervisord_cli'].includes(options.provider))throw new TypeError('Invalid configured service provider');
+ if(options.subscribeInvalidation!==undefined&&(typeof options.subscribeInvalidation!=='function'||!options.source))throw new TypeError('Invalid service invalidation subscription');
  if(options.source!==undefined&&typeof options.source!=='function')throw new TypeError('Invalid service source');
  if(options.allowedUnits!==undefined&&(!Array.isArray(options.allowedUnits)||options.allowedUnits.length>64||options.allowedUnits.some(unit=>typeof unit!=='string'||!unitPattern.test(unit))||new Set(options.allowedUnits).size!==options.allowedUnits.length))throw new TypeError('Invalid allowed service units');
  if(options.source&&options.allowedUnits!==undefined)throw new TypeError('A service source owns its allowlist');
@@ -43,6 +46,7 @@ const systemctl:ServiceCommand=(args,signal)=>new Promise((resolve,reject)=>{
  const abort=()=>{child.kill('SIGKILL');};signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();
  child.once('close',()=>{signal.removeEventListener('abort',abort);if(signal.aborted)reject(signal.reason);else if(failed)reject(new Error('Service query unavailable'));else resolve(result);});
 });
+export {systemctl as readSystemctl,cgroup as readServiceCgroup};
 export function linuxServiceSource(options:{allowedUnits?:readonly string[];nativeCombined?:boolean;command?:ServiceCommand;readCgroup?:(signal:AbortSignal)=>Promise<string>}={}):ServiceSource{
  validateSystemServices({allowedUnits:options.allowedUnits});
  const extra=new Set(options.allowedUnits??[]),command=options.command??systemctl,readCgroup=options.readCgroup??cgroup;
@@ -74,8 +78,8 @@ export function linuxServiceSource(options:{allowedUnits?:readonly string[];nati
  };
 }
 function validateSnapshot(value:ServiceSnapshot):ServiceSnapshot{
- if(!value||typeof value!=='object'||!['none','systemd_cli'].includes(value.provider)||!Array.isArray(value.available_services)||value.available_services.length>64||!value.service_state||typeof value.service_state!=='object'||Array.isArray(value.service_state)||!value.instance_ids||typeof value.instance_ids!=='object')throw new Error('Invalid service snapshot');
- const keys=Object.keys(value.service_state);if(keys.length!==value.available_services.length||new Set(value.available_services).size!==keys.length||value.available_services.some(name=>typeof name!=='string'||!unitPattern.test(name+'.service')||!keys.includes(name)))throw new Error('Invalid service catalogue');
+ if(!value||typeof value!=='object'||!['none','systemd_cli','systemd_dbus','supervisord_cli'].includes(value.provider)||!Array.isArray(value.available_services)||value.available_services.length>64||!value.service_state||typeof value.service_state!=='object'||Array.isArray(value.service_state)||!value.instance_ids||typeof value.instance_ids!=='object')throw new Error('Invalid service snapshot');
+ const keys=Object.keys(value.service_state);if(keys.length!==value.available_services.length||new Set(value.available_services).size!==keys.length||value.available_services.some(name=>typeof name!=='string'||!(value.provider==='supervisord_cli'?validServiceName(name):unitPattern.test(name+'.service'))||!keys.includes(name)))throw new Error('Invalid service catalogue');
  for(const state of Object.values(value.service_state))if(!state||typeof state!=='object'||Object.keys(state).length!==2||!Object.hasOwn(state,'active_state')||!Object.hasOwn(state,'sub_state')||typeof state.active_state!=='string'||typeof state.sub_state!=='string'||!statePattern.test(state.active_state)||!statePattern.test(state.sub_state))throw new Error('Invalid service state');
  for(const role of ['moonraker','klipper'] as const){const name=value.instance_ids[role];if(typeof name!=='string'||name!==''&&!keys.includes(name))throw new Error('Invalid service instance');}
  if(value.provider==='none'&&keys.length)throw new Error('Unavailable service provider has a catalogue');
@@ -86,23 +90,23 @@ function validateSnapshot(value:ServiceSnapshot):ServiceSnapshot{
  * cancellation before dependencies are released. No system mutation is exposed. */
 export class SystemServices {
  readonly #source:ServiceSource;readonly #notify:((change:Record<string,ServiceState>)=>void)|undefined;readonly #abort=new AbortController();
- #value=empty();#pending:Promise<void>|undefined;#timer:ReturnType<typeof setTimeout>|undefined;#started=false;#samples=0;#failures=0;#notificationFailures=0;
- constructor(options:SystemServicesOptions={},notify?:((change:Record<string,ServiceState>)=>void),nativeCombined=false){validateSystemServices(options);if(notify!==undefined&&typeof notify!=='function')throw new TypeError('Invalid service observer');this.#source=options.source??linuxServiceSource({allowedUnits:options.allowedUnits,nativeCombined});this.#notify=notify;}
- get status(){return {samples:this.#samples,failures:this.#failures,notification_failures:this.#notificationFailures,pending:!!this.#pending,closed:this.#abort.signal.aborted};}
+ #value=empty();#pending:Promise<void>|undefined;#timer:ReturnType<typeof setTimeout>|undefined;#started=false;#samples=0;#failures=0;#notificationFailures=0;#fresh=false;#refreshRequested=false;#unsubscribe:(()=>void)|undefined;
+ constructor(options:SystemServicesOptions={},notify?:((change:Record<string,ServiceState>)=>void),nativeCombined=false){validateSystemServices(options);if(notify!==undefined&&typeof notify!=='function')throw new TypeError('Invalid service observer');if(options.provider)this.#value={...empty(),provider:options.provider};this.#source=options.source??linuxServiceSource({allowedUnits:options.allowedUnits,nativeCombined});this.#notify=notify;this.#unsubscribe=options.subscribeInvalidation?.(()=>{this.#fresh=false;if(this.#started&&!this.#abort.signal.aborted){this.#refreshRequested=true;void this.refresh().catch(()=>{});}});}
+ get status(){return {samples:this.#samples,failures:this.#failures,notification_failures:this.#notificationFailures,pending:!!this.#pending,closed:this.#abort.signal.aborted,fresh:this.#fresh};}
  snapshot():Record<string,Json>{return structuredClone(this.#value);}
  refresh():Promise<void>{
   if(this.#abort.signal.aborted)return Promise.reject(this.#abort.signal.reason);if(this.#pending)return this.#pending;
-  const pending=Promise.resolve().then(()=>this.#source(this.#abort.signal)).then(value=>{
+  this.#refreshRequested=false;const pending=Promise.resolve().then(()=>this.#source(this.#abort.signal)).then(value=>{
    this.#abort.signal.throwIfAborted();const next=validateSnapshot(value),changes:Record<string,ServiceState>={};
    if(this.#samples)for(const [name,state] of Object.entries(next.service_state))if(!isDeepStrictEqual(state,this.#value.service_state[name]))changes[name]={...state};
-   this.#value=next;this.#samples++;
+   this.#value=next;this.#samples++;this.#fresh=true;
    // Changes are per-service deltas, as in the upstream notification. Catalogue
    // removals are reflected by the next system_info query, not invented states.
    for(const [name,state] of Object.entries(changes))try{this.#notify?.({[name]:state});}catch{this.#notificationFailures++;}
-  }).finally(()=>{if(this.#pending===pending)this.#pending=undefined;});this.#pending=pending;return pending;
+  }).catch(error=>{this.#fresh=false;throw error;}).finally(()=>{if(this.#pending===pending)this.#pending=undefined;if(this.#refreshRequested&&!this.#abort.signal.aborted)queueMicrotask(()=>{void this.refresh().catch(()=>{});});});this.#pending=pending;return pending;
  }
  async start(){if(this.#started)return;this.#started=true;await this.#sample();this.#abort.signal.throwIfAborted();this.#schedule();}
  async #sample(){try{await this.refresh();}catch(error){if(this.#abort.signal.aborted)throw error;this.#failures++;}}
  #schedule(){if(this.#abort.signal.aborted)return;this.#timer=setTimeout(()=>{this.#timer=undefined;void this.#sample().catch(()=>{}).finally(()=>this.#schedule());},2000);this.#timer.unref();}
- async close(){this.#abort.abort(new Error('System services closed'));clearTimeout(this.#timer);await this.#pending?.catch(()=>{});}
+ async close(){this.#unsubscribe?.();this.#unsubscribe=undefined;this.#fresh=false;this.#abort.abort(new Error('System services closed'));clearTimeout(this.#timer);await this.#pending?.catch(()=>{});}
 }

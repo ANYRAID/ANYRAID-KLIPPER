@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {isAbsolute,join,relative,sep} from 'node:path';
 import {validateMachineControlOptions,type MachineControlOptions} from '../moonraker/machine-control.ts';
 
-export interface ProductServiceUnitOptions {bundle:string;profile:string;user:string;machineControl?:MachineControlOptions;}
+export interface ProductServiceUnitOptions {bundle:string;profile:string;user:string;machineControl?:MachineControlOptions;trustedSudo?:true;}
 function serviceUser(user:string):void{if(typeof user!=='string'||!/^[a-z_][a-z0-9_-]{0,30}$/u.test(user)||user==='root')throw new TypeError('An explicit non-root service user is required');}
 function absolute(value:string):string {
  if(typeof value!=='string'||!isAbsolute(value)||/[\x00-\x1f\x7f]/u.test(value))throw new TypeError('Expected an absolute path without control characters');
@@ -70,7 +70,7 @@ export async function verifyProductBundle(input:string):Promise<string>{
 export async function productServiceUnit(options:ProductServiceUnitOptions):Promise<string> {
  const [major,minor]=process.versions.node.split('.').map(Number);
  if(process.platform!=='linux'||major!==26||minor<9)throw new Error('Service generation requires Linux and Node.js 26.9 or later 26.x');
- const user=options.user,control=options.machineControl;serviceUser(user);if(control!==undefined)validateMachineControlOptions(control);
+ const user=options.user,control=options.machineControl;serviceUser(user);if(control!==undefined)validateMachineControlOptions(control);if(options.trustedSudo!==undefined&&(options.trustedSudo!==true||!control))throw new Error('Trusted sudo preparation requires the explicit own-unit descriptor');
  const conflicts=['klipper.service','moonraker.service'].filter(unit=>unit!==control?.ownUnit).join(' ');
  const bundle=absolute(await realpath(absolute(options.bundle))),profile=absolute(await realpath(absolute(options.profile))),node=absolute(await realpath(process.execPath));
  if(inside(bundle,profile)||inside(bundle,node))throw new Error('Machine profile and Node executable must be outside the replaceable bundle');
@@ -78,14 +78,14 @@ export async function productServiceUnit(options:ProductServiceUnitOptions):Prom
  await verifyProductBundle(bundle);
  await access(node,constants.X_OK);
  const executable=join(bundle,'scripts/product-host.js');
- return `[Unit]\nDescription=ANYRAID Node product host\nAfter=network.target\nConflicts=${conflicts}\n\n[Service]\nType=exec\nUser=${user}\n${control?'NoNewPrivileges=yes\n':''}WorkingDirectory=/\nExecStartPre=${quote(node,true)} --no-experimental-strip-types ${quote(join(bundle,'scripts/product-service-unit.js'),true)} --verify-bundle ${quote(bundle,true)}\nExecStart=${quote(node,true)} --no-experimental-strip-types ${quote(executable,true)} --profile ${quote(profile,true)}\nRestart=no\nKillSignal=SIGTERM\nKillMode=mixed\nTimeoutStopSec=90s\nUMask=0077\nStandardOutput=journal\nStandardError=journal\n\n[Install]\nWantedBy=multi-user.target\n`;
+ return `[Unit]\nDescription=ANYRAID Node product host\nAfter=network.target\nConflicts=${conflicts}\n\n[Service]\nType=exec\nUser=${user}\n${control&&!options.trustedSudo?'NoNewPrivileges=yes\n':''}WorkingDirectory=/\nExecStartPre=${quote(node,true)} --no-experimental-strip-types ${quote(join(bundle,'scripts/product-service-unit.js'),true)} --verify-bundle ${quote(bundle,true)}\nExecStart=${quote(node,true)} --no-experimental-strip-types ${quote(executable,true)} --profile ${quote(profile,true)}\nRestart=no\nKillSignal=SIGTERM\nKillMode=mixed\nTimeoutStopSec=90s\nUMask=0077\nStandardOutput=journal\nStandardError=journal\n\n[Install]\nWantedBy=multi-user.target\n`;
 }
 export async function productServiceUnitCLI(args:readonly string[],write:(text:string)=>void):Promise<void>{
- if(args.length===1&&['--help','-h'].includes(args[0])){write('Usage: node scripts/product-service-unit.ts --bundle /absolute/product-host --profile /absolute/machine.mjs --user printer [--machine-control /absolute/control.json] [--polkit]\nUse --verify-bundle /absolute/product-host for a read-only startup check.\n--machine-control enables NoNewPrivileges in the generated unit; --polkit instead prints its site-specific policy and requires that descriptor.\nSave the unit under the descriptor ownUnit name; configure the trusted profile from the same descriptor.\nWrites verified preparation to stdout. Does not install or start services.\n');return;}
+ if(args.length===1&&['--help','-h'].includes(args[0])){write('Usage: node scripts/product-service-unit.ts --bundle /absolute/product-host --profile /absolute/machine.mjs --user printer [--machine-control /absolute/control.json] [--polkit | --trusted-sudo]\nUse --verify-bundle /absolute/product-host for a read-only startup check.\n--machine-control enables NoNewPrivileges in the generated unit; --polkit instead prints its site-specific policy and requires that descriptor.\nSave the unit under the descriptor ownUnit name; configure the trusted profile from the same descriptor.\n--trusted-sudo explicitly prepares the fixed installation mode without NoNewPrivileges; it is incompatible with --polkit and does not install the root helper, manifest or sudo policy.\nWrites verified preparation to stdout. Does not install or start services.\n');return;}
  if(args.length===2&&args[0]==='--verify-bundle'){await verifyProductBundle(args[1]);write('Product bundle verified\n');return;}
- const parsed:Record<string,string>={};let policy=false;for(let i=0;i<args.length;){const key=args[i++];if(key==='--polkit'){if(policy)throw new Error('Duplicate --polkit');policy=true;continue;}if(!['--bundle','--profile','--user','--machine-control'].includes(key)||key in parsed||!args[i])throw new Error('Expected exactly --bundle, --profile and --user, with optional --machine-control and --polkit');parsed[key]=args[i++];}
- if(!parsed['--bundle']||!parsed['--profile']||!parsed['--user']||policy&&!parsed['--machine-control'])throw new Error('Expected exactly --bundle, --profile and --user; --polkit requires --machine-control');
+ const parsed:Record<string,string>={};let policy=false,trustedSudo=false;for(let i=0;i<args.length;){const key=args[i++];if(key==='--trusted-sudo'){if(trustedSudo)throw new Error('Duplicate --trusted-sudo');trustedSudo=true;continue;}if(key==='--polkit'){if(policy)throw new Error('Duplicate --polkit');policy=true;continue;}if(!['--bundle','--profile','--user','--machine-control'].includes(key)||key in parsed||!args[i])throw new Error('Expected exactly --bundle, --profile and --user, with optional --machine-control and --polkit');parsed[key]=args[i++];}
+ if(!parsed['--bundle']||!parsed['--profile']||!parsed['--user']||(policy||trustedSudo)&&!parsed['--machine-control']||policy&&trustedSudo)throw new Error('Expected exactly --bundle, --profile and --user; --polkit requires --machine-control');
  const machineControl=parsed['--machine-control']?await readProductMachineControl(parsed['--machine-control']):undefined;
- const unit=await productServiceUnit({bundle:parsed['--bundle'],profile:parsed['--profile'],user:parsed['--user'],machineControl});
+ const unit=await productServiceUnit({bundle:parsed['--bundle'],profile:parsed['--profile'],user:parsed['--user'],machineControl,...trustedSudo?{trustedSudo:true as const}:{}});
  write(policy?productMachineControlPolicy(parsed['--user'],machineControl!):unit);
 }

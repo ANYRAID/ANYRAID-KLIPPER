@@ -1,0 +1,331 @@
+{
+  "schema": 1,
+  "baselineHead": "9591c2e5b6c3103f60b9de6c5f749772a9a71ee3",
+  "node": "v26.10.0",
+  "sourceSha256": {
+    "host/src/moonraker/http-client.ts": "d43470fba6af8268c98996b6407108eded6a24c48cebf25f8c324e7fec62d32e",
+    "host/src/moonraker/json-bytes.ts": "9f3c4d0e38e39382e4be69813f1d18d976e51b1e089bb518112d93717a15184f",
+    "host/test/http-json-bytes.test.ts": "58154ff822edc10a53de01e642b263822d4c6d53da2e47e62abf05f0af313bc4",
+    "host/bench/moonraker-http-json.ts": "001ac678395ddd61f6c0e31cf00e61734548cd67afd449d251834c9a57a5bf4c",
+    "host/package.json": "646edb5c309c934d3e7a4e973cd9ffa3593ca9e780719ba1f3923fd6b3f06a86",
+    "host/contracts/http-json-bytes-reference.json": "8657d6169f01f2070c4492c41b0f9c0da27c0ecdf84560d844556d40ecf8b6bd"
+  },
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "jsonWrapperSha256": "6d9161eadd5d8d186b88889292122e3882d38dd43a943ee5b74109dd0996beb2",
+    "httpClientSha256": "811b8e8529acecf31fce5ba58eea0643e48f0e83df80188ef3e91b7e6733805f",
+    "backend": "actual pinned stdlib fallback; explicitly MOONRAKER_ENABLE_MSGSPEC=n; msgspec parity not claimed",
+    "pythonReferenceOnly": "3.12.13"
+  },
+  "implementation": {
+    "encoding": "Byte-level UTF-8/16/32 LE/BE BOM and prefix detection; exactly one leading BOM. Surrogate code units preserved without replacement, including UTF-8 surrogatepass. Malformed Unicode and JSON rejected.",
+    "integration": "Existing process-owned HTTP response and 304 cache. Independent of text encoding and headers; text codec behavior unchanged.",
+    "precision": "Existing exact integer parser, negative zero, 4096-digit default, finite-number and public RPC/motion guards unchanged.",
+    "dailyPythonDependency": false
+  },
+  "validation": {
+    "frozenCases": 103,
+    "valid": 70,
+    "invalid": 33,
+    "priorValidMatches": 12,
+    "source": 242,
+    "independentJs": 242,
+    "actualProduct": 242,
+    "fail": 0,
+    "guard": "No TS loading, Python or child programs; JS workers also guarded. Actual product uses independently installed locked production dependencies.",
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "preparationFailures": [
+      "Initial compiler child was sandbox EPERM; explicit reviewed local compiler execution succeeded.",
+      "Initial extra text assertion used Buffer.from on a raw JS surrogate, which had replaced it before the decoder; kept 105/106 evidence, corrected only that fixture to frozen raw hex. All 103 oracle cases already passed.",
+      "Initial product test harness omitted helper modules and bare ws resolution; kept 237/239 evidence and original harness; copied unchanged helpers and linked actual product dependencies. No assertion or product behavior changed."
+    ]
+  },
+  "performance": {
+    "baselineHead": "9591c2e5b6c3103f60b9de6c5f749772a9a71ee3",
+    "sequence": "three alternating fresh-process pairs, reversed second pair; no concurrent task tests/typecheck/build",
+    "budgets": [
+      {
+        "round": 0,
+        "name": "ordinary status",
+        "baselineMs": 10.665179000000009,
+        "candidateMs": 11.654207,
+        "ratio": 1.092734308538093,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "name": "wide coordinates",
+        "baselineMs": 25.22739299999995,
+        "candidateMs": 26.05335100000002,
+        "ratio": 1.0327405213848324,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "name": "scientific floats",
+        "baselineMs": 10.439837000000011,
+        "candidateMs": 10.41862599999996,
+        "ratio": 0.9979682632975926,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "name": "strings resembling numbers",
+        "baselineMs": 1.494074000000012,
+        "candidateMs": 1.5932249999999613,
+        "ratio": 1.066362844142893,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "name": "512-bit integer",
+        "baselineMs": 3.288711000000035,
+        "candidateMs": 3.324500999999941,
+        "ratio": 1.010882683215371,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 0,
+        "name": "existing private JSON",
+        "baselineMs": 24.943899999999985,
+        "candidateMs": 25.097631999999976,
+        "ratio": 1.006163110018882,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "name": "ordinary status",
+        "baselineMs": 11.009322000000012,
+        "candidateMs": 11.559717000000006,
+        "ratio": 1.0499935418366357,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "name": "wide coordinates",
+        "baselineMs": 25.45727499999998,
+        "candidateMs": 25.71716799999996,
+        "ratio": 1.0102089874112596,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "name": "scientific floats",
+        "baselineMs": 11.378405999999984,
+        "candidateMs": 10.358175999999958,
+        "ratio": 0.9103362984235202,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "name": "strings resembling numbers",
+        "baselineMs": 1.4915340000000015,
+        "candidateMs": 1.5800550000000158,
+        "ratio": 1.0593489655616393,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "name": "512-bit integer",
+        "baselineMs": 3.359790999999973,
+        "candidateMs": 3.3497710000000325,
+        "ratio": 0.9970176716349498,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 1,
+        "name": "existing private JSON",
+        "baselineMs": 25.363165000000095,
+        "candidateMs": 24.770289000000048,
+        "ratio": 0.976624526158307,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "name": "ordinary status",
+        "baselineMs": 10.845339999999993,
+        "candidateMs": 11.494045999999997,
+        "ratio": 1.0598142612403119,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "name": "wide coordinates",
+        "baselineMs": 25.976830000000007,
+        "candidateMs": 25.710338000000007,
+        "ratio": 0.9897411654924793,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "name": "scientific floats",
+        "baselineMs": 11.542257000000006,
+        "candidateMs": 10.492976999999996,
+        "ratio": 0.9090923031777919,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "name": "strings resembling numbers",
+        "baselineMs": 1.469284000000016,
+        "candidateMs": 1.5410839999999553,
+        "ratio": 1.0488673394659838,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "name": "512-bit integer",
+        "baselineMs": 3.315110000000004,
+        "candidateMs": 3.343361000000016,
+        "ratio": 1.0085218891680854,
+        "limit": 1.5,
+        "pass": true
+      },
+      {
+        "round": 2,
+        "name": "existing private JSON",
+        "baselineMs": 24.777749000000085,
+        "candidateMs": 24.588927999999896,
+        "ratio": 0.9923794126738394,
+        "limit": 1.5,
+        "pass": true
+      }
+    ],
+    "pass": true,
+    "scope": "Three alternating fresh-process JS pairs after tests/typecheck/build ended. Same original two warmups/seven samples, fixed 6 workloads and 1.5 relative limit. New Unicode paths have no supported old baseline; absolute costs only, not printing/target-board proof.",
+    "newPaths": [
+      {
+        "name": "UTF-32 LE",
+        "bytes": 16784,
+        "iterations": 64,
+        "warmups": 2,
+        "samples": 7,
+        "sampleMs": [
+          3.7963249999999107,
+          3.781575000000089,
+          3.778214999999932,
+          3.8461659999999256,
+          3.7918449999999666,
+          3.7969049999999243,
+          3.8084049999999934
+        ],
+        "medianMs": 3.7963249999999107
+      },
+      {
+        "name": "UTF-32 BE",
+        "bytes": 16784,
+        "iterations": 64,
+        "warmups": 2,
+        "samples": 7,
+        "sampleMs": [
+          3.8511849999999868,
+          3.7769650000000183,
+          3.820226000000048,
+          3.797574999999938,
+          3.775875000000042,
+          3.8369760000000497,
+          3.878435999999965
+        ],
+        "medianMs": 3.820226000000048
+      },
+      {
+        "name": "UTF-16 LE",
+        "bytes": 10440,
+        "iterations": 64,
+        "warmups": 2,
+        "samples": 7,
+        "sampleMs": [
+          0.6571759999999358,
+          0.5609850000000733,
+          0.5595349999999826,
+          0.6525359999999409,
+          0.558104999999955,
+          0.5937360000000353,
+          0.714766999999938
+        ],
+        "medianMs": 0.5937360000000353
+      },
+      {
+        "name": "UTF-16 BE",
+        "bytes": 10440,
+        "iterations": 64,
+        "warmups": 2,
+        "samples": 7,
+        "sampleMs": [
+          0.7963680000000295,
+          0.6988959999999906,
+          0.893318000000022,
+          0.8288880000000063,
+          0.6797960000000103,
+          0.7480269999999791,
+          0.6648969999999963
+        ],
+        "medianMs": 0.7480269999999791
+      },
+      {
+        "name": "UTF-8 surrogatepass",
+        "bytes": 5,
+        "iterations": 1000,
+        "warmups": 2,
+        "samples": 7,
+        "sampleMs": [
+          4.77689399999997,
+          4.779303999999911,
+          4.862634999999955,
+          4.766223999999966,
+          4.914996000000087,
+          4.83360499999992,
+          4.812913999999978
+        ],
+        "medianMs": 4.812913999999978
+      }
+    ]
+  },
+  "product": {
+    "schema": 1,
+    "priorFiles": 686,
+    "currentFiles": 687,
+    "priorManifestSha256": "04842d3cc22396a09f69065c42cb489ff0c5319bf0cfb5c37ad3b9de6b851276",
+    "currentManifestSha256": "c4ecc057b5db03076dfb7e63a00f2db549f64a46126224a7e1e1a589695a4b7e",
+    "nativeSourcesVerified": 75,
+    "changed": [
+      "host/src/moonraker/http-client.js",
+      "host/src/moonraker/json-bytes.js"
+    ],
+    "removed": [],
+    "nativeMode": "Reused preceding locked native outputs after verifying all product and native source hashes. Entire current production TS closure independently compiled; not a fresh native build stability claim.",
+    "dependencies": 18,
+    "dependenciesManifestSha256": "6238a3db4bdd19c79958db9aa7453104dba16c3dfb167a3406417e749b471880",
+    "testsScope": "Same nine compiled suites, imports/addon path retargeted to actual product without altering assertions; helpers unchanged. Full product manifest and source snapshot hashes verified."
+  },
+  "evidence": {
+    "path": "host/contracts/http-json-bytes-evidence.json.gz",
+    "sha256": "b0e6bd92294bce28d294eb350b7d4b6b310697b2bc28dd04553330cddb5e102c",
+    "bytes": 3258829,
+    "entries": 653
+  },
+  "remaining": [
+    "Complete HTTP/Moonraker consumers and msgspec backend parity",
+    "177 tracked Python files/default Python entry and full retirement",
+    "Consumer macro/client editing/upload/cancel/recovery/queue failure journeys",
+    "Original UI performance/native build stability/G3 precision/target Cycnumbris500 printing and hardware",
+    "Own CI and develop -> master integration; other models last"
+  ]
+}

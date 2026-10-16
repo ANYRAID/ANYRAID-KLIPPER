@@ -1,0 +1,360 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "baseHead": "a1e4aed61b2f3045e854d6ea3021a8ea44807def",
+  "status": "draft-partial",
+  "scope": "Configuration-bound sensors consume the same MoonrakerTemplateFactory private snapshot and globals. Rust collects typed readings within a frame and commits through SensorMessages only after successful render. Unbound explicit generations retain the dedicated adapter.",
+  "functionality": {
+    "initialSource": {
+      "tests": 213,
+      "pass": 208,
+      "fail": 5
+    },
+    "initialCompiled": {
+      "tests": 213,
+      "pass": 208,
+      "fail": 5
+    },
+    "affectedSourceFixed": {
+      "tests": 11,
+      "pass": 11,
+      "fail": 0
+    },
+    "affectedCompiledFixed": {
+      "tests": 11,
+      "pass": 11,
+      "fail": 0
+    },
+    "finalSource": {
+      "tests": 215,
+      "pass": 215,
+      "fail": 0,
+      "allChildProcessAPIsForbidden": true,
+      "testIsolation": "none"
+    },
+    "finalCompiled": {
+      "tests": 215,
+      "pass": 215,
+      "fail": 0,
+      "noStripTypes": true,
+      "allChildProcessAPIsForbidden": true,
+      "testIsolation": "none"
+    },
+    "compiledProduct": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "noStripTypes": true,
+      "existingPtyFixtureChildAllowed": true
+    },
+    "sourceProduct": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "existingPtyFixtureChildAllowed": true
+    },
+    "typecheck": "passed",
+    "rustFormatting": "passed",
+    "contracts": [
+      "Private calibration, existing/later globals and real Node synchronous functions",
+      "Typed JSON integer/float, booleans, Unicode float conversion and signed zero; keyword binding and duplicate readings",
+      "Frame-local set_result shadows environment global; numeric/parameter/output/fuel bounds retain prior store and history on failure",
+      "Raw 64 KiB quoted payload does not expand through JSON context encoding",
+      "Independent nested native collectors; source reentrancy and generation retirement fence publication",
+      "Trusted logging and asynchronous rejection retain factory policies",
+      "Actual configured MQTT and HTTP consume original private calibration after on-disk replacement and release owned handle",
+      "Macro, alias and loop function references remain callable; late registration after first frame invalidates native fast path",
+      "Ordinary product startup acquires shared sensor before device; real MQTT and HTTP preserve original private gain over disk replacement and two device profile retirements, then release all handles"
+    ],
+    "native": {
+      "toolchain": "rustc 1.89.0 (29483883e 2025-08-04)\nbinary: rustc\ncommit-hash: 29483883eed69d5fb4db01964cdf2af4d86e9cb2\ncommit-date: 2025-08-04\nhost: x86_64-unknown-linux-gnu\nrelease: 1.89.0\nLLVM version: 20.1.7",
+      "snapshotPreparation": {
+        "sourceAndHeaderSnapshotReachedCompiler": true,
+        "controlledMissingCompiler": "rejected",
+        "partialOutputAndScratch": "removed",
+        "scope": "Actual private snapshot capture and early-failure cleanup; no native compilation or complete bundle"
+      },
+      "baselineTemplateSha256": "5a382f0395d58a07424aaffd455b07874b531e6cea1b9fa14833b609c6dd3455",
+      "candidateTemplateSha256": "8e7852747cd5c34934695d6735fa643b474aa1817c4881449668d6485e7c75f4",
+      "ownCrate": "Offline locked release build of changed project crate succeeds; copied existing dependency output tree reused",
+      "buildLogs": [
+        "shared-sensor-rust-build-oct12.log",
+        "shared-sensor-final-rust-build-oct12.log",
+        "shared-sensor-dependency-rust-build-oct12.log",
+        "shared-sensor-selected-rust-build-oct12.log",
+        "shared-sensor-final-project-build-oct12.log"
+      ],
+      "fullFreshBuild": "Not performed here; preceding full-snapshot SIGSEGV remains open",
+      "productSnapshot": "buildProductNative now captures src/sensor_text.rs; existing native/full-product assertions extended, full snapshot/product tests not executed in this turn"
+    },
+    "dependencies": {
+      "host/package.json": "08f8f0c0c7a28e845044463c6f4c453389da15453b31bedaf3577e904d53dd6a",
+      "host/package-lock.json": "b890eff34a349b721afd6013f53d6e2c3fa14538ce8ae6bc0bd580ec328da389",
+      "host/native/template/Cargo.toml": "af7d4c84ccbb9d3a5eb625847f1ddc2e6696a1586c98f85dc43bd51e12be6778",
+      "host/native/template/Cargo.lock": "d5fa08f87b0c4796387cc2c228c4d4c8c39ebd93e2eaf95ffd47fb7684baeaf0",
+      "host/native/template/src/async_text.rs": "9508772f4dadf98331ab74e8202d5bae23e1b71234cf15dc84e47c0a268b136a",
+      "host/native/template/src/sync_functions.rs": "89ea21f0dc74f8f3bf54c494a5384f1dacbca6168cb6663dfc1e00ed7ec7f864"
+    },
+    "compiledComparison": {
+      "baselineModules": 521,
+      "candidateModules": 522,
+      "differentCommonModules": [
+        "moonraker/native-sensor-config.js",
+        "moonraker/template-factory.js",
+        "moonraker/template-owner.js"
+      ]
+    },
+    "boundary": "Independent TS export with new own Rust crate and cached C/dependency artifacts. Not a complete product package or target board."
+  },
+  "performance": {
+    "reference": {
+      "mode": "baseline",
+      "node": "v26.10.0",
+      "frames": 10000,
+      "warmup": 2,
+      "samples": [
+        111.15428700000001,
+        110.08132800000004,
+        110.90706499999999,
+        110.50001199999997,
+        110.28636000000006,
+        109.88069700000005,
+        109.78212600000006
+      ],
+      "median": 110.28636000000006,
+      "limit": 1.5,
+      "template": "{% set d=payload|fromjson %}{set_result(\"power\",d.power|float)}{set_result(\"voltage\",d.voltage|float)}{set_result(\"current\",d.current|float)}{set_result(\"energy\",d.energy|float * 0.000001)}",
+      "payload": "{\"power\":25.5,\"voltage\":230.0,\"current\":0.125,\"energy\":1200}",
+      "scope": "Byte decode, four typed callbacks, SensorStore and average history; imports, setup, MQTT and motion excluded",
+      "baseHead": "a1e4aed61b2f3045e854d6ea3021a8ea44807def",
+      "frozenBeforeProductionEdits": true
+    },
+    "referenceSha256": "93bdc552c46f49a5b436e1422aae6df5318bba2a27293cbc08ca34387847786c",
+    "baselineFrozenBeforeProductionEdits": true,
+    "budgetFrozenBeforeProductionEdits": true,
+    "initialPrototype": {
+      "medianMs": 293.7405080000001,
+      "ratio": 2.663434607869912,
+      "includes": "Four general JS callable callbacks plus per-call binding assertions; diagnostic prototype, not a published production path"
+    },
+    "initialBatch": {
+      "node": "v26.10.0",
+      "frames": 10000,
+      "warmup": 2,
+      "samples": [
+        121.97912399999996,
+        118.598477,
+        120.30965600000002,
+        119.73744999999997,
+        119.61024899999995,
+        124.86346600000002,
+        119.46697700000004
+      ],
+      "median": 119.73744999999997,
+      "ratio": 1.0856959101742039,
+      "limit": 1.5,
+      "passed": true,
+      "scope": "Byte decode, four typed callbacks, SensorStore and average history; imports, setup, MQTT and motion excluded"
+    },
+    "initialUnused32": {
+      "node": "v26.10.0",
+      "frames": 10000,
+      "warmup": 2,
+      "samples": [
+        194.60598100000004,
+        187.558539,
+        187.39753699999994,
+        185.93306099999995,
+        187.78052200000002,
+        187.31077699999992,
+        185.86643000000004
+      ],
+      "median": 187.39753699999994,
+      "ratio": 1.6991905163974932,
+      "limit": 1.5,
+      "passed": false,
+      "unusedGlobals": 32,
+      "scope": "Byte decode, four typed callbacks, SensorStore and average history; imports, setup, MQTT and motion excluded"
+    },
+    "final": [
+      {
+        "node": "v26.10.0",
+        "frames": 10000,
+        "warmup": 2,
+        "samples": [
+          123.29323100000005,
+          120.437477,
+          120.74503100000004,
+          120.31991600000003,
+          120.01530200000002,
+          120.03375200000005,
+          122.78645499999993
+        ],
+        "median": 120.437477,
+        "ratio": 1.092043268088637,
+        "limit": 1.5,
+        "passed": true,
+        "unusedGlobals": 0,
+        "scope": "Byte decode, four typed callbacks, SensorStore and average history; imports, setup, MQTT and motion excluded"
+      },
+      {
+        "node": "v26.10.0",
+        "frames": 10000,
+        "warmup": 2,
+        "samples": [
+          134.285072,
+          132.38501000000002,
+          132.24850800000002,
+          151.60521799999992,
+          139.21982100000002,
+          159.46128999999996,
+          195.600099
+        ],
+        "median": 139.21982100000002,
+        "ratio": 1.2623484989440212,
+        "limit": 1.5,
+        "passed": true,
+        "unusedGlobals": 32,
+        "scope": "Byte decode, four typed callbacks, SensorStore and average history; imports, setup, MQTT and motion excluded"
+      },
+      {
+        "node": "v26.10.0",
+        "frames": 10000,
+        "warmup": 2,
+        "samples": [
+          143.39249,
+          138.337581,
+          139.76421800000003,
+          140.59517700000004,
+          137.71119399999998,
+          140.6153079999999,
+          138.32163100000002
+        ],
+        "median": 139.76421800000003,
+        "ratio": 1.2672847122708553,
+        "limit": 1.5,
+        "passed": true,
+        "unusedGlobals": 64,
+        "scope": "Byte decode, four typed callbacks, SensorStore and average history; imports, setup, MQTT and motion excluded"
+      }
+    ],
+    "environment": {
+      "node": "v26.10.0",
+      "architecture": "x64",
+      "kernel": "6.18.36-amd64-desktop-rolling",
+      "cpu": "AMD Ryzen 5 3500X 6-Core Processor"
+    },
+    "selection": "Per-template undeclared variable dependency set lazily discovered in the single owned environment without external loader; referenced late globals update native fast-path state. Only referenced globals bind native JS callable objects; no-call sensor frames avoid cloning/binding unused functions.",
+    "interpretation": "Prepared desktop ingress medians pass unchanged 1.5 ceiling, including 32/64 registered unused functions. Stress setup added after default candidate to expose a specific failure; original source/payload/frame/history work and reference remain unchanged. Sequential samples do not prove statistical speedup, arbitrary user callable cost, MQTT/printing speed or target-board performance."
+  },
+  "failuresRetained": [
+    "Prototype four-JS-callback path ratio 2.663 fails unchanged 1.5; replaced by native frame collector",
+    "Initial batched default passes 1.086 but 32 unused functions fail 1.699; static dependency selection added and negative sample retained",
+    "Source/compiled initial 208/213 each: five new assertions read server.templates after close clears the service getter; retain owner then verify closed and zero templates. Affected 11/11 each; subsequent changed native runtime revalidated complete 215/215 each",
+    "Initial TS errors accessing Json auxiliary snapshot without narrowing, Rust unused_mut warning and export preparation root package assumption fixed; logs retained"
+  ],
+  "ci": {
+    "previousHead": "a1e4aed61b2f3045e854d6ea3021a8ea44807def",
+    "jobs": 15,
+    "all": "success",
+    "ordinary": {
+      "tests": 4696,
+      "pass": 4696,
+      "fail": 0
+    },
+    "record": "pr68-a1e-terminal.json",
+    "currentCandidate": "requires own CI"
+  },
+  "remaining": [
+    "Native product history journal auxiliary fields and composition with other auxiliary owners",
+    "Complete template language, all general component consumers, async/UI budgets and independent fresh native/product build",
+    "Full same-bundle Fluidd/Mainsail and external fault recovery acceptance",
+    "All Python retirement and default printing migration with performance/precision gates",
+    "Consumer product macros, G3 precision/timing and Cycnumbris 500 target-board acceptance",
+    "Develop/mainline integration and release; other machine families last"
+  ],
+  "evidence": {
+    "file": "shared-sensor-components-evidence.json.gz",
+    "sha256": "3bda9d2989494b78cf85f775eb2b093c072fe011393770530222e679ecae7c01",
+    "bytes": 315245,
+    "entries": 72
+  },
+  "bindings": [
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "9e65dc732ac4b2bc3c3cb82f09577fdf700898645e9523066217d686849b89a8"
+    },
+    {
+      "path": "README.md",
+      "sha256": "c5a7cfd4590cc04b3dae83b694cacc62682e17175f33ddd41bb9811f73d92a73"
+    },
+    {
+      "path": "docs/Node_Host_Delivery_Plan.md",
+      "sha256": "1f47967eed6efa4c9b955f2086b540e6827f777ff2bb8a4f65a5390a07b61448"
+    },
+    {
+      "path": "docs/Node_Host_Startup.md",
+      "sha256": "15b0bf254adaf9bce3a49994a60d62cc125fb28b73879a4adb9625289e865de3"
+    },
+    {
+      "path": "host/native/template/src/lib.rs",
+      "sha256": "aa995cd293221f15548c1864bd708d60c0fe5b1f5e8dd23057a8866bc24177b7"
+    },
+    {
+      "path": "host/native/template/src/sensor_text.rs",
+      "sha256": "7af064df40cfdf4c24665a1c5fb50ef8c5f7eef4a50742cfe988d447db3d029d"
+    },
+    {
+      "path": "host/src/moonraker/native-sensor-config.ts",
+      "sha256": "66e5623df765e12315ff08a73313a84eb32c969efaf7b6d86bec4599173d1c47"
+    },
+    {
+      "path": "host/src/moonraker/template-owner.ts",
+      "sha256": "5bfa52c9d6a97c05622361ca750a3290e8f7eb5182d0de37f2945779384e0fcf"
+    },
+    {
+      "path": "host/src/moonraker/template-factory.ts",
+      "sha256": "054ec0124e43d23377e29aff46b0b40712163e0a5421208a7df9209914ecbe10"
+    },
+    {
+      "path": "host/scripts/build-product-native.ts",
+      "sha256": "9424ac4f86d638d4d554eda6fc6086b0c3a8907dbee06be3c35839131a898a9c"
+    },
+    {
+      "path": "host/test/shared-sensor-components.test.ts",
+      "sha256": "800ecf916d7ab69f837f0cf9e9275177f0e392c21e56108df3108e4d11cc05f5"
+    },
+    {
+      "path": "host/test/configured-mqtt-components.test.ts",
+      "sha256": "44a877cbc4a3423ed9a5ef20a4f67ef7cafa36718d70ba8a877036e7854cc651"
+    },
+    {
+      "path": "host/test/mqtt-config.test.ts",
+      "sha256": "2cd070935fd7e1741e98888107264aae69fb153965300fe8e3f6d3f2fbe75501"
+    },
+    {
+      "path": "host/test/native-product-components.test.ts",
+      "sha256": "b1f86912154d33da050ab2bf370e597c04d02ff2f8a7297b3b7c80fbeabe6569"
+    },
+    {
+      "path": "host/test/product-native-build.test.ts",
+      "sha256": "8e8a54737b9ce2ec2a48ba72d93e217dcdcb3238e5dd970a88ed57251c45112e"
+    },
+    {
+      "path": "host/test/product-build.test.ts",
+      "sha256": "375699875b5198500ebabed9dc0cdc3380a04a662ed01451ec91e5e6cd038e25"
+    },
+    {
+      "path": "host/bench/shared-sensor-components.ts",
+      "sha256": "ebdcfab0a890133e90982a71780b6351ff20a89242c510af44bba47627148045"
+    },
+    {
+      "path": "host/contracts/shared-sensor-components-reference.json",
+      "sha256": "93bdc552c46f49a5b436e1422aae6df5318bba2a27293cbc08ca34387847786c"
+    },
+    {
+      "path": "host/contracts/pr68-a1e-terminal.json",
+      "sha256": "c270aeaefc806e59d68622ac90b105a00a57a00681edb1dddd534c78cf8356d5"
+    }
+  ]
+}

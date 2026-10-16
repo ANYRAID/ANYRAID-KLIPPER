@@ -1,0 +1,27 @@
+{
+  "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+  "results": [
+    {
+      "initializedSourceSections": false,
+      "parsed": {
+        "new": {}
+      },
+      "warningCount": 2,
+      "errorClass": "KeyError",
+      "errorMessage": "'old'"
+    },
+    {
+      "initializedSourceSections": true,
+      "parsed": {
+        "server": {},
+        "old": {
+          "value": "old"
+        },
+        "new": {}
+      },
+      "warningCount": 2,
+      "source": "old",
+      "isAsync": false
+    }
+  ]
+}

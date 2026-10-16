@@ -1,6 +1,17 @@
 # Node.js 26 主机迁移
 
+当前旧安装迁移候选、四层受影响回归和完整标准产品构建结果见
+[交付计划](Node_Host_Delivery_Plan.md#当前旧安装迁移候选2026-10-14未发布)与
+[可信工厂启动说明](Node_Host_Startup.md#旧安装迁移的可信工厂装配)。
+以下按阶段保留历史验收；早期 LMDB／安装缺口不是当前候选状态，
+普通 UID／模拟证据始终不等于真实特权部署或实机验收。
+
 ## 目标与当前状态
+
+标准客户端归位 `G28` 接入同代际受控操作；两客户端固定端口下的
+模拟打印完成及暂停／恢复已有实际页面证据，详见
+[归位验收](../host/contracts/native-home-compatibility-acceptance.json)。
+这不等同于完整客户端、Python 退役、运动精度或硬件验收通过。
 
 目标是以 Node.js 26 / TypeScript 全面替换仓库内 Python（包括主机、
 构建、烧录、诊断和文档工具），集成完整 Moonraker 功能，并将宏转换为
@@ -6060,6 +6071,27 @@ ready 动态拥有者 17.700 / 19.238 ms，shutdown 动态拥有者
 
 ### 配置驱动的 Klippy 连接启动（2026-09-20）
 
+本节以下为初次接线的历史记录。2026-10-12 的路径消费者增量已
+替代其中“命名用户拒绝”“超过 40 次链接拒绝”和绑定配置时要求
+外部 renderer 的限制：共享私密模板保留其所有者，显式 cwd／home
+可与之共存，额外 renderer 与共享所有者同时存在时拒绝。空的
+共享模板输出按上游 Path 空串解析到 cwd；缺失默认仍保持原样。
+命名用户走现有 libc NSS，不调用 Python、shell 或用户查询程序。
+MQTT 密码文件则只 expanduser／absolute，花括号保持字面量，
+文件读取及后续密码模板覆盖次序不变；不把它改为 getpath。
+
+当前源码和禁止 TS／外部子进程的独立编译闭包各 137 项通过，
+覆盖冻结真实上游的 24 路径案例与凭据／文件边界。初版冷导入
+2.818 倍退化已撤回，最终冷导入 1.325 倍、三组路径对照最高
+1.321 倍；原 MQTT 基线一轮 1.504 倍超限照常保留。完整共享
+Klippy 绑定的源码／编译三项均通过原 getpath 1.5 桌面预算。
+当前 `npm --prefix host run bench:klippy-config` 使用冻结参考，
+移除了 Python／AST 与 `MOONRAKER_SOURCE`，测量 compile／render、
+路径展开、物理解析及 socket 容量校验。它与下面旧 raw-path
+51 样本对照的范围不同，不能据此声称旧 3.9 倍差异已消除。
+详细原始样本及负面证据见
+[路径消费者记录](../host/contracts/moonraker-path-consumers-acceptance.json)。
+
 调用 `ConfiguredMoonraker.load` 时传入 `klippy: {}` 可由配置服务拥有连接。
 load 读取 `[server] klippy_uds_address`，完成路径与重试间隔校验，尚不连接；
 start 成功监听网络后启用已有自动管理器，close 取消并等待连接任务。
@@ -11911,9 +11943,10 @@ forbidden_namespaces 读取，moonraker 默认只读，database 始终
 吞吐、调度和磁盘延迟仍需验收。没有降低持久化等级换取速度。
 
 全量 **1193 项通过**；补强并发 owner、事务建表和读回复边界后，
-相关 **18 项复测通过**，类型、空白和差异检查通过。数据库组件
-仍缺 LMDB 导入、备份/恢复/压缩、表注册与批量/更新辅助接口、
-实例及异常关机记账、调试路由和完整生产装配；当前未替换生产入口。
+相关 **18 项复测通过**，类型、空白和差异检查通过。该历史阶段的数据库
+尚缺 LMDB 导入、备份/恢复/压缩、表注册与批量/更新辅助接口、
+实例及异常关机记账、调试路由和完整生产装配；后续增量记录保留。
+本次 LMDB 只读 pre-open 与原记录精度证据见页首交付链接，生产入口仍未替换。
 
 ### SQLite 内部更新与批量操作
 
@@ -14561,14 +14594,14 @@ fromjson 经现有安全 JSON 解析器桥接。
 复现命令（Node 26 在 PATH 中）：
 
 ```sh
-node host/scripts/ensure-jinja-reference.ts
+# 固定参考随仓库提供，无需准备 Jinja wheel
 node host/bench/template-candidate.ts
 node host/bench/template-candidate.ts --require-compatible
 ```
 
-准备脚本下载固定 Jinja2/MarkupSafe wheel 并核对预置 SHA-256，仅解压
-到忽略的 `host/node_modules/.cache/jinja-reference`，不依赖 pip/venv，
-不修改系统 Python。当前基准在 Linux x86_64/Python 3.12 验证。普通
+原准备脚本曾下载固定 Jinja2/MarkupSafe wheel 并核对预置 SHA-256。
+现在该入口使用原一次封存的 Jinja2 3.1.6／Python 3.12.13 参考，
+准备脚本已删除，日常评估不启动 Python。普通
 评估命令输出结果；`--require-compatible` 当前必须返回 1，不能将它
 记作兼容门禁通过。既有完整主机测试与此候选门禁是两件事。
 
@@ -14685,7 +14718,7 @@ Moonraker 全局接口、完整 Jinja 兼容性和配置自动装配仍未实现
 
 ```sh
 node host/scripts/build-template.ts
-node host/scripts/ensure-jinja-reference.ts
+# 固定参考随仓库提供，无需准备 Jinja wheel
 node host/bench/native-template-check.ts
 node host/bench/native-template.ts
 ```

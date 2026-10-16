@@ -5,6 +5,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {workerEntry} from '../src/runtime/worker-entry.ts';
 import {runProductHost} from '../src/runtime/product-host.ts';
 import {parseProductHostArgs,runProductHostCLI} from '../src/runtime/product-host-cli.ts';
 import {productHostFixture} from './helpers/product-host-profile.ts';
@@ -36,8 +37,8 @@ for(const failedStop of [false,true])test(`runtime hardware fault retains authen
  }finally{abort.abort();await running.catch(()=>{});await f.profile.release();await rm(dir,{recursive:true,force:true});}
 });
 for(const delta of [false,true])for(const termination of ['SIGINT','SIGTERM'] as const)test(`executable host owns authenticated HTTP and graceful ${termination} shutdown (delta=${delta})`,async()=>{
- const dir=await mkdtemp(join(tmpdir(),'host-process-')),script=fileURLToPath(new URL('../../scripts/product-host.ts',import.meta.url)),profile=fileURLToPath(new URL('./helpers/product-host-profile.ts',import.meta.url));
- const child=spawn(process.execPath,[script,'--profile',profile],{env:{...process.env,ANYRAID_TEST_PROFILE_DIR:dir,ANYRAID_TEST_DELTA:delta?'1':'0'},stdio:['ignore','pipe','pipe']});
+ const dir=await mkdtemp(join(tmpdir(),'host-process-')),script=fileURLToPath(workerEntry('./../../scripts/product-host.ts',import.meta.url)),profile=fileURLToPath(workerEntry('./helpers/product-host-profile.ts',import.meta.url));
+ const child=spawn(process.execPath,[...import.meta.url.endsWith('.js')?['--no-experimental-strip-types']:[],script,'--profile',profile],{env:{...process.env,ANYRAID_TEST_PROFILE_DIR:dir,ANYRAID_TEST_DELTA:delta?'1':'0'},stdio:['ignore','pipe','pipe']});
  let stdout='',stderr='',unread='';const again=Promise.withResolvers<{port:number}>();let seenReady=false;const ready=Promise.withResolvers<{address:{port:number}}>();void ready.promise.catch(()=>{});
  child.stdout.on('data',chunk=>{stdout+=chunk;unread+=chunk;for(let at=unread.indexOf('\n');at>=0;at=unread.indexOf('\n')){const line=unread.slice(0,at);unread=unread.slice(at+1);try{const value=JSON.parse(line);if(value.event==='ready'){if(seenReady)again.resolve(value.address);seenReady=true;ready.resolve(value);}}catch{}}});child.stderr.on('data',chunk=>{stderr+=chunk;});
  const ended=new Promise<{code:number|null;signal:NodeJS.Signals|null}>((resolve,reject)=>{child.on('error',reject);child.on('exit',(code,signal)=>{ready.reject(new Error(`Host exited before ready: ${stderr}`));resolve({code,signal});});});
@@ -57,4 +58,18 @@ test('ready callback failure still closes hardware and reports dependency cleanu
   await assert.rejects(runProductHost(async()=>f.profile,signal(),()=>{throw new Error('ready notification failed');}),error=>error instanceof AggregateError&&error.errors.some(e=>e.message==='ready notification failed')&&error.errors.some(e=>e.message==='dependency release failed'));
   assert(f.released);assert.deepEqual(f.transport.stops,[1,1]);
  }finally{await release();await rm(dir,{recursive:true,force:true});}
+});
+
+test('throwing log callback cannot bypass device stop, release or dependency closure',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'host-log-throws-')),f=await productHostFixture(dir),abort=new AbortController(),ready=Promise.withResolvers<void>();
+ const factory=async()=>f.profile;Object.assign(factory,{logLifecycle(){throw new Error('private logger detail must not escape');}});
+ const running=runProductHost(factory,abort.signal,()=>ready.resolve());void running.catch(()=>{});
+ try{await ready.promise;abort.abort();await assert.rejects(running,/logging callback failed/);assert(f.released);assert.deepEqual(f.transport.stops,[1,1]);}finally{abort.abort();await running.catch(()=>{});await f.profile.release();await rm(dir,{recursive:true,force:true});}
+});
+test('real CLI nolog and structured flags reach the native process producer without altering stdout events',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'host-log-cli-')),profile=join(dir,'native-profile.mjs'),script=fileURLToPath(workerEntry('./../../scripts/product-host.ts',import.meta.url)),helper=workerEntry('./helpers/product-machine.ts',import.meta.url).href,native=workerEntry('./../src/runtime/native-product-machine.ts',import.meta.url).href;
+ await writeFile(profile,`import{productMachineFixture}from ${JSON.stringify(helper)};import{createNativeProductHostFactory}from ${JSON.stringify(native)};const f=await productMachineFixture(${JSON.stringify(dir)});export const createProductHostProfile=createNativeProductHostFactory(f.path,{filesRoot:${JSON.stringify(join(dir,'files'))},metadataRoot:${JSON.stringify(join(dir,'metadata'))},dataPath:${JSON.stringify(join(dir,'private'))},async createProcess(){return{server:{systemServices:{source:async()=>({provider:'none',available_services:[],service_state:{},instance_ids:{moonraker:'',klipper:''}})},information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'cli-logging',missingRequirements:[]},authorize:(_m,_p,c)=>{if(c.request?.headers['x-api-key']!=='test')throw Error('unauthorized');return{username:'test'};},authorizeNotification(){}},async release(){await f.close();}};},async createAdapter(){return{stops:f.bindings.stops,output:f.bindings.print.output,lifecycle:f.bindings.print.lifecycle,async authorizePrintFile(){},async release(){await f.close();}};}});`);
+ const child=spawn(process.execPath,[...import.meta.url.endsWith('.js')?['--no-experimental-strip-types']:[],script,'--profile',profile,'-n','-s'],{env:{...process.env,MOONRAKER_LOG_PATH:'invalid\nignored'},stdio:['ignore','pipe','pipe']});let stdout='',stderr='',unread='';const ready=Promise.withResolvers<{port:number}>();void ready.promise.catch(()=>{});child.stderr.on('data',b=>stderr+=b);child.stdout.on('data',b=>{stdout+=b;unread+=b;for(let i;(i=unread.indexOf('\n'))>=0;){const line=unread.slice(0,i);unread=unread.slice(i+1);const event=JSON.parse(line);if(event.event==='ready')ready.resolve(event.address);}});
+ const ended=new Promise<{code:number|null;signal:NodeJS.Signals|null}>(resolve=>child.once('exit',(code,signal)=>{ready.reject(new Error(stderr));resolve({code,signal});})),timer=setTimeout(()=>{child.kill('SIGKILL');ready.reject(new Error('CLI log timeout '+stderr));},15000);
+ try{const address=await ready.promise,base='http://127.0.0.1:'+address.port,headers={'x-api-key':'test'};assert.equal((await fetch(base+'/server/files/moonraker.log',{headers})).status,404);const response=await fetch(base+'/server/files/klippy.log',{headers});assert.equal(response.status,200);const records=(await response.text()).trim().split('\n').map(line=>JSON.parse(line));assert(records.some(record=>record.function==='write_header'));assert(records.some(record=>record.message==='bootstrap'));child.kill('SIGTERM');assert.deepEqual(await ended,{code:0,signal:null});assert(stdout.trim().split('\n').every(line=>['listening','ready'].includes(JSON.parse(line).event)));}finally{clearTimeout(timer);if(child.exitCode===null&&child.signalCode===null){child.kill('SIGKILL');await ended;}await rm(dir,{recursive:true,force:true});}
 });

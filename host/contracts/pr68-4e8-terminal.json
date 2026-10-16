@@ -1,0 +1,1317 @@
+{
+  "schema": 1,
+  "head": "4e886e50df323046db17d33c3f8d6c9265ffd4a2",
+  "runs": [
+    {
+      "id": 38163393217,
+      "name": "Node motion diagnostics",
+      "status": "completed",
+      "conclusion": "success",
+      "head": "4e886e50df323046db17d33c3f8d6c9265ffd4a2",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38163393217"
+    },
+    {
+      "id": 38163393107,
+      "name": "Node host",
+      "status": "completed",
+      "conclusion": "success",
+      "head": "4e886e50df323046db17d33c3f8d6c9265ffd4a2",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38163393107"
+    },
+    {
+      "id": 38163393167,
+      "name": "Build test",
+      "status": "completed",
+      "conclusion": "success",
+      "head": "4e886e50df323046db17d33c3f8d6c9265ffd4a2",
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38163393167"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 114540828158,
+      "name": "motion (26.9.0, off, source)",
+      "run_id": 38163393217,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:21:07Z",
+          "completed_at": "2026-10-11T18:21:08Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:21:08Z",
+          "completed_at": "2026-10-11T18:21:13Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:21:13Z",
+          "completed_at": "2026-10-11T18:21:17Z"
+        },
+        {
+          "name": "Install pinned compiler for JavaScript control",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4,
+          "started_at": "2026-10-11T18:21:17Z",
+          "completed_at": "2026-10-11T18:21:17Z"
+        },
+        {
+          "name": "Verify original motion reference in fresh processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:21:17Z",
+          "completed_at": "2026-10-11T18:23:13Z"
+        },
+        {
+          "name": "Preserve diagnostic evidence even on failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:23:13Z",
+          "completed_at": "2026-10-11T18:23:14Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-11T18:23:14Z",
+          "completed_at": "2026-10-11T18:23:14Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:23:14Z",
+          "completed_at": "2026-10-11T18:23:14Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:23:14Z",
+          "completed_at": "2026-10-11T18:23:14Z"
+        }
+      ]
+    },
+    {
+      "id": 114540828290,
+      "name": "motion (26.10.0, default, source)",
+      "run_id": 38163393217,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:23:19Z",
+          "completed_at": "2026-10-11T18:23:20Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:23:20Z",
+          "completed_at": "2026-10-11T18:23:27Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:23:27Z",
+          "completed_at": "2026-10-11T18:23:33Z"
+        },
+        {
+          "name": "Install pinned compiler for JavaScript control",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4,
+          "started_at": "2026-10-11T18:23:33Z",
+          "completed_at": "2026-10-11T18:23:33Z"
+        },
+        {
+          "name": "Verify original motion reference in fresh processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:23:33Z",
+          "completed_at": "2026-10-11T18:23:51Z"
+        },
+        {
+          "name": "Preserve diagnostic evidence even on failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:23:51Z",
+          "completed_at": "2026-10-11T18:23:52Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-11T18:23:52Z",
+          "completed_at": "2026-10-11T18:23:52Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:23:52Z",
+          "completed_at": "2026-10-11T18:23:52Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:23:52Z",
+          "completed_at": "2026-10-11T18:23:52Z"
+        }
+      ]
+    },
+    {
+      "id": 114540828301,
+      "name": "motion (26.10.0, off, source)",
+      "run_id": 38163393217,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:24:32Z",
+          "completed_at": "2026-10-11T18:24:34Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:24:34Z",
+          "completed_at": "2026-10-11T18:24:39Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:24:39Z",
+          "completed_at": "2026-10-11T18:24:44Z"
+        },
+        {
+          "name": "Install pinned compiler for JavaScript control",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4,
+          "started_at": "2026-10-11T18:24:44Z",
+          "completed_at": "2026-10-11T18:24:44Z"
+        },
+        {
+          "name": "Verify original motion reference in fresh processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:24:44Z",
+          "completed_at": "2026-10-11T18:28:25Z"
+        },
+        {
+          "name": "Preserve diagnostic evidence even on failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:28:25Z",
+          "completed_at": "2026-10-11T18:28:26Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-11T18:28:26Z",
+          "completed_at": "2026-10-11T18:28:26Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:28:26Z",
+          "completed_at": "2026-10-11T18:28:26Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:28:26Z",
+          "completed_at": "2026-10-11T18:28:26Z"
+        }
+      ]
+    },
+    {
+      "id": 114540828318,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "run_id": 38163393217,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:27:24Z",
+          "completed_at": "2026-10-11T18:27:25Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:27:25Z",
+          "completed_at": "2026-10-11T18:27:31Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:27:31Z",
+          "completed_at": "2026-10-11T18:27:37Z"
+        },
+        {
+          "name": "Install pinned compiler for JavaScript control",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-11T18:27:37Z",
+          "completed_at": "2026-10-11T18:27:39Z"
+        },
+        {
+          "name": "Verify original motion reference in fresh processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:27:39Z",
+          "completed_at": "2026-10-11T18:32:12Z"
+        },
+        {
+          "name": "Preserve diagnostic evidence even on failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:32:12Z",
+          "completed_at": "2026-10-11T18:32:15Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-11T18:32:15Z",
+          "completed_at": "2026-10-11T18:32:15Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:32:15Z",
+          "completed_at": "2026-10-11T18:32:15Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:32:15Z",
+          "completed_at": "2026-10-11T18:32:15Z"
+        }
+      ]
+    },
+    {
+      "id": 114540828349,
+      "name": "motion (26.10.0, off, compiled)",
+      "run_id": 38163393217,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:25:16Z",
+          "completed_at": "2026-10-11T18:25:18Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:25:18Z",
+          "completed_at": "2026-10-11T18:25:23Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:25:23Z",
+          "completed_at": "2026-10-11T18:25:28Z"
+        },
+        {
+          "name": "Install pinned compiler for JavaScript control",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-11T18:25:28Z",
+          "completed_at": "2026-10-11T18:25:29Z"
+        },
+        {
+          "name": "Verify original motion reference in fresh processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:25:29Z",
+          "completed_at": "2026-10-11T18:27:17Z"
+        },
+        {
+          "name": "Preserve diagnostic evidence even on failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:27:17Z",
+          "completed_at": "2026-10-11T18:27:19Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-11T18:27:19Z",
+          "completed_at": "2026-10-11T18:27:19Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:27:19Z",
+          "completed_at": "2026-10-11T18:27:19Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:27:19Z",
+          "completed_at": "2026-10-11T18:27:19Z"
+        }
+      ]
+    },
+    {
+      "id": 114540828382,
+      "name": "motion (26.9.0, default, source)",
+      "run_id": 38163393217,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:20:31Z",
+          "completed_at": "2026-10-11T18:20:32Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:20:32Z",
+          "completed_at": "2026-10-11T18:20:38Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:20:38Z",
+          "completed_at": "2026-10-11T18:20:43Z"
+        },
+        {
+          "name": "Install pinned compiler for JavaScript control",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4,
+          "started_at": "2026-10-11T18:20:43Z",
+          "completed_at": "2026-10-11T18:20:43Z"
+        },
+        {
+          "name": "Verify original motion reference in fresh processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:20:43Z",
+          "completed_at": "2026-10-11T18:21:01Z"
+        },
+        {
+          "name": "Preserve diagnostic evidence even on failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:21:01Z",
+          "completed_at": "2026-10-11T18:21:02Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-11T18:21:02Z",
+          "completed_at": "2026-10-11T18:21:02Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:21:02Z",
+          "completed_at": "2026-10-11T18:21:02Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:21:02Z",
+          "completed_at": "2026-10-11T18:21:02Z"
+        }
+      ]
+    },
+    {
+      "id": 114540828392,
+      "name": "motion (26.9.0, off, compiled)",
+      "run_id": 38163393217,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:21:14Z",
+          "completed_at": "2026-10-11T18:21:15Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:21:15Z",
+          "completed_at": "2026-10-11T18:21:20Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:21:20Z",
+          "completed_at": "2026-10-11T18:21:27Z"
+        },
+        {
+          "name": "Install pinned compiler for JavaScript control",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-11T18:21:27Z",
+          "completed_at": "2026-10-11T18:21:30Z"
+        },
+        {
+          "name": "Verify original motion reference in fresh processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:21:30Z",
+          "completed_at": "2026-10-11T18:25:07Z"
+        },
+        {
+          "name": "Preserve diagnostic evidence even on failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:25:07Z",
+          "completed_at": "2026-10-11T18:25:10Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-11T18:25:10Z",
+          "completed_at": "2026-10-11T18:25:10Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:25:10Z",
+          "completed_at": "2026-10-11T18:25:11Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:25:11Z",
+          "completed_at": "2026-10-11T18:25:11Z"
+        }
+      ]
+    },
+    {
+      "id": 114540828401,
+      "name": "motion (26.10.0, default, compiled)",
+      "run_id": 38163393217,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:23:58Z",
+          "completed_at": "2026-10-11T18:23:59Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:23:59Z",
+          "completed_at": "2026-10-11T18:24:05Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:24:05Z",
+          "completed_at": "2026-10-11T18:24:10Z"
+        },
+        {
+          "name": "Install pinned compiler for JavaScript control",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-11T18:24:10Z",
+          "completed_at": "2026-10-11T18:24:11Z"
+        },
+        {
+          "name": "Verify original motion reference in fresh processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:24:11Z",
+          "completed_at": "2026-10-11T18:24:25Z"
+        },
+        {
+          "name": "Preserve diagnostic evidence even on failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:24:25Z",
+          "completed_at": "2026-10-11T18:24:27Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-11T18:24:27Z",
+          "completed_at": "2026-10-11T18:24:27Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:24:27Z",
+          "completed_at": "2026-10-11T18:24:27Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:24:27Z",
+          "completed_at": "2026-10-11T18:24:27Z"
+        }
+      ]
+    },
+    {
+      "id": 114540828437,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "run_id": 38163393217,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:28:31Z",
+          "completed_at": "2026-10-11T18:28:32Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:28:32Z",
+          "completed_at": "2026-10-11T18:28:37Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:28:37Z",
+          "completed_at": "2026-10-11T18:28:49Z"
+        },
+        {
+          "name": "Install pinned compiler for JavaScript control",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-11T18:28:49Z",
+          "completed_at": "2026-10-11T18:28:51Z"
+        },
+        {
+          "name": "Verify original motion reference in fresh processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:28:51Z",
+          "completed_at": "2026-10-11T18:33:31Z"
+        },
+        {
+          "name": "Preserve diagnostic evidence even on failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:33:31Z",
+          "completed_at": "2026-10-11T18:33:32Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-11T18:33:32Z",
+          "completed_at": "2026-10-11T18:33:33Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:33:33Z",
+          "completed_at": "2026-10-11T18:33:33Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:33:33Z",
+          "completed_at": "2026-10-11T18:33:33Z"
+        }
+      ]
+    },
+    {
+      "id": 114540828505,
+      "name": "motion (26.9.0, default, compiled)",
+      "run_id": 38163393217,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:20:32Z",
+          "completed_at": "2026-10-11T18:20:33Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:20:33Z",
+          "completed_at": "2026-10-11T18:20:37Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:20:37Z",
+          "completed_at": "2026-10-11T18:20:43Z"
+        },
+        {
+          "name": "Install pinned compiler for JavaScript control",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-11T18:20:43Z",
+          "completed_at": "2026-10-11T18:20:45Z"
+        },
+        {
+          "name": "Verify original motion reference in fresh processes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:20:45Z",
+          "completed_at": "2026-10-11T18:21:05Z"
+        },
+        {
+          "name": "Preserve diagnostic evidence even on failure",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:21:05Z",
+          "completed_at": "2026-10-11T18:21:07Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-11T18:21:07Z",
+          "completed_at": "2026-10-11T18:21:07Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:21:07Z",
+          "completed_at": "2026-10-11T18:21:08Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:21:08Z",
+          "completed_at": "2026-10-11T18:21:08Z"
+        }
+      ]
+    },
+    {
+      "id": 114540827686,
+      "name": "sanitizer (asan)",
+      "run_id": 38163393107,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:20:31Z",
+          "completed_at": "2026-10-11T18:20:32Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:20:32Z",
+          "completed_at": "2026-10-11T18:20:40Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:20:40Z",
+          "completed_at": "2026-10-11T18:20:47Z"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-11T18:20:47Z",
+          "completed_at": "2026-10-11T18:20:47Z"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:20:47Z",
+          "completed_at": "2026-10-11T18:20:48Z"
+        },
+        {
+          "name": "Build ordinary native prerequisites",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:20:48Z",
+          "completed_at": "2026-10-11T18:20:54Z"
+        },
+        {
+          "name": "Run npm run test:native-sanitized -- --mode=asan",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-11T18:20:54Z",
+          "completed_at": "2026-10-11T18:32:56Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:32:56Z",
+          "completed_at": "2026-10-11T18:32:56Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:32:56Z",
+          "completed_at": "2026-10-11T18:32:56Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-10-11T18:32:56Z",
+          "completed_at": "2026-10-11T18:32:57Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-11T18:32:57Z",
+          "completed_at": "2026-10-11T18:32:57Z"
+        }
+      ]
+    },
+    {
+      "id": 114540827844,
+      "name": "sanitizer (ubsan)",
+      "run_id": 38163393107,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:20:32Z",
+          "completed_at": "2026-10-11T18:20:33Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:20:33Z",
+          "completed_at": "2026-10-11T18:20:39Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:20:39Z",
+          "completed_at": "2026-10-11T18:20:47Z"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-11T18:20:47Z",
+          "completed_at": "2026-10-11T18:20:47Z"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:20:47Z",
+          "completed_at": "2026-10-11T18:20:49Z"
+        },
+        {
+          "name": "Build ordinary native prerequisites",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:20:49Z",
+          "completed_at": "2026-10-11T18:20:54Z"
+        },
+        {
+          "name": "Run npm run test:native-sanitized -- --mode=ubsan",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-11T18:20:54Z",
+          "completed_at": "2026-10-11T18:32:28Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:32:28Z",
+          "completed_at": "2026-10-11T18:32:28Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:32:28Z",
+          "completed_at": "2026-10-11T18:32:29Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-10-11T18:32:29Z",
+          "completed_at": "2026-10-11T18:32:29Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-11T18:32:29Z",
+          "completed_at": "2026-10-11T18:32:29Z"
+        }
+      ]
+    },
+    {
+      "id": 114540827849,
+      "name": "checks",
+      "run_id": 38163393107,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:20:31Z",
+          "completed_at": "2026-10-11T18:20:32Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:20:32Z",
+          "completed_at": "2026-10-11T18:20:41Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:20:41Z",
+          "completed_at": "2026-10-11T18:20:56Z"
+        },
+        {
+          "name": "Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-11T18:20:56Z",
+          "completed_at": "2026-10-11T18:20:56Z"
+        },
+        {
+          "name": "Install pinned native template toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:20:56Z",
+          "completed_at": "2026-10-11T18:21:05Z"
+        },
+        {
+          "name": "Select native template toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:21:05Z",
+          "completed_at": "2026-10-11T18:21:05Z"
+        },
+        {
+          "name": "Install PDF regression reader and renderer",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-11T18:21:05Z",
+          "completed_at": "2026-10-11T18:21:14Z"
+        },
+        {
+          "name": "Check source whitespace with Node",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-11T18:21:14Z",
+          "completed_at": "2026-10-11T18:21:14Z"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-11T18:21:14Z",
+          "completed_at": "2026-10-11T18:21:15Z"
+        },
+        {
+          "name": "Run npm run typecheck",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10,
+          "started_at": "2026-10-11T18:21:15Z",
+          "completed_at": "2026-10-11T18:21:19Z"
+        },
+        {
+          "name": "Run npm test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-10-11T18:21:19Z",
+          "completed_at": "2026-10-11T18:38:05Z"
+        },
+        {
+          "name": "Run npm run test:protocol-native",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:38:05Z",
+          "completed_at": "2026-10-11T18:38:05Z"
+        },
+        {
+          "name": "Build Linux MCU with Node command generator",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:38:05Z",
+          "completed_at": "2026-10-11T18:38:12Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 24,
+          "started_at": "2026-10-11T18:38:12Z",
+          "completed_at": "2026-10-11T18:38:13Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25,
+          "started_at": "2026-10-11T18:38:13Z",
+          "completed_at": "2026-10-11T18:38:13Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26,
+          "started_at": "2026-10-11T18:38:13Z",
+          "completed_at": "2026-10-11T18:38:13Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27,
+          "started_at": "2026-10-11T18:38:13Z",
+          "completed_at": "2026-10-11T18:38:13Z"
+        }
+      ]
+    },
+    {
+      "id": 114544568170,
+      "name": "host",
+      "run_id": 38163393107,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:38:19Z",
+          "completed_at": "2026-10-11T18:38:19Z"
+        },
+        {
+          "name": "Require every host check and sanitizer mode",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:38:19Z",
+          "completed_at": "2026-10-11T18:38:19Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:38:19Z",
+          "completed_at": "2026-10-11T18:38:19Z"
+        }
+      ]
+    },
+    {
+      "id": 114540827866,
+      "name": "build",
+      "run_id": 38163393167,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-11T18:20:31Z",
+          "completed_at": "2026-10-11T18:20:32Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-11T18:20:32Z",
+          "completed_at": "2026-10-11T18:20:37Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-11T18:20:37Z",
+          "completed_at": "2026-10-11T18:20:42Z"
+        },
+        {
+          "name": "Setup cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-11T18:20:42Z",
+          "completed_at": "2026-10-11T18:20:46Z"
+        },
+        {
+          "name": "Prepare tests",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-11T18:20:46Z",
+          "completed_at": "2026-10-11T18:22:28Z"
+        },
+        {
+          "name": "Test",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-10-11T18:22:28Z",
+          "completed_at": "2026-10-11T18:30:35Z"
+        },
+        {
+          "name": "Upload micro-controller data dictionaries",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-11T18:30:35Z",
+          "completed_at": "2026-10-11T18:30:36Z"
+        },
+        {
+          "name": "Post Setup cache",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-11T18:30:36Z",
+          "completed_at": "2026-10-11T18:30:36Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-11T18:30:36Z",
+          "completed_at": "2026-10-11T18:30:36Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14,
+          "started_at": "2026-10-11T18:30:36Z",
+          "completed_at": "2026-10-11T18:30:37Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15,
+          "started_at": "2026-10-11T18:30:37Z",
+          "completed_at": "2026-10-11T18:30:37Z"
+        }
+      ]
+    }
+  ],
+  "ordinary": {
+    "tests": 4660,
+    "pass": 4660,
+    "fail": 0
+  },
+  "scope": "Only exact 4e886e50 path head, not subsequent process assembly."
+}

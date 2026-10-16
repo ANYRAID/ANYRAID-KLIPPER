@@ -1,0 +1,189 @@
+{
+  "schema": 1,
+  "date": "2026-10-10",
+  "head": "28e47e2dd5ecb91fdaa03df0e15610a58289f5ba",
+  "pullRequest": 68,
+  "mergeReference": "f5248ec4e57278771415b174d731c39079e4913e",
+  "kind": "Candidate pull-request checks",
+  "jobs": [
+    {
+      "id": 114210695648,
+      "name": "sanitizer (ubsan)",
+      "run": 38051262344,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210695798,
+      "name": "sanitizer (asan)",
+      "run": 38051262344,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210695870,
+      "name": "checks",
+      "run": 38051262344,
+      "conclusion": "success"
+    },
+    {
+      "id": 114213124290,
+      "name": "host",
+      "run": 38051262344,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210696041,
+      "name": "build",
+      "run": 38051262416,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210696155,
+      "name": "motion (26.9.0, default, compiled)",
+      "run": 38051262400,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210696260,
+      "name": "motion (26.9.0, default, source)",
+      "run": 38051262400,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210696278,
+      "name": "motion (26.9.0, off, compiled)",
+      "run": 38051262400,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210696302,
+      "name": "motion (26.10.0, default, source)",
+      "run": 38051262400,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210696303,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "run": 38051262400,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210696336,
+      "name": "motion (26.10.0, default, compiled)",
+      "run": 38051262400,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210696338,
+      "name": "motion (26.10.0, off, source)",
+      "run": 38051262400,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210696351,
+      "name": "motion (26.9.0, off, source)",
+      "run": 38051262400,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210696406,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "run": 38051262400,
+      "conclusion": "success"
+    },
+    {
+      "id": 114210696408,
+      "name": "motion (26.10.0, off, compiled)",
+      "run": 38051262400,
+      "conclusion": "success"
+    }
+  ],
+  "allSuccess": true,
+  "ordinary": {
+    "tests": 4526,
+    "pass": 4526,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "protocol": "success",
+  "linuxMcu": "success",
+  "sanitizer": {
+    "commands": 324,
+    "exactFrozenReferenceMatch": true,
+    "allExitZero": true
+  },
+  "motion": {
+    "cases": 10,
+    "freshProcesses": 500,
+    "failures": 0,
+    "diagnostics": [
+      {
+        "id": 114210696155,
+        "name": "motion (26.9.0, default, compiled)",
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 114210696260,
+        "name": "motion (26.9.0, default, source)",
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 114210696278,
+        "name": "motion (26.9.0, off, compiled)",
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 114210696302,
+        "name": "motion (26.10.0, default, source)",
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 114210696303,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 114210696336,
+        "name": "motion (26.10.0, default, compiled)",
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 114210696338,
+        "name": "motion (26.10.0, off, source)",
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 114210696351,
+        "name": "motion (26.9.0, off, source)",
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 114210696406,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "runs": 50,
+        "failures": 0
+      },
+      {
+        "id": 114210696408,
+        "name": "motion (26.10.0, off, compiled)",
+        "runs": 50,
+        "failures": 0
+      }
+    ]
+  },
+  "scope": "PR #68 candidate and GitHub merge reference only. Actual develop merge and postmerge checks have not occurred. Local full-suite four failures remain unresolved; this CI success does not replace them, close G3, establish target-board performance or authorize a printing-entry switch.",
+  "archive": {
+    "path": "pr68-28e47-terminal.evidence.json.gz",
+    "sha256": "155bbfa5a56d7b63b1eeb9f2badf9224f8205a8c011f7e881650b04221b7c0fa",
+    "bytes": 614751,
+    "entries": 17
+  }
+}

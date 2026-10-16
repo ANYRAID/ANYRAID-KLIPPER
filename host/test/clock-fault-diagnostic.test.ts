@@ -46,6 +46,15 @@ test('a failed diagnostic sink cannot mask retirement or repeat its first-fault 
  await runtime.stop();runtime.sync.invalidate();assert.equal(observations,1);assert.equal(f.stops,1);
  assert.equal(capture.snapshot().observerErrors[0].message,'diagnostic sink failed');assert.equal(runtime.status.fault,undefined);assert.equal(runtime.sync.active,false);
 });
+test('rejected zero-departure uptime remains observable before a clock estimator exists',async t=>{
+ const f=fixture(),capture=captureClockFaults(t.mock,()=>f.clock.time),dictionary=new MessageDictionary();let requests=0;
+ dictionary.identify(Buffer.from(JSON.stringify({commands:{get_uptime:2,get_clock:3},responses:{'uptime high=%u clock=%u':4,'clock clock=%u':5},config:{CLOCK_FREQ:1e6}})),false);
+ const transport=new DictionaryClockTransport(dictionary,{async query(){requests++;return {message:{name:'uptime',parameters:{high:0,clock:1000000}},sentTime:0,receiveTime:f.clock.time};},setClockEstimate(){},async stop(){}});
+ f.transport.uptime=signal=>transport.uptime(signal);const runtime=new ClockRuntime(1e6,f.transport,f.clock);
+ await assert.rejects(runtime.start(),/Invalid uptime response/);
+ const observed=capture.snapshot();assert.equal(requests,1);assert.equal(f.queries,0);assert.equal(f.stops,1);assert.equal(f.clock.pending,0);
+ assert.equal(observed.owners[0].state,'failed');assert.equal(observed.owners[0].samples,undefined);assert.deepEqual(observed.uptime,{count:1,recent:[{transport:0,sample:{high:0,clock32:1000000,sentTime:0,receiveTime:10}}]});
+});
 test('uptime observation retains exact initial timestamps in a bounded copied ring without additional queries',async t=>{
  const dictionary=new MessageDictionary();dictionary.identify(Buffer.from(JSON.stringify({commands:{get_uptime:2,get_clock:3},responses:{'uptime high=%u clock=%u':4,'clock clock=%u':5},config:{CLOCK_FREQ:1e6}})),false);
  const f=fixture(),capture=captureClockFaults(t.mock,()=>f.clock.time),cause=new Error('uptime query failed');let queries=0,fail=false;

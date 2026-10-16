@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "head": "a0c3a4a04f6489a0c18220dc348cfdab07378e4a",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "mergeCheckout": "9211270bafbb71bf3533b09f52f61fd41c5a2641",
+  "jobs": [
+    {
+      "runId": 38203084185,
+      "id": 114660531903,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084185,
+      "id": 114660532071,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084185,
+      "id": 114660532102,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084185,
+      "id": 114663962944,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084186,
+      "id": 114660531665,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084187,
+      "id": 114660532022,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084187,
+      "id": 114660532152,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084187,
+      "id": 114660532166,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084187,
+      "id": 114660532193,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084187,
+      "id": 114660532208,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084187,
+      "id": 114660532209,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084187,
+      "id": 114660532212,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084187,
+      "id": 114660532218,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084187,
+      "id": 114660532232,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runId": 38203084187,
+      "id": 114660532275,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "ordinary": {
+    "tests": 4801,
+    "pass": 4801,
+    "fail": 0
+  },
+  "scope": "Exact preceding documentation/evidence head; does not cover the new webcam HTTP increment or close original UI/native-build/G3/hardware/client gates"
+}

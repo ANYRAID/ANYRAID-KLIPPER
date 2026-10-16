@@ -1,3 +1,4 @@
+import {loadWelcomeSource} from '../moonraker/welcome-application.ts';
 import {registerNativeDualCarriage} from '../moonraker/native-dual-carriage.ts';
 import {registerNativeLayerPause} from '../moonraker/native-layer-pause.ts';
 import {PrintLayerPause} from '../operations/print-layer-pause.ts';
@@ -44,6 +45,7 @@ import type {NativeHostSnapshot} from '../moonraker/native-host-status.ts';
 import {connectProductPrinter,type ProductPrinterOptions} from './product-printer.ts';
 import type {ConfiguredPrinterOptions} from './configured-printer.ts';
 import {ConfiguredMoonraker,type ConfiguredServerOptions,type ConfiguredAuthorizationOptions} from '../moonraker/configured-server.ts';
+import {readTlsConfiguration} from '../moonraker/tls-configuration.ts';
 import {assertProductAuthorization} from './product-authorization.ts';
 import {loadConfiguration} from '../moonraker/config-source.ts';
 import {ConfigurationReader} from '../moonraker/config-reader.ts';
@@ -97,7 +99,9 @@ export function startConfiguredDeltaProductService(reader:ConfigurationReader,po
 }
 async function startMachineProductService<T extends ProductServicePrinter>(reader:ConfigurationReader,product:ProductPrinterOptions,options:ProductServiceOptions,signal:AbortSignal,connect:()=>Promise<T>){
  signal.throwIfAborted();const bedScrews=readBedScrews(reader),screws=readScrewsTilt(reader),zTilt=readZTilt(reader),quad=readQuadGantry(reader);const configPath=options.configPath,serverOptions={...options.server};
- assertProductAuthorization(serverOptions,false,serverOptions.authorization?new ConfigurationReader(await loadConfiguration(configPath)):undefined);
+ const serverReader=new ConfigurationReader(await loadConfiguration(configPath));assertProductAuthorization(serverOptions,false,serverOptions.authorization?serverReader:undefined);
+ if(!options.existingServer)await loadWelcomeSource();signal.throwIfAborted();
+ if(!options.existingServer)await readTlsConfiguration(serverReader,serverOptions.templates?.dataPath??serverOptions.authorization?.templateSecrets?.dataPath);signal.throwIfAborted();
  if(options.serverLifetime!==undefined&&!['generation','process'].includes(options.serverLifetime)||options.existingServer&&(!(options.existingServer instanceof ConfiguredMoonraker)||options.serverLifetime!=='process'))throw new TypeError('Invalid product server lifetime');
  const processDefaults={systemInformation:serverOptions.systemInformation??{},systemServices:serverOptions.systemServices??{},procStats:serverOptions.procStats??{},gcodeStore:serverOptions.gcodeStore??{},nativePrinterIdentity:serverOptions.productPrintCompatibility||serverOptions.nativeProcessFiles?{configFile:reader.source.primaryFile,softwareVersion:serverOptions.information.version}:undefined};
  const processServer={...serverOptions,...processDefaults};
@@ -171,7 +175,9 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   closeDriverCurrent=registerNativeDriverCurrent(target.endpoints,printer.maintenanceGate,{
    snapshot:()=>printer.hardware.drivers.map(d=>({name:d.section,revision:d.current.revision,max_current:d.current.maxCurrent,run_current:d.current.current.runCurrent,hold_current:d.current.current.holdCurrent})),
    idle:()=>printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.machine.port.status.busy&&!printer.machine.port.status.pendingMoves,
-   set:async(name,change,signal)=>{const driver=printer.hardware.drivers.find(d=>d.section===name);if(!driver)throw new Error('Unknown current driver');await printer.print.gcode.dispatch.runExclusive(async s=>{await printer.machine.port.drain(s);await driver.current.set(change,s);},signal);},
+   canQueue:()=>{const port=printer.machine.port.status;return !closing&&printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!port.failed&&(!port.busy||port.phase==='clock')&&!port.pendingMoves&&!printer.print.gcode.homing.status.busy&&printer.print.gcode.dispatch.canFollowIdleWork;},
+   reserveExclusive:(work,signal)=>printer.print.gcode.dispatch.runAdmissionExclusive(work,signal),
+   set:async(name,change,signal)=>{const driver=printer.hardware.drivers.find(d=>d.section===name);if(!driver)throw new Error('Unknown current driver');await printer.machine.port.drain(signal);await driver.current.set(change,signal);},
    fail:error=>{void printer.hardware.close(error).catch(()=>{});}
   });
   const skewProfiles=readSkewProfiles(reader);
@@ -198,7 +204,12 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   closeIdleSettings=registerNativeIdleSettings(target.endpoints,printer.idleTimeout,()=>!printer.maintenanceGate.status.closed&&!printer.maintenanceGate.status.maintenance);
   closeTemperatureFans=registerNativeTemperatureFans(target.endpoints,printer.hardware.temperatureFans,()=>!closing&&printer.hardware.status.state==='ready'&&!printer.maintenanceGate.status.closed&&!printer.maintenanceGate.status.maintenance&&!printer.controller.safeStopPending);
   if(product.configurationSession)closeConfiguration=registerNativeConfiguration(target.endpoints,product.configurationSession,printer.maintenanceGate,new BedMeshProfiles(reader),{fileBound:()=>printer.machine.port.bedMeshFileBound,current:()=>printer.machine.port.currentBedMesh(),idle:()=>['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.machine.port.status.busy&&!printer.machine.port.status.pendingMoves});
-  closeHome=registerNativeProbe(target.endpoints,printer.maintenanceGate,{idle:()=>['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.machine.port.status.busy&&!printer.machine.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy,measure:async s=>{await printer.print.gcode.homing.home([0,1,2],s);return {homed_axes:printer.machine.kinematics.status.homedAxes,position:[...printer.machine.port.homingPosition()]};},synchronize:()=>printer.print.gcode.coordinates.resetPosition()},'home');
+  closeHome=registerNativeProbe(target.endpoints,printer.maintenanceGate,{
+   idle:()=>['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.machine.port.status.busy&&!printer.machine.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy,
+   canQueue:()=>{const port=printer.machine.port.status;return ['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!port.failed&&(!port.busy||port.phase==='clock')&&!port.pendingMoves&&!printer.print.gcode.homing.status.busy&&printer.print.gcode.dispatch.canFollowIdleWork;},
+   reserveExclusive:(work,signal)=>printer.print.gcode.dispatch.runAdmissionExclusive(work,signal),
+   measure:async(s,axes)=>{await printer.print.gcode.homing.home(axes??[0,1,2],s);return {homed_axes:printer.machine.kinematics.status.homedAxes,position:[...printer.machine.port.homingPosition()]};},synchronize:()=>printer.print.gcode.coordinates.resetPosition()
+  },'home');
   const tilt=readBedTilt(reader),tiltIdle=()=>['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.machine.port.status.busy&&!printer.machine.port.status.pendingMoves&&printer.machine.kinematics.status.homedAxes==='xyz';
   const manualGrid=readProbeGrid(reader),manualMeshConfiguration=readNativeBedMesh(reader);
   if(manualMeshConfiguration)closeMeshSelection=registerNativeBedMeshSelection(target.endpoints,printer.maintenanceGate,manualMeshConfiguration.profiles,{snapshot:()=>({revision:printer.machine.port.bedMeshStatus,profile:String(printer.machine.port.bedMeshStatus.profile_name)}),idle:tiltIdle,set:async(mesh,name,s)=>{await printer.machine.port.replaceBedMesh(mesh,manualMeshConfiguration.settings,s,name);printer.print.gcode.coordinates.resetPosition();},fail:cause=>printer.machine.port.motorOff(cause)});

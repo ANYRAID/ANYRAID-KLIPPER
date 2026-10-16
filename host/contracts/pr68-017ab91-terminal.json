@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "head": "017ab91153158c12e4beed88c372db0affac5d3f",
+  "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+  "mergeCheckout": "d73063dbe5b1248283b05b68476d83323db7da15",
+  "jobs": [
+    {
+      "id": 115043497822,
+      "name": "motion (26.9.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363856
+    },
+    {
+      "id": 115043497957,
+      "name": "motion (26.10.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363856
+    },
+    {
+      "id": 115043498049,
+      "name": "motion (26.10.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363856
+    },
+    {
+      "id": 115043498053,
+      "name": "motion (26.10.0, default, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363856
+    },
+    {
+      "id": 115043498077,
+      "name": "motion (26.9.0, off, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363856
+    },
+    {
+      "id": 115043498124,
+      "name": "motion (26.10.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363856
+    },
+    {
+      "id": 115043498165,
+      "name": "motion (26.9.0, jitless, compiled)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363856
+    },
+    {
+      "id": 115043498174,
+      "name": "motion (26.10.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363856
+    },
+    {
+      "id": 115043498181,
+      "name": "motion (26.9.0, default, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363856
+    },
+    {
+      "id": 115043498246,
+      "name": "motion (26.9.0, off, source)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363856
+    },
+    {
+      "id": 115043498405,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363959
+    },
+    {
+      "id": 115043497689,
+      "name": "sanitizer (asan)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363828
+    },
+    {
+      "id": 115043497859,
+      "name": "sanitizer (ubsan)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363828
+    },
+    {
+      "id": 115043497865,
+      "name": "checks",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363828
+    },
+    {
+      "id": 115048840809,
+      "name": "host",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 38319363828
+    }
+  ],
+  "ordinary": {
+    "jobId": 115043497865,
+    "tests": 5106,
+    "pass": 5106,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "scope": "Exact prior diagnostic head terminal; not following proxy-owner tests or develop merge. UI/native-build/G3/hardware remain open."
+}

@@ -1,0 +1,1101 @@
+{
+  "schema": 1,
+  "baselineHead": "824631f00544708c5b8df0640834f69bd89f19da",
+  "upstream": {
+    "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "component": "authorization.py",
+    "cacheSeconds": 84000,
+    "lookupDeadlineMs": 5000
+  },
+  "sourceSha256": {
+    "host/native/unix-peer.c": "f6970bc6ddbafed5a9332267f58a60143852cdd6809e9ddfcc0b02bff939fd43",
+    "host/scripts/build-product-host.ts": "45973c5a38056309e8eb00728956fd618c60852961e04c7610d0cd160b8cc1a5",
+    "host/src/moonraker/api-key-authorization.ts": "065ac0ac8291ebc56f61c56d5dac39c6cc8b2b69dc00e54f512f64b8b8a2ec20",
+    "host/src/moonraker/configured-server.ts": "d7586d1d4e63738a20adb6d06e31d1d1d5043082b6f2b4e84cabaf8e0174b149",
+    "host/src/moonraker/trusted-clients.ts": "8cc677630df1ea123ca3dc39d6e5c667c4b156334bbba4500606a3ee840a97f3",
+    "host/src/moonraker/trusted-name-lookup.ts": "27ec6d51700f942c5260eb3d138060ff139f0e1976f85a87fcdd833c90f22908",
+    "host/src/moonraker/trusted-name-lookup-child.ts": "8caf09ada36a71a380010d9823e2aeff4578b3b49c6a71f65cc0b56d32e7c40d",
+    "host/test/trusted-clients.test.ts": "2d35475ba704996d7f8d6eb52341291cde25a97da9cf0650fd2220b64592412b",
+    "host/test/authorization-config.test.ts": "2783dba954184bbb392aaecffe9db17ab6a0dc9693bb8a7bf45f8c309a11fb63",
+    "host/test/unix-peer.test.ts": "cf5f5b812e190ca16b39ea233779b9e352dc478806d099415eec5ff1faa302ef",
+    "host/test/trusted-name-lookup.test.ts": "b328d1b74da2ad9fabad98ae854dc3d39a625661ea7f973be96a78a92acc8860",
+    "host/test/trusted-domains-network.test.ts": "7cba09d4a7ba998b6900abd370fbb7b863892ade14746c5b3ac5df609e174965",
+    "host/bench/trusted-clients.ts": "251fcfb2d67be302175f0f304136cf14656346f31e70b322ba312fcc2dda7232",
+    "host/bench/api-key-authorization.ts": "c54f9869b09c24a529ac0218f3f3e2c3aff884d57228f413ef5b0814e15cc170",
+    "host/acceptance/product-compiled-journey.test.ts": "5227168e7c57be4c97b749b067fc0c16f7d35ba6fd9131afad3e513f8620a413"
+  },
+  "implementation": {
+    "names": "Numeric IP/CIDR remains synchronous. Explicit lowercase hostname configuration uses libc NSS canonical name and first dotted alias, lowercases result and compares exact configured names.",
+    "resources": {
+      "children": 4,
+      "pendingAddresses": 16,
+      "cachedAddresses": 4096,
+      "childOldSpaceMiB": 32,
+      "childSemiSpaceMiB": 4,
+      "nssBufferMaximumMiB": 1
+    },
+    "authorization": "HTTP, WebSocket, notifications/subscriptions and configuration-owned process share original authorization owner. Invalid credentials/forced login/proxy headers stay denied. Full credentials, lifetime and force-login policy rechecked after query. access.info reports address trust separately.",
+    "lifecycle": "Five seconds including child startup, kills/drains owned child on timeout/cancel/close. Shared address query survives one caller cancellation; close cannot rearm late trust. No shell/Python or shared libuv name lookup."
+  },
+  "tests": {
+    "source": {
+      "tests": 40,
+      "pass": 40,
+      "fail": 0,
+      "skipped": 0
+    },
+    "compiled": {
+      "tests": 40,
+      "pass": 40,
+      "fail": 0,
+      "skipped": 0
+    },
+    "product": {
+      "tests": 40,
+      "pass": 40,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "nativeSanitizers": {
+    "asan": 4,
+    "ubsan": 4
+  },
+  "typecheck": "passed without diagnostics",
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/product-host-trusted-dns-final-oct13",
+    "manifestSha256": "53f8a936eaa69cb578780cfab88b75a607741e2e55fdc4c7cb9e7d957bc7ab74",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+  },
+  "baselineBundle": {
+    "path": "/home/dek02/.cache/codex/tmp/product-host-client-upload-path-oct13",
+    "manifestSha256": "53a55d480e35a941d8c28ece409227eab673f5527dabf3947fa90d53b1e9dc69",
+    "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+  },
+  "assembly": {
+    "files": 690,
+    "changed": [
+      "host/build/native-build-info.json",
+      "host/build/unix-peer.node",
+      "host/src/moonraker/api-key-authorization.js",
+      "host/src/moonraker/configured-server.js",
+      "host/src/moonraker/trusted-clients.js",
+      "host/src/moonraker/trusted-name-lookup-child.js",
+      "host/src/moonraker/trusted-name-lookup.js"
+    ],
+    "nativeSources": 75,
+    "recompiled": [
+      "unix-peer.node"
+    ],
+    "reusedUnchangedSources": 74,
+    "independentlyInstalledProductionDependencies": 18,
+    "scope": "Only NSS addon recompiled from private snapshot/identical Node headers; Rust/motion/math outputs reused, no fresh whole-native stability claim"
+  },
+  "performance": {
+    "originalApi": {
+      "sourceSha256": "c54f9869b09c24a529ac0218f3f3e2c3aff884d57228f413ef5b0814e15cc170",
+      "scope": "Exact unchanged original authorization workload; import roots only redirected to frozen before/after installed JS bundles. 100000 calls, original 3 warmups/5 samples, 3 AB/BA/AB pairs for each route; preserves 10 microseconds and 1.5 regression limit.",
+      "maximumRatio": 1.0821285860046521,
+      "pass": true,
+      "results": [
+        {
+          "pair": 0,
+          "route": "status",
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              315.5292750000001,
+              228.396708,
+              290.417283,
+              225.16685000000007,
+              212.17617399999972
+            ],
+            "medianMs": 228.396708,
+            "microsecondsPerRequest": 2.28396708,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              200.33801900000003,
+              202.82359199999996,
+              203.30560600000013,
+              202.26383800000008,
+              204.112073
+            ],
+            "medianMs": 202.82359199999996,
+            "microsecondsPerRequest": 2.0282359199999997,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 0.8880320289029734,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "route": "file",
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              310.815699,
+              314.05666900000006,
+              315.84003500000017,
+              319.06811400000015,
+              320.13150399999995
+            ],
+            "medianMs": 315.84003500000017,
+            "microsecondsPerRequest": 3.1584003500000017,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              298.596683,
+              300.56437099999994,
+              301.10079599999995,
+              300.440752,
+              300.31995000000006
+            ],
+            "medianMs": 300.440752,
+            "microsecondsPerRequest": 3.0044075199999996,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 0.9512434102915414,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "route": "image",
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              358.0004099999999,
+              367.44107400000007,
+              367.39041399999996,
+              367.76133900000013,
+              367.39663599999994
+            ],
+            "medianMs": 367.39663599999994,
+            "microsecondsPerRequest": 3.6739663599999997,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              366.872844,
+              370.24894399999994,
+              372.0571409999998,
+              370.03438400000005,
+              370.4935479999999
+            ],
+            "medianMs": 370.24894399999994,
+            "microsecondsPerRequest": 3.7024894399999995,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 1.007763565913543,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 0,
+          "route": "anonymous-image",
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              138.99451899999997,
+              140.68346499999996,
+              140.97794699999997,
+              139.66033499999992,
+              139.62258500000007
+            ],
+            "medianMs": 139.66033499999992,
+            "microsecondsPerRequest": 1.3966033499999992,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              140.370232,
+              141.79986500000007,
+              141.22051999999996,
+              139.88574800000015,
+              139.42401500000005
+            ],
+            "medianMs": 140.370232,
+            "microsecondsPerRequest": 1.4037023199999998,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 1.0050830251839225,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "route": "status",
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              205.74088099999994,
+              203.92804499999988,
+              204.301158,
+              205.13158699999985,
+              206.34770700000013
+            ],
+            "medianMs": 205.13158699999985,
+            "microsecondsPerRequest": 2.0513158699999985,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              212.79055600000004,
+              215.01221700000008,
+              215.78824399999985,
+              216.81865300000004,
+              217.27929799999993
+            ],
+            "medianMs": 215.78824399999985,
+            "microsecondsPerRequest": 2.1578824399999985,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 0.9506152105301899,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "route": "file",
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              325.06900100000007,
+              327.2211400000001,
+              328.64180299999975,
+              328.40747299999975,
+              330.23562800000036
+            ],
+            "medianMs": 328.40747299999975,
+            "microsecondsPerRequest": 3.2840747299999977,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              314.66139,
+              316.3652870000001,
+              316.29202499999997,
+              316.7759410000001,
+              318.5712279999998
+            ],
+            "medianMs": 316.3652870000001,
+            "microsecondsPerRequest": 3.163652870000001,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 1.0380641824335162,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "route": "image",
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              361.86386100000004,
+              361.8153010000001,
+              364.5803760000001,
+              360.7611529999999,
+              366.30832299999975
+            ],
+            "medianMs": 361.86386100000004,
+            "microsecondsPerRequest": 3.6186386100000005,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              361.83373499999993,
+              363.49290099999985,
+              366.4297569999999,
+              365.1030270000001,
+              365.874323
+            ],
+            "medianMs": 365.1030270000001,
+            "microsecondsPerRequest": 3.651030270000001,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 0.9911280768428139,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 1,
+          "route": "anonymous-image",
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              139.58030499999995,
+              141.520672,
+              141.329471,
+              140.1030790000001,
+              141.0086980000001
+            ],
+            "medianMs": 141.0086980000001,
+            "microsecondsPerRequest": 1.4100869800000009,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              141.3308609999999,
+              141.96491600000002,
+              142.450512,
+              141.18498,
+              141.73924499999998
+            ],
+            "medianMs": 141.73924499999998,
+            "microsecondsPerRequest": 1.41739245,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 0.9948458382150978,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "route": "status",
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              200.65058,
+              203.13996299999997,
+              204.74958800000013,
+              203.46389599999998,
+              205.3069730000002
+            ],
+            "medianMs": 203.46389599999998,
+            "microsecondsPerRequest": 2.0346389599999997,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "status",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              189.27563800000007,
+              191.85424199999989,
+              191.54152,
+              191.2920570000001,
+              196.95242799999983
+            ],
+            "medianMs": 191.54152,
+            "microsecondsPerRequest": 1.9154152,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 0.9414029897471344,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "route": "file",
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              297.721685,
+              303.87939200000005,
+              303.4033770000001,
+              303.8265020000001,
+              305.565838
+            ],
+            "medianMs": 303.8265020000001,
+            "microsecondsPerRequest": 3.038265020000001,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "file",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              324.439742,
+              327.6648210000001,
+              329.47300800000016,
+              328.7793429999997,
+              329.18336599999975
+            ],
+            "medianMs": 328.7793429999997,
+            "microsecondsPerRequest": 3.287793429999997,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 1.0821285860046521,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "route": "image",
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              355.27640599999995,
+              357.32684500000005,
+              359.9988800000001,
+              359.3405950000001,
+              360.0805019999998
+            ],
+            "medianMs": 359.3405950000001,
+            "microsecondsPerRequest": 3.593405950000001,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              359.6653000000001,
+              361.9809520000001,
+              361.06190400000014,
+              360.957003,
+              362.5822790000002
+            ],
+            "medianMs": 361.06190400000014,
+            "microsecondsPerRequest": 3.6106190400000013,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 1.004790187983075,
+          "limit": 1.5,
+          "pass": true
+        },
+        {
+          "pair": 2,
+          "route": "anonymous-image",
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              138.41568300000006,
+              140.20100000000002,
+              139.35990299999992,
+              137.48288500000012,
+              137.4448450000002
+            ],
+            "medianMs": 138.41568300000006,
+            "microsecondsPerRequest": 1.3841568300000007,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "candidate": {
+            "runtime": "v26.10.0",
+            "route": "anonymous-image",
+            "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+            "samplesMs": [
+              141.58918300000005,
+              142.6452730000001,
+              142.16140900000005,
+              141.7742760000001,
+              140.70656499999996
+            ],
+            "medianMs": 141.7742760000001,
+            "microsecondsPerRequest": 1.417742760000001,
+            "maximumMicrosecondsPerRequest": 10
+          },
+          "ratio": 1.0242645408902114,
+          "limit": 1.5,
+          "pass": true
+        }
+      ]
+    },
+    "domain": {
+      "runtime": "v26.10.0",
+      "scope": "Real libc NSS cold admission, cached HTTP authorization 100000 calls/round; 3 warmups and 5 retained rounds. Separate actually stalled NSS child with concurrent timer and async file progress; desktop, not physical print throughput.",
+      "coldNssMs": 25.627398999999997,
+      "samplesMs": [
+        54.20265499999999,
+        56.89258799999999,
+        56.97661000000005,
+        53.54839900000002,
+        53.661519
+      ],
+      "microsecondsPerRequest": 0.5420265499999999,
+      "maximumMicrosecondsPerRequest": 10,
+      "stalledNss": {
+        "ticks": 497,
+        "writes": 492,
+        "eventLoopP99Ms": 0.4968939999998838,
+        "fileWriteP99Ms": 0.5733659999996235,
+        "budgetP99Ms": 50,
+        "activeChildrenAfter": 0
+      }
+    }
+  },
+  "mixed": {
+    "selectedOriginalScenario": "namespace=true nativeAuthorization=true apiLoad=true load=false spi=false software=false",
+    "pass": 1,
+    "fail": 0,
+    "metrics": {
+      "namespace": true,
+      "automaticQueue": false,
+      "motionReportLoad": true,
+      "objectPriming": false,
+      "earlyObjectCancellation": true,
+      "fileMoveOwnership": [
+        {
+          "generation": 1,
+          "group": 0,
+          "before": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 9969.329247
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 10103.806579
+          },
+          "durationMs": 134.4815319999998
+        },
+        {
+          "generation": 1,
+          "group": 1,
+          "before": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 13600.432511
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 13710.295326
+          },
+          "durationMs": 109.86702499999956
+        },
+        {
+          "generation": 1,
+          "group": 2,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 16047.496228
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 16195.597926
+          },
+          "durationMs": 148.10214799999994
+        },
+        {
+          "generation": 1,
+          "group": 3,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 18597.946215
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 18735.134986
+          },
+          "durationMs": 137.18885099999898
+        },
+        {
+          "generation": 1,
+          "group": 4,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 21365.102113
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 21500.1881
+          },
+          "durationMs": 135.082316
+        },
+        {
+          "generation": 1,
+          "group": 5,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 23027.753818
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 23095.562004
+          },
+          "durationMs": 67.80857599999945
+        },
+        {
+          "generation": 1,
+          "group": 6,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 24254.169107
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 24334.786789
+          },
+          "durationMs": 80.61797200000001
+        },
+        {
+          "generation": 1,
+          "group": 7,
+          "before": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 25572.569941
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 25635.120865
+          },
+          "durationMs": 62.551714000001084
+        },
+        {
+          "generation": 2,
+          "group": 0,
+          "before": {
+            "state": "printing",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 42778.252916
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 42841.765354
+          },
+          "durationMs": 63.5125579999949
+        },
+        {
+          "generation": 2,
+          "group": 1,
+          "before": {
+            "state": "printing",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 45093.211018
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 45156.551875
+          },
+          "durationMs": 63.34139799999684
+        },
+        {
+          "generation": 2,
+          "group": 2,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 47732.644065
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 47887.258485
+          },
+          "durationMs": 154.61466999999539
+        },
+        {
+          "generation": 2,
+          "group": 3,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 50488.859475
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 50637.459387
+          },
+          "durationMs": 148.60014199999569
+        },
+        {
+          "generation": 2,
+          "group": 4,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 52995.57183
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 53133.947657
+          },
+          "durationMs": 138.3760770000008
+        },
+        {
+          "generation": 2,
+          "group": 5,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 54593.652296
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 54655.721936
+          },
+          "durationMs": 62.069830000000366
+        },
+        {
+          "generation": 2,
+          "group": 6,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 55957.625104
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 56019.009508
+          },
+          "durationMs": 61.38392400000157
+        },
+        {
+          "generation": 2,
+          "group": 7,
+          "before": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 57281.450334
+          },
+          "after": {
+            "state": "completed",
+            "requestId": "queue-13f787e7-290b-4031-9dc4-11bc6c75a763",
+            "fileId": "authorized-file",
+            "atMs": 57346.113966
+          },
+          "durationMs": 64.66386200000125
+        }
+      ],
+      "movesPrintingGenerations": [
+        1,
+        2
+      ],
+      "configListRequests": 1700,
+      "configListP99Ms": 10.487967000000936,
+      "configDownloads": 1698,
+      "configDownloadP99Ms": 11.431893999997556,
+      "liveMotionSamples": 5347,
+      "liveExtrusionSamples": 1415,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 9.357034562,
+        "print_duration": 4.324402665,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "53f8a936eaa69cb578780cfab88b75a607741e2e55fdc4c7cb9e7d957bc7ab74",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 8241,
+      "phaseP99Ms": 6.852725999997347,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 264,
+          "writes": 43
+        },
+        {
+          "statusReads": 176,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 1634,
+      "historyP99Ms": 60.119150999998965,
+      "lifecycleShutdowns": 8,
+      "copyRequests": 16,
+      "copyP95Ms": 146.77074899999934,
+      "copyOverwriteRequests": 16,
+      "copyOverwriteP95Ms": 182.0454159999972,
+      "directoryCopyRequests": 16,
+      "directoryCopyP95Ms": 252.32449199999974,
+      "copiesDuringPrint": 4,
+      "directoryCopiesDuringPrint": 3,
+      "fileNotifications": 1132,
+      "fileNotificationP95Ms": 114.00829100000192,
+      "movesDuringPrint": 4,
+      "directoryMoveRequests": 16,
+      "directoryMoveP95Ms": 326.27556699999695,
+      "directoryMovesDuringPrint": 4,
+      "moveRequests": 16,
+      "moveP95Ms": 154.25391700000182,
+      "deleteRequests": 16,
+      "deleteP95Ms": 118.07687799999985,
+      "publicThumbnailRequests": 16,
+      "publicThumbnailP95Ms": 107.4824940000035,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 87.64916800000356,
+      "metadataRequests": 16,
+      "metadataP95Ms": 235.22495499999786,
+      "downloads": 16,
+      "downloadP95Ms": 54.119729999998526,
+      "wireCommands": 215,
+      "wireSteps": 6996,
+      "minimumStepLeadMs": 82.446,
+      "directoryRequests": 6624,
+      "directoryP99Ms": 47.18098500000269,
+      "statusRequests": 32962,
+      "uploads": 16,
+      "statusP99Ms": 5.215143000000353,
+      "uploadP95Ms": 94.01356399999895,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.154495,
+            "maxMs": 36.012031
+          },
+          "cpu": {
+            "user": 11326923,
+            "system": 2031490
+          },
+          "rss": 369369088
+        },
+        {
+          "loop": {
+            "p99Ms": 1.970175,
+            "maxMs": 13.393919
+          },
+          "cpu": {
+            "user": 6661268,
+            "system": 1411001
+          },
+          "rss": 407310336
+        }
+      ]
+    },
+    "scope": "Unmodified original input/thresholds, actual compiled process and simulated MCU; not whole matrix, hardware or G3 precision closure"
+  },
+  "retainedFailures": [
+    "Original source child test in restricted sandbox returned no usable child result; approved local execution passed; no approval settings changed",
+    "Initial strict C build indentation diagnostic; fixed without compiler flag changes",
+    "Old configuration test rejected new supported domain; changed invalid fixture only",
+    "Independent compilation initially lacked node/qoijs declarations and native/dynamic-worker inputs; complete frozen graph now passes",
+    "Actual configuration-owned process initially bypassed async name boundary; fixed original owner connection, no identity alias",
+    "Earlier configured package original mixed journey returned Driver current requires an idle printer before homing. Baseline and final original scenario passed; exact transient cause remains unproven and old failure retained"
+  ],
+  "ciBase": {
+    "contract": "host/contracts/pr68-68aeffa-terminal.json",
+    "head": "68aeffa809e3ef2258642a1db226b62d617737fb",
+    "mergeCheckout": "7586b98c6c8da4668abfa2aeed64ddae17a2fea7",
+    "ordinary": {
+      "tests": 5063,
+      "pass": 5063,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "evidence": {
+    "path": "host/contracts/trusted-client-domains-evidence.json.gz",
+    "sha256": "1f24800be094e5205b05bb06c84768d93780dcb350d3ff06760a1387a741b76f",
+    "bytes": 882405,
+    "entries": 259,
+    "redactions": [
+      {
+        "name": "final/mixed-original-journey.log",
+        "originalSha256": "139b720f3bd50f5bfbd03ee7b2c30a5632f3abb28f647d545db9ac6564c618d0"
+      },
+      {
+        "name": "diagnostics/trusted-dns-baseline-product-mixed-oct13.log",
+        "originalSha256": "c31abde86ae46e6afea75b33b63635db5685ad4f13e90ae01c87acc7291d00a6"
+      },
+      {
+        "name": "diagnostics/trusted-dns-frozen-product-mixed-oct13.log",
+        "originalSha256": "139b720f3bd50f5bfbd03ee7b2c30a5632f3abb28f647d545db9ac6564c618d0"
+      },
+      {
+        "name": "diagnostics/trusted-dns-product-mixed-journey-oct13.log",
+        "originalSha256": "9894e8b70e55f3e97c489a1504b6198b070b1a4165182b6b8132b0f1347edf22"
+      }
+    ]
+  },
+  "remaining": [
+    "Own new-head full CI, review and task -> develop -> master integration",
+    "Driver-current initial idle 409 exact cause; target timing/precision/throughput and full failure journeys",
+    "Trusted proxy delegation, full CORS/config policy and remaining complete Moonraker consumers/Jinja/msgspec/macros",
+    "177 tracked klippy Python files/default entry and remaining Python tools/benchmarks/CI retirement",
+    "Original UI/native compiler/G3/Cycnumbris500 hardware/install/release gates; other models last"
+  ]
+}

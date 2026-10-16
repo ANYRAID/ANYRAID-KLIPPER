@@ -1,0 +1,191 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "head": "a1222cfc015c2a88181ea7e0adb5d4d32fcb30df",
+  "repo": "ANYRAID/ANYRAID-KLIPPER",
+  "scope": "Exact async bridge head terminal GitHub runs and jobs; does not cover subsequent lazy-signal changes or close local, template performance, G3 or hardware gates.",
+  "ordinary": {
+    "jobId": 114514782189,
+    "schema": 1,
+    "node": "v26.11.1",
+    "success": true,
+    "counts": {
+      "tests": 4566,
+      "failed": 0,
+      "passed": 4566,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevel": 4566,
+      "suites": 0
+    },
+    "lines": [
+      "2026-10-11T16:31:41.1467402Z ℹ tests 4566",
+      "2026-10-11T16:31:41.1468840Z ℹ pass 4566",
+      "2026-10-11T16:31:41.1469726Z ℹ fail 0",
+      "2026-10-11T16:31:41.1485230Z {\"nodeTestObservation\":{\"schema\":1,\"node\":\"v26.11.1\",\"success\":true,\"counts\":{\"tests\":4566,\"failed\":0,\"passed\":4566,\"cancelled\":0,\"skipped\":0,\"todo\":0,\"topLevel\":4566,\"suites\":0}}}"
+    ]
+  },
+  "runs": [
+    {
+      "run": {
+        "id": 38154573587,
+        "name": "Build test",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 226,
+        "jobs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38154573587/jobs",
+        "logs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38154573587/logs",
+        "workflow_id": 372156043
+      },
+      "jobs": [
+        {
+          "id": 114514781036,
+          "name": "build",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573587
+        }
+      ]
+    },
+    {
+      "run": {
+        "id": 38154573723,
+        "name": "Node motion diagnostics",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 77,
+        "jobs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38154573723/jobs",
+        "logs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38154573723/logs",
+        "workflow_id": 372156042
+      },
+      "jobs": [
+        {
+          "id": 114514782301,
+          "name": "motion (26.10.0, default, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573723
+        },
+        {
+          "id": 114514782355,
+          "name": "motion (26.9.0, off, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573723
+        },
+        {
+          "id": 114514782366,
+          "name": "motion (26.10.0, default, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573723
+        },
+        {
+          "id": 114514782379,
+          "name": "motion (26.9.0, off, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573723
+        },
+        {
+          "id": 114514782387,
+          "name": "motion (26.9.0, default, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573723
+        },
+        {
+          "id": 114514782425,
+          "name": "motion (26.10.0, off, source)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573723
+        },
+        {
+          "id": 114514782437,
+          "name": "motion (26.10.0, jitless, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573723
+        },
+        {
+          "id": 114514782526,
+          "name": "motion (26.10.0, off, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573723
+        },
+        {
+          "id": 114514782611,
+          "name": "motion (26.9.0, jitless, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573723
+        },
+        {
+          "id": 114514782904,
+          "name": "motion (26.9.0, default, compiled)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573723
+        }
+      ]
+    },
+    {
+      "run": {
+        "id": 38154573955,
+        "name": "Node host",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 226,
+        "jobs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38154573955/jobs",
+        "logs_url": "https://api.github.com/repos/ANYRAID/ANYRAID-KLIPPER/actions/runs/38154573955/logs",
+        "workflow_id": 372156049
+      },
+      "jobs": [
+        {
+          "id": 114514782189,
+          "name": "checks",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573955
+        },
+        {
+          "id": 114514782477,
+          "name": "sanitizer (asan)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573955
+        },
+        {
+          "id": 114514782592,
+          "name": "sanitizer (ubsan)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573955
+        },
+        {
+          "id": 114518547132,
+          "name": "host",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 38154573955
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "total": 15,
+    "passed": 15
+  },
+  "openGates": [
+    "Next head own CI",
+    "UI asynchronous template fixed performance budget",
+    "Full template factory, bigint and component integration",
+    "Full Python retirement and consumer macro delivery",
+    "Full local regression and compiler failure root cause",
+    "Original motion precision/timing G3 and target hardware",
+    "Normal develop and master release"
+  ]
+}

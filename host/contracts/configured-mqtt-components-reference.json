@@ -1,0 +1,59 @@
+{
+  "node": "v26.10.0",
+  "warmups": 2,
+  "samples": [
+    {
+      "startupMs": 34.691586,
+      "mixedMs": 92.28898999999998,
+      "messages": 1000
+    },
+    {
+      "startupMs": 3.410825999999986,
+      "mixedMs": 60.99637000000001,
+      "messages": 1000
+    },
+    {
+      "startupMs": 2.468192999999985,
+      "mixedMs": 50.66360099999997,
+      "messages": 1000
+    },
+    {
+      "startupMs": 2.289691000000005,
+      "mixedMs": 50.212514999999996,
+      "messages": 1000
+    },
+    {
+      "startupMs": 2.8289180000000442,
+      "mixedMs": 51.48252200000002,
+      "messages": 1000
+    },
+    {
+      "startupMs": 2.118649000000005,
+      "mixedMs": 55.36615400000005,
+      "messages": 1000
+    },
+    {
+      "startupMs": 2.045586999999955,
+      "mixedMs": 52.69279800000004,
+      "messages": 1000
+    },
+    {
+      "startupMs": 2.2262799999999743,
+      "mixedMs": 50.61724000000004,
+      "messages": 1000
+    },
+    {
+      "startupMs": 2.2451300000000174,
+      "mixedMs": 50.81157299999995,
+      "messages": 1000
+    }
+  ],
+  "medians": {
+    "startupMs": 2.2451300000000174,
+    "mixedMs": 50.81157299999995
+  },
+  "maxRatio": 1.5,
+  "baseHead": "9aea5294c01e43d35dd339655f074ead7b0c2efc",
+  "scope": "Manual explicit sensor generation with external private owner, actual local MQTT/HTTP startup and fixed mixed telemetry/queries. Prepared imports and fixture writes excluded; no printer or target-board claim.",
+  "sourceSha256": "97263c31244054566fcc892b48d409e1bdcdaa40301c58ee15342703e4416386"
+}

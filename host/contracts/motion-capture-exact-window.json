@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "mode": "Exact BigInt rational arithmetic on three saved constant166-value windows, rounded once with existing nearest-even binary64 core. Not original internal operation replay; no product imports or fixture execution.",
+  "runtime": {
+    "node": "v26.9.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "auditInputSha256": "ea5d67cfc07e096bf256ecc2ea8e3aa98ea4a69cbb9a749aa70c816b51d66a18",
+  "roundingCore": {
+    "path": "docs/diagnostics/node26-motion-capture-20261008/anyraid-captured-ieee-core.mjs",
+    "sha256": "11a961ddccd1617cda79809fe42d3b5edf5a29b7b5005b9214e119e09e054a0b",
+    "controls": [
+      "one",
+      "third",
+      "negative third",
+      "even tie down",
+      "odd tie up",
+      "carry tie",
+      "rounded addition",
+      "cancellation",
+      "rounded multiplication"
+    ]
+  },
+  "rows": [
+    {
+      "index": 10707,
+      "operandBits": "0x403c819d06851b84",
+      "exactNumerator": "1523186346113572547627055",
+      "exactDenominator": "53433319192807346274304",
+      "roundedBinary64": 28.506302230960948,
+      "roundedBits": "0x403c819d05e3de7e",
+      "savedUpdatedBits": "0x403c819d05e3de7e",
+      "matchesSavedUpdated": true
+    },
+    {
+      "index": 10708,
+      "operandBits": "0x403c819d06851b84",
+      "exactNumerator": "1523186346113572547627055",
+      "exactDenominator": "53433319192807346274304",
+      "roundedBinary64": 28.506302230960948,
+      "roundedBits": "0x403c819d05e3de7e",
+      "savedUpdatedBits": "0x403c819d05e9e33e",
+      "matchesSavedUpdated": false
+    },
+    {
+      "index": 10709,
+      "operandBits": "0x403c819d06851b84",
+      "exactNumerator": "1523186346113572547627055",
+      "exactDenominator": "53433319192807346274304",
+      "roundedBinary64": 28.506302230960948,
+      "roundedBits": "0x403c819d05e3de7e",
+      "savedUpdatedBits": "0x403c819d05e3de7e",
+      "matchesSavedUpdated": true
+    }
+  ],
+  "independentPriorCheck": {
+    "method": "Temporary reviewer Python Fraction calculation, not a project execution entry or dependency.",
+    "exactNumerator": "1523186346113572547627055",
+    "exactDenominator": "53433319192807346274304",
+    "roundedBits": "0x403c819d05e3de7e",
+    "agreesWithAllThreeNodeRows": true
+  },
+  "scope": "Only three windows audited; complete updated vs offline filter was not evaluated. Final values cannot identify internal transient operations or hardware cause."
+}

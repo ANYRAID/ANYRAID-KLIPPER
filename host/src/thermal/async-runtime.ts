@@ -36,9 +36,10 @@ export class AsyncHeaterRuntime {
  get objectStatus(){const state=this.#state.state;return {temperature:Number(fixedDecimal(state.smoothedTemperature,2)),target:state.target,power:this.#outputStopped?0:this.#pwm.scheduledPower};}
  get limits(){return this.#state.limits;}
  get status(){return {...this.#state.state,phase:this.#phase,started:this.#everStarted,stopped:this.#stop!==undefined,cause:this.#cause,outputStopConfirmed:this.#outputStopped,pendingWrites:this.#writes.size,shutdownErrors:[...this.#errors]};}
- #now():ThermalClock{
+ #now(advanceControlPrintBaseline=true):ThermalClock{
   const time=this.#clock();if(!Number.isFinite(time.system)||!Number.isFinite(time.print)||time.system<0||time.print<0||time.system<this.#lastSystem||time.print<this.#lastPrint)throw new Error('Invalid thermal clock');
-  this.#lastSystem=time.system;this.#lastPrint=time.print;return time;
+  // Every read advances host time; only control calls advance the print-estimate baseline.
+  this.#lastSystem=time.system;if(advanceControlPrintBaseline)this.#lastPrint=time.print;return time;
  }
  #resetOutput(signal:AbortSignal):Promise<void>{const pending=this.#output.reset(signal);if(!pending||typeof pending.then!=='function')throw new Error('Heater reset must provide completion confirmation');return pending;}
  #active():void{if(this.#phase!=='active')throw new Error('Async heater runtime is not active');}
@@ -88,7 +89,7 @@ export class AsyncHeaterRuntime {
    try{const sent=this.#output.setPWM(write.time,write.power,this.#abort.signal);if(!sent||typeof sent.then!=='function')throw new Error('Heater PWM must provide completion confirmation');void sent.then(deferred.resolve,fail);}
    catch(error){fail(error);throw error;}
  }
- getTemperature(){try{return this.#state.status(this.#now().print);}catch(error){this.#trip(error);throw error;}}
+ getTemperature(){try{return this.#state.status(this.#now(false).print);}catch(error){this.#trip(error);throw error;}}
  canExtrude():boolean{if(this.#phase!=='active')return false;try{return this.getTemperature().canExtrude;}catch{return false;}}
  isBusy():boolean{this.#active();const state=this.#state.state;return this.#control.busy(state.smoothedTemperature,state.target);}
  #tick():void{

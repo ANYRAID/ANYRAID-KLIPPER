@@ -7,11 +7,11 @@ import {
   writeFileSync,
   symlinkSync,
 } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { pathToFileURL } from 'node:url';
+import {workerEntry} from '../src/runtime/worker-entry.ts';
 import { DatabaseSync } from 'node:sqlite';
 import { PrintJournal, JournalError } from '../src/operations/print-journal.ts';
 const request = {
@@ -134,12 +134,11 @@ test('accepted writes drain before close; bounded queue rejects excess without l
 test('SIGKILL after acknowledged start leaves an interrupted reservation, never permission to replay', async () => {
   const f = fixture();
   let journal: PrintJournal | undefined;
-  const url = pathToFileURL(
-    resolve(import.meta.dirname, '../src/operations/print-journal.ts'),
-  ).href;
+  const url = workerEntry('./../src/operations/print-journal.ts',import.meta.url).href;
   const child = spawn(
     process.execPath,
     [
+      ...(import.meta.url.endsWith('.js')?['--no-experimental-strip-types']:[]),
       '--input-type=module',
       '-e',
       `import {PrintJournal} from ${JSON.stringify(url)};const journal=await PrintJournal.open(JSON.parse(process.argv[1]));await journal.reserve(${JSON.stringify(request)});await journal.transition('job1',1,'started');process.stdout.write('ready\\n');setInterval(()=>{},1000);`,

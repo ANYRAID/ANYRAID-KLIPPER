@@ -1,5 +1,1394 @@
 # Node 主机启动与机器集成
 
+## Linux 开发与调试环境
+
+本项目固定使用 `10.0.0.184`。用户明确允许“本项目开发实际需要linux环境的情况下，
+自行使用10.0.0.184”，持续允许在该机传输项目源码和隔离调试。
+当前 none／Supervisor 任务隔离目录为
+`/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER`。
+每项工作先核对分支、未提交状态及覆盖前哈希；后续任务新建独立工作树，
+保留旧任务修改。普通用户执行，无系统安装或权限变更；需要实际系统／
+设备操作、部署或发布时仍按对应流程与授权范围处理。电源验收只允许
+受控 PATH 内的假可执行文件，Node 使用绝对路径，设备使用模拟 MCU。
+
+## 客户端验收范围
+
+今后客户端默认以 Mainsail 为唯一验收客户端，不要求每批重复 Fluidd。历史 Fluidd 证据与失败保留，但不作为后续必需的双客户端门禁；只有用户另行指定 Fluidd 时才追加。
+
+## 异步热时钟查询的限定行为（2026-10-16）
+
+温度查询继续检查host时间单调性及控制print基线，但不推进该print基线；start／setTarget／保护tick仍推进。
+这避免高频查询将合法估计修正误判为控制时间回退；跨控制tick回退仍保守拒绝，HeaterPWM heartbeat未改。
+ADC样本递增、陈旧判断、5秒保护tick停滞、HeaterCheck和3秒输出截止保持。
+Node26.12定向11文件95／95、受影响ASAN两文件36／36及标准类型检查通过；两组复用原native输出，非fresh build。
+原类型检查缺输入失败另留。getter固定对比的主中位数7.647→7.403 ns／次，保留批次P95为7.692→22.116；
+每批值是百万次调用平均，不是单次请求P95；无专用门限，不据此认定加速或完成全部性能验收。
+[证据](../host/contracts/thermal-query-clock-evidence.tar.gz)包含固定语义反例及首次结果；它不还原6cc原ASAN失败四值，
+也不把1735旧包或旧CI验证归给本改动。范围及残余边界见[交付计划](Node_Host_Delivery_Plan.md)。
+
+## 当前固定包的启动预算边界（2026-10-16）
+
+1735的原42比较和原28工厂启动已保留704基线、原负载／门限完成；28在单benchmark进程内，
+不含模块导入、夹具准备和清理，不获取设备或证明硬件就绪。9a62精确头CI与本次证据见
+[现有验收](../host/contracts/system-bus-provider-acceptance.json)的currentCandidateExitValidation；
+服务重获2.62602超限、G3、正常集成及实机边界保留。后续435及旧预算待验段为当时历史快照。
+
+## 1735 JWT外部故障恢复与A4有限出口（2026-10-16）
+
+同173565dc／0b53079c和固定Mainsail2.19.0的隔离流程要求外部进程退出已join后，
+才能显式恢复进程；旧任务保持interrupted，经页面Firmware Restart明确取消，重新归位后
+才开始不同新任务。页面Clear print stats只重置当前状态，不删除旧cancelled／新completed历史。
+会话代际与每个产品内部设备代际分别记录；离线API不可用不能推断数据库为空。
+
+当前原定义A4九项已按同包独立场映射闭合有限客户端出口，详见[Delivery当前映射](Node_Host_Delivery_Plan.md)
+及[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的mainsailJwtFaultRecoveryFollowUp。
+原owner的fault_business_pass_screenshot_missing与三缺图保留；017恢复检查点缺图由无间隔业务的
+018独立实图补充视读，不倒写原回执。完整A集成／预算／G3／实机／Python及宏等门禁仍独立开放。
+本批按本地提交流程收口，未推送／合并／部署。
+
+## 1735 JWT队列与暂停恢复有限出口（2026-10-16）
+
+同173565dc／0b53079c、Mainsail2.19.0与184双PTY，唯一队列场653.001秒完成。
+必要chooser仅长短固定打印输入；实际long printing后忙时加入短文件，原生Pause／Resume
+各一次且同job000001／request保持，恢复后进度继续增加。长自然completed后，两状态相隔
+29.191秒仍history1、queue paused／head短、transition null，尚无清台POST或自动续打。
+
+清台归产品自有/_client/queue主文档：实际POST request_confirmation后仍只有旧completed，
+再原生勾选checkbox并点击明确确认，第二次POST仅transition_token字段形状及摘要留存。
+短job000002／不同queue-request完成，Mainsail显示短文件Complete；最终恰两条completed、
+队列空且paused。完整业务／检查点时间严格单调，产品PID／startTicks和device generation1保持，
+没有cancel／restart／fault。关键七图已视读，九检查点截图齐；另三次非关键截图超时保留。
+
+本场独立780／870／900秒边界、清理0错，两端守卫无残留且端口空闲；没有失败重跑。
+专用私有Edge profile仍出现扩展及非任务页，仅观察必要路径／元数据，不选择、点击或读取
+其DOM；不能称无扩展环境，也不据此归因旧N导航异常。数值状态与随后截图采集时刻不同，
+不强求画面百分比等于先前快照。证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+的mainsailJwtQueueFollowUp；故障恢复与A4汇总见上段，正常集成及其余门禁仍开放。
+
+## 1735 JWT文件维护分场出口（2026-10-16）
+
+固定173565dc／0b53079c与Mainsail2.19.0，继续184双PTY和真实JWT登录。
+原N场214.969秒完成chooser两文件、metadata及944字节原生下载／saveAs哈希一致，
+View3D仍停在/files，缺完整页／frame／错误观察，原因未定；配置未改，不计整场通过。
+N-diag场438.950秒保持先下载再View3D，在同p1/f2进入/viewer，自然键盘到844／995，
+两图可见不同层路径，喷头遮挡局部；不能倒推原N根因或称产品已修复。
+该场因设施误认Monaco而未改配置，仍为部分完成。
+
+独立配置专场144.146秒按固定CodeMirror DOM／工具栏SVG及源码顺序选择Save图标
+（save(null)，禁止Save & Restart）。自然焦点与文末追加唯一既定ASCII注释后，
+Save／Close／重新打开和磁盘严格回读通过：原28字节变74字节，SHA为d4b30bcca95a…；
+关闭与重开两张必需截图已视读。三场各1次实际WS握手，JWT cookie存在符合网关契约，
+无原始Authorization／API key／access-token头或凭据query。
+
+三场独立780／870／900秒边界均未延长，清理0错、两端守卫无残留、端口空闲；
+原N缺4张截图，N-diag与配置场各缺1张login-submitted，原件／regex启动前失败均保留。
+该文件维护分场没有产品更改或打印／队列／设备／重启／进程故障操作；其后队列补验见上段，
+故障恢复与A4汇总见上段。证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+的mainsailJwtMaintenanceFollowUp；历史cd91和原可信回环场归属不变。
+
+## 1735可信回环Mainsail有限旅程（2026-10-16）
+
+固定173565dc／0b53079c包与Mainsail2.19.0，在184双PTY模拟MCU、独立实际产品子进程
+上完成真实chooser上传两份合成文件。无凭据GET /access/user返回_TRUSTED_USER_三字段；
+浏览器HTTP与三次实际WS握手均未带凭据。打印中reload、probe父进程SIGUSR2造成1012关闭
+后，使用页面TRY AGAIN显式重连；四检查点始终同job／request、start总数1、进度非倒退。
+这不是自动重连通过；固定客户端clean关闭分支停止重试，源码与发包JS证据保留。
+
+默认UI须先Pause才显示Cancel，页面直接提交printer.print.cancel，无确认弹窗；
+长job000001耐久cancelled后，页面标准printer.restart令模拟设备generation由1增至2，
+产品PID／startTicks保持。重新home后明确另一短job000002 completed，旧job仍cancelled，
+总start2、cancel1、标准restart1，无固件重启或旧任务重放。最终场277.702秒、24张截图齐全，
+Windows5／Linux3个已登记PID均不存在、两watchdog remaining为空。
+
+原once／fix1的观察与定位失败、fix2已发一次长start后的截图超时、fix3过早重连断言均
+独立保留；fix3错误标签ws-reconnected不改原件，实际DOM／截图为Connection failed。
+本批IAB不可用，使用已授权共享Playwright与专用私有Edge默认sandbox；没有真实设备操作。
+本1735可信场未重测下载／双层预览／SIGKILL，其余A4条目按上文分场汇总；完整预算和物理门禁不关；
+见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的mainsailTrustedLifecycleFollowUp。
+
+## 历史cd91包同包Mainsail A4有限补验
+
+同包Mainsail2.19.0的A4有限场已验证真实上传、测试printer.cfg仅追加注释后保存／
+重开／严格回读，以及忙时入队、暂停／恢复、长任务完成不自动续打、明确清台后
+不同短任务完成。清台确认在产品自有/_client/queue页，不冒称Mainsail原生按钮。
+原菜单下载canceled、原600秒窄补验工具中断与两次设施定位失败均保留。
+后续同包真实单选文件的header Download已完成：Playwright默认所有权failure=null，
+实际saveAs为944字节，SHA-256与上传输入一致。最终仅预览场通过真实可见滑块点击
+自然取得焦点，再用原生键盘选择844／995；两张实图可辨第一层外框与第二层较小内框。
+下载场8312毫秒、隐藏role容器定位失败场17547毫秒、最终预览场12785毫秒均含清理，
+各场进程及端口终态已核，旧归档不覆盖。合成输入不代表实际切片器或物理层高证明。
+本轮IAB实际不可用，使用已授权共享Playwright＋独立私有Edge、默认sandbox；
+仅JWT网关路线。A4仍缺当前包打印中刷新／短暂断连、独立明确取消、标准RESTART
+的实页组合及显式可信网络边界记录，不把FIRMWARE_RESTART或历史其他包替代这些项。
+证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的mainsailA4FollowUp与mainsailNativeDownloadPreviewFollowUp，历史失败和旧归档不覆盖。
+
+## 历史435已提交头CI终态与Mainsail同包边界（2026-10-15）
+
+此前已推送头435938218（实际合成检出13a65f031）的三组CI已全部成功。
+Node26.12普通测试5402／5402、零失败／取消／跳过；原三项安装进程测试通过，
+该轮实际cgroup为system.slice/hosted-compute-agent.service且夹具名称一致。
+协议36624字节／661帧／10002时钟比较和Linux MCU步骤成功；Build两轮各37文件239例，
+十项motion各50次零失败，ASAN／UBSAN各153根TAP汇总1234通过、零失败。
+8e2原5398／5401三失败和184两版各30项候选补验原样保留；旧轮未记录cgroup，
+不能将新轮观测倒推为旧轮根因实证。正常集成、服务重获2.62602超原1.5、
+历史本机11失败／G3与实机等独立门禁仍开放。
+附加诊断读取失败只记固定类别，不改变原bootstrap结果；不记录key／环境内容。
+原生、依赖和生产源码均未改；两份30项本身仅为候选有限补验，后续435整仓5402项通过另记。
+记录见[现有验收](../host/contracts/system-bus-provider-acceptance.json)的ciFixtureFollowUp。
+服务重获2.62602倍超1.5、历史11失败／G3、完整42／28、真实特权部署和实机仍开放。
+
+## 同包客户端外部故障恢复（2026-10-15，未发布）
+
+单条无参数 `SDCARD_RESET_FILE` 复用canonical取消／重置与持久journal。
+命令捕获原native generation signal和request_id/state_token；活动／暂停／
+中断／失败任务先等安全取消ACK与同一请求cancelled，再取该请求新token重置。
+完成／已取消直接重置；无任务idle仍检查原代有效且没有pending／关闭状态。
+新请求竞争、授权拒绝、取消失败、退役或超时不跨代重试，不自动执行
+Firmware Restart、G28或新打印。命令参数和多命令脚本均拒绝；允许命令前后空白。
+
+锁定cd91f2e3产品与692独立JS一致，原生84输入／12输出及依赖核验后复用。
+Linux受影响源码42项、实际产品42项、最低26.9源码／产品各42项通过；严格
+独立JS首41／42因旧测试子进程硬编码.ts被hook拒绝，按现有模式修正后仅该
+文件5／5补验，保留首失败。最终全仓Windows TS7类型检查通过。API／工具
+层两条恢复路线分别有真实gateway／SQLite／模拟MCU证明，不替代页面验收。
+
+同包Fluidd1.37.6场358.427秒、Mainsail2.19.0场614.838秒均在各自900秒内：
+真实选择上传与页面归位／长作业，监督仅杀一次精确拥有child，旧close／IPC／
+模拟器join后明确启动同地址新进程；同一页面明确重连，点击可见Firmware Restart，
+持久成功后旧任务cancelled、新状态idle且未归位，再页面归位和不同短任务完成。
+Mainsail完成卡Clear print stats实际发送单条SDCARD_RESET_FILE，idle且历史仍2条。
+前Fluidd Reset-first控件隐藏仅证明该路径不可达，不否定Firmware Restart；
+该原场工具context丢失／新登录和正常收尾取消不能记成UI恢复通过。
+Mainsail有Connection failed及SIGKILL证据，未捕获离线502；两次自动审批拒绝
+保留，具体模拟短打印收到直接用户许可后继续原对话框。整个私有浏览器profile、
+认证库和会话响应均不进入证据包；业务事件仅限允许路由，无鉴权headers。
+
+预注册27行包含3warmup＋每变体8正式，原输入与1.5门槛不变；canonical候选／
+基线0.95302倍、script／候选canonical0.76663倍通过。此为隔离完整操作延迟，
+不代表打印速度／物理精度，不关闭服务重获2.62602倍超限、G3、历史11失败、
+完整42／28、真实特权部署、ARM64、实机及当前候选CI／正常集成门禁。原始记录见
+[现有客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的externalResetFollowUp。
+
+## 内部服务属性与安装准入（2026-10-15，未发布）
+
+真实进程工厂从同一 machine provider 借用内部 `serviceInfo` 所有者，
+固定安装与旧安装消费者直接使用它；不增加公开 service_info 或环境内容接口。
+D-Bus 保留 typed argv 与全部 EnvironmentFiles；CLI 保留完整显示字符串，
+不从显示引号反推 argv；Supervisor 仅返回原 program 属性，不能伪造 systemd
+身份或自动改写其安装；none 自动服务安装明确不可用。已有显式可信
+`serviceIdentity` 和外部部署能力继续走其原边界。
+
+安装来源、目标声明和 fresh 进程分三阶段核对。旧 unit 的 ExecStart 仍写
+Python、实际进程已运行 Node 时，来源身份使用当前 PID/startTicks、服务归属、
+原 unit 字节及批准 manifest 联证，不把声明当成正在运行的可执行体。
+目标阶段还核对实际 `/proc/self/cmdline` 的 NUL 参数边界、真实 executable、
+当前账号、固定 Node unit/profile/bundle/config 摘要与 root 公共证明。
+`/proc` 参数本身可变，不能独立授予部署权限。新的 transition 记录放在原
+恢复 journal；同一 PID/startTicks 重建对象仍不能冒充 fresh 进程。旧成功
+journal 没有 transition 时，仍须通过实际目标和完整既有字节证明，不补造历史字段。
+
+安装副作用及每次真正 createAdapter 前异步刷新属性；设备准入还重新确认
+磁盘 unit/candidate 摘要，不能用未 daemon-reload 的旧 show 输出掩盖文件变更。
+CLI 先校验全部 cgroup hierarchy，再比较最深服务归属；仅有效且没有服务归属
+时查询当前 PID 的唯一首标题。已成功验证的 unit 仅可作路由提示：完整 cgroup
+不变时当次 status(PID) 与 show(hint) 并发，两结果须一致；错误、失配或取消撤销
+提示及旧证明，并等待两 child 实际退出。没有 TTL 或准入证明缓存。
+CLI 的 `show <数字>` 是 job 查询，不能替代 PID 服务发现。
+
+systemd v256 的 [show 实现](https://github.com/systemd/systemd/blob/v256/src/systemctl/systemctl-show.c#L1273)
+用空格拼接 argv，两个不同参数数组可有相同显示；因此 CLI 显示仅为事实。
+[数字参数分支](https://github.com/systemd/systemd/blob/v256/src/systemctl/systemctl-show.c#L2153)
+区分 show 的 job 与 status 的 PID。属性和环境路径均不作为 shell 指令或任意文件读取授权。
+
+Windows最终19项与类型通过；Linux并发版源码重点22项、独立JS／实际产品／
+最低26.9源码和产品四层11文件各112项通过，fail/cancel/skip/todo均零。
+726项产品清单另计build-info，692个生产JS（host/src685＋辅助7）与独立发射
+逐SHA一致；原生84来源／12输出及锁定依赖核验后复用，本批未新编原生或npm安装。
+初轮真实进程15／13／2及修正15／15、两版产品107／105／2与依赖类身份修正后
+各23／23均分次保留，不改成首次全绿。真实root-owned后端／sudoers／PAM／setpriv
+happy path仍待管理员目标环境验收；当前只是普通UID helper隔离root与固定假命令。
+
+预注册文件SHA为a8159cb8…（原文件字节口径，非紧凑JSON摘要），28／版ABBA不变。
+首轮冷启动1.09625倍、重获4.08607倍；仅一次有界计时后实施并发，必要重测冷启动
+1.06765倍通过，重获2.62602倍仍超1.5，保留两份完整56行，不追加次数求绿。
+该范围不替代完整42／28预算、实机精度或G3。原始失败、包身份与新归档见
+[现有共享总线验收的serviceInfoFollowUp](../host/contracts/system-bus-provider-acceptance.json)。
+
+## none 显式电源候选（2026-10-15，未发布）
+
+配置 `provider:none` 自身不授予系统控制权限，默认保留空服务目录和零命令。
+可信进程工厂另声明 `machineProvider.nonePower.allowedActions`，仅允许
+`reboot`／`shutdown`，并从其真实资源所有者返回 `machineDeviceGuard`。
+guard 必须有有效 `assertDeviceAvailable`，缺失／畸形／与既有控制冲突
+均拒绝；函数不进入 JSON 配置克隆。工厂保留原 release 的 this，先等待
+控制器在途操作收口再释放资源。guard 仅借用，控制器不调用其 close。
+这不替代实际 transport 原子独占，也不是任意外部 release 竞态的独立 lease。
+
+新控制器从实际 `/proc/self/stat` 核对当前 PID 和 startTicks，无 systemd
+unit 身份要求。仅电源调用使用固定名字／参数和启动 PATH 快照，不使用
+shell／交互 sudo。可执行 systemctl 存在时仍优先选它，即使当前进程
+未受其托管；缺失或不可执行时选择 bare reboot／poweroff／halt。
+固定上游探测传 F_OK；这里额外要求 X_OK，不能声称完全相同。
+容器标记／cgroup／PID1 schedule 无法证明时阻断。实际 child close
+确认成功后不因晚取消撤销 ack；已启动后失败／取消保留 unknown 收据。
+none 服务／server restart 不可用503在耐久准入前拒绝；其他 provider
+权限范围拒绝仍403。旧 none.control 的显式 systemd 身份边界保留。
+
+显式 installation 仍是固定 `.service`／data/systemd 部署契约；部署摘要、
+物理路径、安装 journal 和 fresh 进程证明继续强制，不能借 none 绕过。
+Windows Node26.9新8项＋原控制／API11项19／19和锁定TS7类型通过；
+两次首次类型失败保留。新增8文件的历史SCP因旧授权范围不足被拒，收到
+项目184长期调试授权后正常审批传输成功，覆盖前与落地SHA全部一致。
+Linux26.11.1标准类型通过，源码首轮5文件30／30及旧8文件80／80分次通过；
+独立JS和实际产品13文件各110／110。最低26.9标准类型及源码／产品各110／110，
+fail／cancel／skip／todo均为零，原configured-server14项每轮实际执行。
+这些包含真实loopback HTTP、默认/proc当前进程身份和原SQLite按request_id重开，
+三种假systemctl选择分支、guard拒绝／缺失／畸形／冲突、release接收者、
+close等待和unknown不重放均验证。设备为模拟MCU，PATH仅含四个假电源程序。
+
+标准buildProductHost API新发射725项清单（build-info本身另计），其中691个
+JS＝host/src684＋辅助7，与严格独立TS7发射逐SHA相等；测试父子禁止TS加载。
+原生12输出来自前序受控产品，84来源输入及输出摘要对当前逐项一致后复用，
+本批没有重建原生。生产依赖从原锁定独立安装按字节复制，新旧依赖摘要相等，
+不声称本批重新npm安装。运行时、版本、构建和依赖摘要见既有验收及新none归档。
+
+预注册同机Node26.9窄handler9比较最高1.08523倍；其实际产品API处理链使用
+即时注入准入，不含HTTP／SQLite／退役／CLI。默认工厂模块冷导入每版28个
+新进程，190.198860→190.773607ms，1.00302倍，沿用1.5门限；不代替完整
+原42／28预算或完整服务启动。四个真实fake CLI child close为22.025–24.800ms，
+仅绝对成本，不是打印速度。111生产输入＋package/lock对be2逐字节一致，
+不代表新运动运行时或物理精度。原11失败／G3／集成和实机仍开放。
+原准备脚本SyntaxError与性能启动保护等待错误保留，均未启动失败测试／采样。
+该批当时终态Node残留为零、源码8项未变；后续已提交并推送4d981922，
+其motion／sanitizer成功只属于该头，普通CI终态另行核验，不覆盖本节上方当前属性增量。
+
+## Supervisor 分组进程候选（2026-10-15）
+
+`supervisord_cli` 现在按完整 `group:name` 读取和控制进程，状态目录、
+PID 身份、固定参数、设备退役、API 和恢复 journal 使用同一个原名。
+只读目录默认可识别分组内的 moonraker／klipper；这不授予写权限。
+可信工厂通过 `machineProvider.supervisorControl` 声明 `ownProcess`、
+`allowedProcesses` 和 `deviceProcesses`，例如：
+
+```ts
+machineProvider: {supervisorControl: {
+  ownProcess: 'farm:moonraker',
+  allowedProcesses: ['farm:klipper', 'other:crowsnest'],
+  deviceProcesses: ['farm:klipper']
+}}
+```
+
+原 `control` 的 flat `.service` 描述符继续兼容；两种描述符不能同时
+使用，也不能覆盖调用方已有 `machineControl`。systemd 描述符仍拒组名。
+自身进程只允许 restart；`group:klipper` 自动要求设备退役，取得设备前
+核对每个允许的设备进程都已停止且 PID 为零。不同组的同名进程不合并。
+空段、多重冒号、星号和重复名称拒绝；Supervisor 裸 `all` 是批量目标，
+不能出现在可信目录中，`group:all` 是精确进程，systemd `all.service`
+不受影响。已启动的 CLI 控制若失败或取消而结果未知，收口子进程后
+记录 interrupted；包装清理错误仍保留，新进程不自动重放。
+
+Windows Node26.9 新12项与旧控制／API11项单次23／23、全仓锁定
+Windows TS7类型检查通过。真实隔离Node CLI子进程的失败／取消包装
+已测；分组请求的新证据是 EndpointRegistry／JSON-RPC 处理链，不是
+真实 supervisor 守护进程验收。用户明确授权11文件传入184隔离工作树，
+Linux Node26.11.1标准类型检查与源103／103通过，含原configured-server
+14项HTTP／WS和新Supervisor12项。新724文件产品独立安装锁定生产依赖，
+690个JS（host/src683＋辅助7）与独立TS7发射逐文件SHA相等，12原生输出
+按当前84输入新编；编译使用CPU0／Cargo jobs1，不证明默认并发稳定。
+独立JS初轮71／57通过／14失败，补缺资产及pty.c后仅失败三文件48／48；
+实际包初轮65／62通过／3失败，补原产品scripts辅助路径后三文件41／41。
+两轮原失败及精确夹具收口保留，不合并写成一次103全绿。实际包初轮
+configured14与Supervisor12通过，父进程及后代禁止TS加载。全量npm test
+5354／5343通过／11失败：8新编产品／原生构建相关、宿主提前退出未知、
+source-brake明确SIGSEGV、thumbnail断连503未知；G3及集成门禁保留。
+Windows原符号链接／SIGKILL、Linux来源及ELF导入失败亦保留。
+窄 API 处理层9组比较最高1.133倍、沿用1.5阈值，不替代原42／28
+性能预算。详细范围与失败见[共享总线及后续验收](../host/contracts/system-bus-provider-acceptance.json)。
+
+## 共享 D-Bus 进程所有者
+
+标准 Node `createProcess` 工厂实际解析 `[machine] provider`，默认
+`systemd_dbus`；`shutdown_action` 只接受大小写归一后的 `poweroff`／`halt`。
+可信 `machineProvider` 装配声明 Unix socket 与可写 unit 范围，配置值本身
+不授予系统控制权限。显式自定义 source／控制能力冲突拒绝，不覆盖借入能力。
+共享连接仅由进程工厂关闭：控制 facade、服务状态、安装消费者借用同一总线；
+设备退役及服务清理完成后再释放连接，配置备份换代先等待旧 socket 真正 close。
+
+连接只使用固定 Unix／EXTERNAL、显式 Hello 和真实 systemd Subscribe；
+收到成功回复前不得认为握手或订阅已就绪。方法调用绑定核验过的 unique
+owner，信号核验 sender／path；连接、owner、状态证明分代，服务正常状态
+信号不能抹去同一 owner 的成功 job 回复。换代／断线撤销旧证明；读取缓存
+只供展示，控制及设备准入重新取实际属性。订阅去重且有界，重连重新订阅。
+安装身份证明单独按相关 unit 的结构性属性失效；无关服务和 ActiveState
+变化不永久阻断 ready，MainPID／FragmentPath／owner 等变化仍同步阻断。
+
+提交后的取消、超时和断线表示结果未知，持久收据为 `interrupted`；真实
+宿主退役路径包装 AggregateError 仍保留该状态及额外清理失败，新进程不重放。
+只有发送前已确证 logind 接口缺失才走原受控 CLI power fallback，未知结果
+不 fallback。Polkit pid／uint64 start-time 查询只是诊断，不能作为缓存权限。
+
+实际私有 dbus-daemon、模拟服务／MCU、源码／独立 JS／新产品包与最低
+Node 26.9 的结果由最终验收 JSON 记录；原网络／运动预算采用隔离夹具，
+默认 D-Bus 进程启动另有实际私有 daemon＋授权 HTTP 测量，不混称硬件。
+标准新包受控 CPU0／Cargo jobs1 构建，应用普通多核调度，默认 Rust 编译
+并发稳定性仍开放。dbus-native 0.16.1 精确锁定，新增依赖及许可证已核验。
+
+范围边界：上述默认入口是可信 `createProcess` 路线；直接配置 server 的
+自定义读源仍由调用方装配。CLI／supervisor 查询和 typed 控制具备基础兼容，
+supervisor 安装属性消费，以及 none 的上游 503 与无 systemd
+托管 power 语义仍待补齐。安装读取提供 User／Group／ExecStart 等属性，
+尚未用其自动推导全部旧安装声明；真实 polkit／sudo／服务管理和 ARM64／
+目标板／实机未授权且未执行。新候选仍须自身 CI、正常集成和发布门禁。
+
+详细结果和原始失败见[共享总线验收](../host/contracts/system-bus-provider-acceptance.json)。
+
+## 旧安装迁移的可信工厂装配
+
+LMDB 导出子进程在失败／取消时先终止、关闭尚未消费的 stdout／stderr，
+再等待实际 close；只收到 exit 不代表管道已收口。SQLite 和持有目录
+无论清理或观察回调失败都继续关闭；未知 stage／journal 保留供核对，
+不终止持有 helper 的 Worker 来假装清理完成。正常导入仍验证完整 trailer、
+真实退出状态、源摘要和事务收据。构建使用稳定相对 C 来源路径及显式 cwd，
+保留 LMDB assert 的源码诊断，避免随机快照路径进入产物摘要。
+本次软件验收的控制构建和普通调度边界、原失败及可追踪原始证据见
+[移植性与取消验收](../host/contracts/legacy-ci-portability-acceptance.json)。
+
+此候选接通 `createNativeProductHostFactory` 的 `createProcess` 路线。
+`legacyDatabase` 明确旧 SQLite 目标、LMDB 源、停写确认及原身份 issuer，
+在任何进程 DB／日志／文件打开前执行只读导入。`createProcess` 必须消费
+第三参数 `opened.database`，不能另开空库掩盖旧身份。常规 JSON API 的数值
+预算保持；原持久 record 与 unsafe integer 词法保留不等于公开 API 任意精度。
+
+`legacyPaths` 的 dataPath 和各 physical directory 必须与实际清单、DB、
+配置 owner 一致。别名发布前检查已占用／损坏路径；资源仍用物理目录，
+默认日志改用独立私有 `node-private-logs`，旧 logs 保留。`legacyGcodes`
+明确停写源与独立 recoveryRoot，源、恢复、发布目录不得重叠。支持 `.gcode`
+`.g` `.gco` `.nc`／UFP 模型、受限 PNG 与源时间；原树保留。硬链接、符号
+链接、未知文件、来源变更及容量超限拒绝，不自动删除旧树或清 journal。
+
+实际 `installation` 原 SUDO queue 执行 service/config/version 顺序，原密码
+在内存及受限 stdin 传递，HTTP 配置对继承密码副本脱敏。多来源配置候选
+由原解析器重读：批准目标删项、其他 DEFAULT 继承值物化保留、所有来源
+摘要确认。未知保存结果阻断重播；成功后仍须旧进程退役，新进程验证部署
+只读证明、配置／paths／gcodes 摘要和独立 Node marker 后才能取得设备。
+原 install_version 缺失补 1，既有版本保留原 force 语义，不能据其直接 ready。
+
+validate_config=false 保留原来源 bytes 和 gcode_path，但 Node 证明仍强制。
+validate_service=false 须额外可信 `externalService` 验证实际 unit／部署摘要并
+提供 `requestRestart`；没有证明 blocked，不制造 root 许可或调用 root install。
+非法 boolean 属于 ConfigurationError，不吞成运营 blocked。journal 损坏、
+源变化、部署证明不一致属于 blocked，不伪装配置错误触发备份。
+
+`legacyConfiguration.backupFile` 是调用方批准的最近有效配置。主配置解析或
+真实组件构造／初始化发生 ConfigurationError 时只尝试一次；先成功关闭
+首代已转移能力，保持其他 server／caller owner，清理错误不回退。组件回退
+须 `installation.reopenBackend` 返回与旧后端不同的新实例；旧密码和 closed
+后端不可复用。持久 alias／SQLite／模型成果从 journal 恢复，配置换代重新
+保留私密 secrets 和 TLS 路径；主备私密路径均禁止标准 HTTP 文件读写。
+backup 只提供恢复查询，安装和设备保持 blocked。普通错误、server 初始化／
+运行阶段错误及第二次配置错误都不再回退，关闭失败必须按实际错误处理。
+
+本机标准 CLI 新编完整 12 原生输出的 717 文件包已核验；受影响 66 文件在
+源码、独立 JS（WAL URL 分次补验）、实际包和最低 26.9 验证，实际原 key
+安装后完整旅程和文本／UFP 模拟打印通过。部署／系统证明是普通 UID 隔离
+文件和注入受限执行器，真实 root/PAM/systemd 与 MCU 硬件尚未执行；完整
+Moonraker／Python／宏／实机交付未完成。详细失败与范围见
+[本批交付记录](Node_Host_Delivery_Plan.md#当前旧安装迁移候选2026-10-14未发布)和
+[旧安装生命周期验收](../host/contracts/legacy-install-lifecycle-acceptance.json)。
+
+以下固定布局说明是前序单文件／既有 SQLite 批次的受限路线。
+旧布局及 LMDB／include 限制由上节的显式迁移能力扩展，不自动改变默认
+Python 入口、polkit／NNP 或授予真实特权部署权限。
+
+## 固定 Node 安装校验与 SUDO 消费者
+
+此可信装配在已有固定 Node 布局上接通真实安装消费者：等待密码、
+校验凭据、消费进程 FIFO、替换固定服务、保存批准的配置删项、确认
+版本并经原 `afterResponse`／进程退役所有者请求自重启。它不是完整
+上游 InstallValidator 迁移，也不改变默认 Python 入口、默认 polkit
+或已有 machine-control 单元的 `NoNewPrivileges=yes`。SUDO 模式必须
+由管理员显式批准；内核 `NoNewPrivs` 非零时直接拒绝，不自动改策略。
+仅 Linux x64／arm64 启用，本机实际证据为 x64。
+
+准入要求同一 `dataPath` 下现有 `config/moonraker.conf`、
+`database/moonraker-sql.db`、`logs`、`gcodes` 和 `systemd`，工厂机器
+清单必须指向该主配置，显式配置写入 allowlist 包含它。数据库必须
+是正在选用的既有 SQLite，不能先创建空库掩盖旧安装。上游已经使用
+SQLite／namespace_store 和 record codec；保留的 `data.mdb` 可以是
+已完成转换后的备份，不因此拒绝，不自动转换／删除它。这里只核对
+安装相关 record 和现有存储身份，没有遍历所有表或证明全库整数精度。
+该前序固定布局路线拒绝旧 `file_manager.gcode_path`、LMDB 转换与旧目录迁移；
+本批显式迁移路线见[旧安装装配](#旧安装迁移的可信工厂装配)。
+
+配置在日志、数据库及其他进程资源打开后校验，因此绝不移动这些
+路径。只删除主文件拥有且等于现有默认路径的 database/config/log/
+secrets/TLS 路径别名，以及明确支持的旧 debug 选项。涉及 DEFAULT
+继承、target section 跨 include 或不同路径时阻断；候选按原解析器
+重新解析，要求只批准的选项消失，其余值及文件归属保持。已加载
+source 与磁盘身份再次核验，维护租约与已有 writer 互斥，原单文件
+备份／原子保存复用；设备 detached 不等于所有文件未打开。
+
+GET `/machine/sudo/info?check_access=true` 与 POST
+`/machine/sudo/password {"password":"..."}` 复用原身份、前缀、CORS、
+HTTP(S)、容量与取消所有者。欢迎页 flags／公告来自实际队列，成功
+确认后移除公告。密码只在内存保存和独立快照中，经 sudo stdin
+写入有界一行，不进 argv／日志／回执；关闭和换代擦除 Buffer 引用。
+`sudo_password` 敏感模板禁用调试 sink，公开 config/settings/original
+对所有 section 的继承副本脱敏，后续 publish 同样处理。Buffer 擦除
+不承诺 JavaScript／V8 的所有历史字符串副本都被物理清零。
+原 authorization 严格选项名单保持：DEFAULT 密码继承到
+`[authorization]` 的布局仍拒绝启动，不能据脱敏测试声称支持该布局。
+
+队列上限 16，操作上限 4；密码消费串行，访问探测使用独立快照。
+HTTP 密码请求在 probe 前后、每个消费者前及重启前复核授权，安装
+副作用前的关键节点再次核验并使用新 identity；启动时 status 只读
+验证没有 HTTP 用户授权上下文。失败消费者
+保留；已经成功消费者不会重播，重启需求保持到显式恢复，即使另一
+消费者失败、授权撤销或响应 handoff 丢失。版本仅全步骤确认后写
+`moonraker.validate_install.node_layout`，保留原 `install_version`，
+不把固定布局版本冒充 legacy migration 完成。
+
+安装成功仍为 `restart_required`，旧进程不能取得设备；请求自重启
+只确认 `systemctl --no-block restart -- <固定单元>` 已提交，不声称
+新服务 ready。下一真实进程同时核对 root 公共证明、实际 unit/profile/
+bundle/config 摘要、本地 version-confirmed journal 和 DB marker，
+才放行设备，不依赖缓存 sudo timestamp 或再次提交密码。安装等待
+期间仅专用自重启桥接；ready 后保留原显式 MachineControlPort 的
+标准 server.restart／已批准操作。需要这些长期控制时必须装配原
+可信端口；本固定 helper 不授予通用 service/reboot/shutdown 权限。
+
+### 受信 profile 与管理员审核出口
+
+沿下文“进程服务与设备代际”的板级适配器装配即可接入。以下为
+固定布局的完整装配外壳；`board-adapter.mjs` 仍须提供该机型真实
+设备停止／文件准入及既有进程资源，不能采用验收夹具的空回调：
+
+```js
+import {readFile} from 'node:fs/promises';
+import {createNativeProductHostFactory} from '/opt/anyraid/host/src/runtime/native-product-machine.js';
+import {createTrustedSudoBackend} from '/opt/anyraid/host/src/moonraker/sudo-backend.js';
+import {createProcessResources, createMachineDeviceAdapter} from './board-adapter.mjs';
+
+const dataPath = '/var/lib/anyraid';
+const manifestPath = '/etc/anyraid-install/approved.json';
+const approved = JSON.parse(await readFile(manifestPath, 'utf8'));
+const backend = await createTrustedSudoBackend({
+  mode: 'trusted-sudo', sudo: '/usr/bin/sudo',
+  node: '/opt/anyraid-runtime/node',
+  helper: '/usr/local/libexec/anyraid-install-helper.mjs',
+  manifest: manifestPath,
+});
+export const createProductHostProfile = createNativeProductHostFactory('/etc/anyraid/machine.json', {
+  dataPath, filesRoot: dataPath + '/gcodes', metadataRoot: dataPath + '/metadata',
+  uploads: {stagingRoot: dataPath + '/staging'},
+  configFiles: {root: dataPath + '/config', writable: ['moonraker.conf', 'printer.cfg']},
+  standardPrint: {nozzle: 200, bed: 60},
+  installation: {backend, options: {
+    dataPath, configRoot: dataPath + '/config', configFile: dataPath + '/config/moonraker.conf',
+    databasePath: dataPath + '/database/moonraker-sql.db',
+    logsRoot: dataPath + '/logs', gcodesRoot: dataPath + '/gcodes',
+    unit: approved.unit, candidateSha256: approved.candidateSha256,
+    recoveryPath: dataPath + '/systemd/node-install.json',
+  }},
+  async createProcess(configuration, signal) {
+    const resources = await createProcessResources(configuration, signal);
+    if (resources.server.database?.storagePaths.path !== dataPath + '/database/moonraker-sql.db'
+        || !resources.machineControl) {
+      await resources.release();
+      throw new Error('必须使用既有 SQLite 和明确的常规机器控制端口');
+    }
+    return resources;
+  },
+  createAdapter: createMachineDeviceAdapter,
+});
+```
+
+profile 是普通服务用户运行的受信模块，放在 bundle 外并由管理员
+绑定摘要；机器清单的 moonrakerConfig／printerConfig 与这些目录
+一致。profile 不含密码。现有设备适配、权限和退役规则仍须完成。
+如 profile 准备在接线前失败，装配者负责关闭已经创建的 backend。
+本批实际编译 profile CLI 用隔离目录验证此组合接口与生产后端的
+不可信路径拒绝；没有在真实 root happy path 上执行以上部署配置。
+
+只读候选生成请求含固定字段，不接受任意 unit 字节／命令：
+
+```json
+{"schema":1,"unit":"anyraid.service","user":"printer","node":"/opt/anyraid-runtime/node","bundle":"/opt/anyraid","profile":"/etc/anyraid/machine.mjs","dataPath":"/var/lib/anyraid"}
+```
+
+已有目标 `/etc/systemd/system/anyraid.service` 必须可读。普通用户执行：
+
+```sh
+/opt/anyraid-runtime/node --no-experimental-strip-types \
+  /opt/anyraid/scripts/product-install-helper.js --prepare /absolute/request.json \
+  > /absolute/approved-candidate.json
+```
+
+该命令只读主配置绑定所用 profile、bundle 清单和旧 unit，输出前后
+摘要，不导入 profile、不执行安装、不自动确认发布来源。管理员
+另行审核包来源、锁定机器／账号／profile、既有 unit 摘要和
+`fixedInstallUnit` 重生成的固定候选；复制独立 helper.js 为 bundle
+外的 `.mjs`、准备 approved manifest 及明确 sudo 规则属于真实部署，
+本批未执行。manifest 无秘密，可 root-owned 0644 供服务用户读取；
+helper／Node／sudo／manifest 及其全部祖先须 root-owned、无 group/world
+写入且无符号链接，runtime/helper 必须在 root 启动前已受保护。
+只有入口内部检查不能补救已经替换的 root 程序。helper 仅导入 Node
+内建模块，不从服务可写 bundle/profile 加载 root 代码。root 读取
+可写 profile/build-info/旧 env 时使用固定 setpriv 清除 supplementary
+groups 并以服务 uid/gid 有界读取，避免 root 跟随用户路径读取秘密。
+实际 setpriv/root 隔离效果仍须管理员在目标系统验收。
+
+新内部属性消费者从受信 backend 取得同一 approved manifest 的只读声明和
+SHA-256；新安装调用必须传给独立 helper 第三个参数 `expectedManifestSha256`。
+helper 只读取一次 manifest 字节，先验证严格 64 位小写十六进制摘要再解析，
+同一快照用于后续执行；声明读取后替换 manifest 在任何命令／写入前拒绝。
+旧两参数 helper 调用仍兼容，但新消费者不降级省略摘要。
+
+项目不自动生成或安装 sudoers。管理员原先精确匹配两参数 argv 的策略须与
+独立 helper 同时审核更新：仍固定 Node/helper/manifest 路径及 probe/install/restart
+操作，额外精确匹配该份批准 manifest 的摘要字面量；不要改成任意参数或路径通配。
+`status` 继续使用普通用户可读的固定公共证明，不扩大 root 操作／路径白名单。
+manifest 更新需重新审核摘要及策略，旧策略拒绝属于显式部署诊断。
+
+helper 清除 NODE_OPTIONS／NODE_PATH／LD_* 等注入环境，固定绝对
+可执行文件和规范 unit 字段，非 root User，正确转义；不允许 HTTP
+提供命令、shell、写入目标、manifest 或任意 unit 内容。生产包独立
+helper 由管理员按产品 build-info 文件摘要独立核对来源后复制；
+approved.json 不含 helper SHA，root-owned 检查只验证路径权限，
+不能解释为批准清单已绑定其字节。不以 `.ts` strip-types 作为 root
+入口。`--trusted-sudo` 只生成显式候选，与 `--polkit` 互斥，不安装
+策略；它不能绕过已运行进程的 NNP。默认 machineControl descriptor
+生成的 NNP／polkit 方案继续保持。
+
+### 恢复与取消边界
+
+root 私有 `/var/lib/anyraid-install/<unit>/receipt.json` 在任何备份／
+unit replace／daemon-reload 副作用前耐久写 unknown，原 unit 和 env
+分别备份；新的 Node unit 不引用旧 env，不制造无人读取的新 env，
+这是与上游 Python env 更新的明确差异。普通服务用户的本地 journal
+不能证明 root 副作用；独立 root-owned 只读公共 attestation 仅公布
+摘要，不包含密码、旧 env 或备份。任一步未知结果、配置提交失败或
+版本 journal 未确认都保持 blocked，不自动重播或放行设备。
+跨进程 O_EXCL owner.lock 排他；stale lock 不自动删除，须管理员
+核对进程／unit／回执并明确恢复。无法确认 root 子组收口时保留锁。
+
+取消通过关闭 sudo stdin 请求受信 helper 合作收口；helper 始终有
+自身 60 秒 deadline，负责其 root 子组终止与实际 close。普通用户
+不能假定可 SIGKILL 已提权组／sudo 新 session。deadline 是取消触发
+点，不保证 kernel D-state 的物理退出；真实 sudo/PAM/PTY EOF转发、
+不可读进程状态、目标权限及 root 服务安装仍是未执行门禁。未知
+副作用不会因 child 已结束就被解释为回滚。进程关闭等待在途密码／
+安装工作，再关闭公告、配置 lease、鉴权、数据库；cleanup 错误保留。
+
+前序固定 Node 消费者当时未接入 force_validation／validate_service／
+validate_config、配置备份回退、旧布局 pre-open／LMDB 导入和全库原字节验证；
+本次的实际接入与限制见[旧安装装配](#旧安装迁移的可信工厂装配)。
+完整历史服务/env兼容仍不以本候选的固定 unit／注入执行器证据泛称完成。完整 Moonraker/Python/宏、
+历史 UI/G3、ARM64、目标板／真实打印／发布门禁未关闭。软件范围与
+分次失败、产品身份及原预算见
+[安装生命周期验收](../host/contracts/sudo-install-lifecycle-acceptance.json)。
+
+本机软件验收分开记账：源码扩展22／23后仅修CORS驱动补1／1，
+最低26.9四文件23／23；原回归首次253 pass／9装配fail后，只补七文件
+245／245。最终标准npm typecheck26.9 exit0，23编译输入冻结。标准
+构建API复用核验过的75／11原生指纹，704包667运行时JS加独立helper
+与独立emit668项一致；实际编译profile CLI首次／fresh退出0，生产
+路径拒绝例exit1。该前序未执行完整构建CLI或新原生构建；
+本次717包完整CLI及12原生新编见本页旧安装段。
+
+原42预算均通过，最大1.130倍、auth最高3.516微秒；原五场同包模拟
+打印分别59.931／59.967／61.360／64.021／60.329秒、全部exit0。第六场
+真实安装后fresh ready接原1000moves／并发API／两代恢复／ADC／退出，
+修备份列表驱动后62.534秒、状态P99 8.908毫秒、最小提前量79.425毫秒。
+首轮备份列表遗漏失败保留，补验唯一规范备份的旧字节和匿名401／
+授权200；没有删备份或过滤任意隐藏文件。原28启动median337.416→
+334.067毫秒，ratio0.990；基线启动未开启安装，第六场覆盖安装交接。
+上述均为普通UID／模拟MCU与注入固定执行器，不是特权或硬件验收。
+
+## 原生进程诊断日志
+
+`createNativeProductHostFactory` 的 `createProcess` 模式现在创建一份
+`ProcessLogs` 所有者，跨设备重建保留，最终在设备、服务、数据库和
+工厂资源收口后排空并关闭。`dataPath/logs/moonraker.log` 与
+`dataPath/logs/klippy.log` 是默认生产文件；真实 bootstrap、监听、
+设备加载／就绪／退役、故障通知与最终退出写入这两份文件。
+`printer.info.log_file` 和两个标准下载地址指向这些真实文件。
+日志仅记录有界枚举及恢复原因，不记录密码、完整配置、命令参数、
+请求内容或任意异常 cause。这仍缺完整组件 DEBUG／异常堆栈流。
+
+生产目录必须专用、由当前服务用户持有且权限为 0700。默认目录会
+创建；显式目录须事先存在。进程借用已有 `sealed-file.node` 的
+非阻塞目录 flock，同一目录两个文件只锁一次；第二个写入进程拒绝，
+SIGKILL 后内核释放锁，不通过 PID／时间猜测清理活锁。
+目录及物理路径在 MCU 获取前与文件库、元数据、配置、私密文件、
+TLS、授权数据库及备份、作业／恢复日志和磁盘投递目录隔离。
+最终文件符号链接、非受控硬链接及两个生产别名同一物理文件拒绝。
+
+可信原生工厂可设置 `logging: {applicationFile, printerFile,
+disableFile, structured, verbose}`。原 `applicationLogFile`／
+`printerLogFile` 继续只是只读借用绑定，不能由下载声明升级为写入
+所有者；同一个别名同时声明写入与借用会拒绝。`disableFile` 只禁用
+新应用生产文件，原生打印日志仍可生产；明确借用的下载不授予轮转。
+标准配置服务器仍自行装配下载，不能用另一套下载回调替换所有者。
+
+```sh
+node scripts/product-host.ts --profile /absolute/machine.ts \
+  --logfile /absolute/private-logs/moonraker.log --structured-logging
+node scripts/product-host.ts --profile /absolute/machine.ts --nologfile
+```
+
+`-l/--logfile`、`-n/--nologfile`、`-s/--structured-logging`、
+`-v/--verbose` 支持原 `MOONRAKER_LOG_PATH`、
+`MOONRAKER_DISABLE_FILE_LOG`、`MOONRAKER_STRUCTURED_LOGGING`、
+`MOONRAKER_VERBOSE_LOGGING` 默认项。布尔值只接受忽略大小写的
+`y/yes/true`；命令行日志路径覆盖环境，禁用优先，最后才验证路径。
+路径支持既有用户目录展开，随后转为绝对路径。CLI 配置须由工厂的
+`configureLogging` 能力接收；旧手工工厂缺少该能力会明确拒绝。
+CLI 与工厂两套显式 logging 声明拒绝竞争所有权。
+`--verbose` 当前只向 stderr 输出实际生命周期记录，尚不等于原版
+全部 DEBUG 消费者；stdout 保留机器可读 ready/listening 协议。
+原版 -d/-c/-u/-g/-o 等整体 Moonraker CLI 尚未接入此机器模块入口。
+
+文件采用普通文本或固定 JSON 行文件头／记录。独立 Worker 执行
+串行文件 I/O；日志操作最多 256 项、正文共 1 MiB、单条 64 KiB，
+手工轮转等待最多两项。队列满、ENOSPC、权限或 Worker 故障锁存
+通用错误码，停止新日志准入，stderr 明确报告，最终关闭返回失败。
+这些错误及外部日志回调抛错不跳过原设备停止和其他资源清理。
+启动握手与退出排空各十秒，超时触发 Worker 终止并等待真实退出、
+回收 fd／目录锁；不能把十秒说成不可中断系统 I/O 的物理结束保证。
+
+午夜轮转在下一次日志记录时触发，首次期限取实际文件修改时间；
+文件名为 `.YYYY-MM-DD`，最多保留两份。POST `/server/logs/rollover`
+或 RPC `server.logs.rollover` 沿原身份、HTTP(S)、前缀、取消、容量和
+退出所有者工作；`application` 为 moonraker／klipper，不提供时尝试
+两者并返回 `{rolled_over, failed}`。实际操作前再次鉴权；打印中可
+轮转文件，不执行设备动作。外部 Klippy 或只读借用没有可写轮转
+能力时返回明确 failed，不停止／启动系统服务或伪造成功。
+
+轮转先准备完整新文件头，再为旧 inode 建立日期备份，原子替换
+公开文件名。已打开的下载保持旧 inode／初始长度，新下载读取新
+文件；下载仍限两活动读取、1 GiB 文件和 64 KiB 块，复用原鉴权、
+HTTP(S)／前缀／CORS／期限／断连。GET／HEAD 范围及标准日期条件
+保持，DELETE405、无 ETag、绝对受保护来源和容量为既有明确差异；
+完整原 StaticFileHandler 路径／头兼容仍待完成。
+
+专用目录内本日志的日期备份和 `.rotate-UUIDv4` 为所有者保留的
+命名空间。重开在 flock 内只识别 current 与恰好一份日期备份同
+dev/ino 的双链接中间态并回滚；暂存清理还要求常规文件、当前 uid、
+单链接及 0600。未知文件不清理，异常暂存或其他硬链接拒绝。
+SIGKILL 恢复仅证明锁和轮转命名空间可重开；这是异步诊断流，
+不保证未排空记录零丢失或断电耐久，不代替权威 SQLite 打印日志。
+
+源码与独立 JS 各 541／541 已通过。两处轮转发布边界的强制终止、
+内核锁竞争、只读绑定、实际 CLI、撤销／取消、失败重开及风险降低
+清理均有软件证据。实际标准新包原 498 项、新增 42 项和修正临时
+guard 后单验 CLI 1 项分别通过，保留原 42／43 驱动失败；最低
+Node.js26.9 四文件 50／50 通过。标准 builder 未改，精确编译子进程
+用固定 --import 选择官方后备方式；兼容 shim 不进入产品，原默认
+execve 启动超时原因仍未知。原生输出核验复用，未重新原生构建。
+原 42 预算全部通过（最高 1.263 倍／鉴权 3.768 微秒），五场同包
+完整模拟打印通过，新增场完成两代四次打印中真实文件轮转。实际
+进程启动固定 28 次、3 次热身／11 组样本，中位 336.227→354.844
+毫秒、1.055 倍，原 1.5 倍门限保持；指标包含进程依赖、恢复和
+HTTP 监听，排除模块导入／夹具准备／清理，不等于 MCU 就绪。
+新头 CI、完整组件日志、外部 Klippy 控制及目标板／实机保持待验，见
+[候选证据](../host/contracts/process-log-lifecycle-acceptance.json)。
+没有新开浏览器或实机场次，固定 Fluidd18430／Mainsail18434 来源保持。
+
+原生异步模板每个句柄最多保留最后一个相同 JSON 字符串及其
+不可变解析值；仍限 65536 UTF8 字节／64 句柄，关闭即释放。
+回调、环境和渲染输出不进入此缓存；两条异步工作线程、原容量、
+期限、取消和数值解析保持。新标准包从独立空 Rust 输出构建，
+75 来源／2810 Node 头／11 输出核验，697 项包仅原生模板及
+构建回执变化。140 项及最低 Node.js26.9 同样 140 项通过，
+原三组模板预算、42 高频预算及 HTTP／HTTPS 前缀／欢迎负载
+三轮打印通过。历史 UI／G3／SIGKILL／ICE 不以本次成功关闭；
+详见[上下文复用证据](../host/contracts/template-context-cache-acceptance.json)。
+浏览器仍固定 Fluidd18430／探针18428、Mainsail18434／探针18432，
+冲突停止，不换来源；本增量没有新增浏览器或实机场次。
+
+原生配置应用现提供完整原版 Moonraker 欢迎页：无前缀时为 /，
+有前缀时为其根地址和尾斜杠形式，例如 /scope、/scope/；
+对应 API／WS 不新增根别名。HTTP／HTTPS 共用完整原模板和
+进程数据。公开页面显示鉴权结果；坏凭据显示 False，不授予
+API 身份。页面不返回 CORS 许可，其他 API 的来源规则保持。
+
+欢迎内容共享原私密工厂的 UI 环境，不继承私密值；无私密
+工厂时使用受限 UI-only 执行器，不读取猜测的 secrets 路径。
+原始模板随标准包携带，启动核对摘要，MCU／日志前校验；
+HTML、脚本值和链接安全编码，原请求／字节／输出／期限和
+退出边界保持。状态、公告、网络及服务取现有所有者，页面
+不运行系统命令或发起打印。
+
+当前原生 polkit 控制没有交互式 sudo 密码请求队列，页面不
+发起密码请求；原窗口保留，但 SUDO／密码后端仍待接通。
+本增量未输入密码、增加权限或操作真实设备。
+
+三种方式各 490 项、Node.js 26.9 实际包 18 项及原 42 项预算
+通过，同包三轮模拟旅程通过，新增轮次含 2388 次欢迎读取。
+直接 UI 仍 1.888 > 1.5，候选不能因此视为完整 UI／打印交付。
+见[完整欢迎证据](../host/contracts/application-welcome-owner-acceptance.json)。
+本机浏览器来源仍固定 Fluidd18430／探针18428、Mainsail18434／
+探针18432，冲突停止，不换端口；本增量未新开浏览器场次。
+以下保留前序启动说明及其当时范围。
+
+原生 loadAuthorized／原生产品入口现提供 GET /server/redirect，
+开启 route_prefix 时在该前缀下访问；它使用原身份所有者的可选
+校验，错误 API Key／JWT 仍拒绝。该入口不会授予后续 API 或
+打印权限。配置 cors_domains 为实际客户端所需目标，例如：
+
+```ini
+[authorization]
+cors_domains:
+  https://fluidd.example.com
+```
+
+```sh
+curl --get --data-urlencode 'url=https://fluidd.example.com' \
+  http://127.0.0.1:7125/server/redirect
+```
+
+查询中的最后一个 url 优先于 JSON GET 请求体；完整目标通过
+原 CORS 后返回 302，匹配时仅去掉尾斜杠，Location 保持原目标
+并编码 Unicode。来源 Origin 单独检查；未授权目标／缺少原
+授权组件返回 400，不能用外部回调替代所有者。目标解析仅允许
+规范绝对 HTTP(S)，禁止用户信息、控制符／反斜杠与归一化歧义，
+原始及编码目标均限 4096 字节；这些为明确加固差别。
+
+原请求容量、字节、期限、取消及退出规则保持；NSS 借用原
+授权缓存，等待后身份再核验，取消／吊销不能发出迟到重定向。
+HTTP／HTTPS 共用该入口和配置前缀。源码／独立 JS／实际包
+各 334 项、最低 Node.js 26.9 实际包 17 项、原 42 项预算和
+同包模拟打印通过；新路径 CPU 观察没有旧成功基线。见
+[重定向证据](../host/contracts/application-redirect-owner-acceptance.json)。
+本增量未新开浏览器或实机场次；Fluidd18430／探针18428、
+Mainsail18434／探针18432保持，冲突停止、不换来源。
+以下保留前序启动说明及其当时的验证范围。
+
+### 配置直接 HTTPS
+
+HTTP 与 HTTPS 使用同一应用及身份所有者。缺省 HTTP 7125、
+ssl_port 为 7130；两者使用同一 host，仍须显式配置 127.0.0.1
+用于本机验收。原可信应用 dataPath 下的 certs/moonraker.cert 与
+certs/moonraker.key 各自优先；应用不自动生成证书或创建该目录。
+旧显式路径继续支持、记录弃用提示，例如：
+
+```ini
+[server]
+host: 127.0.0.1
+port: 7125
+ssl_port: 7130
+ssl_certificate_path: /installed/printer-certs/moonraker.cert
+ssl_key_path: /installed/printer-certs/moonraker.key
+route_prefix: /host/printer.v1
+```
+
+路径按原物理 expanduser／resolve 语义处理，建议使用绝对路径。
+示例需要使用者已提供并维护的有效证书／密钥；不要使用临时测试
+密钥。证书最多 256 KiB、密钥最多 64 KiB，必须是常规文件；
+证书不匹配、无效显式材料或相同的非零端口拒绝。最低 TLS1.2，
+握手十秒内完成；显式缺一、原子双监听启动等为明确加固差别。
+默认材料不存在时只开 HTTP，部分默认材料会给出不含内容的警告。
+
+配置／证书预检在 MCU 与日志获取前执行；失败不连接硬件或
+借用调用方打印门禁。任一监听失败回滚已经打开的监听，退出
+同时取消 HTTP／WS、原请求及尚未握手的 TLS 连接，不回落到
+另一端口或不安全的监听。PEM 内容不进入信息接口、错误或证据；
+原配置接口仍保留使用者配置的文件名。
+
+实际 HTTPS 的地址由 ready／listening 的 address.secure 提供，
+非空规范前缀仍由 address.routePrefix 提供。示例的直接 API
+基址为 https://127.0.0.1:7130/host/printer.v1；客户端必须信任
+证书并校验主机名。API 凭据仍必需，TLS 不赋予打印权限。
+
+本机 Fluidd／Mainsail 浏览器仍复用 18430／18434，不新增 HTTPS
+浏览器来源；网关私有上游继续原环回 HTTP，公共 HTTPS 可由既有
+代理提供。本轮是实际 Node HTTPS／WSS 和模拟 MCU 验证，未把
+临时 CA 写入系统或浏览器，也未进行直接浏览器 HTTPS／实机验收。
+详细原始样本、包身份、失败及范围见
+[直接 TLS 证据](../host/contracts/direct-tls-owner-acceptance.json)。
+
+### 配置路由前缀与固定客户端入口
+
+配置键为 `[server] route_prefix`，不是 `url_prefix`。例如：
+
+```ini
+[server]
+host: 127.0.0.1
+port: 7125
+route_prefix: /host/printer.v1
+```
+
+此时已有 API 基址为 `http://127.0.0.1:7125/host/printer.v1`，
+WebSocket 使用相同前缀；根路径 API 返回 404。重复斜杠折叠、
+组件编码；明确空值及点／点点组件拒绝，原始值最多 1024 字节、
+规范值最多 4096 字节。缺省不增加前缀。字面路径边界避免前缀
+中的点被当作正则通配符，与上游存在明确加固差别。
+
+非空规范前缀在产品 ready／listening 的 address.routePrefix 中
+提供，装配客户端时把它附加到私有上游；Unicode 使用该编码值，
+不要再次编码。网关的 `--upstream` 可以明确指定
+`http://127.0.0.1:7125/host/printer.v1`。登录、刷新、身份核验、
+HTTP／WS 和上传回执共用该上游，浏览器来源与登录 cookie 仍在
+固定公共根入口。只接受无查询／片段／用户信息的规范环回 HTTP
+上游；公共 HTTPS 仍由现有 TLS 代理提供。安全匹配的上游文件
+Location 转换为公共地址，客户端转发主机／协议头移除。
+
+本机 Fluidd 仍为 127.0.0.1:18430（探针 18428），Mainsail 为
+18434（探针 18432）。确认旧场次退出后复用，冲突停止、不换
+端口或停止其他服务；每场含启动最多十五分钟，到期关闭。内部
+私有上游端口可动态分配，不改变浏览器来源。
+
+源码／独立 JS／实际包各 258 项通过；原 42 项预算保持并通过，
+原网关及 Unicode 前缀同负载对照和根路径／前缀同包完整模拟旅程
+通过。详细身份、原失败、样本及边界见
+[路由前缀证据](../host/contracts/route-prefix-owner-acceptance.json)。
+已有接口加前缀不等于全部上游处理器、客户端或硬件
+验收完成。以下保留前序接线及其原包验证范围。
+
+可信代理授权已接入原信任所有者与配置生命周期。server 的
+use_xheaders 默认 true，可明确 false；真实 TCP 地址保持，最后
+一项 X-Forwarded-For 作为候选，X-Real-IP 优先。RFC Forwarded 不
+参与此地址选择。匿名授权必须实际代理与选中客户端各自可信，错误
+API Key／JWT 不回落网络身份；强制登录、过期和吊销继续生效。
+
+地址只在原 IncomingMessage 中捕获一次，保持不可变，不改 socket
+或跨 keepalive 请求继承。NSS 借用原名单、缓存、期限和退出边界；
+等待后重新核对原身份与当前策略。未经验证代理的头不能改登录计数
+或短时令牌地址；畸形声明不能回落匿名代理身份。与上游 Tornado 的
+未验证／畸形头行为存在明确的安全加固差别，不宣称逐位等价。
+首次代理查询在消费 token 之前完成，原五秒生命周期、一次消费
+保持。通知／订阅和捕获的打印权限使用同一地址所有者，不重新解析
+可变头；取消或关闭后的晚结果拒绝，实际打印权限还核对当前政策。
+
+源码、独立编译 JS、禁止 TS／任意程序的实际包各 47／47，类型
+和空白通过。标准包 691 项，只变更四个 JS；75 个原生来源与原
+输出逐摘要复用，18 个独立生产依赖保持摘要，不宣称全新原生编译。
+复制依赖时曾出现指向旧包的链接，独立性校验拒绝；修正保留原
+相对链接后通过。沙箱 EPERM、夹具／类型／配置回执和预算驱动
+格式错误都保留，未写成产品通过。
+
+原鉴权四路径与网络六项预定三组 AB／BA／AB 共 30 项最高
+1.101 倍，原输入与 1.5／10 微秒预算保持。新代理数值／NSS 缓存
+成功路径约 0.715／1.109 微秒，首次真实 NSS 约 23.9 ms；没有旧
+成功路径对照。原 namespace／nativeAuthorization／apiLoad 模拟
+打印单场通过。首组预算与该场重叠，其余两组在场次终态后执行，
+保留全部样本，不宣称隔离或历史原因。预算驱动修正仅读取原网络
+结果对象，首组不重测。见[完整代理证据](../host/contracts/trusted-proxy-owner-acceptance.json)。
+
+前序 017ab911 的十五项 CI 与 5106／5106 已成功，实际合并检出
+d73063db，见[精确头终态](../host/contracts/pr68-017ab91-terminal.json)。
+本增量须自身检查与正常集成。UI、原生构建、G3 精度、全部 Python／
+Moonraker／消费者与宏、客户端完整故障及 Cycnumbris 500 实机保持
+开放；其他机型最后。以下保留前序调查及其原包身份。
+
+原生交接的分阶段对照已补齐：原输出和五个原输入案例保持，每个
+500 次／两预热七样本，两版探针各预定三组 original／off／on
+交错，共 18 个进程、90 个案例组；各版 52,500 条带原生时间的
+记录和 36 次过程观察封存。两版私有组件回归各 121／121，通过
+不等于完整产品或性能预算验收。仓库运行时与运动／数学源码不变。
+
+直接 UI 的消息准备约 0.5 微秒。CPU 只读扩展发现同一进程第一组
+UI 中，同 L3 缓存组的排队／调用／回复／完成交接中位数为
+2.47／3.43／2.45／3.34 微秒，跨 L3 为 3.85／5.021／3.86／4.91
+微秒；原工厂 UI 只有 i+1，没有调用消息。此关联支持下一处设计
+聚焦减少必要交接，不能认定历史失败根因。所有慢样本和相同逻辑
+CPU 的长尾保留；没有绑定 CPU、调整优先级／频率或改预算。
+
+探针的全新构建在 napi-derive-backend 发生 rustc 内部崩溃：元数据
+索引长度 31、访问 16777236。二十份对应依赖产物与前序字节相同，
+不足以确定全部依赖或内存原因。保留失败 target 和原日志；复制已
+验证依赖目录后的独立目标仍重编译依赖，随后通过；CPU 增量只重
+编译组件后通过。这不是首次全新构建通过，原生稳定性门槛仍开放。
+初次组件回归因沙箱拒绝 127.0.0.1 监听中止，同一套件在已授权
+有限本机范围通过；原 EPERM 日志保留。
+
+分布采用带时钟／锁的私有探针，取记录位于单次计时之后，不能
+替换原批次中位数预算。记录 CPU 与时间存在极小观察间隔，过程
+分类无并行不证明整机安静。原 1.5 门限、UI 全部失败和 G3 精度
+要求保持。见[分阶段及 L3 对照](../host/contracts/template-ui-terminal-probe-acceptance.json)
+中的 nativePhaseProfile 与[全部原始证据](../host/contracts/template-native-phase-evidence.json.gz)。
+
+以下保留前序完整消息与终态候选的调查：
+
+完整类型的原生结构化消息对照已独立编译验证；它沿原 tagged 类型
+树传递调用，保留精确数字字符串和原 JS 解码器。原 JSON 外壳的
+转义与完整元数据仍由有界计数器遍历，64 KiB 上限保持；不能将它
+描述为完全移除编码。独立原型 119 项、组合终态／代际原型 120 项，
+额外容量边界 2 项通过。这是私有组件原型，不是完整产品验收。
+
+预定三组原预算对照仍有直接 UI 1.538／1.567／1.536 倍、工厂 UI
+1.697 倍失败，原 500 次／两预热七样本、冻结参考及 1.5 门限保持。
+24 次进程观察未发现已分类编译／测试并行，不证明整机安静或历史
+根因。候选未接入；不足以支持移除 JSON 文本传输即可解决 UI 预算。
+
+仅保留两项完整消息元数据回归：最大 u32 渲染编号与第 64 次调用
+计入同一 64 KiB 边界；精确边界成功。一字节更大在第 10 次调用
+元数据增长时拒绝，不触发第十次回调；此前九次有效作用没有回滚。
+源码、独立 JS、禁止 TS／外部程序的原产品包各 121／121，类型和
+空白通过。仓库运行时、原生和运动／数学源码未改变，原产品包身份
+不变。新增 120 项源／二进制／样本证据，先前 263 项归档保留；见
+[UI 调查证据](../host/contracts/template-ui-terminal-probe-acceptance.json)。
+
+前序 b41e33f3 十五项 CI、5104／5104 通过，实际合并检出 45a68579，
+见[精确头终态](../host/contracts/pr68-b41e33f-terminal.json)。这不是合入
+develop 的证明，不覆盖本增量；本头须独立 CI。下一判别分开原生
+排队、消息准备、Node 交接、回复唤醒及完成交接；不重复已拒绝的
+ReplySlot／Condvar 方案。UI／G3／全 Python／Moonraker／宏和
+Cycnumbris 500 完整交付仍开放，其他机型最后。
+
+以下保留前序两候选调查的原始范围和结论：
+
+前序直接处理原 UI 模板预算，未把其他模块通过当成该门槛关闭。
+当前接受冻结包的原脚本仍复现工厂异步 1.678／UI 2.057 倍失败，
+输入、期望输出、500 次／两预热七样本及原 1.5 门限不变。
+
+第一候选只减少一次终态 Promise 等待，保留原双线程、32 帧／64
+调用、期限、取消与数值协议。首轮六项通过，但预定三组交错中
+直接 UI 回调为 1.598 倍，未通过。第二候选进一步以原私密绑定的
+存在性检查代际，不无谓取出私密快照；旧包固定反例在八次 UI 渲染
+期间额外读取八次私密值（11／期望 3），证明这一类开销。候选
+源码、独立 JS、实际包各 120 项通过，仍有回调 1.683／UI 1.856 倍
+性能失败，不据功能回归通过采纳运行时优化。
+
+先前采样没有核实并行类型检查的终态，因此新增一次有判别力的
+负载控制：三组对照在每个进程前后记录无已分类编译／测试并行，
+仍出现 UI 1.526 倍失败。另一个有限对照主动启动同一类型检查，
+四段测量前后均实际观测到编译进程。两组均保留，不把相关性当成
+历史失败根因，不使用安静结果覆盖原失败，也不调高门限。
+
+两个原型现已撤回；运行时源码与原 69d58486 相同，原生／数学
+输出不变，原包仅用于回归，没有重新原生编译或新增打印验收。
+仅保留两项原行为回归：完成信号观察者重入取消／关闭不能覆盖已
+发布结果，同步原生准入失败仍返回拒绝的 Promise 且不占住帧容量。
+恢复后源码、独立 JS、禁止 TS／外部程序的原实际包各 119／119，
+类型与空白通过。263 项完整证据含候选源、冻结包、原型失败和
+过程观察；见[UI 终态调查](../host/contracts/template-ui-terminal-probe-acceptance.json)。
+
+前序 69d58486 十五项 CI、5102／5102 通过，实际合并检出 31a8f544，
+见[精确头终态](../host/contracts/pr68-69d5848-terminal.json)。本回归与
+证据增量须自身 CI。下一判别聚焦原生调用／回复／完成的跨线程
+交接成本，保留 UI 原失败和打印精度边界。完整 Python／Moonraker／
+消费级宏、原生构建稳定性／G3／Cycnumbris 500 与正常集成仍开放，
+其他机型最后；以下记录保留各自原包身份。
+
+配置 CORS 的数字 Origin 回退现借用原授权所有者的主机名／NSS
+名单、缓存与退出边界，不另外建立解析器或活动名称缓存。非空规则
+未匹配的规范数字 Origin 上查询；Origin 中的主机名不直接查 DNS，
+原 IPv6 括号排除和 Python 专有正则兼容差额保持。跨域许可不授予
+RPC／打印身份，强制登录、错误 API Key／JWT 仍返回 401。
+
+HTTP 和升级在查询前纳入原请求所有者；原期限包含等待，关闭、
+客户端断开或升级 EOF 取消原信号。待完成升级也占用原连接与请求
+容量，晚结果不能打开连接或执行接口。先复现旧预检 403／期望 204，
+随后扩展测试发现升级 EOF 未及时释放等待；实际修复 EOF 监听后
+同一输入通过。失败、沙箱及归档准备诊断均保留，没有放宽断言。
+
+源码、独立 JavaScript、实际安装包各 44／44，完整类型及空白检查
+通过。原网络脚本 200 HTTP／500 WS／30 次启动关闭、三预热十一
+样本未改，三组 AB／BA／AB 的十八项对照最高 1.041 倍，保持 1.5
+门限；其无 Origin／惰性鉴权负载不冒充 DNS 开销。新共享缓存路径
+十万次查询、三预热五样本约 2.510 微秒／次，实际 NSS 冷查约 25.8
+毫秒，没有旧成功路径耗时对照，也不代表目标板吞吐。
+
+新冻结包 690 项、独立离线安装 18 个锁定依赖，仅五个接线 JS 不同；
+核对 75 个原生来源及输出后复用，数学／打印内核不变，未重新原生
+编译。原 namespace／nativeAuthorization／apiLoad 模拟混合场景使用
+既有 CORS Origin 选项通过，状态 P99 8.363 毫秒、步进最小提前量
+89.552 毫秒，原输入、断言与期限保持。它使用字面来源规则，不是
+打印中阻塞 DNS、完整矩阵或实际客户端证据。见
+[CORS 共享所有者与完整记录](../host/contracts/cors-trusted-domain-owner-acceptance.json)。
+
+前序 8bd11bdb 十五项 CI、5092／5092 通过，真实合并检出 68b96856，
+见[精确头终态](../host/contracts/pr68-8bd11bd-terminal.json)。本接线
+须自身新头 CI；完整 Moonraker／全部 Python／消费级宏、可信代理／
+完整正则、原 UI／原生构建／G3／Cycnumbris 500 与正常集成仍开放。
+其他机型最后，以下记录保留其原包身份。
+
+驱动电流设置现复用原 GCodeDispatch.runAdmissionExclusive 与维护
+门禁，只允许跟随已准入的空闲时钟工作。普通脚本／打印／其他维护
+不能成为延迟设置的等待队列。进入同一所有者后重新鉴权并核对原
+用户名、代际寿命、状态令牌、驱动型号最大电流和机器空闲；随后才
+取得维护门禁及开始写入。原十秒包含排队和鉴权。准入前拒绝／取消
+不停止其他工作，实际写入失败保持门禁失效、硬件关闭和安全停止。
+请求字段在等待前冻结；并发重复拒绝，已完成的精确重试仍不重放。
+
+真实调度／维护门禁的可控时钟夹具在旧代码确定返回 idle 409；修复
+覆盖时钟交接、期间打印／权限／身份／版本／型号变化、取消／关闭、
+十秒期限、挂起鉴权、晚权限、不可变参数及写入失败。相关源码、
+独立 JS、禁止 TS／外部程序的实际包各 50／50，通过完整类型检查。
+这证明空闲时钟竞争这一类问题；前一主机名包的瞬态 409 仍保留，
+不能断言每次历史拒绝均由它造成。
+
+原四驱动／2000 次查询、两预热七样本未改，冻结前后包三组
+AB／BA／AB 最高 1.009 倍；实际调度就绪查询补充对照最高 1.014 倍，
+保持 1.5 门限。历史基准摘要不同源于九月 f308f112 增加 max_current，
+本增量未修改原脚本；原历史记录与差异均保留。没有旧的成功时钟
+等待路径，故不编造等待耗时对照。桌面查询不代表目标板吞吐。
+
+新冻结包 690 项，独立离线安装 18 个锁定依赖；仅驱动电流与产品
+接线两个 JS 不同。核对全部 75 个原生来源及原输出，数学／打印
+内核字节不变，未重新原生编译。原 namespace／nativeAuthorization／
+apiLoad 模拟打印混合场景通过，状态 P99 4.219 毫秒、最小步进
+提前量 88.67 毫秒，原输入、期限和断言不改；不是完整矩阵或实机。
+见[驱动电流调度与完整记录](../host/contracts/driver-current-clock-admission-acceptance.json)。
+
+前序 5ee090ca 十五项 CI、5081／5081 通过，真实合并检出 3b691d33，
+见[精确头终态](../host/contracts/pr68-5ee090c-terminal.json)。本修复
+须自身新头 CI。全部 Python／完整 Moonraker／消费级宏、原 UI／
+原生构建稳定性／G3／Cycnumbris 500 与正常集成仍开放，其他机型最后。
+
+以下主机名与页面记录保留原包身份。
+
+trusted_clients 的主机名现经系统 NSS 查询接入原授权所有者，包括
+HTTP／WebSocket、通知／订阅、access.info 及实际配置装配。数字 IP／
+CIDR 仍同步匹配，明确主机名精确匹配并缓存 84,000 秒；错误凭据、
+强制登录和未实现的代理委托不能借此取得权限。查询后的准入仍重新
+检查原身份、当前策略及请求寿命，没有新增身份别名。
+
+查询在受控 Node 子进程执行，不调用 Python 或共享 libuv 名称线程。
+五秒包含启动；最多四子进程、十六待查地址、4096 缓存地址。取消、
+超时及关闭终止并排空原子进程；一名调用者取消不影响同址其他调用者，
+关闭后的晚结果不能重新授权。仅 NSS addon 从私有 C／Node 头快照
+重编，74 个未改原生来源及数学／打印输出按原摘要复用。新包 690 项，
+独立离线安装原锁定 18 个依赖；不宣称重新完整原生构建。
+
+源码、独立 JS、实际包各 40 项通过，ASan／UBSan 各 4 项及类型检查
+通过。四条原鉴权负载不改，三组 AB／BA／AB 对照最高 1.083 倍，
+保持原 1.5 与 10 微秒门限；新缓存域名路径约 0.542 微秒。实际阻塞
+NSS 子进程时，文件写入／事件循环 P99 为 0.574／0.497 毫秒，
+保持 50 毫秒。最终包原鉴权／文件／模拟打印混合场景通过，原输入、
+提前量和事件循环断言不改；不代表目标板吞吐或物理运动精度。
+
+前一配置包的初始化驱动电流请求出现 idle 409；原失败保留，基线
+及最终冻结包的同一场景通过，具体瞬态原因尚未证实，继续跟踪，
+不将它写成已修复或据此放宽空闲保护。真实配置装配曾绕过异步
+名称入口，已修正为同一原所有者的网络入口。见
+[主机名接线与完整证据](../host/contracts/trusted-client-domains-acceptance.json)。
+
+前序 68aeffa8 十五项 CI、5063／5063 通过，实际合并检出 7586b98c，
+见[精确头终态](../host/contracts/pr68-68aeffa-terminal.json)。本运行时
+增量须自身完整 CI。完整 Moonraker／Python 退役／消费级宏、可信
+代理及完整 CORS／配置、原 UI／原生构建／G3／Cycnumbris 500 和
+正常集成仍开放；默认 Python 不切换，其他机型最后。
+
+以下目录与客户端记录保留其原软件包身份。
+
+标准 multipart 的上传目录现相对所选根处理，支持客户端的 `path="/"`
+及首尾分隔符；内部空段、路径穿越、受保护名称和字面百分号的原
+规则保持，目录仍逐级鉴权。G-code／UFP 复用原发布、打印和队列，
+配置上传复用原限定写入、备份和只读规则，不修改运动或原生代码。
+
+源码、独立 JS、实际安装包各 118 项通过。原 4／16 MiB 上传负载、
+两预热七样本、三组 AB／BA／AB 对照最高 0.995 倍，保持 1.5 门限。
+新包 688 项、独立离线安装 18 个锁定依赖，核对 75 个原生来源并
+复用未改输出；仅上传 JS 改变，不宣称重新原生构建或打印尾延迟。
+
+Fluidd R38 实际文件选择立即返回，服务收到 `path="/"` 后 HTTP 400，
+定位为产品路径拒绝；161 秒关闭，不据此解释此前所有工具长等待。
+R39 新包在同一固定 18430／探针 18428 完成两份新文件的真实选择
+上传及打印，18,785／944 字节与原件一致；从文件菜单明确入队后，
+同包产品进程正常重建，原队列／文件／完成历史保持且暂停、不重放。
+重新页面归位及新清台确认后第三份任务完成，请求身份不同。
+实际配置编辑器保存了仅新增注释的 printer.cfg，58 字节已精确核对。
+场次 605 秒关闭，两监督进程退出 0，四固定端口无遗留。
+
+打印中 Fluidd 禁用“上传并打印”，该次文件选择等待没有事件，不计
+忙碌页面入队通过；编辑器原生输入上下文的定位失败和成功浏览器
+键盘路径均保留。只读 API 作佐证，无 API 上传／配置写入替代。
+Mainsail R40 使用同一固定 18434／探针 18432，内置浏览器文件选择
+调用仍长等待，工具回报 3573 秒，场次 889 秒已关闭，无上传请求；
+原因未定，不归因于权限拒绝。按已授权浏览器后备路径，R41 使用
+已安装 Chrome／Playwright、独立临时档案且启用浏览器沙箱，没有
+调整安全设置。真实普通选择器上传两份新文件，18,785／944 字节
+与原件一致，上传后没有任务或队列；页面明确打印第一份并完成，
+打印中从文件菜单把另一份入队，忙碌页面禁用清台确认。同包产品
+进程正常重建后完成历史、文件及暂停队列身份保持，不自动重放。
+实际编辑器保存仅增加注释的 58 字节 printer.cfg，摘要与原件核对。
+R41 重建后的重新归位／新确认未完成第二份打印；下方 R42 补齐。
+首次归位尚未确认结束时的两个上传 409 及过期前未完成动作保留。
+R41 场次 889 秒关闭，两个监督子进程退出 0；浏览器 886 秒关闭，
+沙箱开启、临时档案删除。无过期重启。只读 API 佐证真实页面，
+不替代上传、配置写入或打印操作。见
+[Mainsail 同包证据](../host/contracts/mainsail-upload-recovery-acceptance.json)。
+
+R42 沿同一锁定包及固定端口补齐上述恢复续打缺项：两份真实选择器
+普通上传后没有自动打印／排队；页面明确完成第一份，打印中从文件
+菜单加入另一份。进程正常重建后原完成历史、文件及暂停队列身份
+保持。页面重新归位，请求新的清台确认并重新勾选／提交，第二份
+打印完成，两个请求身份不同、队列为空。实际 History 页面显示
+两份成功作业。R42 在 465 秒内主动关闭，两监督子进程退出 0；
+浏览器 461 秒关闭，沙箱开启、临时档案删除，无过期重启。
+浏览器回调仅捕获确认请求的回执，提交后立即返回控制台；原产品
+日志两个 start=200 及两个耐久完成作业共同佐证，不伪造浏览器回执。
+同包模拟证据不代表 SIGKILL／故障、物理精度、目标吞吐或完整迁移。
+
+SIGKILL／故障旅程、完整客户端与硬件仍开放。
+见[目录修复与实际页面证据](../host/contracts/client-upload-path-acceptance.json)。
+
+前序队列头 3d9f439a 十五项 CI、5060／5060 通过，真实合并检出
+`d23d11b3`，见[终态](../host/contracts/pr68-3d9f439-terminal.json)。
+运行时头 81e9a21d 十五项 CI、5063／5063 通过，实际合并检出
+7ac9a1f9，见[精确头终态](../host/contracts/pr68-81e9a21-terminal.json)。
+本记录增量须自身新头 CI；全部 Python、完整 Moonraker／消费级宏、
+原 UI／原生构建／G3／Cycnumbris 500 及正常集成仍开放，其他机型最后。
+
+以下为前序上传队列候选的锁定记录；其“须自身 CI”由上方精确头
+终态补齐，完整客户端缺项按本轮实际通过范围逐项更新。
+
+明确的上传打印意图现接入原持久队列。`[file_manager]` 的
+`queue_gcode_uploads=true` 必须同时装配 `[job_queue]`，缺省关闭。
+标准上传与 OctoPrint 上传／选择在设备忙碌或新请求到来时已离线的
+情况下，可以将刚发布的不可变文件加入同一队列；普通上传不排队。
+逐次核验原网络身份、队列及打印权限，入队前后核对文件身份。
+已进入打印控制器后的异常或丢失回执不回落排队，避免重复打印。
+上传与选择绑定原设备代际；离线准入不能启动后来恢复的代际。
+
+队列重建保持暂停及原文件／任务身份，不自动重放。启用操作确认
+策略时，自动续打仍等待实际完成后的新清台确认。相关源码、独立
+JavaScript 及实际产品包各 225 项通过；三组既有队列及新增不可变
+文件准入预算通过，保留原 1.5 与 50／50／100 ms 门限。
+仅本机模拟软件证据，未覆盖目标板打印吞吐、运动精度或完整页面。
+见[上传队列验收](../host/contracts/upload-queue-intent-acceptance.json)。
+
+前序 ff5b29be 十五项 CI、5044／5044 通过，真实合并检出 8e5b0f1c，
+见[精确头终态](../host/contracts/pr68-ff5b29-terminal.json)。本队列修复
+须自身新头 CI；全量 Python、完整 Moonraker／消费级宏、完整客户端、
+原 UI／原生构建／G3／Cycnumbris 500 和正常集成仍开放，其他机型最后。
+
+候选配置：
+
+```ini
+[file_manager]
+queue_gcode_uploads=true
+
+[job_queue]
+job_transition_policy=operator_confirmation
+```
+
+入队回执含 `print_queued=true` 和 `print_request_id`；发布成功而打印／
+队列被拒绝时保留文件，并返回明确 `print_error`，调用者先查询原任务
+状态，不自动重试打印。设备动作开始后的准备失败仍属于原任务。
+
+以下为前序切片器兼容的锁定记录；其中上传队列软件缺项由上方证据
+补齐，Cura 插件页面和完整客户端旅程继续开放。
+
+可选 OctoPrint 切片器兼容入口已接入当前 Node 产品。配置
+`[octoprint_compat]` 后，9 个静态状态／命令接口与文件选择接口
+仅开放 HTTP，沿原网络鉴权直接返回上游 JSON，选择但不打印返回
+204。API Key 身份仍由原授权所有者核验，兼容元数据中的 _api／
+admin 标签不授予任何权限。动态路径只解码一次，不能通过请求体
+或查询覆盖；打印与命令再次经过原控制入口及设备代际检查。
+
+`/api/files/local` 是原 NativePrintUploads 的别名，复用流式容量、
+私有暂存、校验、UFP 解析、不可变发布和任务日志。Location 指向
+`/api/files/moonraker/gcodes/…`，选择及明确 print 意图复用原打印
+策略，不能上传配置文件。enable_ufp=false 同时关闭能力声明并
+在发布前拒绝 UFP。单纯 select 不启动动作；上传后打印拒绝仍保留
+文件和显式失败回执，不重放。上传后自动排队的完整兼容尚待补齐；
+选择文件的队列回落仅适用于已装配且明确启用的原队列。
+
+状态从当前机器所有者读取；断线仍显示上次温度并明确 Offline／
+Error。温度使用原 binary64 十进制舍入实现，未修改运动数学。命令
+保持固定上游的顺序与运行失败兼容行为，鉴权、取消和代际失效
+继续传播；支持的动作与宏以原控制入口为准，不据此宣称全部脚本
+或消费级宏已交付。握手复用不可变版本响应与已解析 Promise，
+仍逐请求核验取消和组件关闭，其他状态始终动态读取。
+
+一次性冻结实际固定上游 106 个响应案例，日常回归与新增基准只用
+Node。源码、禁止 TS／外部程序的独立 JS、实际安装产品包均完成
+受影响的 156 项原回归。三组固定响应对照最高 0.825 倍，原 1.5
+门限保持；现有实际 HTTP／WebSocket／启动路径最高 1.065 倍。
+早期握手 1.607／1.509 超限和准备失败全部保留。最终网络接线
+字节保持，上次网络基准没有装配此可选组件，不冒充启用后的测量。
+详细原始失败与性能门限见
+[切片器兼容验收](../host/contracts/octoprint-compat-acceptance.json)。
+新包 688 项、18 个锁定生产依赖，核对 75 个原生来源并复用原输出；
+相对归位包仅五个 JS 不同。该证据不覆盖 Cura 插件页面、实机、
+原生重新构建、全部 Moonraker 或全部 Python 退役。
+
+归位修复头 5c934240 十五项 CI、4925／4925 通过，真实合并检出
+eca53e86，见[终态](../host/contracts/pr68-5c934-terminal.json)。
+本切片器增量须自身新头 CI；177 个 Python 文件、默认入口、完整
+客户端／宏／队列、原 UI／构建／G3／目标板和正常集成继续开放。
+
+候选配置示例：
+
+```ini
+[octoprint_compat]
+enable_ufp=true
+flip_h=false
+flip_v=false
+rotate_90=false
+stream_url=/webcam/?action=stream
+webcam_enabled=true
+```
+
+切片器使用原授权所有者提供的 API Key，发送 X-Api-Key 请求头；
+不要将密钥写入地址或 Git 配置文件。可用原 Node 26 执行
+`node host/bench/octoprint-compat.mjs` 检查冻结的响应预算。
+
+
+以下为前序候选的锁定记录；其“须自身 CI”不替代上方精确头终态。
+
+
+归位二次授权现在与原120秒期限、请求取消及代际退役共同受控；授权用户名变化时拒绝执行。未开始物理动作时释放调度准入，不触发安全停止；迟到授权不能启动归位。外部授权 Promise 本身仍不可强制取消或 join。固定反例、首轮 Windows 环境失败、home22项通过及 Linux12项／标准类型检查见[归位契约](../host/contracts/native-home-clock-admission-acceptance.json)的 reauthorizationFollowUp；不据此声明新锁包、页面或目标板延迟已验证。
+
+Fluidd 页面 G28 的空闲时钟竞争已修复。诊断 R35 捕获真实脚本
+G28 与 portBusy，R36 确认是后台 clock 阶段；其首个页面 G28 没有
+失败，不将采样诊断包计作产品或性能通过。归位现只跟随原调度
+所有者的空闲维护，等待后重新核对权限、令牌、代际、机器空闲及
+维护门禁。原 120 秒期限包含等待；尚未启动物理动作的准入拒绝
+不停止其他所有者，启动后失败仍沿原安全停止，不修改运动数学。
+
+源码、禁止 TS／外部程序的独立 JS、实际完整包各 39 项回归通过。
+原 500 次负载、两预热／七样本的三组交错对照最高 1.384 倍，
+保持 1.5 门限；原 10000 指令精确输出基准中 Node 中位 21.65 ms，
+Python 38.25 ms，事件循环 P99 1.426 ms。该基准仍使用 Python
+参考，不能据此声明所有 Python 已退役或目标板打印性能通过。
+
+新包 687 项、独立离线安装 18 个锁定生产依赖，只三个接线 JS
+变化；核对 75 个原生来源并复用原输出，没有重新原生编译。固定
+Fluidd 18430／探测 18428 的 R37 实际页面完成初次归位、打印、
+取消、标准 Firmware Restart、再次页面归位及另一份任务完成，
+无 HTTP 归位替代、无归位 409。原两个模拟 MCU 各复位一次／
+配置两次，旧取消身份及累计时长保持、不自动重放；308 秒关闭，
+两个监督子进程退出 0，无延长或过期重启。文件仍由 API 种入，
+不计作文件选择上传；不计作层计数、实机或完整客户端验收。
+
+原始反例、准备／初版失败、完整样本及页面截图见
+[归位调度验收](../host/contracts/native-home-clock-admission-acceptance.json)。
+前序记录头 887d2713 的十五项 CI、4917／4917 通过，真实合并
+检出 ec965b44，见[终态](../host/contracts/pr68-887d-terminal.json)；
+本运行时修复须自身新头 CI。全部 Python、完整 Moonraker／消费级宏、
+文件上传／配置编辑／完整队列、原 UI／构建／G3／目标系列门槛及
+develop → master 出口仍开放，其他机型最后。
+
+以下为前序锁定包的历史记录；R34 页面归位失败保持原证据，
+上方 R37 新包有限旅程已补齐该缺项。
+
+同一 `067310d9` 独立 687 项包的 R33 已补齐 Mainsail 页面取消、
+标准 Firmware Restart、重新归位及另一份任务完成；两个原模拟 MCU
+各复位一次／配置两次，旧取消任务身份和时长保持，不自动重放。
+场次在 417 秒关闭。Fluidd R34 取消和标准恢复确认，但页面 G28
+初次及恢复后两次均返回 409。只读诊断显示当前归位准入可用，
+同场标准 HTTP G28 成功后，页面新短任务完成；它不能代替页面
+归位成功，Fluidd 完整恢复旅程仍开放。R34 在 786 秒关闭。
+两场所有监督子进程均退出 0，无延长或过期重启，固定来源保持。
+见[恢复后续原始证据](../host/contracts/client-recovery-followup-acceptance.json)。
+当前代码头十五项 CI、4917／4917 已通过；记录修改须自身检查。
+
+当前模拟客户端取消使用原协调安全停止；官方页面可进入 shutdown，
+提示需要重新初始化。使用标准 Firmware Restart，等待状态恢复
+ready，再重新归位后准备下一份任务；普通 RESTART 不用于清除
+已停止 MCU 的状态。R29／R30 实际页面确认取消与标准固件恢复，
+两个原模拟 MCU 的复位／配置计数证实重新初始化，Mainsail 的取消
+任务和原请求身份仍保留，不自动重新开始。R29／R30 当时没有验收
+恢复后再次打印；上方 R33／R34 分别记录后续通过范围和归位拒绝。
+同包两客户端浏览器下载已与原件逐字节核对，固定来源 18430／18434
+保持；文件选择上传和配置编辑仍待验。详见
+[同包后续证据](../host/contracts/native-home-compatibility-acceptance.json)。
+该代码头 `d782761f` 十五项 CI 和普通 4807／4807 已通过，本记录
+不代替实机、运动精度、原 UI／构建或默认入口切换门槛。
+
+内部 `httpClient.probe(url, options)` 排空解压后的流并检查容量，只返回
+2xx 可达结果，不保存图片或使用／修改条件缓存；正常 HTTP 请求的
+响应字节与缓存行为保持。标准摄像头借用同一进程实例；关闭摄像头
+取消其探测并排空，不能关闭借用资源，服务退出才关闭进程客户端。
+独立摄像头实例自建客户端并在退出关闭。保留四请求、1 秒、8 MiB
+边界，源码／独立 JS 26 项及原 1.5 桌面对照通过，见
+[摄像头接线](../host/contracts/webcam-http-owner-acceptance.json)。
+该闭包不是包含本增量的新完整包；前序整包证据仍绑定下述 `2bdf89ac`。
+UI 整数直传原型因交错预算失败未采用，模板 ABI／协议保持原实现。
+
+当前 `2bdf89ac` 完整包已重建并独立安装锁定生产依赖，686 个清单
+文件及原生来源／输出核对；源码与编译的固定频谱、整形结果一致。
+禁用 TS 加载／PATH 外部程序的冒烟与原鉴权文件／队列／模拟打印
+混合旅程通过。原模板 UI 两项仍为 2.060／1.506 倍，原 1.5 门限
+保持。R22 Fluidd 登录／列表通过，上传工具约 105 分钟返回时场次
+早已于 888 秒关闭，没有上传请求记录，不推断为权限或产品错误。
+同头十五项 CI、普通 4801／4801 通过；参见
+[当前整包记录](../host/contracts/current-bundle-2bdf-acceptance.json)及
+[精确 CI 终态](../host/contracts/pr68-2bdf-terminal.json)。
+这不覆盖完整客户端、默认构建稳定性、G3 或目标板验收。
+
+内部 HTTP 的 `json()` 返回可包含 BigInt 的组件值；请求对象／数组
+同样支持 BigInt 数值 token，不转换为字符串或舍入 Number。
+默认整数容量 4096 位，响应可显式传入 `integerDigits`。普通整数
+保持 Number，浮点保持 binary64；负零及缓存原字节保持。
+该类型不等于公共 RPC `Json`，不得据此把 BigInt 自动转为 Number
+或授予运动指令权限；公共解析／验证保护未改。私密文件继续保存
+原始模板词法与不可变代际。源码／独立 JS 各 136 项及原桌面预算
+通过，初版退化保留，见[精确 JSON 记录](../host/contracts/http-exact-json-acceptance.json)。
+
+标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
+通过内部 `httpClient` 接口供组件借用，`server.info` 发现该组件。
+它不增加供外部调用者传入任意 URL／目标路径的公共端点，也不改变
+打印设备所有者。公告借用客户端，退出时服务关闭客户端并排空，
+独立公告实例则只关闭其自建客户端；关闭借用者不关闭进程资源。
+保留默认 TLS 证书校验、跨源重定向凭据隔离、连接／请求期限，
+限制 32 个活动／排队请求与 64 个缓存条目，缓存总量最多 512 MiB。
+公告使用原 1 MiB 输入边界，下载采取流式背压与原最大输入容量。
+调用者提供明确绝对目标，或使用 `$TMPDIR` 的私有下载目录；远端
+文件名只允许目录内名称。下载写私有同盘暂存，成功后同步并替换，
+提交前失败或取消保留旧文件；提交后清理失败增加诊断计数，不误报
+或重试已提交下载。此处不代表目录同步／断电恢复已验证。
+相关源码／独立 JS 43 项、下载鉴权及清理故障补充各 15 项及原预算通过，
+见[HTTP 接线证据](../host/contracts/moonraker-http-client-acceptance.json)。
+独立闭包不是完整新产品包；剩余消费者、宽编码／整数兼容、客户端
+和目标板／打印门槛仍待完成。
+
+当前另有一份 `997417d4` 控制构建新包：构建进程固定 CPU 0、
+`CARGO_BUILD_JOBS=1`，其余源码、锁定依赖及 release 参数保留。
+没有据此修改生产构建或应用默认亲和性，也不将一次成功判为稳定。
+十二次有限编译核心／负载对照成功，库及元数据字节一致，根因未证。
+新包及独立依赖摘要绑定后用于 R20／R21，同包检查和关闭时复核。
+R20 上传工具长等待跨过期限，只有登录／列表确认；R21 由 API
+种入合成文件，UI 两层预览及重建后队列／配置读取确认。API 下载
+944 字节一致不等于浏览器下载，未执行完整打印或 SIGKILL 恢复。
+两场分别 888／651 秒关闭，无延长／过期重启。新包工厂 UI 的
+2.059 倍原预算仍失败。证据见
+[构建控制与客户端](../host/contracts/native-affinity-client-acceptance.json)。
+
+当前调用消息使用已有 `wire` 类型参数和一个有界 `TextOutput`，
+包括外壳、JSON 转义在内最多 65536 字节；超限不进入 JS 能力函数。
+整数与浮点、负零、嵌套容器等原语义保持，不修改原生回复通道。
+相关源码和禁用 TS／外部 JS 子进程的独立编译各 183 项通过。
+两个性能原型已撤回，宽参数比值 0.819 不覆盖仍失败的小参数 UI。
+完整单并行构建又在锁定依赖的编译器内部索引检查失败；早期原型
+没有输出新包，最终实现只编译项目 crate、复用锁定依赖缓存。
+下面 `fff160bf` 的新包是前序锁定产物，不包含本次消息外壳改动。
+完整证据见[消息边界](../host/contracts/template-call-envelope-acceptance.json)，
+前序 `6f027708` 自身 CI 现已全通过，不借用于本次新代码。
+
+## 当前新包构建对照
+
+`fff160bf` 已完成一次 `CARGO_BUILD_JOBS=1` 的全新原生对照和完整
+产品构建，release 优化、数值语义、Cargo 锁定及路径映射不变。
+这只是本次验收构建的显式环境参数，产品默认构建没有改成串行。
+新包独立安装 18 个锁定生产依赖，不执行安装脚本。全部 684 个
+清单文件及 11 个原生输出核对 SHA-256，验证 CLI 和实际冒烟通过；
+禁止 TS 加载及 PATH 程序，源码／编译的固定频谱、整形输出一致。
+桌面冒烟不连接真实设备，不代表完整客户端、打印或目标板验收。
+
+默认并行 Rust 捕获仍在 num-bigint 的 LLVM 循环优化处 SIGSEGV。
+捕获目录保留原命令、限定环境项、锁定源文件、两个实际 extern
+元数据和失败输出；完整 target 与官方编译器归档不打进证据，
+其已检查摘要保留。Cargo 的探测退出 1 与该 SIGSEGV 分开记录。
+两次单命令对照使用字节一致的依赖复制、不同输出路径，不带原
+jobserver 描述符；默认栈和 16 MiB 栈都成功，不能据此定根因。
+沙箱 EPERM 的重放不计为编译成功；授权后的两次无启动错误。
+
+新包独立 UI 固定预算仍为 1.801 倍，原 1.5 门限不变；工厂三项
+通过不覆盖它。全新单并行包只用于后续锁定本机验收，未发布生产或
+切换默认打印入口。构建、依赖、探测与性能原始记录见
+[构建对照](../host/contracts/native-build-investigation.json)，压缩证据
+条目带字节数及 SHA-256，先核对归档摘要再提取。
+同一头十五项 CI、普通 4736／4736 已通过，见
+[精确头终态](../host/contracts/pr68-fff-terminal.json)。
+
+## 启动入口
+
 原生入口使用 Node.js 26.9 或更高的 26.x 版本：
 
 ```sh
@@ -8,7 +1397,8 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 ```
 
 `--profile` 必须是本机 `.ts`、`.mts`、`.js` 或 `.mjs` 模块的绝对路径。
-帮助和参数错误不会加载机器模块或原生插件。运行主机前仍须安装
+帮助不会加载机器模块或原生插件；参数语法错误不会导入机器模块，
+命名用户路径展开会借用既有 Unix NSS 插件。运行主机前仍须安装
 `host` 依赖并完成 `npm --prefix host run build:native`，运行环境和
 迁移范围见 [迁移说明](Node_Host_Migration.md)。
 
@@ -104,6 +1494,36 @@ node docs/diagnostics/node26-motion-capture-20261008/filter-boundary-analysis.mj
 分析按所给目录读取条目，不依赖报告中的历史绝对路径。当前模型仅
 覆盖捕获中正常、有限 binary64 的运算范围；不声明完整 IEEE 特殊值
 覆盖。不在相同条件下扩展子进程次数求绿。
+
+### 编译入口与子进程退出所有权
+
+`npm --prefix host run typecheck` 由 `host/scripts/run-typescript.ts` 运行。
+标准 `buildProductHost` API 使用同一所有者，开发解析器
+`typescript-resolver.mjs` 不进入运行包。官方 getExePath 在独立 Node
+子进程解析，父进程不加载可能同步阻塞的包元信息；锁定 TS／平台
+包版本、绝对普通可执行文件和所选字节核验后直接 spawn 平台编译器，
+不使用 PATH 或 execve，不需外部 shim。锁文件限 1 MiB，包元信息／
+解析器限 64 KiB，现有候选观察器的有界读取保持；实际二进制摘要
+仅为启动前身份，不能保证无 TOCTOU 替换。
+
+两阶段共用类型检查 120 秒／构建 TS 60 秒 deadline，每流 4 MiB 输出
+保持；触发取消时 SIGKILL 自有 detached 组。解析器／编译器直接子进程正常退出也清理
+同组残余，实际 close／管道退出和组内无活成员后才释放暂存。组终态
+观察失败返回 COMPILER_JOIN_FAILED、cleanupComplete=false，构建
+保留 stage／lock，并保持旧产品；按失败回执路径检查已无活所有者
+后才能恢复，不能直接删锁。期限不保证 kernel D-state 或不可读状态
+的物理结束时间；已死 zombie 不宣称已 reaped。builder 的 signal
+覆盖 TS 与发布前检查，同步原生构建不是即时可取消。仅 Linux
+x64／arm64 可用，其他系统明确拒绝；本机只实际验证 x64。
+
+Node26.10／26.9 的标准类型检查与各 13 项相关测试通过；最终新增
+CLI 测试的完整严格范围在 26.9 核对。实际 Node runner／builder 的
+SIGTERM／SIGINT 取消由自身收口后退出，不代表向 npm 父进程发
+信号必然传播。标准构建 API 使用既有 nativeDirectory 参数核验复用
+原生，700 文件及依赖摘要完全相同；完整 npm 构建 CLI／新原生编译
+未验。历史 execve 挂起原因未证，全部历史边界保留，见
+[编译所有者验收](../host/contracts/typescript-process-owner-acceptance.json)。
+以下保留原候选摘要观察器的验收范围。
 
 ### 产品 TypeScript 编译失败观测
 
@@ -279,6 +1699,7 @@ import {createNativeProductHostFactory} from '/opt/anyraid/host/src/runtime/nati
 import {createProcessResources, createMachineDeviceAdapter} from './board-adapter.mjs';
 
 export const createProductHostProfile = createNativeProductHostFactory('/etc/anyraid/machine.json', {
+  dataPath: '/var/lib/anyraid',
   filesRoot: '/var/lib/anyraid/files',
   metadataRoot: '/var/lib/anyraid/metadata',
   uploads: {stagingRoot: '/var/lib/anyraid/staging'},
@@ -295,6 +1716,19 @@ export const createProductHostProfile = createNativeProductHostFactory('/etc/any
 创建函数负责返回前的部分失败；成功返回后，即使启动取消，也由工厂清理。
 不得在这些回调中依赖已退役的设备。Moonraker 配置在进程首次启动时加载，
 设备重建不会重新加载它或改变服务监听配置。
+
+进程模式必须提供 `dataPath` 绝对目录；缺少目录身份或非法路径在取得
+依赖前拒绝。工厂自动向标准服务传入该目录，并加载一份共享模板／
+私密文件代际，无 LDAP 时也一样。`createProcess` 的 `server` 不得再
+提供 `templates` 或 `authorization.templateSecrets`，重复所有者会拒绝
+并清理已返回依赖。普通标准服务的显式接口仍保留。
+
+目录内的 `moonraker.secrets` 沿用既有优先级与有界读取；设备 RESTART
+和配置代际重建不会重新读取私密文件，更新需明确重启服务进程。
+模板资源在最终服务器关闭时释放，之后工厂再关闭其余进程依赖。
+服务信息只声明已装配的 `template`／`secrets`，不公布私密值或解析后的
+目录。这个入口接入不代表通用组件加载器、完整模板语言、异步性能、
+独立原生构建或目标板打印验收已经完成。
 
 `createAdapter(configuration, signal, gate, processServer)` 每轮返回设备侧
 stops、lifecycle、output、authorizePrintFile 和 release；不能再返回 server，
@@ -924,7 +2358,7 @@ node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyrai
 
 运行包包含主机 JS、后台 worker/子进程、JSON 数值与 Unicode 契约、
 字体及许可证、生产依赖清单与锁文件，以及现有原生插件。依赖需要
-单独安装；构建命令不下载依赖，默认从私有源码快照重建 7 个原生插件，
+单独安装；构建命令不下载依赖，默认从私有源码快照重建 9 个原生插件，
 不再复制工作区遗留插件。可在命令末尾通过
 `-- /绝对路径/输出目录` 指定构建目录。
 
@@ -940,6 +2374,14 @@ node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyrai
 通过同文件系统 rename 发布完整 node_modules。普通失败和取消会等待
 npm 子进程退出并删除暂存目录，可直接重试；不会发布半成品依赖。
 意外强制终止或断电仍可能留下锁目录，应确认没有安装进程后再清理该锁。
+失败诊断只报告退出码、信号、超时／输出上限及已知 npm 错误类别，
+不转发 npm 原始输出、注册表地址或嵌套命令；例如 ENOTFOUND 表示
+名称解析失败，EINTEGRITY 表示下载摘要不符。类别未知时保持 null，
+不从缺失输出推断网络、缓存或编译器原因。调用方可读取稳定错误码
+ERR_PRODUCT_DEPENDENCY_INSTALL 及 exitCode、signal、npmCode 字段。
+诊断、失败清理及编译 CLI 的有限软件验证见
+[安装诊断记录](../host/contracts/product-install-diagnostics.json)；执行环境
+导致的输出缺失与历史安装／编译失败分别保留，不据此认定故障根因。
 发布后已存在依赖的运行包仍不可原地重装，应准备新的离线运行包。
 此命令不安装 Node、不创建账号、不启停服务，
 也不替代下述默认服务切换门槛。
@@ -1854,9 +3296,20 @@ API。沿用既有机器温度策略和 30 秒准入期限，重新授权 `print
 丢失回执时应查询文件、当前打印状态与历史，不重发带打印标志的上传；
 当前设备就绪时可用 `/printer/print/status?request_id=...` 核对耐久记录，
 准入前拒绝可能没有该记录。成功发布现返回 HTTP 201 和 `Location`，
-顶层字段及旧 `result` 别名保持。Location 使用当前 HTTP 监听器的请求
+顶层字段及旧 `result` 别名保持。Location 使用入站时捕获的请求
 Host 和逐段 URI 编码的回执路径，适用于 gcodes／config、显式旧 ID 地址、
-中文、空格和字面百分号；不带令牌／查询，不由转发头选择协议或主机。
+中文、空格和字面百分号；不带令牌／查询，不采纳 X-Forwarded-Host。
+当前后端监听 HTTP。use_xheaders 启用时，仅原 TrustedClients／NSS
+核验的实际代理可按 X-Scheme／X-Forwarded-Proto 选择 HTTP(S)，
+前者优先，取最后一项并区分大小写；畸形、超限或禁用时保持原真实传输协议。
+该协议选择不授予 API 身份，匿名客户端仍核对原双地址／强制登录。
+元数据在请求开始同步冻结，坏凭据先在原上传授权阶段拒绝，协议
+等待沿原请求／上传期限和容量；等待后复核当前身份，暂存前完成。
+原生配置不允许外部覆盖这两个回调，产品在 MCU／日志获取前拒绝。
+源码、独立 JS、实际包各 244 项、原三组预算和原模拟打印通过；
+保护允许逐摘要绑定的原 NSS／缩略图进程及测试专用 PTY C 编译，
+其他程序与 TS 仍拒绝。完整记录见
+[代理协议证据](../host/contracts/proxy-protocol-owner-acceptance.json)。
 既有获准跨域来源可读取该头；来源、鉴权及 OPTIONS 准入未扩大。
 已发布但打印准入失败仍为 201，可读取文件和 `print_error`；发布前失败
 保留原错误状态，不提供成功 Location。客户端应按 2xx 判断上传成功，
@@ -2831,6 +4284,27 @@ trusted_clients 时，forceLogins=false 也不授予匿名访问；未传用户�
 enableApiKey 默认为 true，设为 false 禁用 API Key 网络准入；关闭前须
 已有可用的本地用户，不能把仍可读取的本地密钥当作网络准入已启用。
 
+### 保留身份的公开资料与旧时间恢复
+
+启用用户接口时，GET /access/user 和 WS access.get_user 返回当前已认证主体的
+username、source、created_on：可信IP为 _TRUSTED_USER_，API Key为 _API_KEY_USER_，
+两者 source 均为 moonraker；有效JWT继续使用注册用户原资料。只读资料通过当前GET
+私有绑定交付并消费，不能靠传入用户名替换主体；合法订阅共用signal继续允许。
+
+可信IP首次成功观察时间仅作公开元数据，按有效地址保存一小时滑动寿命，300秒清理，
+最多4096项。描述淘汰不改变既有WS或已发一次令牌持有的冻结身份；每次仍复核当前
+地址和force_logins。一次令牌只能消费一次；失效／地址不匹配后继续原API Key／可信IP
+规则，因此合法可信IP回落可获得当前描述，不会再次恢复令牌原描述。关闭清理timer。
+
+新API Key与 api_key_created_on 在原私有namespace同一batch持久化，轮换和重开保留
+创建时间。无迁移收据的旧native key缺时间时仅首次记录补时，不能称其原历史时间。
+旧安装SQL／namespace保留原 created_on；原namespace确无该字段才一次生成。
+已完成schema1收据缺时间时，须原startup声明并核完整留存源 sourceSha256，再在原事务
+补时，合法旋转后的当前key／用户保持。损坏源、畸形时间或缺声明拒绝启动；已有合法
+时间不重读或覆盖旧源。任何已存在收据（包括null）都不能被当作普通无迁移库补当前时间。
+新候选1735的隔离网络／数据库、窄鉴权验证见[保留身份验收](../host/contracts/client-recovery-followup-acceptance.json)的reservedIdentityFollowUp；
+随后同包可信回环Mainsail有限旅程另见mainsailTrustedLifecycleFollowUp，完整A4与真实设备仍未验收。
+
 启用后支持 /access/user 的创建、查询与删除，/access/users/list、
 /access/login、/access/logout、/access/refresh_jwt 和 /access/user/password。
 首次创建用户需要本地配置的 API Key，后续可用已认证用户。用户数据存入
@@ -2904,6 +4378,17 @@ PATH 工具的子进程中运行产品；PTY、限位与温度模拟留在父进
 `product-compiled-journey.test.ts`。
 
 ### 固定同一编译包验收
+
+本机会话同时固定浏览器来源，不再按场次递增端口。Fluidd 使用
+`http://127.0.0.1:18430`（探针 18428），Mainsail 使用
+`http://127.0.0.1:18434`（探针 18432）；声明见
+[固定端口](../host/contracts/client-acceptance-ports.json)。下一场先确认
+上一场的监督进程和监听已退出；端口占用时停止启动，不自动改端口，
+不终止不属于本任务的服务。日志、回执及模拟数据仍按场次隔离。
+产品内部上游可使用动态端口，浏览器 HTTP／WebSocket 均经过固定来源。
+每场含启动最多 15 分钟，到期关闭，不延长或重启过期夹具。
+固定来源减少登录和权限匹配变化，不能单凭此认定上传工具阻塞已解决；
+工具调用没有返回原因时保持未验证，不推断权限拒绝或产品故障。
 
 客户端探针与编译打印旅程支持复用已构建、独立安装生产依赖的包。先用
 `node host/scripts/build-product-host.ts /absolute/retained-product` 构建，再用
@@ -3122,12 +4607,14 @@ Fluidd 查询到完成／取消的持久历史和两种成功回执；Mainsail �
 及最大延迟小于 100 ms，不作为目标板时序预算或旧／新整机性能对照。
 证据读取 `historyDiscoveryProcessAcceptance`，A4 仍未封存。
 
-### 显式数字地址信任与 Mainsail 联调
+### 显式地址和主机名信任与 Mainsail 联调
 
 原生授权支持 trusted_clients 中的 IPv4、IPv6 和 CIDR，手工装配对应
 trustedClients 数组。默认列表为空，没有内置信任网段。CIDR 必须是网络
-地址；带主机位的网段、无效地址、域名及区域标识会明确拒绝。IPv4 映射
-IPv6 地址可匹配对应 IPv4 规则。最多支持 1024 条配置，运行时不进行 DNS。
+地址；带主机位的网段、无效地址及区域标识会明确拒绝。IPv4 映射
+IPv6 地址可匹配对应 IPv4 规则。最多支持 1024 条配置；明确的小写
+主机名通过系统 NSS 的规范名／首个含点别名查询，结果小写后精确
+比较并缓存 84,000 秒。查询期限、取消和资源边界见本文开头证据。
 
 匹配真实 socket 地址且未提供错误凭据时，请求可取得 _TRUSTED_USER_
 身份。force_logins=true 且至少存在一个本地用户时禁用此准入；已有可信
@@ -3136,7 +4623,7 @@ WebSocket 和一次性令牌再次使用时也重新检查。access.info.trusted
 
 当前没有实现代理委托；带 Forwarded、X-Forwarded-For 或 X-Real-IP 的
 请求不能单凭网络信任获得权限，仍可使用有效 JWT／API Key。不得在
-公共代理后仅配置代理的地址并据此声称支持可信代理。域名、CORS 与完整
+公共代理后仅配置代理的地址并据此声称支持可信代理。完整 CORS 与
 上游代理语义继续保留迁移待办。
 
 Mainsail 2.19.0 固定版本初始化不发送登录凭据。仅用于隔离本机模拟
@@ -3232,8 +4719,13 @@ X-Api-Key 和 X-Access-Token。允许来源的鉴权错误携带 CORS 响应头�
 未允许来源拒绝，默认无 Origin 的既有客户端行为沿用。
 
 沿用固定上游的点／星号转换、完整首匹配、顶级域通配符和末尾斜杠
-警告后忽略规则；有有效模式时支持已有数字 trusted_clients 的 IP 回退，
-不会解析域名或扩大信任。保留现有网络边界，只接受规范 HTTP(S) Origin。
+警告后忽略规则；有有效模式时数字 Origin 可按 trusted_clients 的
+IP／主机名名单回退。配置装配借用原授权所有者的 NSS 查询和缓存，
+不把 Origin 主机名直接加入信任，也不把跨域许可变成 API 身份。
+手动装配时，CorsPolicy 的第四个参数须显式借用对应授权所有者的
+resolveTrustedAddress；不提供时仍只执行原同步策略。HTTP 和升级
+查询使用原请求期限、取消和关闭；未完成升级占用原连接／请求容量，
+客户端 EOF 或关闭会取消等待。保留现有网络边界，只接受规范 HTTP(S) Origin。
 最多 128 个模式，每项最多 1024 字符；匹配使用锁定的 re2-wasm 1.0.2。
 Python 特有的反向引用、前后查找等不受支持，装配时拒绝，不静默转换。
 这项限制是当前兼容差额，不能宣称全部 Python 正则兼容。
@@ -3260,8 +4752,49 @@ Mainsail 2.19.0 文件选择、显式启动、单作业完成和历史，预览�
 JWT 授权，不新增打印、文件、历史或运动所有者。默认入口仍为 Python。
 登录成功后打开 `/_client/control`，其 iframe 在 `/` 加载原版 Mainsail；
 官方导航路径返回相同的安装版 index，避免子路径出现空白页面。
-登录、退出、API 和控制台导航始终访问网络；官方 Service Worker 原字节
-由边界包装器加载，不能以缓存前端页面替代会话或 API 响应。
+规范登录入口为 `/access/client-login`，避开旧官方 Service Worker 的
+导航缓存；`/_client/login` 保留兼容。原 `/sw.js` 在未登录或会话失效后
+仍提供不拦截请求的迁移 Worker，立即接管后让全部请求访问网络。
+登录页遇到旧 Worker 时先更新并等待激活，最多五秒；失败不提交凭据，
+提示重新加载。登录、退出、API 和控制台导航不得由缓存代替鉴权。
+官方资源原字节仍保留；不导入旧导航 Worker，保留用户偏好和其他打印机凭据，
+不强制重新加载其他打印窗口。迁移入口仅公开登录 HTML 和无凭据的
+固定 Worker，其他资源和 API 继续验证原生身份。
+原生登录成功后，登录页仅移除与显式 `--origin` 对应的 Fluidd
+`user-token-`／`refresh-token-` 存储键，避免旧来源的客户端身份参与
+新会话初始化。MD5 只用于匹配官方存储键，不参与身份或凭据校验。
+账号密码错误不删除已有凭据；浏览器存储不可用时提示重新登录并停止
+自动进入客户端。该行为不清空存储、不迁移远程打印机或别名 URL。
+同来源 R14 拒绝刷新、R15 登录及模拟完成／恢复的对照见原验收记录
+`credentialMigrationOct11`；此前 R10 错误记录保留。
+本会话后续有限场次已有用户持续授权：每次含启动最多 15 分钟，
+仅 127.0.0.1、锁定软件包与模拟 MCU，到期关闭，不自动延长或重启
+过期场次。每次仍记录开始、期限、关闭和子进程退出。
+后续本会话的同包有限场次复用固定来源：Fluidd 为
+`http://127.0.0.1:18388`，Mainsail 为 `http://127.0.0.1:18378`，
+减少变更端口带来的新站点审批。启动前检查端口空闲，不能占用其他
+进程；每次仍使用新的场次记录和独立期限，复用地址不延长或重启
+过期场次。聊天授权不等于已修改浏览器的审批设置。
+迁移回归、固定包摘要和有限官方页面结果见
+[缓存迁移验收](../host/contracts/product-client-worker-migration-acceptance.json)。
+同一锁定包的 Fluidd R11 已通过实际配置保存、重启、重开，以及
+取消后停止、明确固件恢复和新作业完成。新来源没有 JWT 刷新请求，
+不将此有限对照用于关闭原复用来源的兼容性缺项，见
+[R11 补充证据](../host/contracts/product-client-r11-acceptance.json)。
+初始速度候选只修正 `motion_report` 的请求速度：已配置队列在当前
+打印时刻尚无运动段时返回零。缺失队列、失效代际和未知位置仍为 null；
+不从未来端点构造当前位置，也不授权或调度运动。独立新包与原混合
+旅程、有限官方页面及桌面配对查询预算见
+[速度兼容性验收](../host/contracts/live-motion-velocity-acceptance.json)。
+新包的 Rust 模板输出摘要曾与旧包不同；后续已定位为 Cargo 依赖源码
+路径未映射。映射后，两条缓存路径构建的完整包清单相同；原本机
+编译器 SIGSEGV 仍保留，见[默认包记录](../host/contracts/moonraker-template-default-package.json)。
+同一包的 Mainsail R12 已通过实际暂停／恢复至完成、取消后的明确固件
+恢复及新打印完成，见[R12 补充证据](../host/contracts/product-client-r12-acceptance.json)。
+场次包含启动 4 分 31 秒，两个进程正常退出、全部端口释放。初始新作业
+遥测曾短暂显示 NaN／null，完整外部故障恢复、预览及原 JWT 缺项仍保留。
+当前 `080a1b1` 的候选远程检查终态见[15 项 CI 证据](../host/contracts/pr68-080a-terminal.json)，
+不替代完整本机回归、目标板、实机与 G3 门槛。
 
 编译包包含 `scripts/product-client.js`。它作为独立的受监督进程运行，
 只监听 127.0.0.1，并要求显式固定的私有原生 Moonraker 回环监听地址：
@@ -3371,6 +4904,11 @@ node --test --test-concurrency=1 \
 
 页面每秒读取一次，隐藏时暂停读取，不并发轮询。队列头／令牌变化、
 回到页面、网络错误和提交均清除勾选；晚到响应不能恢复旧确认。
+标准原生装配另提供 `transition_available`，观察同一打印控制器与
+维护门禁；正在打印、维护、关闭或无法观察时禁用清台确认和请求，
+提示先在控制台核对设备状态。缺少提示的旧响应不启用这些按钮。
+就绪提示为 true 也不授予打印权限，仍须按当前令牌明确确认；变为
+false 会撤销勾选，恢复后必须重新勾选。观察失败保留队列可查询。
 提交结果不确定时保留提示，用户须在控制台确认状态，页面不自动重试。
 “停止后续排队”只暂停队列，当前打印沿用原状态。文件名使用文本节点，
 页面使用动态 CSP nonce 和 `no-store`，不写入浏览器本地持久凭据。
@@ -3385,8 +4923,12 @@ node --test --test-concurrency=1 \
 文件及打印日志；接口回归覆盖实际装配和确认前零打印副作用。
 验收代理保留原生授权头，将 HTTP Host／Origin 及 WebSocket Origin
 对齐私有后端；不从浏览器 cookie 合成授权，凭据仍由网关与原生
-身份所有者校验。修复后官方页面未复验，原两次授权已用完，新的
-页面场次仍须有限授权。原默认入口、实机打印、目标板及 G3
+身份所有者校验。本会话已获上传／下载及新有限场次的持续授权，
+固定来源下可继续验收，无需因新场次重复询问。当前 R31／R32
+在同包页面分别完成两份独立确认任务；R32 实际打印时禁用下一份
+操作，完成后恢复提示并重新确认。实际上传、配置编辑、完整故障
+恢复及全部宏场景仍待验，见[就绪证据](../host/contracts/queue-readiness-acceptance.json)。
+原默认入口、实机打印、目标板及 G3
 未关闭。候选尚未发布，不据独立测试或桌面性能宣称消费级交付完成。
 
 ### 原生磁盘 UFP 投递候选
@@ -3541,8 +5083,164 @@ JSON 安全范围外的整数保留为 BigInt，不经过 JavaScript Number
 或网络端点。关闭只释放本对象的引用，不保证垃圾回收前内存清零，
 已经交给调用者的值仍由调用者负责。
 
-本候选尚未装配到生产模板、LDAP 或标准服务器自动启动路径，完整
-secrets／模板与 LDAP 契约仍未关闭。默认测试使用实际固定上游源码
+### 独立异步与 UI 模板候选
+
+`MoonrakerAsyncTemplateOwner` 借用一个明确的 `SecretsStore` 代际。
+`createTemplate(source)` 使用单花括号配置语法，`createUiTemplate(source)`
+使用双花括号 UI 语法；返回模板以 `renderAsync(rawJson, options)` 渲染。
+原始 JSON 保留整数／浮点词法，不能先经过普通 `JSON.stringify(Number)`。
+这两个 API 是独立候选，尚未作为标准组件工厂或公开接口启用。
+
+`options.callables` 是 `ReadonlyMap<string, TemplateCallable>`。真实函数
+收到只读的 `{args, kwargs, signal}` 调用上下文，返回 `TemplateValue`
+或其 Promise。取消信号通过 `call.signal` 读取，首次读取才创建原生
+`AbortSignal`；同一渲染内的调用共用信号，不同渲染各自独立。即使首次
+读取发生在完成、取消或关闭之后，也能观察已经结束的生命周期和原因。
+这是尚未发布的组件 API 调整，原来的第二个信号参数不再提供。
+整数用 BigInt，浮点用 `templateFloatValue(number)`，普通 JS Number
+拒绝隐式转换；负零和非有限浮点保留种类。当前原生整数运算仍限于
+有符号 i128，范围外拒绝，完整 Python 任意精度整数继续开发。
+`addEnvironmentGlobal` 会更新已有配置模板并检查名称冲突，UI 模板
+不继承这些全局对象或 secrets；调用者显式传入的 UI 上下文仍可使用。
+
+每个所有者有两个专用计算线程，至多 32 个活跃渲染、64 个模板与
+64 个自定义全局对象，每次渲染至多 64 次真实调用。默认期限 10 秒，
+`timeoutMs` 可缩短至 1—10000 ms；source、context、output 各最多
+64 KiB。取消、关闭与期限使原生等待停止，晚到结果被丢弃，不重试
+有副作用的函数。函数必须协作处理信号；不能强制抢占任意 JS 函数。
+渲染完成也会结束函数信号的生命周期。模板和所有者都必须明确 `close()`；
+私密代际先关闭时拒绝后续渲染。错误不暴露源文、文件路径或私密结果。
+
+源码／编译相关回归和独立快照构建通过，纯模板满足固定桌面预算；
+函数／UI 路径仍未满足 1.5 倍原参考门限。不能据此切换默认打印入口。
+中间分配与进程隔离、完整模板工厂及标准装配仍开放，详见
+[候选证据](../host/contracts/moonraker-template-async-acceptance.json)。
+随后按需信号候选通过源码／独立编译各 118 项相关检查；固定编译基准
+纯模板、函数、UI 比值为 0.960／1.424／1.653，UI 仍使整组失败。
+相同输入交错旧／新对照与此前失败保留，详见
+[按需信号候选](../host/contracts/moonraker-template-lazy-signal-acceptance.json)。
+运行新基准可使用 `node host/bench/template-async.ts`；其参考摘要固定，
+不会启动 Python，性能缺项时退出 1。构建工具链和默认打包要求沿用
+下面的同步候选说明，独立 Rust 快照包含 `src/async_text.rs`。
+
+### 同步私密文本模板候选
+
+标准 `ConfiguredMoonraker.loadAuthorized` 的授权选项可以显式提供
+`templateSecrets: {dataPath: "/明确的私密数据目录"}`。当前由标准服务
+持有私密模板代际；也可在 `load` 或 `loadAuthorized` 的通用选项中
+提供 `templates: {dataPath: "/明确的私密数据目录"}`，无 LDAP 时也加载。
+两个入口不能同时提供。存在 `[ldap]` 时，在监听与目录连接之前渲染
+五个 LDAP 字段，每个启动模板随后关闭，私密代际保留至服务关闭。
+后续登录使用已验证的目录配置，不在请求中重新读取私密文件。
+已有 `ldapConfiguration.signal` 和 CA 配置继续保留；不能同时指定
+`templateSecrets` 与自定义 `ldapConfiguration.render`。
+
+例如 `bind_password: {secrets["ldap"]["password"]}` 从该文件读取。
+JSON 必须保留原始文本进入原生环境，`1`、`1.0`、`1e0`、`-0.0`
+和安全范围外的整数不经过 JavaScript Number 再编码；INI 值仍为
+字符串。公开配置继续显示模板占位与脱敏密码，不显示解析后的值。
+同步所有者也可以显式通过 `MoonrakerTemplateOwner` 创建可复用
+文本模板；其 `render(context)` 接收 JSON 文本，调用者负责私密输入
+和渲染结果，不能把这些值接入公开日志或接口。
+
+同步真实函数候选新增 `render(context, {callables})`，`callables` 为
+`ReadonlyMap<string, SyncTemplateCallable>`。函数接收 `TemplateCall`
+的只读位置参数和关键字 Map，返回 `TemplateValue`；整数显式使用
+`bigint`，浮点使用 `templateFloatValue(number)`，不接受普通 Number
+或 Promise。输入和返回值保留整数／浮点区别、负零和非有限浮点。
+`addEnvironmentGlobal(name, value)` 可以注册环境值或同步函数，影响
+已经创建的模板；同名原始上下文或显式上下文函数优先。拒绝重复名称
+和覆盖环境内置名称。这里只支持可信函数，不接入公开模板接口。
+
+调用留在当前 Node 线程，原生模板不保存 Node 环境或函数引用；
+嵌套渲染使用独立作用域，调用中关闭模板或所有者后停止后续副作用
+并丢弃输出。每次最多 64 次调用，最多 16 层活动渲染、64 个模板和
+64 个自定义全局，源／上下文／输出和调用消息各限 64 KiB。
+原生侧在函数前后检查 10 秒期限；不能中断任意同步 JavaScript。
+完整中间分配、任意精度整数、可启用日志和系统隔离仍待完成。
+该新增模块 `src/sync_functions.rs` 已纳入产品源码快照清单；本机
+独立快照构建在依赖 `memchr` 编译时 SIGSEGV，未计作构建通过。
+固定函数基准可运行 `node host/bench/template-sync-functions.ts`，
+日常只读取摘要锁定的上游参考，不启动 Python。环境函数参考包含
+类型化调用记录，上下文函数参考不记录；两侧保留各自原工作量。
+源码／独立 JavaScript 各 139 项通过，禁止 JS 子进程的编译检查
+80 项通过；原生模块明确允许，不等于系统隔离。新同步函数预算
+通过，但旧缓存读取和异步／UI 预算失败，不能用于默认入口切换。
+详细失败和对照见[同步真实调用证据](../host/contracts/moonraker-template-sync-functions-acceptance.json)。
+
+`npm test` 先编译独立 `template.node`；工具链为 Rust 1.89.0，依赖
+锁定在 `host/native/template/Cargo.lock`。`npm run build:template`
+支持指定 `CARGO`、`CARGO_HOME`、`RUSTUP_HOME` 和 `CARGO_TARGET_DIR`，
+隔离工作区必须使用自己的构建目录。默认 `build-product-host.ts` 现将
+模板列为必需插件，从独立源码快照重建；外部原生目录也必须包含该
+插件，缺失时拒绝发布。构建信息绑定 C／Rust 输入、Cargo 锁文件、
+Node 头文件、产物摘要及 Rust／Cargo 1.89.0 版本；其他 Rust 版本
+直接拒绝。产物构建不复用传入的 `CARGO_TARGET_DIR`，而是创建、
+使用并清理自己的输出目录。随机快照路径映射到 `/anyraid-product-build`，
+有效 `CARGO_HOME` 下的 `registry/src` 映射到 `/anyraid-cargo-registry`；
+未指定 `CARGO_HOME` 时使用 Cargo 默认的用户目录 `.cargo`。
+此映射保留依赖的诊断位置，避免嵌入本机缓存路径。两条已核对实际
+字节的缓存路径、两种参数通道经完整包清单对照一致。该有限对照
+不替代源码与依赖字节核验，也不构成完整工具链签名或
+密闭构建证明，不因测试通过自动替换默认打印入口。
+
+默认打包首批四项用例为三通过／一 Rust 编译器 SIGSEGV；此前
+全量本机四项失败保留。显式 `RUST_MIN_STACK=16777216` 的一次
+有限对照通过两项，不推断栈不足或根因修复，也未将该变量写为
+产品默认值。桌面启动校验和同一固定模板预算通过；编译后的模板
+与 LDAP 在保留包中关闭 TS 加载复验，证据与实际覆盖范围见
+[默认包记录](../host/contracts/moonraker-template-default-package.json)。
+该默认包关闭 TS 加载后通过原 30 项模板／LDAP 断言，并在同一
+锁定产物上通过原完整混合软件旅程；约 61 秒完成，原 90 秒期限、
+输入与预算不变。仅使用模拟 MCU，不计算实际页面或目标板通过。
+性能参考与此前冻结基线的关联见
+[输入关联](../host/contracts/moonraker-template-default-inputs.json)。
+
+当前仅验证同步文本／私密 JSON 路径、默认关闭的 debug 日志行为、
+正负 i128 整数范围及明确的资源拒绝。源、上下文和输出各限 64 KiB，
+私密 JSON 限 1 MiB，JSON 深度限 64，执行使用 100000 fuel；这些
+限制不等于全部中间分配或实时执行预算。同步函数及独立异步／UI
+候选已分别推进；共用工厂及显式标准代际装配见下文。完整语言、
+通用组件加载、完整 Python 大整数仍待补齐，后续须完成隔离执行。
+目前只允许可信启动配置和明确的
+开发候选，不用于默认打印高频回调。
+原失败、上游参考与桌面预算见
+[同步模板验收](../host/contracts/moonraker-template-sync-acceptance.json)。
+
+私密文件已为上述显式标准模板候选提供依赖；通用组件默认装配及
+生产入口尚未切换，secrets／模板与 LDAP 完整契约仍未关闭。
+默认 `template-numbers.test.ts`、`native-template-check.ts` 和
+`native-template-integers.ts` 现读取固定摘要的
+`template-numeric-reference.json.gz`，不启动 Python 或回退在线生成。
+原 42744 组逐位舍入、5424 组整数／布尔及 1293 组转换用例保持；
+参考保留原 JSON 文本到读取时，避免重编码丢失 `-0.0`。缺失、损坏
+或输入集合变化立即失败。`node host/bench/template-sync.ts` 无需
+`JINJA_REFERENCE`、`MOONRAKER_REFERENCE` 或 `SECRETS_BASELINE`，
+使用原封存性能参考和同一输入／次数／预算，不属于同轮 Python 对照。
+本轮源码与独立编译 JavaScript 均在外部程序不可用、Node 未授予
+子进程权限时通过；原生插件另获显式加载许可，不据此宣称原生沙箱。
+上述四条入口的原失败及范围见
+[参考退役证据](../host/contracts/template-reference-retirement.json)。
+随后 `native-template.ts`、`native-template-round.ts`、
+`native-sensor-messages.ts`、`template-numbers.ts` 与
+`template-candidate.ts` 也使用 `template-benchmark-reference.json.gz`，
+输入、原始输出及压缩文件摘要均校验。原两轮预热、七样本和工作量
+保持，不再准备 Jinja wheel 或启动 Python；原准备及数值助手已删除。
+直接运行 `node host/bench/<上述名称>` 即可；原生入口仍须模板插件。
+三条原生基准增加事先固定的 1.5 倍历史中位预算；原语和 JS 候选只
+报告差距，`--numeric-adapter --require-compatible` 仍退出 1。
+源码及独立 JavaScript 编译在相同隔离条件下通过，详见
+[基准退役](../host/contracts/template-benchmark-retirement.json)。
+此前 Unicode 原语性能差距已在桌面固定预算下补齐：实际转换使用
+64 KiB BMP 数字查表和原补充平面映射，不缓存输入，不改变数字范围、
+词法或舍入。`template-numbers.ts` 五种原语现在均执行事先固定的
+1.5 倍历史中位预算；独立编译 Unicode 比值为 1.367。新增验证覆盖
+680 个固定数字、跨文字混用、代理对、负零、空白、非法下划线、
+非有限值和配置边界；相关 89／89、完整类型和规定空白通过。
+原失败与交错对照见[Unicode 优化](../host/contracts/config-numeric-unicode-acceptance.json)。
+这不关闭 JS 语法／类型兼容、其他传感器差分、完整模板工厂、全面
+Python 退役及目标板打印性能门槛。
+默认测试使用实际固定上游源码
 生成的 24 项原冻结参考及六项负零补充参考，不新增运行时 Python；生成和性能对照只在
 独立临时目录执行一次。失败、后续定向验证和原始性能见
 [私密文件所有者记录](../host/contracts/native-secrets-owner-acceptance.json)。
@@ -3632,6 +5330,179 @@ TLS 1.2，始终验证 CA 和主机名，DNS 名提供 SNI；`ca` 只允许配�
 不证明实际用户目录、TLS 延迟、目标板打印或 G3 通过。
 
 ## LDAP 标准配置装配候选
+
+### 配置路径与共享模板
+
+`reader.section(name).getPath(option, {defaultValue, deprecate})` 使用绑定
+工厂同步渲染，上下文包含该私密代际明确的 `data_path`。TS 中用绝对
+字符串表示路径结果；选项不存在时，缺省 JSON 值保持原值与身份，
+包括不展开的模板字符串。解析记录保留模板来源，不能拿解析后的
+私密路径替换它。临时选项模板在成功或失败后关闭；调用方提供的
+缺省模板仍由调用方持有。缺少工厂时，即使选项有缺省也会拒绝。
+
+路径逐段跟随真实或悬空符号链接，然后处理 `..`；不先做词法折叠。
+有效六十层链可用，自引用／互相引用循环拒绝。`~` 使用 `HOME` 或
+当前用户的系统目录；空 `HOME` 展开为根目录，相对 `HOME` 保持相对
+于工作目录的语义。`~用户名` 通过现有 Unix 原生插件的 libc NSS 查询，
+不启动 `getent` 或 Python，也不限于手工读取 `/etc/passwd`。这些同步
+文件／用户查询仅供配置加载；实际远程 NSS 提供者尚未验收。
+
+标准服务提供 `templates: {dataPath: ...}` 和 `klippy: {}` 时，
+`klippy_uds_address: {data_path}/comms/klippy.sock` 会由共用工厂展开，
+无需再传 `pathContext.render`。未配置 socket 的缺省仍为 `/tmp/klippy_uds`，
+Linux socket 路径容量校验保留。显式 `pathContext` 的旧适配入口仍可用；
+它不等于完整通用组件加载。私密文件旧 `secrets_path` 回退复用物理
+路径解析，加载 secrets 不反向依赖模板，避免组件启动循环。
+
+固定上游 24 条路径、5 条缺省及独立 9 条 HOME 输出与 legacy 文件
+探针保留。源码／关闭 TS 加载的 JavaScript 相关回归各 217／217；
+新 C 查询的 UBSan／ASan 各 38／38。三组每批 500 次、两轮预热、
+七样本的原 1.5 倍桌面预算通过，编译比值为 0.220／0.252／0.291。
+复现使用 `node host/bench/moonraker-config-path.ts`。这不证明打印吞吐、
+目标板或完整私密服务冷启动。禁止 JS 子进程的补充检查有 34 条在
+符号链接夹具创建处被 Node 权限模型拒绝，不能计作隔离通过；未扩大
+权限重跑抹除失败。最初错误的空 HOME 断言已由上游探针反证并修复。
+独立 JavaScript 复用已有 Rust 插件与依赖，不宣称完整新产品构建。
+全部参考、初始失败、最终来源摘要及预算见
+[配置路径记录](../host/contracts/moonraker-config-path-acceptance.json)。
+
+### MQTT 凭据消费共享模板
+
+`readMqttSensorOptions(reader)` 与 `configureNativeSensorsFromConfig(reader, trackingEnabled)`
+使用 reader 已绑定的共享私密工厂渲染 `[mqtt]` 的 `username` 和
+`password`，例如 `{secrets["mqtt"]["password"]}`。不额外传入
+`context.render`；同时存在两个渲染依赖会拒绝加载。配置 getter
+与上游 JinjaTemplate 均裁剪首尾空白，内部空白保持；模板结果只在
+可信连接选项中流转，公开 original／parsed 配置的凭据来源脱敏。
+
+临时凭据模板在成功或失败后关闭，保留工厂和私密文件代际供其他
+组件使用；私密文件变化不会替换已加载代际。旧未绑定 reader 的字面
+配置和显式渲染器仍可用。`password_file` 仍按上游顺序先读取，即使
+后续模板覆盖密码也不忽略不存在、过大或无效文件。
+
+getter 本身不启动传输。标准 `ConfiguredMoonraker.load`／`loadAuthorized`
+及普通原生产品入口现读取 `[mqtt]`／`[sensor ...]` 并创建一份连接和
+传感器代际，凭据消费同一私密工厂；`start()` 才连接，设备配置重建
+保留连接，服务退出或启动失败清理。调用方已提供完整 `sensors`／
+`sensorTransport` 时保留显式装配路径；仅提供 sensor store 则拒绝
+竞争所有者。直接调用 generation 工具时仍由调用方负责转移及清理。
+
+`enable_moonraker_api` 要求明确的 `mqttAuthorize`，不会从 HTTP 权限
+推断 broker 请求权限。无该策略时缺省关闭。旧 Klippy 组合的传感器
+历史字段须提供匹配的 `history`，且不得已有 `auxiliary`／
+`auxiliaryTotals`；任务状态仍由 HistoryRuntime 门控。
+原生产品有匹配的持久日志时自动接线，普通配置传感器无需再提供
+旧 `history`。配置传感器与 `nativeHistoryAuxiliary(fields)` 中注册
+的进程字段共享同一注册表；该回调必须同步、返回 void，只注册
+HistoryFields 提供者，不转移或关闭其外部资源。提供者资源仍由
+进程 `createProcess`／`release` 所有者管理，在控制器退休后释放。
+全表上限 64 项、身份唯一，监听前封存；异步回调、重复身份、
+非持久控制器及与旧历史竞争的组合明确拒绝。
+原生控制器在持久预约确认后打开累计；失败／重复预约回滚重置。
+pausing 保持此前打印态，resuming 保持此前暂停态，收到设备确认
+后才切换 exclude_paused 门控。终态快照在数据库等待前冻结，
+故障先冻结再安全停止；快照失败仍停止设备并拒绝持久确认。
+设备重建使用同一字段表和 MQTT 连接，旧控制器确认退休后释放
+借用；恢复只确认原始日志，不采入新代际遥测。累计重置仍需要
+原鉴权和日志空闲检查，只清理声明字段，历史快照不变。
+原生打印日志已提供可选辅助快照接口：`reserve(request, snapshot)`、
+`transition(id, revision, state, statistics, snapshot)` 与
+`historyResetTotals(fields)`。辅助捕获在入队前完成，首次结果在同一
+SQLite 事务中更新快照、累计和基础统计；失败确认及恢复不会替换
+原快照。历史 HTTP／RPC 与通知返回持久的辅助数据，旧任务保持空值。
+日志格式第 1 至 5 版在身份检查的同一事务内升级到第 6 版；不适用
+旧程序直接读取新日志，回退必须保留升级前数据库副本。当前未切换
+生产入口，只用临时数据库验收。自动门控及提供者组合见上，
+源码／独立 JavaScript 各 381 项，产品／真实进程恢复各 24 项通过；
+范围与冻结性能记录见
+[接线验收](../host/contracts/native-history-fields-acceptance.json)。
+普通 `get(id)`、`active()` 及恢复扫描保持请求元数据范围，避免高频
+状态查询解码整份历史；完整快照由 `get(id, true)` 和历史列表／详情
+接口显式读取。辅助表采用 WITHOUT ROWID，维持原最小日志容量；
+累计项用显式序号保留注册顺序，不依赖数据表物理 rowid。
+
+reader 绑定共享工厂时，传感器消息现持有该代际的一份同步句柄；
+未绑定的显式旧路径继续使用独立原生适配器。传感器渲染可读取同一
+secrets 校准数据与全局值，调用可信 Node 同步函数；消息内的 payload
+和 set_result 覆盖同名环境全局。异步传感器模板拒绝。
+
+Rust 在私密 text 环境内批量收集 set_result，不逐参数调用 JS；输出、
+燃料、参数和安全数值边界保持，失败不发布部分测量值或历史。基于
+当前环境唯一模板的静态变量依赖，未使用的函数不创建帧绑定；不存在
+外部模板加载器。后注册的被引用函数立即使该句柄走同步回调路径；
+宏、函数别名和嵌套调用分别验证。自定义函数仍须控制自身同步耗时，
+不能由同步 JS 强制抢占。关闭传感器只释放句柄，最终服务关闭释放工厂。
+
+高频基准为 `node host/bench/shared-sensor-components.ts`，可追加
+`--unused-globals=32` 或 `--unused-globals=64` 复现共享环境压力。
+每批 1 万帧含 UTF-8 解码、四个类型化结果、存储与平均历史；两轮预热
+及七样本，原生独立路径基线在改动前冻结，默认及两种压力通过原 1.5
+倍桌面门限。原 JS 逐参数回调和初版 32 函数超限均保留。此预算不含
+模块／文件初始化、MQTT、实际打印或任意用户函数，见
+[共享传感器记录](../host/contracts/shared-sensor-components-acceptance.json)。
+
+复现装配基准使用 Node.js 26 执行
+`node host/bench/configured-mqtt-components.ts`，其冻结参考为之前手工
+装配同一私密工厂、传输和传感器的路径。计时含配置加载、真实
+CONNECT／SUBACK 和 HTTP 监听，模块导入及夹具准备不计入冷启动。
+另组混合 1000 条消息与 100 次鉴权查询，均通过原 1.5 倍桌面预算；
+不是完整产品包、打印或目标板证明，见
+[配置装配记录](../host/contracts/configured-mqtt-components-acceptance.json)。
+
+复现凭据加载基准使用 Node.js 26
+执行 `node host/bench/mqtt-config.ts`，日常不调用 Python。17 条固定参考
+使用上游真实 JinjaTemplate 包装，源码／编译相关回归各 24 项通过，
+三组加载通过修改前冻结的 1.5 倍桌面预算。初次错误参考及监听 EPERM
+保留；这些结果不证明打印负载、目标板性能或完整新包构建。见
+[MQTT 消费记录](../host/contracts/mqtt-template-components-acceptance.json)。
+
+### 共用模板工厂与服务代际
+
+异步所有者与 `template.node` 现在要求 `completionProtocol=1`。
+部署须使用同一构建清单中的 Node 模块和插件；旧插件混配立即拒绝，
+不静默等待期限。原生完成文本直接通过 N-API 传递，调用参数仍用
+原有明确数字类型编码；原始输出超过 64 KiB 时在裁剪空白前拒绝。
+模板环境不可变，晚注册全局只为下一次渲染建立代际，UI 保持隔离。
+每所有者一个截止计时器覆盖最多 32 个帧，较早期限及时重新调度；
+活动工作维持进程存活，空闲计时器 unref，关闭取消全部工作并清理。
+源码及独立 JavaScript 各 179 项通过；工厂固定预算通过，独立 UI
+回调最终 1.781 倍仍失败，全新原生快照遭 regex-automata 编译
+SIGABRT。不得用缓存编译或最好一轮替代完整新包及性能验收。
+当前结果见[异步开销记录](../host/contracts/template-completion-acceptance.json)。
+下面工厂 175 项和原 SIGSEGV 是前序证据，保留原失败。
+
+可信组件通过 `server.templates` 或 `reader.templates()` 取得
+`MoonrakerTemplateFactory`。`createTemplate(source, isAsync)` 与
+`createUiTemplate(source)` 保留原始源；同步／异步模式误用遵循固定
+上游错误阶段。配置模板共用环境全局，异步执行器在首次异步／UI
+使用时创建；UI 使用双花括号，不继承配置全局或 secrets。
+`getTemplate` 保留缺省值并记录首次来源，`loadTemplate` 额外编译
+字符串缺省值。显式 `toString()` 供可信来源记录；JSON／对象检查
+不公开原文。模板关闭丢弃来源和闭包，服务关闭取消活动调用、清理
+全局和私密代际、解除 reader 绑定；外部取消与关闭竞态保留首次理由。
+
+直接创建工厂时，`MoonrakerTemplateFactory.load(reader, context,
+{debug: call => ...})` 可提供明确的可信日志接收器，参数保持类型和
+关键字顺序。异步日志接收器拒绝，失败不公开私密异常。服务的该入口
+尚未接入通用日志配置，不据此宣称完整日志兼容。当前禁用日志处理
+补齐上游 `msg` 绑定，布尔／None 文本保持 Python 形式。
+
+源码与关闭 TS 加载的独立 JavaScript 各 175 项通过；六文件进程内
+111 项通过，JS 子进程禁止，原生插件、数据库 worker、文件和网络
+明确允许，实际网络仅使用 localhost，不能作为系统隔离证明。
+事先固定的 500 次、两轮预热、七样本工厂预算中，同步比值 0.328
+通过，异步／UI 1.569／1.935 超原 1.5 门限。原独立异步 UI 比值
+1.655 仍失败；当前缓存预算通过，不消除此前 1.250 失败的根因。
+原标准无 LDAP／无私密模板选项服务器的启动／鉴权查询预算通过，
+不证明新增私密工厂冷启动或目标板打印速度。当前独立产品原生快照
+在 minijinja 编译时 Rust SIGSEGV，完整新包未通过，不重试覆盖。
+固定参考、回退节夹具 KeyError 诊断及全部失败见
+[共用工厂记录](../host/contracts/moonraker-template-factory-acceptance.json)。
+复现固定渲染预算使用 Node.js 26 执行
+`node host/bench/template-factory.ts`，超限时退出 1。
+共享配置 `getPath` 已补齐，见“配置路径与共享模板”；动态可变全局对象、属性／可迭代对象、
+完整大整数、通用
+组件加载和默认产品装配继续开放；默认 Python 打印入口未切换。
 
 `ConfiguredMoonraker.loadAuthorized` 在 `[ldap]` 存在时解析配置，创建
 实际 LDAP／LDAPS 所有者并纳入关闭；未配置时不加载 ldapts。

@@ -19,8 +19,8 @@ async function fixture(options:{holdStop?:boolean;failStop?:boolean;failCommand?
   commands.push([...args]);if(args.at(-1)!=='crowsnest.service'){assert(f.transport.stops.every(n=>n>=1));assert.equal(releases,1,'System action must follow dependency release');}
   if(options.failCommand)throw Error('Permission denied');if(args.at(-1)==='klipper-2.service'){deviceState=args.includes('stop')?'inactive':'active';devicePid=deviceState==='active'?'123':'0';}return '';
  }});
- const native=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),
-  async createProcess(){db=await DatabaseStore.open({path:join(root,'api.db')});return {machineControl:machine,server:{information:f.bindings.server.information,database:db,authorization:{issuer:'https://machine.invalid'}},async release(){await db!.close();}};},
+ const native=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),dataPath:join(root,'private'),
+  async createProcess(){db=await DatabaseStore.open({path:join(root,'api.db')});return {machineControl:machine,server:{systemServices:{source:async()=>({provider:'none' as const,available_services:[],service_state:{},instance_ids:{moonraker:'',klipper:''}})},information:f.bindings.server.information,database:db,authorization:{issuer:'https://machine.invalid'}},async release(){await db!.close();}};},
   async createAdapter(){generations++;return {stops:new Map([...f.bindings.stops].map(([id,stop])=>[id,async(cause:unknown)=>{await stop(cause);if(id==='mcu'){entered.resolve();if(options.holdStop)await held.promise;if(options.failStop)throw Error('Physical stop unconfirmed');}}])),output:f.bindings.print.output,lifecycle:f.bindings.print.lifecycle,async authorizePrintFile(){},async release(){releases++;}};}
  });
  const running=runProductHost(native,abort.signal,a=>ready.resolve('http://127.0.0.1:'+a.port),control);void running.then(()=>{terminal=true;},e=>{terminal=true;ready.reject(e);});

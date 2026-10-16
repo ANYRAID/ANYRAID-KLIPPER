@@ -10,7 +10,7 @@ export interface LdapAuthenticator {authenticate(username:string,password:string
 export interface LocalUserOptions {issuer:string;loginTimeoutDays?:number;forceLogins?:boolean;now?:()=>number;defaultSource?:AuthenticationSource;ldap?:LdapAuthenticator;}
 export interface UserChange {kind:'user_created'|'user_logged_out'|'user_deleted';username:string;revokedKid?:string|null;}
 export type UserCommitted=(change:UserChange)=>void;
-interface User {username:string;password:string;salt:string;created_on:number;source:AuthenticationSource;jwt_secret:string|null;jwk_id:string|null;}
+interface User {username:string;password:string;salt:string;created_on:number;source:AuthenticationSource;jwt_secret:string|null;jwk_id:string|null;groups?:string[]|null;}
 interface Keys {privateKey:KeyObject;publicKey:KeyObject;}
 interface Claim {username:string;kid:string;exp:number;}
 const reserved=new Set(['_API_KEY_USER_','_TRUSTED_USER_']);
@@ -31,16 +31,16 @@ async function directoryAuthentication(ldap:LdapAuthenticator,name:string,passwo
 /** Serialized durable mutations, asynchronous password hashing, bounded token
  * cache. Committed logout/delete invalidates cache entries through live kid checks. */
 export class LocalUserAuthorization {
- readonly #database:DatabaseStore;readonly #store:DatabaseNamespace;readonly #issuer:string;readonly #days:number;readonly #now:()=>number;readonly forceLogins:boolean;
+ readonly #database:DatabaseStore;readonly #store:DatabaseNamespace;readonly #issuer:string;readonly #issuers:Set<string>;readonly #days:number;readonly #now:()=>number;readonly forceLogins:boolean;
  readonly defaultSource:AuthenticationSource;readonly #ldap:LdapAuthenticator|undefined;readonly #directoryLifetime=new AbortController();
  #users=new Map<string,User>();#keys=new Map<string,Keys>();#cache=new Map<string,Claim>();#tail:Promise<unknown>=Promise.resolve();#pending=0;#closed=false;
- private constructor(database:DatabaseStore,store:DatabaseNamespace,options:LocalUserOptions){this.#database=database;this.#store=store;this.#issuer=options.issuer;this.#days=options.loginTimeoutDays??90;this.#now=options.now??(()=>Date.now()/1000);this.forceLogins=options.forceLogins??false;this.defaultSource=options.defaultSource??'moonraker';this.#ldap=options.ldap;}
+ private constructor(database:DatabaseStore,store:DatabaseNamespace,options:LocalUserOptions){this.#database=database;this.#store=store;this.#issuer=options.issuer;const approved=database.legacyAuthorizationIssuers;if(approved&&approved.issuer!==options.issuer)throw new ApiError(500,'Legacy authorization issuer differs from trusted startup');this.#issuers=new Set([options.issuer,...approved?.legacyIssuer?[approved.legacyIssuer]:[]]);this.#days=options.loginTimeoutDays??90;this.#now=options.now??(()=>Date.now()/1000);this.forceLogins=options.forceLogins??false;this.defaultSource=options.defaultSource??'moonraker';this.#ldap=options.ldap;}
  static async open(database:DatabaseStore,options:LocalUserOptions){
   const issuer=new URL(options.issuer);if(!['http:','https:'].includes(issuer.protocol)||issuer.origin!==options.issuer||!Number.isSafeInteger(options.loginTimeoutDays??90)||(options.loginTimeoutDays??90)<1||(options.loginTimeoutDays??90)>3650||options.forceLogins!==undefined&&typeof options.forceLogins!=='boolean')throw new ApiError(400,'Invalid authorization settings');
   if(options.defaultSource!==undefined&&!['moonraker','ldap'].includes(options.defaultSource)||options.ldap!==undefined&&typeof options.ldap?.authenticate!=='function'||options.defaultSource==='ldap'&&!options.ldap)throw new ApiError(400,'Invalid authentication source settings');
   const store=await database.registerLocalNamespace('native_users',{forbidden:true,parseKeys:false}),owner=new LocalUserAuthorization(database,store,options),rows=await store.get('users',[]);
   if(!Array.isArray(rows)||rows.length>128)throw new ApiError(500,'Invalid persisted users');
-  for(const row of rows){if(!row||typeof row!=='object'||Array.isArray(row))throw new ApiError(500,'Invalid persisted user');const u=row as unknown as User;try{username(u.username);const validPassword=u.source==='moonraker'?hex64.test(u.password)&&hex64.test(u.salt):u.source==='ldap'&&u.password===''&&u.salt==='';if(owner.#users.has(u.username)||!validPassword||!Number.isFinite(u.created_on)||u.created_on<0||(u.jwt_secret===null)!==(u.jwk_id===null)||u.jwt_secret!==null&&(!hex64.test(u.jwt_secret)||typeof u.jwk_id!=='string'||!(/^[A-Za-z0-9_-]{43}$/u.test(u.jwk_id))))throw Error('invalid');}catch{throw new ApiError(500,'Invalid persisted user');}owner.#users.set(u.username,Object.freeze({...u}));if(u.jwt_secret)owner.#keys.set(u.username,keys(u.jwt_secret));}
+  for(const row of rows){if(!row||typeof row!=='object'||Array.isArray(row))throw new ApiError(500,'Invalid persisted user');const u=row as unknown as User;try{username(u.username);const validPassword=u.source==='moonraker'?hex64.test(u.password)&&(hex64.test(u.salt)||u.salt===''&&!!database.legacyAuthorizationIssuers):u.source==='ldap'&&u.password===''&&u.salt==='';if(owner.#users.has(u.username)||u.groups!==undefined&&u.groups!==null&&(!Array.isArray(u.groups)||u.groups.length>256||u.groups.some(g=>typeof g!=='string'||!g.isWellFormed()||Buffer.byteLength(g)>1024||g.includes('\0')))||!validPassword||!Number.isFinite(u.created_on)||u.created_on<0||(u.jwt_secret===null)!==(u.jwk_id===null)||u.jwt_secret!==null&&(!hex64.test(u.jwt_secret)||typeof u.jwk_id!=='string'||!(/^[A-Za-z0-9_-]{43}$/u.test(u.jwk_id))))throw Error('invalid');}catch{throw new ApiError(500,'Invalid persisted user');}owner.#users.set(u.username,Object.freeze({...u}));if(u.jwt_secret)owner.#keys.set(u.username,keys(u.jwt_secret));}
   return owner;
  }
  #active(){const s=this.#database.status;if(this.#closed||s.closed||s.closing||s.restoreState!=='ready')throw new ApiError(503,'User authorization unavailable');}
@@ -64,7 +64,7 @@ export class LocalUserAuthorization {
    const parts=token.split('.');if(parts.length!==3||parts.some(p=>!p||!(/^[A-Za-z0-9_-]+$/u.test(p))))throw Error();
    const decode=(p:string)=>{const b=Buffer.from(p,'base64url');if(b.toString('base64url')!==p)throw Error();return b;};
    const h=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(decode(parts[0]))),p=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(decode(parts[1]))),signature=decode(parts[2]);
-   if(!h||!p||h.alg!=='EdDSA'||h.typ!=='JWT'||typeof h.kid!=='string'||typeof p.username!=='string'||p.iss!==this.#issuer||p.aud!=='Moonraker'||p.token_type!==type||!Number.isSafeInteger(p.exp)||!Number.isSafeInteger(p.iat)||checkExpiry&&p.exp<now||signature.length!==64)throw Error();
+   if(!h||!p||h.alg!=='EdDSA'||h.typ!=='JWT'||typeof h.kid!=='string'||typeof p.username!=='string'||!this.#issuers.has(p.iss)||p.aud!=='Moonraker'||p.token_type!==type||!Number.isSafeInteger(p.exp)||!Number.isSafeInteger(p.iat)||checkExpiry&&p.exp<now||signature.length!==64)throw Error();
    const u=this.#users.get(p.username),pair=this.#keys.get(p.username);if(!u||!pair||u.jwk_id!==h.kid||!verify(null,Buffer.from(parts[0]+'.'+parts[1]),pair.publicKey,signature))throw Error();
    if(this.#cache.size>=1024)this.#cache.delete(this.#cache.keys().next().value!);this.#cache.set(key,{username:u.username,kid:h.kid,exp:p.exp});return {username:u.username};
   }catch{throw new ApiError(401,'Invalid or expired JWT');}

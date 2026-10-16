@@ -1,0 +1,184 @@
+{
+  "schema": 1,
+  "baseHead": "a0c3a4a04f6489a0c18220dc348cfdab07378e4a",
+  "node": "v26.10.0",
+  "sourceSha256": {
+    "host/src/moonraker/webcams.ts": "119ba942172957dee128736e90012b8bc9be34b082151ecd2d8dc95a0922e843",
+    "host/src/moonraker/http-client.ts": "5820c66c6d5dd0fe5944de89d27a053b519b83018cb0ccbca970efb42cb26084",
+    "host/src/moonraker/configured-server.ts": "e67a5ebc69cb798cc7e6028df8e5973f4737014e4eca6094fb0fca896cfb7921",
+    "host/test/webcams.test.ts": "300338ea97819b72af42d4a9e8a3f826a24c47979fa16b01163e65417d00efeb",
+    "host/test/webcams-network.test.ts": "34b56ed3d883e915ae2ad5f935b9a6ffff10fe351691242678dfb53fc50faf66"
+  },
+  "implementation": {
+    "owner": "Configured webcams borrow the same process-owned HTTP client as announcements; standalone instances own and close their own client",
+    "probe": "Shared decoded-stream discard path enforces request/connect deadlines and original 8 MiB limit without buffering the image or reading/mutating the shared conditional cache",
+    "bounds": "Original four probes and one-second deadline; only successful 2xx is reachable; close aborts and drains, borrowed owner survives",
+    "unchanged": "Private template protocol remains 1, native/motion implementations and public precision/authorization bounds unchanged"
+  },
+  "validation": {
+    "source": 26,
+    "compiled": 26,
+    "fail": 0,
+    "typescriptLoading": false,
+    "externalPrograms": false,
+    "workersAlsoGuarded": true,
+    "scope": "Snapshot native addons and existing installed dependencies in an independent JS test closure; not a new full product package or target-board proof"
+  },
+  "performance": {
+    "node": "v26.10.0",
+    "budgets": [
+      {
+        "pair": 0,
+        "name": "cached list",
+        "ratio": 0.9914078934973333,
+        "maximumRatio": 1.5,
+        "pass": true,
+        "baselinePeakRssBytes": 100298752,
+        "candidatePeakRssBytes": 99840000,
+        "baselineLoopP99Ms": 0.000511,
+        "candidateLoopP99Ms": 0.000511
+      },
+      {
+        "pair": 0,
+        "name": "32KiB probe",
+        "ratio": 0.8944745483713504,
+        "maximumRatio": 1.5,
+        "pass": true,
+        "baselinePeakRssBytes": 180330496,
+        "candidatePeakRssBytes": 131125248,
+        "baselineLoopP99Ms": 1.773567,
+        "candidateLoopP99Ms": 1.399807
+      },
+      {
+        "pair": 0,
+        "name": "8MiB decoded boundary",
+        "ratio": 0.8751072123147401,
+        "maximumRatio": 1.5,
+        "pass": true,
+        "baselinePeakRssBytes": 251043840,
+        "candidatePeakRssBytes": 213856256,
+        "baselineLoopP99Ms": 3.387391,
+        "candidateLoopP99Ms": 3.643391
+      },
+      {
+        "pair": 1,
+        "name": "cached list",
+        "ratio": 0.9935946585041785,
+        "maximumRatio": 1.5,
+        "pass": true,
+        "baselinePeakRssBytes": 100474880,
+        "candidatePeakRssBytes": 100098048,
+        "baselineLoopP99Ms": 0.000511,
+        "candidateLoopP99Ms": 0.000511
+      },
+      {
+        "pair": 1,
+        "name": "32KiB probe",
+        "ratio": 0.8874220915337477,
+        "maximumRatio": 1.5,
+        "pass": true,
+        "baselinePeakRssBytes": 179298304,
+        "candidatePeakRssBytes": 130207744,
+        "baselineLoopP99Ms": 2.357247,
+        "candidateLoopP99Ms": 1.262591
+      },
+      {
+        "pair": 1,
+        "name": "8MiB decoded boundary",
+        "ratio": 1.0908078802639785,
+        "maximumRatio": 1.5,
+        "pass": true,
+        "baselinePeakRssBytes": 238956544,
+        "candidatePeakRssBytes": 213417984,
+        "baselineLoopP99Ms": 3.362815,
+        "candidateLoopP99Ms": 4.065279
+      },
+      {
+        "pair": 2,
+        "name": "cached list",
+        "ratio": 1.003524001967104,
+        "maximumRatio": 1.5,
+        "pass": true,
+        "baselinePeakRssBytes": 100356096,
+        "candidatePeakRssBytes": 99917824,
+        "baselineLoopP99Ms": 0.000511,
+        "candidateLoopP99Ms": 0.000511
+      },
+      {
+        "pair": 2,
+        "name": "32KiB probe",
+        "ratio": 0.89007090451903,
+        "maximumRatio": 1.5,
+        "pass": true,
+        "baselinePeakRssBytes": 177934336,
+        "candidatePeakRssBytes": 130904064,
+        "baselineLoopP99Ms": 2.028543,
+        "candidateLoopP99Ms": 1.284095
+      },
+      {
+        "pair": 2,
+        "name": "8MiB decoded boundary",
+        "ratio": 0.9819689586404773,
+        "maximumRatio": 1.5,
+        "pass": true,
+        "baselinePeakRssBytes": 241905664,
+        "candidatePeakRssBytes": 210669568,
+        "baselineLoopP99Ms": 3.168255,
+        "candidateLoopP99Ms": 3.819519
+      }
+    ],
+    "pass": true,
+    "scope": "Three alternating fixed desktop baseline/candidate pairs, 2 warmups and 7 samples; not target-board/print-tail acceptance"
+  },
+  "uiInvestigation": {
+    "profile": "Same fixed input, 3500 normal and 3500 UI timestamped renders on unchanged product binary; JS decode median about 2.3 us, UI submission/callback median about 10.4 us and reply/completion median about 6.22 us, reported separately; timing overhead means no performance acceptance claim",
+    "prototype": {
+      "protocol": 2,
+      "adopted": false,
+      "tests": 65,
+      "boundaryInputs": 11,
+      "initialBudgetsPassed": true,
+      "pairedPassed": false,
+      "failures": [
+        {
+          "pair": 0,
+          "kind": "factory",
+          "name": "ui",
+          "baselineRatio": 1.4305357702283412,
+          "candidateRatio": 1.5385153914730458,
+          "pairedRatio": 1.0754819442420995,
+          "maximumRatio": 1.5,
+          "candidatePass": false
+        },
+        {
+          "pair": 2,
+          "kind": "async",
+          "name": "ui",
+          "baselineRatio": 1.4390286901377065,
+          "candidateRatio": 1.8423884558209267,
+          "pairedRatio": 1.280300016565077,
+          "maximumRatio": 1.5,
+          "candidatePass": false
+        }
+      ],
+      "buildFailures": "Initial N-API Result conversion compile error corrected in isolated copy only",
+      "harnessFailures": "Raw unreferenced executor exited 13 before callback; fixed diagnostic with an explicit five-second deadline. Sandbox child EPERM was not a timing observation",
+      "numericBasis": "https://nodejs.org/api/n-api.html#napi_create_bigint_int64"
+    },
+    "decision": "Do not adopt the scalar protocol based on one passing run; retain original UI budgets and current product implementation"
+  },
+  "priorCi": "pr68-a0c3-terminal.json: exact preceding head 15 success, ordinary 4801/4801; not coverage of this new increment",
+  "open": [
+    "new increment CI and full current product/client journeys",
+    "webcam local-URL/network interface parity and target camera validation",
+    "other HTTP consumers and complete Moonraker/Python retirement",
+    "original UI/native-build/G3/target-board gates and consumer macros",
+    "develop/master delivery"
+  ],
+  "evidence": {
+    "path": "webcam-http-owner-evidence.json.gz",
+    "sha256": "6b96ad9f12a68831299e6b62437b192d63af3b02b5c0a8571c6d07caaa4f39dc",
+    "bytes": 956307,
+    "entries": 258
+  }
+}

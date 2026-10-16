@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "date": "2026-10-11",
+  "baseHead": "9a7e493c4256483172a3ba68b4e5d5bdc68992f0",
+  "runtimeCandidateAccepted": false,
+  "status": "Rejected after original compiled motion diagnostic numerical mismatch",
+  "candidateSha256": "acafa0ab61ddc28ab6ad82afd68effc5b8acbfc4c69d4eaad275a9c60ae8ec6a",
+  "typecheck": "passed before final array revision; not final-candidate proof",
+  "targetedTests": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0,
+    "binary64Fixtures": 48
+  },
+  "performance": {
+    "finalCandidateEightFilterBudgets": "passed",
+    "firstCandidateEightFilterBudgets": "failed weighted4 P95 14.007469ms vs original baseline 4.943300ms; candidate revised, failure retained",
+    "firstCandidatePairedOnly": {
+      "normalMedianBeforeMs": 4.433681,
+      "normalMedianAfterMs": 5.761855,
+      "jitlessBeforeMs": 358.108803,
+      "jitlessAfterMs": 224.232093,
+      "notFinalCandidate": true
+    }
+  },
+  "originalDiagnostic": {
+    "node": "v26.10.0",
+    "execution": "compiled",
+    "compiler": "7.0.2",
+    "optimization": "jitless",
+    "requestedProcesses": 50,
+    "observedProcesses": 15,
+    "success": 14,
+    "failure": 1,
+    "iterationsPerProcess": 16,
+    "childDeadlineMs": 10000,
+    "outputBudgetBytes": 1048576,
+    "failedIndex": 14,
+    "failedRun": 0,
+    "tolerance": 1e-8,
+    "actualDifference": 3.680611371237319e-8,
+    "earlyFailure": true,
+    "manualRerun": false
+  },
+  "savedInputAnalysis": {
+    "index": 8696,
+    "captured": 39.35646002440799,
+    "oldRecomputed": 39.356460024404306,
+    "newRecomputed": 39.356460024404306,
+    "independentExactIntegerSum": 39.356460024404306,
+    "wholeFilterOldNewBitDifferences": 0,
+    "capturedOldBitDifferences": 1,
+    "nominalReferenceBitDifferences": 0,
+    "storedBits": "0x4043ada07b6994f3",
+    "recomputedBits": "0x4043ada07b6992ed",
+    "scope": "One saved failure invocation; exact weighted4 polynomial sum using binary64 mantissas and BigInt. Does not rerun motion workload or establish hardware/runtime root cause."
+  },
+  "interpretation": "Single captured filtered position is inconsistent; nominal input is bit-identical to reference and downstream derivatives are consistent with captured input. Old/new recomputation and independent exact weighted4 integer sum agree. No runtime/compiler/hardware root cause is established; optimization must not ship as validated.",
+  "evidence": {
+    "path": "motion-filter-kernel-rejected.evidence.json.gz",
+    "sha256": "5f4bd7a28d33e3c1305f2c094f754e0b9ecc63970c7ba39d707810c196c4c050",
+    "entries": 20,
+    "bytes": 3836602
+  },
+  "postReversionValidation": {
+    "runtimeSourceSha256": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+    "relatedTests": {
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "logSha256": "43159aaaf9bae69d711af2e6c95a159351a43d9d57b1cc98b82a8600826dcc0a"
+    },
+    "typecheck": {
+      "passed": true,
+      "logSha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    "scope": "Original runtime and original tracing restored; retained 48 frozen precision fixtures. Targeted tests do not close original compiled diagnostic failure or G3."
+  }
+}

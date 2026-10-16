@@ -1,12 +1,28 @@
+import {hostname,userInfo} from 'node:os';
+import {WelcomeApplication,loadWelcomeSource} from './welcome-application.ts';
+const configuredWelcome=new WeakMap<ConfigurationReader,string>();
+import {readRoutePrefix} from './route-prefix.ts';
+import {readTlsConfiguration} from './tls-configuration.ts';
+import type {MoonrakerTlsOptions} from './server.ts';
+const configuredTls=new WeakMap<ConfigurationReader,MoonrakerTlsOptions|undefined>();
+import {randomUUID} from 'node:crypto';
+import {OctoprintCompatibility} from './octoprint-compat.ts';
 import {Webcams} from './webcams.ts';
 import {Announcements,type AnnouncementsOptions} from './announcements.ts';
 import {SystemInformation,type SystemInformationSource} from './system-information.ts';
+import {readMachineProvider} from './machine-provider.ts';
 import {SystemServices,validateSystemServices,type SystemServicesOptions} from './system-services.ts';
 import {ProcStats,type ProcStatsSource} from './proc-stats.ts';
 import {NativeHostNotifications} from './native-host-notifications.ts';
 import {NativeRequestScope} from './native-request-scope.ts';
-import {NativePrinterInformation,type NativePrinterIdentity} from './native-printer-info.ts';
+import {nativePrinterState,NativePrinterInformation,type NativePrinterIdentity} from './native-printer-info.ts';
+import {ProcessLogs} from './process-logs.ts';
+import {ApplicationLogFiles,validateApplicationLogFile} from './application-log-files.ts';
 import {ProductHostControl} from '../runtime/product-host-control.ts';
+import {ProcessSudoOwner} from './sudo-owner.ts';
+import type {SudoBackend} from './sudo-backend.ts';
+import {FixedNodeInstallValidator,type FixedNodeInstallOptions} from './fixed-node-install.ts';
+import {LegacyNodeInstallValidator} from './legacy-node-install.ts';
 import {registerProductHostControl} from './product-host-api.ts';
 import {NativeSubscriptions} from './native-subscriptions.ts';
 import {NativeObjects,registerNativeObjects} from './native-objects.ts';
@@ -23,6 +39,9 @@ import {MqttStatusRuntime} from './mqtt-status-runtime.ts';
 import {readMqttStatusOptions} from './mqtt-status.ts';
 import type {StatusView} from './subscription-status.ts';
 import {MqttSensors} from './mqtt-sensors.ts';
+import {configureNativeSensorsFromConfig} from './native-sensor-config.ts';
+import {NativeHistoryFields} from './native-history-fields.ts';
+import type {HistoryFields} from './history-fields.ts';
 import {MqttMacroPublisher} from './mqtt-macros.ts';
 import {registerMqttPublish,registerMqttSubscribe} from './mqtt-api.ts';
 import {SensorStore,registerSensors} from './sensors.ts';
@@ -43,6 +62,7 @@ import {MetadataFiles,registerFileMetascan} from './metadata-files.ts';
 import {registerFileMetadata} from './file-metadata.ts';
 import {JobState} from './job-state.ts';
 import {readKlippyBinding,type KlippyPathContext} from './klippy-config.ts';
+import {MoonrakerHttpClient} from './http-client.ts';
 import {KlippyLifecycle,type KlippyInitializationOptions,type KlippySnapshot} from './klippy-lifecycle.ts';
 import {SubscriptionDelivery} from './subscription-delivery.ts';
 import {KlippyNotifications} from './klippy-notifications.ts';
@@ -51,18 +71,19 @@ import {KlippySupervisor} from './klippy-supervisor.ts';
 import type {DeliveryReport} from './notifications.ts';
 import {registerExtensions} from './extensions.ts';
 import type {ClientArguments,ClientRequestOptions} from './client-requests.ts';
-import type {AddressInfo} from 'node:net';
 import {loadConfiguration,ConfigurationError,type ConfigurationLimits} from './config-source.ts';
 import {ApiKeyAuthorization} from './api-key-authorization.ts';
 import {readAuthorizationOptions} from './authorization-config.ts';
 import type {LdapAuthorization} from './ldap-authorization.ts';
 import {readLdapOptions,type LdapConfigurationContext} from './ldap-config.ts';
+import type {SecretsContext} from './secrets.ts';
+import {MoonrakerTemplateFactory} from './template-factory.ts';
 import {ConfigurationReader} from './config-reader.ts';
-import {ApiError,type RpcContext,JsonRpcDispatcher,type Json} from './rpc.ts';
+import {ApiError,authorizedContext,type RpcContext,JsonRpcDispatcher,type Json} from './rpc.ts';
 import {EndpointRegistry} from './endpoints.ts';
-import {ServerInformation,ServerConfiguration,registerServerMetadata,type InformationSnapshot} from './metadata.ts';
-import {MoonrakerNetwork,type MoonrakerNetworkOptions} from './server.ts';
-export interface NetworkBinding {readonly host:string;readonly port:number;readonly maxConnections:number;}
+import {ServerInformation,ServerConfiguration,registerServerMetadata,readServerInformation,type InformationSnapshot} from './metadata.ts';
+import {MoonrakerNetwork,type MoonrakerAddress,type MoonrakerNetworkOptions} from './server.ts';
+export interface NetworkBinding {readonly host:string;readonly port:number;readonly maxConnections:number;readonly useXheaders:boolean;readonly routePrefix:string;}
 type KlippyAttachmentOptions=Omit<KlippyInitializationOptions,'version'|'onSnapshot'|'onRemoteMethodsReady'>;
 const mqttSensorOwners=new WeakSet<MqttSensors>();
 const sensorOwners=new WeakSet<SensorStore>();
@@ -96,7 +117,13 @@ function validateConfigFiles(options:ConfiguredServerOptions|ConfiguredAuthoriza
 const databaseOwners=new WeakSet<DatabaseStore>();
 const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0});
 const nativeGenerationNotifications=new Set(['notify_gcode_response','notify_print_state_changed','notify_history_changed','notify_filelist_changed','notify_klippy_ready','notify_klippy_shutdown']);
-export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'> {
+export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'|'tls'|'redirect'|'welcome'|'logs'> {
+ /** Actual application process log argument; absence disables moonraker.log. */
+ applicationLogFile?:string;
+ /** Borrowed native process producer; only its factory closes it. */
+ processLogs?:ProcessLogs;
+ /** Existing native printer log produced by the trusted process integration. */
+ printerLogFile?:string;
  /** Process-owned announcements; requests never control remote URLs or paths. */
  announcements?:AnnouncementsOptions;
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
@@ -111,9 +138,14 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
   * files, and the process factory closes the authoritative journal afterwards. */
  nativeProcessFiles?:NativePrintUploads;
  nativeProcessHistory?:PrintJournal;
+ /** Register process providers alongside configured sensor fields, once before
+  * listening. Updates use the same native print gate and atomic journal. */
+ nativeHistoryAuxiliary?:(fields:HistoryFields)=>void;
  nativePrinterIdentity?:NativePrinterIdentity;
  productPrintCompatibility?:NativePrintCompatibility;
  productHostControl?:ProductHostControl;
+ /** Trusted fixed-layout process installer. No request can create this port. */
+ installation?:{options:FixedNodeInstallOptions;backend:SudoBackend};
  productPressure?:PressureAdvancePort;
  /** Live native owner snapshot; never a replacement for Klippy state. */
  nativeHost?:NativeHostStatusSource;
@@ -139,6 +171,8 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  /** Service owner must reopen all database-dependent components after restore. */
  onDatabaseRestore?:()=>void|Promise<void>;
  configurationLimits?:ConfigurationLimits;
+ /** Owns a private template/secrets generation until server shutdown. */
+ templates?:SecretsContext;
  /** Transfers admission-layer lifetime on successful load. Restore selected
   * metadata before listening; close files on shutdown, but not its dependencies. */
  metadataFiles?:MetadataFiles;
@@ -148,12 +182,12 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  /** Enables configuration-owned Klippy supervision when the network starts. */
  klippy?:{initialization?:KlippyAttachmentOptions;retryDelayMs?:number;pathContext?:KlippyPathContext};
 }
-export interface ConfiguredAuthorizationOptions extends Omit<ConfiguredServerOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'> {
+export interface ConfiguredAuthorizationOptions extends Omit<ConfiguredServerOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'|'resolveRequestProtocol'|'captureRequestMetadata'> {
  authorize?:never;authorizeNotification?:never;authorizeSubscriptionConnection?:never;
  /** Persistent database ownership transfers when assembly is constructed. */
  database:DatabaseStore;
  /** Stable externally provisioned origin, independent of an ephemeral listener. */
- authorization:{issuer:string;ldapConfiguration?:LdapConfigurationContext};
+ authorization:{issuer:string;ldapConfiguration?:LdapConfigurationContext;templateSecrets?:SecretsContext};
 }
 /** Device generation only. Process identity, authorization and database remain
  * with the listening server; the caller owns physical startup and cleanup. */
@@ -169,7 +203,9 @@ export function readNetworkBinding(reader:ConfigurationReader):NetworkBinding{
  if(!host||host.length>255||/[\s/\0]/u.test(host))throw new ConfigurationError('Invalid server host');
  const port=section.getInt('port',{defaultValue:7125,minval:0,maxval:65535});
  const maxConnections=section.getInt('max_websocket_connections',{defaultValue:50,minval:1,maxval:10000});
- return Object.freeze({host,port,maxConnections});
+ const useXheaders=section.getBoolean('use_xheaders',{defaultValue:true});
+ const routePrefix=readRoutePrefix(section.get('route_prefix',{defaultValue:null}));
+ return Object.freeze({host,port,maxConnections,useXheaders,routePrefix});
 }
 /** File-backed network composition, not the complete Moonraker daemon. Load
  * does not listen. Components consume config/register methods before start;
@@ -179,19 +215,27 @@ export class ConfiguredMoonraker {
  #maintenanceGate:MaintenanceGate;
  get maintenanceGate(){return this.#maintenanceGate;}
  #webcams:Webcams|undefined;#webcamNotifications=notificationMetrics();
+ readonly #httpClient=new MoonrakerHttpClient();
+ readonly #octoprint:OctoprintCompatibility|undefined;
  #announcements:Announcements|undefined;#announcementNotifications=notificationMetrics();
  #authorization:ApiKeyAuthorization|undefined;#releaseAuthorization:()=>void=()=>{};
  #ldap:LdapAuthorization|undefined;
+ #templates:MoonrakerTemplateFactory|undefined;#welcome:WelcomeApplication|undefined;
+ #logs:ApplicationLogFiles|undefined;
+ #processLogs:ProcessLogs|undefined;
+ /** Trusted component lookup only; never serialized as resolved values. */
+ get templates(){return this.#templates;}
  /** Local provisioning only; never serialized into server information. */
  get authorization(){return this.#authorization;}
  readonly reader:ConfigurationReader;readonly binding:NetworkBinding;
+ get httpClient(){return this.#httpClient;}
  readonly rpc:JsonRpcDispatcher;readonly endpoints:EndpointRegistry;
  #metadataMonitor:MetadataMonitor|undefined;
  #discoverMetadata=false;#metadataDiscovery:{restored:number;scanned:number;unavailable:number;unsupported:number}|null=null;
  #metadataFiles:MetadataFiles|undefined;#startupAbort=new AbortController();#metadataRecovery:{restored:number;unavailable:number}|null=null;
  #network:MoonrakerNetwork;#information:ServerInformation;#configuration:ServerConfiguration;
  #nativeSubscriptions:NativeSubscriptions|undefined;#subscriptions:SubscriptionDelivery|undefined;#klippy:KlippyLifecycle|undefined;#klippyRoutes=new Map<string,()=>void>();
- #base:InformationSnapshot;#release:()=>void;#opening:Promise<AddressInfo>|undefined;#stopping=false;
+ #base:InformationSnapshot;#release:()=>void=()=>{this.#agentMethods?.close();this.#releaseNativeBindings();};#opening:Promise<MoonrakerAddress>|undefined;#stopping=false;
  #gcodeNotifications=notificationMetrics();#klippyNotifications=notificationMetrics();#klippyEvents=new KlippyNotifications();
  #gcodeStore:GcodeStore|undefined;
  #systemInformation:SystemInformation|undefined;
@@ -209,8 +253,10 @@ export class ConfiguredMoonraker {
  #sensors:SensorStore|undefined;#sensorTimer:ReturnType<typeof setInterval>|undefined;#sensorError:string|null=null;#sensorSamples=0;#sensorNotifications=notificationMetrics();
  #nativeUploads:NativePrintUploads|undefined;#configFiles:NativeConfigFiles|undefined;
  #nativeProcessFiles:NativePrintUploads|undefined;#nativeProcessHistory:PrintJournal|undefined;#nativeController:PrintController|undefined;
+ #nativeHistoryFields:NativeHistoryFields|undefined;
  #printApi:PrintApi|ProductPrintApi|undefined;
- #nativeQueue:NativeJobQueue|undefined;#releaseNativeQueue=()=>{};
+ #nativeQueue:NativeJobQueue|undefined;#releaseNativeQueue=()=>{};#releaseUploadQueue=()=>{};
+ readonly #queueGcodeUploads:boolean;
  #queueNotifications=notificationMetrics();
  #nativeLifecycle:NativeHostNotifications|undefined;
  #nativeScope:NativeRequestScope|undefined;#nativeHost:NativeHostStatusSource|undefined;
@@ -222,11 +268,16 @@ export class ConfiguredMoonraker {
  #fileNotifications=notificationMetrics();
  #releaseFileChanges:()=>void=()=>{};
  #databaseRestart={requested:false,error:null as string|null};
+ #sudo:ProcessSudoOwner|undefined;#installer:FixedNodeInstallValidator|LegacyNodeInstallValidator|undefined;#installAnnouncement:string|undefined;
  #agentMethods:AgentMethods;#jobState:JobState|undefined;
  #reconnecting=false;#lastAttachment:{path:string;options:KlippyAttachmentOptions}|undefined;
  #supervisor:KlippySupervisor|undefined;
  #automatic:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}|undefined;
- private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions,automatic?:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}){
+ private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions,automatic?:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions},allocated?:(server:ConfiguredMoonraker)=>void){
+  // Capture only this allocation. Borrowed components transfer individually
+  // after their ownership checks, so an early rejection never closes another
+  // server's database, config files or sensors.
+  allocated?.(this);
   options={...options};
   assertNativeProcessResources(options);
   if(options.sensorTransport!==undefined&&(!(options.sensorTransport instanceof MqttSensors)||!options.sensors||!options.sensorTransport.owns(options.sensors)||options.sensorTransport.status.closed||options.sensorTransport.status.started||options.sensorTransport.status.rpcBound||mqttSensorOwners.has(options.sensorTransport)))throw new ConfigurationError('Invalid or already owned sensor transport');
@@ -240,20 +291,38 @@ export class ConfiguredMoonraker {
   const mqttApiQos=mqttApi?reader.section('mqtt').getInt('api_qos',{defaultValue:0,minval:0,maxval:2}) as 0|1|2:0;
   if(options.nativeUploads!==undefined&&(!(options.nativeUploads instanceof NativePrintUploads)||!options.productPrint||!options.maintenanceGate||!options.nativeUploads.usesGate(options.maintenanceGate)||options.nativeUploads.status.closed||options.nativeUploads.status.pending||(!options.nativeUploads.metadataOwner&&options.nativeUploads.status.metadata.pending)||options.nativeUploads.status.downloads||options.nativeUploads.status.authorizing||uploadOwners.has(options.nativeUploads)))throw new ConfigurationError('Native uploads require an unowned admission layer and the native print gate');
   validateConfigFiles(options);this.#configFiles=options.configFiles;
-  this.#maintenanceGate=options.maintenanceGate??new MaintenanceGate();this.#configHostControl=options.productHostControl;
   if(options.productPrint&&(automatic||options.history||options.onPrintStartComplete))throw new ConfigurationError('Native print owner cannot share Klippy or legacy history/start hooks');
+  this.#maintenanceGate=options.maintenanceGate??new MaintenanceGate();this.#configHostControl=options.productHostControl;
   this.#automatic=automatic;this.#metadataFiles=options.metadataFiles;this.#discoverMetadata=options.discoverMetadataOnStart??false;if(options.metadataMonitor)this.#metadataMonitor=new MetadataMonitor(options.metadataFiles!,options.metadataMonitor,()=>{if(!this.#stopping)this.setInformation(this.#base);});
   if(reader.prefixSections('webcam ').length&&!options.database)throw new ConfigurationError('Webcam configuration requires a database');
   if((reader.hasSection('announcements')||options.announcements)&&!options.database)throw new ConfigurationError('Announcements require a database');
-  this.reader=reader;this.binding=readNetworkBinding(reader);
+  readMachineProvider(reader);this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
   this.#nativeScope=options.productPrint||options.nativeDetached?new NativeRequestScope():undefined;this.#nativeHost=options.nativeHost;this.#nativeCanAttach=!!options.nativeDetached||!!options.productPrint&&!!options.nativeHost&&!!options.nativeObjects;this.#nativeGeneration=options.productPrint?1:0;this.#nativeLifecycleEnabled=!!options.nativePrinterIdentity&&(!!options.nativeHost||!!options.nativeDetached);
   if(options.nativeDetached){this.maintenanceGate.invalidate();this.#nativeRetirement=Promise.resolve();this.#nativeRetirementDrained=true;this.#nativeRetiredSnapshot={group_state:'stopped',hardware_state:'stopped',print_state:'idle',homed_axes:'',closing:true,admission_closed:true,maintenance:false,mcus:[]};}
   const initialScope=this.#nativeScope;this.#nativeProcessFiles=options.nativeProcessFiles;this.#nativeProcessHistory=options.nativeProcessHistory;this.#nativeController=options.productPrint;
   const nativeHost=options.nativeHost||options.nativeDetached?()=>this.#nativeRetiredSnapshot??this.#nativeHost!():undefined;
-  this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc,(path,handler)=>this.#nativeProcessFiles&&nativeProcessFileRoutes.has(path)||this.#nativeProcessHistory&&path.startsWith('/server/history/')?handler:this.#nativeScope?.wrap(path,handler)??handler);
+  for(const section of Object.keys(reader.source.original))reader.redact(section,'sudo_password');reader.redact('machine','sudo_password');this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc,(path,handler)=>path==='/server/logs/rollover'||this.#nativeProcessFiles&&nativeProcessFileRoutes.has(path)||this.#nativeProcessHistory&&path.startsWith('/server/history/')?handler:this.#nativeScope?.wrap(path,handler)??handler);
+  this.#queueGcodeUploads=reader.hasSection('file_manager')&&reader.section('file_manager').getBoolean('queue_gcode_uploads',{defaultValue:false});
+  if(this.#queueGcodeUploads&&!reader.hasSection('job_queue'))throw new ConfigurationError('Upload queue requires the process job_queue component');
+  if(reader.hasSection('octoprint_compat'))this.#octoprint=new OctoprintCompatibility(reader,this.#base.version,{
+   state:()=>nativeHost?nativePrinterState(readNativeHostStatus(nativeHost)).state as InformationSnapshot['state']:this.#klippy?.snapshot.state??this.#base.state,
+   query:async(objects,context)=>{const result=await this.endpoints.invoke('/printer/objects/query','POST',{objects},context);if(!result||typeof result!=='object'||Array.isArray(result)||!result.status||typeof result.status!=='object'||Array.isArray(result.status))throw new ApiError(503,'Printer object status unavailable');return result.status;},
+   command:async(script,context)=>{await this.endpoints.invoke('/printer/gcode/script','POST',{script},context);},
+   select:async(filename,context)=>{
+    const files=this.#nativeProcessFiles??this.#nativeUploads,scope=this.#nativeScope,api=this.#printApi;
+    if(!files)throw new ApiError(503,'Native file owner unavailable');context.signal.throwIfAborted();
+    if(context.nativeGenerationSignal&&!context.nativeGenerationRetiredAtAdmission){context.nativeGenerationSignal.throwIfAborted();if(scope?.signal!==context.nativeGenerationSignal)throw new ApiError(503,'File selection belongs to another device generation');}
+    const attached=!context.nativeGenerationRetiredAtAdmission&&scope&&!scope.signal.aborted&&api instanceof ProductPrintApi;
+    const owned:RpcContext=attached?{...context,nativeGenerationSignal:scope.signal,signal:AbortSignal.any([context.signal,scope.signal])}:context;
+    const file={filename,file_id:await files.resolveQueuedFile(filename,owned.signal)},requestId='compat-'+randomUUID();
+    try{if(!attached)throw new ApiError(503,'Native printing unavailable');await api.startUploaded(file,requestId,owned);}
+    catch(error){owned.signal.throwIfAborted();if(!this.#queueGcodeUploads||attached&&!api.isUnadmittedPublished(error,requestId)||error instanceof ApiError&&[401,403,499].includes(error.status))throw error;await this.#queuePublishedFile(file,requestId,context,owned.signal);}
+   }
+  });
   const networkOptions={...options};for(const key of ['productPrint','nativeHost','nativeObjects','nativePrinterIdentity','productPressure','productHostControl','productPrintCompatibility','maintenanceGate','nativeDetached'] as const)delete networkOptions[key];
-  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,nativeUploads:this.#nativeProcessFiles??options.nativeUploads,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections},this.#nativeScope?.signal);
+  this.#processLogs=options.processLogs;this.#logs=new ApplicationLogFiles(options.processLogs?.paths.moonraker??options.applicationLogFile,()=>options.processLogs?.paths.klipper??options.printerLogFile??options.nativePrinterIdentity?.logFile??this.#klippy?.snapshot.info.log_file);
+  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,logs:this.#logs,tls:configuredTls.get(reader),redirect:{authorizationAvailable:()=>this.#authorization!==undefined},welcome:{render:context=>{if(!this.#welcome)throw new ApiError(503,'Application is unavailable');return this.#welcome.render(context);}},nativeUploads:this.#nativeProcessFiles??options.nativeUploads,octoprint:this.#octoprint?{enableUfp:this.#octoprint.enableUfp}:undefined,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections,useXheaders:this.binding.useXheaders,routePrefix:this.binding.routePrefix},this.#nativeScope?.signal);
   if(options.nativeDetached)this.#nativeScope!.retire();
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   this.#nativeTemperatureObjects=options.nativeObjects;
@@ -262,7 +331,7 @@ export class ConfiguredMoonraker {
   if(this.#sensorTransport){this.#mqttMacros=new MqttMacroPublisher(this.#sensorTransport,this.#sensorTransport.instanceName);this.#mqttStatus=new MqttStatusRuntime(this.#sensorTransport,readMqttStatusOptions(reader));}
   const releaseMqtt=this.#sensorTransport?registerMqttPublish(this.endpoints,this.#sensorTransport):()=>{};
   const releaseMqttSubscribe=this.#sensorTransport?registerMqttSubscribe(this.endpoints,this.#sensorTransport):()=>{};
-  this.#database=options.database;if(this.#database){this.#webcams=new Webcams(reader,this.#database,event=>{if(!this.#stopping)this.#broadcastTracked('notify_webcams_changed',[event],this.#webcamNotifications);});this.#announcements=new Announcements(reader,this.#database,(method,event)=>{if(!this.#stopping)this.#broadcastTracked(method,[event],this.#announcementNotifications);},options.announcements);}const releaseWebcams=this.#webcams?.register(this.endpoints)??(()=>{});const releaseAnnouncements=this.#announcements?.register(this.endpoints)??(()=>{});const releaseDatabase=this.#database?registerDatabase(this.endpoints,this.#database):()=>{};
+  this.#database=options.database;if(this.#database){this.#webcams=new Webcams(reader,this.#database,event=>{if(!this.#stopping)this.#broadcastTracked('notify_webcams_changed',[event],this.#webcamNotifications);},this.#httpClient);this.#announcements=new Announcements(reader,this.#database,(method,event)=>{if(!this.#stopping)this.#broadcastTracked(method,[event],this.#announcementNotifications);},options.announcements,this.#httpClient);}const releaseWebcams=this.#webcams?.register(this.endpoints)??(()=>{});const releaseAnnouncements=this.#announcements?.register(this.endpoints)??(()=>{});const releaseDatabase=this.#database?registerDatabase(this.endpoints,this.#database):()=>{};
   if(options.history)this.#historyRuntime=new HistoryRuntime(options.history.repository,{auxiliary:options.history.auxiliary,metadata:options.history.metadata??(this.#metadataFiles?filename=>this.#metadataFiles!.historyMetadata(filename):undefined),onFailure:()=>{if(!this.#stopping)this.setInformation(this.#base);},notify:async event=>{
    if(this.#stopping)return;const signal=this.#startupAbort.signal;signal.throwIfAborted();const exists=await options.history!.fileExists(event.job.filename,event.job.metadata.modified,signal);signal.throwIfAborted();if(typeof exists!=='boolean')throw new ApiError(502,'Invalid history file existence result');
    this.#broadcastTracked('notify_history_changed',[{...event,job:{...event.job,exists}} as unknown as Json],this.#historyNotifications);
@@ -277,9 +346,15 @@ export class ConfiguredMoonraker {
   const releaseConfigSave=this.#configFiles?.registerSave(this.endpoints)??(()=>{});
   const releaseConfigChanges=this.#configFiles?.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications))??(()=>{});
   const releaseHostControl=options.productHostControl?registerProductHostControl(this.endpoints,options.productHostControl):()=>{};
+  if(options.installation){if(!options.nativeDetached||!options.productHostControl||!this.#configFiles||!this.#database)throw new ConfigurationError('Installation requires detached process ownership, config writer, database and host control');
+   this.#sudo=new ProcessSudoOwner(options.installation.backend,event=>{if(!this.#stopping)this.#broadcastTracked('notify_sudo_alert',[event],this.#systemNotifications);},async context=>{authorizedContext(context,await context.authorize('server.restart',{}));if(!context.afterResponse)throw new ApiError(503,'Response handoff unavailable');await options.productHostControl!.requestMachineAction({kind:'server_restart'},context.nativeGenerationSignal,context.nativeGenerationRetiredAtAdmission,callback=>context.afterResponse!(callback));});
+   const confirmed=async()=>{if(this.#installAnnouncement&&this.#announcements){try{await this.#announcements.removeAnnouncement(this.#installAnnouncement);this.#installAnnouncement=undefined;}catch{this.reader.warn('Installation completed but announcement cleanup failed');}}};
+   this.#installer=options.installation.options.legacy?new LegacyNodeInstallValidator({...options.installation.options,legacy:options.installation.options.legacy},reader,this.#configFiles,this.#database,this.#sudo,confirmed):new FixedNodeInstallValidator(options.installation.options,reader,this.#configFiles,this.#database,this.#sudo,confirmed);
+  }
+  const releaseSudo=this.#sudo?.registerEndpoints(this.endpoints)??(()=>{});
   let releasePrint=this.#printApi instanceof ProductPrintApi?registerProductPrintApi(this.endpoints,this.#printApi):this.#printApi?registerPrintApi(this.endpoints,this.#printApi):this.#registerDetachedNativeRoutes();
   const releaseHistoryIdle=this.#historyRuntime?this.maintenanceGate.registerIdle(()=>!this.#historyRuntime!.status.awaitingPrintStart):()=>{};
-  let releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):(options.productPrint&&this.#nativeUploads||this.#nativeProcessHistory&&this.#nativeProcessFiles)?(this.#nativeHistory=registerNativeHistory(this.endpoints,(this.#nativeProcessHistory??options.productPrint)!, (this.#nativeProcessFiles??this.#nativeUploads)!,event=>{if(!this.#stopping)this.#broadcastTracked('notify_history_changed',[event],this.#historyNotifications);},this.#nativeProcessHistory?()=>this.#nativeController:undefined)):()=>{};
+  let releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):(options.productPrint&&this.#nativeUploads||this.#nativeProcessHistory&&this.#nativeProcessFiles)?(this.#nativeHistory=registerNativeHistory(this.endpoints,(this.#nativeProcessHistory??options.productPrint)!, (this.#nativeProcessFiles??this.#nativeUploads)!,event=>{if(!this.#stopping)this.#broadcastTracked('notify_history_changed',[event],this.#historyNotifications);},this.#nativeProcessHistory?()=>this.#nativeController:undefined,()=>this.#nativeHistoryFields?.fields.snapshot().totals??[])):()=>{};
   const releaseMaintenance=this.#database?registerDatabaseMaintenance(this.endpoints,this.#database,()=>this.#requireDatabaseIdle(),options.onDatabaseRestore?()=>{this.#databaseRestart.requested=true;void Promise.resolve().then(options.onDatabaseRestore).catch(error=>{this.#databaseRestart.error=error instanceof Error?error.message:'Database restart failed';});}:undefined,()=>this.maintenanceGate):()=>{};
   const releaseTemperature=this.#temperatureStore?registerTemperatureStore(this.endpoints,this.#temperatureStore.store):()=>{};
   if(options.systemInformation)this.#systemInformation=new SystemInformation(options.systemInformation.source,network=>{if(!this.#stopping)this.#broadcastTracked('notify_net_state_changed',[network],this.#systemNotifications);});
@@ -298,8 +373,20 @@ export class ConfiguredMoonraker {
   let releaseNativeSubscribe=options.nativeObjects?this.endpoints.register({endpoint:'objects/subscribe',methods:['GET','POST'],remote:true,transports:['websocket','http']},(params,_verb,context)=>this.#subscriptions!.subscribe(params,context)):()=>{};
   let releaseObjects=options.nativeObjects?registerNativeObjects(this.endpoints,options.nativeObjects):()=>{};
   // No device lifecycle sampler exists before the first real attachment.
-  if(options.nativePrinterIdentity&&nativeHost&&!options.nativeDetached)this.#nativeLifecycle=new NativeHostNotifications(nativeHost,method=>this.#broadcastTracked(method,[],this.#klippyNotifications));
-  const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections,nativeHost,options.nativePrinterIdentity?new NativePrinterInformation(options.nativePrinterIdentity):undefined);
+  if(options.nativePrinterIdentity&&nativeHost&&!options.nativeDetached)this.#nativeLifecycle=new NativeHostNotifications(nativeHost,method=>{options.processLogs?.lifecycle(method);this.#broadcastTracked(method,[],this.#klippyNotifications);});
+  const releaseLogs=options.processLogs?.register(this.endpoints)??(()=>{});
+  const releaseOctoprint=this.#octoprint?.register(this.endpoints)??(()=>{});
+  const nativePrinter=options.nativePrinterIdentity?new NativePrinterInformation({...options.nativePrinterIdentity,logFile:options.processLogs?.paths.klipper??options.printerLogFile??options.nativePrinterIdentity.logFile}):undefined;
+  const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections,nativeHost,nativePrinter);
+  const localUser=userInfo().username,localHostname=hostname();
+  this.#welcome=new WelcomeApplication(configuredWelcome.get(reader)!,{templates:()=>this.#templates,authorization:()=>this.#authorization,authorize:context=>options.authorize('server.info',{},context),information:()=>readServerInformation(this.#information,true,this.#network.status.connections,nativeHost,nativePrinter),stateMessage:info=>nativePrinter&&info.native_host?nativePrinterState(info.native_host as ReturnType<typeof readNativeHostStatus>).state_message:this.#klippy?.snapshot.stateMessage??'',corsEnabled:()=>!!options.cors,announcements:()=>this.#announcements?.list().entries??[],machine:()=>{
+   const snapshot=this.#systemInformation?.snapshot() as {system_info?:Record<string,Json>}|undefined,network=snapshot?.system_info?.network as Record<string,{ip_addresses?:{family?:string;address?:string;is_link_local?:boolean}[]}>|undefined;
+   const localIp=Object.entries(network??{}).filter(([name])=>name!=='lo').flatMap(([,row])=>row.ip_addresses??[]).find(row=>row.family==='ipv4'&&!row.is_link_local)?.address;
+   const services=this.#systemServices?.snapshot() as {instance_ids?:{moonraker?:string}}|undefined;
+   // The existing native host control uses polkit, has no interactive password
+   // request queue and never invents one from a page or query parameter.
+   return {sudo_requested:this.#sudo?.snapshot.sudo_requested??false,sudo_request_message:this.#sudo?.snapshot.sudo_request_message??'',linux_user:localUser,local_ip:localIp??'unknown',service_name:services?.instance_ids?.moonraker||'unknown',hostname:localHostname};
+  }});
   const releaseExtensions=registerExtensions(this.endpoints,this.#network);
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy,new Set(this.#mqttMacros?['publish_mqtt_topic']:[]));
   const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,options.history?new HistoryFileMetadata(this.#metadataFiles,options.history.repository):this.#metadataFiles):()=>{};
@@ -307,7 +394,7 @@ export class ConfiguredMoonraker {
   let releaseFileChanges=(this.#nativeProcessFiles??this.#nativeUploads)?.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications))??(()=>{});
   this.#releaseFileChanges=releaseFileChanges;
   if(options.productPrint||options.nativeDetached){this.#nativeReleases.push(releaseNativeSubscribe,releaseObjects,releaseUploads,releasePrint);releaseNativeSubscribe=releaseObjects=releaseUploads=releasePrint=()=>{};if(!this.#nativeProcessFiles){this.#nativeReleases.push(releaseFileChanges);releaseFileChanges=()=>{};}if(!this.#nativeProcessHistory){this.#nativeReleases.push(releaseHistory);releaseHistory=()=>{};}}
-  this.#release=()=>{releaseConfigChanges();releaseConfigSave();releaseConfigWriter();this.#releaseNativeBindings();releaseProcessFiles();releaseWebcams();releaseAnnouncements();releaseFileChanges();releaseHostControl();releaseNativeSubscribe();releaseObjects();releaseUploads();releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseSystem();releaseProc();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  this.#release=()=>{releaseSudo();releaseLogs();releaseOctoprint();releaseConfigChanges();releaseConfigSave();releaseConfigWriter();this.#releaseNativeBindings();releaseProcessFiles();releaseWebcams();releaseAnnouncements();releaseFileChanges();releaseHostControl();releaseNativeSubscribe();releaseObjects();releaseUploads();releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseSystem();releaseProc();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
   if(mqttApi)this.#mqttRpc=new MqttRpc(this.rpc,this.#sensorTransport!,this.#sensorTransport!.instanceName,options.mqttAuthorize!,mqttApiQos);
   if(this.#sensorTransport){if(this.#mqttRpc)this.#sensorTransport.bindRpc(this.#mqttRpc.receive,mqttApiQos);this.#sensorTransport.enablePresence();mqttSensorOwners.add(this.#sensorTransport);}
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
@@ -320,6 +407,10 @@ export class ConfiguredMoonraker {
   for(const key of nativeDeviceFields)delete (options as unknown as Record<string,unknown>)[key];
  }
  static async #prepare(filename:string,options:ConfiguredServerOptions){
+  if('welcome' in options)throw new ConfigurationError('Welcome rendering belongs to the application owner');
+  if('redirect' in options)throw new ConfigurationError('Redirect status belongs to the application owner');
+  if('logs' in options)throw new ConfigurationError('Log downloads belong to application configuration');
+  if('tls' in options)throw new ConfigurationError('TLS material belongs to server configuration');
   assertNativeProcessResources(options);
   if(options.productHostControl!==undefined&&(!(options.productHostControl instanceof ProductHostControl)||!options.productPrint&&!options.nativeDetached))throw new ConfigurationError('Host control requires a native print owner');
   if(options.nativeObjects!==undefined&&(!(options.nativeObjects instanceof NativeObjects)||!options.productPrint))throw new ConfigurationError('Native objects require a native print owner');
@@ -347,38 +438,94 @@ export class ConfiguredMoonraker {
   if(options.onPrintStartComplete!==undefined&&typeof options.onPrintStartComplete!=='function')throw new ConfigurationError('Invalid print start observer');
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
   if(options.klippy!==undefined&&(!options.klippy||typeof options.klippy!=='object'||Array.isArray(options.klippy)))throw new ConfigurationError('Invalid Klippy configuration owner');
-  const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));
-  const automatic=options.klippy?{...await readKlippyBinding(reader,options.klippy.pathContext,options.klippy.retryDelayMs),initialization:options.klippy.initialization??{}}:undefined;
-  return {reader,automatic};
+  if(options.processLogs!==undefined&&(!(options.processLogs instanceof ProcessLogs)||options.processLogs.status.closed))throw new ConfigurationError('Invalid process log producer');
+  validateApplicationLogFile(options.applicationLogFile);validateApplicationLogFile(options.printerLogFile);validateApplicationLogFile(options.nativePrinterIdentity?.logFile);if(options.printerLogFile!==undefined&&!options.nativePrinterIdentity)throw new ConfigurationError('Native printer log requires its printer identity owner');
+  const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));configuredWelcome.set(reader,await loadWelcomeSource());
+  const templates=options.templates?await MoonrakerTemplateFactory.load(reader,options.templates):undefined;
+  let mqtt:Awaited<ReturnType<typeof configureNativeSensorsFromConfig>>|undefined;
+  try{configuredTls.set(reader,await readTlsConfiguration(reader,options.templates?.dataPath));const automatic=options.klippy?{...await readKlippyBinding(reader,options.klippy.pathContext,options.klippy.retryDelayMs),initialization:options.klippy.initialization??{}}:undefined;
+   const native=!!options.nativeProcessHistory||!!options.productPrint?.durable;
+   if(options.nativeHistoryAuxiliary!==undefined&&(!native||options.history||typeof options.nativeHistoryAuxiliary!=='function'))throw new ConfigurationError('Native auxiliary providers require a durable native print owner');
+   const nativeHistory=native?new NativeHistoryFields():undefined;
+   let configuredOptions=options;
+   // Explicit sources keep their existing owner. Otherwise configuration owns
+   // one process generation; constructing it never starts a broker connection.
+   if(!options.sensorTransport&&(reader.hasSection('mqtt')||reader.prefixSections('sensor ').length)){
+    if(options.sensors)throw new ConfigurationError('Choose configured MQTT sensors or an explicit sensor owner');
+    let trackingEnabled:(excludePaused:boolean)=>boolean=()=>false;
+    mqtt=await configureNativeSensorsFromConfig(reader,exclude=>trackingEnabled(exclude),{},nativeHistory?.fields);
+    const fields=mqtt.fields;
+    if(fields.configuration.length&&!nativeHistory&&(!options.history||options.history.auxiliary||options.history.auxiliaryTotals))throw new ConfigurationError('Configured sensor history fields require their matching history auxiliary owner');
+    const history=fields.configuration.length&&!nativeHistory?{...options.history!,auxiliary:(gate:(excludePaused:boolean)=>boolean)=>{trackingEnabled=gate;return fields;}}:options.history;
+    configuredOptions={...options,sensors:mqtt.sensors,sensorTransport:mqtt.sensorTransport,...history?{history}:{}};
+    // Fail before constructing other service resources or admitting a broker.
+    const api=reader.section('mqtt').getBoolean('enable_moonraker_api',{defaultValue:!!options.mqttAuthorize});
+    if(api&&!options.mqttAuthorize)throw new ConfigurationError('MQTT API requires explicit broker authorization');
+    readMqttStatusOptions(reader);
+   }
+   const returned=options.nativeHistoryAuxiliary?.(nativeHistory!.fields);
+   if(returned!==undefined){if(returned&&typeof (returned as {then?:unknown}).then==='function')void Promise.resolve(returned).catch(()=>{});throw new ConfigurationError('Native auxiliary provider registration must be synchronous and return no owner');}
+   nativeHistory?.fields.seal();
+   return {reader,automatic,templates,mqtt,configuredOptions,nativeHistory};
+  }catch(error){try{await mqtt?.close();}finally{templates?.close();}throw error;}
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
-  const {reader,automatic}=await this.#prepare(filename,options),server=new ConfiguredMoonraker(reader,options,automatic);server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);
-  try{await server.#initializeNativeQueue();return server;}catch(error){try{await server.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Queue initialization and server cleanup failed');}throw error;}
+  const {reader,automatic,templates,mqtt,configuredOptions,nativeHistory}=await this.#prepare(filename,options);let server:ConfiguredMoonraker|undefined;
+  try{server=new ConfiguredMoonraker(reader,configuredOptions,automatic,allocated=>{server=allocated;allocated.#templates=templates;});server.#templates=templates;server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);await server.#initializeNativeQueue();server.#nativeHistoryFields=nativeHistory;if(options.productPrint)nativeHistory?.bind(options.productPrint);templates?.markConfigured();await server.#initializeInstallation();return server;}
+  catch(error){await this.#failedLoadCleanup(error,server,mqtt,templates);throw error;}
  }
  /** Configuration-owned native authorization; does not listen or switch any
   * printer entry point. Failed initialization closes transferred resources. */
  static async loadAuthorized(filename:string,options:ConfiguredAuthorizationOptions):Promise<ConfiguredMoonraker>{
   if(!options.database||!options.authorization||typeof options.authorization.issuer!=='string')throw new ConfigurationError('Native authorization requires a database and stable issuer');
-  for(const name of ['authorize','authorizeNotification','authorizeSubscriptionConnection'])if(name in options)throw new ConfigurationError('Native authorization cannot share external authorization callbacks');
+  for(const name of ['authorize','authorizeNotification','authorizeSubscriptionConnection','resolveRequestProtocol','captureRequestMetadata'])if(name in options)throw new ConfigurationError('Native authorization cannot share external authorization callbacks');
   let auth:ApiKeyAuthorization|undefined;
   const owner=()=>{if(!auth)throw new ApiError(503,'Authorization is not initialized');return auth;};
   const resolved:ConfiguredServerOptions={...options,
-   authorize:(method,params,context)=>owner().authorize(method,params,context),
+   captureRequestMetadata:context=>owner().captureRequestMetadata(context),
+   resolveRequestProtocol:context=>owner().resolveRequestProtocol(context),
+   authorize:(method,params,context)=>owner().networkOptions.authorize!(method,params,context),
    authorizeNotification:(method,params,context)=>owner().networkOptions.authorizeNotification!(method,params,context),
    authorizeSubscriptionConnection:(source,target)=>owner().networkOptions.authorizeSubscriptionConnection!(source,target)
   };
-  const {reader,automatic}=await this.#prepare(filename,resolved);
-  const ldapOptions=reader.hasSection('ldap')?await readLdapOptions(reader,options.authorization.ldapConfiguration):undefined;
-  const ldap=ldapOptions?new (await import('./ldap-authorization.ts')).LdapAuthorization(ldapOptions):undefined;
-  let server:ConfiguredMoonraker|undefined;
+  if(options.templates&&options.authorization.templateSecrets)throw new ConfigurationError('Choose one private template generation');
+  const templateContext=options.templates??options.authorization.templateSecrets;
+  if(templateContext&&options.authorization.ldapConfiguration?.render)throw new ConfigurationError('Choose one LDAP template dependency');
+  const {reader,automatic,templates,mqtt,configuredOptions,nativeHistory}=await this.#prepare(filename,{...resolved,templates:templateContext});
+  let server:ConfiguredMoonraker|undefined,ldap:LdapAuthorization|undefined;
   try{
-   const {cors,...policy}=readAuthorizationOptions(reader,options.authorization.issuer,ldap);
-   server=new ConfiguredMoonraker(reader,{...resolved,...cors?{cors}:{}},automatic);server.#ldap=ldap;
+   const context=options.authorization.ldapConfiguration;
+   context?.signal?.throwIfAborted();
+   const ldapOptions=reader.hasSection('ldap')?await readLdapOptions(reader,templates?{...context,render:(source,signal)=>{signal.throwIfAborted();const template=templates.createTemplate(source);try{const value=template.render();signal.throwIfAborted();return value;}finally{template.close();}}}:context):undefined;
+   ldap=ldapOptions?new (await import('./ldap-authorization.ts')).LdapAuthorization(ldapOptions):undefined;
+   const {cors,...policy}=readAuthorizationOptions(reader,options.authorization.issuer,ldap,(address,signal)=>{if(!auth)throw new ApiError(503,'Authorization unavailable');return auth.resolveTrustedAddress(address,signal);});
+   server=new ConfiguredMoonraker(reader,{...configuredOptions,...cors?{cors}:{}},automatic,allocated=>{server=allocated;allocated.#ldap=ldap;allocated.#templates=templates;});server.#ldap=ldap;server.#templates=templates;
    server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);
    auth=await ApiKeyAuthorization.open(options.database,policy);server.#authorization=auth;
    server.#releaseAuthorization=auth.register(server.endpoints,server);
-   await server.#initializeNativeQueue();server.setInformation({...server.#base,components:[...new Set([...server.#base.components,'authorization'])]});return server;
-  }catch(error){try{if(server)await server.close();else await ldap?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Authorization initialization and cleanup failed');}throw error;}
+   await server.#initializeNativeQueue();server.#nativeHistoryFields=nativeHistory;if(options.productPrint)nativeHistory?.bind(options.productPrint);templates?.markConfigured();await server.#initializeInstallation();server.setInformation({...server.#base,components:[...new Set([...server.#base.components,'authorization'])]});return server;
+  }catch(error){await this.#failedLoadCleanup(error,server,mqtt,templates,ldap);throw error;}
+ }
+ static async #failedLoadCleanup(error:unknown,server:ConfiguredMoonraker|undefined,mqtt:Awaited<ReturnType<typeof configureNativeSensorsFromConfig>>|undefined,templates:MoonrakerTemplateFactory|undefined,ldap?:LdapAuthorization):Promise<void>{
+  const failures:unknown[]=[];
+  // A constructor can stop before assigning prepared dependencies. Join the
+  // partial server first, then close any untransferred preparation owners too.
+  for(const cleanup of [()=>server?.close(),()=>mqtt?.close(),()=>templates?.close(),()=>ldap?.close()])try{await cleanup();}catch(reason){failures.push(reason);}
+  if(failures.length)throw new AggregateError([error,...failures],'Configured component initialization and cleanup failed');
+ }
+ get installationStatus(){return this.#installer?.status;}
+ assertInstallationReady():void{this.#installer?.assertReady();}
+ async assertInstallationReadyFresh(signal:AbortSignal):Promise<void>{await this.#installer?.assertReadyFresh(signal);}
+ async executeInstallationRestart(signal:AbortSignal):Promise<void>{if(!this.#sudo||!this.#installer?.status.restart_required&&!this.#installer?.status.ready)throw new ApiError(409,'Confirmed installation restart unavailable');await this.#installer!.requestRestart(signal);}
+ async #initializeInstallation():Promise<void>{
+  if(!this.#installer)return;
+  const template=this.reader.section('machine').getTemplate('sudo_password',{defaultValue:null,sensitive:true});
+  if(template){try{this.#sudo!.setConfiguredPassword(template.render());}finally{template.close();}}
+  this.reader.publish(this.#configuration);await this.#installer.initialize(this.#startupAbort.signal);
+ }
+ async #announceInstallation():Promise<void>{
+  if(!this.#announcements||!this.#installer)return;const existing=this.#announcements.list().entries.find(e=>e.title==='Node Installation Sudo Password Required'&&e.source==='internal'&&e.feed==='machine');
+  if(this.#installer.status.state==='pending'){if(existing){this.#installAnnouncement=existing.entry_id;return;}const announcement=await this.#announcements.addInternal('Node Installation Sudo Password Required','Fixed Node installation needs sudo permission. Open the host welcome page to provide the Linux password.',readRoutePrefix(this.reader.section('server').get('route_prefix',{defaultValue:null}))+'/', 'high','machine');this.#installAnnouncement=announcement.entry_id;}else if(existing)await this.#announcements.removeAnnouncement(existing.entry_id);
  }
  async #initializeNativeQueue():Promise<void>{
   if(!this.reader.hasSection('job_queue'))return;
@@ -394,18 +541,28 @@ export class ConfiguredMoonraker {
   if(confirmationTimeout*1000<1||confirmationTimeout*1000>900000)throw new ConfigurationError('Native queue confirmation timeout must be between 0.001 and 900 seconds');
   if((automatic||policy==='operator_confirmation')&&!this.#authorization)throw new ConfigurationError('Native automatic queue and operator confirmation require the process authorization owner');
   if(delay*1000>2147483647)throw new ConfigurationError('Native queue transition delay exceeds timer capacity');
+  const deviceAvailable=()=>!this.#stopping&&this.#printApi instanceof ProductPrintApi&&this.#printApi.status.standard_print&&!!this.#nativeController&&['idle','completed','cancelled'].includes(this.#nativeController.state)&&this.#maintenanceGate.available;
   this.#nativeQueue=await NativeJobQueue.open({database:this.#database,journal:this.#nativeProcessHistory,
    automaticTransition:automatic,transitionDelayMs:delay*1000,
    confirmClearance:policy==='operator_confirmation',confirmationTimeoutMs:confirmationTimeout*1000,
    captureAuthority:(context,lifetime)=>this.#authorization!.capturePrintAuthority(context,lifetime),
    activePrint:()=>{const controller=this.#nativeController,request=controller?.currentRequest;return !this.#stopping&&this.#printApi instanceof ProductPrintApi&&this.#printApi.status.standard_print&&request&&['preparing','printing','pausing','paused','resuming','finishing'].includes(controller.state)?{requestId:request.requestId}:undefined;},
    resolveFile:(filename,signal)=>this.#nativeProcessFiles!.resolveQueuedFile(filename,signal),
-   canStart:()=>!this.#stopping&&this.#printApi instanceof ProductPrintApi&&this.#printApi.status.standard_print&&!!this.#nativeController&&['idle','completed','cancelled'].includes(this.#nativeController.state),
+   canStart:deviceAvailable,clearanceAvailable:deviceAvailable,
    start:async(job,requestId,context)=>{context.nativeGenerationSignal?.throwIfAborted();if(this.#stopping||!(this.#printApi instanceof ProductPrintApi))throw new ApiError(503,'Native queue device unavailable');await this.#printApi.startQueued(job,requestId,context);},
    notify:event=>{if(!this.#stopping)this.#broadcastTracked('notify_job_queue_changed',[event],this.#queueNotifications);}
   });
   this.#releaseNativeQueue=registerNativeJobQueue(this.endpoints,this.#nativeQueue);
+  if(this.#queueGcodeUploads)this.#releaseUploadQueue=this.#nativeProcessFiles.bindUploadQueue((file,requestId,context,signal)=>this.#queuePublishedFile(file,requestId,context,signal));
   this.setInformation({...this.#base,components:[...new Set([...this.#base.components,'job_queue'])]});
+ }
+ async #queuePublishedFile(file:{filename:string;file_id:string},requestId:string,context:RpcContext,signal:AbortSignal):Promise<void>{
+  // Authenticate/capture the original network context; cancellation remains
+  // separately constrained by the exact uploaded/selected device generation.
+  context.signal.throwIfAborted();signal.throwIfAborted();const queue=this.#nativeQueue;if(this.#stopping||!queue||!this.#queueGcodeUploads)throw new ApiError(503,'Upload queue unavailable');
+  const authorized=authorizedContext(context,await context.authorize('server.job_queue.post_job',{filenames:[file.filename],request_id:requestId}));authorized.signal.throwIfAborted();signal.throwIfAborted();
+  if(this.#stopping||this.#nativeQueue!==queue)throw new ApiError(503,'Upload queue owner changed');
+  await queue.addPublished(file,authorized,requestId,signal);
  }
  /** Explicitly attach one Klippy generation; no implicit device connection,
   * retry or replay is performed by HTTP server startup. */
@@ -472,7 +629,7 @@ export class ConfiguredMoonraker {
   this.#supervisor=supervisor;supervisor.start();
  }
  get databaseRestoreStatus(){return {...this.#databaseRestart,state:this.#database?.status.restoreState??null};}
- requireConfigWriteIdle():void{if(this.#configFiles?.status.writing)throw new ApiError(409,'Configuration save is pending');}
+ requireConfigWriteIdle():void{if(this.#installer?.status.running)throw new ApiError(409,'Installation validation is pending');if(this.#configFiles?.status.writing)throw new ApiError(409,'Configuration save is pending');}
  #beginConfigWrite(context:RpcContext):{release:()=>void;signal:AbortSignal}{
   if(this.#stopping||this.#nativeReattaching||this.#configHostControl?.status.busy)throw new ApiError(409,'Host transition blocks configuration save');
   if(!this.#nativeScope||context.nativeGenerationSignal&&context.nativeGenerationSignal!==this.#nativeScope.signal)throw new ApiError(503,'Configuration request belongs to another generation');
@@ -582,12 +739,12 @@ export class ConfiguredMoonraker {
      if(!this.#nativeProcessFiles){this.#releaseFileChanges=uploads.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications));this.#nativeReleases.push(this.#releaseFileChanges);}
     }
     // Product-specific routes register synchronously before readiness publication.
-    prepare?.();
+    prepare?.();this.#nativeHistoryFields?.bind(controller);
     this.#nativeTemperatureObjects=objects;this.#temperatureStore!.readyNative(objects);
     this.#startupAbort.signal.throwIfAborted();const fresh=readNativeHostStatus(host);scope.signal.throwIfAborted();
     if(gate.status.closed||gate.status.activities||gate.status.maintenance||fresh.group_state!=='ready'||fresh.hardware_state!=='ready'||fresh.closing||fresh.admission_closed||fresh.maintenance||fresh.mcus.some(m=>m.state!=='ready')||fresh.print_state!==controller.state||!['idle','interrupted'].includes(controller.state)||controller.pendingDeviceActions||controller.safeStopPending)throw new ApiError(409,'New native hardware changed during attachment');
     this.#network.replaceNativeUploads(this.#nativeProcessFiles??uploads,scope.signal);if(this.#nativeProcessFiles)this.#nativeProcessFiles.bindDeviceFiles(uploads!,scope.signal);
-    if(this.#nativeLifecycleEnabled)this.#nativeLifecycle=new NativeHostNotifications(()=>this.#nativeRetiredSnapshot??this.#nativeHost!(),method=>this.#broadcastTracked(method,[],this.#klippyNotifications));
+    if(this.#nativeLifecycleEnabled)this.#nativeLifecycle=new NativeHostNotifications(()=>this.#nativeRetiredSnapshot??this.#nativeHost!(),method=>{this.#processLogs?.lifecycle(method);this.#broadcastTracked(method,[],this.#klippyNotifications);});
     this.#nativeRetiredSnapshot=undefined;
     this.#printStateTask=this.#observePrintState(api,api.watchState(this.#startupAbort.signal));this.#nativeLifecycle?.start();
    }catch(error){
@@ -669,17 +826,19 @@ export class ConfiguredMoonraker {
  /** Lifecycle owners may replace real state; serving HTTP never implies Klippy ready. */
  setInformation(snapshot:InformationSnapshot):void{
   if(this.#stopping)throw new Error('Configured server is stopping');
-  const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);const faulted=this.#metadataMonitor?.status.phase==='faulted';this.#information.replace({...copy,directories:[...new Set([...copy.directories,...this.#nativeProcessFiles||this.#nativeUploads?['gcodes']:[],...this.#configFiles?['config']:[]])],components:[...new Set([...copy.components,...this.#database?['database']:[],...this.#authorization?['authorization']:[],...this.#ldap?['ldap']:[],...this.#webcams?['webcam']:[],...this.#announcements?['announcements']:[],...this.#procStats?['proc_stats']:[],...this.#nativeHistory||this.#historyRuntime?['history']:[],...this.#metadataMonitor?['metadata_monitor']:[]])],failedComponents:[...new Set([...copy.failedComponents,...faulted?['metadata_monitor']:[],...this.#historyRuntime?.status.failure?['history']:[],...this.#sensorError?['sensor']:[]])],warnings:[...new Set([...copy.warnings,...this.#historyRuntime?.status.failure?['History persistence failed; tracking requires restart']:[],...this.#sensorError?['Sensor sampling failed; restart required']:[],...faulted?['File metadata monitoring failed; cached file metadata is unavailable']:[],...this.reader.warnings(),...this.klippyRemoteMethodFailures.map(f=>`Klippy remote method registration failed: ${f.name}`)])]});this.#base=copy;
+  if(this.#templates)snapshot={...snapshot,components:[...new Set([...snapshot.components,'template','secrets'])]};
+  if(this.#sensorTransport)snapshot={...snapshot,components:[...new Set([...snapshot.components,'mqtt',...this.#sensors?.status.sensors?['sensor']:[]])]};
+  const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);const faulted=this.#metadataMonitor?.status.phase==='faulted';this.#information.replace({...copy,directories:[...new Set([...copy.directories,...this.#nativeProcessFiles||this.#nativeUploads?['gcodes']:[],...this.#configFiles?['config']:[]])],components:[...new Set([...copy.components,'http_client',...this.#octoprint?['octoprint_compat']:[],...this.#database?['database']:[],...this.#authorization?['authorization']:[],...this.#ldap?['ldap']:[],...this.#webcams?['webcam']:[],...this.#announcements?['announcements']:[],...this.#procStats?['proc_stats']:[],...this.#nativeHistory||this.#historyRuntime?['history']:[],...this.#metadataMonitor?['metadata_monitor']:[]])],failedComponents:[...new Set([...copy.failedComponents,...faulted?['metadata_monitor']:[],...this.#historyRuntime?.status.failure?['history']:[],...this.#sensorError?['sensor']:[]])],warnings:[...new Set([...copy.warnings,...this.#historyRuntime?.status.failure?['History persistence failed; tracking requires restart']:[],...this.#sensorError?['Sensor sampling failed; restart required']:[],...faulted?['File metadata monitoring failed; cached file metadata is unavailable']:[],...this.reader.warnings(),...this.klippyRemoteMethodFailures.map(f=>`Klippy remote method registration failed: ${f.name}`)])]});this.#base=copy;
  }
- start():Promise<AddressInfo>{
+ start():Promise<MoonrakerAddress>{
   if(this.#stopping)return Promise.reject(new Error('Configured server is stopping'));
   if(this.#opening)return this.#opening;
   this.#opening=this.#start();return this.#opening;
  }
- async #start():Promise<AddressInfo>{
+ async #start():Promise<MoonrakerAddress>{
   try{
    await this.#webcams?.start();
-   await this.#announcements?.start();
+   await this.#announcements?.start();await this.#announceInstallation();
    if(this.#startupAbort.signal.aborted)throw new Error('Configured server startup cancelled',{cause:this.#startupAbort.signal.reason});
    this.reader.validate();this.reader.publish(this.#configuration);this.setInformation(this.#base);
    if(this.#metadataFiles)this.#metadataRecovery=await this.#metadataFiles.restoreSelected(this.#startupAbort.signal);
@@ -712,10 +871,12 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
+  const logsClosed=this.#logs?.close();this.#logs=undefined;
+  this.#welcome?.close();this.#welcome=undefined;this.#templates?.close();this.#templates=undefined;
   const ldapClosed=this.#ldap?.close()??Promise.resolve();
-  this.#releaseNativeQueue();const queueClosed=this.#nativeQueue?.close();
+  this.#releaseUploadQueue();this.#releaseNativeQueue();const queueClosed=this.#nativeQueue?.close();
   this.#nativeScope?.retire();
   this.#nativeLifecycle?.close();this.#nativeHistory?.();this.#releaseFileChanges();
-  this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi?.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const networkClosed=this.#network.close();const authorizationClosed=networkClosed.then(()=>this.#authorization?.close(),async error=>{try{await this.#authorization?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Network and authorization cleanup failed');}throw error;});const announcementsClosed=this.#announcements?.close()??Promise.resolve();const webcamsClosed=networkClosed.then(()=>this.#webcams?.close(),()=>this.#webcams?.close());const nativeClosed=Promise.allSettled([queueClosed,this.#nativeUploads?.drain(),this.#nativeProcessFiles?.drain(),this.#nativeScope?.drain(),this.#nativeHistory?.drain()]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native dependencies failed to drain');});const databaseClosed=Promise.allSettled([historyClosed,authorizationClosed,webcamsClosed,announcementsClosed,nativeClosed]).then(()=>this.#database?.close());const settled=await Promise.allSettled([ldapClosed,nativeClosed,printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,historyClosed,authorizationClosed,webcamsClosed,announcementsClosed,databaseClosed,this.#systemInformation?.close(),this.#systemServices?.close(),this.#procStats?.close(),this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close(),networkClosed.then(()=>this.#configFiles?.close(),()=>this.#configFiles?.close())]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#releaseAuthorization();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);if(this.#configFiles)configFileOwners.delete(this.#configFiles);
+  this.#stopping=true;this.#maintenanceGate?.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi?.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const networkClosed=this.#network?.close()??Promise.resolve();const installClosed=Promise.allSettled([this.#sudo?.close(),this.#installer?.close()]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Installation shutdown failed');});const authorizationClosed=Promise.allSettled([networkClosed,installClosed]).then(()=>this.#authorization?.close());const announcementsClosed=installClosed.then(()=>this.#announcements?.close(),async error=>{await this.#announcements?.close();throw error;});const webcamsClosed=networkClosed.then(()=>this.#webcams?.close(),()=>this.#webcams?.close());const nativeClosed=Promise.allSettled([queueClosed,this.#nativeUploads?.drain(),this.#nativeProcessFiles?.drain(),this.#nativeScope?.drain(),this.#nativeHistory?.drain()]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native dependencies failed to drain');});const databaseClosed=Promise.allSettled([historyClosed,authorizationClosed,webcamsClosed,announcementsClosed,nativeClosed,installClosed]).then(()=>this.#database?.close());const settled=await Promise.allSettled([logsClosed,this.#httpClient.close(),ldapClosed,networkClosed,installClosed,nativeClosed,printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,historyClosed,authorizationClosed,webcamsClosed,announcementsClosed,databaseClosed,this.#systemInformation?.close(),this.#systemServices?.close(),this.#procStats?.close(),this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close(),Promise.allSettled([networkClosed,installClosed]).then(()=>this.#configFiles?.close())]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#releaseAuthorization();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);if(this.#configFiles)configFileOwners.delete(this.#configFiles);
  }
 }

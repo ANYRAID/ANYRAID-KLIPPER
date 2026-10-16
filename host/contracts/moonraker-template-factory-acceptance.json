@@ -1,0 +1,891 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "baseHead": "f58f0b99682b9e8e6ff3b5f657a28d9f6b425824",
+  "status": "draft-partial",
+  "scope": "Shared synchronous/asynchronous/UI factory and explicit standard ConfiguredMoonraker private generation. Limited pinned TemplateFactory/ConfigHelper contracts; not full Jinja/Moonraker/Python retirement or hardware proof.",
+  "reference": {
+    "file": "moonraker-template-factory-reference.json",
+    "sha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+    "frozenBeforeCandidate": true,
+    "surfaceCases": 15,
+    "configCases": 8,
+    "fallbackDiagnostic": "Original direct ConfigHelper harness produced KeyError(old) before initializing the fallback section record. Preserve original capture; independent unchanged-upstream probe shows successful source and two warnings with initialized source sections. Not a product parse-error contract.",
+    "fallbackProbe": "moonraker-template-factory-fallback-probe.json"
+  },
+  "functionality": {
+    "source": {
+      "tests": 175,
+      "pass": 175,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "compiled": {
+      "tests": 175,
+      "pass": 175,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "compiledJsChildProcessDenied": {
+      "tests": 111,
+      "pass": 111,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "rustfmt": "passed",
+    "nativeAddonSha256": "5a382f0395d58a07424aaffd455b07874b531e6cea1b9fa14833b609c6dd3455",
+    "contracts": [
+      "original source and sync/async render-mode error stage",
+      "shared config globals; lazy asynchronous executor; separate UI globals",
+      "getTemplate/loadTemplate defaults, first-read source and fallback warnings",
+      "explicit typed debug sink; disabled binding compatibility; async sinks rejected",
+      "standard server with and without LDAP owns immutable secrets until close",
+      "startup field handles released, failed pre-transfer load retains caller database",
+      "generation close aborts live calls and drops private references",
+      "external cancellation first reason preserved when close races observation"
+    ],
+    "permissionScope": "111 actual in-process JavaScript tests with TS loading and JS child processes denied. Filesystem, network, native addons and database worker explicitly allowed. Actual network use is localhost only; not OS or native-process isolation.",
+    "compiledArtifacts": {
+      "files": 186,
+      "sha256": "4989022a63f573451d6309043c41d86f09c70c3bf96f79548f9c9d8cfa6e638b",
+      "entry": "compiled-artifacts.json"
+    }
+  },
+  "performance": {
+    "status": "failed-open",
+    "factory": {
+      "first": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+        "results": [
+          {
+            "name": "sync",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              1.0448019999999971,
+              1.0190720000000013,
+              1.0429519999999997,
+              0.8684310000000011,
+              0.9550210000000021,
+              0.9446709999999996,
+              1.1305240000000012
+            ],
+            "medianMs": 1.0190720000000013,
+            "referenceMedianMs": 3.5718820290639997,
+            "ratio": 0.2853039354905699,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          {
+            "name": "async",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              9.57648300000001,
+              7.885253999999989,
+              6.616557999999998,
+              6.512487000000007,
+              6.656607999999991,
+              6.59345900000001,
+              6.701958999999988
+            ],
+            "medianMs": 6.656607999999991,
+            "referenceMedianMs": 4.101527971215546,
+            "ratio": 1.6229580894525049,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          },
+          {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              6.738839999999982,
+              6.561577999999997,
+              6.704968999999977,
+              6.48182700000001,
+              6.764920000000018,
+              6.853701999999998,
+              6.581977999999992
+            ],
+            "medianMs": 6.704968999999977,
+            "referenceMedianMs": 3.2580499537289143,
+            "ratio": 2.057969980578715,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          }
+        ],
+        "pass": false,
+        "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+      },
+      "final": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+        "results": [
+          {
+            "name": "sync",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              1.1847939999999966,
+              1.0434300000000007,
+              1.5123239999999996,
+              1.395620000000001,
+              0.971117999999997,
+              0.9738279999999975,
+              1.171123999999999
+            ],
+            "medianMs": 1.171123999999999,
+            "referenceMedianMs": 3.5718820290639997,
+            "ratio": 0.3278730905642167,
+            "maximumMedianRatio": 1.5,
+            "pass": true
+          },
+          {
+            "name": "async",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              6.619320999999999,
+              7.165807000000001,
+              6.174868000000004,
+              7.004502000000002,
+              6.209448999999992,
+              6.238749999999996,
+              6.436735999999996
+            ],
+            "medianMs": 6.436735999999996,
+            "referenceMedianMs": 4.101527971215546,
+            "ratio": 1.569350750542944,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          },
+          {
+            "name": "ui",
+            "iterations": 500,
+            "warmups": 2,
+            "samples": 7,
+            "sampleMs": [
+              7.591368000000003,
+              9.766142000000002,
+              6.290192000000019,
+              8.143684000000007,
+              6.201199000000003,
+              6.104985999999997,
+              6.305032000000011
+            ],
+            "medianMs": 6.305032000000011,
+            "referenceMedianMs": 3.2580499537289143,
+            "ratio": 1.9352164913198322,
+            "maximumMedianRatio": 1.5,
+            "pass": false
+          }
+        ],
+        "pass": false,
+        "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+      },
+      "change": "Generation close stops tracked native frames directly with a shared reason; avoids extra shared shutdown listener/AbortSignal.any per render. Original failing sample preserved; finite historical comparisons do not establish causal or target-board speedup."
+    },
+    "defaultStandardServer": {
+      "result": {
+        "schema": 1,
+        "node": "v26.10.0",
+        "warmups": 2,
+        "samples": 7,
+        "order": "ABBA; 14 fresh processes per group",
+        "queries": 200,
+        "budget": {
+          "coldRatio": 1.15,
+          "coldAllowanceMs": 5,
+          "queryRatio": 1.1,
+          "queryAllowanceMs": 5
+        },
+        "result": {
+          "baseline": [
+            {
+              "coldMs": 358.435572,
+              "queryMs": 89.12079500000004
+            },
+            {
+              "coldMs": 353.762747,
+              "queryMs": 91.45981100000006
+            },
+            {
+              "coldMs": 356.802931,
+              "queryMs": 88.67154599999998
+            },
+            {
+              "coldMs": 348.07427600000005,
+              "queryMs": 89.86560399999996
+            },
+            {
+              "coldMs": 351.969835,
+              "queryMs": 88.61825800000003
+            },
+            {
+              "coldMs": 357.807441,
+              "queryMs": 94.83865999999995
+            },
+            {
+              "coldMs": 371.543224,
+              "queryMs": 89.938736
+            },
+            {
+              "coldMs": 345.194658,
+              "queryMs": 90.22579999999999
+            },
+            {
+              "coldMs": 346.72412099999997,
+              "queryMs": 90.02917300000001
+            },
+            {
+              "coldMs": 369.657774,
+              "queryMs": 90.10361599999993
+            },
+            {
+              "coldMs": 361.904579,
+              "queryMs": 90.18505400000004
+            },
+            {
+              "coldMs": 352.53501400000005,
+              "queryMs": 89.71203599999996
+            },
+            {
+              "coldMs": 346.127796,
+              "queryMs": 90.368811
+            },
+            {
+              "coldMs": 395.077163,
+              "queryMs": 89.34673900000001
+            }
+          ],
+          "current": [
+            {
+              "coldMs": 352.86196700000005,
+              "queryMs": 90.33800500000001
+            },
+            {
+              "coldMs": 356.256583,
+              "queryMs": 88.78904300000005
+            },
+            {
+              "coldMs": 355.436646,
+              "queryMs": 102.93457199999995
+            },
+            {
+              "coldMs": 379.7047,
+              "queryMs": 89.40487100000007
+            },
+            {
+              "coldMs": 365.094902,
+              "queryMs": 90.26080100000001
+            },
+            {
+              "coldMs": 348.990783,
+              "queryMs": 90.11344399999996
+            },
+            {
+              "coldMs": 349.558854,
+              "queryMs": 91.54490699999997
+            },
+            {
+              "coldMs": 360.018543,
+              "queryMs": 92.13555200000002
+            },
+            {
+              "coldMs": 376.647231,
+              "queryMs": 89.07639499999999
+            },
+            {
+              "coldMs": 352.41573700000004,
+              "queryMs": 93.60271600000004
+            },
+            {
+              "coldMs": 351.996991,
+              "queryMs": 90.10494100000005
+            },
+            {
+              "coldMs": 348.828802,
+              "queryMs": 88.72682300000002
+            },
+            {
+              "coldMs": 336.604524,
+              "queryMs": 90.35247899999996
+            },
+            {
+              "coldMs": 309.44626400000004,
+              "queryMs": 90.63637399999999
+            }
+          ]
+        },
+        "cold": {
+          "baseline": {
+            "medianMs": 353.762747,
+            "p95Ms": 395.077163
+          },
+          "current": {
+            "medianMs": 352.41573700000004,
+            "p95Ms": 379.7047
+          }
+        },
+        "query": {
+          "baseline": {
+            "medianMs": 89.938736,
+            "p95Ms": 94.83865999999995
+          },
+          "current": {
+            "medianMs": 90.26080100000001,
+            "p95Ms": 102.93457199999995
+          }
+        },
+        "coldPass": true,
+        "queryPass": true,
+        "sources": {
+          "baseline": {
+            "sha256": "58469d63e12c44137267d2a04e5eac1cadd6f4234ffad48b0c024a590623261e",
+            "files": 648
+          },
+          "current": {
+            "sha256": "f7cb2cdaf22e00f5d5fdcd34c1e0054b61b25b476458eedae917aa449bd5a8fa",
+            "files": 649
+          }
+        },
+        "scriptSha256": "78af6ba8dff70a6822d57075540d05c534971ab815466879fb60cd844732b714",
+        "scope": "Exact-source, fresh-process default native authorized server startup including module imports, database open, assembly and localhost listening; warmed actual HTTP server/info queries with API-key authorization. Existing dependency/native bytes reused, not rebuilt. No LDAP login, target-board, printing or G3 claim."
+      },
+      "status": "passed within unchanged desktop default authorized non-LDAP workload only",
+      "boundary": "No private template option in this startup benchmark; not proof of opt-in factory cold startup or printing throughput."
+    },
+    "regressions": {
+      "template-sync-functions": {
+        "exit": 0,
+        "result": {
+          "schema": 1,
+          "node": "v26.10.0",
+          "referenceSha256": "2e9660b536d78469ac909b7667c7cfbb9eb3c264f4c714e279fb2666b6592b02",
+          "results": [
+            {
+              "name": "pure",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                1.5575580000000002,
+                1.2872619999999984,
+                1.4625350000000026,
+                1.4486360000000005,
+                1.418414999999996,
+                1.309201999999999,
+                1.5177869999999984
+              ],
+              "medianMs": 1.4486360000000005,
+              "referenceMedianMs": 3.7188270362094045,
+              "ratio": 0.3895411068853025,
+              "maximumMedianRatio": 1.5,
+              "pass": true
+            },
+            {
+              "name": "callback",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                4.6305830000000014,
+                4.159481999999997,
+                4.496130000000008,
+                4.46921900000001,
+                3.929936000000012,
+                4.860028999999997,
+                3.9559560000000005
+              ],
+              "medianMs": 4.46921900000001,
+              "referenceMedianMs": 4.0488329832442105,
+              "ratio": 1.1038289350278303,
+              "maximumMedianRatio": 1.5,
+              "pass": true
+            },
+            {
+              "name": "global",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                4.251154,
+                4.615893,
+                4.119341000000006,
+                4.011887999999999,
+                4.517829999999989,
+                4.21843299999999,
+                4.173811999999998
+              ],
+              "medianMs": 4.21843299999999,
+              "referenceMedianMs": 4.486010002437979,
+              "ratio": 0.9403530080645004,
+              "maximumMedianRatio": 1.5,
+              "pass": true
+            }
+          ],
+          "pass": true
+        }
+      },
+      "template-sync": {
+        "exit": 0,
+        "result": {
+          "schema": 1,
+          "node": "v26.10.0",
+          "rust": "1.89.0",
+          "engine": "minijinja 2.24.0 via N-API",
+          "upstream": {
+            "revision": "1cfb0c41e468645951a371621f06d32777b6107c",
+            "runtime": "3.12.13",
+            "sourceSha256": {
+              "secrets": "458b2d005a774ed45ea80beee2d7f92c258dd7e714d01d1a34c7250aff9f626b",
+              "template": "50b9635b68d53f08bc8e72e8f77d2fa001ac055369f67ada0fb52293ff40b74f"
+            }
+          },
+          "repetitions": {
+            "render": 3000,
+            "cold": 100,
+            "parse": 2000,
+            "cached": 1000000
+          },
+          "warmups": 2,
+          "samples": 7,
+          "inputs": {
+            "sourceSha256": "27638a7cfa62cd6abe224907b7af644d9bc857364084462caf61130f24ade37f",
+            "contextSha256": "06abe64bef480f720aca88592a691ba768ab70a21008e7a47e5d7151c80cd25b"
+          },
+          "budgets": {
+            "renderToJinja": 1.5,
+            "coldToJinja": 1.5,
+            "fuelFailureMaxMs": 25,
+            "secretsParseToBaseline": 1.2,
+            "secretsCachedToBaseline": 1.2
+          },
+          "native": {
+            "render": {
+              "samplesMs": [
+                8.660440999999992,
+                8.58429000000001,
+                8.609949999999998,
+                8.560228999999993,
+                8.644531,
+                8.09335800000001,
+                8.352453999999994
+              ],
+              "medianMs": 8.58429000000001,
+              "p95Ms": 8.660440999999992
+            },
+            "cold": {
+              "samplesMs": [
+                3.6943999999999875,
+                3.634558999999996,
+                3.4519949999999966,
+                3.3180210000000017,
+                2.8859900000000067,
+                2.9119910000000004,
+                2.7912990000000093
+              ],
+              "medianMs": 3.3180210000000017,
+              "p95Ms": 3.6943999999999875
+            }
+          },
+          "jinja": {
+            "render": {
+              "samplesMs": [
+                22.89301302516833,
+                22.754200996132568,
+                22.90435298345983,
+                23.006984003586695,
+                23.093255993444473,
+                23.27393801533617,
+                22.687359974952415
+              ],
+              "medianMs": 22.90435298345983,
+              "p95Ms": 23.27393801533617
+            },
+            "cold": {
+              "samplesMs": [
+                63.74382501235232,
+                63.82125700474717,
+                63.55453300056979,
+                63.66438401164487,
+                63.10268701054156,
+                63.024956005392596,
+                63.52303200401366
+              ],
+              "medianMs": 63.55453300056979,
+              "p95Ms": 63.82125700474717
+            }
+          },
+          "frozenPythonRuntime": "3.12.13",
+          "referenceEvidence": {
+            "archive": "moonraker-template-sync-acceptance.evidence.json.gz",
+            "sha256": "ac660bbfbc806746189d6f84eaa7328fd4cf99ac10fc7a76645bbb230dbb1d8e",
+            "bytes": 308764,
+            "entries": 20
+          },
+          "comparison": "Historical frozen reference; no Python process and no same-run comparison",
+          "ratios": {
+            "render": 0.374788583034809,
+            "cold": 0.052207464099693006
+          },
+          "fuelFailureMs": 0.26987700000000814,
+          "baseline": {
+            "old": {
+              "parse": {
+                "samplesMs": [
+                  64.869999,
+                  64.65483699999982,
+                  64.30822199999989,
+                  66.64123300000006,
+                  63.9743390000001,
+                  62.20822499999986,
+                  60.31202200000007
+                ],
+                "medianMs": 64.30822199999989,
+                "p95Ms": 66.64123300000006
+              },
+              "cached": {
+                "samplesMs": [
+                  20.230579000000034,
+                  22.64377999999988,
+                  19.70331199999987,
+                  17.39951199999996,
+                  17.442232999999987,
+                  18.745290000000068,
+                  18.773040000000037
+                ],
+                "medianMs": 18.773040000000037,
+                "p95Ms": 22.64377999999988
+              }
+            },
+            "current": {
+              "parse": {
+                "samplesMs": [
+                  63.33493699999997,
+                  64.32249999999999,
+                  64.91943499999996,
+                  65.57310099999995,
+                  64.946146,
+                  62.554647000000045,
+                  62.54047600000001
+                ],
+                "medianMs": 64.32249999999999,
+                "p95Ms": 65.57310099999995
+              },
+              "cached": {
+                "samplesMs": [
+                  21.523465999999985,
+                  21.594456999999977,
+                  21.450593000000026,
+                  16.28738700000008,
+                  17.390124000000014,
+                  17.93563800000004,
+                  18.007999999999925
+                ],
+                "medianMs": 18.007999999999925,
+                "p95Ms": 21.594456999999977
+              }
+            },
+            "parseRatio": 1.0002220244870104,
+            "cachedRatio": 0.9592479427945548
+          },
+          "scope": "Desktop synchronous private text rendering, compilation and old secrets hot-path regression. No MCU, printing, target-board, async callable or full-template compatibility claim."
+        }
+      },
+      "template-async": {
+        "exit": 1,
+        "result": {
+          "schema": 1,
+          "node": "v26.10.0",
+          "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+          "results": [
+            {
+              "name": "pure",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                6.682682999999997,
+                6.172811000000003,
+                5.965084999999995,
+                6.545339999999996,
+                9.38670900000001,
+                6.471608000000003,
+                6.963460000000012
+              ],
+              "medianMs": 6.545339999999996,
+              "referenceMedianMs": 6.315300997812301,
+              "ratio": 1.0364256592468646,
+              "maximumMedianRatio": 1.5,
+              "pass": true
+            },
+            {
+              "name": "callback",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                14.208496999999994,
+                13.78984699999998,
+                13.731165000000004,
+                13.938889999999986,
+                13.857049000000018,
+                13.591780999999997,
+                13.753036000000009
+              ],
+              "medianMs": 13.78984699999998,
+              "referenceMedianMs": 9.619439020752907,
+              "ratio": 1.433539624322153,
+              "maximumMedianRatio": 1.5,
+              "pass": true
+            },
+            {
+              "name": "ui",
+              "iterations": 500,
+              "warmups": 2,
+              "samples": 7,
+              "sampleMs": [
+                13.601371999999998,
+                13.954561000000012,
+                13.712895000000003,
+                13.503479000000027,
+                13.87104899999997,
+                13.617432000000008,
+                13.811927000000026
+              ],
+              "medianMs": 13.712895000000003,
+              "referenceMedianMs": 8.285223972052336,
+              "ratio": 1.6551025109588169,
+              "maximumMedianRatio": 1.5,
+              "pass": false
+            }
+          ],
+          "pass": false
+        }
+      },
+      "native-template": {
+        "exit": 0,
+        "result": {
+          "node": "v26.10.0",
+          "engine": "minijinja-2.24.0 via N-API",
+          "rust": "1.89.0",
+          "renders": 3000,
+          "warmup": 2,
+          "samples": 7,
+          "scope": "Original Moonraker Shelly syntax, native typed JSON/filters/readings versus Jinja2; no MQTT or SensorStore",
+          "native": {
+            "samplesMs": [
+              26.837784999999997,
+              26.20853000000001,
+              26.365104000000002,
+              26.198509,
+              26.438005000000004,
+              26.203558999999984,
+              26.46206600000002
+            ],
+            "medianMs": 26.365104000000002,
+            "p95Ms": 26.837784999999997
+          },
+          "frozenPython": {
+            "samplesMs": [
+              32.241357024759054,
+              32.008150999899954,
+              32.17986598610878,
+              32.231196004431695,
+              32.04640204785392,
+              32.15026395628229,
+              32.46409201528877
+            ],
+            "medianMs": 32.17986598610878,
+            "p95Ms": 32.46409201528877
+          },
+          "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+          "medianBudget": 1.5,
+          "medianRatio": 0.8193043442561613
+        }
+      },
+      "native-template-round": {
+        "exit": 0,
+        "result": {
+          "node": "v26.10.0",
+          "renders": 4000,
+          "warmup": 2,
+          "samples": 7,
+          "scope": "Mixed integer, boolean and binary64 round inside native/Jinja templates; excludes MQTT, storage and printing",
+          "native": {
+            "samplesMs": [
+              15.672371999999996,
+              15.410246,
+              15.354934999999998,
+              15.745233999999996,
+              14.937724000000003,
+              15.274473,
+              15.488647999999984
+            ],
+            "medianMs": 15.410246,
+            "p95Ms": 15.745233999999996
+          },
+          "frozenPython": {
+            "samplesMs": [
+              44.0673180273734,
+              44.055767997633666,
+              44.031917001120746,
+              43.92025398556143,
+              43.95725502399728,
+              43.941904965322465,
+              43.59365697018802
+            ],
+            "medianMs": 43.95725502399728,
+            "p95Ms": 44.0673180273734
+          },
+          "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+          "medianBudget": 1.5,
+          "medianRatio": 0.35057343757218673
+        }
+      },
+      "native-sensor-messages": {
+        "exit": 0,
+        "result": {
+          "node": "v26.10.0",
+          "frames": 10000,
+          "warmup": 2,
+          "samples": 7,
+          "scope": "Byte decoding, original template syntax, typed JSON and four callbacks, SensorStore and average history; excludes MQTT and printing",
+          "native": {
+            "samplesMs": [
+              109.152533,
+              108.07457499999998,
+              107.57049299999994,
+              108.39150199999995,
+              108.55344500000001,
+              108.60951699999998,
+              109.25020200000006
+            ],
+            "medianMs": 108.55344500000001,
+            "p95Ms": 109.25020200000006
+          },
+          "frozenPython": {
+            "samplesMs": [
+              149.81284399982542,
+              152.6231609750539,
+              153.70535699184984,
+              153.73078698758036,
+              151.24121500412002,
+              150.63378104241565,
+              151.9443319994025
+            ],
+            "medianMs": 151.9443319994025,
+            "p95Ms": 153.73078698758036
+          },
+          "comparison": "Frozen original Python/Jinja peer; no Python process and no same-run speedup claim",
+          "medianBudget": 1.5,
+          "medianRatio": 0.7144290515583489
+        }
+      }
+    },
+    "legacyCache": "Current strict unchanged cache budget passed; prior f58 1.250 failure and its unknown cause remain open, not erased by current sample."
+  },
+  "build": {
+    "localAddon": "Pinned cached Rust release succeeded; actual addon digest bound above.",
+    "freshSnapshot": "failed-open",
+    "failure": "Rust 1.89.0 SIGSEGV while compiling minijinja in current independent product source snapshot. Prior memchr/SIGSEGV also retained; no retry or compiler/stack workaround."
+  },
+  "preservedFailures": [
+    "first capture duplicate key and first implicit-any/type errors",
+    "first source 39/27/12 and corrected 39/38/1 before actual reference-harness diagnosis",
+    "compiled initial attempt missing runtime database worker; failed process stopped and corrected worker compiled",
+    "first source export missing fixed Unicode contract; corrected exact f58 contracts exported",
+    "permission run 111/110/1 without localhost network permission; final run permission scope explicit",
+    "rustfmt first shim selected unwritable default home; explicit pinned toolchain paths corrected",
+    "factory initial and final async/UI budget failures; original async UI regression failure",
+    "current fresh product minijinja/SIGSEGV plus previous local and compiler failures"
+  ],
+  "ci": {
+    "head": "f58f0b99682b9e8e6ff3b5f657a28d9f6b425824",
+    "file": "pr68-f58-terminal.json",
+    "jobs": "15/15",
+    "ordinary": "4593/4593",
+    "scope": "Previous committed synchronous-function head only; factory changes need own CI."
+  },
+  "sources": [
+    {
+      "name": "host/src/moonraker/template-factory.ts",
+      "sha256": "439d75463733b22a766736a91c98c507a4e7d1f1586f5bf8ae73c3a38faeb046"
+    },
+    {
+      "name": "host/src/moonraker/template-async-owner.ts",
+      "sha256": "4d0e291147dbfc82bf58d34bb4620d500b51d79417c75ad30ae370da1175b4e4"
+    },
+    {
+      "name": "host/src/moonraker/config-reader.ts",
+      "sha256": "2a20b5ab1ded4e0fb980c0dfea3800b8e6371711c78c8d38e550d58e241f7e69"
+    },
+    {
+      "name": "host/src/moonraker/configured-server.ts",
+      "sha256": "fe3cfa36cb432df5796adc8161ad4d14393cb2f053287225bf845e0baa25c21d"
+    },
+    {
+      "name": "host/native/template/src/lib.rs",
+      "sha256": "357949e7772bf6b87d00c0a0ec5174f94489c4375e656e38b1caf0f220728c10"
+    },
+    {
+      "name": "host/native/template/src/async_text.rs",
+      "sha256": "9508772f4dadf98331ab74e8202d5bae23e1b71234cf15dc84e47c0a268b136a"
+    },
+    {
+      "name": "host/test/template-factory.test.ts",
+      "sha256": "e9c2c8b43f107b76b2aa5eaa1fc07334ece637dfe5df55e693697ed9eab7fac7"
+    },
+    {
+      "name": "host/test/configured-ldap.test.ts",
+      "sha256": "4bb202cd04686e8a38aeca28105051046073d8851679ad78cb90af3671098710"
+    },
+    {
+      "name": "host/bench/template-factory.ts",
+      "sha256": "d7508d77b8e5ada146efc83a158efc231aedb51671731c58fae66ee772af67d3"
+    },
+    {
+      "name": "host/contracts/moonraker-template-factory-reference.json",
+      "sha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0"
+    },
+    {
+      "name": "host/contracts/moonraker-template-factory-fallback-probe.json",
+      "sha256": "72180d67c1f87bd9b2a445ff7fd8153a9c963185a6ddfe47b3cb1cd56105aafe"
+    },
+    {
+      "name": "host/contracts/pr68-f58-terminal.json",
+      "sha256": "a11506b1cb1c771cfa642b8d8282a14179aa91aa1442229ea7574fc040be1c95"
+    }
+  ],
+  "evidence": {
+    "file": "moonraker-template-factory-evidence.json.gz",
+    "sha256": "102e45a143bb1198a6dd65e00bd679ef6c88e6e98350811762e26c919d89f4eb",
+    "bytes": 162757,
+    "entries": 61
+  },
+  "openGates": [
+    "Full Jinja language, attributes/iterables, dynamic mutable globals and arbitrary precision integers beyond i128",
+    "getpath and general component loader/default private generation product assembly",
+    "Factory async/UI and original async UI performance gaps; historical cache failure cause",
+    "Current independent product build SIGSEGV and historical complete local 46 failures",
+    "OS/heap isolation, complete Moonraker and removal of all project Python",
+    "Cycnumbris 500, target-board printing performance/precision, original G3 and consumer macros",
+    "Complete same-current-bundle Fluidd/Mainsail journeys and external fault recovery",
+    "Normal develop and master integration, release and default Python entry retirement"
+  ]
+}

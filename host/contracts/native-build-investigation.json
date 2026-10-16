@@ -1,0 +1,402 @@
+{
+  "schema": 1,
+  "date": "2026-10-12",
+  "head": "fff160bfe6a3a5417934d88e198db7f357a19b42",
+  "status": "new-private-product-built-and-smoked-native-stability-and-ui-performance-open",
+  "compilerIntegrity": {
+    "official": {
+      "url": "https://static.rust-lang.org/dist/2025-08-07/rustc-1.89.0-x86_64-unknown-linux-gnu.tar.xz",
+      "sha256": "b42c254e1349df86bd40bc28fdf386172a1a46f2eeabe3c7a08a75cf1fb60e27",
+      "officialChecksumUrl": "https://static.rust-lang.org/dist/2025-08-07/rustc-1.89.0-x86_64-unknown-linux-gnu.tar.xz.sha256",
+      "matchesInstalledChannelManifest": true
+    },
+    "scope": "Installed rustc component files compared with official fixed archive; Rust standard-library component and OS libraries are not attested",
+    "compilerFiles": 40,
+    "lockedPackages": 40,
+    "dependencyArchiveFiles": 1476,
+    "differences": {
+      "compiler": [],
+      "dependencies": []
+    }
+  },
+  "parallelCapture": {
+    "status": "failed",
+    "crate": "num-bigint 0.4.6",
+    "signal": "SIGSEGV",
+    "shellExitStatus": 139,
+    "path": "LLVM ScalarEvolution / loop peeling and unrolling",
+    "deadlineMs": 180000,
+    "flags": "Release opt-level=3, linker-plugin-lto, codegen-units=1 and original path remaps unchanged",
+    "observation": "Cargo wrapper retains commands and diagnostics, but changes timing. Cargo probe exit 1 is separate from compiler SIGSEGV."
+  },
+  "fixedReplay": {
+    "planSha256": "4ec48238dc80d4f10b4159641f02ec70fc87b2a95d28b644d1bba97c855de8d5",
+    "results": [
+      {
+        "name": "default",
+        "elapsedMs": 1302.475629,
+        "status": 0,
+        "signal": null,
+        "error": null
+      },
+      {
+        "name": "stack16m",
+        "elapsedMs": 1295.6361049999998,
+        "status": 0,
+        "signal": null,
+        "error": null
+      }
+    ],
+    "originalDependenciesUnchanged": true,
+    "scope": "Two standalone copies with identical recorded dependency bytes; new output paths and absent Cargo jobserver descriptors. Both succeed; stack-size hypothesis unproven, original parallel failure retained"
+  },
+  "singleJobNativeControl": {
+    "pass": 1,
+    "fail": 0,
+    "buildMs": 55116.195112999994,
+    "sources": 75,
+    "nodeHeaders": 2810,
+    "onlyBuildSchedulingChange": "CARGO_BUILD_JOBS=1; default product scripts unchanged; same release optimization and numeric semantics"
+  },
+  "newProduct": {
+    "build": "default buildProductHost path including a fresh buildProductNative; CARGO_BUILD_JOBS=1, locked offline Rust",
+    "inventoryFiles": 684,
+    "inventorySha256": "19a6dc1dbe8b45c85f22492af961fca517bf2411a9a5c4244e5237c8166625cb",
+    "nativeInventorySha256": "904a8924fc3c07f8d36169889b13d0434bbc1dbec09ddf9cffb564cb5f910730",
+    "nativeOutputs": {
+      "trapq.node": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+      "stepcompress.node": "255a84728574d1534bad1796883d9232d56cb5089581676fc47c5cb202a9cb95",
+      "serialqueue.node": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac",
+      "unix-peer.node": "452966303dbeb2e1bbe1ea7e4183705ac2015958630b88772118e2954d44212e",
+      "sealed-file.node": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+      "file-events.node": "0c0c6bf4d8702b37514da7c0a3b524682c666830fcafabac50d249c18cdd802c",
+      "can-query.node": "33135adc0307937ed196ce305c4b52003dc617ec5a9c1550c21b8c22e00a760a",
+      "ar100-flash.node": "5018b82bbf784653d7a55678ed768e52d5eb3acb8f05702b71ceb8d9627215f9",
+      "template.node": "d894f6a550aa635ea6ef21536811b5c1426723b136f1e68bc55787757f852aa6",
+      "fatfs-helper": "262fccdaeb2d9733f48b4d2b0ec47319bc05ed8f57c61d02e4080478a4c80c7b",
+      "file-write-lease": "38fe07785a44103e1ef1a69412d6a8a93822df3e2373c702f6f1b92522de7355"
+    },
+    "productionDependencies": 18,
+    "installed": "Independent npm ci tree from emitted lock, no lifecycle scripts or development dependencies",
+    "smoke": {
+      "status": "passed",
+      "spectrum": "compiled worker equals source for fixed 4096-sample sine input",
+      "shaper": "compiled worker equals source for fixed 128-point PSD",
+      "steps": "1000",
+      "asyncTemplate": "passed",
+      "uiTemplate": "passed",
+      "templateCancellation": "passed",
+      "scope": "Fixed source-versus-compiled smoke comparison; not upstream numeric reference, full G3, full motion or target hardware acceptance"
+    },
+    "execution": "Node 26.10.0, --no-experimental-strip-types, empty NODE_PATH, PATH=/no-programs. Actual SQLite / file / thumbnail / spectrum / shaper workers, C trap queue, secret integers, async and UI template callback and cancellation; no hardware",
+    "download": {
+      "name": "anyraid-product-host-fff-single-job-oct12.tar.gz",
+      "bytes": 22035624,
+      "sha256": "5100a286fd2884869c0d237c59cf9cbeee840ec1e463154974a08e73c21809f6",
+      "scope": "Private desktop acceptance bundle with independently installed dependencies; no production release or default switch"
+    }
+  },
+  "performance": {
+    "factory": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "referenceSha256": "721c0483ce20450e2f95f4abf1629d5101bfdc97cffb97c8ae3653ece0e104b0",
+      "results": [
+        {
+          "name": "sync",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            1.357065999999996,
+            0.9429599999999994,
+            1.1141530000000017,
+            1.169992999999998,
+            1.5179469999999995,
+            0.9316910000000007,
+            0.8498000000000019
+          ],
+          "medianMs": 1.1141530000000017,
+          "referenceMedianMs": 3.5718820290639997,
+          "ratio": 0.3119232356875913,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "async",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            6.822088000000008,
+            6.618915000000001,
+            5.4754020000000025,
+            4.597532000000001,
+            4.6014219999999995,
+            4.574311999999992,
+            4.614602000000005
+          ],
+          "medianMs": 4.614602000000005,
+          "referenceMedianMs": 4.101527971215546,
+          "ratio": 1.1250933877289644,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "ui",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            4.614071999999993,
+            4.626242999999988,
+            4.5544120000000134,
+            4.542851000000013,
+            4.622952999999995,
+            4.618682000000007,
+            4.578591999999986
+          ],
+          "medianMs": 4.614071999999993,
+          "referenceMedianMs": 3.2580499537289143,
+          "ratio": 1.4162066467762657,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        }
+      ],
+      "pass": true,
+      "scope": "Fixed desktop shared-factory rendering only; not target-board printing, complete language compatibility or cold service assembly."
+    },
+    "independentAsync": {
+      "schema": 1,
+      "node": "v26.10.0",
+      "referenceSha256": "ca8132c3b88a912b19b460665e91adcd898244c50ca72b4413cc005b84bdfe9a",
+      "results": [
+        {
+          "name": "pure",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            5.973178000000004,
+            5.454881,
+            4.646542999999994,
+            4.631271999999996,
+            4.626793000000006,
+            4.533350999999996,
+            4.635063000000002
+          ],
+          "medianMs": 4.635063000000002,
+          "referenceMedianMs": 6.315300997812301,
+          "ratio": 0.7339417395315989,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "callback",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            12.650563000000005,
+            14.048709000000002,
+            13.404561999999999,
+            12.435190000000006,
+            12.207698999999991,
+            12.409329999999983,
+            12.339730000000003
+          ],
+          "medianMs": 12.435190000000006,
+          "referenceMedianMs": 9.619439020752907,
+          "ratio": 1.2927146763103772,
+          "maximumMedianRatio": 1.5,
+          "pass": true
+        },
+        {
+          "name": "ui",
+          "iterations": 500,
+          "warmups": 2,
+          "samples": 7,
+          "sampleMs": [
+            12.132558000000017,
+            13.692205000000001,
+            16.738359000000003,
+            14.920209,
+            15.63896699999998,
+            15.633606999999984,
+            12.94880599999999
+          ],
+          "medianMs": 14.920209,
+          "referenceMedianMs": 8.285223972052336,
+          "ratio": 1.8008214443361765,
+          "maximumMedianRatio": 1.5,
+          "pass": false
+        }
+      ],
+      "pass": false
+    },
+    "conclusion": "Factory budgets pass; independent UI 1.8008214443361765 exceeds unchanged 1.5. Prior failed canonical and paired results remain open."
+  },
+  "setupObservations": [
+    "First replay launcher matched ordinary Cargo probe exit 1 as a failure and stopped before compilation; selector narrowed to captured SIGSEGV.",
+    "Sandbox replay records EPERM despite status 0 and is not counted as successful compilation; both authorized cases have null error.",
+    "Initial source comparison omitted calculateSpectrum name argument; corrected to the existing product-build test input. First benchmark copy used the wrong factory reference filename; corrected to the frozen original."
+  ],
+  "open": [
+    "Compiler root cause and parallel-build stability",
+    "Independent UI callback performance",
+    "Complete new-package Fluidd/Mainsail and recovery journeys",
+    "Complete Moonraker/component/language coverage and Python retirement",
+    "Consumer macros, G3 precision/timing and Cycnumbris 500 target acceptance; other models last"
+  ],
+  "exactHeadCI": {
+    "schema": 1,
+    "date": "2026-10-12",
+    "head": "fff160bfe6a3a5417934d88e198db7f357a19b42",
+    "checkout": "eedafb78c0084184b576a86bf07408ced45e25ce",
+    "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+    "status": "all-current-head-ci-success",
+    "workflowRuns": [
+      {
+        "id": 38177392063,
+        "head": "fff160bfe6a3a5417934d88e198db7f357a19b42",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38177392063"
+      },
+      {
+        "id": 38177392113,
+        "head": "fff160bfe6a3a5417934d88e198db7f357a19b42",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38177392113"
+      },
+      {
+        "id": 38177392061,
+        "head": "fff160bfe6a3a5417934d88e198db7f357a19b42",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38177392061"
+      }
+    ],
+    "jobs": [
+      {
+        "runId": 38177392063,
+        "jobId": 114582546255,
+        "name": "checks",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392063,
+        "jobId": 114582546397,
+        "name": "sanitizer (asan)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392063,
+        "jobId": 114582546437,
+        "name": "sanitizer (ubsan)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392063,
+        "jobId": 114586174233,
+        "name": "host",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392113,
+        "jobId": 114582546456,
+        "name": "build",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392061,
+        "jobId": 114582546678,
+        "name": "motion (26.9.0, off, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392061,
+        "jobId": 114582546811,
+        "name": "motion (26.10.0, default, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392061,
+        "jobId": 114582546864,
+        "name": "motion (26.10.0, jitless, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392061,
+        "jobId": 114582546872,
+        "name": "motion (26.10.0, off, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392061,
+        "jobId": 114582546949,
+        "name": "motion (26.9.0, default, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392061,
+        "jobId": 114582546951,
+        "name": "motion (26.10.0, default, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392061,
+        "jobId": 114582546959,
+        "name": "motion (26.10.0, off, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392061,
+        "jobId": 114582546971,
+        "name": "motion (26.9.0, off, source)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392061,
+        "jobId": 114582547030,
+        "name": "motion (26.9.0, jitless, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "runId": 38177392061,
+        "jobId": 114582547037,
+        "name": "motion (26.9.0, default, compiled)",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ],
+    "ordinary": {
+      "tests": 4736,
+      "pass": 4736,
+      "fail": 0
+    },
+    "rawLog": "pr68-fff-checks-oct12.log",
+    "scope": "Exact async completion candidate head and current PR merge checkout. Does not close local compiler failures, independent UI budget, earlier motion deadline failures, G3, full new-package clients or Python retirement."
+  },
+  "evidence": {
+    "path": "native-build-investigation-evidence.json.gz",
+    "bytes": 2055758,
+    "sha256": "a4946798b8ee73bf5168c20fe6a3b1a7fe926d5c4b61675e2881f68ffc7df28a",
+    "entries": 279
+  }
+}

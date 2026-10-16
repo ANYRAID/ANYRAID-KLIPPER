@@ -1,5 +1,1899 @@
 # Klipper 与 Moonraker 集成交付计划
 
+## 项目修复与隔离验证授权（2026-10-16）
+
+用户持续允许本项目的修复并进行隔离验证，并明确“本项目开发实际需要linux环境的情况下，
+自行使用10.0.0.184”，包括该固定 Linux 开发机的本项目源码传输与调试。修复仍在独立任务分支和工作树中完成，
+不扩大到真实设备操作、生产部署或绕过任务 → develop → 主线的 PR 流程。
+
+## 2026-10-17 安装进程测试的限定包复用
+
+b83ddc07 的[原 CI](https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38929752756/job/117070405136)普通5431项中5430通过、1项因180秒超时取消（0项断言失败），协议／Linux MCU后续跳过。
+三个拒绝场景最终均返回正确blocked状态并退出0；源码确认同一用例逐场重复全量产品构建／依赖安装，原日志未细分两阶段各自耗时。
+仅该测试改为在原180秒总期限内构建／安装一次，并以显式只读AcceptanceBundle供三场使用；各场仍独立配置、数据库、profile和真实子进程，逐场关闭并核包未变，外层最终清理包，不改变生产或断言。
+184同Node26.12独立单文件验证3／3、标准类型检查通过；问题用例40.173秒，全文件165.447秒，三场均正确拒绝且无helper／adapter效果，包完整性检查通过。
+ANYRAID_ACCEPTANCE_*均未设置，实际覆盖fresh构建／安装分支；首轮隔离输入缺C源目录的准备失败保留，修正后单轮结果不替代新精确头并发CI，也不关闭既有服务预算／G3或实机门槛。
+
+## 2026-10-16 进程日志故障注入标记的限定修复
+
+f956d3cc／合成检出f878f9a31539的原Node26.12 CI中，ASAN、UBSAN成功，普通5417项中5416通过、1失败；
+process-logs的published边界用例读取标记得到空串，精确内容断言在parent发出SIGKILL及恢复检查之前失败。
+原checks与aggregate均失败，协议及Linux MCU后续步骤skipped；不能将其它头的结果补为本轮通过。
+
+本次仅改测试故障注入preload：先wx写同目录独立临时标记，再用hook前捕获的原rename原子发布，避免递归hook。
+原精确内容断言、5秒期限、link／rename注入边界、SIGKILL及恢复断言不变；生产日志已先写header再rename，未修改。
+一次固定IPC屏障对照显式拆开open／write：旧目标在open后可读空串；新方式发布前目标始终ENOENT，发布后内容完整。
+该53ms对照验证文件可见性机制，不声称暂停或重放Node内部writeFileSync单步，也没有随机重采。
+
+184同Node26.12标准类型检查及process-logs14／14首轮通过；复用19个已登记native输出，非fresh build。
+2794个输入除这一测试外均未变，固定1735产物及依赖前后一致。8个登记PID现均不存在、两进程组无残留；
+短运行未取得独立live快照，部分child／guard未采startTicks，不将末态不存在表述为完整生命周期证明。
+[原CI失败、固定探针与首轮回归证据](../host/contracts/process-log-marker-evidence.tar.gz)共36成员／35payload，SHA256
+`737e322b8faa44d233387142bcff2604302a45865799a18275e216efb15ab837`；原失败完整保留。
+本地定向回归不等于新头完整CI／产品验收，服务重获预算、G3及实机边界不变。
+
+## 2026-10-16 热时钟只读查询的限定修复与验证
+
+6cc050fc2／合成检出663738489的原CI：Build、motion、普通5413／5413、协议／Linux MCU及UBSAN成功；
+ASAN在product-service首项以Invalid thermal clock失败，非ASAN内存报告，aggregate失败；原结果保留。
+184修复前独立窄场20／20仅未复现；先前缺静态JSON的加载失败另留。固定8warmup后合法修正使递增host
+查询映射9000999→9000998，实际AsyncHeaterRuntime的getter路径误停、同输入一秒tick路径仍active；
+这只是源码语义反例，不还原原CI四值或确定其根因。
+
+限定修复只让查询不推进控制print基线；每次查询仍推进host单调基线并检查有限／非负print及控制基线。
+start／setTarget／保护tick仍推进print基线，全部热保护保持；跨控制tick的合法估计回退仍可能保守停机，
+HeaterPWM不改。Node26.12复用既有native输出，11个受影响文件95／95通过（含product-service20项），
+新增回归覆盖固定ClockSync修正、查询后的host倒退、低于控制print基线及频繁getter不刷新5秒lastTick。
+标准类型检查首次因隔离副本缺contracts输入失败；静态核对补齐12模块／JSON后独立类型检查exit0、两流空。
+随后受影响ASAN仅product-service20项及async-heater-runtime16项，共36／36，原每文件60秒、外135＋2秒，
+复用已登记ASAN输出而非fresh build；stderr空，保留原CI失败，不将单次定向结果解释为原CI根因。
+没有重复95项、执行完整全量／ASAN CI或重建产品；1735固定包及依赖前后不变，旧包证据不作为本改动验证。
+
+getter微基准固定A＝6cc原实现、B＝候选，同Node26.12，BAAB×3／12fresh进程，每进程6warm＋11计时批、每批百万次。
+主统计为六个进程中位数的中位数：7.6474675→7.402868 ns／次，差−0.2445995，B／A＝0.96801562；
+全部66保留批次的P95为7.692483→22.115763 ns／次。批次ns／次是百万次调用平均，不是单次请求P95；
+两版均出现约22ns批次，未采JIT trace，不能归因JIT或系统噪声。所有原批次保留，无专用适用门限，
+不称加速或性能全验收；不含真实ADC／PWM／设备、ClockSync换算与网络。
+
+[独立证据](../host/contracts/thermal-query-clock-evidence.tar.gz)：SHA256
+`f8316ec0235cd001011343b7e625a793a333b5cff1c864f593995577ed0364f7`，120成员／119payload逐SHA核对，
+保留原失败、固定实验、候选源码、定向结果与退场核验。完整A集成、服务重获2.626预算、G3及真实设备边界仍开放。
+
+## 2026-10-16 9a62历史精确头CI与原42／28预算出口
+
+PR #68已推送9a62b43b4，实际合成检出989faf643：host、Build和motion三workflow成功。
+Node26.12普通5413／5413、协议36624／661／10002、Linux MCU和ASAN／UBSAN通过；
+Build两轮各37文件239例，十项motion各50fresh通过，184原11／16／14失败与G3不覆盖。
+固定原704／61ab21基线对1735／0b530依赖，原42比较及28工厂启动唯一场90.049秒完成；
+42最大比1.10411972、鉴权最高3.5898315微秒<10，28中位190.336847→191.481855ms／比1.00601569。
+原14指标、样本／次序、60s／120s子期限及1.5门限均保持；28为单进程内工厂实例，不称冷进程启动。
+无清理信号介入，59登记身份退场、原PGID空；wrapper已不存在但初始ticks未采到，缺口保留；
+三个产品／依赖前后及独立末核一致。服务重获2.62602超原1.5不在本次范围，未重测／关闭。
+证据与原流见[当前验收](../host/contracts/system-bus-provider-acceptance.json)的currentCandidateExitValidation；
+本批仅归档验收证据；正常develop→master集成、完整迁移／宏、ARM64、特权部署和实机仍开放。
+
+## 2026-10-16 已保存运动捕获的只读审计
+
+最早可观察不一致位于stages.updated[10708]：三个逐bit相同的166项输入窗口，仅中心保存结果不同；
+下游速度／加速度／面板切片内部一致，独立同场repeat十曲线与reference逐bit相同，不能称修复。
+离线binary64同序算式及精确有理核对均支持邻值；未保存filter内部累加，不能定位瞬态来源或硬件。
+仅解码原捕获，无产品导入／夹具重跑／算法更换；完整差异索引、raw bits及边界见[诊断验收](../host/contracts/system-bus-provider-acceptance.json)
+currentLinuxExitDiagnostic.resourceObservation.motionCaptureAudit。G3仍开放。
+
+## 2026-10-16 独立内存有限观察（未关闭G3）
+
+现有认证APT来源的memtester4.6.0-1仅解包至隔离任务目录，无系统安装／提权／配置更改。
+普通用户固定256M／一pass只执行一次，62.029秒；实际分配268435456字节，输出locked，
+63个VmLck样本均262144KiB，默认18项／Loop1／Done齐全。C退出0／无signal，外GNU timeout
+独立退出0；66资源样本无漏周期，session及祖先memory事件差量全0，四登记进程已消失、1735不变。
+原始退格输出与规范化副本均保留，新档不含deb／ELF。见[诊断验收](../host/contracts/system-bus-provider-acceptance.json)
+currentLinuxExitDiagnostic.resourceObservation.memtesterObservation及其独立归档。
+此有限阴性只覆盖本次锁页256MiB虚拟分配，不认证全RAM／环境健康，不排除间歇故障或关闭11／16／14失败及G3。
+先前工具备选表述为当时快照，不覆盖原失败；本批按本地提交流程收口，未推送／合并／部署。
+
+## 2026-10-16 全量并发资源观察（14失败保留）
+
+同55a登记1822输入／829入口与原工具、默认并发，仅执行一次；缓存复用，不称完全复制
+旧调度／缓存状态。pretest5.717秒通过，全测5402／5388通过／14失败，总453.824秒。
+细类为Rust SIGSEGV6、LLVM分配失败SIGABRT1、Go版TS SIGSEGV2、Node构建脚本V8 fatal1、
+product-host自然SIGSEGV1、测试文件SIGSEGV2及motion真实数值失配1；旧16／11均不覆盖。
+
+461样本、最大间隙1.002706秒、无漏周期；session及祖先memory事件差量全0、祖先旧峰值不增。
+MemAvailable最低11196332KiB，Committed_AS最高10553420KiB；PSI均值0且累计增量很小。
+实际观测削弱本场全局／cgroup耗尽解释，但LLVM分配失败仍保留；current含缓存、peak累计、
+overcommit0下CommitLimit非严格硬限，不排除亚秒／叶进程限制、allocator、runtime或硬件问题。
+
+product-host直接子481604无先行kill而SIGSEGV，已按实际mono关联前后样本389／390。
+motion source关闭Maglev／Turbofan仍记录index10708的1.4013e-5对0失配，同进程重算值0；
+报告、夹具及两原捕获已封存，七源仅事后核SHA匹配，不称运行时冻结输入，也未重跑替代。
+固定1735不变、守卫无干预／残留。见[诊断验收](../host/contracts/system-bus-provider-acceptance.json)
+currentLinuxExitDiagnostic.resourceObservation及独立归档；G3和完整集成仍开放。
+内存工具仅备选，未下载／安装／执行；本批仅本地提交，未推送／合并／部署。
+
+## 2026-10-16 当前Linux退出诊断（原因未定）
+
+在70c64329当前源码与固定Node26.11.1上仅执行一次普通默认并发诊断。首次once在C构建后
+因cargo ENOENT停止，属于环境准备失败；独立fix1补齐已有工具路径后pretest通过，
+全测5341项中5325通过、16失败，总475.784秒。历史5354／5343／11和旧包证据不覆盖；
+当前测试集合不同，历史工具环境／Cargo jobs未记录，不称完全复现。
+
+16项分为11项编译失败（Rust8／GCC ICE1／Go版TS2）、三项测试进程SIGSEGV、
+两项Node内置TS剥离ERR_INTERNAL_ASSERTION。service-install:50明确含1024字节分配失败、
+SIGABRT及另一个rustc SIGSEGV；不足以直接归因项目逻辑、OOM或硬件。原三目标本轮
+未失败仅为有限未复现。observer 898文件、target cap0／other cap4；424个thumbnail退出
+均已有kill在前，不能计作424测试。守卫在root退出后TERM一个角色未明的other-child，
+终态无残留；不称全程无干预。全测未采实际limits／cgroup前后，事后新SSH计数不能补证。
+
+随后固定两入口各12次fresh公开stripTypeScriptTypes观察仅1.884秒、24次均code0／signull，
+两输出SHA分别一致；实际24份limits与48个cgroup前后快照齐全、清理无残留。
+这只覆盖公开API的相同parseTypeScript下游，排除loader／cache／传递模块和全量并发；
+原失败TS文件名未知，不能称确定性判别、修复或关闭16失败／G3。固定1735产品未更改。
+
+下一步只规划同等并发实际运行期间的cgroup memory事件／限额／峰值、系统MemAvailable／
+Swap／pressure及进程limits采样，需前后差量和退出时序；不改并发／编译器flags，尚未启动。
+原失败与A观察分别归档，见[共享总线验收](../host/contracts/system-bus-provider-acceptance.json)
+的currentLinuxExitDiagnostic。本批仅本地提交，未推送／合并／部署；A4状态和其余门禁不变。
+
+## 2026-10-16 保留身份查询候选（未发布）
+
+GET /access/user 与 WS access.get_user 现在通过原鉴权所有者返回当前主体的
+username／source／created_on。可信 IP 使用冻结的保留描述，API Key 使用私有
+持久时间；原 JWT、force_logins、轮换、地址、订阅和一次令牌准入保持。
+旧 schema1 迁移缺时间时核留存完整源摘要后补回原值，当前已轮换 key／用户不回写。
+已有任何 migration receipt（包括 null）且缺原 startup 声明时拒绝补当前时间。
+
+Windows 最终锁定 TS7、Linux26.9 标准类型检查通过。源码原回归101项通过，
+新身份与旧库最终19项通过；首轮18／19的真实null夹具问题、此前类型／沙箱／
+Windows ELF限制原日志保留。独立JS及候选实际模块＋测试壳各107／107，均禁TS加载；
+实际 ConfiguredMoonraker.loadAuthorized 的HTTP／WS三身份、轮换／SQLite重开11行通过。
+这些是分次记录，不合并为单次全量或完整daemon／客户端旅程。
+
+另建173565dc包，692生产JS与严格独立发射逐SHA一致；相对cd91仅两目标模块改变，
+其余清单、原生及0b53079c依赖不变。未重编原生或重新安装依赖，cd91历史包未写入。
+冻结249443注册仅执行一轮：原四route最高3.51635us＜10；BAAB×3新请求鉴权
+API key为0.98582倍，可信IP为1.09849倍（约增加9.85%），均在新1.5窄门限内；
+16阶段含收口22.122秒，小于300秒，无替换样本。该比较不含HTTP网络、GET序列化或启动，
+不能关闭原服务重获2.62602＞1.5、完整42／28、历史11失败、G3或物理精度门禁。
+1735的同包Mainsail原定义A4现由下述独立场映射闭合；完整A集成、Moonraker／Python与宏、
+ARM64、CI、正常集成和发布仍待完成。
+本批仅本地提交，未推送／合并／部署；原6394复现包与全部旧A4记录保留，证据见
+[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的reservedIdentityFollowUp。
+
+## 2026-10-16 1735 JWT外部故障恢复与A4有限出口
+
+不改173565dc／0b53079c包及Mainsail2.19.0，唯一双PTY故障场411.328秒内完成及清理。
+旧long实际printing／job000001／同request后，仅一次ARM／CRASH；固定runner回执明确
+旧PID422824真实SIGKILL、code:null、simulationClosed／requestsJoined均true。离线页面
+Connection failed／TRY AGAIN，六GET当时均502；原offline historyCount0仅缺失API的解析默认值，
+不能解释为历史被清空，也未读取离线DB。
+
+一次显式RECOVER产生新PID423106／新startTicks，runner会话1→2；新产品设备计数从1起。
+原生TRY AGAIN后真实握手与初始化可见，旧job／request/history1保持interrupted，无自动重放。
+随后原生printer.firmware_restart一次，耐久operation succeeded、旧cancelled、idle／request null／
+unhomed；新PID保持，内部设备generation1→2。再次原生G28并Print不同短任务000002完成，
+最后原生Clear print stats只发一条SDCARD_RESET_FILE，idle／request null且两条history保留。
+不混淆会话与设备计数，也不把Firmware Restart替代前场标准RESTART或直接Cancel。
+
+六业务检查点通过；原owner严格保留fault_business_pass_screenshot_missing，三缺图为
+login-submitted／checkpoint-recovered-interrupted／native-firmware-restart。017缺图不改写，
+无间隔业务的018独立实图补充恢复状态视读；014／018／020／024／026五图根审通过。
+52命令按序消费一次；双代进程、gateway、root、两guard和本地端口均清理，无错误或重跑。
+专用私有profile仍观察到额外扩展页，只保留有界安全元数据，不操作其DOM、不称无扩展环境。
+
+据原A4定义，当前1735固定包的可信生命周期、JWT文件维护／配置、队列及本故障场现按
+Delivery九行映射闭合有限客户端出口；JWT与可信网络分列，不要求两种身份重复每项动作。
+历史cd91归属不变。完整A集成、正常CI／预算、服务重获2.62602、完整42／28、历史11失败、
+G3、实机、Python退役及完整宏仍独立开放。证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+的mainsailJwtFaultRecoveryFollowUp。本批按本地提交流程收口，未推送／合并／部署。
+
+## 2026-10-16 1735 JWT队列／Pause Resume／明确清台出口
+
+不改173565dc／0b53079c产品，唯一Mainsail2.19.0 JWT双PTY队列场653.001秒通过。
+长真实printing时只加入一份短文件，Pause／Resume各一次，同long job／request不变，
+进度由暂停.6389经恢复.7028增至.8945；自然完成后两检查点相隔29.191秒仍history1、
+queue paused／head短／transition null／清台POST0，证明此观察区间没有自动续打。
+之后只在产品自有/_client/queue请求确认，再勾选清台并明确确认，实际两次POST顺序与
+九检查点严格单调；short job000002／不同queue-request completed，long仍completed，
+最终恰两条history、空队列paused，Mainsail实页短文件Complete。清台不是Mainsail原生页面。
+
+直接long start／G28／queue-add／Pause／Resume各1，short只由确认触发；产品PID／startTicks
+及generation1保持，无cancel／restart／fault。九检查点截图全齐、关键七图视读通过；
+login-submitted／inputs-ready／long-dialog三次非关键缺图保留，不称截图全量无缺。
+780秒停新动作、870秒强制、900秒绝对期限不变，清理0错、两守卫无残留、端口空闲。
+私有profile仍有额外扩展／非任务页观测，只保留安全路径／元数据且不操作其DOM；
+不推断注入来源或旧N根因。数值快照与随后截图按各自时间记录，不要求百分比相同。
+
+本场无失败重跑，不混入旧N失败；只做必要长短输入上传，不重复下载／预览／cfg维护。
+新独立归档与旧档均保留，见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+的mainsailJwtQueueFollowUp。本批仅本地整理验收，未推送／合并／部署；故障恢复和A4汇总见上段，
+正常集成、原服务重获2.62602／完整预算／42／28／G3／物理等门禁保持开放。
+
+## 2026-10-16 1735 JWT文件维护分场补验
+
+本批仅证据和文档，没有产品更改或重建。原N／N-diag／独立配置场分别为214.969／
+438.950／144.146秒，各自冻结780秒停止动作、870秒强制清理、900秒绝对期限；
+全部清理0错、两守卫无残留且端口空闲，没有延长或自动重开。
+
+原N只完成JWT、chooser上传／metadata与944字节真实下载，View3D停留/files的原因
+仍不明。N-diag保持先下载后View3D，唯一注册iframe p1/f2到/viewer，844／995两张
+原生键盘截图可见不同层路径，喷头局部遮挡；不能称原异常已修复。N-diag因测试设施
+误认Monaco而未改cfg，原两场的failed_or_partial原receipt保持。
+独立CodeMirror配置场才验证自然聚焦文末仅追加预注册注释、实际Save图标save(null)、
+Close后重新打开、必需截图视读和74字节精确回读（d4b30bcca95a…）；未点Save & Restart。
+三场各1次实际WS握手为JWT cookie路线，和既有无凭据可信回环结论分别记录。
+
+原regex启动前失败、原N4张缺图及后两场各1张login-submitted缺图、两次归档预检失败
+均保留。仅白名单归档，不遍历Edge profile／DB；含旧合成密码的两个历史脚本副本及
+runner仅在归档中脱敏并列原／归档SHA，原文件未改，最终凭据扫描零命中。
+该文件维护批次未覆盖Pause／Resume或队列／清台；其后对应补验及A4汇总见上段；原cd91范围、
+完整预算／服务重获2.62602／42／28／G3／物理与正常集成门禁不变。
+本批按本地提交流程收口，未推送／合并／部署；见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+的mainsailJwtMaintenanceFollowUp及新独立归档，历史归档不改。
+
+## 2026-10-16 1735可信回环Mainsail有限出口
+
+不改173565dc／0b53079c产品，Mainsail2.19.0实页chooser上传独立长短合成文件，
+无凭据_TRUSTED_USER_查询与三次实际WS握手通过；双PTY模拟场实际printing后reload，
+同job／request、进度非倒退且start仍1。probe父进程SIGUSR2仅断WS1012，页面TRY AGAIN
+显式重连后同任务继续；不将固定客户端clean关闭后的失败对话框称作自动重连成功。
+默认UI经Pause才显示Cancel，直接提交无确认模态；耐久cancelled后执行标准printer.restart，
+产品PID／startTicks保持、设备generation1→2，再home并明确开始不同短job至completed。
+最终history恰两条，长000001 cancelled、短000002 completed，无旧任务重放。
+
+最终fix4共277.702秒、24截图齐全、清理0错，Windows5／Linux3个登记PID终态均不存在，
+两watchdog remaining为空。once41.376秒URL观察失败、fix1 22.916秒accessible-name定位失败、
+fix2 120.676秒已发长start后截图超时、fix3 159.072秒未点TRY AGAIN便断言新WS，全部分场
+保留，不合并或改写原始失败；fix3的ws-reconnected标签已在旁证中明确更正。
+
+IAB实际不可用后使用已授权共享Playwright与私有Edge默认sandbox；每场独立780秒停止动作、
+870秒强制清理、900秒绝对期限，未延长或复用旧场。本次不重测下载／双层预览／SIGKILL，
+本可信场不以cd91旧证据补项；1735其余条目按上文及下方九行映射闭合。完整预算、服务重获2.62602、42／28、历史11失败、G3、
+物理、完整Python／宏及正常集成仍开放。原身份归档不改，新独立归档与全部成员SHA见
+[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的mainsailTrustedLifecycleFollowUp。
+
+## 客户端验收范围
+
+今后客户端默认以 Mainsail 为唯一验收客户端，不要求每批重复 Fluidd。历史 Fluidd 证据与失败保留，但不作为后续必需的双客户端门禁；只有用户另行指定 Fluidd 时才追加。
+
+## 历史cd91包Mainsail A4出口（2026-10-15）
+
+同包Mainsail2.19.0的A4有限场已验证真实上传、测试printer.cfg仅追加注释后保存／
+重开／严格回读，以及忙时入队、暂停／恢复、长任务完成不自动续打、明确清台后
+不同短任务完成。清台确认在产品自有/_client/queue页，不冒称Mainsail原生按钮。
+原菜单下载canceled、原600秒窄补验工具中断与两次设施定位失败均保留。
+后续同包真实单选文件的header Download已完成：Playwright默认所有权failure=null，
+实际saveAs为944字节，SHA-256与上传输入一致。最终仅预览场通过真实可见滑块点击
+自然取得焦点，再用原生键盘选择844／995；两张实图可辨第一层外框与第二层较小内框。
+下载场8312毫秒、隐藏role容器定位失败场17547毫秒、最终预览场12785毫秒均含清理，
+各场进程及端口终态已核，旧归档不覆盖。合成输入不代表实际切片器或物理层高证明。
+本轮IAB实际不可用，使用已授权共享Playwright＋独立私有Edge、默认sandbox；
+仅JWT网关路线。A4仍缺当前包打印中刷新／短暂断连、独立明确取消、标准RESTART
+的实页组合及显式可信网络边界记录，不把FIRMWARE_RESTART或历史其他包替代这些项。
+证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的mainsailA4FollowUp与mainsailNativeDownloadPreviewFollowUp，历史失败和旧归档不覆盖。
+
+## 2026-10-15 当前未发布候选
+
+服务安装与客户端恢复候选81d019bfb、8e282285及夹具修正435938218已推送草稿PR #68。
+当前已推送头435938218（实际合成检出13a65f031）的三组CI已全部成功。
+Node26.12普通测试5402／5402、零失败／取消／跳过；原三项安装进程测试通过，
+该轮实际cgroup为system.slice/hosted-compute-agent.service且夹具名称一致。
+协议36624字节／661帧／10002时钟比较和Linux MCU步骤成功；Build两轮各37文件239例，
+十项motion各50次零失败，ASAN／UBSAN各153根TAP汇总1234通过、零失败。
+8e2原5398／5401三失败和184两版各30项候选补验原样保留；旧轮未记录cgroup，
+不能将新轮观测倒推为旧轮根因实证。正常集成、服务重获2.62602超原1.5、
+历史本机11失败／G3与实机等独立门禁仍开放。
+435新头CI已过；先审当前候选与同包Mainsail未闭项，再经任务→develop→主线正常集成。
+本批证据见[现有验收](../host/contracts/system-bus-provider-acceptance.json)的ciFixtureFollowUp。
+同包Fluidd／Mainsail有限故障恢复已验，服务设备重获2.62602倍仍超原1.5，
+历史11失败／G3／更广客户端／完整预算／特权部署与实机门禁保持开放。
+下方none段为提交前历史快照，其“未提交”描述不代表当前状态。
+
+## 历史快照：2026-10-15 none 显式电源候选
+
+唯一实现收口为真实默认进程入口的 none 电源能力：显式 JSON 描述符
+与工厂借入的真实设备guard分开，PID/startTicks、资源退役、耐久收据、
+取消和未知动作不重放共同验证，固定systemd安装契约不豁免。
+Windows新8＋原控制/API11项19／19及锁定TS7类型通过，首次类型失败保留。
+新长期授权后8文件正常SCP至固定184隔离树，覆盖前／落地SHA全匹配。
+Linux26.11.1标准类型、源码5文件30／30＋旧8文件80／80分次通过；独立JS、
+实际产品各110／110，最低26.9类型和源码／产品各110／110，原configured14
+及真实factory7场均实际执行，所有fail／cancel／skip／todo为零。
+新725项产品清单的691JS（host/src684＋辅助7）与严格独立发射逐SHA相等。
+原生84输入／12输出核验后复用，生产依赖由原锁定独立安装按字节复制，
+本轮TS新构建，不声称原生重建或重新安装依赖。实际HTTP／原SQLite重开／
+guard生命周期／当前/proc身份仅使用假power和模拟MCU，不触及真实设备。
+预注册Node26.9 API9比较最高1.08523倍；冷模块导入每版28新进程，
+190.198860→190.773607ms，1.00302倍，均在原1.5阈值内；API为即时注入
+准入的处理链，冷导入不是完整启动，两者不替代原42／28预算。
+fakeCLI只报告22.025–24.800ms绝对成本。111生产输入＋package/lock字节未变，
+不代表运动运行时／物理验收。本批未提交推送，无新头CI；原11失败／G3继续保留。
+
+前序PR #68 `be2dda7b` 全部15CI成功，实际合成检出 `8bc80548`
+（develop `9c63d3c5`）：普通5354／5354、Build37文件239项、motion10任务，
+ASAN／UBSan各153根汇总1234通过，协议10002精确时钟比较及Linux MCU
+成功。此前51配置预期失败和隔离本机5354中的11失败都保留，历史G3不关。
+唯一一次全source-brake的gdb观察18／18、父子inferior正常退出，无SIGSEGV
+及残留，因此没有崩溃栈，不构成修复。none新代码不继承be2 CI；PR仍草稿，
+develop/master合并和发布尚未执行。范围见既有验收的nonePowerFollowUp。
+
+## 2026-10-15 Supervisor 分组进程兼容候选
+
+本批保持完整 `group:name`：读取目录、显式可信描述符、当前 PID、
+控制参数、API 准入、设备退役与持久收据一致；相同进程名不同组
+不串控。只读默认目录无需写描述符；写能力仍显式，systemd 单元
+范围不放宽。裸 `all` 批量目标拒绝，精确 `group:all` 保留；自身
+不能 start／stop，group:klipper 自动保留独占和退役检查。
+Windows Node26.9 新12项＋旧控制／API11项单次23／23、全仓锁定
+Windows TS7类型检查通过；实际隔离Node CLI子进程与真实SQLite
+持久恢复已验。运动／数学／运动学／G-code／原生111个生产输入
+与51f583ae逐字节相等；下述Linux新编产物仍不宣称物理精度。服务处理层
+AB／BA／AB窄比较9项最高1.133倍，64分组目录中位0.126毫秒，
+不包含真实HTTP、持久入队、退役或CLI I/O，也不替代原42／28。
+前序51f583ae新头CI host失败：5342项／5341通过／1失败，仅
+configured-server完整配置预期遗漏已消费machine默认三键；已最小
+补齐预期，全部原网络／权限／WS断言保留。该头Build／motion成功，
+ASAN／UBSAN各153根汇总、1234通过；protocol-native／Linux MCU
+后续跳过。原失败不重跑覆写；本Supervisor修复be2的CI终态见上方当前记录。
+Windows整configured-server因旧ELF插件无法导入，POSIX journal
+及Linux来源分支失败保留；已创建184独立开发工作树并保护旧树，
+用户明确授权11源码／测试传入隔离树，全部SHA与Windows／输入归档一致。
+Linux Node26.11.1标准类型检查通过；源11文件103／103，包括原配置网络
+14项和新增Supervisor12项。标准新产品724文件、690JS（host/src683＋辅助7）
+逐文件与独立TS7发射相等，当前84原生输入新编12输出；CPU0／Cargo jobs1
+仅约束构建，普通测试使用原多核。产品依赖独立按锁安装，身份在测试后未变。
+独立JS初轮71／57通过／14失败（缺资产与pty.c夹具），只补失败三文件48／48；
+实际包初轮65／62通过／3失败（缺原产品scripts辅助路径），补三文件41／41。
+原日志、资产／helper来源和精确PID收口全部保留，不拼成单次103全绿。
+实际包初轮原configured14和Supervisor12全部执行通过，TS加载显式禁止。
+单次标准全量npm test含独立fresh C／Rust pretest：5354／5343通过／11失败。
+8项为新编产品／原生构建失败，含rustc SIGSEGV、napi E0275及metadata panic、
+GCC LMDB ICE；另宿主提前退出和thumbnail503原因未知，source-brake模块明确
+SIGSEGV。原失败不覆写；G3、默认编译稳定性和候选集成仍开放。标准空白检查
+通过，初次shell缺任务Node路径127亦保留；本批协议／Linux MCU／sanitizer、
+原42／28、精确新头CI及集成发布未执行，不以focused通过替代。
+详细记录见[既有验收的Supervisor后续批次](../host/contracts/system-bus-provider-acceptance.json)。
+
+## 2026-10-14 共享 D-Bus 默认进程路线候选
+
+可信 `createProcess` 工厂实际采用默认 systemd_dbus，共享 Unix／EXTERNAL
+总线经显式 Hello／Subscribe 取得证明；控制、服务状态、安装属性借用同一
+owner，最终工厂在服务及设备资源退役后关闭，备份换代等待真实 socket close。
+方法绑定 unique owner，状态证明与连接／owner 分代；安装仅因相关结构性
+属性失效，未知动作在真实宿主包装异常后仍持久 interrupted 且不重放。
+源码核心 73 项、严格独立 JS 的 72＋URL 单例补验、实际新包与最低 26.9
+核心各 73 项，以及独立／实际／最低的原 11 文件 98 项均按明确分组通过。
+新 723 文件包的 689 JS 与严格独立编译相等，12 原生输出 fresh 构建；
+控制构建使用 CPU0／Cargo jobs1，运行多核，默认 Rust 并发稳定性仍开放。
+原 1000 moves／旧 key／text／UFP 模拟旅程、42 原预算及 28 次启动通过；
+42 最高 1.124 倍／鉴权 3.597 微秒，28 启动中位 1.004 倍。默认总线启动
+另测私有 daemon，不能以隔离预算宣称实机或默认 provider 全部性能验收。
+其他 provider 的完整兼容和安装属性完整推导、特权／ARM64／目标板／实机、
+自身 CI 和集成发布仍开放；候选与逐轮失败见[共享总线验收](../host/contracts/system-bus-provider-acceptance.json)。
+
+## 当前旧安装迁移候选（2026-10-14，未发布）
+
+本批沿真实进程工厂接通旧物理路径、数据库身份、模型和配置恢复所有者。
+旧 LMDB 0.9.33 由新编的只读 C helper 导出，SQLite 导入在 Worker 建表前
+完成；已有 SQLite 直接迁移原授权表。原 API key／JWT 保持，正常 record
+保留原字节，迁移 JSON 使用原整数词法避免 Number 舍入。安装相关元数据
+写入的 namespace 容量在事务前拒绝，413 不产生 SQLite 新记录。
+
+可信调用方须确认旧源已停写，物理配置／数据库路径与清单一致；逻辑别名
+不替代 NOFOLLOW 物理所有者。文本、UFP 的模型／PNG 在独立发布目录导入，
+原树保留；内容摘要、源时间、目录／容量预检及有锁恢复 journal 决定幂等发布。
+不读取任意非模型文件，也不把旧树变成可持续写入的导入 inbox。
+
+配置删项支持明确批准的跨 include／DEFAULT 来源，其他继承值精确保留。
+多文件恢复只确认已计划的保存结果；未知／变化源阻断，不重放配置和安装。
+完成部署后修改未被编辑的 include 同样阻断 fresh 准入，原 key HTTP 可见
+修复状态，设备取得为零。原 install_version 缺失时补 1，原 force_validation
+和版本启用语义保持；Node journal／marker／所有源摘要仍独立强制验证。
+validate_config=false 保留全部原配置字节及 gcode_path；validate_service=false
+必须装配可信 externalService 证明和重启能力，禁用标志自身不授予 root 权限。
+
+主配置解析或真实组件构造／准备的 ConfigurationError 可一次选用可信
+backupFile。先关闭首轮 DB、文件、日志、配置、journal、私密路径与 SUDO
+活能力，失败清理或普通错误均不回退。首轮已取得的资源分阶段转移，拒绝
+其他 server 的借入所有权不关闭原 owner。第二轮恢复持久成果、重算主备
+secrets／TLS 保留路径，并取得新后端；缺失／复用／打开失败均拒绝回退。
+备份进程可用原 key HTTP 查询，但 installation blocked，设备取得为零。
+
+本机 Node 26.10 受影响 66 文件拆为互不重叠 35+13+18：源码 498+67+180，
+实际标准产品包 498+67+180，最低 26.9 同包 498+67+180，三层各 745 项。
+独立 JS 首两组 498+67，追加组 179/180 因 WAL 子进程测试 URL 固定 `.ts`
+失败；只改按当前模块后缀选 `.ts/.js`，源码与独立 WAL 各补 1/1，原 179
+不重跑，不写单次 180/180。另一模型 SIGKILL 子进程也作同样 test-only URL
+修正，严格重编后 683 项产品 JS 仍全同 hash。各通过组完整根 TAP 的
+fail/cancelled/skipped/todo 均为零。首轮合并执行在 runner 总 150 秒被截断，
+只有 224 个 ok、无完整根汇总，不记通过，也不改任何单例原 deadline。
+
+标准 `npm run build:product-host -- <全新目录>` 完整 CLI exit0，40.470 秒；
+由私有来源快照新编 9 addon+3 executable 共 12 个原生输出，不复用旧 11。
+新包 717 文件／676 运行时 JS，独立严格 emit 对照 683 JS 全相等；84 原生
+来源、2810 Node header 和 18 生产依赖逐摘要核验。LMDB LICENSE、COPYRIGHT
+及 SOURCE.json 已纳入包摘要。前序包为 704 文件／667 运行时 JS，数据不混算。
+普通 UID 标准 npm typecheck 已恢复通过；先前 resolver 子进程空 stdout 的
+两次异常、测试字段类型错误和首次环境启动失败保留，未证明环境异常根因。
+
+同一新包的旧 SQLite／原 API key 实际 profile CLI 完成安装、fresh ready
+及原 1000 次运动／并发 API／两代恢复／故障退出的完整旅程，全部原门限
+先完成；另开新进程后只用原 API key 下载并打印导入文本和 UFP，当前 MCU
+运动 0→38→78、两条历史 completed，源 bytes 和安装／导入 journal 不变。
+通过 1/1，根 TAP 76.086 秒；追加阶段 9.079 秒。前三次追加 start 首失败／
+诊断保留：ready 后 9.112 毫秒两个耗材 sensor 均 valid=false；仅追加原
+waitFilament 的 5 秒状态等待，实际确认 1992.863 毫秒后通过，不改产品、
+运动内容、预算或原固定断言。该旅程从旧 SQLite 起步，LMDB 是独立迁移验证。
+
+原五场同一717包模拟打印各根 1/1、exit0：原并发、TLS＋Unicode 前缀、
+欢迎页面、借入日志、实际生产日志，分别 64.428／63.150／66.042／64.480／
+62.352 秒。保留原1000 moves、两代恢复／ADC／退出和全部原门限。
+原42预算按 AB／BA／AB 串行新采36controls，无旧结果复用；每轮14比较
+全部通过，最高 1.084465／1.111938／1.095448，鉴权最高3.668208微秒，
+原1.5倍及严格小于10微秒保持。原28次启动仍为每版3warm＋11samples
+交替配对，median355.840→367.480毫秒、ratio1.032713，p95486.026→532.537；
+该启动场景 installation 关闭且不取得设备，安装准入由上述完整旅程单验。
+
+最终 Node26.9 标准 `npm run typecheck` exit0；只读再核验2459冻结输入，
+仅两处记录的test-only URL变化。717包、683独立JS、84原生来源、12输出、
+2810Node headers和18依赖摘要均保持。文档／验收JSON不属于编译冻结输入。
+完整身份、实际失败、文件映射、复现与采样见
+[旧安装生命周期验收](../host/contracts/legacy-install-lifecycle-acceptance.json)。
+本候选尚未发布，新提交自身CI与正常集成仍须完成；前序9dd57635
+的5244／5244和15 jobs不覆盖本批。真实 root／sudo／
+PAM／systemd、生产部署、目标板／实机、ARM64 执行、完整 Moonraker／宏／历史 UI／G3、任务→develop→master 发布仍开放。
+klippy 仍有 177 个 Python 文件，其他 Python 与完整替代未完成。
+
+随后提交 `29409151` 的首次主机 checks／Build test 在源码格式门禁失败：
+测试用 `legacy-lmdb.c` 13 行超过80列，脚本链 exit124，不是执行 timeout，
+后续 npm ci／类型／主机测试 skipped。只修该C数据夹具换行和相邻字符串
+拼接，15组解码字符串 bytes 与去除文件名后的优化汇编完全相同；全仓原
+whitespace exit0，源码／实际717包直接受影响两文件分别6/6，原断言与期限
+保持。2459输入只增加这一测试数据delta，717包／683JS／84原生来源／12输出／
+2810headers／依赖均保持。原首失败与历史contract不覆写，不重跑旧CI求绿，
+不重复已覆盖的42预算／28启动／五场；修复新头自身CI仍须核实。见
+[测试夹具格式补验](../host/contracts/legacy-lmdb-fixture-format-followup.json)。
+
+## 旧安装 CI 移植性与取消修复候选
+
+`7e5ca444` 的Build／motion成功，host在Node26.11.1的5313项中5279通过、
+34失败：33项测试依赖本机临时目录，1项LMDB随机来源路径破坏完整产品
+字节可复现。协议／Linux MCU后续步骤skipped；原失败不重跑、不覆写。
+七个fixture改用os.tmpdir，本机大产物仍注入数据盘TMPDIR；LMDB编译改用
+稳定相对C来源和显式cwd，保留assert诊断及全部产物相等断言。
+新helper回归另定位取消死等：真实exit已到，未读stdout阻塞close。私有
+子进程owner统一幂等终止、关闭管道再join，正常trailer／退出校验保持；
+观察回调失败在join后传播，嵌套finally继续释放SQLite和持有目录，未知
+stage／journal及原LMDB保留。最终五文件24／24、15.447秒通过；新增实际
+缓冲取消、观察失败和spawn失败回归，原恢复断言保持。
+完整产品门禁分次：普通调度jobs1的smoke／性能与产物可复现2项通过，
+随后CPU0＋jobs1的原失败2项通过，完整标准fresh CLI在该控制条件下成功；
+release／LTO、运行门限和生产默认值不变，Rust崩溃及根因仍开放。
+新包718文件／677运行时JS，独立严格编译684JS全相等；12个新编原生只
+LMDB helper字节改变，682公共JS与其他11原生不变，复用已验18依赖且
+摘要相等。普通CPU0..5调度的源码／独立JS／实包／最低26.9各65／65；
+新包原SQLite／old key完整1000moves及text／UFP旅程1／1、76.151秒通过。
+最终两版标准类型及全仓格式门禁通过；候选自身CI和正常集成仍须完成。
+详细首失败、控制边界、hash与可追踪压缩原始证据见
+[移植性与取消验收](../host/contracts/legacy-ci-portability-acceptance.json)。
+
+## 前序固定布局安装候选记录
+
+以下记录只代表前序 704 文件包；本批新包／新原生／旧安装验证见上节，
+前序“未完整接入／未执行 CLI”的历史限制不能当作当前批次结论。
+
+本轮接通已有固定 Node 布局的真实 InstallValidator 消费者，沿原进程
+HTTP、身份／CORS、FIFO、维护／配置 writer、响应提交和退役重启所有者
+执行密码校验、固定服务与 env 备份、批准配置原子保存及单独 Node 版本
+确认。安装成功旧进程仍阻断设备；新进程无密码／sudo cache，重新核对
+root 只读证明、实际 unit/profile/bundle/config 指纹、journal 与 DB marker
+后才 ready。原 install_version 保留，不能据此称完整上游安装迁移完成。
+默认 polkit／NNP、Python 入口保持；显式 trusted-sudo 拒绝 NoNewPrivs，
+root helper 独立复制且只导入内建模块，不 root import 服务可写模块。
+真实 root／sudo/PAM/PTY／systemd／部署尚未授权或执行。
+
+新增四文件原扩展矩阵 22／23、exit1 的唯一失败为临时 CORS 期望401
+与真实403不符，仅修驱动补1／1，不记单次23／23；最后必要测试URL
+补编后，最低26.9同四文件23／23、exit0。受影响原35文件首次262项
+253 pass／9资源装配失败；保持1040项测试参考资源（其中含.ts，运行
+仍禁止TS加载）字节后，只补未真正执行七文件245／245、exit0；实际
+253+245=498分次通过，不冒称单次完整35文件全绿。首轮装配／bootstrap
+权限、公告start时序、生命周期接线及夹具清理失败全部保留。
+
+标准 buildProductHost API 逐项核验75原生来源／11输出后复用，1.202秒
+exit0；本批未新编原生，未执行完整 npm build:product-host CLI。704项
+产品有667运行时JS及独立helper，668项与独立emit逐hash一致，生产18
+依赖与旧包相同。相对原700项包有10项运行时新增／变化及独立helper；
+实际编译后的profile由标准产品CLI启动，首次安装、fresh ready及原
+server.restart分别核实，生产后端的不可信root路径在监听前拒绝。
+此隔离系统根／普通UID与注入执行器证据不是root happy-path验收。
+
+原42预算按AB／BA／AB重新采样全部通过，三组最高1.109／1.092／1.130，
+鉴权最高3.516微秒；原1.5倍及严格小于10微秒门限保持，无失败重采或
+旧输出复用。原五场同一704包模拟打印各exit0，原1000moves／并发API／
+两代恢复／ADC／退出和全部门限保持，真实硬件与Python对比尚未验。
+第六场启用真实安装消费者：首CLI完成事务并退出，新CLI无密码验证
+ready后继续原完整旅程；修驱动后1／1、62.534秒，状态P99 8.908毫秒、
+最小步进提前量79.425毫秒。首轮10.519秒因配置列表未纳入原子保存
+生成的备份而exit1保留；补验恰好一个规范UUID备份，字节等于旧配置，
+匿名401／授权200。原28启动也exit0，median337.416→334.067毫秒，
+ratio0.990、p95 360.124→363.244；该基线启动未开启installation，安装
+准入交接由第六场单独覆盖。最终标准npm typecheck以26.9执行exit0，
+23编译输入冻结核对一致。
+详细范围、真实失败与复现见[本轮安装验收](../host/contracts/sudo-install-lifecycle-acceptance.json)
+及[可信装配／恢复说明](Node_Host_Startup.md#固定-node-安装校验与-sudo-消费者)。
+前序fad45的3 workflow／15 job及5221／5221终态见[精确头记录](../host/contracts/pr68-fad45d3-terminal.json)，
+不覆盖本批未提交源码；新头CI、正常集成与发布仍须实际执行。
+
+本批后续兼容性缺口集中保持：旧路径及legacy pre-open迁移、实际LMDB
+导入、跨include／DEFAULT目标配置、全库记录与整数精度验证，以及上游
+force_validation、validate_service、validate_config、配置备份回退逐项
+行为均未完整接入。SQLite已有schema／codec基础不是全库迁移验收；
+旧data.mdb可作为正常备份保留。完整Moonraker／Python／宏、历史UI／G3、
+ARM64、默认原生重编稳定性、目标板／实机和发布门禁未关闭。
+
+以下保留前序编译与日志生命周期验收记录。
+
+默认编译入口改为锁定 TypeScript 7 的官方解析器隔离子进程，由父
+所有者直接启动所选平台编译器，不经过 process.execve，不修改
+node_modules 或禁用全局能力。TS／平台包版本须与锁一致，实际
+路径、普通可执行文件及启动前字节摘要单独核验；这不保证无
+TOCTOU 替换，也不证明旧挂起的根因。
+
+解析与编译共用原 120 秒类型检查／60 秒构建编译 deadline，每流
+4 MiB 输出上限保持。超时／取消／越界及解析器／编译器直接子进程正常退出均清理
+其独立自有组，等待 close／管道 EOF 和组内无活进程；已死亡、由
+其他父进程接管的 zombie 不宣称已回收。组观察失败返回具名错误、
+cleanupComplete=false，并保留 stage／lock 和旧包。期限触发取消，
+不保证 kernel D-state 或不可读状态在期限内物理清除。builder 取消
+只覆盖 TS 与发布前检查，原生同步构建并非即时可取消。仅 Linux
+x64／arm64 启用，其他平台明确拒绝。
+
+标准 npm typecheck 在 Node26.10／26.9 通过；最终新增实际 CLI 取消
+案例后，同三文件各 13／13、exit0，最终新测试的完整严格类型检查
+由 26.9 的同一锁定编译器／配置执行。实际 Node runner 的 SIGTERM
+与 builder 的 SIGINT 均先 join 后退出 143／130，不推断 npm 父进程
+信号传播。一次真实类型错误保留原 700 文件产品和依赖身份，正常
+确认清理后释放暂存与锁；注入组观察失败则保留待恢复目录。
+
+标准 buildProductHost API 用既有 nativeDirectory 参数、逐项核对
+75 原生来源和 11 输出后复用，1.208 秒通过。新旧 700 文件清单及
+生产依赖摘要完全一致，664 个运行时 JS 零变化，两个开发 wrapper
+不入产品；不重跑已覆盖同一代码的 42 预算／五场模拟打印。完整
+npm build:product-host CLI、原生重编及 ARM64 执行本批未验。默认
+沙箱首轮文件失败和随后 mkfifo EPERM 判别保留，获授权本机环境
+结果分别记录。固定源码、输出、失败及复现见
+[编译进程所有者验收](../host/contracts/typescript-process-owner-acceptance.json)。
+前序 a3506c84 的 3 workflow／15 job、普通 5214／5214 已成功，实际
+CI 合成检出 32ffc5f，见[前序终态](../host/contracts/pr68-a3506c8-terminal.json)；
+不覆盖本编译增量。新头 CI、正常集成、历史编译器／UI／G3、SUDO
+与完整 Moonraker／Python／宏／目标板／实机／发布仍开放。
+以下保留前序日志生命周期验收记录。
+
+原生 process 工厂已接通真实应用／打印诊断日志的生产、默认私有
+目录、文件头、午夜／手工轮转、两份日期备份和 CLI 控制，标准
+下载读取同一生产文件。实际生命周期／故障枚举沿原设备与服务
+所有者记录；不输出完整配置、凭据或任意异常。专用私有目录的
+内核锁排斥重复写入，轮转准备后原子发布；两处 SIGKILL 边界
+可重开，未知目录文件不清理。日志故障不跳过设备停止与清理。
+异步诊断日志不承诺断电耐久或未排空记录零丢失。
+
+本批只在 `createProcess` 原生模式接线。原显式只读绑定保持借用，
+不授予生产／轮转所有权。原鉴权、CORS、HTTP(S)、前缀、取消、
+下载 inode 与退出规则保留；外部 Klippy 的系统服务轮转、完整
+组件 DEBUG／异常记录、通用日志消费者和完整 CLI／下载头兼容
+仍开放。具体能力、私有命名空间和加固差异见
+[启动说明](Node_Host_Startup.md#原生进程诊断日志)。
+
+正确受影响源码与独立 JS 矩阵各 541／541 通过，保持原 35 文件／
+498 覆盖并增加日志、实际 CLI 与进程生命周期三文件。实际标准包
+原 498 项及新增 42 项通过；临时 guard 缺少 join 使未启动的 CLI
+单例失败，保留原 42／43、exit1 后，只补验该未执行单例 1／1，
+不记为一次 43／43。最低 Node.js26.9 的四文件 50／50 通过。
+
+固定原生 TypeScript7 的完整直接类型检查和独立 emit 已通过；官方
+Node launcher 禁用 process.execve 后的完整类型检查亦通过。未修改
+标准 builder，只为精确编译子进程加 --import compiler-fallback-only.mjs
+采用官方 execFileSync 后备；标准包构建 exit0，兼容 shim 不进入产品。
+固定 shim 摘要断言在成功构建后加入；实际 launch 回执已记录相同
+摘要，构建后输入再次核对。700 项包的 664 运行时 JS 与独立 emit
+逐项一致，18 生产依赖与旧包一致；相对旧包仅七个日志接线 JS
+变化。75 原生来源及 11 输出核验复用，未重新原生构建。原默认 execve 启动 120 秒超时、被中断诊断无退出
+回执及精确孤儿清理仍保留，原因未证，不据此宣称已修复。
+
+原 42 高频预算按本轮 AB／BA／AB 顺序全部通过，三组最高
+1.074／1.081／1.263 倍，鉴权最高 3.768 微秒；原 1.5 倍和
+严格小于 10 微秒门限不变，无失败重采或旧成功输出复用。
+
+五场同包完整模拟打印全部 exit0，保留原 1000 移动、文件／API
+并发、两代设备重建、ADC 故障与退出检查及全部预算：
+
+| 场次 | 耗时（秒） | 状态 P99（毫秒） | 最小步进提前量（毫秒） |
+| --- | ---: | ---: | ---: |
+| 原 HTTP | 59.305 | 3.416 | 86.649 |
+| HTTPS 与 Unicode 前缀 | 66.123 | 5.477 | 88.179 |
+| 再加完整欢迎页 | 60.537 | 5.219 | 86.926 |
+| 再加原 256 KiB 只读日志 | 60.858 | 4.643 | 86.296 |
+| 实际日志生产与轮转 | 63.646 | 7.659 | 85.806 |
+
+欢迎场 2225 次读取，P99 10.505 毫秒。只读日志场 1866 次读取，
+P99 11.448 毫秒；新增生产日志场 1981 次读取，P99 11.484 毫秒，
+两代四次打印中轮转为 1.373／0.897／1.032／0.869 毫秒，
+同场完整欢迎页读取 2370 次。这些均为模拟 MCU／本机回环证据。
+
+实际进程依赖／恢复／HTTP 监听启动沿固定 3 次热身、11 组样本、
+交错 28 次启动测量：中位 336.227→354.844 毫秒、1.055 倍，
+P95 348.177→370.449 毫秒，原 1.5 倍门限通过。模块导入、
+夹具准备及清理不计入；包含日志 Worker 与文件头，不获取设备，
+不与 MCU 就绪或原网络启动预算混同。12 个冻结输入、原 38 文件
+及编译／产品测试 JS 摘要、两包身份在末尾再次核对一致。
+固定阈值、全部失败、来源和最终验收见
+[日志生命周期记录](../host/contracts/process-log-lifecycle-acceptance.json)。
+前序 ca8527ee 的十五项 CI、5190／5190 已核实，实际合成检出
+bfbcfffe，仅属于该旧头，见[前序终态](../host/contracts/pr68-ca8527e-terminal.json)。
+
+新头 CI、SUDO、完整 Moonraker／Python／模板／消费级宏、历史
+UI／G3／原生构建稳定性、完整客户端、目标板与实机及
+任务→develop→master 仍开放。默认打印仍 Python，其他机型最后。
+以下保留前序上下文复用记录。
+
+原生异步模板接入最后一份完全相同的不可变上下文复用，
+减少重复 typed JSON 转换，不缓存回调、环境或渲染输出。
+仍使用完整原模板引擎、原数值解析、两异步线程、32 帧／
+64 回调及原期限／取消／输出边界；每句柄最多一份原 65536
+UTF8 字节上下文，关闭释放，非法输入不替换原有效缓存。
+新增重复／并发／坏输入后恢复检查，保留浮点、负零和大整数。
+
+隔离原型两边各 112 项，新标准包及最低 Node.js26.9 各
+140 项通过，完整类型检查通过。标准包从独立空原生目标
+构建 37.983 秒，75 来源／2810 Node 头／11 输出核验；
+697 项包的 661 运行时 JS 与欢迎基线相同，仅 template.node
+及原生构建回执变化，18 生产依赖摘要相同。
+
+原型、最终包分别按预定三组 AB／BA／AB 执行原完整模板
+预算，全部候选通过。最终直接 UI 为 1.352–1.375 倍，
+工厂 UI 为 1.316–1.354 倍，原 1.5 和输入／预热／样本
+保持；基线工厂 UI 的 1.661 失败仍保留，历史 2.060／
+1.506／1.888 不以本轮绿擦除或说明根因。1 KiB／60 KiB
+变化上下文补验最高 1.017 倍；不替代冻结原预算。
+
+原 42 高频预算最高 1.138 倍，鉴权最高 3.671 微秒，
+原 1.5／10 微秒保持。原 HTTP、HTTPS＋Unicode 前缀及
+再附加完整欢迎读负载各一次同包通过，62.722／63.239／
+62.807 秒。状态 P99 8.114／5.449／6.627 ms，最小
+步进提前量 83.118／79.220／83.696 ms；欢迎读取 2340
+次、中位／P99 1.155／11.043 ms。原 1000 移动、文件、
+并发 API、重建和 ADC 故障及全部预算保持，顺序运行。
+
+沙箱编译／类型检查 status0＋EPERM、类型剥除驱动参数、
+依赖链接复制和旅程启动前的引号错误均保留；修正驱动后
+执行同一输入，不重采至绿。281 项证据逐摘要验证，见
+[上下文复用](../host/contracts/template-context-cache-acceptance.json)。
+欢迎 5b77d8fa 十五项 CI、5182／5182 已成功，Actions
+合并检出 1146a7c7，不表示合入 develop，见
+[精确终态](../host/contracts/pr68-5b77d8f-terminal.json)。
+新原生增量须自身 CI。历史 UI／G3／新原生构建稳定性、
+SUDO／密码、日志与剩余消费者、完整 Python／Jinja／msgspec
+及消费级宏、客户端故障／SIGKILL／Cura、目标板与实机、
+develop→master 仍开放；打印默认仍 Python，其他机型最后。
+以下保留欢迎入口当时的范围和结果。
+
+完整原版欢迎模板已接通 Node 应用。锁定原 assets/welcome.html
+（1cfb0c41，blob bd428835，SHA256 fe91ee96），不替换为简化页面
+或另一套渲染器。身份、状态、摘要、公告、警告及原模态窗／脚本
+保留；原私密工厂存在时共享其 UI 环境，否则使用同一原生执行器
+的受限 UI-only 工厂，不猜测私密目录或启用私密模板／全局值。
+
+原模板 UI 不自动转义，完整源探针已证明警告能包含原始 HTML。
+包装开启 HTML 转义，脚本值用 JSON，DOM ID 按字面查找，sudo
+密码地址附加规范前缀；公告只使用安全规范 HTTP(S)，其他链接
+为 #。这些为明确加固差别，原源码原样留存并在启动校验。
+
+页面取原 server.info 受保护鉴权作状态观察，坏凭据显示 False
+但不授予 API；请求 IP 取原冻结／核验地址，状态与 API 共用
+同一生命周期读取器。网络、服务用原缓存，Linux 用户／主机为
+真实进程信息，公告用原目录，不因页面读操作调用系统命令。
+当前原生主机控制用 polkit，没有交互式 sudo 密码请求队列，
+requested=false／空消息反映该状态；完整模态窗保留，但原
+SUDO／密码后端生命周期仍待接通，本增量未输入密码或创建权限。
+
+前缀根的可选尾斜杠仅用于欢迎页，不扩大 API／WS 根别名。
+公开页面不按 Origin 授予 CORS 读权限，GET-only；HTTP／HTTPS、
+原请求／输入／输出容量、期限、断连、取消和退出共用。输出额度
+保持到实际 HTTP finish／close，迟到页面不能发送。大警告集合
+在序列化前拒绝，完整上下文限 1 MiB；资源限额不是无界上游等价
+声明。固定资产校验进入原三处 MCU／日志前预检；外部欢迎渲染
+覆盖在配置／原生所有者拒绝。浏览器固定 18430／18434。
+
+源码／独立 JS／实际包各 490／490，完整类型与空白通过；最低
+Node.js 26.9 实际包欢迎 18／18。697 项标准包、18 个独立
+生产依赖、661 个运行时 JS 与最终编译逐摘要相同。75 原生
+来源／11 输出核验复用，未重新原生编译；原产品保护保持。
+
+原三组 AB／BA／AB 42 项预算全通过，最高 1.183 倍、
+鉴权最大 3.645 微秒，原 1.5／10 微秒及全部输入／预热／
+样本保持。共享工厂本次 UI 1.442 倍，但直接 UI 仍为
+1.888 > 1.5；原 2.060／1.506 失败历史保持，单轮绿
+不能替代历史门禁或说明根因。原 UI 预算仍未完成，未改门限、
+重采至绿或调系统。本增量接通的是草稿候选，不能据此发布。
+
+同一编译包原 HTTP、HTTPS＋Unicode 前缀、再附加完整欢迎读
+负载各一次通过，63.574／61.703／64.227 秒。原 1000 移动、
+文件／并发 API／重建／ADC 故障及全部预算保持，第三轮只追加
+欢迎读取，没有替换原负载。状态 P99 为 4.213／5.605／6.971 ms；
+最小步进提前量 83.032／87.621／85.016 ms。欢迎 2388 次，
+中位／P99 1.166／9.779 ms。临时夹具 CA／主机名验证
+保持，测试结束恢复，不改系统或浏览器信任。功能、编译、预算
+和旅程顺序运行，不宣称整机隔离、目标板或真实运动／加热证明。
+
+初始编辑脚本部分完成、类型失败、两次裸前缀 404、夹具对合法
+斜杠实体和根注册 API 的错误预期，以及直接 UI 失败均保留。
+301 项证据逐摘要验证，见
+[欢迎入口证据](../host/contracts/application-welcome-owner-acceptance.json)。
+前序 0b2cc747 十五项 CI、5164／5164 成功，Actions 合并
+检出 d5718b0c，见[终态](../host/contracts/pr68-0b2cc74-terminal.json)。
+任务 PR 仍草稿、未合入 develop，新增量须自身 CI。SUDO、日志
+及剩余消费者、全部 Moonraker／Python／Jinja／msgspec／消费级
+宏、原 UI／G3／新原生构建稳定性、客户端故障／SIGKILL／Cura
+和 Cycnumbris500 目标板／实机及 develop→master 仍开放。其他
+机型最后。以下保留前序重定向记录及其当时范围。
+
+原生应用 /server/redirect 已沿配置的原授权、CORS／NSS 和网络
+所有者接通。GET 取最后一个 url 查询值并按 Python 空白剥边，
+查询优先于 JSON 请求体且不依赖 Content-Type。完整原始目标
+先做 CORS 匹配，仅匹配时去掉尾斜杠；Unicode 的 Location 再
+编码，原百分号／查询字节保持。调用方 Origin 与目标各自校验。
+
+复用现有 access.info 的可选身份检查，现有坏凭据仍拒绝，目标
+NSS 等待后再核对当前身份；一次性令牌使用原请求缓存，不重复
+消耗。无独立 DNS 缓存或新的匿名 RPC，未授权目标及授权组件
+缺失返回 400。HTTP／HTTPS、前缀、原请求／字节容量、期限、
+断连和退出共用；迟到许可不能产生 Location。外部所有者覆盖
+在原生 MCU／日志获取前拒绝。浏览器仍固定 18430／18434。
+
+仅接受安全规范的绝对 HTTP(S)，拒绝用户信息、控制符、反斜杠、
+路径／authority 归一化歧义，原始与编码目标均限 4096 字节；
+非字符串返回 400，错误不反射 URL／凭据，回执 no-store／
+no-referrer。这些为明确加固差别，不宣称全部 Tornado／Python
+正则等价；原 1 MiB 请求体及共享字节上限保持。
+
+源码／独立 JS／实际包各 334／334，完整类型及空白通过；最低
+Node.js 26.9 实际包重定向 17／17。694 项标准包、18 个独立
+生产依赖、660 个运行时 JS 与最终编译逐摘要匹配；75 个原生
+来源、11 个原输出核验复用，未重新原生编译。原产品保护保持。
+
+原三组 AB／BA／AB 42 项预算全通过，最高 1.103 倍、
+鉴权最大 3.586 微秒，原 1.5／10 微秒、输入／预热／样本
+保持。新成功重定向路径 100000 次、三预热十一保留样本的 CPU
+观察中位／P95 为 10.173／10.210 微秒（含断言）；旧实际
+包同配置返回 404，没有旧成功路径或原计时门限，不称性能对照
+通过。原高频及打印路径仍按原 42 项预算和完整混合旅程验证。
+
+同一编译包的原 HTTP 与 HTTPS＋Unicode 前缀旅程各一次通过，
+64.321／63.452 秒，原 1000 移动、文件／并发 API、重建及
+ADC 故障和全部预算保持。状态 P99 为 8.036／6.087 ms，最小
+步进提前量 80.971／85.559 ms。HTTPS 父线程临时增加夹具 CA
+并恢复，主机名核验保持，不改系统／浏览器信任。回归、编译、
+预算及旅程顺序执行，不宣称整机隔离、板端精度或实机验收。
+
+首次夹具类型错误、沙箱源码回归失败及明确中止 130、编译子进程
+status 0 同时报 EPERM 的失败观察、独立 JS 遗漏原测试 pty.c
+均保留；补齐夹具及同一受准编译后复验，不把错误状态写成通过。
+253 项证据逐摘要核验，见
+[重定向证据](../host/contracts/application-redirect-owner-acceptance.json)。
+
+前序 8a68d5c 十五项 CI、5147／5147 成功，Actions 合并检出
+154366eb，见[精确终态](../host/contracts/pr68-8a68d5c-terminal.json)。
+任务 PR 仍草稿、未合入 develop，新增量须自身 CI。欢迎页面
+必须接入原模板及完整所有者上下文；日志与剩余 HTTP 消费者、
+全部 Moonraker／Python／Jinja／msgspec、消费级宏、原 UI／G3／
+全新原生构建稳定性、客户端故障／SIGKILL／Cura及 Cycnumbris500
+目标板／实机和 develop→master 仍开放，其他机型最后。
+以下保留前序直接 TLS 记录及其当时的验证范围。
+
+直接 HTTPS 现接通原网络所有者，HTTP／HTTPS 的 RPC、鉴权、
+WebSocket 身份及通知、请求／连接／字节／输出容量、前缀、取消
+和退出期限共用。真实 TLSSocket 协议在原请求中先冻结，可信代理
+协议仅沿原名单／NSS 覆盖；未核验头不能使真实 TLS 回执降为
+HTTP。原路径与身份仍保持，TLS 本身不授予 API 权限。
+
+配置使用 ssl_port（缺省 7130）、ssl_certificate_path、ssl_key_path，
+原可信 dataPath/certs/moonraker.cert／moonraker.key 优先于旧路径。
+常规文件读取有 256／64 KiB 上限，TLS 最低 1.2、握手十秒。
+外部 TLS 覆盖、无效显式材料及相同端口在 MCU／日志获取前拒绝；
+安全监听失败撤回 HTTP，启动不报告半完成。显式材料缺一拒绝、
+原始读取限额、原子启动及不创建证书目录是明确加固差别。仅默认
+证书缺失保持 HTTP；新 secure 地址随 ready／listening 提供。
+
+源码／独立 JS／实际包各 294／294，完整类型与空白通过；末尾
+新增端口实际 ECONNREFUSED 释放断言后，这三种方式各五项及
+最低 Node.js 26.9 实际包五项通过，运行时不再变化。693 项标准
+包、18 个独立生产依赖、659 个运行时 JS 与最终编译逐摘要一致；
+75 个原生来源及 11 个原输出复用，未重新原生编译。产品保护
+仍拒绝 TS 与任意程序，仅增加摘要／固定参数绑定、十秒临时
+RSA2048 测试证书生成；密钥未纳入证据或仓库。
+
+原三组 AB／BA／AB 共 42 项预算最高 1.145 倍，鉴权最大
+3.619 微秒，保持原 1.5／10 微秒、全部输入／预热／样本。
+预算驱动先选错另一份参考网络脚本，两次均在计时及 Python
+启动前终止，错误包装和日志保留；修正使用原配置网络负载，四份
+有效鉴权样本继续保留并标明修复间隔，未按慢值重测。
+
+同一独立编译包的原完整 HTTP 及 HTTPS＋Unicode 前缀旅程各
+一次通过，62.107／61.707 秒；原 1000 移动、文件／并发 API、
+重建、ADC 故障与全部预算保持。状态 P99 为 3.761／4.497 ms，
+最小步进提前量 79.728／88.248 ms，循环 P99 为 1.975／1.956
+与 2.036／1.975 ms。HTTPS 的父测试线程临时增加该夹具 CA、
+结束恢复，主机名校验保持，不改变系统或浏览器信任。回归、预算
+与旅程顺序执行；部分类型检查与功能回归重叠，不宣称整机隔离。
+
+旧包有效 TLS 配置不产生安全监听、握手 EPROTO；夹具错误、
+旧代际遗漏预检、原断言与新提前拒绝行为的冲突、标准编译启动
+EPERM 和驱动错误均保留。273 项证据逐摘要校验，见
+[直接 TLS 证据](../host/contracts/direct-tls-owner-acceptance.json)。
+前序 fdc4b27e 十五项 CI、5142／5142 成功，Actions 合并检出
+cb55e429，见[精确头终态](../host/contracts/pr68-fdc4b27-terminal.json)。
+任务 PR 未合入 develop，本增量须自身 CI。浏览器仍固定原两
+入口；未新开客户端场次。欢迎／重定向／日志处理器、剩余消费者、
+完整 Moonraker／Python／宏、UI／G3／原生稳定性和 Cycnumbris 500
+目标板／实机保持开放，其他机型最后。以下保留前序范围及证据。
+
+当前接通的是上游实际配置键 `route_prefix`，此前文案 `url_prefix`
+不准确。已有 HTTP／JSON-RPC、WebSocket、文件／配置／受管缩略图、
+标准与 OctoPrint 上传共用规范前缀；RPC 方法名、原请求 URL、查询
+凭据和文件物理路径保持。开启前缀后根路径及相邻前缀不成为别名。
+缺省保留根路径，重复斜杠折叠，组件按 UTF-8 编码。字面完整边界、
+拒绝点路径及 1024／4096 字节限制是明确加固差别，不宣称全部
+Tornado 路由等价；未实现的上游欢迎／重定向等处理器仍需接通。
+
+非空前缀随 ready／listening 的可选 address.routePrefix 公开。网关
+显式私有上游含该规范前缀，原登录、刷新、身份、HTTP／WS 转发
+都经过它；匹配原上游的安全 API Location 转换为公共来源，客户端
+转发主机／协议头移除。浏览器仍固定 Fluidd 18430／Mainsail 18434，
+冲突停止，不新开浏览器场次。配置及使用示例见启动说明。
+
+源码／独立 JS／实际包各 258／258，项目类型、空白通过；692 项
+标准包及 18 个独立生产依赖已核验。最终源码编译的 658 个运行时
+JS 与实际包逐项一致，75 个原生来源与 11 个原输出按摘要复用，
+未重新原生编译。原三组 AB／BA／AB 的 42 项预算最高 1.164 倍、
+鉴权最高 3.786 微秒，保持 1.5／10 微秒门限。原网关三预热十一
+样本、REST／RPC 各 200、WS 500、16 并发的 320 请求保持，
+三组共 48 项根路径／前缀对照最高 1.085／1.075 倍；该原网关
+基准没有计时门限，这些是同进程桌面观察，不是 Python 或板端比较。
+
+同一编译包的原完整 namespace／nativeAuthorization／apiLoad
+旅程及仅增加 Unicode 前缀的补充各一次通过，原 1000 个移动、
+文件／并发 API／重建／故障与全部预算保持。状态 P99 为
+4.006／4.333 ms，最小步进提前量 87.821／88.535 ms，循环
+P99 为 1.996／1.985 和 1.971／1.980 ms。基准、回归、编译
+与旅程按顺序执行，不宣称整机隔离或物理精度证明。旧 404／应
+200、夹具／类型／网关 Host 以及归档路径错误和全部原始样本
+保留，250 项证据逐摘要核验，见
+[路由前缀证据](../host/contracts/route-prefix-owner-acceptance.json)。
+
+前序 5c554954 十五项 CI、5137／5137 成功，实际 Actions 合并
+检出 cefdf388；见[精确头终态](../host/contracts/pr68-5c55495-terminal.json)。
+任务 PR 仍草稿、未合入 develop，当时增量须自身 CI。剩余 URL 消费者、
+剩余上游处理器／消费者、全部 Moonraker／Python／宏、原 UI
+性能／G3／原生稳定性、完整客户端故障及 Cycnumbris 500
+目标板／实机保持开放；其他机型最后。以下保留前序证据及原包身份。
+
+标准／OctoPrint 上传的代理协议已沿原请求、信任与 NSS 所有者接通。
+X-Scheme 优先于 X-Forwarded-Proto，取最后一项，仅接受 http／https；
+use_xheaders=false、畸形／超过 4096 字节或未验证代理保持原真实传输协议。
+只核验实际代理的协议声明，客户端 API 身份仍按原凭据／双地址政策。
+请求 Host 与编码路径保持，X-Forwarded-Host、Forwarded 和查询令牌
+不进入回执。选择规则来自
+[Tornado 6.5.10](https://www.tornadoweb.org/en/stable/_modules/tornado/httpserver.html)，
+要求代理经过原名单核验是明确的安全加固差别，不宣称逐位等价。
+
+元数据先在原 IncomingMessage 同步冻结；协议查询放在原上传授权
+阶段，先拒绝坏凭据，新增异步等待后重新核对当前权限／吊销，暂存
+前完成。原请求与上传授权容量、取消、关闭和期限保持，没有第二套
+DNS 缓存或身份所有者。原生配置与 MCU 获取前的产品校验拒绝外部
+覆盖协议及捕获回调。初版 503／应 401 的确定性反例保留，已修正。
+
+最终源码、独立 JS、实际包各 244／244，类型及空白通过。实际包
+691 项、18 个独立生产依赖，五个 JS 有差异，75 个原生来源与原
+输出按摘要复用，未重新编译原生。原鉴权四路径、网络六项和上传
+4／16 MiB 两模式的三组 AB／BA／AB 共 42 项最高 1.163 倍，
+原 1.5／10 微秒门限保持；新协议数值／真实 NSS 缓存成功路径为
+0.272／0.411 微秒，首次 NSS 22.6 ms，没有旧协议成功路径对照。
+原 namespace／nativeAuthorization／apiLoad 模拟打印单场通过，
+状态 P99 4.115 ms、最小步进提前量 84.235 ms、循环 P99 为
+2.005／1.971 ms；基准与编译、回归及打印场景顺序执行，未作整机
+隔离或硬件声明。第一次产品保护拦住原缩略图进程及测试 PTY 编译，
+现仅允许原摘要／参数绑定的这些程序，其他程序与 TS 仍拒绝。
+夹具门禁／日志／配置名单、URL 默认端口、类型、构建导入路径与
+预算结果格式错误均保留，没有按成功重跑覆盖实际失败。见
+[完整协议证据](../host/contracts/proxy-protocol-owner-acceptance.json)。
+
+前序 8ad4edae 十五项 CI 与 5119／5119 成功，实际合并检出
+58d2c841，见[精确头终态](../host/contracts/pr68-8ad4eda-terminal.json)。
+这不证明原启动失败根因已定位或合入 develop；本增量须自身检查。
+其他 URL 消费者、全部 Moonraker／Python／宏、
+原 UI 性能、G3／原生稳定性、完整客户端故障和 Cycnumbris 500
+目标板／实机仍开放，其他机型最后。
+
+可信代理授权已接入原信任所有者与配置生命周期。server 的
+use_xheaders 默认 true，可明确 false；真实 TCP 地址保持，最后
+一项 X-Forwarded-For 作为候选，X-Real-IP 优先。RFC Forwarded 不
+参与此地址选择。匿名授权必须实际代理与选中客户端各自可信，错误
+API Key／JWT 不回落网络身份；强制登录、过期和吊销继续生效。
+
+地址只在原 IncomingMessage 中捕获一次，保持不可变，不改 socket
+或跨 keepalive 请求继承。NSS 借用原名单、缓存、期限和退出边界；
+等待后重新核对原身份与当前策略。未经验证代理的头不能改登录计数
+或短时令牌地址；畸形声明不能回落匿名代理身份。与上游 Tornado 的
+未验证／畸形头行为存在明确的安全加固差别，不宣称逐位等价。
+首次代理查询在消费 token 之前完成，原五秒生命周期、一次消费
+保持。通知／订阅和捕获的打印权限使用同一地址所有者，不重新解析
+可变头；取消或关闭后的晚结果拒绝，实际打印权限还核对当前政策。
+
+源码、独立编译 JS、禁止 TS／任意程序的实际包各 47／47，类型
+和空白通过。标准包 691 项，只变更四个 JS；75 个原生来源与原
+输出逐摘要复用，18 个独立生产依赖保持摘要，不宣称全新原生编译。
+复制依赖时曾出现指向旧包的链接，独立性校验拒绝；修正保留原
+相对链接后通过。沙箱 EPERM、夹具／类型／配置回执和预算驱动
+格式错误都保留，未写成产品通过。
+
+原鉴权四路径与网络六项预定三组 AB／BA／AB 共 30 项最高
+1.101 倍，原输入与 1.5／10 微秒预算保持。新代理数值／NSS 缓存
+成功路径约 0.715／1.109 微秒，首次真实 NSS 约 23.9 ms；没有旧
+成功路径对照。原 namespace／nativeAuthorization／apiLoad 模拟
+打印单场通过。首组预算与该场重叠，其余两组在场次终态后执行，
+保留全部样本，不宣称隔离或历史原因。预算驱动修正仅读取原网络
+结果对象，首组不重测。见[完整代理证据](../host/contracts/trusted-proxy-owner-acceptance.json)。
+
+前序 017ab911 的十五项 CI 与 5106／5106 已成功，实际合并检出
+d73063db，见[精确头终态](../host/contracts/pr68-017ab91-terminal.json)。
+该增量 b7dbc339 的普通 CI 为 5117／5118，一项产品服务测试在模拟
+MCU 启动时报 Invalid uptime response；协议与 MCU 构建步骤随之跳过。
+原日志未记录触发校验的字段，不能认定计数格式、发送时间、重传或
+运行时根因。现仅在该测试失败时输出已有有界时钟捕获，并增加发送
+时间为零、估计器尚未创建的诊断回归；不改启动拒绝、停止、查询、
+计时、重试或采样断言。相关产品／诊断 25 项和扩展诊断 6 项通过，
+完整类型检查通过；本记录及诊断增量须自身 CI 和正常集成。见
+[原失败及完整精度调查](../host/contracts/motion-adaptive-sum-rejected.json)。
+UI、原生构建、G3 精度、全部 Python／
+Moonraker／消费者与宏、客户端完整故障及 Cycnumbris 500 实机保持
+开放；其他机型最后。以下保留前序调查及其原包身份。
+
+原生交接的分阶段对照已补齐：原输出和五个原输入案例保持，每个
+500 次／两预热七样本，两版探针各预定三组 original／off／on
+交错，共 18 个进程、90 个案例组；各版 52,500 条带原生时间的
+记录和 36 次过程观察封存。两版私有组件回归各 121／121，通过
+不等于完整产品或性能预算验收。仓库运行时与运动／数学源码不变。
+
+直接 UI 的消息准备约 0.5 微秒。CPU 只读扩展发现同一进程第一组
+UI 中，同 L3 缓存组的排队／调用／回复／完成交接中位数为
+2.47／3.43／2.45／3.34 微秒，跨 L3 为 3.85／5.021／3.86／4.91
+微秒；原工厂 UI 只有 i+1，没有调用消息。此关联支持下一处设计
+聚焦减少必要交接，不能认定历史失败根因。所有慢样本和相同逻辑
+CPU 的长尾保留；没有绑定 CPU、调整优先级／频率或改预算。
+
+探针的全新构建在 napi-derive-backend 发生 rustc 内部崩溃：元数据
+索引长度 31、访问 16777236。二十份对应依赖产物与前序字节相同，
+不足以确定全部依赖或内存原因。保留失败 target 和原日志；复制已
+验证依赖目录后的独立目标仍重编译依赖，随后通过；CPU 增量只重
+编译组件后通过。这不是首次全新构建通过，原生稳定性门槛仍开放。
+初次组件回归因沙箱拒绝 127.0.0.1 监听中止，同一套件在已授权
+有限本机范围通过；原 EPERM 日志保留。
+
+分布采用带时钟／锁的私有探针，取记录位于单次计时之后，不能
+替换原批次中位数预算。记录 CPU 与时间存在极小观察间隔，过程
+分类无并行不证明整机安静。原 1.5 门限、UI 全部失败和 G3 精度
+要求保持。见[分阶段及 L3 对照](../host/contracts/template-ui-terminal-probe-acceptance.json)
+中的 nativePhaseProfile 与[全部原始证据](../host/contracts/template-native-phase-evidence.json.gz)。
+
+以下保留前序完整消息与终态候选的调查：
+
+完整类型的原生结构化消息对照已独立编译验证；它沿原 tagged 类型
+树传递调用，保留精确数字字符串和原 JS 解码器。原 JSON 外壳的
+转义与完整元数据仍由有界计数器遍历，64 KiB 上限保持；不能将它
+描述为完全移除编码。独立原型 119 项、组合终态／代际原型 120 项，
+额外容量边界 2 项通过。这是私有组件原型，不是完整产品验收。
+
+预定三组原预算对照仍有直接 UI 1.538／1.567／1.536 倍、工厂 UI
+1.697 倍失败，原 500 次／两预热七样本、冻结参考及 1.5 门限保持。
+24 次进程观察未发现已分类编译／测试并行，不证明整机安静或历史
+根因。候选未接入；不足以支持移除 JSON 文本传输即可解决 UI 预算。
+
+仅保留两项完整消息元数据回归：最大 u32 渲染编号与第 64 次调用
+计入同一 64 KiB 边界；精确边界成功。一字节更大在第 10 次调用
+元数据增长时拒绝，不触发第十次回调；此前九次有效作用没有回滚。
+源码、独立 JS、禁止 TS／外部程序的原产品包各 121／121，类型和
+空白通过。仓库运行时、原生和运动／数学源码未改变，原产品包身份
+不变。新增 120 项源／二进制／样本证据，先前 263 项归档保留；见
+[UI 调查证据](../host/contracts/template-ui-terminal-probe-acceptance.json)。
+
+前序 b41e33f3 十五项 CI、5104／5104 通过，实际合并检出 45a68579，
+见[精确头终态](../host/contracts/pr68-b41e33f-terminal.json)。这不是合入
+develop 的证明，不覆盖本增量；本头须独立 CI。下一判别分开原生
+排队、消息准备、Node 交接、回复唤醒及完成交接；不重复已拒绝的
+ReplySlot／Condvar 方案。UI／G3／全 Python／Moonraker／宏和
+Cycnumbris 500 完整交付仍开放，其他机型最后。
+
+以下保留前序两候选调查的原始范围和结论：
+
+前序直接处理原 UI 模板预算，未把其他模块通过当成该门槛关闭。
+当前接受冻结包的原脚本仍复现工厂异步 1.678／UI 2.057 倍失败，
+输入、期望输出、500 次／两预热七样本及原 1.5 门限不变。
+
+第一候选只减少一次终态 Promise 等待，保留原双线程、32 帧／64
+调用、期限、取消与数值协议。首轮六项通过，但预定三组交错中
+直接 UI 回调为 1.598 倍，未通过。第二候选进一步以原私密绑定的
+存在性检查代际，不无谓取出私密快照；旧包固定反例在八次 UI 渲染
+期间额外读取八次私密值（11／期望 3），证明这一类开销。候选
+源码、独立 JS、实际包各 120 项通过，仍有回调 1.683／UI 1.856 倍
+性能失败，不据功能回归通过采纳运行时优化。
+
+先前采样没有核实并行类型检查的终态，因此新增一次有判别力的
+负载控制：三组对照在每个进程前后记录无已分类编译／测试并行，
+仍出现 UI 1.526 倍失败。另一个有限对照主动启动同一类型检查，
+四段测量前后均实际观测到编译进程。两组均保留，不把相关性当成
+历史失败根因，不使用安静结果覆盖原失败，也不调高门限。
+
+两个原型现已撤回；运行时源码与原 69d58486 相同，原生／数学
+输出不变，原包仅用于回归，没有重新原生编译或新增打印验收。
+仅保留两项原行为回归：完成信号观察者重入取消／关闭不能覆盖已
+发布结果，同步原生准入失败仍返回拒绝的 Promise 且不占住帧容量。
+恢复后源码、独立 JS、禁止 TS／外部程序的原实际包各 119／119，
+类型与空白通过。263 项完整证据含候选源、冻结包、原型失败和
+过程观察；见[UI 终态调查](../host/contracts/template-ui-terminal-probe-acceptance.json)。
+
+前序 69d58486 十五项 CI、5102／5102 通过，实际合并检出 31a8f544，
+见[精确头终态](../host/contracts/pr68-69d5848-terminal.json)。本回归与
+证据增量须自身 CI。下一判别聚焦原生调用／回复／完成的跨线程
+交接成本，保留 UI 原失败和打印精度边界。完整 Python／Moonraker／
+消费级宏、原生构建稳定性／G3／Cycnumbris 500 与正常集成仍开放，
+其他机型最后；以下记录保留各自原包身份。
+
+配置 CORS 的数字 Origin 回退现借用原授权所有者的主机名／NSS
+名单、缓存与退出边界，不另外建立解析器或活动名称缓存。非空规则
+未匹配的规范数字 Origin 上查询；Origin 中的主机名不直接查 DNS，
+原 IPv6 括号排除和 Python 专有正则兼容差额保持。跨域许可不授予
+RPC／打印身份，强制登录、错误 API Key／JWT 仍返回 401。
+
+HTTP 和升级在查询前纳入原请求所有者；原期限包含等待，关闭、
+客户端断开或升级 EOF 取消原信号。待完成升级也占用原连接与请求
+容量，晚结果不能打开连接或执行接口。先复现旧预检 403／期望 204，
+随后扩展测试发现升级 EOF 未及时释放等待；实际修复 EOF 监听后
+同一输入通过。失败、沙箱及归档准备诊断均保留，没有放宽断言。
+
+源码、独立 JavaScript、实际安装包各 44／44，完整类型及空白检查
+通过。原网络脚本 200 HTTP／500 WS／30 次启动关闭、三预热十一
+样本未改，三组 AB／BA／AB 的十八项对照最高 1.041 倍，保持 1.5
+门限；其无 Origin／惰性鉴权负载不冒充 DNS 开销。新共享缓存路径
+十万次查询、三预热五样本约 2.510 微秒／次，实际 NSS 冷查约 25.8
+毫秒，没有旧成功路径耗时对照，也不代表目标板吞吐。
+
+新冻结包 690 项、独立离线安装 18 个锁定依赖，仅五个接线 JS 不同；
+核对 75 个原生来源及输出后复用，数学／打印内核不变，未重新原生
+编译。原 namespace／nativeAuthorization／apiLoad 模拟混合场景使用
+既有 CORS Origin 选项通过，状态 P99 8.363 毫秒、步进最小提前量
+89.552 毫秒，原输入、断言与期限保持。它使用字面来源规则，不是
+打印中阻塞 DNS、完整矩阵或实际客户端证据。见
+[CORS 共享所有者与完整记录](../host/contracts/cors-trusted-domain-owner-acceptance.json)。
+
+前序 8bd11bdb 十五项 CI、5092／5092 通过，真实合并检出 68b96856，
+见[精确头终态](../host/contracts/pr68-8bd11bd-terminal.json)。本接线
+须自身新头 CI；完整 Moonraker／全部 Python／消费级宏、可信代理／
+完整正则、原 UI／原生构建／G3／Cycnumbris 500 与正常集成仍开放。
+其他机型最后，以下记录保留其原包身份。
+
+驱动电流设置现复用原 GCodeDispatch.runAdmissionExclusive 与维护
+门禁，只允许跟随已准入的空闲时钟工作。普通脚本／打印／其他维护
+不能成为延迟设置的等待队列。进入同一所有者后重新鉴权并核对原
+用户名、代际寿命、状态令牌、驱动型号最大电流和机器空闲；随后才
+取得维护门禁及开始写入。原十秒包含排队和鉴权。准入前拒绝／取消
+不停止其他工作，实际写入失败保持门禁失效、硬件关闭和安全停止。
+请求字段在等待前冻结；并发重复拒绝，已完成的精确重试仍不重放。
+
+真实调度／维护门禁的可控时钟夹具在旧代码确定返回 idle 409；修复
+覆盖时钟交接、期间打印／权限／身份／版本／型号变化、取消／关闭、
+十秒期限、挂起鉴权、晚权限、不可变参数及写入失败。相关源码、
+独立 JS、禁止 TS／外部程序的实际包各 50／50，通过完整类型检查。
+这证明空闲时钟竞争这一类问题；前一主机名包的瞬态 409 仍保留，
+不能断言每次历史拒绝均由它造成。
+
+原四驱动／2000 次查询、两预热七样本未改，冻结前后包三组
+AB／BA／AB 最高 1.009 倍；实际调度就绪查询补充对照最高 1.014 倍，
+保持 1.5 门限。历史基准摘要不同源于九月 f308f112 增加 max_current，
+本增量未修改原脚本；原历史记录与差异均保留。没有旧的成功时钟
+等待路径，故不编造等待耗时对照。桌面查询不代表目标板吞吐。
+
+新冻结包 690 项，独立离线安装 18 个锁定依赖；仅驱动电流与产品
+接线两个 JS 不同。核对全部 75 个原生来源及原输出，数学／打印
+内核字节不变，未重新原生编译。原 namespace／nativeAuthorization／
+apiLoad 模拟打印混合场景通过，状态 P99 4.219 毫秒、最小步进
+提前量 88.67 毫秒，原输入、期限和断言不改；不是完整矩阵或实机。
+见[驱动电流调度与完整记录](../host/contracts/driver-current-clock-admission-acceptance.json)。
+
+前序 5ee090ca 十五项 CI、5081／5081 通过，真实合并检出 3b691d33，
+见[精确头终态](../host/contracts/pr68-5ee090c-terminal.json)。本修复
+须自身新头 CI。全部 Python／完整 Moonraker／消费级宏、原 UI／
+原生构建稳定性／G3／Cycnumbris 500 与正常集成仍开放，其他机型最后。
+
+以下主机名与页面记录保留原包身份。
+
+trusted_clients 的主机名现经系统 NSS 查询接入原授权所有者，包括
+HTTP／WebSocket、通知／订阅、access.info 及实际配置装配。数字 IP／
+CIDR 仍同步匹配，明确主机名精确匹配并缓存 84,000 秒；错误凭据、
+强制登录和未实现的代理委托不能借此取得权限。查询后的准入仍重新
+检查原身份、当前策略及请求寿命，没有新增身份别名。
+
+查询在受控 Node 子进程执行，不调用 Python 或共享 libuv 名称线程。
+五秒包含启动；最多四子进程、十六待查地址、4096 缓存地址。取消、
+超时及关闭终止并排空原子进程；一名调用者取消不影响同址其他调用者，
+关闭后的晚结果不能重新授权。仅 NSS addon 从私有 C／Node 头快照
+重编，74 个未改原生来源及数学／打印输出按原摘要复用。新包 690 项，
+独立离线安装原锁定 18 个依赖；不宣称重新完整原生构建。
+
+源码、独立 JS、实际包各 40 项通过，ASan／UBSan 各 4 项及类型检查
+通过。四条原鉴权负载不改，三组 AB／BA／AB 对照最高 1.083 倍，
+保持原 1.5 与 10 微秒门限；新缓存域名路径约 0.542 微秒。实际阻塞
+NSS 子进程时，文件写入／事件循环 P99 为 0.574／0.497 毫秒，
+保持 50 毫秒。最终包原鉴权／文件／模拟打印混合场景通过，原输入、
+提前量和事件循环断言不改；不代表目标板吞吐或物理运动精度。
+
+前一配置包的初始化驱动电流请求出现 idle 409；原失败保留，基线
+及最终冻结包的同一场景通过，具体瞬态原因尚未证实，继续跟踪，
+不将它写成已修复或据此放宽空闲保护。真实配置装配曾绕过异步
+名称入口，已修正为同一原所有者的网络入口。见
+[主机名接线与完整证据](../host/contracts/trusted-client-domains-acceptance.json)。
+
+前序 68aeffa8 十五项 CI、5063／5063 通过，实际合并检出 7586b98c，
+见[精确头终态](../host/contracts/pr68-68aeffa-terminal.json)。本运行时
+增量须自身完整 CI。完整 Moonraker／Python 退役／消费级宏、可信
+代理及完整 CORS／配置、原 UI／原生构建／G3／Cycnumbris 500 和
+正常集成仍开放；默认 Python 不切换，其他机型最后。
+
+以下目录与客户端记录保留其原软件包身份。
+
+标准 multipart 的上传目录现相对所选根处理，支持客户端的 `path="/"`
+及首尾分隔符；内部空段、路径穿越、受保护名称和字面百分号的原
+规则保持，目录仍逐级鉴权。G-code／UFP 复用原发布、打印和队列，
+配置上传复用原限定写入、备份和只读规则，不修改运动或原生代码。
+
+源码、独立 JS、实际安装包各 118 项通过。原 4／16 MiB 上传负载、
+两预热七样本、三组 AB／BA／AB 对照最高 0.995 倍，保持 1.5 门限。
+新包 688 项、独立离线安装 18 个锁定依赖，核对 75 个原生来源并
+复用未改输出；仅上传 JS 改变，不宣称重新原生构建或打印尾延迟。
+
+Fluidd R38 实际文件选择立即返回，服务收到 `path="/"` 后 HTTP 400，
+定位为产品路径拒绝；161 秒关闭，不据此解释此前所有工具长等待。
+R39 新包在同一固定 18430／探针 18428 完成两份新文件的真实选择
+上传及打印，18,785／944 字节与原件一致；从文件菜单明确入队后，
+同包产品进程正常重建，原队列／文件／完成历史保持且暂停、不重放。
+重新页面归位及新清台确认后第三份任务完成，请求身份不同。
+实际配置编辑器保存了仅新增注释的 printer.cfg，58 字节已精确核对。
+场次 605 秒关闭，两监督进程退出 0，四固定端口无遗留。
+
+打印中 Fluidd 禁用“上传并打印”，该次文件选择等待没有事件，不计
+忙碌页面入队通过；编辑器原生输入上下文的定位失败和成功浏览器
+键盘路径均保留。只读 API 作佐证，无 API 上传／配置写入替代。
+Mainsail R40 使用同一固定 18434／探针 18432，内置浏览器文件选择
+调用仍长等待，工具回报 3573 秒，场次 889 秒已关闭，无上传请求；
+原因未定，不归因于权限拒绝。按已授权浏览器后备路径，R41 使用
+已安装 Chrome／Playwright、独立临时档案且启用浏览器沙箱，没有
+调整安全设置。真实普通选择器上传两份新文件，18,785／944 字节
+与原件一致，上传后没有任务或队列；页面明确打印第一份并完成，
+打印中从文件菜单把另一份入队，忙碌页面禁用清台确认。同包产品
+进程正常重建后完成历史、文件及暂停队列身份保持，不自动重放。
+实际编辑器保存仅增加注释的 58 字节 printer.cfg，摘要与原件核对。
+R41 重建后的重新归位／新确认未完成第二份打印；下方 R42 补齐。
+首次归位尚未确认结束时的两个上传 409 及过期前未完成动作保留。
+R41 场次 889 秒关闭，两个监督子进程退出 0；浏览器 886 秒关闭，
+沙箱开启、临时档案删除。无过期重启。只读 API 佐证真实页面，
+不替代上传、配置写入或打印操作。见
+[Mainsail 同包证据](../host/contracts/mainsail-upload-recovery-acceptance.json)。
+
+R42 沿同一锁定包及固定端口补齐上述恢复续打缺项：两份真实选择器
+普通上传后没有自动打印／排队；页面明确完成第一份，打印中从文件
+菜单加入另一份。进程正常重建后原完成历史、文件及暂停队列身份
+保持。页面重新归位，请求新的清台确认并重新勾选／提交，第二份
+打印完成，两个请求身份不同、队列为空。实际 History 页面显示
+两份成功作业。R42 在 465 秒内主动关闭，两监督子进程退出 0；
+浏览器 461 秒关闭，沙箱开启、临时档案删除，无过期重启。
+浏览器回调仅捕获确认请求的回执，提交后立即返回控制台；原产品
+日志两个 start=200 及两个耐久完成作业共同佐证，不伪造浏览器回执。
+同包模拟证据不代表 SIGKILL／故障、物理精度、目标吞吐或完整迁移。
+
+SIGKILL／故障旅程、完整客户端与硬件仍开放。
+见[目录修复与实际页面证据](../host/contracts/client-upload-path-acceptance.json)。
+
+前序队列头 3d9f439a 十五项 CI、5060／5060 通过，真实合并检出
+`d23d11b3`，见[终态](../host/contracts/pr68-3d9f439-terminal.json)。
+运行时头 81e9a21d 十五项 CI、5063／5063 通过，实际合并检出
+7ac9a1f9，见[精确头终态](../host/contracts/pr68-81e9a21-terminal.json)。
+本记录增量须自身新头 CI；全部 Python、完整 Moonraker／消费级宏、
+原 UI／原生构建／G3／Cycnumbris 500 及正常集成仍开放，其他机型最后。
+
+以下为前序上传队列候选的锁定记录；其“须自身 CI”由上方精确头
+终态补齐，完整客户端缺项按本轮实际通过范围逐项更新。
+
+明确的上传打印意图现接入原持久队列。`[file_manager]` 的
+`queue_gcode_uploads=true` 必须同时装配 `[job_queue]`，缺省关闭。
+标准上传与 OctoPrint 上传／选择在设备忙碌或新请求到来时已离线的
+情况下，可以将刚发布的不可变文件加入同一队列；普通上传不排队。
+逐次核验原网络身份、队列及打印权限，入队前后核对文件身份。
+已进入打印控制器后的异常或丢失回执不回落排队，避免重复打印。
+上传与选择绑定原设备代际；离线准入不能启动后来恢复的代际。
+
+队列重建保持暂停及原文件／任务身份，不自动重放。启用操作确认
+策略时，自动续打仍等待实际完成后的新清台确认。相关源码、独立
+JavaScript 及实际产品包各 225 项通过；三组既有队列及新增不可变
+文件准入预算通过，保留原 1.5 与 50／50／100 ms 门限。
+仅本机模拟软件证据，未覆盖目标板打印吞吐、运动精度或完整页面。
+见[上传队列验收](../host/contracts/upload-queue-intent-acceptance.json)。
+
+前序 ff5b29be 十五项 CI、5044／5044 通过，真实合并检出 8e5b0f1c，
+见[精确头终态](../host/contracts/pr68-ff5b29-terminal.json)。本队列修复
+须自身新头 CI；全量 Python、完整 Moonraker／消费级宏、完整客户端、
+原 UI／原生构建／G3／Cycnumbris 500 和正常集成仍开放，其他机型最后。
+
+以下为前序切片器兼容的锁定记录；其中上传队列软件缺项由上方证据
+补齐，Cura 插件页面和完整客户端旅程继续开放。
+
+可选 OctoPrint 切片器兼容入口已接入当前 Node 产品。配置
+`[octoprint_compat]` 后，9 个静态状态／命令接口与文件选择接口
+仅开放 HTTP，沿原网络鉴权直接返回上游 JSON，选择但不打印返回
+204。API Key 身份仍由原授权所有者核验，兼容元数据中的 _api／
+admin 标签不授予任何权限。动态路径只解码一次，不能通过请求体
+或查询覆盖；打印与命令再次经过原控制入口及设备代际检查。
+
+`/api/files/local` 是原 NativePrintUploads 的别名，复用流式容量、
+私有暂存、校验、UFP 解析、不可变发布和任务日志。Location 指向
+`/api/files/moonraker/gcodes/…`，选择及明确 print 意图复用原打印
+策略，不能上传配置文件。enable_ufp=false 同时关闭能力声明并
+在发布前拒绝 UFP。单纯 select 不启动动作；上传后打印拒绝仍保留
+文件和显式失败回执，不重放。上传后自动排队的完整兼容尚待补齐；
+选择文件的队列回落仅适用于已装配且明确启用的原队列。
+
+状态从当前机器所有者读取；断线仍显示上次温度并明确 Offline／
+Error。温度使用原 binary64 十进制舍入实现，未修改运动数学。命令
+保持固定上游的顺序与运行失败兼容行为，鉴权、取消和代际失效
+继续传播；支持的动作与宏以原控制入口为准，不据此宣称全部脚本
+或消费级宏已交付。握手复用不可变版本响应与已解析 Promise，
+仍逐请求核验取消和组件关闭，其他状态始终动态读取。
+
+一次性冻结实际固定上游 106 个响应案例，日常回归与新增基准只用
+Node。源码、禁止 TS／外部程序的独立 JS、实际安装产品包均完成
+受影响的 156 项原回归。三组固定响应对照最高 0.825 倍，原 1.5
+门限保持；现有实际 HTTP／WebSocket／启动路径最高 1.065 倍。
+早期握手 1.607／1.509 超限和准备失败全部保留。最终网络接线
+字节保持，上次网络基准没有装配此可选组件，不冒充启用后的测量。
+详细原始失败与性能门限见
+[切片器兼容验收](../host/contracts/octoprint-compat-acceptance.json)。
+新包 688 项、18 个锁定生产依赖，核对 75 个原生来源并复用原输出；
+相对归位包仅五个 JS 不同。该证据不覆盖 Cura 插件页面、实机、
+原生重新构建、全部 Moonraker 或全部 Python 退役。
+
+归位修复头 5c934240 十五项 CI、4925／4925 通过，真实合并检出
+eca53e86，见[终态](../host/contracts/pr68-5c934-terminal.json)。
+本切片器增量须自身新头 CI；177 个 Python 文件、默认入口、完整
+客户端／宏／队列、原 UI／构建／G3／目标板和正常集成继续开放。
+
+以下为前序候选的锁定记录；其“须自身 CI”不替代上方精确头终态。
+
+
+本次 PR 源码审阅收口于 home 二次授权：修复 pending 回调阻塞取消／关闭及用户名变化仍执行的问题，不扩大为整份 PR 已审。标准 G28／typed home 新增14项全部通过（home 共22项）；Windows 首轮66项63过3失败原样保留，Linux 仅补两受环境影响文件12／12并完成标准类型检查。只新增低频准入取消／身份检查，未改运动数学，也未测目标板延迟。证据见[现有归位契约](../host/contracts/native-home-clock-admission-acceptance.json)的 reauthorizationFollowUp；新修改仍须自身精确头 CI 及正常集成，旧032dd绿色与55dc锁包不替代。
+
+Fluidd 页面 G28 的空闲时钟竞争已修复。诊断 R35 捕获真实脚本
+G28 与 portBusy，R36 确认是后台 clock 阶段；其首个页面 G28 没有
+失败，不将采样诊断包计作产品或性能通过。归位现只跟随原调度
+所有者的空闲维护，等待后重新核对权限、令牌、代际、机器空闲及
+维护门禁。原 120 秒期限包含等待；尚未启动物理动作的准入拒绝
+不停止其他所有者，启动后失败仍沿原安全停止，不修改运动数学。
+
+源码、禁止 TS／外部程序的独立 JS、实际完整包各 39 项回归通过。
+原 500 次负载、两预热／七样本的三组交错对照最高 1.384 倍，
+保持 1.5 门限；原 10000 指令精确输出基准中 Node 中位 21.65 ms，
+Python 38.25 ms，事件循环 P99 1.426 ms。该基准仍使用 Python
+参考，不能据此声明所有 Python 已退役或目标板打印性能通过。
+
+新包 687 项、独立离线安装 18 个锁定生产依赖，只三个接线 JS
+变化；核对 75 个原生来源并复用原输出，没有重新原生编译。固定
+Fluidd 18430／探测 18428 的 R37 实际页面完成初次归位、打印、
+取消、标准 Firmware Restart、再次页面归位及另一份任务完成，
+无 HTTP 归位替代、无归位 409。原两个模拟 MCU 各复位一次／
+配置两次，旧取消身份及累计时长保持、不自动重放；308 秒关闭，
+两个监督子进程退出 0，无延长或过期重启。文件仍由 API 种入，
+不计作文件选择上传；不计作层计数、实机或完整客户端验收。
+
+原始反例、准备／初版失败、完整样本及页面截图见
+[归位调度验收](../host/contracts/native-home-clock-admission-acceptance.json)。
+前序记录头 887d2713 的十五项 CI、4917／4917 通过，真实合并
+检出 ec965b44，见[终态](../host/contracts/pr68-887d-terminal.json)；
+本运行时修复须自身新头 CI。全部 Python、完整 Moonraker／消费级宏、
+文件上传／配置编辑／完整队列、原 UI／构建／G3／目标系列门槛及
+develop → master 出口仍开放，其他机型最后。
+
+以下为前序锁定包的历史记录；R34 页面归位失败保持原证据，
+上方 R37 新包有限旅程已补齐该缺项。
+
+同包恢复后下一份打印补齐了 Mainsail 的实际页面证据。R33 在取消
+后显式 Firmware Restart，原两个模拟 MCU 复位／重配，重新 G28，
+再经新文件的确认完成打印；旧 cancelled 的任务身份和时长始终
+保持，未自动重放。场次 417 秒关闭。Fluidd R34 的取消／标准
+恢复确认，但页面 G28 初次及恢复后两次均返回 409；只读归位
+准入为 true 时，标准 HTTP G28 成功。随后页面新短任务完成，
+该 API 诊断不计为页面归位或 Fluidd 完整恢复通过。R34 于 786 秒
+关闭，所有监督子进程退出 0，固定端口无遗留，未延长或过期重启。
+
+两场使用同一 687 项包与独立锁定依赖，动作后的 API 只作佐证，
+文件仍由 API 种入。原始记录、失败及截图见
+[恢复后续](../host/contracts/client-recovery-followup-acceptance.json)。
+代码头 `067310d9` 十五项 CI、普通 4917／4917、真实合并检出
+`aedca129` 成功，见[终态](../host/contracts/pr68-067310-terminal.json)；
+本记录须自身检查。下一步定位 Fluidd WS／HTTP 归位差异并在原
+准入和代际保护下修复；不以放宽空闲检查或成功诊断关闭失败。
+全部 Python 退役、完整 Moonraker、消费级宏其余场景、原 UI／
+构建／G3／目标板与 develop → master 出口继续开放，其他机型最后。
+
+HTTP JSON 编码补齐固定上游标准库后备路径。103 个实际上游案例
+包括五种字节序、BOM／无 BOM、精确整数、负零、代理字符、非法
+输入与重复 BOM；旧候选只匹配 70 个有效案例中的 12 个，新候选
+全部匹配，33 个非法案例均拒绝。源码、独立 JS 及实际产品包的
+HTTP／公告／私密值／模板组合各 242 项通过；原六条固定负载三组
+交错最高 1.093 倍，保持两预热、七样本和 1.5 门限。新编码没有
+旧可用路径，只报告成本，不将其解释为打印速度或目标板证明。
+
+新产品包 687 项，离线独立安装 18 个生产依赖；核对前包全部摘要
+和 75 个原生来源后复用原生输出，仅 HTTP 接线及新增编码模块
+两个 JS 不同。没有重新编译原生，也没有关闭默认构建稳定性门槛。
+一次性上游冻结不进入日常测试或基准依赖；msgspec 后端未执行，
+不声明它的完整兼容。参考、初次准备失败、产物和全部样本见
+[编码验收](../host/contracts/http-json-bytes-acceptance.json)。前序
+`9591c2e5` 十五项 CI、4811／4811 与合并检出 `4d898ab0` 通过，
+见[终态](../host/contracts/pr68-9591-terminal.json)。本增量须自身 CI。
+后续继续完整 Moonraker 消费者及客户端／消费级宏交付；177 个
+受跟踪 Python 文件、默认入口、原 UI／构建／G3 与 Cycnumbris 500
+硬件和打印性能门槛仍未关闭，其他机型最后。
+
+清台操作补齐设备就绪视图。原手动队列在首份受理后，页面立即显示
+下一份清台指引；现由同一打印所有者与维护门禁提供只读
+`transition_available`，忙碌、关闭、观察失败或缺少提示时不启用
+下一份操作，也不要求用户取走成品。恢复可用后仍清除旧勾选；
+提示不形成打印授权，原令牌、操作者、代际及最终准入核对保留。
+无显式确认观察者的原队列 DTO 保持原形状。
+
+源码与独立 JS 各 70 项回归通过。独立守卫禁止 TS／Python 和非名单
+JS 程序，按原参数只允许摘要一致的 Node 缩略图子进程，保留内存、
+线程及隔离；初次遗漏 Worker 与不适用的 HTTP 守卫失败均封存。
+原 128 作业、64 次耐久修改、三组交错对照中，完整列表查询中位比
+1.041～1.064，查询 P99 最高 0.00234 ms，事件循环 P99／最大值
+最高 3.977／4.747 ms；原 50／50／100 ms 门槛保持。与测试或
+类型编译重叠的早期样本独立保留，没有作为最终无本轮额外负载对照。
+
+新 686 项完整包离线安装 18 个锁定依赖，只有三个接线 JS 改变；
+全部原生、数学、模板及其他输出一致。第一次构建仅 Rust 工具发现
+失败，显式指定原安装的 Rust／Cargo 1.89 后完成私有快照构建，
+CPU 0／单 Cargo 只用于本次构建，未修改默认应用亲和性或关闭
+原编译稳定性门槛。旧包 R31 与新包 R32 均完成两份独立清台确认；
+新包首份打印时就绪提示为 false、下一份没有令牌，页面三项清台
+控件禁用，完成后变为 true，再经新的确认开始第二份，两份均完成。
+两场于 795／603 秒关闭。文件仍为 API 种入；忙碌状态只有即时 DOM
+观测及 API 记录，后拍截图明确是首份完成状态，未冒充打印中图片。
+源码、产物、失败和样本见[就绪验收](../host/contracts/queue-readiness-acceptance.json)。
+前序 `72c442e3` 十五项 CI、普通 4807／4807，合并检出 `97668364`
+通过，见[终态](../host/contracts/pr68-72c442-terminal.json)。本修复须
+自身 CI／正常集成，完整客户端、队列故障恢复、旧宏场景、Python
+退役及原 UI／构建／G3／目标系列性能精度仍开放，其他机型最后。
+
+代码头 `d782761f` 的十五项规定检查全成功，普通 4807／4807，实际
+合并检出 `a3e06459`，见[终态](../host/contracts/pr68-d782-terminal.json)。
+相同 686 项包的后续 R29／R30 分别在固定来源验证 Fluidd／Mainsail
+取消和标准 Firmware Restart；取消触发原安全停止并进入需要重新
+初始化的保护状态，两个原模拟 MCU 均实际复位一次并重新配置，
+不以新模拟器冒充恢复。Mainsail 的取消任务、请求 ID 和累计时长
+在恢复到 ready 后保持相同，没有自动重放。
+
+两套前端的真实下载按钮已产生鉴权 GET 200 和本机文件：Fluidd
+944 字节、Mainsail 18,785 字节，SHA-256 分别与种入原件一致，
+文件创建处于各自场次期限内。Fluidd 的下载事件工具等待约 516 秒，
+没有返回原因；Mainsail 直接点击后核对实际磁盘文件，未用原页面
+事件捕获新窗口下载。两场于 836／458 秒关闭，全部子进程退出 0，
+四个固定端口无遗留监听。这是实际浏览器下载证据，不是 API 下载。
+文件仍由 API 种入；没有关闭页面文件选择上传或配置编辑缺项。
+恢复后重新归位并再次打印、完整清台队列与 SIGKILL 仍待验。
+记录见[后续取消／下载证据](../host/contracts/native-home-compatibility-acceptance.json)。
+
+功能清单依据现有源码和契约，将队列、LDAP、私密值和配置传感器
+从过期的“未实现”纠正为“部分实现”，队列 HTTP／RPC／通知登记
+单列；旧远程宏、启动自动加载及其余兼容缺项保留。此登记修订不
+增加产品行为，也不等于完整 Moonraker 或消费级宏已交付。
+
+当前客户端阻断项 `G28` 已接入原受控归位所有者，支持单行 X／Y／Z
+选择；兼容入口先捕获网络代际，再通过同代际的标准 GET／POST
+取得并消费状态令牌，两次重新鉴权，保留空闲／独占维护、120 秒期限
+及取消／失败封锁。已消费令牌只允许相同归位轴集合重放。没有开放
+任意客户端运动脚本，也没有修改归位数值或步进内核。
+
+源码、独立测试 JS 及实际完整包各 13 项回归通过，覆盖代际更换期间
+延迟授权不得运动新所有者。独立测试编译器仅省略未使用 import，
+已用完整包真实 JS 额外确认。原归位准入三组固定对照 0.975～1.190
+倍，原 1.5 门限保持；新兼容入口约 29～32 微秒仅为桩测量准入成本，
+不是实机归位速度。原模拟原生探测预算通过，整包与前序仅三个接线
+JS 有差异，所有原生二进制、数学、模板和打印流字节不变。
+
+固定来源下 Fluidd R27／Mainsail R28 使用同一 686 项候选包和锁定
+生产依赖，确认归位、打印完成及暂停／恢复；Mainsail 复制／重命名、
+队列加入以及同产物进程重建后的队列／两条历史保留。两场分别在
+543／515 秒关闭，全部子进程正常退出。前序 Fluidd R25 的空文件
+创建确有 multipart 请求，不能代替文件选择上传或编辑内容保存。
+页面文件选择上传、浏览器下载、配置编辑、取消和 SIGKILL 恢复
+继续开放，不把工具长等待误记为产品故障或验收通过。
+本会话已有本机上传／下载／限时新场次授权持续适用，不因换场次重复询问；
+端口保持 18430／18434，冲突停止，不换浏览器来源。
+原始记录和截图见[归位及页面证据](../host/contracts/native-home-compatibility-acceptance.json)。
+前序 `5589a0f7` 十五项 CI、普通 4803／4803，通过真实合并检出
+`3514916d`，见[终态](../host/contracts/pr68-5589-terminal.json)；
+本增量须自身 CI。完整 Moonraker／Python 退役、消费级宏、原 UI／
+构建／G3／Cycnumbris 500 精度与打印性能及 develop → master 出口
+保持开放；其他机型仍最后。
+
+摄像头不再使用独立全局 fetch：标准装配借用进程 HTTP 客户端，
+独立实例仅关闭自有客户端。共享探测按解压后的流检查容量并丢弃
+图片字节，不影响其他消费者的缓存。四路、1 秒、8 MiB、2xx 可达
+和取消／排空边界保持；源码／独立 JS 各 26 项通过。原缓存查询、
+32 KiB 与 8 MiB 固定三组对照分别为 0.991～1.004、0.887～0.894、
+0.875～1.091，原 1.5 门限保持，未计作目标板或打印尾延迟证明。
+同次 UI 分段诊断未证实 UI 专属慢路径；整数 N-API 直传原型虽有
+65 项回归及 11 个数值边界通过，三组交错仍出现 1.539／1.842 倍
+超限，故未采用，当前模板协议与原门槛不变。失败、编译副本和样本
+封存在[摄像头及 UI 记录](../host/contracts/webcam-http-owner-acceptance.json)。
+前序 `a0c3a4a0` 十五项 CI 与普通 4801／4801 通过；本增量还需自身
+CI、当前完整包及客户端验证，全部 Moonraker／Python 退役范围不变。
+
+近期产品候选已有包含 HTTP／精确 JSON／路径增量的 `2bdf89ac` 完整包：
+686 项产物清单、75 个原生来源、2810 个 Node 头文件与独立安装的
+18 个锁定生产依赖已核对。禁用 TS／PATH 程序的冒烟、固定数学
+源码对照及原模拟打印混合 API 旅程通过；同头十五项 CI、普通
+4801／4801 通过。原模板 UI 两项 2.060／1.506 倍仍超 1.5 门限。
+R22 Fluidd 登录／列表确认，文件选择工具长等待约 105 分钟，没有
+上传请求记录；场次于 888 秒正常关闭，不延长或重启过期夹具。
+两客户端完整旅程保持开放。后续来源固定为 Fluidd 18430／Mainsail
+18434，确认旧监听退出后才启动；端口占用直接停止，不自动换来源。
+固定端口是用户要求的验收约定，不是上传工具根因已证。
+证据见[当前整包](../host/contracts/current-bundle-2bdf-acceptance.json)。
+
+HTTP 数值缺项现由共用精确 JSON 编解码器接通：响应的整数词法在
+超出安全 Number 后使用 BigInt，支持 i128 外值、标量／数组／对象、
+重复及原型名称；JSON 请求将 BigInt 发为完整数值，304 字节缓存
+复用不舍入。小整数仍为 Number，带小数／指数的 token 保持
+binary64；整数 `-0` 为零、浮点负零保留，大数 Number 请求使用
+明确浮点指数，不伪装成精确整数。默认最多 4096 位，响应接受
+可信调用者的明确容量；这不是无限输入／任意原生 Jinja 整数支持。
+原私密文件解析器共用这些词法规则，冻结数据、原始模板词法、
+不可变／私密边界与既有公共 RPC／运动的精度保护保持不变。
+
+源码与主进程／工作线程禁止 TS／外部程序的独立 JS 组合各 136
+通过，含真实 POST／GET／304、超 i128 算术、一千组混合树及
+私密／模板／公告组合。初版科学数值和数字文本为原版 2.846／
+1.843 倍，已因退化改为跳过转义字符串的词法提示；原生 JSON
+仍验证全语法，只有确实需要精确整数／容量或非有限保护时用
+reviver。原五组输入的三次交错对照最高 1.098，旧 512 位整数
+读取三组为 0.944～0.954，原两预热七样本和 1.5 门限均保持。
+全部失败、快照与样本见[精确 JSON 记录](../host/contracts/http-exact-json-acceptance.json)。
+该闭包不是完整新产品包，也未代替打印／目标板／G3 验收。
+前序 `79145759` 的十五项 CI、普通 4784／4784 全通过，真实合并
+检出 `02a8166a`，见[精确头终态](../host/contracts/pr68-791457-terminal.json)。
+本增量还需自身检查；完整 HTTP 消费者／编码、原生模板整数与
+语言、全部 Moonraker／Python 退役、完整包／客户端、消费级宏、
+原 UI／构建和 Cycnumbris 500／G3 范围继续开放，其他机型最后。
+
+通用 HTTP 缺项已进入标准公告链路：Node HTTP／HTTPS 的进程所有者
+支持请求／条件缓存／重试、响应／GitHub 限额、请求包装和流式下载；
+`server.info` 发现 `http_client`，关闭时取消并排空活动及排队请求。
+公告借用同一所有者，持久 ETag 仍属于公告目录，不等待网络查询
+缓存内容；原显式 fetch 夹具保持其依赖。下载使用私有同盘暂存、
+完整写入及同步后再重命名，提交前取消／失败不替换旧文件，拒绝目标
+链接和远程文件名逃逸；未宣称目录同步或物理断电的耐久保证。
+JSON 请求保留负零，响应保留 UTF-8 BOM 规则与 ASCII／Latin-1，
+使用现有有限数／安全整数保护，不将超大整数静默舍入。
+
+源码和主进程／工作线程均禁止 TS／外部程序的独立 JS 各 43 项
+通过，覆盖真实回环、共享所有者、公告 REST／RPC 和授权撤销。
+后续补齐下载 BasicAuth 及提交后清理故障的受影响单元各 15 项通过，
+已提交下载不因暂存目录清理失败被误报或重试，诊断计数可查询；其余 JS
+保持摘要。32 条公告、每批 1000 查询，以及 32 KiB／每批 100
+请求，原两预热／七样本／三组交错和 1.5 预算固定：公告比值
+0.979～0.997，最终 HTTP 0.821～0.875。HTTP 对照是既有 Node
+fetch，不是 Python；批量缓存查询的事件循环分布不代表实际打印
+尾延迟，也未测流式落盘 fsync 吞吐。原始失败、准备缺项、全部
+快照与样本见[HTTP 接线记录](../host/contracts/moonraker-http-client-acceptance.json)。
+前序路径头 `13859b3e` 的十五项 CI及普通 4768／4768 全通过，
+实际合并检出 `e4f8812e`，见[终态](../host/contracts/pr68-13859-terminal.json)。
+本 HTTP 增量需新头检查；全部消费者／HTTP 编码及大整数兼容、
+完整新包与两客户端、原 UI／构建、Python 退役、消费级宏和 G3／
+Cycnumbris 500 继续开放，不以新增通用库重新定义交付完成。
+
+路径消费者已补齐两个残留分支：MQTT 原始密码文件的 NSS 命名用户
+展开，以及 Klippy 显式 cwd／home 上下文的命名用户、长链接链与
+共享模板。MQTT 保持普通文件路径，不渲染花括号、不提前消去 `..`；
+Klippy 跟随物理目标后处理父目录，并保持原默认值和 107 字节容量。
+冻结上游的 24 个 getpath 案例全覆盖显式上下文，包含空渲染结果。
+源码与禁止 TS／外部程序的独立 JS 闭包各 137／137；该闭包使用
+快照原生模块及既有安装依赖，不等同于完整新产品包或实机验收。
+日常 `bench:klippy-config` 改为冻结真实上游参考，无 Python／AST
+或 `MOONRAKER_SOURCE` 前置依赖；原迭代、样本及 1.5 预算保留。
+
+初版冷导入因不必要的模板工厂运行时依赖为原版 2.818 倍；移除
+该依赖后最终为 1.325 倍。三组交错的既有路径消费者最高 1.321 倍，
+源码／JS 的完整共享 Klippy 绑定相对冻结 getpath 预算均通过。
+MQTT／共享 getpath 候选的三组既有预算通过，相关运行 JS 在最终
+编译中逐字节相同；原基线一轮 MQTT 文件为 1.504 倍超限，完整
+过程总结仍标记失败，不删样本、不推定原因。全部原始结果及编译
+快照见[路径消费者记录](../host/contracts/moonraker-path-consumers-acceptance.json)。
+前序 `bb967405` 的十五项 CI 已全通过，见
+[精确头终态](../host/contracts/pr68-bb967-terminal.json)，不覆盖本增量。
+完整 Moonraker、Python 退役、两客户端缺项、原异步 UI／构建门槛、
+G3／Cycnumbris 500、消费级宏及主线交付继续开放；其他机型最后。
+
+当前 `997417d4` 的十五项 CI、普通 4740／4740 全通过，真实合并
+检出 `234d92fe`，不覆盖原本机失败、G3 或后续提交。
+一次顺序六核心及一次并发六核心的固定 num-bigint 失败命令均成功，
+十二份库／元数据字节相同、输入未变；未观察到核心或该负载相关性。
+随后固定 CPU 0、单 Cargo 任务、锁定离线依赖完成全新完整产品
+构建；75 源文件、2810 Node 头、684 清单文件及独立 18 生产依赖
+绑定摘要，两个场次同包使用。没有改变软件运行亲和性或生产默认。
+这只是进程不迁移条件的一次控制，不消除编译器内部错误／SIGSEGV。
+新包副本的固定异步／UI 比值为 0.727／1.266／1.445，通过原预算；
+工厂同步／异步／UI 为 0.272／1.137／2.059，UI 失败，全部原样本保留。
+
+Mainsail R20 登录及文件列表通过；上传工具实际等待 2088 秒，返回
+时限时夹具已关闭，活跃期无上传记录。原因未返回，不推定为权限
+拒绝或产品故障，也不重启过期夹具。R20 888 秒自动关闭。
+Fluidd R21 的两层文件由鉴权 API 种入，实际 UI 显示 2 层／0.2 高度，
+不是 UI 上传通过。944 字节鉴权 API 下载与原件一致，不算浏览器
+下载。明确 1012 断开后重连；在同一活跃场次内优雅重建控制进程，
+第二进程就绪、包及依赖摘要保持，UI 文件列表、加入队列与读取
+配置 include 通过。没有把优雅重建写成 SIGKILL 故障验收。
+R21 651 秒主动关闭；完整模拟打印、队列持久／故障及完整两客户端
+上传／下载／预览／恢复仍待完成。见
+[构建及部分客户端记录](../host/contracts/native-affinity-client-acceptance.json)、
+[精确头 CI](../host/contracts/pr68-997-terminal.json)。
+下一步补齐客户端缺项并核查仍不稳定的原 UI／编译路径，同时继续
+完整组件、Python 退役、消费级宏与 G3／Cycnumbris 500；其他机型最后。
+
+当前保留改动为调用消息的有界外壳编码：已有带标签参数树直接写入
+原 64 KiB 输出，不再复制成第二棵完整消息树。原通道、两条线程、
+32 帧、期限、调用次数、完成协议及整数／浮点类型均保持。
+四项新回归覆盖精确完整容量、转义溢出不进入回调、嵌套结构及
+i128／负零／UTF-8、64 次错序／重复／跨帧回复、八任务双线程
+失败隔离。最终源码和禁止 TS／JavaScript 外部子进程的独立编译
+组合各 183／183；167 个运行 JS 模块摘要完全相同。
+原三组固定交错对照的工厂三项均通过；独立 UI 合并中位比值约
+1.430，但仍有一轮超过原 1.5，门槛继续开放。每次传递并逐项核对
+3000 个整数，每批 20 次、两预热七样本、三组交错的宽参数对照
+比值 0.819；全部 RSS 值保留，未观察到进程峰值下降，不声明统计
+加速或目标板收益。它不能替代小参数 UI 的原预算。
+回复槽／Condvar 原型相关功能各 181 项通过，但工厂异步中位耗时
+增加约 16.5%；整树流式编码功能各 183 项通过，UI 中位增加约
+13.5%。两原型均撤回，不选择一次通过或最好样本放行。
+完整产品构建在早期回复槽原型阶段、尚未编译项目 crate 时失败：
+锁定单并行 regex-automata 的 Rust 内部检查出现 len=134／
+index=1566621。最终外壳版未对相同依赖输入盲目重跑；完整新包
+与编译器根因保持开放，缓存项目编译不覆盖它。
+前序 `6f027708` 十五项 CI、普通 4736／4736 全通过，真实合并
+检出 `a7b1646a`，新消息提交仍须自身 CI。见
+[消息边界与全部结果](../host/contracts/template-call-envelope-acceptance.json)、
+[前序精确头终态](../host/contracts/pr68-6f0-terminal.json)。
+继续推进真实 UI 回调路径、同包客户端与组件覆盖；完整 Moonraker、
+Python 退役、消费级宏、G3／Cycnumbris 500 范围不变，其他机型最后。
+
+当前构建出口已新增一份 `fff160bf` 完整新包：只设
+`CARGO_BUILD_JOBS=1`，其余锁定依赖、release 优化及数值语义保留，
+不修改产品构建默认值。全新原生对照 1／1，约 56 秒，75 个源文件
+及 2810 个 Node 头文件；之后完整 TypeScript＋C/Rust 产品构建成功。
+684 个清单文件绑定摘要，18 个生产依赖从锁文件独立安装，不复制旧
+插件，不运行依赖生命周期脚本，不安装 TS／minijinja-js。
+新包实际 SQLite、文件、缩略图、频谱、整形工作进程与 C 原生队列，
+同步私密模板、异步及 UI 回调、取消的冒烟通过；禁用 TS 加载，
+PATH 无程序。固定频谱／整形输入与源码输出逐项一致，只是编译对照，
+不能替代独立上游参考、G3 或目标板验证。
+新包固定工厂预算 0.312／1.125／1.416 通过；独立纯模板／回调／UI
+为 0.734／1.293／1.801，UI 仍超过原 1.5，全部样本和旧失败保留。
+官方固定 rustc 归档与安装的 40 个组件文件一致，40 个锁定依赖归档
+及其 1476 个源码文件一致；不证明未核验的 rust-std、系统库或运行
+正确性。默认并行捕获在 num-bigint 的 LLVM 循环优化路径 SIGSEGV。
+固定命令的默认栈与 16 MiB 栈各一次重放都成功；未观察到区别，
+不能从串行成功推断根因或将默认并行构建判为通过。
+同一提交十五项 CI、普通 4736／4736 成功，合并检查使用真实
+`fff160bf`／`9c63d3c5` 组合；新文档提交仍须自身规定检查。
+见[构建调查及新包](../host/contracts/native-build-investigation.json)与
+[精确头终态](../host/contracts/pr68-fff-terminal.json)。
+下一步先降低真实异步 UI 回调跨线程开销，并用这份锁定新包完成
+Fluidd／Mainsail 的完整客户端和恢复场景；并行构建根因独立排查。
+完整 Moonraker、所有 Python 退役、消费级宏、G3／Cycnumbris 500
+目标板范围保留，其他机型适配仍最后。
+
+当前异步模板增量减少三个已验证的开销来源：完成文本不再经过 JSON
+编码／解码，模板环境通过不可变 Arc 复用、实际全局更新才复制，
+有界帧共享一个截止计时器，空闲时不维持进程存活，退出清理。
+两条原生线程、最多 32 帧、原期限、数值编码及完整字节预算保留；
+配置全局仍不进入 UI，晚注册不改变活动渲染。完成协议需与 Node
+所有者匹配，旧插件实际混配在约 1 ms 内拒绝并保留借用私密存储。
+源码与关闭 TS／JS 子进程的独立编译各 179 项通过；167 个实际导出
+运行模块仅异步所有者改变，Rust 仅 async_text.rs 改变。
+固定工厂同步／异步／UI 最终比值为 0.635／1.351／1.460，通过原
+1.5 桌面门限；独立纯模板／回调／UI 为 0.742／1.387／1.781，
+最后一项仍失败。三组固定交错新旧对照的所有样本保留，候选相对
+基线的工厂异步／UI 中位比值约 0.744／0.755，独立回调／UI 约
+0.794／0.843；独立 UI 并非各轮通过，不选最好一轮关闭门槛。
+缓存复制目录的离线锁定构建成功；规定全新快照构建 0／1，本次
+regex-automata 报告 504278676171520 字节分配失败并 SIGABRT，
+没有输出可交付新包。此前 minijinja／memchr SIGSEGV 仍保留，
+不能据此推定是正常内存不足、模板源码问题或某项系统原因。
+最初沙箱监听组合 169／175，六项 EPERM；复用既有授权后原组合
+175／175。新增边界首轮 177／178，夹具把 64 KiB 文本连 JSON
+外壳当作合法输入；修正为模板生成完整输出，最终 179／179。
+见[异步开销与原始失败](../host/contracts/template-completion-acceptance.json)。
+门控头 `bdf23246` 的十五项 CI、普通 4732／4732 已全部通过，见
+[该头终态](../host/contracts/pr68-bdf-terminal.json)；新异步增量须自身 CI，
+不以新一次成功撤销 `95353207` 两个期限失败或 G3 缺项。
+下一步固定编译器失败输入和回调跨线程路径，再完成其余消费者、
+完整新包／同包客户端；不缩减完整 Moonraker、Python 退役、消费级
+宏与 G3／Cycnumbris 500 目标板范围，其他机型仍最后。
+
+当前增量为原生历史的自动传感器门控与提供者组合。普通加载器与
+产品进程启动拥有一张字段表，配置传感器和可信进程提供者共享
+64 字段、唯一身份和原浮点语义；监听前封存注册。设备控制器借用
+同一张表，确认释放后下一设备才能接入，不另建历史副本。
+预约阶段原子重置各字段，重复持久请求、重置异常或预约失败回滚
+跟踪值；确认持久预约后才开始累计。暂停／恢复的过渡状态沿用
+此前已确认状态，故障立即冻结，其他结果在设备终态确认后、数据库
+提交前冻结；晚到消息及恢复确认不替换快照。重置累计只涉及声明
+字段，旧结果保留。源码与禁用 TS／外部子进程的独立 JavaScript
+组合各 381／381，新增回环消息、鉴权历史、所有权、异步／重复／
+容量拒绝及借用注册表回滚在内。
+允许受控 PTY 和 SIGKILL 夹具的产品／恢复组合各 24／24。
+首轮产品夹具二次 bootstrap 过晚；扩大组合又发现 PTY 在配置
+读取后重建，导致旧路径消失。修正为读取前重建，保留两次原失败。
+实际产品经过准备／取消、设备重建、继续采样、历史查询及累计重置；
+提供者仅注册一次，同一连接保留。实际控制器每批百个任务，三次
+持久提交及百次查询，两轮预热、七样本，改动前冻结基线；默认／
+64 字段提交比值 0.958／1.163，查询为 1.029／1.038。64 字段每项
+每任务更新 1.25，核对最终 125 累计和 1.25 最大值。原生门控的
+每批一万帧与原冻结共享传感器基线比较，默认／64 个未使用全局
+函数为 1.122／1.275。均通过原 1.5 桌面门限，不宣称统计加速、
+实际 MQTT 网络吞吐、MCU 时序或目标板性能。结果和源绑定见
+[原生门控接线](../host/contracts/native-history-fields-acceptance.json)。
+上一日志头 `95353207` 十五项 CI 中十三项通过，普通 4719／4719；
+Node 26.9／26.10 关闭优化的源码运动诊断分别在索引 43／12 被原有
+十秒期限 SIGKILL，日志不证明底层原因，也不是数值预算豁免。
+见[该头终态](../host/contracts/pr68-953-terminal.json)；新头须自身检查。
+下一出口为失败诊断的原始产物、其余模板消费者与完整组件装配、
+新产品包及同包客户端。异步／UI 性能、独立原生构建、全面 Python
+退役、消费级宏、G3 精度／时序和 Cycnumbris 500 目标板继续开放。
+其他机型最后进行，不从软件门控验收推定硬件或完整交付通过。
+
+当前增量为原生日志辅助持久化。原生 Journal 预约和首次终态可携带
+同一辅助快照，结果、统计、辅助数据、累计值和通知在同一持久事务中
+提交；失败确认及重启恢复不采入后来的遥测。累计只计首次结果，
+隐藏历史保留防重放记录及累计；重置只清理声明的辅助字段。
+沿用现有有界 JSON 捕获、数据库浮点编码和 CPython 舍入规则，快照
+的负零保持，溢出回滚之前字段及所有基础更新。第 1 至 5 版日志
+事务迁移到第 6 版，不发明旧辅助值；身份不符回滚迁移。
+源码及禁止 TS／外部子进程的独立 JavaScript 组合各 274／274，
+包含原 35 组上游 binary64 输入、辅助字段与报告选项变更参考。
+独立编译首轮 55／58，三项缺少只供摘要校验的历史参考源码夹具；
+补齐原始字节后扩大组合验证，不执行这些夹具或 Python。
+日常日志基准的 Python／stat 子进程由只读 Node SQLite／statfs 代替。
+初版 64 字段的普通查询解码整份快照，比值 14.064 失败；改为原有
+请求元数据投影后，默认提交／启动／查询比值 0.983／1.072／0.812，
+64 字段为 1.160／0.999／0.883，均通过改动前冻结的 1.5 门限。
+每批 100 个真实 SQLite 任务，三次持久提交及百次查询，两轮预热、
+七样本。全部 64 字段的百次历史详情读取另计约 105 ms，不与空数据
+基线宣称等价；不证明统计加速、打印时序或目标板性能。
+初版空数据库 18 页超过 64 KiB 最小容量，辅助表改为 WITHOUT ROWID
+并用显式序号保存累计顺序后保留原容量契约。真实本机 SIGKILL 与
+容量故障、产品启动的独立编译首轮 12／13，旧恢复夹具固定 .ts
+路径错误已修正为现有 Worker 路径选择器；原失败记录保留。
+修正后的源码及禁用 TS 的编译产品／故障恢复组合各 13／13 通过，
+允许原有受控子进程和 PTY 夹具，不混写为禁止全部外部子进程的证据。
+见[原生日志辅助记录](../host/contracts/native-history-auxiliary-acceptance.json)。
+这一步提供真实持久化和历史接口，之后的原生打印状态门控、辅助
+提供者组合及退出接线见上；不能从此日志增量推定自动产品历史通过。
+第 6 版数据库不能直接回退给旧程序；当前只操作开发验收临时数据库。
+共享传感器头 `fb7abf08` 十五项 CI、普通 4709／4709 全通过，见
+[该头终态](../host/contracts/pr68-fb7-terminal.json)，新日志提交须自身 CI。
+
+当前增量为配置传感器消费同一共享模板／私密代际。Rust 在帧内批量
+收集 set_result，保留类型、负零和安全整数边界；整个渲染成功后
+才更新存储与历史。支持校准私密值、原有及晚注册全局、实际同步
+函数和关键词参数，关闭／重入不会发布半帧或释放其他组件的代际。
+共享环境持有一份传感器句柄，凭据临时句柄仍及时释放。
+直接通用 JS 回调比值 2.663 不达标；初始批量路径 1.086 通过，但
+32 个未使用函数压力比值 1.699 失败。按已编译模板依赖筛选绑定后，
+默认／32／64 函数的最终比值 1.092／1.262／1.267 均通过原 1.5
+门限。每批 1 万帧、两轮预热、七样本，原基线和负例均保留；不证明
+任意 JS 函数耗时或目标板打印性能。
+源码与独立 JavaScript 首轮各 208／213，五项新增关闭断言误读已清空
+的 server.templates，保留所有者后受影响文件各 11／11。依赖筛选改变
+运行模块后最终各 215／215，关闭 TS／外部子进程；原生产品源码及编译各 6／6，
+允许已有 PTY 子进程。新 Rust 库只重新编译项目 crate，复用依赖缓存，
+不消除独立全新依赖构建的旧 SIGSEGV。产品源码快照已加入 sensor_text.rs，
+实际产品验收覆盖 MQTT／HTTP 校准、磁盘替换及两次设备重建；实际快照
+捕获达到编译器检查，缺失编译器的受控失败清理通过，此检查不执行编译。
+完整新包尚未验证。见[共享传感器记录](../host/contracts/shared-sensor-components-acceptance.json)。
+配置装配头 a1e4aed6 十五项 CI、普通 4696／4696 全通过，见
+[该头终态](../host/contracts/pr68-a1e-terminal.json)，不覆盖本轮共享传感器改动。
+下一出口为原生历史日志辅助字段及其所有者组合，再推进通用组件与
+完整客户端／构建出口。全面 Python 退役、消费级宏、G3 精度／时序、
+Cycnumbris 500 目标板仍开放，其他机型最后进行。
+
+此前增量为标准加载器及普通原生产品的 MQTT／传感器配置装配。
+无外部传输所有者时，`load`／`loadAuthorized` 从配置创建一份代际，
+`start` 才连接；设备配置重建保留它，最终退出和失败关闭资源。
+真实历史启动／暂停／恢复门控接入传感器辅助字段；缺少匹配历史、
+原生日志尚不支持该字段或已有辅助字段所有者时拒绝，不静默丢失。
+配置装配初版的传感器消息仍使用独立原生模板；后续共享接入见上。
+源码首轮 63／64，一项历史夹具的恒定时长导致恢复被识别为新任务；
+修正夹具为单调时长后受影响文件 11／11，保留原失败。编译核心
+58／58 禁用 TS 及外部子进程；原生产品 6／6 单独执行，允许已有
+PTY 夹具子进程。冻结桌面启动／混合比值 1.010／1.024 均通过
+原 1.5 预算，1000 条遥测与 100 次鉴权查询采用实际回环通信。
+见[配置装配记录](../host/contracts/configured-mqtt-components-acceptance.json)。
+上一凭据消费头 `9aea5294` 十五项 CI、普通 4684／4684 全通过，见
+[该头终态](../host/contracts/pr68-9aea-terminal.json)，不覆盖新装配提交。
+后续出口已推进到共享传感器，历史辅助所有者组合继续开放；
+期间保持消息性能与任务状态契约；完整新包、同包客户端、全部 Python
+退役、G3 精度／时序、Cycnumbris 500 目标板和消费级宏仍开放。
+其他机型最后进行。
+
+当前增量为 MQTT 凭据消费进程共用模板：reader 已绑定私密工厂时，
+连接选项使用 `getTemplate`，不再要求手工渲染函数；竞争依赖拒绝，
+临时句柄在失败和成功后释放，公开配置的凭据来源脱敏。
+源码／无 TS 及外部子进程的独立 JavaScript 各 24／24，包括真实
+回环 CONNECT 与遥测；17 条参考执行锁定上游的真实 JinjaTemplate
+包装类。初次参考遗漏输出 strip 的错误和沙箱监听失败分别保留。
+每批 1000 次、两轮预热、七样本的编译加载比值为
+1.087／0.925／1.032，通过修改前冻结的 1.5 倍桌面预算。
+日常 MQTT 配置测试和基准已退役 Python，见
+[消费与退役记录](../host/contracts/mqtt-template-components-acceptance.json)。
+进程接入头 `5324f5e8` 十五项 CI、普通 4665／4665 全通过，见
+[该头终态](../host/contracts/pr68-5324-terminal.json)，不覆盖本轮 MQTT 改动。
+共享传感器增量见上；其他组件消费者、异步预算与
+独立原生构建、同包客户端、全面 Python 退役、G3、目标板及消费级宏
+继续开放；其他机型最后进行。
+
+当前推进到原生产品进程的默认私密组件接入：机器模块必须提供明确
+的 `dataPath`；普通进程启动自动加载模板／私密代际，设备重建不重新
+读取文件，最终服务器关闭释放。编译客户端与重启旅程的模块同步
+采用该接口，但尚未重新进行完整新包和页面验收。
+源码组 156／156；编译组首轮 PTY 夹具缺失失败，补齐后为
+152／156，四项旧 CLI 路径失败再由对应九项源码／JS 复验关闭，
+518 个运行模块摘要保持。保留全部失败记录，不改写成一次全组成功。
+冻结的冷启动与 200 次查询预算通过，见
+[进程组件证据](../host/contracts/native-process-components-acceptance.json)。
+上一配置路径头 `4e886e50` 十五项 CI、普通 4660／4660 全通过，
+见[该头终态](../host/contracts/pr68-4e8-terminal.json)，本轮须自身检查。
+下一步为通用组件装配及剩余模板消费者、异步性能和独立原生构建，
+随后同包客户端；完整 Python 退役、运动 G3、Cycnumbris 500 目标板、
+消费级宏与集成发布继续开放，其他机型后置。
+
+2026-10-11 复用来源凭据迁移：锁定上游仍将 401 映射为 -32602；
+Fluidd 1.37.6 保留当前来源的旧 JWT，在产品重新登录后尝试刷新。
+R14 原包在原 `127.0.0.1:18328` 来源再次出现原生刷新拒绝，
+R15 候选仅在原生登录成功后移除该来源的两项客户端凭据，保留其他
+打印机凭据与用户偏好，不修改原生令牌校验、RPC 映射或官方资源。
+源码 23 项、无 TS／外部程序的独立包 17 项断言、类型和规定空白
+通过。新包 `5116d33b…` 仅改变登录资源与启动脚本，原生输出明确
+复用已锁定的 `77916019…`；本轮不是新原生构建或完整混合负载复跑。
+三次预热、十一批各百次真实鉴权状态查询的批次 P99 中位数为
+2.733→2.383 ms，通过事先固定的 1.25 倍基线加 0.5 ms 预算。
+这是顺序桌面对照、空闲模拟设备，不能宣称统计加速或目标板性能。
+R15 同源实际登录、模拟打印完成、断连重连与明确进程恢复通过，
+历史保留一条，未再提交旧刷新请求；原版 Fluidd 255 文件逐字节
+匹配原 ZIP。R14／R15 含启动分别 1 分 33 秒／2 分 19 秒关闭，
+四个子进程退出 0、端口释放。本会话已持续授权这类最多 15 分钟
+的新场次，不逐次询问，不自动延长或重启已过期场次；实机不在范围内。
+原 R10 令牌未提取，不将受控重现冒充其确切签发来源证明。
+新候选待自身 CI 和正常集成；本机原 46 项失败、编译器异常、
+完整客户端／Moonraker、Python 退役、目标板精度与 G3 保留。见
+[凭据迁移补充](../host/contracts/product-client-worker-migration-acceptance.json)。
+
+2026-10-11 Cargo 路径修复：两份已保留插件中的 68 条不同长字符串，
+统一 Cargo 依赖源码路径后无剩余差异；当前两份缓存的 40 个包、1516
+个文件字节一致，归档摘要均匹配锁文件。未修复脚本使用旧缓存路径
+精确重现旧插件 `c3693c89…`。默认构建现额外将有效 Cargo 目录下的
+`registry/src` 映射到 `/anyraid-cargo-registry`，保留诊断位置。
+正常参数下，两条缓存路径、两种参数通道独立构建出相同完整包清单
+`77916019…`，十一项原生输出均逐字节一致；相对 `31b3da6a…`
+仅模板和构建元数据改变，不修改运行源码、锁文件、运动或时钟所有者。
+新包的原编译模板／LDAP 30 项通过；三次预热、十一组配对的传感器／
+同步文本／冷建模板预算均通过。原双 MCU、两代、1000 条运动混合
+旅程 61.0 秒通过，保留原期限、输入、断言及预算，状态 P99 3.70 ms、
+最小步提前 87.361 ms。
+原四项构建回归仍有两项失败：发布复现与独立原生构建均遇到 Rust
+编译器 SIGSEGV；编译数学／工作者和双 UART CLI 两项通过。此有限
+路径对照只关闭已确认的缓存路径差异，不关闭编译器异常、完整构建
+环境证明、原完整本机 46 项失败及 G3。证据附在
+[默认包记录](../host/contracts/moonraker-template-default-package.json)。
+`a7e2709` 的十五项远程检查已成功，普通 4533／4533；`6ca7e00`
+及本次修复分别等待自身 CI，不沿用前一提交成功，PR #68 保持草稿。
+
+2026-10-11 初始速度候选：官方 Mainsail 将首段执行前的 null 请求
+速度算成 NaN；仓库 Klipper 参考在已配置队列没有可提取运动段时使用
+零速度。原生查询现对已配置的 XYZ／活动挤出队列返回零，缺失路由、
+失效代际和未知位置保持不可用，不修改运动或时钟所有者。
+相关 35 项回归、追加断言后的四项复验、类型及独立无 TS／外部程序的
+两项编译复验通过。三次预热、十一组交错配对的每次查询中位数为
+1.693→1.764 µs，预设桌面预算通过；原双 MCU、两代、1000 条运动
+混合旅程 57.8 秒通过，原 90 秒期限和全部断言保留，状态 P99 为
+4.12 ms、最小步提前 85.829 ms。新包 `31b3da6a…` 与生产依赖
+`3624a6b3…` 独立构建；原 `32b55c76…` 保持原字节。
+R13 官方 Mainsail 场次实际登录、打印和历史通过，含启动 1 分 27 秒
+后关闭，两进程退出 0、端口释放。首次打印截图在 12%，显示 1 mm/s
+和 0.2 mm³/s；首段前零值来自源码和编译断言，未计为页面直接捕获。
+见[初始速度证据](../host/contracts/live-motion-velocity-acceptance.json)。
+新旧包清单实际有三项差异：速度模块、`template.node` 和原生构建
+元数据。记录的源码、头文件、锁文件及工具链一致，元数据仅模板
+输出摘要不同；原因未确定，不能宣称完整构建可复现。新插件的原
+编译模板／LDAP 子集 30 项通过，功能通过不关闭该摘要差异。
+此批待自身规定 CI 及正常集成；原完整本机 46 项失败、JWT、预览和
+完整外部故障恢复、完整 Moonraker／模板／Python 退役、目标板与 G3 保留。
+
+2026-10-11 R12 与当前候选：同一最终包的 Mainsail 完成实际暂停／恢复、
+取消后明确固件重启，以及从待机启动的新作业完成。历史保留四条记录，
+含启动 4 分 31 秒后提前关闭，两个子进程退出 0、三个回环端口释放，
+见[R12 增量](../host/contracts/product-client-r12-acceptance.json)。首次新作业
+短暂显示 `NaN mm/s`／`null mm³/s`，后续活动值正常；保留此兼容性问题，
+未认定根因。仅取消后恢复，无外部故障注入或实机证明。
+提交 `080a1b1` 的 15 项远程检查全部通过，普通 4533／4533、协议与
+Linux MCU、精确冻结 324 条 sanitizer 和十组 500 个运动进程成功，
+见[当前候选 CI 终态](../host/contracts/pr68-080a-terminal.json)。该结果不关闭
+本机完整回归的 46 项失败；PR #68 继续草稿。最新剩余范围为客户端预览、
+完整外部故障恢复、复用来源 JWT 与初始遥测兼容性、完整本机回归、模板、
+Moonraker 完整覆盖、Python 退役、目标板性能与精度及 G3。以下 R11 段落
+中的 Mainsail 待验项已由 R12 补验，保留其原场次范围。
+
+2026-10-11 R11：同一最终锁定包的 Fluidd 新来源场次含启动约
+3 分 31 秒后提前关闭，两子进程正常退出、三个回环端口释放。
+实际配置编辑仅追加注释，保存并重启双模拟 MCU，重开文件确认保留；
+取消模拟作业后页面明确 shutdown 并禁用运动控制，经实际固件重启
+按钮恢复就绪，再启动新作业完成，历史保留两条记录。R11 使用全新
+`127.0.0.1:18338` 来源，未发出 JWT 刷新；原复用来源 R10 的过期
+错误保留，尚不认定根因或兼容性闭合。补充证据见
+[R11 配置与取消恢复](../host/contracts/product-client-r11-acceptance.json)。
+完整预览、外部故障恢复、Mainsail 最终包暂停恢复与取消、完整本机
+回归、模板、目标板和 G3 仍待验，不切换默认入口或合并未通过的候选。
+
+2026-10-11：受控同源诊断已定位 R7 的旧官方 Worker 导航回退：
+`/_client/login` 被缓存首页替代，`/access/` 下的诊断页实际抵达网络。
+候选改用 `/access/client-login`，在会话失效后仍允许更新原 `/sw.js`；
+迁移 Worker 无 fetch 处理器、不删除偏好、不重载其他打印窗口。
+登录等待更新最多五秒，失败不传递凭据，其余资源和 API 保留鉴权。
+源码 23 项和关闭 TS／外部程序后的编译 14 项通过。常规 C／Rust 新包
+`32b55c76…`／依赖 `3624a6b3…` 的原双 MCU、两代混合旅程通过，
+约 63.5 秒，保留原 90 秒期限、完整输入、预算及断言。
+Mainsail R8 验证登录和实际选择上传，期限内关闭；下载等待异常，
+其余未执行。新 R9 按用户持续授权运行约 4 分 7 秒后提前关闭，
+两子进程正常退出并释放端口。实际登录、选择上传、重命名、复制、
+下载、临时副本删除、清台确认队列、模拟打印历史、断连和明确的
+进程恢复、配置保存并重启通过；下载落盘 222 字节，摘要与上传
+原件一致。下载事件等待超时仍记录，不将其当成审批拒绝。
+上述软件增量不关闭完整同包双客户端、模板、目标板或 G3，
+原本机完整失败不冲销。证据见
+[缓存迁移与页面验收](../host/contracts/product-client-worker-migration-acceptance.json)。
+同包 Fluidd R10 约 4 分 34 秒提前关闭，两进程正常退出并释放端口；
+实际登录、选择上传、重命名、复制、摘要一致的下载、临时副本删除、
+清台队列、模拟打印暂停／恢复至完成、断连及进程恢复通过。
+客户端明确 JWT 刷新返回过期错误，网关身份和实际操作继续成功，
+保留为兼容性缺项。两套页面的取消、故障恢复及完整预览等仍待验。
+修复后普通完整命令终态 4417／4371／46，约 397.6 秒；测试文件
+进程失败会减少注册后的观察数量，不计完整通过。报告包含 Rust／Go
+编译器异常、C 编译失败及测试进程失败，不推断同因；五项新增缓存
+用例通过，独立新建客户端包测试在 Go 编译器 SIGSEGV 时失败，
+不代替已经锁定包的 14 项通过。首次命令因 Cargo 路径缺失在 pretest
+退出；后续明确 Cargo 后，一项工具检查仍因 PATH 缺少 rustc 失败。
+只复验该项已配置工具的原用例，原完整失败记录保留，不整套盲目重跑。
+该单项明确配置 Cargo／rustc 后进入真实构建，约 18.8 秒在
+`num-bigint` 的 rustc SIGSEGV 处失败；路径缺失已与编译器故障区分，
+本机原生构建门槛仍未关闭，不再以重复通过样本替代根因证据。
+
 同包页面及夹具 PR #60 的首个候选 `a95aa70e` 未通过完整 CI：
 普通 4437 项中 4436 通过，Worker 终止测试遗漏显式关闭目录
 FileHandle，Node.js 26.11.1 报垃圾回收错误。324 条 sanitizer 命令与
@@ -21,7 +1915,81 @@ sanitizer 命令和固件通过，见[合并后终态](../host/contracts/develop
 产品源码、锁定产物和性能基线不变，原失败、客户端缺项及 G3 保留。
 
 审计日期：2026-10-10；当前 develop：
-`48731115e3d23c3f5e17cb77af6e31f98b3872a6`（#61 私密配置文件所有者已正常合入）。
+`9c63d3c56c0141f81047ccd31833078ba32f299c`（#63 有限客户端及目录集成证据已正常合入）。
+#63 候选 `0e443d0` 的五项规定检查通过后正常合并；实际合并后的
+主机 `38050827822` 与固件 `38050827810` 的五项规定检查已独立核验
+成功，含普通 4499／4499、协议、Linux MCU、sanitizer 与固件，见
+[实际合并头终态](../host/contracts/develop-9c63-terminal.json)。
+#62 实际合并头 `6fb19680` 的十五项
+终态见[目录集成证据](../host/contracts/develop-6fb-terminal.json)。
+同步模板候选提供标准 LDAP 私密文件依赖、词法数字桥接和明确关闭
+生命周期；二十二项实际固定上游参考、三项资源／隐私检查及五项
+标准 LDAP 用例通过，桌面渲染、冷编译和既有私密文件高频读取预算
+通过。全量本机 4515 项中 4511 通过、4 项失败；安装失败、GCC
+内部崩溃、source-brake SIGSEGV 及空白参考子进程异常原样保留，
+不计完整本机门槛通过，见[同步模板证据](../host/contracts/moonraker-template-sync-acceptance.json)。
+完整工厂仍须补齐任意／异步函数、UI 环境、i128 之外的整数及隔离
+执行；本候选只在明确指定私密目录的 LDAP 启动阶段使用，不进入
+运动周期。#68 初始头 `28e47e2` 的十五项规定 CI 独立通过，普通
+4526／4526、协议、Linux MCU、精确 324 条既有 sanitizer 命令与
+十组共 500 个既有运动诊断通过，见[初始头终态](../host/contracts/pr68-28e47-terminal.json)。
+这不覆盖后续默认打包修改，也不冲销全量本机失败或关闭 G3。
+后续默认产物已从私有 C／Rust 源码及锁文件重建必需模板，重复
+构建及失败保留旧包通过；首次四项打包回归三通过／一 Rust 编译器
+SIGSEGV，16 MiB 编译线程栈的两项有限对照通过，不认定根因修复。
+保留默认包与固定性能预算的覆盖和限制见
+[默认模板包记录](../host/contracts/moonraker-template-default-package.json)。
+该保留包的编译后模板／LDAP 30 项及原完整混合软件旅程通过；混合
+旅程约 61 秒，沿用原 90 秒期限、输入和预算；仅计模拟软件证据。
+默认打包头 `e96c0a36` 的十五项规定 CI 已终态：十三成功、普通
+回归及汇总失败。普通 4526／4524／2，网格取消遗漏预期拒绝及
+矩形网格准入 HTTP 409；协议、Linux MCU 跳过，不计通过，见
+[默认打包头失败](../host/contracts/pr68-e96-terminal.json)。
+安装诊断头 `64c12681` 同为十三成功、两失败，普通
+4528／4526／2；网格取消和文件发布的过时同步先后断言失败。
+两头的精确 324 条 sanitizer、固件与十组共 500 个既有运动诊断
+分别通过，不复用为修复头结果，见
+[安装诊断头及修复证据](../host/contracts/pr68-64-terminal.json)。
+测试修复复用既有 dispatch 持有一次明确准入；取消夹具在首次探测
+见证后释放 dispatch，保持原第二次触发断连与停止保护。远程忙阶段
+未捕获，受控时钟见证不冒充全部远程根因。文件发布夹具明确覆盖
+私密回执先启动，保持内容完成、双屏障结束后最终公开目录同步的
+断言。运行时、数学、几何、采样和预算未改，无自动重试；41 项
+组合测试、完整类型检查通过。修复头 `59167c9d` 自身十五项规定
+CI 全部成功：普通 4528／4528、协议、Linux MCU、精确 324 条
+sanitizer 命令、固件及十组共 500 个运动诊断分别通过，见
+[修复头终态与锁定包证据](../host/contracts/pr68-591-terminal.json)。
+同次本机普通完整回归沿用常规 Rust 栈和原断言，4528／4519／9，
+九项失败涉及五次 Rust 构建、两次原生 TypeScript 编译器及两个
+测试进程的异常退出；不推断同因。网格修复已在此完整回归通过，
+文件发布修复在其结束后完成。本机完整失败仍开放，不计最终包验收。
+更正先前关于证据文件改变产物的判断：构建器不复制全部 contracts
+JSON，旧头两份终态均不在产物清单中；旧报告原始记录保留，更正见
+修复头证据。随后从 `59167c9d` 私有 C／Rust 源码快照、常规线程栈
+新建独立包，离线安装生产依赖；产物及依赖摘要分别与先前诊断包
+`a5ca9b14…`／`3624a6b3…` 一致。新包的编译模板／LDAP 30 项及原
+双 MCU、两代完整混合旅程通过，约 66 秒，沿用原 90 秒期限。
+本会话新增有时限客户端场次按用户持续授权执行：含启动最多
+15 分钟、仅 127.0.0.1、锁定包与模拟 MCU，到期关闭且不自动延长
+或重启。Mainsail R7 约 6 分 34 秒提前关闭，两子进程正常退出且
+端口释放；页面连接失败，直接后端登录响应正确，原因未确认。
+未执行实际登录、上传、打印、队列及恢复，不计客户端通过。
+下一动作定位页面与后端响应差异，并继续区分本机编译器／运行时
+异常。完整模板、同包出口、目标板和 G3 保持原完成定义；本机
+完整门槛未关闭，未合并候选保持草稿。
+
+安装诊断后续候选只公开退出码及已知 npm 类别，丢弃可能含凭据的
+原始输出；八项合成失败／取消／清理用例和最终编译 CLI 的失败后
+独立离线安装通过，见[安装诊断证据](../host/contracts/product-install-diagnostics.json)。
+有限 stdio 对照证明当前沙箱内的子进程 Socket 被识别为不写入的
+Writable，沙箱外为正常 Socket；Node 22／26 均有该现象。此观察
+只解释诊断通道丢失，不解释历史安装失败、编译器崩溃或 G3。
+原编译后身份用例在沙箱外、独立离线缓存及既定 16 MiB 编译栈条件
+下通过，仍沿用原断言和延迟预算；不冲销原完整本机失败，也不计为
+最终包的实际客户端验收。新包复用逐项匹配源码／摘要的既有原生
+输出，本次没有新 Rust 构建；原锁定默认包与其证据保持不变。
+
+以下 #61 核验按历史范围保留：
 #61 最新候选 `43cf711a` 的五项规定检查独立核验成功，普通
 4473／4473、六项负零参考、协议、Linux MCU、精确 324 条 sanitizer
 命令及固件通过，见[修复候选终态](../host/contracts/pr61-43cf-terminal.json)。
@@ -82,9 +2050,9 @@ Moonraker 集成；这些集成仍是 C 的必需条件。
 不作为逐文件翻译队列；模块、提交、测试数量不表示整体完成率。
 服务、身份／文件／历史、打印状态机、设备代际及恢复设施继续复用。
 
-当前可确认的收口阻碍是同包完整客户端出口不足、#20 两处历史混合失败
-未定位和 G3 未关闭。实际页面选择上传现已有证据，不再把工具
-失效列为当前阻塞；继续候选审阅、正常集成及客户端验收。不能将这些因素推断为全部耗时的根因，
+同1735包的原A4九项与原42／28预算现已按固定范围闭合；当前继续候选审阅和正常集成，
+服务重获2.62602超限、#20两处历史混合失败及G3仍保留。实际页面选择上传已有证据，
+不再把工具失效或同包客户端出口不足列为当前阻塞。不能将这些因素推断为全部耗时的根因，
 也不能用重新命名阶段、重复成功测试或迁移外围模块绕开出口。
 
 ### 近期交付承诺与调度边界
@@ -92,7 +2060,7 @@ Moonraker 集成；这些集成仍是 C 的必需条件。
 近期唯一主交付物为 **进入 develop 并完成同包实际客户端验收的
 Klipper＋原生 Moonraker 软件候选**。现有 A／B／C 和 G0–G6 沿用，
 不再增加阶段名称或独立计划。执行顺序固定为：已集成增量的合并后失败修正 →
-一份锁定产物 → Fluidd 完整操作 → Mainsail 完整操作 → 按用户缺口补齐
+一份锁定产物 → Mainsail 完整操作 → 按用户缺口补齐
 Moonraker。当前系列无运动准备与有判别力的 G3 观测可穿插推进。
 
 | 条件 | 实际限制与继续工作的范围 |
@@ -119,7 +2087,85 @@ Moonraker。当前系列无运动准备与有判别力的 G3 观测可穿插推�
 准备证据。某项外部阻塞持续存在且没有有意义的独立工作时，明确请求
 缺少的授权／资料并报告阻塞，不以重复检查维持“正在推进”。
 
-### 当前状态与下一动作
+### 当前候选与下一出口（2026-10-16）
+
+PR #68已推送头9a62b43b4在合成989faf643的三组CI成功、普通5413／5413；
+同1735原42／28预算已按704基线一次通过，详见currentCandidateExitValidation。
+435／13a65f的5402旧终态仍由ciFixtureFollowUp保留；
+8e2三失败与Linux两版各30项保留为历史候选证据，不覆盖旧轮缺失观测。前序none批次4d981922属于历史验证范围。
+候选81d019bfb的内部服务属性／安装消费者从同一provider
+所有者取得CLI／typed D-Bus事实，绑定同一manifest并接入固定／旧安装消费；
+真实HTTP安装、同进程拒绝、新Node子进程准入、原成功journal兼容、属性／磁盘
+变更拒绝和取消join均有隔离证据。四层11文件各112项、类型及692生产JS对照通过，
+726项清单另计build-info；原生和依赖复用，不称本批重建或真实特权部署。
+
+原注册28／版ABBA首轮重获4.08607倍超限，保留完整56行；获批一次诊断和并发
+优化后的必要重测冷启动1.06765倍通过，重获2.62602倍仍超原1.5。候选性能门槛
+保持open，不再增加样本／外围组件掩盖失败。先审查本批差异、实际未过门槛与正常
+集成出口，再依本节近期承诺核对同一锁定产物的客户端流程；不自行新开外围批次。
+
+2026-10-16只读成本审计核原档及两轮56行：当前624ab的11生产源码和服务重获路径JS
+与原并发测量一致，仅两测试夹具后续CI适配改变；2.626022为旧cc312包测量，不是1735新测。
+重获中位数15.578824→40.910336ms，新增fresh假CLI单子冷启动约23.11ms是主要成本假设，
+不是打印热路径或真实系统速度证明。CLI current(proof)不监控外部属性变化，退役时早取证明
+不能代替真实acquire前fresh核验；未找到可证明安全且足以关闭差额的优化，不实施预取，
+不改1.5、不追加56样本或trace。保留预算设计差异与失败，在已验同包A4基础上回到正常集成；
+见[16文件与原档指纹审计](../host/contracts/service-info-reacquire-readonly-audit.json)。
+全部首次失败、两轮预算、固定输入与边界见[当前验收](../host/contracts/system-bus-provider-acceptance.json)
+的serviceInfoFollowUp，旧none／Supervisor归档未改。原42／28候选预算本次已补齐，
+本机11／16／14失败、G3、服务重获超限、真实root/sudo策略、实机和发布门禁保留。
+
+10月13日既有客户端以[Fluidd R39](../host/contracts/client-upload-path-acceptance.json)
+和[Mainsail R41/R42](../host/contracts/mainsail-upload-recovery-acceptance.json)为准：
+同一53a55d48锁包已验证真实选择上传、打印、忙时排队、正常进程重建后保留文件／
+历史／暂停队列、页面归位和明确清台确认后的不同任务；两客户端也有页面配置保存。
+正常重建不等于SIGKILL或外部故障恢复，以上不能挪作当前新包同包验收。
+原10月11日[预览下载台账](../host/contracts/product-client-worker-migration-acceptance.json)
+中Fluidd R18的两层预览／下载及Mainsail previewOct11.r19三次菜单下载原字节／SHA
+一致（含明确恢复后）仍为独立旧范围，旧记录fullExternalFaultRecovery=false不改写。
+下文R17/R18“下载待验”均属历史。
+
+当前同包客户端增量锁定cd91f2e3／依赖0b53079c；692生产JS与独立发射一致，
+原生84输入／12输出及依赖核验后复用。单条SDCARD_RESET_FILE复用canonical
+授权／持久取消与重置，绑定原generation和同一请求，不自动固件恢复／归位／打印。
+源码／实际产品／最低26.9源码及产品各42项通过；独立JS首41／42与修正文件5／5
+分别保留，实际包外部clear-file1／1、最低版本1／1、firmware-first定向1／1通过。
+最终参数化测试的全仓类型检查通过，原probe2／2仅证明正常重建／断WS回归。
+
+新包Fluidd与Mainsail各一场真实页面在358.427／614.838秒内完成：选择上传、
+页面归位／长任务→精确SIGKILL→明确新进程→页面重连→可见Firmware Restart→
+持久succeeded、旧cancelled和新idle／未归位→页面归位与不同短任务completed。
+Mainsail完成卡Clear print stats实际发送单条SDCARD_RESET_FILE，idle且保留2条
+历史。原Fluidd Reset路径不可达及工具断页保留，不能泛称全部UI恢复失败；
+Mainsail未捕获离线502，使用Connection failed页面与SIGKILL收据。原审批拒绝与
+用户随后对具体模拟打印的明确许可均留证；私有profile与会话数据排除。
+
+原注册27行操作延迟（3warmup＋每变体8正式）两比0.95302／0.76663通过，
+不是打印精度／完整性能证明；不改服务重获2.62602超1.5的open门槛。本批新证据见
+[客户端恢复验收](../host/contracts/client-recovery-followup-acceptance.json)的externalResetFollowUp。
+下一出口按本节既有顺序审阅当前候选与性能／正常集成门槛，并核对更广的同包
+客户端流程；不得把旧包预览／下载证据挪到新包或新开外围组件掩盖门槛。
+
+### 历史记录：2026-10-11起的候选与验收
+
+2026-10-11 锁定凭据迁移包的 Mainsail R17 补验了实际选择上传、
+缩略图、元数据和从服务器文件加载的完整范围 3D 轨迹。明确进程恢复
+后重新识别，文件及缩略图保留；下载等待工具异常中断，摘要核对没有
+完成。输入为合成两层方形轨迹，未验证渲染层数或真实切片器兼容性。
+R16 工具中断未取得上传证明；两场均在含启动 15 分钟内关闭，见
+[原验收记录](../host/contracts/product-client-worker-migration-acceptance.json)
+的 `previewOct11`。Fluidd 对等预览、下载摘要和完整外部故障恢复仍待完成。
+后续同包 R18 已补齐 Fluidd 实际上传、元数据、两层 0.2／0.4 mm
+切换与方形轨迹显示，并通过实际下载文件的原字节和 SHA-256 对照。
+含启动 9 分 44 秒后明确关闭，两个子进程退出零、端口释放。该结果
+只关闭 Fluidd 合成样本预览与本次下载项；Mainsail 下载摘要、完整
+外部故障恢复及真实切片器／目标板仍待验。证据位于同一记录的 `r18`。
+提交 `95984efa` 最新十五项 CI 中十四项通过：普通 4537／4537、
+主机和固件通过，Node.js 26.10.0 关闭优化的源码运动诊断在第 41 个
+进程触发原 10 秒期限。现场已完成 13 次比较并继续计算，未产生数值
+失配捕获；不能认定为纯环境问题或精度通过。现场、CPU 与进度见
+[该提交终态](../host/contracts/pr68-959-terminal.json)，不放宽期限，
+不手工重跑以覆盖失败。本机完整失败及 G3 继续开放，候选不合并。
 
 元数据失效准入候选从当前 develop 独立实现，持久读取／重扫与失效
 各保留四个位置，单事务执行；失效优先于未开始的读取，连续四次后
@@ -1496,9 +3542,9 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 
 | 顺序 | 用户可见交付结果 | 退出条件 |
 | --- | --- | --- |
-| 当前收口 | #59 有限滤波捕获已正常集成为 develop `e312c172`；精确候选及实际合并后全部 15 项检查分别通过，生产源码与 #58／#57 的锁定组合产物一致；捕获设施未复现历史失配 | 同包实际 Fluidd／Mainsail 页面；新的场次专项授权仍待答，历史失败、网床保存 409、SIGKILL 与 G3 保留 |
+| 当前收口 | PR #68已推送头9a62b43b4在合成989faf643的三组CI成功：普通5413／5413、协议／Linux MCU、Build、motion及sanitizer通过。Mainsail同1735原A4九项分场闭合；原42比较／28工厂启动保留704基线及门限一次通过（最大1.10412／1.00602），旧435／cd91归属及原失败保留；重获2.62602倍仍超原1.5预算 | 依据现有准入审当前候选与已知冷路径超限后走正常集成，不新开外围批次；本机11／16／14、G3、真实root／实机及发布边界分别保留，未合入develop／master |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
-| A | 同包 Fluidd，然后 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
+| A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |
 | M3 验收 | 可观察、可取消、可恢复的作业队列，复用已集成软件 | 复用现有日志与状态机，幂等明确，不自动重放危险动作 |
 | M4 验收与缺口 | 当前平台服务、网络及维护可控，复用已有 provider 和事件设施 | 明确 provider、权限、真实停止、失败和安装回滚 |
@@ -1516,8 +3562,8 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 规定完整 CI 保留。热路径基准及混合打印覆盖尾延迟、步进提前量和回收；
 目标板和旧 Python 真实打印对照另验，桌面通过不代表整机提速。
 
-实际页面工具条件未变时停止重复失效选择器。当前内置浏览器可用；此前
-共享 Playwright／Chrome 条件只作为历史工具记录，不列为当前阻碍。继续工作
+实际页面工具条件未变时停止重复失效选择器。此前“内置浏览器可用”为历史工具状态；
+本轮子代理实际IAB unavailable，按已授权共享Playwright／Edge后备，保持默认sandbox。继续工作
 须先证明调用链、资源所有权及失败传播独立，不能仅因模块名称不同就
 开启新批次。系列材料与 G3 诊断穿插进行，不成为第二条实现队列。
 
@@ -1525,9 +3571,10 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 
 用户已明确允许自行审查 PR 并继续推进；PR #50 的正常合入已完成。
 连接器写接口此前为 403，正常写入使用已登录 GitHub 浏览器。
-本会话的 127.0.0.1 下载已获许可；此前自动审批拒绝过期场次重启，
-新 Fluidd／Mainsail 场次的具体方案已提出，仍待专项授权，不以下载
-许可推定场次启动获批。系列配置／目标板资料和 G3 分别限制真实
+本会话的 127.0.0.1 下载与新的有时限场次已获用户明确持续授权。
+每场含启动最多十五分钟，只监听回环，使用锁定包与模拟 MCU，期限内
+关闭，不自动延长或重启；先前过期场次仍保持关闭，不复用旧期限。
+系列配置／目标板资料和 G3 分别限制真实
 装配、目标性能与运动准入；这些限制不把已通过的软件证据变为实机
 验收，也不阻止完成软件集成和维护可复核证据。
 
@@ -1570,7 +3617,7 @@ develop 完成规定集成／远程验证后再经主线 PR 及检查，在授�
 | M5 全部剩余契约 | 核心客户端契约优先，再逐组件完成数据库、授权、动态接口及全部可选集成；旧标签不代表当前状态 |
 | 受控操作与退役 | 打印、换料、校准、维护及旧宏场景映射到类型化版本请求、前置检查、互斥、幂等、取消和故障恢复；运行、工具、构建／安装、维护和日常测试全部替代 |
 
-### 从最终交付物收敛当前批次
+### 历史 M2b 批次收敛记录
 
 最终交付物是当前系列可安装、可升级、可回滚的无 Python 产品。
 由该交付物向下确定用户路径、权威所有者和必需替代依赖；不以逐个
@@ -1614,8 +3661,8 @@ P95 为 13.86 ms；这些不是目标板预算。证据见
 [目录移动验收](../host/contracts/native-directory-move-acceptance.json)。
 第 1／2 批及第 3a 批已集成到 develop，对应历史头规定检查通过；
 完整客户端及目标板仍未闭合。第 3b 批 PR #3 已正常合入 `65067ea9`，
-合并后规定检查通过；当前收口对象为 PR #6 的合并后验证，不重新执行已完成的 PR #3
-审阅／合并，也不扩大本批范围。
+合并后规定检查通过；该历史阶段收口对象曾为 PR #6 的合并后验证。
+当前实现队列以本节上方4d基线及已提交未发布的81d019bfb服务安装／客户端候选为准，不重做旧PR #3审阅／合并。
 历史文件名快照语义留在作业契约中核验，不用当前路径显示替代完整兼容。
 
 开始每批先固定当前源码、预期操作、契约边界和性能预算；完成后仅记录
@@ -1644,10 +3691,53 @@ A1–A3 已有软件证据：退役只解绑设备／请求，进程服务保留
 须先确认停止，再预检并复位所有主／辅 MCU，清理和验证原模型配置状态。
 不得用新建模拟器冒充复位。日志 v3、三类有界回执和降级副本要求见启动说明。
 
-A4 使用同一编译包及固定 Fluidd 1.37.6／Mainsail 2.19.0，完成页面上传、
+A4 使用同一编译包及固定 Mainsail 2.19.0，完成页面上传、
 元数据、开始、暂停／恢复、完成、取消、打印中刷新／断连、标准重启和
 进程恢复；JWT 与显式可信网络分别记录，API 上传或预置打印不替代页面。
 已有按钮、配置读写和部分历史流程按各自产物复用；最终完整流程仍须同包封存。
+
+当前173565dc／0b53079c与固定Mainsail2.19.0的A4九项映射如下。各场同一不可变包，
+JWT与显式可信网络独立分列；不拿历史cd91补当前缺项，也不任意追加TLS或每身份重做全部动作。
+
+| A4项目 | 当前1735同包证据及边界 |
+| --- | --- |
+| 上传／元数据 | mainsailJwtMaintenanceFollowUp：原生chooser与metadata；队列／故障场必要固定长短chooser分别留证 |
+| 开始／暂停恢复／完成 | mainsailJwtQueueFollowUp：原生长Print、Pause／Resume各一次、同job/request恢复推进、长及不同短completed |
+| 取消 | mainsailTrustedLifecycleFollowUp：必要Pause后原生直接Cancel，默认无确认modal，旧任务耐久cancelled |
+| 打印中刷新／断连 | mainsailTrustedLifecycleFollowUp：printing reload保持同job/request；1012后原生TRY AGAIN显式重连，持续推进/start1；不声称自动重连 |
+| 标准重启 | mainsailTrustedLifecycleFollowUp：原生printer.restart，同产品PID、设备generation增加；不同新job完成 |
+| 进程恢复 | mainsailJwtFaultRecoveryFollowUp：一次ARM/CRASH，真实joined SIGKILL及offline502；显式RECOVER新PID、旧interrupted；原生Firmware Restart后旧cancelled、新短completed、Clear print stats保持history2 |
+| 身份边界 | reservedIdentityFollowUp + mainsailTrustedLifecycleFollowUp + mainsailJwtMaintenanceFollowUp + mainsailJwtQueueFollowUp + mainsailJwtFaultRecoveryFollowUp：显式可信回环与真实JWT gateway独立记录，不相互推定；不要求每种身份重做全部条目 |
+| 下载／预览／配置 | mainsailJwtMaintenanceFollowUp：944字节header Download同SHA；844／995不同层路径实图；CodeMirror原28字节追加ASCII注释至74字节，Save/Close/重开严格回读；原N异常不明保留 |
+| 队列 | mainsailJwtQueueFollowUp：busy原生Add to Queue、长完成暂停不自动续打；产品自有/_client/queue明确准备/勾选/确认后不同短完成；不称Mainsail原生清台 |
+
+上述有限客户端A4按原定义闭合；故障场原严格截图candidate=false和三缺图保留，018作为
+独立补充恢复实图根审，不改017。全部证据见client-recovery-followup-acceptance.json对应字段。
+下一步回到正常集成与既有性能失败／完整预算出口，不再无理由重复同包页面场次。
+原42／28候选预算已按上方新记录通过；完整A集成、服务重获2.62602超原1.5、
+本机11／16／14失败／G3、实机、Python退役与宏仍开放。
+
+以下为历史cd91／0b530与Mainsail2.19.0当时的证据映射及待验快照；不同包的R18／R19／R39／R42
+仅按历史各自范围保留，不补记为当前包通过。
+
+| A4项目 | 历史cd91同包证据及当时边界 |
+| --- | --- |
+| 上传／元数据 | mainsail-a4-scene真实chooser与文件表元数据可见；合成样本不证明全部切片器字段 |
+| 开始／暂停恢复／完成 | 同场长作业由页面开始、暂停恢复，历史completed；明确清台后不同短作业completed |
+| 取消 | 故障场Firmware Restart使旧任务耐久cancelled；尚无当前包活动作业独立Cancel按钮的直接证据 |
+| 打印中刷新／断连 | SIGKILL后的真实离线与显式恢复已验；不等于正常打印中刷新／短暂WS断连旅程 |
+| 标准重启 | 页面FIRMWARE_RESTART通过；标准RESTART实页动作尚未证明 |
+| 进程恢复 | mainsail-firmware-scene精确SIGKILL、显式RECOVER、页面固件重启、旧cancelled／新completed已验，不重复 |
+| 身份边界 | 当前均JWT网关；显式可信网络路线尚缺单列记录，不由JWT推定 |
+| 下载／预览／配置 | 原生单选header Download实际944字节同SHA；原生键盘844／995两图有外／内框；测试cfg注释Save重开回读通过 |
+| 队列 | Mainsail原生入队及暂停恢复已验；清台在产品/_client/queue页，不能记成Mainsail原生按钮 |
+
+最小下一可否证出口是在同包页面补打印中刷新／短暂断连、明确Cancel及标准RESTART，
+随后明确新任务完成；显式可信网络按其实际认证配置另列身份边界，不无理由重做已过
+下载／预览／配置／SIGKILL。此处仅整理已有证据，没有启动新场。TLS不是此A4列表的
+额外任意门禁；完整A集成候选及服务重获2.62602超原1.5仍未关闭。
+新增归档与各场原失败见client-recovery-followup-acceptance.json的
+mainsailNativeDownloadPreviewFollowUp，历史c28a包保留不变。
 文件选择工具受阻时使用适用的其他浏览器检查路径，条件未变不重复重试。
 
 ## 三个交付出口
@@ -2949,3 +5039,210 @@ Fluidd 实际选择器上传普通和中文／空格／百分号名称均为 201
 Mainsail 瞬时 NaN／null 与弹窗时序、工具失败保持缺项，不算产品修复。
 下一同包交付应建立包含最新 LDAP 的独立锁定包并复核必需旅程；
 仍需通用模板、目标板性能和 G3，不能用不同包的结果合成完整 A 出口。
+
+提交 `822e60d6` 的十五项 CI 仍为十四项通过；本次失败改为
+Node.js 26.10.0 无 JIT 的编译运动诊断，第 17 个进程完成 14 次
+比较后触发原 10 秒期限，见[该提交终态](../host/contracts/pr68-822-terminal.json)。
+另一执行模式的失败尚未定位根因，未放宽期限或手工重跑覆盖失败。
+
+证据头 `9a7e493c` 十五项 CI 全部成功，见
+[该提交终态](../host/contracts/pr68-9a7-terminal.json)。该检查覆盖原运行时，
+不能用于证明随后尝试的滤波优化；959／822 失败继续保留。
+
+同一锁定包 Mainsail R19 实际选择器上传两份同字节、不同文件名的
+合成样本，显示服务器文件 944／944 字节方形轨迹。原路径、新路径和
+明确进程恢复后三次实际菜单下载均为 944 字节，与源文件逐字节一致；
+下载事件观察两次超时，实际新文件时间与摘要独立验证。约 6 分 22 秒
+关闭，进程退出零、端口释放；未验证渲染层数、真实切片器或完整外部
+故障恢复。见[同包验收](../host/contracts/product-client-worker-migration-acceptance.json)
+的 `previewOct11.r19`，不覆盖 R17 原工具中断记录。
+
+滤波核预计算候选局部八滤波器预算通过，但原 TypeScript 编译、
+Node.js 26.10.0 无 JIT 的 50 进程诊断在第 15 个进程首轮出现
+速度误差 3.680611371237319e-8，超过原 1e-8 容差，提前失败。
+首次捕获的第 8696 个滤波位置与旧实现、新实现和独立 BigInt 精确
+整数求和不符；原位置输入与参考逐位一致，导数与异常位置一致。
+这些证据未确定运行时、编译器或硬件根因。运行时代码和追踪已撤回，
+仅保留覆盖八种滤波器、三种平滑范围与两类精确输入的 48 组 binary64
+冻结回归；原容差、期限与失败现场保持。撤回后八项运动相关回归和
+完整类型检查通过。见[拒绝候选记录](../host/contracts/motion-filter-kernel-rejected.json)。
+下一步先用保存输入形成有判别力的精度调查，独立推进 Moonraker；
+不重新启动相同诊断以覆盖失败，也不以单次绿色 CI 关闭 G3。
+
+2026-10-13 的保存输入调查已补齐：从原失败归档校验摘要后提取
+实际数组，独立 Rust 精确整数求和核对失败点附近 13 个窗口。
+第 8696 点的新旧重算均为 39.356460024404306，保存失败值为
+39.35646002440799；不能以重算成功关闭原 G3 或确定根因。
+
+另发现当前离线 smooth 的确定性问题：有限序列
+`[1e100,1,-1e100,1e100,1e-100,-1e100,-1]` 的精确和为 1e-100，
+原两字补偿在随后抵消中丢失余量，平滑结果为零。原倒数乘法顺序
+保持，预期为 7.692307692307693e-102；该反例与原 G3 异常分别
+保留。私有 Rust oracle 使用锁定 num-bigint，不接入生产；两版
+候选各 800 个宽指数窗口、14 个抵消／舍入案例与原 48 个冻结
+案例形成分项证据，不能将不同候选的检查累计成同一完整验收。
+
+直接检查候选的源码 9 项、禁止 TS 加载的独立编译 JS 11 项通过，
+但编译后的原八滤波器／十曲线预算失败：smooth 中位数 6.886 ms
+超过 6.615 ms，P95 14.464 ms 超过历史 12.521 ms；weighted2
+7.476 ms 超过 7.444 ms。省略加零检查的第二候选又出现 weighted4
+7.588 ms 超过 7.425 ms。每组保留原 16 次、5 预热、11 样本和
+AB／BA 顺序，同时约束原历史预算；所有样本、先前候选失败与
+编译夹具 CLI 扩展名错误保留，不重测覆盖失败或选快结果。
+两版运行时和未采用回归均已撤回，数学源码恢复原摘要。未执行被
+拒候选的 26.9／完整矩阵／产品包／实机验收，不计 Python 退役或
+生产精度闭合。后续优先用新诊断辨别 CI 启动失败并推进 Moonraker
+协议／URL 接线；数学需新的可判别设计，不能继续重复绿色采样。
+完整源／二进制／输入／样本见
+[候选撤回证据](../host/contracts/motion-adaptive-sum-rejected.json)。
+
+模板验证依赖继续退役：默认数值回归、两条原生数值验证及同步私密
+模板基准取消 Python 子进程。原固定 Jinja2 3.1.6 源码的一次冻结
+保留全部 42744／5424／1293 数值用例、7 组原生模板、转换、失败及
+负零，并校验输入和原始输出摘要；基准继续使用原封存参考，次数、
+预热和预算不变。相关 64 项、原数值检查、完整类型和空白通过；
+独立 TypeScript 7.0.2 编译后关闭 TS 加载、外部程序及 Node 子进程
+权限复验通过。编译基准 3000 次渲染中位 7.708 ms、100 次创建
+3.042 ms，secrets 解析／缓存相对原封存基线 0.995／0.938，
+通过原门限；不据历史参考推导统计加速、目标板或打印性能。
+权限模型拒绝 symlink 的 63／64 和编译测试目录发现失败独立保留，
+正常文件权限及从编译目录执行分别通过，未修改用例。运行时及原生
+插件未改，其他模板评估／传感器基准、完整工厂和 G3 继续开放。
+见[退役与精度证据](../host/contracts/template-reference-retirement.json)。
+
+五条剩余模板基准退役 Python 执行：保留各入口原始输入、输出、
+两轮预热、七个样本及工作量，分别一次捕获原 CPython 3.12.13／
+Jinja2 3.1.6 参考后锁定摘要，不运行候选后重新生成基线。删除无引用的
+Jinja wheel 准备脚本和模板数值参考助手，其他传感器参考仍保留。
+源码及 TypeScript 7.0.2 独立 JavaScript 编译、关闭 TS 加载和子进程
+权限的五项回归通过；原生插件与产品运行时未变。
+事先固定的 1.5 倍历史中位预算下，编译模板／舍入／传感器消息比值
+为 0.812／0.414／0.700，通过；不据此宣称统计加速、目标板或打印性能。
+Unicode 原语转换仍为原参考 2.641 倍；JS 候选的直接语法和 JSON／
+回调浮点类型仍不兼容，严格门禁继续退出 1。首次依赖目录权限拒绝
+与严格兼容失败均封存，不计作通过。完整异步／可调用模板、全部
+Moonraker、Python 退役、原本机失败及 G3 继续开放。见
+[基准退役及性能差距](../host/contracts/template-benchmark-retirement.json)。
+随后 Unicode 转换热路径完成候选修复：原字符串逐字符 Map 查询
+改为固定 64 KiB BMP 数字查表和原补充平面映射；范围、空白、
+词法、非法输入处理和 binary64 转换不变，不缓存输入或改变运动。
+68 种固定文字全部 680 个数字及混合、负零、代理对和拒绝边界通过；
+相关实际 89／89、完整类型及无 TS 加载／Python／子进程的编译
+验证通过。Unicode 原语中位从 71.412 ms 降到编译 36.495 ms，
+历史比值 1.367，五种原语均满足事先固定的 1.5 倍预算；六组混合
+输入的交错旧／新对照比值为 0.488—0.975，保留全部原始样本。
+正则替换临时方案没有改善，未接入；JS 严格兼容门禁仍退出 1。
+仅关闭此桌面原语比值差距，不据此关闭完整模板或目标板打印性能。
+见[实际转换与边界证据](../host/contracts/config-numeric-unicode-acceptance.json)。
+`430b5fdc` 十五项 CI 全通过，普通 4539／4539，见
+[该提交终态](../host/contracts/pr68-430b-terminal.json)；新候选头独立核验，
+原完整本机 46 项失败、编译器／进程与运动根因、G3 继续保留。
+新增异步／UI 桥接候选：两个专用计算线程执行模板，通过执行器共用
+通知通道等待真实 JS 函数；同一次调用不重渲染重试。配置与 UI 环境
+使用不同的全局集合，UI 不隐式继承 secrets 或自定义配置全局对象。
+16 个固定原始契约、数值类型、取消、队列、资源和诊断检查通过，
+相关源码与独立编译各 112／112，禁止 JS 子进程的编译检查 55／55；
+原生插件被明确允许，因此不据此宣称进程隔离。独立 C／Rust 快照
+构建 1／1，新增 Rust 文件纳入产物来源摘要。
+纯模板的源码／编译比值 0.965／1.051 通过预设 1.5 倍门限；编译
+函数与 UI 路径仍为 1.791／1.851 倍，严格基准退出 1。独立队列的
+空闲优先调度替代两个线程争抢同一阻塞接收器；保留全部此前样本。
+这是有限桌面对照，不据此宣称因果加速或目标板性能通过。首次编译、
+NaN 文本差异、权限停机及所有性能失败均保留，不放宽门限。
+见[异步候选与剩余差距](../host/contracts/moonraker-template-async-acceptance.json)。
+`320c5128` 的十五项 CI 全通过，普通 4543／4543，见
+[该提交终态](../host/contracts/pr68-320c-terminal.json)；不覆盖新增候选。
+新增异步候选头 `a1222cfc` 的十五项 CI 已独立全通过，普通
+4566／4566，见[该提交终态](../host/contracts/pr68-a122-terminal.json)。
+该结果不覆盖随后按需创建取消信号的候选。原始接口每次渲染立即创建
+信号；现在使用尚未发布的只读调用上下文 `call.signal`，首次访问才创建。
+取消、关闭、完成后晚读取均保留原始状态；同次渲染共享、跨渲染独立。
+源码／独立 JavaScript 各 118／118，禁止 JS 子进程的四文件编译检查
+58／58；明确允许原生插件，不据此宣称系统隔离。
+交错旧／新对照的回调、UI 中位比值为 0.843／0.885，属于有限桌面
+诊断。固定工作量编译基准的纯模板、回调、UI 比值为
+0.960／1.424／1.653；UI 超过原 1.5 门限，整组仍退出 1。
+此前对象字面量与类候选的失败、临时依赖链接错误、受限测试只报告
+文件的问题和权限拒绝均保留；只把实际执行用例的结果计入通过。
+见[按需信号与未关闭性能门槛](../host/contracts/moonraker-template-lazy-signal-acceptance.json)。
+下一步继续降低真实调用的跨线程调度开销，补齐完整同步／异步模板
+工厂、标准组件装配、任意精度整数及隔离；默认 Python、完整本机、
+目标板、消费级宏及 G3 门槛继续保留。
+
+同步真实函数候选补齐当前 Node 线程上的调用桥接，保留固定上游
+14 组输出／调用记录、位置参数与关键字顺序、整数／浮点类型及
+私密失败。环境全局支持已创建模板，同模板嵌套渲染不持有跨回调
+互斥锁，关闭后停止后续副作用并拒绝发布；Promise 明确拒绝。
+源码／独立 JavaScript 各 139／139，禁止 JS 子进程的五文件编译
+检查 80／80，类型和规定空白通过。同步纯模板／上下文函数／环境
+函数的编译比值为 0.397／0.964／0.955，满足事先固定 1.5 倍预算；
+环境函数两侧均包含类型化调用记录，不改变冻结工作量。
+原同步缓存读取基准为历史参考的 1.250 倍，超原 1.2 门限，保留
+失败。旧、新私密缓存编译文件摘要相同；不加载原生模板的七对
+独立进程对照中位比值 1.001，单次成本仍波动。该诊断不证明首次
+失败根因，不以对照覆盖原严格失败。独立产品原生快照已纳入新增
+Rust 文件，但实际构建在 `memchr` 编译时 SIGSEGV，仍未通过。
+同一新插件的三条原生模板／舍入／传感器桌面预算通过，异步回调／
+UI 的固定编译比值为 1.553／1.678，整组仍失败；不得推导目标板
+或打印速度通过。初次 N-API Env 编译错误、测试模块路径错误及
+完整失败样本均保留，见[同步真实调用](../host/contracts/moonraker-template-sync-functions-acceptance.json)。
+上一按需信号头 `f0fc3169` 十五项 CI 全通过，普通 4572／4572，
+见[精确头终态](../host/contracts/pr68-f0fc-terminal.json)，不覆盖新候选。
+下一步继续完成共用同步／异步／UI 工厂与标准组件代际装配，随后
+补齐任意精度整数、隔离和性能缺口。默认 Python、完整本机失败、
+消费级宏、Cycnumbris 500 装配、完整客户端和 G3 门槛保持开放。
+
+2026-10-12 共用工厂候选接入显式标准服务代际：无 LDAP 时也可加载
+私密文件，LDAP 五字段完成后仅关闭字段模板，服务继续持有不可变
+私密代际。配置／异步环境共用注册入口，UI 不继承其全局；异步
+执行器按需创建。新增 getTemplate／loadTemplate 的来源与缺省记录，
+明确可信日志接收器、禁用日志绑定及布尔／None 文本兼容。关闭直接
+取消原生跟踪中的活动帧，保留外部取消与关闭竞态的首次理由，不在
+每次渲染额外挂共享关闭监听器；仍不能强制抢占任意 JS 函数。
+
+相关源码与独立 JavaScript 各 175／175，禁止 JS 子进程的六文件
+进程内检查 111／111，类型、规定空白和 rustfmt 通过。原始参考中
+回退节直接夹具因未初始化 old 解析记录而 KeyError；独立固定上游
+探针确认初始化后来源为 old、两项警告。保留首次捕获、失败与修正
+结果，不把夹具错误定义为产品契约。首次编译漏出数据库 worker、
+服务器源码导出漏出 Unicode 契约及网络权限缺项均保留并修正。
+
+工厂首次同步／异步／UI 比值 0.285／1.623／2.058；最后为
+0.328／1.569／1.935，后两项仍超事先固定 1.5 门限，整组退出 1。
+有限历史样本不能证明因果加速。原同步函数、同步缓存和三条原生
+模板／舍入／传感器预算本次通过；原独立异步 UI 1.655 仍失败。
+此前缓存 1.250 失败和未知根因不因本次正常样本关闭。
+精确 f58 源码与当前默认鉴权服务器的原 ABBA 对照每组十四个新进程，
+每进程 200 查询，启动中位 353.763→352.416 ms，查询批次中位
+89.939→90.261 ms，满足原预算；不包含新增私密工厂冷启动，不证明
+目标板或打印速度。当前独立产品源码快照在 minijinja 编译时 Rust
+SIGSEGV，未重试或改栈配置，完整新包仍未通过。
+见[共用工厂与全部原始证据](../host/contracts/moonraker-template-factory-acceptance.json)。
+
+上一同步函数头 f58f0b99 的十五项 CI 全通过，普通 4593／4593，见
+[精确头终态](../host/contracts/pr68-f58-terminal.json)，不覆盖本次工厂。
+下一步补齐 getpath 与通用组件／默认私密代际装配，解决异步性能，
+再推进同包客户端；完整语言、可变全局、大整数、隔离、完整
+Moonraker／Python 退役、原完整本机失败、G3、Cycnumbris 500 实机、
+目标板打印、消费级宏、正常集成发布仍开放，其他机型继续后置。
+
+2026-10-12 配置路径接入共用工厂并用于显式标准服务的 Klippy socket。
+来源记录与缺省身份保持，临时模板释放；legacy 私密文件回退按物理
+符号链接目标选择且不加载模板。Linux 用户目录通过已有 C 插件的
+libc NSS 查询，配置执行无需 Python 或辅助子进程。固定上游矩阵
+包括长链／循环／悬空链接与缺省；补充探针复现并修正空 HOME 错落
+工作目录的问题，不以初始自写断言作为契约。
+
+最终源码与独立 JavaScript 各 217／217，新增 C 查询的 UBSan／ASan
+各 38／38，类型检查通过。原三组配置启动预算的编译比值为
+0.220／0.252／0.291；原 1.5 门限、500 次工作量和全部首次样本保持。
+禁止 JS 子进程的补充运行因 Node 符号链接权限在夹具处 35／1／34，
+不计隔离或全面 Python 退役通过，不扩大权限覆盖该失败。完整
+新包未在本轮重新构建，已有 Rust 编译崩溃与所有打印门槛保留。
+见[配置路径与原始证据](../host/contracts/moonraker-config-path-acceptance.json)。
+上一精确工厂头 `4592243d` 十五项 CI 已独立全通过，普通
+4624／4624，见[该头终态](../host/contracts/pr68-459-terminal.json)，
+不覆盖新增路径代码。下一步优先完成默认产品私密代际和通用组件
+装配，迁移剩余路径 getter 消费者，再解决异步性能／完整新包，
+推进同包客户端。全语言、大整数、隔离、完整 Moonraker／Python、
+原完整本机失败、G3、Cycnumbris 500 实机、消费级宏和集成发布仍开放。

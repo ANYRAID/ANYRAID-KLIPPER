@@ -1,4 +1,5 @@
 import {JournalError,type PrintStatistics} from './print-journal-types.ts';
+import type {HistoryAuxiliaryTotal} from '../moonraker/history-repository.ts';
 interface Sum {value:number;correction:number;unknown:number;overflow:boolean;maximum:number;}
 export interface HistoryTotalsState {jobs:number;time:Sum;print:Sum;filament:Sum;}
 const empty=():Sum=>({value:0,correction:0,unknown:0,overflow:false,maximum:0});
@@ -26,9 +27,9 @@ export function addHistoryTotals(state:HistoryTotalsState,statistics?:PrintStati
  if(state.jobs===Number.MAX_SAFE_INTEGER)throw new JournalError('CAPACITY','History job count exhausted');state.jobs++;
  add(state.time,statistics?.totalDuration);add(state.print,statistics?.printDuration);add(state.filament,statistics?.filamentUsed);
 }
-export function historyTotalsView(state:HistoryTotalsState){
+export function historyTotalsView(state:HistoryTotalsState,auxiliary:HistoryAuxiliaryTotal[]=[]){
  const value=(sum:Sum)=>sum.unknown||sum.overflow?null:sum.value;
- return {job_totals:{total_jobs:state.jobs,total_time:value(state.time),total_print_time:value(state.print),total_filament_used:value(state.filament),longest_job:state.time.unknown?null:state.time.maximum,longest_print:state.print.unknown?null:state.print.maximum},auxiliary_totals:[],native_unknown:{total_duration:state.time.unknown,print_duration:state.print.unknown,filament_used:state.filament.unknown},native_overflow:[...state.time.overflow?['total_time']:[],...state.print.overflow?['total_print_time']:[],...state.filament.overflow?['total_filament_used']:[]]};
+ return {job_totals:{total_jobs:state.jobs,total_time:value(state.time),total_print_time:value(state.print),total_filament_used:value(state.filament),longest_job:state.time.unknown?null:state.time.maximum,longest_print:state.print.unknown?null:state.print.maximum},auxiliary_totals:auxiliary,native_unknown:{total_duration:state.time.unknown,print_duration:state.print.unknown,filament_used:state.filament.unknown},native_overflow:[...state.time.overflow?['total_time']:[],...state.print.overflow?['total_print_time']:[],...state.filament.overflow?['total_filament_used']:[]]};
 }
 export type NativeHistoryTotals=ReturnType<typeof historyTotalsView>;
-export type NativeHistoryReset={last_totals:NativeHistoryTotals['job_totals'];last_auxiliary_totals:never[];last_native_unknown:NativeHistoryTotals['native_unknown'];last_native_overflow:string[]};
+export type NativeHistoryReset={last_totals:NativeHistoryTotals['job_totals'];last_auxiliary_totals:HistoryAuxiliaryTotal[];last_native_unknown:NativeHistoryTotals['native_unknown'];last_native_overflow:string[]};

@@ -15,5 +15,9 @@ export function liveMotionStatus(routes:readonly PlannedQueue[],printTime:number
  const xyz=routes.find(r=>r.extrusionAxis===undefined&&r.stationaryPosition===undefined);
  const extruder=routes.find(r=>r.extrusionAxis===extrusionAxis&&r.stationaryPosition===undefined);
  const motion=xyz?sampleTrapMotion(xyz.queue,printTime):null,e=extruder?sampleTrapMotion(extruder.queue,printTime):null;
- return {live_position:motion&&e?[...motion.position,e.position[0]]:null,live_velocity:motion?.velocity??null,live_extruder_velocity:e?.velocity??null};
+ // An owned queue with no phase at this print time has no requested velocity,
+ // including a new job whose first phase is still in the future. Klipper's
+ // motion_report initializes these velocities to zero. Missing routes remain
+ // unavailable; never invent a position from a future planned endpoint.
+ return {live_position:motion&&e?[...motion.position,e.position[0]]:null,live_velocity:motion?.velocity??(xyz?0:null),live_extruder_velocity:e?.velocity??(extruder?0:null)};
 }
