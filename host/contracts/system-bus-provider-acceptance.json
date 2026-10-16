@@ -3984,8 +3984,8 @@
         "files": [
           {
             "path": "host/contracts/motion-capture-readonly-audit.cjs",
-            "bytes": 7660,
-            "sha256": "2f2309f9f109a3ba8a99e61aa4bc593c82ce604a5c3934abbbed4f1b02b52b99"
+            "bytes": 7655,
+            "sha256": "66483d671783837f059007013632ee504dfb0be7e96c33e3092422aee4f57e75"
           },
           {
             "path": "host/contracts/motion-capture-readonly-audit.json",
@@ -3994,8 +3994,8 @@
           },
           {
             "path": "host/contracts/motion-capture-exact-window.mjs",
-            "bytes": 2839,
-            "sha256": "0094f54b0bd271ab27515a53e25c5bb14ec4303a5d0f5e76aee186bee0275acf"
+            "bytes": 2838,
+            "sha256": "3f17f895b3d84f1a760bd9d19e522e6ef29caa459b2e0de2e844851770e3c2da"
           },
           {
             "path": "host/contracts/motion-capture-exact-window.json",
