@@ -123,7 +123,7 @@ export class MoonrakerHttpClient {
  get(url:string,options:HttpRequestOptions={}){return this.request('GET',url,{enableCache:true,...options});}
  post(url:string,body:HttpRequestOptions['body']='',options:HttpRequestOptions={}){return this.request('POST',url,{...options,body});}
  delete(url:string,options:HttpRequestOptions={}){return this.request('DELETE',url,options);}
- async githubApiRequest(resource:string,options:Pick<HttpRequestOptions,'attempts'|'retryPauseTime'|'signal'>={}){
+ async githubApiRequest(resource:string,options:Pick<HttpRequestOptions,'attempts'|'retryPauseTime'|'signal'|'requestTimeout'|'maxBodyBytes'|'redirect'>={}){
   if(this.#githubRemaining===0&&this.#githubReset!==null&&Date.now()/1000<this.#githubReset)throw new ApiError(500,'GitHub Rate Limit Reached');
   const url='https://api.github.com/'+resource.replace(/^\/+|\/+$/g,''),response=await this.get(url,{...options,headers:{Accept:'application/vnd.github.v3+json'}}),headers=response.headers;
   if(headers.has('x-ratelimit-limit')){if(!headers.has('x-ratelimit-remaining')||!headers.has('x-ratelimit-reset'))throw new Error('Invalid GitHub rate headers');const limit=Number(headers.get('x-ratelimit-limit')),remaining=Number(headers.get('x-ratelimit-remaining')),reset=Number(headers.get('x-ratelimit-reset'));if(!Number.isSafeInteger(limit)||limit<0||!Number.isSafeInteger(remaining)||remaining<0||!Number.isFinite(reset))throw new Error('Invalid GitHub rate headers');this.#githubLimit=limit;this.#githubRemaining=remaining;this.#githubReset=reset;}
