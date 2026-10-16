@@ -43,7 +43,7 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 保留身份查询候选现为可信 IP／API Key 的 GET /access/user 与 WS access.get_user
 返回 username／source／created_on，JWT 继续返回注册用户资料；旧安装原创建时间
 从留存源核摘要恢复，轮换／重开保留。新候选1735的隔离回归与窄鉴权预算已验，
-同包客户端A4现按下述固定包映射闭合；完整预算、正常集成与实机仍开放，见[本批验收](host/contracts/client-recovery-followup-acceptance.json)的reservedIdentityFollowUp。
+同包客户端A4现按下述映射闭合；原42／28预算见[当前验收](host/contracts/system-bus-provider-acceptance.json)的currentCandidateExitValidation，服务重获预算、正常集成与实机仍开放。
 
 同1735包的Mainsail2.19.0可信回环有限场已验证真实chooser上传、打印中reload，
 1012断连后通过原生TRY AGAIN显式重连，同job／request及单次start保持、进度增加；
@@ -69,21 +69,19 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 重新归位后不同短任务completed，再原生Clear print stats保持两条history并回idle。
 原owner保留fault_business_pass_screenshot_missing和三缺图；018独立恢复实图补充视读，
 不倒写017。原定义A4九项现由同1735固定Mainsail各独立场覆盖，详见Delivery映射与
-同一验收的mainsailJwtFaultRecoveryFollowUp；全A集成／完整预算／G3／实机等仍开放。
+同一验收的mainsailJwtFaultRecoveryFollowUp；全A集成／服务重获预算／G3／实机等仍开放。
 
 后续客户端默认仅验 Mainsail；历史 Fluidd 证据和失败保留，用户另行指定时才追加，
 不要求每批重复双客户端。
 
-当前已推送头435938218（实际合成检出13a65f031）的三组CI已全部成功。
-Node26.12普通测试5402／5402、零失败／取消／跳过；原三项安装进程测试通过，
-该轮实际cgroup为system.slice/hosted-compute-agent.service且夹具名称一致。
-协议36624字节／661帧／10002时钟比较和Linux MCU步骤成功；Build两轮各37文件239例，
-十项motion各50次零失败，ASAN／UBSAN各153根TAP汇总1234通过、零失败。
-8e2原5398／5401三失败和184两版各30项候选补验原样保留；旧轮未记录cgroup，
-不能将新轮观测倒推为旧轮根因实证。正常集成、服务重获2.62602超原1.5、
-历史本机11失败／G3与实机等独立门禁仍开放。
-原失败、输入、有限补验及435终态见[CI夹具验收](host/contracts/system-bus-provider-acceptance.json)
-的ciFixtureFollowUp。
+当前已推送头9a62b43b4（实际合成检出989faf643）的host／Build／motion三组CI全部成功；
+Node26.12普通5413／5413、协议／Linux MCU及两sanitizer通过，Build两轮各37文件239例、
+十项motion各50次fresh通过，不能据此关闭184间歇G3。
+同1735原42比较最大1.10412／鉴权最高3.58983微秒<10；原28工厂启动比1.00602，
+均按原704基线／原负载与1.5门限一次完成，28是单benchmark进程内28次工厂实例，并非28冷进程。
+旧435／13a65f的5402通过和8e2三失败保留；服务重获2.62602>1.5、本机11／16／14失败、
+G3、正常develop→master集成、真实设备与完整迁移仍开放。原失败与435见ciFixtureFollowUp，
+当前CI及原42／28预算见[现有验收](host/contracts/system-bus-provider-acceptance.json)的currentCandidateExitValidation。
 
 下述为历史cd91包的A4记录，1735有限可信场单独见上文，不合并为同包完整验收。
 同包Mainsail2.19.0的A4有限场已验证真实上传、测试printer.cfg仅追加注释后保存／

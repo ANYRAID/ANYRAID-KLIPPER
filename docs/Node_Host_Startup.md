@@ -15,6 +15,13 @@
 
 今后客户端默认以 Mainsail 为唯一验收客户端，不要求每批重复 Fluidd。历史 Fluidd 证据与失败保留，但不作为后续必需的双客户端门禁；只有用户另行指定 Fluidd 时才追加。
 
+## 当前固定包的启动预算边界（2026-10-16）
+
+1735的原42比较和原28工厂启动已保留704基线、原负载／门限完成；28在单benchmark进程内，
+不含模块导入、夹具准备和清理，不获取设备或证明硬件就绪。9a62精确头CI与本次证据见
+[现有验收](../host/contracts/system-bus-provider-acceptance.json)的currentCandidateExitValidation；
+服务重获2.62602超限、G3、正常集成及实机边界保留。后续435及旧预算待验段为当时历史快照。
+
 ## 1735 JWT外部故障恢复与A4有限出口（2026-10-16）
 
 同173565dc／0b53079c和固定Mainsail2.19.0的隔离流程要求外部进程退出已join后，
@@ -104,9 +111,9 @@ Windows5／Linux3个已登记PID均不存在、两watchdog remaining为空。
 的实页组合及显式可信网络边界记录，不把FIRMWARE_RESTART或历史其他包替代这些项。
 证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的mainsailA4FollowUp与mainsailNativeDownloadPreviewFollowUp，历史失败和旧归档不覆盖。
 
-## 435已提交头CI终态与Mainsail同包边界（2026-10-15）
+## 历史435已提交头CI终态与Mainsail同包边界（2026-10-15）
 
-当前已推送头435938218（实际合成检出13a65f031）的三组CI已全部成功。
+此前已推送头435938218（实际合成检出13a65f031）的三组CI已全部成功。
 Node26.12普通测试5402／5402、零失败／取消／跳过；原三项安装进程测试通过，
 该轮实际cgroup为system.slice/hosted-compute-agent.service且夹具名称一致。
 协议36624字节／661帧／10002时钟比较和Linux MCU步骤成功；Build两轮各37文件239例，

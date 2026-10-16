@@ -4041,5 +4041,234 @@
         "publication": "Root review passed; local Chinese commit only, no push/merge/deploy."
       }
     }
+  },
+  "currentCandidateExitValidation": {
+    "status": "exact_head_ci_and_original42_28_passed_service_reacquire_still_open",
+    "date": "2026-10-16",
+    "sourceHead": "9a62b43b4da5a3f509e37ed4e93e83fecacc09f8",
+    "ci": {
+      "head": "9a62b43b4da5a3f509e37ed4e93e83fecacc09f8",
+      "base": "9c63d3c56c0141f81047ccd31833078ba32f299c",
+      "actualTestedMerge": "989faf6432efd67f546b68fa9c8c04935adf3099",
+      "allThreeWorkflows": "completed_success",
+      "runs": [
+        {
+          "id": 38891155889,
+          "name": "Node host",
+          "jobs": [
+            {
+              "id": 116940709034,
+              "name": "sanitizer (ubsan)",
+              "conclusion": "success"
+            },
+            {
+              "id": 116940709294,
+              "name": "checks",
+              "conclusion": "success"
+            },
+            {
+              "id": 116940709608,
+              "name": "sanitizer (asan)",
+              "conclusion": "success"
+            },
+            {
+              "id": 116948292974,
+              "name": "host",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 38891156024,
+          "name": "Build test",
+          "jobs": [
+            {
+              "id": 116940709761,
+              "name": "build",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 38891156103,
+          "name": "Node motion diagnostics",
+          "jobs": [
+            {
+              "id": 116940710213,
+              "name": "motion (26.9.0, off, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "id": 116940710313,
+              "name": "motion (26.9.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "id": 116940710330,
+              "name": "motion (26.9.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "id": 116940710336,
+              "name": "motion (26.10.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "id": 116940710360,
+              "name": "motion (26.10.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "id": 116940710414,
+              "name": "motion (26.10.0, jitless, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "id": 116940710439,
+              "name": "motion (26.10.0, off, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "id": 116940710473,
+              "name": "motion (26.9.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "id": 116940710524,
+              "name": "motion (26.10.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "id": 116940710576,
+              "name": "motion (26.9.0, jitless, compiled)",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ],
+      "host": {
+        "node": "v26.12.0",
+        "tests": 5413,
+        "pass": 5413,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 1167866.034376,
+        "protocol": {
+          "corruptedStreamBytes": 36624,
+          "recoveredFrames": 661,
+          "exactClockComparisons": 10002
+        },
+        "linuxMcuStep": "success"
+      },
+      "build": {
+        "rounds": 2,
+        "eachTestFiles": 37,
+        "eachCases": 239
+      },
+      "motion": {
+        "matrixJobs": 10,
+        "allSuccess": true,
+        "registeredFreshProcessesPerJob": 50,
+        "fixtureVerificationLoopsPerProcess": 16,
+        "scope": "Workflow command --runs50/--workers1 and versioned diagnostic fixture16 loops; one completed motion job command/report excerpt plus all10 terminal jobs. Does not overwrite184 G3 or prove hardware/environment health."
+      },
+      "checkoutEvidence": "archive ci/{host,build,motion}-checkout-and-summary.json; all three actual989faf checkout verified, not inferred solely from PR API",
+      "historical435And8e2Unchanged": true
+    },
+    "performance": {
+      "runtime": "v26.11.1",
+      "originalBaseline": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-sudo-install-oct14",
+        "manifestSha256": "61ab21ff8ddc876d0b80cae7213bd9df5acd4011ae708398e350a4bae92a5d9b",
+        "dependenciesSha256": "3624a6b3e9106089b21839f6a1d8541c1fb37d6717c41956f57ea691638bd444"
+      },
+      "candidate": {
+        "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/reserved-user-product",
+        "manifestSha256": "173565dc6b94d2d0380ec911f4f175d5a5b9f644880e8378245315eddf55e774",
+        "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+      },
+      "sharedOriginalWsCarrier": {
+        "path": "/home/dek02/.cache/codex/tmp/product-host-dbus-audited-oct14",
+        "manifestSha256": "e6cadde96c4039bd3d158bc36081fbf5ec961f262df0b4fc56852333266bdf2e",
+        "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+      },
+      "original42": {
+        "controls": 36,
+        "comparisons": 42,
+        "allPass": true,
+        "maxRatio": 1.1041197197044226,
+        "maxRatioComparison": {
+          "pair": 2,
+          "kind": "auth",
+          "route": "image"
+        },
+        "ratioLimit": 1.5,
+        "maxAuthUs": 3.5898315000000003,
+        "authUsLimitExclusive": 10,
+        "authRouteMaxUs": {
+          "status": 2.06015263,
+          "file": 3.06121752,
+          "image": 3.5898315000000003,
+          "anonymous-image": 1.3704870899999992
+        },
+        "order": [
+          "AB",
+          "BA",
+          "AB"
+        ],
+        "load": "Original auth100000x8(3warm5retained), networkHTTP200/WS500/startstop30(3warm11retained), uploads4/16MiB direct+HTTP(2warm7retained)",
+        "scope": "Same request/context auth; configured standalone callbacks and noop upload authorization. No process provider, actual print, service reacquire or hardware throughput."
+      },
+      "original28": {
+        "benchmarkProcesses": 1,
+        "factoryIterations": 28,
+        "iterationsPerVariant": 14,
+        "warmupPerVariant": 3,
+        "retainedPerVariant": 11,
+        "medianBeforeMs": 190.33684699999958,
+        "medianAfterMs": 191.481855,
+        "ratio": 1.0060156927996207,
+        "ratioLimit": 1.5,
+        "scope": "Module imports once before28 factory iterations; bootstrap/control recovery/listen timed, import/fixture/cleanup excluded. Symmetric explicit none source, no installation/acquireAdapter/hardware. Not28 cold-process starts."
+      },
+      "singleRun": true,
+      "elapsedMs": 90049,
+      "within900s": true,
+      "ownerCleanupErrors": 0,
+      "postCleanupSignals": 0,
+      "postCleanupRemaining": 0,
+      "timeoutExitCode": 0,
+      "allThreePrePostAndIndependentFinalMatch": true,
+      "observedRegisteredIdentities": 59,
+      "allOriginalAbsent": true,
+      "wrapperAbsent": true,
+      "wrapperInitialTicksNotCaptured": true,
+      "originalPgrpEmpty": true,
+      "identitySamplingBoundary": "250ms process-group identities only; may miss short-lived PIDs. Original36 spawn controls prove count;28 factory iterations share one benchmark process. No complete argv/env recorded.",
+      "rootIndependentReview": "Root independently recomputed all36 raw results/exit fields,42 ratios/auth units,28 ordered observations/medians and before/after/cleanup on original saved data. Temporary offline reviewer parsing is not a project tool or new test.",
+      "scope": "Original704 baseline retained; only paths and current candidate label adapted. New1735 evidence, not relabeling old723/435. No defaultD-Bus installation/device acquisition, service reacquire, MCU or physical throughput claim."
+    },
+    "archive": {
+      "path": "host/contracts/provider-1735-full-budget-evidence.tar.gz",
+      "sha256": "8d97907f6ae87fda8b75726e0e6b8b8799a57d903c8656dcd617bbcc18abb156",
+      "bytes": 74243,
+      "members": 182,
+      "evidenceFiles": 181,
+      "manifest": "manifest.json",
+      "manifestSha256": "84432dd950916171169eed3146aee12c81fb9a79c9d176632140d75d19612dbb",
+      "allMemberBytesAndHashesMatch": true,
+      "uniqueSafeRegularMembers": true,
+      "gzipCrcAndTarChecksumsVerified": true,
+      "sensitivePatternAndKnownFixtureHits": 0,
+      "scope": "Explicit white list: original streams/scripts/registered differences/identities/cleanup; currentCI terminal receipts and selected checkout/summary lines, no workflow artifacts, profile, DB, dependencies or credential values"
+    },
+    "remaining": [
+      "Historical service reacquire2.62602209255>1.5 remains failed and was not sampled.",
+      "Historical local11/prior16/current14 failures and G3 remain unresolved; CI green is separate environment evidence.",
+      "No develop/master merge, production/privileged deployment, ARM64, hardware acceptance, complete Moonraker/Python/macros or release."
+    ],
+    "publication": "Evidence and document diff independently reviewed; local documentation/evidence commit only; no push/merge/deployment."
   }
 }
