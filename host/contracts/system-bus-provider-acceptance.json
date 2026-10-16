@@ -3291,7 +3291,19 @@
       "No real systemd launch/restart or device/power/hardware/physical precision acceptance",
       "Historical local11 failures and G3 remain, no full42/28 budget closure",
       "Committed8e2 ordinary CI failed3; fixture candidate still requires its own exact-head CI/review and normal develop then master integration. Default Mainsail full same-package acceptance and release remain."
-    ]
+    ],
+    "readOnlyReacquireAudit": {
+      "date": "2026-10-16",
+      "sourceCommit": "624ab579e07e698eaae5f7f6e93968c844677ea5",
+      "evidence": {
+        "path": "host/contracts/service-info-reacquire-readonly-audit.json",
+        "sha256": "46a71b353bd3cce09671c5afeb7107d10b3778a1b545dedbe05dfccfc18e535d"
+      },
+      "all11ProductionSourcesAndServicePathJavaScriptUnchanged": true,
+      "conclusion": "Historical cc312 reacquire2.626022>unchanged1.5 remains failed; not a1735 new measurement. Fresh CLI startup is leading cost hypothesis; no safe retirement prefetch established because current(proof) does not monitor external changes.",
+      "noNewSamplesOrTraceOrImplementation": true,
+      "next": "Complete same-package A4 and normal integration; no threshold/fixture/proof-cache workaround"
+    }
   },
   "currentCandidateBaseline": "4d9819229420268c9c08003ff70288481d398475",
   "ciFixtureFollowUp": {
