@@ -6,6 +6,14 @@
 自行使用10.0.0.184”，包括该固定 Linux 开发机的本项目源码传输与调试。修复仍在独立任务分支和工作树中完成，
 不扩大到真实设备操作、生产部署或绕过任务 → develop → 主线的 PR 流程。
 
+## 2026-10-16 已保存运动捕获的只读审计
+
+最早可观察不一致位于stages.updated[10708]：三个逐bit相同的166项输入窗口，仅中心保存结果不同；
+下游速度／加速度／面板切片内部一致，独立同场repeat十曲线与reference逐bit相同，不能称修复。
+离线binary64同序算式及精确有理核对均支持邻值；未保存filter内部累加，不能定位瞬态来源或硬件。
+仅解码原捕获，无产品导入／夹具重跑／算法更换；完整差异索引、raw bits及边界见[诊断验收](../host/contracts/system-bus-provider-acceptance.json)
+currentLinuxExitDiagnostic.resourceObservation.motionCaptureAudit。G3仍开放。
+
 ## 2026-10-16 独立内存有限观察（未关闭G3）
 
 现有认证APT来源的memtester4.6.0-1仅解包至隔离任务目录，无系统安装／提权／配置更改。

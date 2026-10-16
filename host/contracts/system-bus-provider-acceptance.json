@@ -3950,6 +3950,95 @@
         "interpretation": "Finite negative observation for one locked256MiB virtual allocation and one default pass only. Does not certify environment health/fullRAM, locate hardware, exclude intermittent faults, or resolve historical11/prior16/current14/G3.",
         "priorRecordBoundary": "Earlier proposals/registration prepared-only flags remain historical snapshots; all previous fields and archive bytes unchanged. No product code changes.",
         "publication": "Root review passed; local Chinese commit only, no push/merge/deploy."
+      },
+      "motionCaptureAudit": {
+        "status": "offline_saved_capture_audit_only",
+        "sourceHead": "88ba38340253c1c7a1668b5b83017d6d60d3136f",
+        "inputs": [
+          {
+            "name": "motion-mismatch-477333-0.bin",
+            "bytes": 4690926,
+            "sha256": "969d62323504ec2a5e84e9beed22278b061939a2127c78beaeb6ea1f232ee6a8"
+          },
+          {
+            "name": "motion-mismatch-477333-0.bin.repeat",
+            "bytes": 2139444,
+            "sha256": "e17eaaeb47aad77efaa7a8029db183d3641b6e263f98dc54044da5204bd0b617"
+          },
+          {
+            "name": "fixture.mjs",
+            "bytes": 3830,
+            "sha256": "503c522dd2bcc8c8feb26832d7e2a67fde9dbe3de8db977980bf60261696cefb"
+          },
+          {
+            "name": "report.json",
+            "bytes": 5229,
+            "sha256": "680fbbde35dd9caf7059fe64ce0f09b2c2753488baf42b58af87cfe8d585765a"
+          }
+        ],
+        "existingArchive": {
+          "path": "host/contracts/linux-resource-observation-evidence.tar.gz",
+          "sha256": "fd257072eb574734f810fba42b75a8020e64e06269a9d256f9f764c82fff8cd7",
+          "members": "retained-motion/ original captures, fixture, report and post-run verified sources"
+        },
+        "files": [
+          {
+            "path": "host/contracts/motion-capture-readonly-audit.cjs",
+            "bytes": 7660,
+            "sha256": "2f2309f9f109a3ba8a99e61aa4bc593c82ce604a5c3934abbbed4f1b02b52b99"
+          },
+          {
+            "path": "host/contracts/motion-capture-readonly-audit.json",
+            "bytes": 36513,
+            "sha256": "ea5d67cfc07e096bf256ecc2ea8e3aa98ea4a69cbb9a749aa70c816b51d66a18"
+          },
+          {
+            "path": "host/contracts/motion-capture-exact-window.mjs",
+            "bytes": 2839,
+            "sha256": "0094f54b0bd271ab27515a53e25c5bb14ec4303a5d0f5e76aee186bee0275acf"
+          },
+          {
+            "path": "host/contracts/motion-capture-exact-window.json",
+            "bytes": 2415,
+            "sha256": "2c318a29fd5575f08f9b472cb97d993fb5143c9376d7518f81d9ef2d7e525bc0"
+          }
+        ],
+        "decoder": {
+          "platform": "win32",
+          "arch": "x64",
+          "node": "v26.9.0",
+          "productImported": false,
+          "fixtureOrProbeReplayed": false
+        },
+        "earliestObservableDivergence": "Saved stages.updated[10708]; three166-item neighboring nominal windows are bit-identical. Filter internal high/low intermediates were not saved, so internal transient source is not localized.",
+        "comparisons": {
+          "positionsNominalReferenceRepeatBitIdentical": 12266,
+          "savedVelocityAccelerationAndPanelSlicesBitConsistent": true,
+          "firstVsReferenceDifferentSamples": {
+            "newVelocity": 2,
+            "newAcceleration": 3,
+            "newHeadVelocity": 555,
+            "newHeadAcceleration": 507,
+            "newHeadDeviation": 557
+          },
+          "fullTenCurveIndicesAndMetrics": "motion-capture-readonly-audit.json: comparisons/panelDifferences",
+          "repeatAllTenCurvesBitIdenticalToReference": true
+        },
+        "window": {
+          "indices": [
+            10707,
+            10708,
+            10709
+          ],
+          "inputDistinctBits": "0x403c819d06851b84",
+          "normalUpdatedBits": "0x403c819d05e3de7e",
+          "savedCenterUpdatedBits": "0x403c819d05e9e33e",
+          "centerDeviation": 1.4013039617566392e-9,
+          "arithmetic": "Three saved windows only: JS Number binary64 in archived weighted4 branch operation order; Node BigInt exact rational rounded once through existing captured IEEE core agrees with neighboring value. Prior temporary reviewer Python Fraction check agrees, with no project Python entry or dependency. Not whole-filter evaluation or original internal replay."
+        },
+        "scope": "Earliest observable saved-stage inconsistency only; no product change, algorithm replacement, workload, reproduction, fix or G3 closure. Repeat has independently computed positions/panels but no updated/internal stages. Original binaries unchanged; module input hashes were verified post-run, not runtime-frozen.",
+        "reproduce": "Extract retained-motion/ from the existing archive into scratch. Run node host/contracts/motion-capture-readonly-audit.cjs <directory> <new-audit.json>, then node host/contracts/motion-capture-exact-window.mjs <new-audit.json> <new-exact.json>. Both are offline saved-input analysis only.",
+        "publication": "Root review passed; local Chinese commit only, no push/merge/deploy."
       }
     }
   }
