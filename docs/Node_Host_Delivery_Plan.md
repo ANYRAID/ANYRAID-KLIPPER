@@ -1,10 +1,62 @@
 # Klipper 与 Moonraker 集成交付计划
 
+## 项目修复与隔离验证授权（2026-10-16）
+
+用户持续允许本项目的修复并进行隔离验证，并明确“本项目开发实际需要linux环境的情况下，
+自行使用10.0.0.184”，包括该固定 Linux 开发机的本项目源码传输与调试。修复仍在独立任务分支和工作树中完成，
+不扩大到真实设备操作、生产部署或绕过任务 → develop → 主线的 PR 流程。
+
+## 2026-10-16 保留身份查询候选（未发布）
+
+GET /access/user 与 WS access.get_user 现在通过原鉴权所有者返回当前主体的
+username／source／created_on。可信 IP 使用冻结的保留描述，API Key 使用私有
+持久时间；原 JWT、force_logins、轮换、地址、订阅和一次令牌准入保持。
+旧 schema1 迁移缺时间时核留存完整源摘要后补回原值，当前已轮换 key／用户不回写。
+已有任何 migration receipt（包括 null）且缺原 startup 声明时拒绝补当前时间。
+
+Windows 最终锁定 TS7、Linux26.9 标准类型检查通过。源码原回归101项通过，
+新身份与旧库最终19项通过；首轮18／19的真实null夹具问题、此前类型／沙箱／
+Windows ELF限制原日志保留。独立JS及候选实际模块＋测试壳各107／107，均禁TS加载；
+实际 ConfiguredMoonraker.loadAuthorized 的HTTP／WS三身份、轮换／SQLite重开11行通过。
+这些是分次记录，不合并为单次全量或完整daemon／客户端旅程。
+
+另建173565dc包，692生产JS与严格独立发射逐SHA一致；相对cd91仅两目标模块改变，
+其余清单、原生及0b53079c依赖不变。未重编原生或重新安装依赖，cd91历史包未写入。
+冻结249443注册仅执行一轮：原四route最高3.51635us＜10；BAAB×3新请求鉴权
+API key为0.98582倍，可信IP为1.09849倍（约增加9.85%），均在新1.5窄门限内；
+16阶段含收口22.122秒，小于300秒，无替换样本。该比较不含HTTP网络、GET序列化或启动，
+不能关闭原服务重获2.62602＞1.5、完整42／28、历史11失败、G3或物理精度门禁。
+1735的同包可信回环Mainsail有限旅程已追加如下；完整同包A4、Moonraker／Python与宏、
+ARM64、CI、正常集成和发布仍待完成。
+本批仅本地提交，未推送／合并／部署；原6394复现包与全部旧A4记录保留，证据见
+[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的reservedIdentityFollowUp。
+
+## 2026-10-16 1735可信回环Mainsail有限出口
+
+不改173565dc／0b53079c产品，Mainsail2.19.0实页chooser上传独立长短合成文件，
+无凭据_TRUSTED_USER_查询与三次实际WS握手通过；双PTY模拟场实际printing后reload，
+同job／request、进度非倒退且start仍1。probe父进程SIGUSR2仅断WS1012，页面TRY AGAIN
+显式重连后同任务继续；不将固定客户端clean关闭后的失败对话框称作自动重连成功。
+默认UI经Pause才显示Cancel，直接提交无确认模态；耐久cancelled后执行标准printer.restart，
+产品PID／startTicks保持、设备generation1→2，再home并明确开始不同短job至completed。
+最终history恰两条，长000001 cancelled、短000002 completed，无旧任务重放。
+
+最终fix4共277.702秒、24截图齐全、清理0错，Windows5／Linux3个登记PID终态均不存在，
+两watchdog remaining为空。once41.376秒URL观察失败、fix1 22.916秒accessible-name定位失败、
+fix2 120.676秒已发长start后截图超时、fix3 159.072秒未点TRY AGAIN便断言新WS，全部分场
+保留，不合并或改写原始失败；fix3的ws-reconnected标签已在旁证中明确更正。
+
+IAB实际不可用后使用已授权共享Playwright与私有Edge默认sandbox；每场独立780秒停止动作、
+870秒强制清理、900秒绝对期限，未延长或复用旧场。本次不重测下载／双层预览／SIGKILL，
+不以cd91旧包证据关闭1735完整A4；完整预算、服务重获2.62602、42／28、历史11失败、G3、
+物理、完整Python／宏及正常集成仍开放。原身份归档不改，新独立归档与全部成员SHA见
+[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的mainsailTrustedLifecycleFollowUp。
+
 ## 客户端验收范围
 
 今后客户端默认以 Mainsail 为唯一验收客户端，不要求每批重复 Fluidd。历史 Fluidd 证据与失败保留，但不作为后续必需的双客户端门禁；只有用户另行指定 Fluidd 时才追加。
 
-## 当前Mainsail A4出口（2026-10-15）
+## 历史cd91包Mainsail A4出口（2026-10-15）
 
 同包Mainsail2.19.0的A4有限场已验证真实上传、测试printer.cfg仅追加注释后保存／
 重开／严格回读，以及忙时入队、暂停／恢复、长任务完成不自动续打、明确清台后

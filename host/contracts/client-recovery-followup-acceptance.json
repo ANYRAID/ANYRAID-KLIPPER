@@ -1539,5 +1539,635 @@
       "rootAuditTool": "04ea11",
       "fullFrontendBundlesIncluded": false
     }
+  },
+  "reservedIdentityFollowUp": {
+    "status": "validated_isolated_reserved_identity_candidate_pending_same_package_client_and_integration",
+    "date": "2026-10-16",
+    "sourceBaselineHead": "9a6890a8fd21201cb10994bc418e14ea1ed21e49",
+    "sourceFiles": [
+      {
+        "path": "host/src/moonraker/api-key-authorization.ts",
+        "bytes": 27270,
+        "sha256": "369e91a9c328583c78efbbcad00ed3e2ceb411ceaf21468971ccb9d95eb213b5"
+      },
+      {
+        "path": "host/src/moonraker/legacy-authorization-startup.ts",
+        "bytes": 12976,
+        "sha256": "917a01ec83509032ceac51e71953712a2b7b7dd2fe8cf38e3065ddef626a6c20"
+      },
+      {
+        "path": "host/test/legacy-authorization-startup.test.ts",
+        "bytes": 16622,
+        "sha256": "49fb446b39b524e3436d2b616cab3dc4ee3e4a307397c3923d01a2f6afe8453b"
+      },
+      {
+        "path": "host/test/reserved-user-identity.test.ts",
+        "bytes": 12858,
+        "sha256": "ae19627d9606cf12cdee805ac86fb000ee002df5122b1c57472ee31e863fa604"
+      }
+    ],
+    "candidateCommit": null,
+    "upstreamCommit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "humanAuthorization": "允许本项目的修复并进行隔离验证；固定184源码传输与隔离调试持续允许",
+    "baseline": {
+      "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/client-reset-product",
+      "manifestSha256": "cd91f2e3242a2cd392e8489f7026fd3cd730470ec8cf03d9113332546cfc67d3",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+    },
+    "candidate": {
+      "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/reserved-user-product",
+      "manifestSha256": "173565dc6b94d2d0380ec911f4f175d5a5b9f644880e8378245315eddf55e774",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+    },
+    "production": {
+      "runtime": "Node.js26.9.0 Linux x64 on10.0.0.184",
+      "jsFiles": 692,
+      "independentEmitAllMatch": true,
+      "changedJs": [
+        "host/src/moonraker/api-key-authorization.js",
+        "host/src/moonraker/legacy-authorization-startup.js"
+      ],
+      "allOtherInventoriedFilesUnchanged": true,
+      "nativeRebuilt": false,
+      "dependenciesInstalled": false,
+      "dependenciesReusedByByteCopy": true,
+      "baselineUnchanged": true
+    },
+    "behavior": [
+      "Current authenticated trusted/API/JWT public user consists of username/source/created_on; reserved source moonraker",
+      "GET-only private binding consumed after read; original subscription shared-signal association retained",
+      "Trusted per-address metadata slides3600s, prunes300s, max4096; active WS/one-shot retain frozen description and recheck live admission",
+      "API key/time initial batch; rotation/reopen preserve persisted time; old native without migration receipt records time once",
+      "Legacy original time imported/recovered only after matching complete retained source digest in original transaction; rotated native key/users untouched",
+      "Any existing migration receipt including null blocks missing-time fallback without original startup declaration",
+      "Expired/spent/mismatched one-shot follows original credential/trusted fallback; it cannot restore the original token description twice"
+    ],
+    "validation": {
+      "windows": {
+        "officialLockedTs7FinalExit": 0,
+        "legacyTests": 13,
+        "networkScope": "Linux ELF sealed-file addon unavailable on Windows; no native rebuild"
+      },
+      "linux": {
+        "runtime": "Node.js26.9.0",
+        "standardTypecheckExit": 0,
+        "sourceOriginalRegression": {
+          "tests": 101,
+          "pass": 101,
+          "fail": 0
+        },
+        "sourceFinalIdentityAndLegacy": {
+          "tests": 19,
+          "pass": 19,
+          "fail": 0
+        },
+        "independentJs": {
+          "tests": 107,
+          "pass": 107,
+          "fail": 0,
+          "typescriptLoadingForbidden": true
+        },
+        "actualProductModulesWithIndependentTestShell": {
+          "tests": 107,
+          "pass": 107,
+          "fail": 0,
+          "typescriptLoadingForbidden": true
+        },
+        "configuredActualProduct": {
+          "rows": 11,
+          "failure": null,
+          "databaseClosed": true,
+          "scope": "ConfiguredMoonraker.loadAuthorized, loopback HTTP/WS three identities, rotation and SQLite reopen; no full daemon/UI/MCU journey"
+        }
+      },
+      "runsRemainSeparate": true
+    },
+    "failuresRetained": [
+      {
+        "kind": "initial TS7",
+        "reason": "TrustedPrincipal union narrowing and public interface Json compatibility; minimal type fix"
+      },
+      {
+        "kind": "Windows standard owned compiler",
+        "reason": "ENOTSUP Linux-only compiler owner"
+      },
+      {
+        "kind": "Windows sandbox tests",
+        "reason": "spawn EPERM"
+      },
+      {
+        "kind": "Windows native network test",
+        "reason": "Existing sealed-file ELF addon cannot load on Windows; legacy13 passed"
+      },
+      {
+        "kind": "Linux first source",
+        "tests": 19,
+        "pass": 18,
+        "fail": 1,
+        "reason": "Null fixture used upstream-compatible insert that ignores top-level null; changed fixture to actual batch-persisted null",
+        "followupIdentityFile": {
+          "tests": 6,
+          "pass": 6
+        },
+        "laterNullReceiptCorrection": "Final new identity and legacy19 passed; original failures not overwritten"
+      }
+    ],
+    "performance": {
+      "registrationSha256": "249443e79a7f13edb93b4ae578a4581319613861513c470d42f97419dcfef3b4",
+      "existingBudget": {
+        "script": "host/bench/api-key-authorization.ts unchanged, independently emitted JS benchmark shell imports actual candidate runtime",
+        "requestsPerRound": 100000,
+        "rounds": 8,
+        "warmups": 3,
+        "retained": 5,
+        "microseconds": {
+          "status": 1.9983279000000005,
+          "file": 2.9312883699999976,
+          "image": 3.51635186,
+          "anonymous-image": 1.3805314000000004
+        },
+        "maximumMicrosecondsExclusive": 10,
+        "allPass": true
+      },
+      "paired": {
+        "A": "immutable cd91 productJS",
+        "B": "separate1735 actual productJS",
+        "order": [
+          "B",
+          "A",
+          "A",
+          "B",
+          "B",
+          "A",
+          "A",
+          "B",
+          "B",
+          "A",
+          "A",
+          "B"
+        ],
+        "processesPerVariant": 6,
+        "requestsPerRound": 20000,
+        "rounds": 8,
+        "warmups": 3,
+        "retained": 5,
+        "allRawRoundsSaved": true,
+        "apiKey": {
+          "baselineNs": 4128.225675,
+          "candidateNs": 4069.677250000001,
+          "ratio": 0.9858175328556866
+        },
+        "trusted": {
+          "baselineNs": 1950.8363250000002,
+          "candidateNs": 2142.976250000001,
+          "ratio": 1.0984910535741643,
+          "increasePercent": 9.84910535741643
+        },
+        "maximumRatioInclusive": 1.5,
+        "allPass": true
+      },
+      "stages": 16,
+      "elapsedThroughReceiptMs": 22122,
+      "totalDeadlineMs": 300000,
+      "replacementSamples": 0,
+      "scope": "Fresh request/context allocation, captured proxy metadata and live authorization only; no socketIO, GET endpoint serialization, startup or printing"
+    },
+    "historicalReproductionArchive": {
+      "path": "host/contracts/reserved-user-identity-fix-evidence.tar.gz",
+      "archiveMember": "historical/trusted-user-reproduction-review-evidence.tar.gz",
+      "sha256": "6394b24ed26e5e6170687273275a14689714b5b4b238eab0ee136c0d061fd3f5",
+      "bytes": 49110,
+      "nestedMembers": 23,
+      "nestedPayloads": 22,
+      "originalBytesUnchanged": true,
+      "nestedAllMemberBytesAndHashesMatch": true,
+      "unchanged": true
+    },
+    "evidenceArchive": {
+      "path": "host/contracts/reserved-user-identity-fix-evidence.tar.gz",
+      "bytes": 191957,
+      "sha256": "6e72a5b8e0a2eec3ae4c00f62017fdad2490c6a64a30b28118fe96aafa9ab82c",
+      "members": 67,
+      "evidenceFiles": 66,
+      "manifest": "manifest.json",
+      "manifestSha256": "df6e5c7cbdd85e41228b592f863d3deadc69c43d5ca8c746a0f9ebefcba90f02",
+      "allMemberBytesAndHashesMatch": true,
+      "uniqueSafeRegularMembers": true,
+      "sensitivePatternHits": {
+        "privateKey": 0,
+        "githubToken": 0,
+        "jwt": 0,
+        "bearer": 0,
+        "cookieValue": 0
+      }
+    },
+    "boundaries": [
+      "No production deployment, push or merge",
+      "No UI/MCU/real device actions in this batch",
+      "Old cd91 A4 results are not same-package UI proof for1735",
+      "Historical service reacquire2.62602, complete42/28, G3, physical, complete Python and macro delivery remain open",
+      "Original4route warmups remain unlogged by unchanged original benchmark; new paired comparison preserves all8 rounds",
+      "Candidate1735 has no current CI, normal develop/master integration or release",
+      "Default future UI client Mainsail only; old cd91 UI records are not relabeled",
+      "Historical local11/G3, full42/28, ARM64, privileged deployment and complete Moonraker/Python/macros remain open"
+    ]
+  },
+  "mainsailTrustedLifecycleFollowUp": {
+    "schema": 1,
+    "date": "2026-10-16",
+    "status": "finite trusted-loopback UI lifecycle validated; not full A4",
+    "authorization": [
+      "允许本项目的修复并进行隔离验证",
+      "本项目开发实际需要linux环境的情况下，自行使用10.0.0.184"
+    ],
+    "client": {
+      "name": "Mainsail",
+      "version": "2.19.0",
+      "upstreamCommit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
+      "sourceCleanAtRead": true,
+      "mainAssetSha256": "c8698c0bc6be76c897ae00865676b05e9aa4b833fc9b046f2d0c59692d60713b"
+    },
+    "product": {
+      "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/reserved-user-product",
+      "manifestSha256": "173565dc6b94d2d0380ec911f4f175d5a5b9f644880e8378245315eddf55e774",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+      "afterAllScenesActualInventoryVerified": true,
+      "productUnchanged": true,
+      "priorCd91Unchanged": true
+    },
+    "environment": {
+      "linux": "10.0.0.184",
+      "node": "26.9.0",
+      "transport": "dualPTY simulated MCU only; independent actual JS product process",
+      "browser": "IAB actual unavailable; authorized shared Playwright1.62.1/private Edge/default sandbox",
+      "browserOrigin": "http://127.0.0.1:18434",
+      "probeOrigin": "http://127.0.0.1:18432",
+      "auth": "Explicit trusted-loopback; native Mainsail route; no JWT gateway",
+      "noRealDevice": true
+    },
+    "inputs": {
+      "schema": 1,
+      "syntheticOnly": true,
+      "apiSeedClientSampleExcluded": true,
+      "files": [
+        {
+          "name": "trusted-lifecycle-long-oct16.gcode",
+          "bytes": 42065,
+          "sha256": "dc2886e155054e3402a7660352c3c6bbc469f41fbef13a21f53ea14b7997e603"
+        },
+        {
+          "name": "trusted-lifecycle-short-oct16.gcode",
+          "bytes": 113,
+          "sha256": "1e17d97cd6dcaea58b4c193d2ac35509fad7c9db5b500952c20fd0b74f51afb5"
+        }
+      ]
+    },
+    "finalScene": {
+      "archivePrefix": "scenes/mainsail-trusted-lifecycle-fix4/",
+      "elapsedThroughCleanupMs": 277702,
+      "readOnlyIdentity": {
+        "path": "trusted-identity.json",
+        "status": 200,
+        "username": "_TRUSTED_USER_",
+        "source": "moonraker",
+        "fields": [
+          "username",
+          "source",
+          "created_on"
+        ],
+        "credentialHeaders": false
+      },
+      "checkpoints": {
+        "before-reload": {
+          "at": 1792132971032,
+          "jobId": "000001",
+          "requestId": "compat-c6d195d6-3a99-43df-8590-1c061c047834",
+          "progress": 0,
+          "duration": 8.419727426999998,
+          "websocketConnections": 1,
+          "starts": 1
+        },
+        "after-reload": {
+          "at": 1792132985705,
+          "jobId": "000001",
+          "requestId": "compat-c6d195d6-3a99-43df-8590-1c061c047834",
+          "progress": 0.06380601450136693,
+          "duration": 23.127174483,
+          "websocketConnections": 2,
+          "starts": 1
+        },
+        "before-drop": {
+          "at": 1792132985968,
+          "jobId": "000001",
+          "requestId": "compat-c6d195d6-3a99-43df-8590-1c061c047834",
+          "progress": 0.06380601450136693,
+          "duration": 23.413906578999995,
+          "websocketConnections": 2,
+          "starts": 1
+        },
+        "after-drop": {
+          "at": 1792133007502,
+          "jobId": "000001",
+          "requestId": "compat-c6d195d6-3a99-43df-8590-1c061c047834",
+          "progress": 0.19160822536550576,
+          "duration": 44.898460692,
+          "websocketConnections": 3,
+          "starts": 1
+        }
+      },
+      "reconnect": {
+        "kind": "explicit-native-TRY-AGAIN-after-1012",
+        "automaticReconnectAccepted": false,
+        "websocketConnections": 3,
+        "handshakeChecked": 3
+      },
+      "cancel": {
+        "kind": "native-direct-submit-after-pause",
+        "confirmationDialogObserved": false
+      },
+      "pause": {
+        "method": "printer.print.pause",
+        "id": 50,
+        "requiredToExposeDefaultCancelButton": true
+      },
+      "restart": {
+        "method": "printer.restart",
+        "generation": [
+          1,
+          2
+        ],
+        "productPid": 412080,
+        "originalProductStartTicks": "16358764",
+        "samePidAndTicksRuntimeCheck": "finish compares actual live PID/startTicks with registered original; accepted only if equal"
+      },
+      "business": [
+        {
+          "at": 1792132946846,
+          "event": "browser-rpc-sent",
+          "method": "printer.gcode.script",
+          "id": 29,
+          "script": "G28"
+        },
+        {
+          "at": 1792132958802,
+          "event": "browser-rpc-sent",
+          "method": "printer.print.start",
+          "id": 30,
+          "filename": "trusted-lifecycle-long-oct16.gcode"
+        },
+        {
+          "at": 1792133058108,
+          "event": "browser-rpc-sent",
+          "method": "printer.print.pause",
+          "id": 50
+        },
+        {
+          "at": 1792133070168,
+          "event": "browser-rpc-sent",
+          "method": "printer.print.cancel",
+          "id": 51
+        },
+        {
+          "at": 1792133112902,
+          "event": "browser-rpc-sent",
+          "method": "printer.restart",
+          "id": 75
+        },
+        {
+          "at": 1792133132130,
+          "event": "browser-rpc-sent",
+          "method": "printer.gcode.script",
+          "id": 82,
+          "script": "G28"
+        },
+        {
+          "at": 1792133154103,
+          "event": "browser-rpc-sent",
+          "method": "printer.print.start",
+          "id": 83,
+          "filename": "trusted-lifecycle-short-oct16.gcode"
+        }
+      ],
+      "handshakes": [
+        {
+          "at": 1792132908491,
+          "event": "browser-ws-handshake",
+          "path": "/websocket",
+          "local": true,
+          "queryCredentials": false,
+          "credentials": {
+            "authorization": false,
+            "apiKey": false,
+            "accessToken": false,
+            "cookie": false
+          }
+        },
+        {
+          "at": 1792132977723,
+          "event": "browser-ws-handshake",
+          "path": "/websocket",
+          "local": true,
+          "queryCredentials": false,
+          "credentials": {
+            "authorization": false,
+            "apiKey": false,
+            "accessToken": false,
+            "cookie": false
+          }
+        },
+        {
+          "at": 1792132999495,
+          "event": "browser-ws-handshake",
+          "path": "/websocket",
+          "local": true,
+          "queryCredentials": false,
+          "credentials": {
+            "authorization": false,
+            "apiKey": false,
+            "accessToken": false,
+            "cookie": false
+          }
+        }
+      ],
+      "history": [
+        {
+          "job_id": "000002",
+          "filename": "trusted-lifecycle-short-oct16.gcode",
+          "status": "completed",
+          "metadata": {
+            "native_request_id": "compat-548a0abd-4e10-4446-9801-fa3eda5b5745"
+          }
+        },
+        {
+          "job_id": "000001",
+          "filename": "trusted-lifecycle-long-oct16.gcode",
+          "status": "cancelled",
+          "metadata": {
+            "native_request_id": "compat-c6d195d6-3a99-43df-8590-1c061c047834"
+          }
+        }
+      ],
+      "screenshots": {
+        "captured": 24,
+        "missing": 0
+      },
+      "cleanup": {
+        "windowsAllAbsent": true,
+        "linuxAllAbsent": true,
+        "windowsWatchdogRemaining": [],
+        "linuxWatchdogRemaining": [],
+        "localPortsFree": [
+          {
+            "port": 19236,
+            "free": true
+          },
+          {
+            "port": 18434,
+            "free": true
+          }
+        ]
+      },
+      "commands": {
+        "count": 53,
+        "monotonic": true,
+        "consumedExactlyOnce": true
+      },
+      "runtimeProductIdentityCheckPassed": true
+    },
+    "priorFailedScenes": [
+      {
+        "directory": "mainsail-trusted-lifecycle-once",
+        "status": "failed_or_partial",
+        "failedPhase": "observe ready",
+        "error": {
+          "name": "Error",
+          "message": "locator.evaluateAll: TypeError: Failed to construct 'URL': Invalid URL\n    at eval (eval at evaluate (:311:30), <anonymous>:1:424)\n    at Array.map (<anonymous>)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:8)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+        },
+        "elapsedThroughCleanupMs": 41376,
+        "business": [],
+        "cleanupErrors": [],
+        "archivePrefix": "scenes/mainsail-trusted-lifecycle-once/",
+        "errorClassification": "Observation/locator/screenshot facility failure; not product failure"
+      },
+      {
+        "directory": "mainsail-trusted-lifecycle-fix1",
+        "status": "failed_or_partial",
+        "failedPhase": "visible click files-nav",
+        "error": {
+          "name": "Error",
+          "message": "Visible target not unique"
+        },
+        "elapsedThroughCleanupMs": 22916,
+        "business": [],
+        "cleanupErrors": [],
+        "archivePrefix": "scenes/mainsail-trusted-lifecycle-fix1/",
+        "errorClassification": "Observation/locator/screenshot facility failure; not product failure"
+      },
+      {
+        "directory": "mainsail-trusted-lifecycle-fix2",
+        "status": "failed_or_partial",
+        "failedPhase": "screenshot long-visible",
+        "error": {
+          "name": "TimeoutError",
+          "message": "page.screenshot: Timeout 2000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+        },
+        "elapsedThroughCleanupMs": 120676,
+        "business": [
+          {
+            "at": 1792132177432,
+            "method": "printer.gcode.script",
+            "id": 29,
+            "script": "G28"
+          },
+          {
+            "at": 1792132210480,
+            "method": "printer.print.start",
+            "id": 30,
+            "filename": "trusted-lifecycle-long-oct16.gcode"
+          }
+        ],
+        "cleanupErrors": [],
+        "archivePrefix": "scenes/mainsail-trusted-lifecycle-fix2/",
+        "errorClassification": "Observation/locator/screenshot facility failure; not product failure"
+      },
+      {
+        "directory": "mainsail-trusted-lifecycle-fix3",
+        "status": "failed_or_partial",
+        "failedPhase": "read-only state after-drop",
+        "error": {
+          "name": "Error",
+          "message": "No new observed WS for reconnect"
+        },
+        "elapsedThroughCleanupMs": 159072,
+        "business": [
+          {
+            "at": 1792132460741,
+            "method": "printer.gcode.script",
+            "id": 29,
+            "script": "G28"
+          },
+          {
+            "at": 1792132473986,
+            "method": "printer.print.start",
+            "id": 30,
+            "filename": "trusted-lifecycle-long-oct16.gcode"
+          }
+        ],
+        "cleanupErrors": [],
+        "archivePrefix": "scenes/mainsail-trusted-lifecycle-fix3/",
+        "errorClassification": "Premature checkpoint without native TRY AGAIN; not product reconnect failure"
+      }
+    ],
+    "sourceEvidence": {
+      "prefix": "scenes/mainsail-trusted-lifecycle-fix3/fixed-client-source/",
+      "rootCause": "scenes/mainsail-trusted-lifecycle-fix3/reconnect-root-cause.json",
+      "actualAssetBranch": "scenes/mainsail-trusted-lifecycle-fix4/final-artifacts.json",
+      "wasCleanDirectlyRecorded": false,
+      "fix3LabelCorrection": "013-ws-reconnected is an original misleading label; actual DOM and screenshot show Connection failed / TRY AGAIN"
+    },
+    "owner": {
+      "absoluteDeadlineMs": 900000,
+      "stopNewActionsMs": 780000,
+      "forcedCleanupMs": 870000,
+      "everySceneIndependentDeadline": true,
+      "noAutomaticRelaunch": true,
+      "firstBusinessFailureCleanup": true,
+      "screenshotMissingPolicy": "Read-only evidence gap logged separately; fix4 has zero missing screenshots",
+      "processIdentity": "Windows PID/startTicks string; Edge private profile/CDP; Linux PID/startTicks"
+    },
+    "evidenceArchive": {
+      "path": "host/contracts/mainsail-trusted-lifecycle-evidence.tar.gz",
+      "bytes": 4791403,
+      "sha256": "433ec47ed71e7d2d456fd1776ddc89fd07bca196d425dc7c623bd8691c088bb3",
+      "members": 436,
+      "evidenceFiles": 435,
+      "manifest": "manifest.json",
+      "manifestSha256": "fa96b664761f3f671828235167ceb88491766a9b242a957d7f7104b76b61ce5e",
+      "allMemberBytesAndHashesMatch": true,
+      "gzipCrcAndSizeVerified": true,
+      "tarHeaderChecksumsVerified": true,
+      "uniqueSafeRegularMembers": true,
+      "selection": "Explicit scene-output/script/command/result/source filename allowlists; Edge profile is never traversed",
+      "sensitivePatternHits": {
+        "privateKey": 0,
+        "githubToken": 0,
+        "jwt": 0,
+        "bearer": 0,
+        "cookieValue": 0
+      }
+    },
+    "previousReservedIdentityArchive": {
+      "path": "host/contracts/reserved-user-identity-fix-evidence.tar.gz",
+      "sha256": "6e72a5b8e0a2eec3ae4c00f62017fdad2490c6a64a30b28118fe96aafa9ab82c",
+      "unchanged": true
+    },
+    "boundaries": [
+      "Explicit TRY AGAIN reconnection after1012 only; automatic reconnect not accepted",
+      "Default native Cancel submits directly after necessary Pause; no confirmation modal was observed",
+      "No1735 download/dual-layer-preview/SIGKILL revalidation; historical cd91 package attribution unchanged",
+      "No full A4, full Moonraker/Python/macros, ARM64, physical or privileged installation claim",
+      "Original service reacquire2.62602>1.5/full42/28/local11/G3 and complete budgets remain open",
+      "No source/product modification, commit/push/merge/deploy in this UI evidence batch"
+    ]
   }
 }

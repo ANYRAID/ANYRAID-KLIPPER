@@ -15,13 +15,21 @@ import type {DeliveryReport} from './notifications.ts';
 export interface AuthorizationEvents {broadcast(method:string,params:readonly Json[]):Promise<DeliveryReport>;}
 export interface AuthorizationOptions extends LocalUserOptions {trustedClients?:readonly string[];trustedClientOptions?:TrustedClientOptions;maxLoginAttempts?:number;enableApiKey?:boolean;monotonicNow?:()=>number;}
 interface UserSession {token:string;username:string;kid:string;}
-type Principal=number|UserSession|'trusted';
+type PublicReservedUser={readonly username:'_API_KEY_USER_'|'_TRUSTED_USER_';readonly source:'moonraker';readonly created_on:number;};
+interface TrustedPrincipal {readonly kind:'trusted';readonly address:string;readonly user:PublicReservedUser;}
+type Principal=number|UserSession|TrustedPrincipal;
+const isTrusted=(value:Principal):value is TrustedPrincipal=>typeof value==='object'&&'kind' in value&&value.kind==='trusted';
+function publicTime(value:unknown):number{if(typeof value!=='number'||!Number.isFinite(value)||value<0)throw new ApiError(500,'Invalid authorization identity time');return value;}
 const namespace='native_authorization',identity=Object.freeze({username:'_API_KEY_USER_'});
 const digest=(key:string)=>createHash('sha256').update(key).digest();
 /** One owner per DatabaseStore; credentials never enter the public namespace API.
  * Address admission requires explicit trustedClients configuration. */
 export class ApiKeyAuthorization {
  readonly #trusted:TrustedClients;
+ readonly #trustedUsers=new Map<string,{principal:TrustedPrincipal;expires:number}>();
+ readonly #userReads=new WeakMap<AbortSignal,{request:IncomingMessage;principal:Principal}>();
+ readonly #now:()=>number;readonly #apiUser:PublicReservedUser;readonly #pruneTimer:ReturnType<typeof setInterval>;
+ #nextPrune:number;
  readonly #addresses=new WeakMap<IncomingMessage,ProxyAddress&{readonly protocol:RequestProtocol|undefined;readonly transport:RequestProtocol}>();
  readonly #database:DatabaseStore;readonly #store:DatabaseNamespace;
  readonly #connections=new WeakMap<IncomingMessage,Principal|null>();
@@ -35,14 +43,35 @@ export class ApiKeyAuthorization {
  get eventStatus(){return {...this.#eventTotals,pending:this.#eventTickets.size};}
 
  #key:string;#digest:Buffer;#generation=0;#closed=false;#rotation:Promise<string>|undefined;
- private constructor(database:DatabaseStore,store:DatabaseNamespace,key:string,options?:AuthorizationOptions){this.#trusted=new TrustedClients(options?.trustedClients,options?.trustedClientOptions);this.#attempts=new LoginAttempts(options?.maxLoginAttempts);this.#oneShots=new OneShotTokens(options?.monotonicNow);this.#enableApiKey=options?.enableApiKey??true;this.#database=database;this.#store=store;this.#key=key;this.#digest=digest(key);}
- static async open(database:DatabaseStore,options?:AuthorizationOptions){
+ private constructor(database:DatabaseStore,store:DatabaseNamespace,key:string,createdOn:number,now:number,options?:AuthorizationOptions){this.#trusted=new TrustedClients(options?.trustedClients,options?.trustedClientOptions);this.#attempts=new LoginAttempts(options?.maxLoginAttempts);this.#oneShots=new OneShotTokens(options?.monotonicNow);this.#enableApiKey=options?.enableApiKey??true;this.#database=database;this.#store=store;this.#key=key;this.#digest=digest(key);this.#now=options?.now??(()=>Date.now()/1000);this.#apiUser=Object.freeze({username:'_API_KEY_USER_',source:'moonraker',created_on:createdOn});this.#nextPrune=now+300;this.#pruneTimer=setInterval(()=>{try{this.#pruneTrusted(publicTime(this.#now()));}catch{this.#trustedUsers.clear();}},300000);this.#pruneTimer.unref();}
+ static async open(database:DatabaseStore,options?:AuthorizationOptions){ const now=publicTime((options?.now??(()=>Date.now()/1000))());
   if(options?.enableApiKey!==undefined&&typeof options.enableApiKey!=='boolean')throw new ApiError(400,'Invalid API key policy');new LoginAttempts(options?.maxLoginAttempts);new TrustedClients(options?.trustedClients);
   const store=await database.registerLocalNamespace(namespace,{forbidden:true,parseKeys:false});
-  const saved=await store.get('api_key');let key:string;
-  if(saved===null){key=randomBytes(16).toString('hex');await store.insert('api_key',key);}
-  else{if(typeof saved!=='string'||!(/^[a-f0-9]{32}$/u.test(saved)))throw new ApiError(500,'Invalid persisted API key');key=saved;}
-  const owner=new ApiKeyAuthorization(database,store,key,options);if(options)owner.#users=await LocalUserAuthorization.open(database,options);return owner;
+  const saved=await store.get('api_key'),savedTime=await store.get('api_key_created_on'),hasTime=await store.contains('api_key_created_on');let key:string,createdOn:number;
+  if(saved===null){if(hasTime)throw new ApiError(500,'Orphaned API key identity time');key=randomBytes(16).toString('hex');createdOn=now;await store.update({api_key:key,api_key_created_on:createdOn});}
+  else{
+   if(typeof saved!=='string'||!(/^[a-f0-9]{32}$/u.test(saved)))throw new ApiError(500,'Invalid persisted API key');key=saved;
+   if(!hasTime){
+    let receipt:Json|undefined;try{receipt=await database.get('native_identity_migration','receipt');}catch(error){if(!(error instanceof ApiError)||error.status!==404)throw error;}
+    if(receipt!==undefined)throw new ApiError(422,'Legacy authorization identity time requires original startup declaration');
+    createdOn=now;await store.insert('api_key_created_on',createdOn);
+   }else createdOn=publicTime(savedTime);
+  }
+  const owner=new ApiKeyAuthorization(database,store,key,createdOn,now,options);try{if(options)owner.#users=await LocalUserAuthorization.open(database,options);return owner;}catch(error){try{await owner.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Authorization startup cleanup failed');}throw error;}
+ }
+ #pruneTrusted(now:number){for(const [address,value]of this.#trustedUsers)if(value.expires<=now)this.#trustedUsers.delete(address);this.#nextPrune=now+300;}
+ #trustedPrincipal(request:IncomingMessage):TrustedPrincipal{
+  const now=publicTime(this.#now());if(now>=this.#nextPrune)this.#pruneTrusted(now);const address=this.#boundAddress(request),cached=this.#trustedUsers.get(address);
+  if(cached){cached.expires=now+3600;return cached.principal;}
+  if(this.#trustedUsers.size>=4096){this.#pruneTrusted(now);if(this.#trustedUsers.size>=4096)this.#trustedUsers.delete(this.#trustedUsers.keys().next().value!);}
+  const principal:TrustedPrincipal=Object.freeze({kind:'trusted',address,user:Object.freeze({username:'_TRUSTED_USER_',source:'moonraker',created_on:now})});this.#trustedUsers.set(address,{principal,expires:now+3600});return principal;
+ }
+ #readUser(context:RpcContext){
+  this.#active();context.signal.throwIfAborted();const binding=this.#userReads.get(context.signal),principal=this.#principals.get(context.signal);this.#userReads.delete(context.signal);
+  if(!binding||principal===undefined||binding.request!==this.#requests.get(context.signal)||binding.principal!==principal)throw new ApiError(401,'Authenticated user request context changed');
+  const username=typeof principal==='number'?identity.username:isTrusted(principal)?principal.user.username:principal.username;
+  if(context.user?.username!==username)throw new ApiError(401,'Authenticated user identity changed');
+  return typeof principal==='number'?this.#apiUser:isTrusted(principal)?principal.user:this.#users!.user(principal.username);
  }
  #active(){const status=this.#database.status;if(this.#closed||status.closed||status.closing||status.restoreState!=='ready')throw new ApiError(503,'Authorization unavailable');}
  /** Local provisioning only. Never include this value in diagnostics or logs. */
@@ -75,8 +104,12 @@ export class ApiKeyAuthorization {
   this.#active();context.signal.throwIfAborted();
   this.#requests.set(context.signal,context.request);
   const optionalThumbnail=method==='server.files.download'&&context.transport==='http'&&anonymousThumbnailGet({method:context.request.method,url:relativeRouteUrl(context.request.url??'',context.routePrefix??'')});
-  const remember=(principal:Principal)=>{this.#principals.set(context.signal,principal);if(context.transport==='websocket')this.#connections.set(context.request,principal);return typeof principal==='number'?identity:{username:principal==='trusted'?'_TRUSTED_USER_':principal.username};};
-  const validate=(principal:Principal)=>{if(typeof principal==='number'){if(!this.#enableApiKey||principal!==this.#generation)throw new ApiError(401,'Invalid API Key');}else if(principal==='trusted'){if(!this.#trusts(context.request))throw new ApiError(401,'Trusted client authorization no longer available');}else this.#users!.decode(principal.token,'access',false);return remember(principal);};
+  const remember=(principal:Principal)=>{
+   this.#principals.set(context.signal,principal);if(context.transport==='websocket')this.#connections.set(context.request,principal);
+   if(method==='access.get_user'){const previous=this.#userReads.get(context.signal);if(previous&&previous.request!==context.request)throw new ApiError(401,'Authenticated user request context reused');this.#userReads.set(context.signal,{request:context.request,principal});}
+   return typeof principal==='number'?identity:{username:isTrusted(principal)?principal.user.username:principal.username};
+  };
+  const validate=(principal:Principal)=>{if(typeof principal==='number'){if(!this.#enableApiKey||principal!==this.#generation)throw new ApiError(401,'Invalid API Key');}else if(isTrusted(principal)){if(!this.#trusts(context.request))throw new ApiError(401,'Trusted client authorization no longer available');}else this.#users!.decode(principal.token,'access',false);return remember(principal);};
   const identify=method==='server.connection.identify',session=this.#connections.get(context.request);
   const acceptToken=(token:unknown)=>{if(!this.#users)throw new ApiError(401,'Bearer authentication is not configured');const user=this.#users.decode(token,'access',!optionalThumbnail&&!['access.login','access.refresh_jwt','access.info'].includes(method));if(context.transport==='websocket')this.#users.decode(token);return remember({token:token as string,username:user.username,kid:JSON.parse(Buffer.from((token as string).split('.')[0],'base64url').toString()).kid});};
   const acceptKey=(key:unknown)=>{if(!this.#matches(key))throw new ApiError(401,'Invalid API Key');return remember(this.#generation);};
@@ -94,7 +127,7 @@ export class ApiKeyAuthorization {
   const cached=this.#oneShotRequests.get(context.request);if(cached!==undefined)return validate(cached);
   if(context.request.url?.includes('token')){const oneShot=new URL(context.request.url,'http://localhost').searchParams.getAll('token').at(-1);if(oneShot!==undefined){if(proxyPending)throw new ApiError(401,'Proxy verification pending');const principal=this.#oneShots.consume(oneShot,this.#boundAddress(context.request));if(principal!==undefined){const user=validate(principal);if(context.transport==='http')this.#oneShotRequests.set(context.request,principal);return user;}}}
   const header=context.request.headers['x-api-key'];if(header!==undefined)return acceptKey(header);
-  if(this.#trusts(context.request))return remember('trusted');
+  if(this.#trusts(context.request))return remember(this.#trustedPrincipal(context.request));
   if(optionalThumbnail||method==='access.info'||this.#users&&(method==='access.login'||method==='access.refresh_jwt'))return;
   throw new ApiError(401,'Unauthorized');
  }
@@ -136,7 +169,7 @@ export class ApiKeyAuthorization {
    if(typeof principal==='number'){
     if(!this.#enableApiKey||principal!==this.#generation)throw new ApiError(401,'Queue API Key authority revoked');return identity;
    }
-   if(principal==='trusted'){
+   if(isTrusted(principal)){
     if(!this.#trusts(request))throw new ApiError(401,'Queue trusted client authority revoked');return Object.freeze({username:'_TRUSTED_USER_'});
    }
    const user=this.#users!.decode(principal.token,'access');
@@ -157,7 +190,7 @@ export class ApiKeyAuthorization {
     // old session. This grant never authorizes RPCs or other notifications.
     if(!(error instanceof ApiError)||error.status!==401)throw error;
     const session=this.#connections.get(context.request),payload=params[0];
-    if(session&&typeof session==='object'&&params.length===1&&payload&&typeof payload==='object'&&!Array.isArray(payload)&&Object.keys(payload).length===1&&payload.username===session.username){
+    if(session&&typeof session==='object'&&!isTrusted(session)&&params.length===1&&payload&&typeof payload==='object'&&!Array.isArray(payload)&&Object.keys(payload).length===1&&payload.username===session.username){
      for(const event of this.#eventGrants)if(event.kind!=='user_created'&&method==='notify_'+event.kind&&event.username===session.username&&event.revokedKid===session.kid)return;
     }
     throw error;
@@ -215,7 +248,7 @@ export class ApiKeyAuthorization {
     remove.push(endpoints.register({endpoint:'/access/user',methods:['GET','POST','DELETE'],transports:['http','websocket']},(params,verb,ctx)=>{
      if(verb==='POST')return login(params,ctx,true);
      if(verb==='DELETE')return this.#mutation(ctx,delivery,committed=>users.delete(params.username,ctx.user?.username??'',ctx.signal,committed));
-     return ctx.user&&ctx.user.username!==identity.username?users.user(ctx.user.username):{username:null,source:null,created_on:null};
+     return this.#readUser(ctx);
     }));
     remove.push(endpoints.register({endpoint:'/access/users/list',methods:['GET'],transports:['http','websocket']},()=>users.list()));
     remove.push(endpoints.register({endpoint:'/access/user/password',methods:['POST'],transports:['http','websocket']},(params,_verb,ctx)=>users.password(ctx.user?.username??'',params,ctx.signal)));
@@ -223,5 +256,5 @@ export class ApiKeyAuthorization {
    return ()=>{for(const dispose of remove.reverse())dispose();};
   }catch(error){for(const dispose of remove.reverse())dispose();throw error;}
  }
- async close(){this.#closed=true;this.#attempts.close();this.#oneShots.close();await this.#trusted.close();await this.#rotation;await this.#users?.close();for(const release of this.#eventTickets)release();await Promise.all(this.#eventTasks);this.#eventGrants.clear();}
+ async close(){this.#closed=true;clearInterval(this.#pruneTimer);this.#trustedUsers.clear();this.#attempts.close();this.#oneShots.close();await this.#trusted.close();await this.#rotation;await this.#users?.close();for(const release of this.#eventTickets)release();await Promise.all(this.#eventTasks);this.#eventGrants.clear();}
 }

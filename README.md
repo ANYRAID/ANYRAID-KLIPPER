@@ -28,11 +28,24 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 新进程不重放；备份换代先释放首轮真实 socket。默认入口的软件与模拟验证、
 其他 provider 的兼容边界见[共享总线验收](host/contracts/system-bus-provider-acceptance.json)
 和[启动装配](docs/Node_Host_Startup.md#共享-d-bus-进程所有者)。
-本项目固定使用 `10.0.0.184` 作为 Linux 开发与调试环境，用户持续允许
+本项目固定使用 `10.0.0.184` 作为 Linux 开发与调试环境。用户明确允许：
+“本项目开发实际需要linux环境的情况下，自行使用10.0.0.184”；持续允许
 在该机隔离调试及传输本项目所需源码。当前任务专用工作树为
 `/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER`；
 后续任务继续使用独立任务分支与工作树，不覆盖已有修改。此约定不授权
 真实设备／系统电源操作、生产部署或绕过任务→develop→主线的PR流程。
+
+保留身份查询候选现为可信 IP／API Key 的 GET /access/user 与 WS access.get_user
+返回 username／source／created_on，JWT 继续返回注册用户资料；旧安装原创建时间
+从留存源核摘要恢复，轮换／重开保留。新候选1735的隔离回归与窄鉴权预算已验，
+完整同包客户端A4、完整预算、正常集成与实机仍开放，见[本批验收](host/contracts/client-recovery-followup-acceptance.json)的reservedIdentityFollowUp。
+
+同1735包的Mainsail2.19.0可信回环有限场已验证真实chooser上传、打印中reload，
+1012断连后通过原生TRY AGAIN显式重连，同job／request及单次start保持、进度增加；
+经必要Pause后直接Cancel（默认无确认弹窗），标准printer.restart保持产品进程、
+模拟设备generation增加，另一短job完成且旧job仍cancelled。最终场277.702秒、
+24张截图和两端清理终态齐全；前四失败分场保留，不称自动重连或完整A4通过。
+见同一验收的mainsailTrustedLifecycleFollowUp；cd91旧包证据归属不变。
 
 后续客户端默认仅验 Mainsail；历史 Fluidd 证据和失败保留，用户另行指定时才追加，
 不要求每批重复双客户端。
@@ -48,6 +61,7 @@ Node26.12普通测试5402／5402、零失败／取消／跳过；原三项安装
 原失败、输入、有限补验及435终态见[CI夹具验收](host/contracts/system-bus-provider-acceptance.json)
 的ciFixtureFollowUp。
 
+下述为历史cd91包的A4记录，1735有限可信场单独见上文，不合并为同包完整验收。
 同包Mainsail2.19.0的A4有限场已验证真实上传、测试printer.cfg仅追加注释后保存／
 重开／严格回读，以及忙时入队、暂停／恢复、长任务完成不自动续打、明确清台后
 不同短任务完成。清台确认在产品自有/_client/queue页，不冒称Mainsail原生按钮。

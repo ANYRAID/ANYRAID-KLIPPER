@@ -2,7 +2,8 @@
 
 ## Linux 开发与调试环境
 
-本项目固定使用 `10.0.0.184`，用户持续允许在该机传输项目源码和调试。
+本项目固定使用 `10.0.0.184`。用户明确允许“本项目开发实际需要linux环境的情况下，
+自行使用10.0.0.184”，持续允许在该机传输项目源码和隔离调试。
 当前 none／Supervisor 任务隔离目录为
 `/home/dek02/.codex/worktrees/supervisor-group-compat/ANYRAID-KLIPPER`。
 每项工作先核对分支、未提交状态及覆盖前哈希；后续任务新建独立工作树，
@@ -14,7 +15,27 @@
 
 今后客户端默认以 Mainsail 为唯一验收客户端，不要求每批重复 Fluidd。历史 Fluidd 证据与失败保留，但不作为后续必需的双客户端门禁；只有用户另行指定 Fluidd 时才追加。
 
-## 同包Mainsail A4有限补验
+## 1735可信回环Mainsail有限旅程（2026-10-16）
+
+固定173565dc／0b53079c包与Mainsail2.19.0，在184双PTY模拟MCU、独立实际产品子进程
+上完成真实chooser上传两份合成文件。无凭据GET /access/user返回_TRUSTED_USER_三字段；
+浏览器HTTP与三次实际WS握手均未带凭据。打印中reload、probe父进程SIGUSR2造成1012关闭
+后，使用页面TRY AGAIN显式重连；四检查点始终同job／request、start总数1、进度非倒退。
+这不是自动重连通过；固定客户端clean关闭分支停止重试，源码与发包JS证据保留。
+
+默认UI须先Pause才显示Cancel，页面直接提交printer.print.cancel，无确认弹窗；
+长job000001耐久cancelled后，页面标准printer.restart令模拟设备generation由1增至2，
+产品PID／startTicks保持。重新home后明确另一短job000002 completed，旧job仍cancelled，
+总start2、cancel1、标准restart1，无固件重启或旧任务重放。最终场277.702秒、24张截图齐全，
+Windows5／Linux3个已登记PID均不存在、两watchdog remaining为空。
+
+原once／fix1的观察与定位失败、fix2已发一次长start后的截图超时、fix3过早重连断言均
+独立保留；fix3错误标签ws-reconnected不改原件，实际DOM／截图为Connection failed。
+本批IAB不可用，使用已授权共享Playwright与专用私有Edge默认sandbox；没有真实设备操作。
+本1735场未重测下载／双层预览／SIGKILL，不关闭完整A4、完整预算或物理门禁；
+见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的mainsailTrustedLifecycleFollowUp。
+
+## 历史cd91包同包Mainsail A4有限补验
 
 同包Mainsail2.19.0的A4有限场已验证真实上传、测试printer.cfg仅追加注释后保存／
 重开／严格回读，以及忙时入队、暂停／恢复、长任务完成不自动续打、明确清台后
@@ -4189,6 +4210,27 @@ trusted_clients 时，forceLogins=false 也不授予匿名访问；未传用户�
 代理后多个客户端会共用代理地址计数，可信代理策略仍待接入。
 enableApiKey 默认为 true，设为 false 禁用 API Key 网络准入；关闭前须
 已有可用的本地用户，不能把仍可读取的本地密钥当作网络准入已启用。
+
+### 保留身份的公开资料与旧时间恢复
+
+启用用户接口时，GET /access/user 和 WS access.get_user 返回当前已认证主体的
+username、source、created_on：可信IP为 _TRUSTED_USER_，API Key为 _API_KEY_USER_，
+两者 source 均为 moonraker；有效JWT继续使用注册用户原资料。只读资料通过当前GET
+私有绑定交付并消费，不能靠传入用户名替换主体；合法订阅共用signal继续允许。
+
+可信IP首次成功观察时间仅作公开元数据，按有效地址保存一小时滑动寿命，300秒清理，
+最多4096项。描述淘汰不改变既有WS或已发一次令牌持有的冻结身份；每次仍复核当前
+地址和force_logins。一次令牌只能消费一次；失效／地址不匹配后继续原API Key／可信IP
+规则，因此合法可信IP回落可获得当前描述，不会再次恢复令牌原描述。关闭清理timer。
+
+新API Key与 api_key_created_on 在原私有namespace同一batch持久化，轮换和重开保留
+创建时间。无迁移收据的旧native key缺时间时仅首次记录补时，不能称其原历史时间。
+旧安装SQL／namespace保留原 created_on；原namespace确无该字段才一次生成。
+已完成schema1收据缺时间时，须原startup声明并核完整留存源 sourceSha256，再在原事务
+补时，合法旋转后的当前key／用户保持。损坏源、畸形时间或缺声明拒绝启动；已有合法
+时间不重读或覆盖旧源。任何已存在收据（包括null）都不能被当作普通无迁移库补当前时间。
+新候选1735的隔离网络／数据库、窄鉴权验证见[保留身份验收](../host/contracts/client-recovery-followup-acceptance.json)的reservedIdentityFollowUp；
+随后同包可信回环Mainsail有限旅程另见mainsailTrustedLifecycleFollowUp，完整A4与真实设备仍未验收。
 
 启用后支持 /access/user 的创建、查询与删除，/access/users/list、
 /access/login、/access/logout、/access/refresh_jwt 和 /access/user/password。

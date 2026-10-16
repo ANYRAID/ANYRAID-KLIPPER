@@ -40,28 +40,43 @@ export function migrateLegacyAuthorization(db:DatabaseSync,options:LegacyAuthori
  validateLegacyAuthorizationStartup(options);
  const get=(namespace:string,key:string):Json|undefined=>{const row=db.prepare('SELECT value FROM namespace_store WHERE namespace=? AND key=?').get(namespace,key);if(!row)return;const value=row.value;if(!(value instanceof Uint8Array)||value.byteLength>maxRecordBytes)throw invalid();return decodeDatabaseRecord(value);};
  const put=(namespace:string,key:string,value:Json)=>{const bytes=encodeDatabaseRecord(value);if(bytes.length>maxRecordBytes)throw invalid();db.prepare('INSERT INTO namespace_store VALUES(?,?,?) ON CONFLICT(namespace,key) DO UPDATE SET value=excluded.value').run(namespace,key,bytes);};
- db.exec('BEGIN IMMEDIATE');
- try{
-  const completed=get('native_identity_migration','receipt');
-  if(completed!==undefined){const receipt=object(completed),fields=['schema','phase','source','issuer','legacyIssuer','legacyNamespaceBackupSha256','users','sourceSha256'];if(Object.keys(receipt).length!==fields.length||Object.keys(receipt).some(k=>!fields.includes(k))||receipt.schema!==1||receipt.phase!=='committed'||typeof receipt.source!=='string'||!['sql','namespace'].includes(receipt.source)||receipt.issuer!==options.issuer||receipt.legacyIssuer!==(options.legacyIssuer??null)||receipt.legacyNamespaceBackupSha256!==(options.legacyNamespaceBackupSha256??null)||typeof receipt.users!=='number'||!Number.isSafeInteger(receipt.users)||receipt.users<0||receipt.users>128||typeof receipt.sourceSha256!=='string'||!/^[a-f0-9]{64}$/.test(receipt.sourceSha256))throw invalid();const key=get('native_authorization','api_key'),users=get('native_users','users');if(typeof key!=='string'||!/^[a-f0-9]{32}$/.test(key)||!Array.isArray(users)||users.length>128)throw invalid();const names=new Set<string>();for(const row of users){const value=object(row);if(typeof value.username!=='string'||names.has(value.username))throw invalid();user(row,value.username);names.add(value.username);}}
-  else{
-   const sql=!!db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='authorized_users'").get();let records:{name:string;row:Record<string,unknown>}[]=[],source:'sql'|'namespace';
-   if(sql){
-    source='sql';const columns=db.prepare('PRAGMA table_xinfo(authorized_users)').all(),names=['username','password','created_on','salt','source','jwt_secret','jwk_id','groups'];const types=['TEXT','TEXT','REAL','TEXT','TEXT','TEXT','TEXT','pyjson'],notnull=[1,1,1,1,1,0,0,0];if(columns.length!==8||columns.some((r,i)=>r.name!==names[i]||r.type!==types[i]||r.notnull!==notnull[i]||r.pk!==(i===0?1:0)||r.dflt_value!==null||r.hidden!==0))throw invalid();
+ const readSource=(source:'sql'|'namespace')=>{const records:{name:string;row:Record<string,unknown>}[]=[];
+   if(source==='sql'){
+    const columns=db.prepare('PRAGMA table_xinfo(authorized_users)').all(),names=['username','password','created_on','salt','source','jwt_secret','jwk_id','groups'];const types=['TEXT','TEXT','REAL','TEXT','TEXT','TEXT','TEXT','pyjson'],notnull=[1,1,1,1,1,0,0,0];if(columns.length!==8||columns.some((r,i)=>r.name!==names[i]||r.type!==types[i]||r.notnull!==notnull[i]||r.pk!==(i===0?1:0)||r.dflt_value!==null||r.hidden!==0))throw invalid();
     const registry=db.prepare("SELECT prototype,version FROM table_registry WHERE name='authorized_users'").get();const expected='authorized_users ( username TEXT PRIMARY KEY NOT NULL, password TEXT NOT NULL, created_on REAL NOT NULL, salt TEXT NOT NULL, source TEXT NOT NULL, jwt_secret TEXT, jwk_id TEXT, groups pyjson )';if(registry?.version!==1||typeof registry.prototype!=='string'||registry.prototype.replace(/\s+/gu,' ').trim()!==expected)throw invalid();
     // A completed SQL table is authoritative. Old data.mdb is not a contender.
     for(const row of db.prepare('SELECT * FROM authorized_users ORDER BY username').iterate()){if(records.length>=129||typeof row.username!=='string')throw invalid();let groups:unknown=row.groups;if(groups!==null){if(typeof groups!=='string'||Buffer.byteLength(groups)>65536)throw invalid();groups=parseRequestJson(groups);}records.push({name:row.username,row:{...row,groups}});}
    }else{
-    source='namespace';for(const row of db.prepare("SELECT key,value FROM namespace_store WHERE namespace='authorized_users' ORDER BY key").iterate()){if(records.length>=129||typeof row.key!=='string'||!(row.value instanceof Uint8Array)||row.value.length>maxRecordBytes)throw invalid();records.push({name:row.key,row:object(decodeDatabaseRecord(row.value))});}
+    for(const row of db.prepare("SELECT key,value FROM namespace_store WHERE namespace='authorized_users' ORDER BY key").iterate()){if(records.length>=129||typeof row.key!=='string'||!(row.value instanceof Uint8Array)||row.value.length>maxRecordBytes)throw invalid();records.push({name:row.key,row:object(decodeDatabaseRecord(row.value))});}
    }
-   const api=records.find(r=>r.name==='_API_KEY_USER_');if(!api)throw invalid();const key=source==='sql'?api.row.password:api.row.api_key;if(typeof key!=='string'||!/^[a-f0-9]{32}$/.test(key))throw invalid();
+  return records;
+ };
+ const apiRecord=(records:{name:string;row:Record<string,unknown>}[],source:'sql'|'namespace')=>{const api=records.find(r=>r.name==='_API_KEY_USER_');if(!api)throw invalid();const key=source==='sql'?api.row.password:api.row.api_key;if(typeof key!=='string'||!/^[a-f0-9]{32}$/.test(key)||Object.hasOwn(api.row,'source')&&api.row.source!=='moonraker')throw invalid();return {row:api.row,key};};
+ const identityTime=(row:Record<string,unknown>,source:'sql'|'namespace')=>{const value=Object.hasOwn(row,'created_on')?row.created_on:source==='namespace'?Date.now()/1000:undefined;if(typeof value!=='number'||!Number.isFinite(value)||value<0)throw invalid();return value;};
+ const validateTime=(value:unknown)=>{if(typeof value!=='number'||!Number.isFinite(value)||value<0)throw invalid();};
+ db.exec('BEGIN IMMEDIATE');
+ try{
+  const completed=get('native_identity_migration','receipt');
+  if(completed!==undefined){const receipt=object(completed),fields=['schema','phase','source','issuer','legacyIssuer','legacyNamespaceBackupSha256','users','sourceSha256'];if(Object.keys(receipt).length!==fields.length||Object.keys(receipt).some(k=>!fields.includes(k))||receipt.schema!==1||receipt.phase!=='committed'||typeof receipt.source!=='string'||!['sql','namespace'].includes(receipt.source)||receipt.issuer!==options.issuer||receipt.legacyIssuer!==(options.legacyIssuer??null)||receipt.legacyNamespaceBackupSha256!==(options.legacyNamespaceBackupSha256??null)||typeof receipt.users!=='number'||!Number.isSafeInteger(receipt.users)||receipt.users<0||receipt.users>128||typeof receipt.sourceSha256!=='string'||!/^[a-f0-9]{64}$/.test(receipt.sourceSha256))throw invalid();const key=get('native_authorization','api_key'),users=get('native_users','users');if(typeof key!=='string'||!/^[a-f0-9]{32}$/.test(key)||!Array.isArray(users)||users.length>128)throw invalid();const names=new Set<string>();for(const row of users){const value=object(row);if(typeof value.username!=='string'||names.has(value.username))throw invalid();user(row,value.username);names.add(value.username);}
+   const savedTime=get('native_authorization','api_key_created_on');
+   if(savedTime!==undefined)validateTime(savedTime);
+   else{
+    const source=receipt.source as 'sql'|'namespace',records=readSource(source);if(hash(encodeDatabaseRecord(records as unknown as Json))!==receipt.sourceSha256)throw invalid();
+    const api=apiRecord(records,source);put('native_authorization','api_key_created_on',identityTime(api.row,source));
+    // The original account time is recovered; legitimately rotated native key/users remain untouched.
+   }
+  }
+  else{
+   const source=db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='authorized_users'").get()?'sql':'namespace',records=readSource(source);
+   const importedApi=apiRecord(records,source),api=records.find(r=>r.name==='_API_KEY_USER_')!,key=importedApi.key,createdOn=identityTime(importedApi.row,source);
    const users=records.filter(r=>r!==api).map(r=>user(r.row,r.name));if(new Set(users.map(r=>r.username)).size!==users.length)throw invalid();
    if(source==='sql'){
     const legacy:{name:string;row:Record<string,unknown>}[]=[],bytes:{key:Uint8Array;value:Uint8Array}[]=[];for(const row of db.prepare("SELECT key,value FROM namespace_store WHERE namespace='authorized_users' ORDER BY key").iterate()){if(legacy.length>=129||typeof row.key!=='string'||!(row.value instanceof Uint8Array)||row.value.byteLength>maxRecordBytes)throw invalid();bytes.push({key:Buffer.from(row.key),value:row.value});legacy.push({name:row.key,row:object(decodeDatabaseRecord(row.value))});}
     if(legacy.length){const approved=options.legacyNamespaceBackupSha256;if(approved!==undefined){if(legacyNamespaceBackupDigest(bytes)!==approved)throw invalid();}else{const api=legacy.find(r=>r.name==='_API_KEY_USER_'),oldUsers=legacy.filter(r=>r!==api).map(r=>user({...r.row,...!Object.hasOwn(r.row,'created_on')?{created_on:users.find(u=>u.username===r.name)?.created_on}:{}},r.name));if(api?.row.api_key!==key||!usersEqual(oldUsers,users))throw invalid();}}
    }
    const savedKey=get('native_authorization','api_key'),savedUsers=get('native_users','users');if(savedKey!==undefined&&savedKey!==key||savedUsers!==undefined&&(!Array.isArray(savedUsers)||!usersEqual(savedUsers.map(v=>{const row=object(v);if(typeof row.username!=='string')throw invalid();return user(v,row.username);}),users)))throw invalid();
-   put('native_authorization','api_key',key);put('native_users','users',users as unknown as Json);
+   const savedTime=get('native_authorization','api_key_created_on');if(savedTime!==undefined){validateTime(savedTime);if(Object.hasOwn(importedApi.row,'created_on')&&savedTime!==createdOn)throw invalid();}
+   put('native_authorization','api_key',key);put('native_authorization','api_key_created_on',savedTime??createdOn);put('native_users','users',users as unknown as Json);
    put('native_identity_migration','receipt',{schema:1,phase:'committed',source,issuer:options.issuer,legacyIssuer:options.legacyIssuer??null,legacyNamespaceBackupSha256:options.legacyNamespaceBackupSha256??null,users:users.length,sourceSha256:hash(encodeDatabaseRecord(records as unknown as Json))});
   }
   const policy=get('database','forbidden_namespaces');if(policy!==undefined&&(!Array.isArray(policy)||policy.some(n=>typeof n!=='string')))throw invalid();put('database','forbidden_namespaces',[...new Set(['database',...(policy as string[]??[]),...privateNamespaces])].sort());
