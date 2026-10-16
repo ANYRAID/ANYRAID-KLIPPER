@@ -2,14 +2,15 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {AsyncHeaterRuntime,type ConfirmedHeaterOutput} from '../src/thermal/async-runtime.ts';
 import {BangBangControl} from '../src/thermal/control.ts';
+import {ClockSync} from '../src/timing/clock-sync.ts';
 const config={minimum:0,maximum:300,minimumExtrude:170,smoothTime:1,maxPower:1,reportDelay:.3};
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
-function fixture(){
- let now=1,tick=()=>{},stops=0,cancelled=0;
+function fixture(readClock?:()=>{system:number;print:number}){
+ let now=1,print=1,tick=()=>{},stops=0,cancelled=0;
  const resets:ReturnType<typeof Promise.withResolvers<void>>[]=[],writes:(ReturnType<typeof Promise.withResolvers<void>>&{time:number;power:number})[]=[],stopped=Promise.withResolvers<void>();
  const output:ConfirmedHeaterOutput={configuration:{cycleTime:.1,maximumDuration:3,defaultPower:0,initialPower:0},reset(){const job=Promise.withResolvers<void>();resets.push(job);return job.promise;},setPWM(time,power){const job=Promise.withResolvers<void>();writes.push({...job,time,power});return job.promise;},stop(cause){stops++;for(const reset of resets)reset.reject(cause);for(const write of writes)write.reject(cause);return stopped.promise;}};
- const runtime=new AsyncHeaterRuntime(config,new BangBangControl(1),output,()=>({system:now,print:now}),{},callback=>{tick=callback;return ()=>{cancelled++;};});
- return {runtime,output,resets,writes,stopped,get stops(){return stops;},get cancelled(){return cancelled;},advance(time:number){now=time;tick();}};
+ const runtime=new AsyncHeaterRuntime(config,new BangBangControl(1),output,readClock??(()=>({system:now,print})),{},callback=>{tick=callback;return ()=>{cancelled++;};});
+ return {runtime,output,resets,writes,stopped,get stops(){return stops;},get cancelled(){return cancelled;},setClock(system:number,estimatedPrint=system){now=system;print=estimatedPrint;},advance(time:number){now=print=time;tick();}};
 }
 test('async heater start and zero target cannot complete before reset confirmation',async()=>{
  const f=fixture(),starting=f.runtime.start();assert.equal(f.runtime.status.phase,'starting');await assert.rejects(f.runtime.setTarget(200),/not active/);
@@ -103,4 +104,30 @@ test('heater object reports rounded sample and scheduled power until output stop
   f.runtime.sample(1,2.675);assert.deepEqual(f.runtime.objectStatus,{temperature:2.67,target:0,power:0});await f.runtime.setTarget(200);f.runtime.sample(1.1,2.675);assert.equal(f.runtime.objectStatus.power,1);assert.equal(f.runtime.objectStatus.target,200);
   const stop=f.runtime.shutdown();assert.equal(f.runtime.objectStatus.target,0);assert.equal(f.runtime.objectStatus.power,1);f.stopped.resolve();await stop;assert.equal(f.runtime.objectStatus.power,0);
  }finally{f.stopped.resolve();await f.runtime.shutdown();}
+});
+
+test('queries do not advance the control print baseline across a valid ClockSync correction',async()=>{
+ const sync=new ClockSync(1000000,0n,10);for(let i=1;i<=8;i++)assert.notEqual(sync.accept({clock32:i*1000000,sentTime:10+i,receiveTime:10+i+.002},true),null);
+ let now=18.002;const f=fixture(()=>({system:now,print:Number(sync.getClock(now))/1000000})),starting=f.runtime.start();f.resets[0].resolve();await starting;
+ try{
+  f.runtime.sample(8.001,25);now=19.0019999;assert.equal(sync.getClock(now),9000999n);assert.equal(f.runtime.getTemperature().stale,false);
+  assert.notEqual(sync.accept({clock32:8999995,sentTime:19,receiveTime:19.002}),null);now=19.002;assert.equal(sync.getClock(now),9000998n);
+  assert.equal(f.runtime.getTemperature().stale,false);assert.equal(f.runtime.canExtrude(),false);assert.equal(f.runtime.status.phase,'active');assert.equal(f.stops,0);
+  f.advance(now);assert.equal(f.runtime.status.phase,'active');assert.equal(f.stops,0);
+ }finally{f.stopped.resolve();await f.runtime.shutdown();}
+});
+test('temperature queries still reject host time behind an earlier query',async()=>{
+ const f=fixture(),starting=f.runtime.start();f.resets[0].resolve();await starting;
+ try{f.setClock(2,2);f.runtime.getTemperature();f.setClock(1.5,2.1);assert.throws(()=>f.runtime.getTemperature(),/Invalid thermal clock/);assert.equal(f.stops,1);}
+ finally{f.stopped.resolve();await f.runtime.shutdown();}
+});
+test('temperature queries still reject print time behind the control tick baseline',async()=>{
+ const f=fixture(),starting=f.runtime.start();f.resets[0].resolve();await starting;
+ try{f.advance(2);assert.equal(f.runtime.status.phase,'active');f.setClock(3,1.5);assert.throws(()=>f.runtime.getTemperature(),/Invalid thermal clock/);assert.equal(f.stops,1);}
+ finally{f.stopped.resolve();await f.runtime.shutdown();}
+});
+test('frequent temperature queries cannot renew the five-second protection tick deadline',async()=>{
+ const f=fixture(),starting=f.runtime.start();f.resets[0].resolve();await starting;
+ try{f.runtime.sample(1,25);for(let time=2;time<=6;time++){f.setClock(time);assert.equal(f.runtime.getTemperature().stale,false);}f.advance(7);assert.equal(f.runtime.status.phase,'stopping');assert.match(String(f.runtime.status.cause),/timer stalled/);assert.equal(f.stops,1);}
+ finally{f.stopped.resolve();await f.runtime.shutdown();}
 });

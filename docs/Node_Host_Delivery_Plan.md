@@ -6,7 +6,34 @@
 自行使用10.0.0.184”，包括该固定 Linux 开发机的本项目源码传输与调试。修复仍在独立任务分支和工作树中完成，
 不扩大到真实设备操作、生产部署或绕过任务 → develop → 主线的 PR 流程。
 
-## 2026-10-16 当前精确头CI与原42／28预算出口
+## 2026-10-16 热时钟只读查询的限定修复与验证
+
+6cc050fc2／合成检出663738489的原CI：Build、motion、普通5413／5413、协议／Linux MCU及UBSAN成功；
+ASAN在product-service首项以Invalid thermal clock失败，非ASAN内存报告，aggregate失败；原结果保留。
+184修复前独立窄场20／20仅未复现；先前缺静态JSON的加载失败另留。固定8warmup后合法修正使递增host
+查询映射9000999→9000998，实际AsyncHeaterRuntime的getter路径误停、同输入一秒tick路径仍active；
+这只是源码语义反例，不还原原CI四值或确定其根因。
+
+限定修复只让查询不推进控制print基线；每次查询仍推进host单调基线并检查有限／非负print及控制基线。
+start／setTarget／保护tick仍推进print基线，全部热保护保持；跨控制tick的合法估计回退仍可能保守停机，
+HeaterPWM不改。Node26.12复用既有native输出，11个受影响文件95／95通过（含product-service20项），
+新增回归覆盖固定ClockSync修正、查询后的host倒退、低于控制print基线及频繁getter不刷新5秒lastTick。
+标准类型检查首次因隔离副本缺contracts输入失败；静态核对补齐12模块／JSON后独立类型检查exit0、两流空。
+随后受影响ASAN仅product-service20项及async-heater-runtime16项，共36／36，原每文件60秒、外135＋2秒，
+复用已登记ASAN输出而非fresh build；stderr空，保留原CI失败，不将单次定向结果解释为原CI根因。
+没有重复95项、执行完整全量／ASAN CI或重建产品；1735固定包及依赖前后不变，旧包证据不作为本改动验证。
+
+getter微基准固定A＝6cc原实现、B＝候选，同Node26.12，BAAB×3／12fresh进程，每进程6warm＋11计时批、每批百万次。
+主统计为六个进程中位数的中位数：7.6474675→7.402868 ns／次，差−0.2445995，B／A＝0.96801562；
+全部66保留批次的P95为7.692483→22.115763 ns／次。批次ns／次是百万次调用平均，不是单次请求P95；
+两版均出现约22ns批次，未采JIT trace，不能归因JIT或系统噪声。所有原批次保留，无专用适用门限，
+不称加速或性能全验收；不含真实ADC／PWM／设备、ClockSync换算与网络。
+
+[独立证据](../host/contracts/thermal-query-clock-evidence.tar.gz)：SHA256
+`f8316ec0235cd001011343b7e625a793a333b5cff1c864f593995577ed0364f7`，120成员／119payload逐SHA核对，
+保留原失败、固定实验、候选源码、定向结果与退场核验。完整A集成、服务重获2.626预算、G3及真实设备边界仍开放。
+
+## 2026-10-16 9a62历史精确头CI与原42／28预算出口
 
 PR #68已推送9a62b43b4，实际合成检出989faf643：host、Build和motion三workflow成功。
 Node26.12普通5413／5413、协议36624／661／10002、Linux MCU和ASAN／UBSAN通过；
