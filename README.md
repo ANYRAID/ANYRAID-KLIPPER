@@ -50,8 +50,14 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 同1735包的JWT文件维护现分场验证原生chooser上传／metadata、944字节单选下载、
 下载后View3D与844／995不同层路径，以及CodeMirror仅追加注释后Save／Close／重开
 和74字节精确回读。原N导航原因未定，N-diag与独立配置专场的部分／成功结果分别保留，
-不倒写原失败；Pause／Resume、忙时队列与显式清台、故障恢复及完整同包A4仍开放。
+不倒写原失败；其后队列补验见下段，故障恢复及完整同包A4仍开放。
 见同一验收的mainsailJwtMaintenanceFollowUp；没有产品更改或实际设备操作。
+
+同1735包的JWT队列专场现完成忙时入队、同job／request的原生Pause／Resume和恢复推进；
+长任务完成后两次相隔29.191秒的状态保持history1／队列暂停且未续打，随后在产品自有
+清台页请求确认、勾选并明确开始不同短任务，最终两条completed／空队列paused。
+该唯一场653.001秒、九检查点截图齐全、清理0错；额外扩展／非任务页只观察不操作，
+不称私有profile无扩展。见同一验收的mainsailJwtQueueFollowUp；故障恢复和完整A4仍开放。
 
 后续客户端默认仅验 Mainsail；历史 Fluidd 证据和失败保留，用户另行指定时才追加，
 不要求每批重复双客户端。

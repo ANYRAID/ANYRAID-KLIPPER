@@ -2511,5 +2511,381 @@
       "Same1735 Pause/Resume, busy queue, explicit clear, fault recovery and complete A4 still require their own evidence",
       "Historical cd91 attribution, service reacquire2.62602>1.5/full42/28/local11/G3/full budgets/physical/Python/macros and normal integration remain open"
     ]
+  },
+  "mainsailJwtQueueFollowUp": {
+    "schema": 1,
+    "date": "2026-10-16",
+    "sourceHead": "2a968584b5d1c11e632752d8ef44fc685b8f1d25",
+    "status": "Accepted finite same1735 JWT busy queue/PauseResume/explicit product clearance; fault recovery and complete A4 remain open",
+    "product": {
+      "manifestSha256": "173565dc6b94d2d0380ec911f4f175d5a5b9f644880e8378245315eddf55e774",
+      "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4",
+      "unchanged": true,
+      "rebuild": false
+    },
+    "client": {
+      "version": "2.19.0",
+      "commit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
+      "cleanAtRead": true,
+      "files": [
+        {
+          "path": "StatusPanel.vue",
+          "sha256": "c277ed2cf3a1068ecde6dcfa192de04e10810d36e37aa6c14c27e337a2fa0972"
+        },
+        {
+          "path": "GcodefilesPanelTableRowFile.vue",
+          "sha256": "45bea48dcfac35a4d78a707fde936db0ea72a77aa988133544fb33de395dde0f"
+        }
+      ]
+    },
+    "scene": {
+      "directory": "mainsail-jwt-queue-once",
+      "archivePrefix": "scenes/mainsail-jwt-queue-once/",
+      "elapsedThroughCleanupMs": 653001,
+      "onlyOneSceneNoFailureRelaunch": true,
+      "checkpoints": [
+        {
+          "label": "before-queue",
+          "at": 1792138952523,
+          "jobId": "000001",
+          "requestId": "compat-76360494-cb12-4dec-8485-7ea8e5471622",
+          "progress": 0.06380601450136693,
+          "historyCount": 1,
+          "queueState": "paused",
+          "queueHead": null,
+          "queuePostCount": 0
+        },
+        {
+          "label": "busy-queued",
+          "at": 1792139031699,
+          "jobId": "000001",
+          "requestId": "compat-76360494-cb12-4dec-8485-7ea8e5471622",
+          "progress": 0.44721264709378344,
+          "historyCount": 1,
+          "queueState": "paused",
+          "queueHead": "trusted-lifecycle-short-oct16.gcode",
+          "queuePostCount": 0
+        },
+        {
+          "label": "paused",
+          "at": 1792139087002,
+          "jobId": "000001",
+          "requestId": "compat-76360494-cb12-4dec-8485-7ea8e5471622",
+          "progress": 0.6389159633899917,
+          "historyCount": 1,
+          "queueState": "paused",
+          "queueHead": "trusted-lifecycle-short-oct16.gcode",
+          "queuePostCount": 0
+        },
+        {
+          "label": "resumed",
+          "at": 1792139153106,
+          "jobId": "000001",
+          "requestId": "compat-76360494-cb12-4dec-8485-7ea8e5471622",
+          "progress": 0.7028170688220611,
+          "historyCount": 1,
+          "queueState": "paused",
+          "queueHead": "trusted-lifecycle-short-oct16.gcode",
+          "queuePostCount": 0
+        },
+        {
+          "label": "resumed-progress",
+          "at": 1792139188250,
+          "jobId": "000001",
+          "requestId": "compat-76360494-cb12-4dec-8485-7ea8e5471622",
+          "progress": 0.8945203851182694,
+          "historyCount": 1,
+          "queueState": "paused",
+          "queueHead": "trusted-lifecycle-short-oct16.gcode",
+          "queuePostCount": 0
+        },
+        {
+          "label": "completed-hold-a",
+          "at": 1792139215670,
+          "jobId": "000001",
+          "requestId": "compat-76360494-cb12-4dec-8485-7ea8e5471622",
+          "progress": 1,
+          "historyCount": 1,
+          "queueState": "paused",
+          "queueHead": "trusted-lifecycle-short-oct16.gcode",
+          "queuePostCount": 0
+        },
+        {
+          "label": "completed-hold-b",
+          "at": 1792139244861,
+          "jobId": "000001",
+          "requestId": "compat-76360494-cb12-4dec-8485-7ea8e5471622",
+          "progress": 1,
+          "historyCount": 1,
+          "queueState": "paused",
+          "queueHead": "trusted-lifecycle-short-oct16.gcode",
+          "queuePostCount": 0
+        },
+        {
+          "label": "confirmation-ready",
+          "at": 1792139308044,
+          "jobId": "000001",
+          "requestId": "compat-76360494-cb12-4dec-8485-7ea8e5471622",
+          "progress": 1,
+          "historyCount": 1,
+          "queueState": "paused",
+          "queueHead": "trusted-lifecycle-short-oct16.gcode",
+          "queuePostCount": 1
+        },
+        {
+          "label": "short-complete",
+          "at": 1792139389430,
+          "jobId": "000001",
+          "requestId": "compat-76360494-cb12-4dec-8485-7ea8e5471622",
+          "progress": 1,
+          "historyCount": 2,
+          "queueState": "paused",
+          "queueHead": null,
+          "queuePostCount": 2
+        }
+      ],
+      "business": [
+        {
+          "at": 1792138890052,
+          "method": "printer.gcode.script",
+          "id": 28,
+          "script": "G28"
+        },
+        {
+          "at": 1792138935959,
+          "method": "printer.print.start",
+          "id": 29,
+          "filename": "trusted-lifecycle-long-oct16.gcode"
+        },
+        {
+          "at": 1792139016693,
+          "method": "server.job_queue.post_job",
+          "id": 32,
+          "filenames": [
+            "trusted-lifecycle-short-oct16.gcode"
+          ]
+        },
+        {
+          "at": 1792139074148,
+          "method": "printer.print.pause",
+          "id": 33
+        },
+        {
+          "at": 1792139136082,
+          "method": "printer.print.resume",
+          "id": 34
+        }
+      ],
+      "queuePosts": [
+        {
+          "at": 1792139292663,
+          "path": "/server/job_queue/start",
+          "method": "POST",
+          "fields": [
+            "request_confirmation"
+          ],
+          "shape": "request_confirmation"
+        },
+        {
+          "at": 1792139337230,
+          "path": "/server/job_queue/start",
+          "method": "POST",
+          "fields": [
+            "transition_token"
+          ],
+          "shape": "transition_confirmation",
+          "transitionDigest": "96427347b298fe78f6b66832f83064fe38cd13fc86f316f84144a45b7e2b7529"
+        }
+      ],
+      "completedHoldMs": 29191,
+      "monotonicBusinessTimeline": [
+        1792138952523,
+        1792139016693,
+        1792139031699,
+        1792139074148,
+        1792139087002,
+        1792139136082,
+        1792139153106,
+        1792139188250,
+        1792139215670,
+        1792139244861,
+        1792139292663,
+        1792139308044,
+        1792139337230,
+        1792139389430
+      ],
+      "generations": [
+        1
+      ],
+      "websocketConnections": 2,
+      "wsHandshakeChecked": 2,
+      "commands": {
+        "count": 69,
+        "results": 69,
+        "monotonic": true,
+        "consumedExactlyOnce": true
+      },
+      "screenshots": {
+        "captured": 32,
+        "checkpointCaptured": 9,
+        "missing": [
+          {
+            "label": "login-submitted",
+            "name": "TimeoutError"
+          },
+          {
+            "label": "inputs-ready",
+            "name": "TimeoutError"
+          },
+          {
+            "label": "long-dialog",
+            "name": "TimeoutError"
+          }
+        ]
+      },
+      "cleanup": {
+        "errors": [],
+        "within900s": true,
+        "remoteAllAbsent": true,
+        "edgeAbsent": true,
+        "localPortsFree": [
+          {
+            "port": 19236,
+            "free": true
+          },
+          {
+            "port": 18434,
+            "free": true
+          }
+        ],
+        "linuxWatchdogRemaining": [],
+        "windowsWatchdogRemaining": [],
+        "linuxGuardStage": 0
+      }
+    },
+    "acceptance": {
+      "beforeQueue": "Actual long printing; short queue add exactly once; busy-queued still printing",
+      "pauseResume": "Native printer.print.pause and resume exactly once; same long job/request; read-only progress .63891596 -> .70281707 -> .89452039",
+      "beforeClearance": "Completed hold snapshots29191ms apart: long completed/history1, queue paused/head short, transition null, no prepare or confirm POST",
+      "clearance": "Product/_client/queue main document, not Mainsail native clearance; actual request_confirmation POST, then awaiting_confirmation still history1; native checkbox checked enables explicit confirm POST using matching transition SHA only",
+      "afterConfirmation": "Different short job000002/request queue-ef848881-137a-481c-9845-bd6800b92136 completed; long000001 remains completed, history exactly2, queue empty and paused; Mainsail shows short Complete",
+      "process": "Same product PID/startTicks at every read-only state; device generation remains1; no cancel/restart/fault",
+      "rootVisualAudit": {
+        "passed": true,
+        "files": [
+          "022-checkpoint-paused.png",
+          "024-checkpoint-resumed.png",
+          "025-checkpoint-resumed-progress.png",
+          "027-checkpoint-completed-hold-b.png",
+          "030-checkpoint-confirmation-ready.png",
+          "031-bed-cleared-native-checkbox.png",
+          "035-checkpoint-short-complete.png"
+        ],
+        "meaning": "Paused/resumed same long; completion with queue1; product confirmation checkbox unchecked/disabled then checked/enabled; different short Complete/queue0",
+        "timeSemantics": "Read-only numeric progress and subsequent screenshot are collected at different instants; do not force screenshot percentage to equal the earlier checkpoint value"
+      }
+    },
+    "environment": {
+      "privateProfile": true,
+      "defaultSandbox": true,
+      "extensionFreeClaim": false,
+      "selectedTaskPage": "p1 only; exact gateway origin/control or product queue main document",
+      "additionalPagesObserved": [
+        {
+          "pageId": "p2",
+          "origin": "chrome-extension:",
+          "path": "[non-network-path-omitted]",
+          "openerPageId": null
+        },
+        {
+          "pageId": "p3",
+          "origin": "chrome-extension:",
+          "path": "[non-network-path-omitted]",
+          "openerPageId": null
+        },
+        {
+          "pageId": "p4",
+          "origin": "https://darkreader.org",
+          "path": "/help/zh-CN/",
+          "openerPageId": null
+        },
+        {
+          "pageId": "p5",
+          "origin": "https://www.gwdang.com",
+          "path": "/app/extension/",
+          "openerPageId": null
+        },
+        {
+          "pageId": "p6",
+          "origin": "https://chatgpt.com",
+          "path": "/auth/login",
+          "openerPageId": null
+        },
+        {
+          "pageId": "p7",
+          "origin": "https://www.tampermonkey.net",
+          "path": "/index.php",
+          "openerPageId": null
+        }
+      ],
+      "limitation": "Private user-data-dir still exposed extension and unrelated pages. No extra-page selection/click/navigation/DOM reading; bounded observer metadata may be present. No policy/injection attribution and no inferred original N root cause.",
+      "profileOrDbTraversed": false
+    },
+    "owner": {
+      "absoluteDeadlineMs": 900000,
+      "stopNewActionsMs": 780000,
+      "forcedCleanupMs": 870000,
+      "stdinOnly": [
+        "CLOSE"
+      ],
+      "automaticRelaunch": false
+    },
+    "credentialEvidencePolicy": {
+      "originalRunnerSha256": "3ea68a718b2f2a4b813063913dcdccc0017f578c59708500b60d2f6af197cca2",
+      "archivedRedactedRunnerSha256": "19e43271f3ef9614a0bf60c4e728945ba40259522bb3bc1840ea742a267b1e32",
+      "transformation": "Known synthetic account literal pair replaced only in archive runner copy; actual source unchanged; exact fixture password rejected from all selected text"
+    },
+    "evidenceArchive": {
+      "path": "host/contracts/mainsail-jwt-queue-evidence.tar.gz",
+      "bytes": 3076499,
+      "sha256": "0ee1514de27489801298ce3a9da2b0f9851b5293467500029df4db1abd16926f",
+      "members": 278,
+      "evidenceFiles": 277,
+      "manifest": "manifest.json",
+      "manifestSha256": "37553942309a678e29a14e88b6159e1811be78bbdbd0e2c177b929b12f357508",
+      "allMemberBytesAndHashesMatch": true,
+      "gzipCrcAndSizeVerified": true,
+      "tarHeaderChecksumsVerified": true,
+      "uniqueSafeRegularMembers": true,
+      "selection": "Explicit scene top-level,69 consumed commands/results,9 checkpoint files, scripts/fixed sources only; Edge profile/DB never traversed",
+      "sensitivePatternHits": {
+        "fixturePassword": 0,
+        "privateKey": 0,
+        "githubToken": 0,
+        "jwt": 0,
+        "bearer": 0,
+        "cookieValue": 0
+      }
+    },
+    "previousArchives": [
+      {
+        "path": "host/contracts/mainsail-jwt-file-maintenance-evidence.tar.gz",
+        "sha256": "1657bbd9b8b38356e3f16089d23e60eb7068f3a424fb1579bda8f9581b5aee6b",
+        "unchanged": true
+      },
+      {
+        "path": "host/contracts/mainsail-trusted-lifecycle-evidence.tar.gz",
+        "sha256": "433ec47ed71e7d2d456fd1776ddc89fd07bca196d425dc7c623bd8691c088bb3",
+        "unchanged": true
+      }
+    ],
+    "boundaries": [
+      "Clearance belongs to product/_client/queue, not native Mainsail clearance UI",
+      "Only necessary chooser long/short inputs; no repeated download/preview/config maintenance",
+      "No cancel/restart/fault or real device operation; product PID/startTicks and generation1 retained",
+      "Current1735 fault recovery, completeA4, normal integration/full budgets and physical/Python/macros remain open",
+      "No product/source implementation change, push/merge/deploy; evidence packaging snapshot before local commit",
+      "Old N failures belong to prior independent archive, not this successful single queue scene"
+    ]
   }
 }

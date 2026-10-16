@@ -31,6 +31,28 @@ ARM64、CI、正常集成和发布仍待完成。
 本批仅本地提交，未推送／合并／部署；原6394复现包与全部旧A4记录保留，证据见
 [客户端验收](../host/contracts/client-recovery-followup-acceptance.json)的reservedIdentityFollowUp。
 
+## 2026-10-16 1735 JWT队列／Pause Resume／明确清台出口
+
+不改173565dc／0b53079c产品，唯一Mainsail2.19.0 JWT双PTY队列场653.001秒通过。
+长真实printing时只加入一份短文件，Pause／Resume各一次，同long job／request不变，
+进度由暂停.6389经恢复.7028增至.8945；自然完成后两检查点相隔29.191秒仍history1、
+queue paused／head短／transition null／清台POST0，证明此观察区间没有自动续打。
+之后只在产品自有/_client/queue请求确认，再勾选清台并明确确认，实际两次POST顺序与
+九检查点严格单调；short job000002／不同queue-request completed，long仍completed，
+最终恰两条history、空队列paused，Mainsail实页短文件Complete。清台不是Mainsail原生页面。
+
+直接long start／G28／queue-add／Pause／Resume各1，short只由确认触发；产品PID／startTicks
+及generation1保持，无cancel／restart／fault。九检查点截图全齐、关键七图视读通过；
+login-submitted／inputs-ready／long-dialog三次非关键缺图保留，不称截图全量无缺。
+780秒停新动作、870秒强制、900秒绝对期限不变，清理0错、两守卫无残留、端口空闲。
+私有profile仍有额外扩展／非任务页观测，只保留安全路径／元数据且不操作其DOM；
+不推断注入来源或旧N根因。数值快照与随后截图按各自时间记录，不要求百分比相同。
+
+本场无失败重跑，不混入旧N失败；只做必要长短输入上传，不重复下载／预览／cfg维护。
+新独立归档与旧档均保留，见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+的mainsailJwtQueueFollowUp。本批仅本地整理验收，未推送／合并／部署；故障恢复／完整A4、
+正常集成、原服务重获2.62602／完整预算／42／28／G3／物理等门禁保持开放。
+
 ## 2026-10-16 1735 JWT文件维护分场补验
 
 本批仅证据和文档，没有产品更改或重建。原N／N-diag／独立配置场分别为214.969／
@@ -48,7 +70,7 @@ Close后重新打开、必需截图视读和74字节精确回读（d4b30bcca95a�
 原regex启动前失败、原N4张缺图及后两场各1张login-submitted缺图、两次归档预检失败
 均保留。仅白名单归档，不遍历Edge profile／DB；含旧合成密码的两个历史脚本副本及
 runner仅在归档中脱敏并列原／归档SHA，原文件未改，最终凭据扫描零命中。
-当前包Pause／Resume、忙时队列／显式清台、故障恢复和完整A4仍开放；原cd91范围、
+该文件维护批次未覆盖Pause／Resume或队列／清台；其后对应补验见上段，故障恢复和完整A4仍开放；原cd91范围、
 完整预算／服务重获2.62602／42／28／G3／物理与正常集成门禁不变。
 本批按本地提交流程收口，未推送／合并／部署；见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
 的mainsailJwtMaintenanceFollowUp及新独立归档，历史归档不改。

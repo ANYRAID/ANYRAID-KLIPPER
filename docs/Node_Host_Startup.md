@@ -15,6 +15,25 @@
 
 今后客户端默认以 Mainsail 为唯一验收客户端，不要求每批重复 Fluidd。历史 Fluidd 证据与失败保留，但不作为后续必需的双客户端门禁；只有用户另行指定 Fluidd 时才追加。
 
+## 1735 JWT队列与暂停恢复有限出口（2026-10-16）
+
+同173565dc／0b53079c、Mainsail2.19.0与184双PTY，唯一队列场653.001秒完成。
+必要chooser仅长短固定打印输入；实际long printing后忙时加入短文件，原生Pause／Resume
+各一次且同job000001／request保持，恢复后进度继续增加。长自然completed后，两状态相隔
+29.191秒仍history1、queue paused／head短、transition null，尚无清台POST或自动续打。
+
+清台归产品自有/_client/queue主文档：实际POST request_confirmation后仍只有旧completed，
+再原生勾选checkbox并点击明确确认，第二次POST仅transition_token字段形状及摘要留存。
+短job000002／不同queue-request完成，Mainsail显示短文件Complete；最终恰两条completed、
+队列空且paused。完整业务／检查点时间严格单调，产品PID／startTicks和device generation1保持，
+没有cancel／restart／fault。关键七图已视读，九检查点截图齐；另三次非关键截图超时保留。
+
+本场独立780／870／900秒边界、清理0错，两端守卫无残留且端口空闲；没有失败重跑。
+专用私有Edge profile仍出现扩展及非任务页，仅观察必要路径／元数据，不选择、点击或读取
+其DOM；不能称无扩展环境，也不据此归因旧N导航异常。数值状态与随后截图采集时刻不同，
+不强求画面百分比等于先前快照。证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+的mainsailJwtQueueFollowUp；故障恢复、完整A4、正常集成与其余门禁仍开放。
+
 ## 1735 JWT文件维护分场出口（2026-10-16）
 
 固定173565dc／0b53079c与Mainsail2.19.0，继续184双PTY和真实JWT登录。
@@ -32,8 +51,8 @@ Save／Close／重新打开和磁盘严格回读通过：原28字节变74字节�
 
 三场独立780／870／900秒边界均未延长，清理0错、两端守卫无残留、端口空闲；
 原N缺4张截图，N-diag与配置场各缺1张login-submitted，原件／regex启动前失败均保留。
-没有产品更改、打印／队列／设备／重启／进程故障操作；完整A4仍缺当前包Pause／Resume、
-忙时队列／显式清台及故障恢复等独立出口。证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
+该文件维护分场没有产品更改或打印／队列／设备／重启／进程故障操作；其后队列补验见上段，
+故障恢复和完整A4仍待独立出口。证据见[客户端验收](../host/contracts/client-recovery-followup-acceptance.json)
 的mainsailJwtMaintenanceFollowUp；历史cd91和原可信回环场归属不变。
 
 ## 1735可信回环Mainsail有限旅程（2026-10-16）
