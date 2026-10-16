@@ -38,6 +38,7 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 当前Linux两轮普通并发诊断分别保留16／14失败；两入口24次窄解析仅有限未复现。
 本轮实际资源观测削弱全局／cgroup耗尽解释，历史11失败／G3仍未解，见
 [诊断验收](host/contracts/system-bus-provider-acceptance.json)的currentLinuxExitDiagnostic及交付计划。
+独立C memtester普通用户256MiB／一pass、18项无错误，仅为有限阴性观察，不认证环境健康或关闭G3。
 
 保留身份查询候选现为可信 IP／API Key 的 GET /access/user 与 WS access.get_user
 返回 username／source／created_on，JWT 继续返回注册用户资料；旧安装原创建时间

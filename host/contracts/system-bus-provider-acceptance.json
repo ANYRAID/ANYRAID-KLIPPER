@@ -3870,7 +3870,87 @@
         "idea": "Separately review one bounded ordinary-user memory test using a trusted existingAPT package unpacked only inside task directory; not a system install or root operation.",
         "boundary": "Positive supports an environment/memory-integrity problem without proving hardware; negative cannot exclude intermittent faults. No further low-load parse/full-test samples authorized by this record."
       },
-      "publication": "Local Chinese commit only after root review; no push/merge/deploy."
+      "publication": "Local Chinese commit only after root review; no push/merge/deploy.",
+      "memtesterObservation": {
+        "status": "finite256MiB_onepass_no_errors_observed",
+        "sourceHead": "50989611ab0fbd5213a21dc4050128c01926f20b",
+        "acquisition": {
+          "package": "memtester",
+          "version": "4.6.0-1",
+          "architecture": "amd64",
+          "source": "Existing authenticated APT index: community-packages.deepin.com/beige crimson/community; no update or authentication bypass",
+          "packageBytes": 18872,
+          "packageSha256": "a5c2ba34256c86882b4fab1b01f22e36b63c2f0ea241d41c06a3ad291be2f37e",
+          "binaryBytes": 27176,
+          "binarySha256": "2c10853878d7a1bf659f2b1d29c301f864b8da66255b729ea5d46c74ffa3f66b",
+          "installation": "Data-only extraction inside isolated task cache; no system installation or maintainer scripts. Package/ELF excluded from archive."
+        },
+        "execution": {
+          "args": [
+            "256M",
+            "1"
+          ],
+          "ordinaryUid": 1000,
+          "physicalMapping": false,
+          "unchangedLimits": true,
+          "defaultTestMask": true,
+          "elapsedMs": 62029,
+          "completeAsRegistered": true,
+          "within900s": true,
+          "actualAllocatedBytes": 268435456,
+          "lockedOutput": true,
+          "actualVmLckKiB": {
+            "samples": 63,
+            "min": 262144,
+            "max": 262144
+          },
+          "loops": [
+            1
+          ],
+          "defaultTestsOk": 18,
+          "done": true,
+          "cExitCode": 0,
+          "cSignal": null,
+          "toolExitBits": {
+            "allocationLockOrInvocation": false,
+            "stuckAddress": false,
+            "otherTests": false
+          },
+          "outerGnuTimeoutExitCode": 0,
+          "scope": "C memory-test binary independent of Node/Rust/Go project logic; Node owner only records evidence. No retry or reduced allocation/test set."
+        },
+        "resources": {
+          "samples": 66,
+          "skippedCadences": 0,
+          "failed": false,
+          "maxGapMs": 1000.963537,
+          "cgroup": "session-954.scope plus user-1000.slice/user.slice/root",
+          "sessionAndAncestorMemoryEventsDeltasAllZero": true,
+          "rootMemoryFiles": "Some root memory files not-supported; raw availability and before/after retained"
+        },
+        "cleanup": {
+          "errors": 0,
+          "ownedWrapperGuardOwnerAndCAbsent": 4,
+          "fixed1735PrePostUnchanged": true
+        },
+        "archive": {
+          "path": "host/contracts/linux-memtester-evidence.tar.gz",
+          "sha256": "cdba350324778066b037ad9e8bd1634630c94fbfe64f9d8d455404f57fa261f9",
+          "bytes": 43903,
+          "members": 35,
+          "evidenceFiles": 34,
+          "manifest": "manifest.json",
+          "manifestSha256": "9511d6721f1947dacf8675c8c13aa8e9f51915ac2ee31f31e4e94f1561fb2689",
+          "allMemberBytesAndHashesMatch": true,
+          "uniqueSafeRegularMembers": true,
+          "gzipCrcAndTarChecksumsVerified": true,
+          "sensitivePatternAndKnownFixtureHits": 0,
+          "excludes": "No deb/ELF, profile, node_modules or credential values"
+        },
+        "interpretation": "Finite negative observation for one locked256MiB virtual allocation and one default pass only. Does not certify environment health/fullRAM, locate hardware, exclude intermittent faults, or resolve historical11/prior16/current14/G3.",
+        "priorRecordBoundary": "Earlier proposals/registration prepared-only flags remain historical snapshots; all previous fields and archive bytes unchanged. No product code changes.",
+        "publication": "Root review passed; local Chinese commit only, no push/merge/deploy."
+      }
     }
   }
 }
