@@ -3602,6 +3602,7 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 | 当前集成基线 | #68（e59ca7）、#69（43c4ce）及Web实际更新／回滚#70（d2f98713）均已合入develop；#70合并后CI仍须独立确认，不继承任务头成功。Mainsail1735原A4及42／28预算证据归属保持，服务重获2.62602倍仍超原1.5预算 | Git任务从d2f98713正常快进同步；当前候选尚未合入。G0–G6、本机11／16／14、G3、真实root／实机、目标板和主线发布门槛分别保留 |
 | 当前实现 | Git应用HTTP／RPC状态、更新／rollback／recover及managed_services候选；默认托管自身服务，普通服务顺序租约交接，设备退役后保持进程围栏，核心共进程别名合并一次真实afterResponse重启 | 184 Node26.12三文件首轮36／37（1项fixture查询指针错误）；限定修正后受影响3／3及typecheck通过。实际PTY宿主、Git目录、HTTP／RPC、WS及注入OS IO；复用native／依赖，非fresh build、实服务ready或硬件验收。失败／未知结果耐久interrupted不重放，未知动作经人工核对后的恢复出口仍待实现 |
 | 下一实现 | Git Node依赖、未知服务结果的受信对账恢复出口及其余完整update_manager能力 | 可信product bundle、锁文件及依赖替换策略实际接通；enable_node_updates／强制依赖更新仍拒绝。服务关联写超时／关闭取消admission和dispatch，已受理写排空期间维持围栏；OS submission不等于服务ready，不直接systemctl或引入pip |
+| 依赖基础待接线 | #68／#69／#70 已分别合入 develop e59ca7／43c4ce／d2f98713；其历史头结果不替代后续合并提交检查。#71 Git HTTP／RPC 接口与服务生命周期增量由各自 PR 推进；本批仅提供独立 Node 依赖事务基础 | 锁文件驱动的真实隔离 npm 准备、保旧替换、匹配 manifest 回滚和显式中断恢复已分场验证；尚未接入 enable_node_updates／update_deps，连续 A→B→C 最新备份协调与实际脚本／原生依赖仍开放。不得据此关闭完整 Git provider、M5 或 G0–G6 |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |
@@ -3609,6 +3610,20 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 | M4 验收与缺口 | 当前平台服务、网络及维护可控，复用已有 provider 和事件设施 | 明确 provider、权限、真实停止、失败和安装回滚 |
 | M5／C | 剩余完整 Moonraker 与全部 Python／旧宏场景退役 | 完整契约、目标性能／精度、系列和发布门槛全部通过 |
 | 最后 G6 | 其他机型 | 当前系列完整交付后再展开 |
+
+Node 依赖基础使用普通 Git 应用与可信产品包两种来源，后者必须沿用现有
+build-info 生成／核验流程，不能把任意 checkout 自签成产品包。
+首批普通应用仅支持无安装脚本／原生构建的生产树，拒绝 file／link／工作区与项目 npmrc；
+省略的开发依赖脚本不误报为生产需求。真实 npm 在隔离暂存和 cache 中执行，
+提交重核授权、manifest、目录身份，旧树保留；中断不自动重跑 npm。
+本批真实离线 npm 首轮 12／12，五项补验首轮 4／5（fixture hardlink 跨文件系统 EXDEV），
+复制修正后仅补产品包项 1／1；首次类型夹具失败和修正后通过分别保留。
+产品包只验证既有可信 inventory，不代表产品实际依赖安装、完整新包或原生构建通过。
+两处耐久窗口分别用删除后保存失败、暂存清理后保存失败验证可重复恢复；
+重建 old-moved 状态不是实际掉电／SIGKILL 证明。
+一次有限 npm／事件循环观测无新验收阈值，不推断运动或目标板性能。
+接线与一代备份自动轮换仍为下一独立批次；详见
+[精简验收契约](../host/contracts/node-dependency-update-acceptance.json)及启动说明对应小节。
 
 覆盖增量及状态修复已正常集成，其合并后规定检查已通过。实际
 页面上传已使用现有 Playwright 获证，官方 Mainsail 登录仍有明确边界；继续保留这些出口，
