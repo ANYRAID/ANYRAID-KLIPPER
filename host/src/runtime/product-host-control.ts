@@ -3,7 +3,7 @@ import {validServiceName} from '../moonraker/service-name.ts';
 import {SystemBusActionUncertain} from '../moonraker/system-bus-owner.ts';
 import {randomUUID} from 'node:crypto';
 import {HostRecoveryJournal,recoveryCapacity,type RecoveryRecord,type RecoveryJournalOptions,type RecoveryKind,type MachineRecoveryKind} from './host-recovery-journal.ts';
-import {MachineActionUncertain,type MachineAction} from '../moonraker/machine-control.ts';
+import {MachineActionUncertain,type MachineAction,type MachineRetirement} from '../moonraker/machine-control.ts';
 function uncertainMachineResult(error:unknown):boolean{
  const pending:unknown[]=[error],seen=new Set<Error>();
  while(pending.length&&seen.size<32){const item=pending.pop();if(!(item instanceof Error)||seen.has(item))continue;seen.add(item);if(item instanceof SystemBusActionUncertain||item instanceof MachineActionUncertain)return true;if(item instanceof AggregateError)pending.push(...item.errors.slice(0,32));if(item.cause instanceof Error)pending.push(item.cause);}
@@ -22,7 +22,7 @@ export interface HostMaintenanceContext {readonly gate:MaintenanceGate;readonly 
 export type MaintenanceActionFailure='admission'|'response'|'generation'|'action'|'uncertain'|'storage';
 export interface MaintenanceActionResult {readonly operation:RecoveryRecord|null;readonly failure:MaintenanceActionFailure|null;readonly lease:MaintenanceLease|undefined;readonly fenced:boolean;}
 export interface MaintenanceActionHandle {readonly admission:Promise<RecoveryRecord>;readonly completion:Promise<MaintenanceActionResult>;}
-interface OwnedMaintenance extends HostMaintenanceContext {readonly token:string;readonly signal:AbortSignal|undefined;readonly done:ReturnType<typeof Promise.withResolvers<MaintenanceActionResult>>;dispatched:boolean;settled:boolean;id?:string;}
+interface OwnedMaintenance extends HostMaintenanceContext {readonly token:string;readonly signal:AbortSignal|undefined;readonly done:ReturnType<typeof Promise.withResolvers<MaintenanceActionResult>>;dispatched:boolean;settled:boolean;id?:string;beforeDispatch?:(record:RecoveryRecord,signal:AbortSignal)=>Promise<void>;readonly associationAbort:AbortController;association?:Promise<void>;}
 /** One process owner across device generations. Durable receipts never replay. */
 export class ProductHostControl {
  #token=randomUUID();#validate:((kind:HostReloadKind,service?:string,maintenance?:HostMaintenanceContext)=>void)=()=>{};#queuedCancel:(()=>void)|undefined;#remoteBusy=false;
@@ -30,7 +30,7 @@ export class ProductHostControl {
  #standards=new Map<StandardReloadKind,{token:string;id:string;admission:Promise<RecoveryRecord>}>();
  #machines=new Map<MachineRecoveryKind,{token:string;id:string;service?:string;admission:Promise<RecoveryRecord>}>();
  #requests=new Map<string,RecoveryRecord>();#journal:HostRecoveryJournal|undefined;#identity:string|undefined;#configured=false;#storageFault:unknown;#closed=false;#tasks=new Set<Promise<unknown>>();
- #maintenanceGate:MaintenanceGate|undefined;
+ #maintenanceGate:MaintenanceGate|undefined;#maintenanceSignal:AbortSignal|undefined;#machineRetirement:((action:MachineAction)=>MachineRetirement)|undefined;
  #counts=new Map<keyof typeof recoveryCapacity,number>();
  #handler:((kind:HostReloadKind,service?:string,maintenance?:HostMaintenanceContext)=>Promise<void>)|undefined;#pending:Promise<void>|undefined;#pendingService:string|undefined;
  #count(kind:keyof typeof recoveryCapacity){return this.#counts.get(kind)??0;}
@@ -60,13 +60,24 @@ export class ProductHostControl {
  /** Transfers immediately. A synchronous rejection leaves the input lease owned
   * by its caller; after transfer, every outcome settles completion with either a
   * new lease still excluding producers or a permanently closed generation. */
- requestMaintenanceAction(action:MachineAction,lease:MaintenanceLease,afterResponse?:(callback:(sent:boolean)=>void)=>void):MaintenanceActionHandle{
+ /** Trusted current-provider planning; aliases reflect the cohosted Node cores. */
+ planMaintenanceServices(names:readonly string[]):Array<{aliases:string[];action:MachineAction;retirement:MachineRetirement}>{
+  if(!this.#handler||this.#closed||!this.#machineRetirement)throw new RestartAdmissionError(503,'Managed service control is unavailable');
+  const external:Array<{aliases:string[];action:MachineAction;retirement:MachineRetirement}>=[];let process:{aliases:string[];action:MachineAction;retirement:MachineRetirement}|undefined;
+  for(const name of names){if(!validServiceName(name))throw new RestartAdmissionError(409,'Invalid managed service name');const action:MachineAction=['klipper','moonraker'].includes(name)?{kind:'server_restart'}:{kind:'service',action:'restart',service:name};const retirement=this.#machineRetirement(action);
+   if(retirement==='process'){process??={aliases:[],action:{kind:'server_restart'},retirement};process.aliases.push(name);}else external.push({aliases:[name],action,retirement});
+  }
+  return [...external,...process?[process]:[]];
+ }
+ requestMaintenanceAction(action:MachineAction,lease:MaintenanceLease,afterResponse?:(callback:(sent:boolean)=>void)=>void,beforeDispatch?:(record:RecoveryRecord,signal:AbortSignal)=>Promise<void>):MaintenanceActionHandle{
   if(!action||action.kind!=='service'&&action.kind!=='server_restart')throw new RestartAdmissionError(409,'Maintenance control supports service or server restart actions only');
   if(action.kind==='server_restart'&&typeof afterResponse!=='function'||afterResponse!==undefined&&typeof afterResponse!=='function')throw new RestartAdmissionError(409,'Server restart requires a real response handoff');
   if(!this.#handler||this.#closed||this.#storageFault||this.#pending||this.#remoteBusy)throw new RestartAdmissionError(409,'Maintenance control is unavailable or busy');
   const gate=this.#maintenanceGate;if(!gate||!gate.owns(lease))throw new RestartAdmissionError(409,'Maintenance lease does not belong to the current host generation');
-  const owned:OwnedMaintenance={gate,lease:gate.transfer(lease),token:this.#token,signal:this.#generationSignal,responseHandoff:afterResponse!==undefined,done:Promise.withResolvers<MaintenanceActionResult>(),dispatched:false,settled:false};
-  let admission:Promise<RecoveryRecord>;try{admission=this.#requestMachineAction(action,this.#generationSignal,false,afterResponse,owned);}catch(error){this.#completeMaintenance(owned,'admission');admission=Promise.reject(error);}
+  const owned:OwnedMaintenance={gate,lease:gate.transfer(lease),token:this.#token,signal:this.#maintenanceSignal,responseHandoff:afterResponse!==undefined,done:Promise.withResolvers<MaintenanceActionResult>(),dispatched:false,settled:false,beforeDispatch,associationAbort:new AbortController()};
+  // A retired device may still have a live process maintenance owner. Keep its
+  // request identity while the separate maintenance lifetime gates dispatch.
+  let admission:Promise<RecoveryRecord>;try{admission=this.#requestMachineAction(action,this.#generationSignal,this.#generationSignal?.aborted,afterResponse,owned);}catch(error){this.#completeMaintenance(owned,'admission');admission=Promise.reject(error);}
   void admission.catch(()=>{if(!owned.dispatched)this.#completeMaintenance(owned,this.#storageFault?'storage':'admission');});
   return Object.freeze({admission,completion:owned.done.promise});
  }
@@ -116,10 +127,10 @@ export class ProductHostControl {
   const record:RecoveryRecord={request_id:id,state_token:token,state:'queued',error:null,...kind!=='reinitialize'?{kind}:{},...service===undefined?{}:{service}};
   if(maintenance)maintenance.id=id;
   try{await this.#save(record);}catch(error){this.#remoteBusy=false;throw error;}
-  let settled=false;const finish=(sent:boolean)=>{if(settled)return;settled=true;if(maintenance)maintenance.dispatched=true;clearTimeout(timer);this.#queuedCancel=undefined;void this.#track(this.#dispatch(record,sent,kind,maintenance)).catch(()=>{});};
-  const timer=setTimeout(()=>finish(false),10000);timer.unref();this.#queuedCancel=()=>finish(false);
+  let settled=false;const finish=(sent:boolean)=>{if(settled)return;settled=true;if(maintenance){maintenance.dispatched=true;if(!sent)maintenance.associationAbort.abort(new Error('Host request expired or response was not handed off'));}clearTimeout(timer);maintenance?.signal?.removeEventListener('abort',retired);this.#queuedCancel=undefined;void this.#track(this.#dispatch(record,sent,kind,maintenance)).catch(()=>{});};
+  const timer=setTimeout(()=>finish(false),10000),retired=()=>finish(false);timer.unref();maintenance?.signal?.addEventListener('abort',retired,{once:true});if(maintenance?.signal?.aborted)finish(false);this.#queuedCancel=()=>finish(false);
   if(this.#closed||!this.#handler||token!==this.#token){finish(false);throw new Error('Host stopped during recovery admission');}
-  try{if(maintenance&&afterResponse===undefined)finish(true);else afterResponse!(finish);}catch(error){finish(false);throw error;}
+  try{if(settled)throw new Error('Host request already expired before dispatch association');if(maintenance?.beforeDispatch){const cancelled=Promise.withResolvers<never>(),abort=()=>cancelled.reject(maintenance.associationAbort.signal.reason);maintenance.associationAbort.signal.addEventListener('abort',abort,{once:true});if(maintenance.associationAbort.signal.aborted)abort();const association=Promise.resolve().then(()=>maintenance.beforeDispatch!({...record},maintenance.associationAbort.signal));maintenance.association=association;this.#track(association);try{await Promise.race([association,cancelled.promise]);}finally{maintenance.associationAbort.signal.removeEventListener('abort',abort);}}if(settled||this.#closed||token!==this.#token||maintenance?.signal?.aborted||maintenance&&!maintenance.gate.owns(maintenance.lease))throw new Error('Host request expired or changed before dispatch association');if(maintenance&&afterResponse===undefined)finish(true);else afterResponse!(finish);}catch(error){finish(false);throw error;}
   return {...record};
  }
  async #dispatch(record:RecoveryRecord,sent:boolean,kind:HostReloadKind,maintenance?:OwnedMaintenance){
@@ -129,10 +140,10 @@ export class ProductHostControl {
    if(this.#closed||record.state_token!==this.#token||maintenance?.signal?.aborted)throw new Error('Host stopped before recovery');
    await this.#begin(kind,record.service,maintenance);await this.#save({...record,state:'succeeded',error:null});
   }catch(error){failure=this.#storageFault?'storage':this.#closed||record.state_token!==this.#token||maintenance?.signal?.aborted?'generation':uncertainMachineResult(error)?'uncertain':'action';if(!this.#storageFault)await this.#save({...record,state:uncertainMachineResult(error)?'interrupted':'failed',error:uncertainMachineResult(error)?'System action result is unknown; inspect the daemon and do not replay this request':'Reinitialization failed; inspect host readiness and process error'});}
-  finally{this.#remoteBusy=false;if(maintenance)this.#completeMaintenance(maintenance,this.#storageFault?'storage':failure);}
+  finally{if(maintenance?.association)await Promise.allSettled([maintenance.association]);this.#remoteBusy=false;if(maintenance)this.#completeMaintenance(maintenance,this.#storageFault?'storage':failure);}
  }
- attach(handler:(kind:HostReloadKind,service?:string,maintenance?:HostMaintenanceContext)=>Promise<void>,validate:(kind:HostReloadKind,service?:string,maintenance?:HostMaintenanceContext)=>void=()=>{},options:{kinds?:readonly HostReloadKind[];generationSignal?:AbortSignal;maintenanceGate?:MaintenanceGate}={}):()=>void{
-  if(this.#handler||this.#closed)throw new Error('Product host control already owned or closed');this.#handler=handler;this.#validate=validate;this.#token=randomUUID();this.#kinds=new Set(options.kinds??['reinitialize','restart']);this.#generationSignal=options.generationSignal;this.#maintenanceGate=options.maintenanceGate;
+ attach(handler:(kind:HostReloadKind,service?:string,maintenance?:HostMaintenanceContext)=>Promise<void>,validate:(kind:HostReloadKind,service?:string,maintenance?:HostMaintenanceContext)=>void=()=>{},options:{kinds?:readonly HostReloadKind[];generationSignal?:AbortSignal;maintenanceSignal?:AbortSignal;maintenanceGate?:MaintenanceGate;machineRetirement?:(action:MachineAction)=>MachineRetirement}={}):()=>void{
+  if(this.#handler||this.#closed)throw new Error('Product host control already owned or closed');this.#handler=handler;this.#validate=validate;this.#token=randomUUID();this.#kinds=new Set(options.kinds??['reinitialize','restart']);this.#generationSignal=options.generationSignal;this.#maintenanceSignal=options.maintenanceSignal??options.generationSignal;this.#maintenanceGate=options.maintenanceGate;this.#machineRetirement=options.machineRetirement;
   return ()=>{if(this.#handler===handler){this.#queuedCancel?.();this.#handler=undefined;}};
  }
  reinitialize():Promise<void>{
