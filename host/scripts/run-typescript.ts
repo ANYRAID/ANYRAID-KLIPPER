@@ -11,7 +11,7 @@ export interface CompilerExecution {
  scope?:string;resolverPid?:number;compilerPid?:number;resolverGroupStopped?:boolean;compilerGroupStopped?:boolean;
 }
 export interface CompilerResult {status:number|null;signal:NodeJS.Signals|null;error?:NodeJS.ErrnoException;stdout:string;stderr:string;execution?:CompilerExecution;phase:'resolve'|'compile';groupStopped?:boolean;cleanupComplete:boolean;}
-export interface CompilerOptions {timeoutMs:number;maxBuffer:number;signal?:AbortSignal;cwd?:string;}
+export interface CompilerOptions {timeoutMs:number;maxBuffer:number;signal?:AbortSignal;cwd?:string;/** Trusted build worker only; its parent owns and drains the complete POSIX group. */supervisedGroup?:true;}
 function failure(code:string,message:string):NodeJS.ErrnoException{return Object.assign(new Error(message),{code});}
 async function groupStopped(group:number):Promise<void>{
  // SIGKILL can precede observable exit. Join live members of only our group;
@@ -27,13 +27,13 @@ async function groupStopped(group:number):Promise<void>{
  }
 }
 /** Own only newly detached children. Exit alone does not join inherited pipes. */
-function owned(command:string,args:readonly string[],cwd:string,signal:AbortSignal,maxBuffer:number):Promise<CompilerResult&{pid?:number}>{
+function owned(command:string,args:readonly string[],cwd:string,signal:AbortSignal,maxBuffer:number,supervisedGroup=false):Promise<CompilerResult&{pid?:number}>{
  return new Promise(resolveResult=>{
   let error:NodeJS.ErrnoException|undefined,status:number|null=null,exitSignal:NodeJS.Signals|null=null;
   const stdout:Buffer[]=[],stderr:Buffer[]=[];let outBytes=0,errBytes=0;
-  const child=spawn(command,[...args],{cwd,detached:true,stdio:['ignore','pipe','pipe']});
+  const child=spawn(command,[...args],{cwd,detached:!supervisedGroup,stdio:['ignore','pipe','pipe']});
   const killGroup=()=>{
-   if(child.pid&&child.pid!==process.pid)try{process.kill(-child.pid,'SIGKILL');}catch(cause){if((cause as NodeJS.ErrnoException).code!=='ESRCH')error=failure('KILL_FAILED','Unable to terminate owned compiler group');}
+   if(child.pid&&child.pid!==process.pid)try{if(supervisedGroup)child.kill('SIGKILL');else process.kill(-child.pid,'SIGKILL');}catch(cause){if((cause as NodeJS.ErrnoException).code!=='ESRCH')error=failure('KILL_FAILED','Unable to terminate owned compiler group');}
   };
   const terminate=()=>{
    const code=(signal.reason as NodeJS.ErrnoException|undefined)?.code;
@@ -53,9 +53,9 @@ function owned(command:string,args:readonly string[],cwd:string,signal:AbortSign
   child.once('close',(code,cause)=>{
    const finish=(complete:boolean)=>{
    signal.removeEventListener('abort',terminate);status=code;exitSignal=cause;
-   resolveResult({status,signal:exitSignal,...error?{error}:{},stdout:Buffer.concat(stdout).toString('utf8'),stderr:Buffer.concat(stderr).toString('utf8'),pid:child.pid,phase:'resolve',groupStopped:complete,cleanupComplete:complete});
+   resolveResult({status,signal:exitSignal,...error?{error}:{},stdout:Buffer.concat(stdout).toString('utf8'),stderr:Buffer.concat(stderr).toString('utf8'),pid:child.pid,phase:'resolve',groupStopped:supervisedGroup?undefined:complete,cleanupComplete:supervisedGroup?false:complete});
    };
-   void (child.pid?groupStopped(child.pid):Promise.resolve()).then(()=>finish(true),()=>{error=failure('COMPILER_JOIN_FAILED','Compiler child closed but owned group termination could not be confirmed');finish(false);});
+   void (child.pid&&!supervisedGroup?groupStopped(child.pid):Promise.resolve()).then(()=>finish(true),()=>{error=failure('COMPILER_JOIN_FAILED','Compiler child closed but owned group termination could not be confirmed');finish(false);});
   });
  });
 }
@@ -78,13 +78,13 @@ export async function runTypeScript(host:string,args:readonly string[],options:C
  const timer=setTimeout(()=>lifetime.abort(failure('ETIMEDOUT','TypeScript compiler deadline exceeded')),options.timeoutMs);
  let execution:CompilerExecution|undefined,phase:'resolve'|'compile'='resolve';
  try{
-  signal.throwIfAborted();await readdir('/proc');const resolver=await owned(process.execPath,[fileURLToPath(new URL('./typescript-resolver.mjs',import.meta.url)),host],options.cwd??host,signal,Math.min(options.maxBuffer,65536));
+  signal.throwIfAborted();await readdir('/proc');const resolver=await owned(process.execPath,[fileURLToPath(new URL('./typescript-resolver.mjs',import.meta.url)),host],options.cwd??host,signal,Math.min(options.maxBuffer,65536),options.supervisedGroup);
   if(resolver.error||resolver.status!==0)return resolver;
   const value=JSON.parse(resolver.stdout) as CompilerExecution;
   if(value?.schema!==1||typeof value.binary!=='string'||!isAbsolute(value.binary)||value.platform!==process.platform||value.arch!==process.arch||typeof value.typescript!=='string'||!/^7\./u.test(value.typescript)||value.nativeVersion!==value.typescript||value.nativePackage!=='@typescript/typescript-'+process.platform+'-'+process.arch||typeof value.sha256!=='string'||!/^[a-f0-9]{64}$/u.test(value.sha256)||!['bytes','dev','ino','mode','mtimeMs'].every(key=>typeof value[key as keyof CompilerExecution]==='number'&&Number.isFinite(value[key as keyof CompilerExecution] as number)))throw failure('INVALID_RESOLUTION','Invalid official compiler resolution receipt');
-  execution={...value,resolverPid:resolver.pid,resolverGroupStopped:resolver.groupStopped,scope:'Official locked platform executable selected and bytes rechecked immediately before direct spawn; no PATH lookup or execve launcher. Pre-launch identity does not attest loaded memory or concurrent replacement.'};
+  execution={...value,resolverPid:resolver.pid,resolverGroupStopped:options.supervisedGroup?undefined:resolver.groupStopped,scope:'Official locked platform executable selected and bytes rechecked immediately before direct spawn; no PATH lookup or execve launcher. Pre-launch identity does not attest loaded memory or concurrent replacement.'};
   await verifyBinary(execution,signal);phase='compile';
-  const result=await owned(execution.binary,args,options.cwd??host,signal,options.maxBuffer);execution.compilerPid=result.pid;execution.compilerGroupStopped=result.groupStopped;return {...result,phase,execution};
+  const result=await owned(execution.binary,args,options.cwd??host,signal,options.maxBuffer,options.supervisedGroup);execution.compilerPid=result.pid;execution.compilerGroupStopped=options.supervisedGroup?undefined:result.groupStopped;execution.scope+=options.supervisedGroup?' Complete inherited process group termination is owned by the trusted build parent.':'';return {...result,phase,execution};
  }catch(cause){return {status:null,signal:null,error:cause instanceof Error?cause:failure('COMPILER_FAILED','TypeScript compilation failed'),stdout:'',stderr:'',phase,cleanupComplete:true,...execution?{execution}:{}};}
  finally{clearTimeout(timer);}
 }

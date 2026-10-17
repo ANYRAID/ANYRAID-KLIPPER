@@ -3623,13 +3623,19 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 新头完整 CI 待执行；运动 workflow 的路径条件
 未命中此批，不能将其记为当前头成功。
 
+本批#74的Node CI保留5515／5548（33失败）。已复现并修复退役attach把设备请求身份signal换成进程signal的共同回归，
+内部维护取消另绑存活进程，普通旧代际身份检查保持。184 Node26.12受影响八文件104／104及标准typecheck通过；
+当前TS独立编译产品、复用native并fresh生产依赖后的实际安装进程文件3／3通过。前置缺Rust、缺npm-cli及Rust ICE失败原样保留，
+不称fresh native构建通过。CI另一个managed recover 409在限定场未复现，已补错误响应体诊断，修正头完整CI仍待执行。
+
 ### 唯一实现队列与提速规则
 
 | 顺序 | 用户可见交付结果 | 退出条件 |
 | --- | --- | --- |
 | 当前集成基线 | #68／#69／#70、Git应用更新#71（67c710551）及维护租约#72（e1db00d84）已合入develop；#70合并后5464／5464及全部CI通过，#71／#72合并后检查分别运行中 | 各提交证据不混用。Mainsail1735、42／28及服务重获2.62602倍的原归属与门限保持；G0–G6、本机11／16／14、G3、目标板、实机及主线发布仍开放 |
-| 当前实现 | Git纯仓库HTTP／RPC更新／rollback／recover已集成；本批独立Node依赖事务提供真实隔离npm准备、保旧替换和显式中断恢复 | 尚未接入enable_node_updates／update_deps；不以独立引擎验证代替完整provider |
-| 下一实现 | #74受管服务生命周期、Git依赖实际接线，以及其余完整update_manager能力 | 连续A→B→C与最新回滚协调、实际脚本／原生依赖及可信产品包路径仍待完成；沿维护租约和真实afterResponse，不直接systemctl或引入pip |
+| 当前实现 | 在#76普通Git依赖生命周期基础上准备可信产品代际：固定repo＋commit＋配方摘要，隔离fresh TS／九addon／三helper／生产依赖，完整清单封存 | 184实际fresh一次成功，前两失败保留；最终guardian边界另验父退出／自身强杀／close，未知排空拒绝清理。准备不等于激活；普通应用A→B→C／最新回滚、同锁与hard迁移既有证据保留 |
+| 下一实现 | 固定launcher与代际指针、外部profile绑定／迁移、响应后真实重启、新进程确认和完整代际回滚；未知服务结果对账及其余update_manager | 已安装unit固定realpath，不以current软链接替换冒充激活。普通应用脚本／原生仍有边界；来源批准与内容摘要分开，不把任意checkout自签为可信产品。沿既有围栏／afterResponse，不直接systemctl或引入pip |
+| 已审依赖基础 | 5c5b94c8经正常merge c3d8cc5d0并入本组合树，服务基础8af70714；#72另已合入develop e1db00d8，本分支已正常同步#73头725779c8及#74头5d1c066a，前置PR仍待各自检查与集成 | 基础12／12及产品inventory等补验记录保持，接线新增验证单列，不继承旧头CI；#68／#69／#70已合入记录和G0–G6边界保留 |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |
@@ -3650,7 +3656,11 @@ build-info 生成／核验流程，不能把任意 checkout 自签成产品包�
 两处耐久窗口分别用删除后保存失败、暂存清理后保存失败验证可重复恢复；
 重建 old-moved 状态不是实际掉电／SIGKILL 证明。
 一次有限 npm／事件循环观测无新验收阈值，不推断运动或目标板性能。
-接线与一代备份自动轮换仍为下一独立批次；详见
+接线候选已完成一代备份自动轮换、同锁辨识和hard换根身份迁移；普通应用脚本／原生仍未支持。
+产品专用准备已完成一次全新构建并封存完整依赖／原生清单：63714.650655ms，父10ms timer6157样本最大额外延迟17.837409ms，
+无新门限，不推断目标板／运动预算。fresh源夹具d68f012c早于最终guardian收口；后者单独故障验证，未重复fresh。
+父异常退出保留继承锁，guardian强杀后缺排空凭据禁止discard，重开不重放脚本。完整产品激活／回滚仍开放；
+来源与验证范围见[产品准备验收](../host/contracts/product-update-preparation-acceptance.json)。新增接线证据见[生命周期验收](../host/contracts/update-git-node-lifecycle-acceptance.json)，基础历史详见
 [精简验收契约](../host/contracts/node-dependency-update-acceptance.json)及启动说明对应小节。
 
 覆盖增量及状态修复已正常集成，其合并后规定检查已通过。实际

@@ -7,10 +7,12 @@ import {captureProductCompilerInputs,productCompilerFailure} from './product-com
 import {runTypeScript} from './run-typescript.ts';
 const host=fileURLToPath(new URL('..',import.meta.url));
 const requiredAddons=[...productAddons] as string[];
+export const productBuildCapabilities={schema:1,supervisedGroup:true,freshNative:true} as const;
 /** Build into a private staging directory; replace only a recognized, offline
  * generated tree. Default addons are rebuilt from private source snapshots. */
-export async function buildProductHost(output=join(host,'build/product-host'),config=join(host,'tsconfig.product-host.json'),nativeDirectory?:string,signal?:AbortSignal):Promise<void>{
+export async function buildProductHost(output=join(host,'build/product-host'),config=join(host,'tsconfig.product-host.json'),nativeDirectory?:string,signal?:AbortSignal,preparation?:{supervisedGroup:true;freshNative:true}):Promise<void>{
  signal?.throwIfAborted();
+ if(preparation&&nativeDirectory!==undefined)throw new Error('Product preparation cannot borrow native outputs');
  const [major,minor]=process.versions.node.split('.').map(Number);if(major!==26||minor<9)throw new Error('Product build requires Node.js 26.9 or later 26.x');
  const target=resolve(output),parent=dirname(target),lock=target+'.lock';await mkdir(parent,{recursive:true});
  try{await mkdir(lock);}catch(error){if((error as NodeJS.ErrnoException).code==='EEXIST')throw new Error('Product build destination is locked: '+lock);throw error;}
@@ -20,17 +22,18 @@ export async function buildProductHost(output=join(host,'build/product-host'),co
   if(present){let marker;try{marker=JSON.parse(await readFile(join(target,'build-info.json'),'utf8'));}catch{throw new Error('Refusing to replace an unrecognized product output');}if(marker?.schema!==1||marker.product!=='anyraid-product-host'||!marker.files?.['scripts/product-host.js'])throw new Error('Refusing to replace an unrecognized product output');}
   stage=await mkdtemp(join(parent,'.product-build-'));
   const compilerInputs=await captureProductCompilerInputs(host,resolve(config));
-  const result=await runTypeScript(host,['-p',resolve(config),'--outDir',stage],{timeoutMs:60000,maxBuffer:4*1024**2,signal,cwd:process.cwd()});
+  const result=await runTypeScript(host,['-p',resolve(config),'--outDir',stage],{timeoutMs:60000,maxBuffer:4*1024**2,signal,cwd:process.cwd(),...preparation?{supervisedGroup:true as const}:{}});
   compilerCleanupComplete=result.cleanupComplete;
   if(result.error||result.status!==0)throw productCompilerFailure(result,compilerInputs,result.execution,result.cleanupComplete?undefined:{stage,lock});
   signal?.throwIfAborted();
   for(const entry of ['scripts/flash-sdcard.js','scripts/product-host.js','scripts/product-client.js','host/src/runtime/product-client-gateway.js','host/src/runtime/product-client-assets.js','host/src/runtime/product-host.js','host/src/runtime/host-recovery-journal-worker.js','host/src/operations/print-journal-worker.js','host/src/moonraker/database-worker.js','host/src/moonraker/metadata-extractor-worker.js','host/src/moonraker/file-list-worker.js','host/src/moonraker/thumbnail-process-child.js','host/src/moonraker/trusted-name-lookup-child.js','host/src/calibration/spectrum-worker.js','host/src/calibration/shaper-fit-worker.js'])await access(join(stage,entry));
-  if(nativeDirectory===undefined){nativeScratch=await mkdtemp(join(parent,'.product-native-'));nativeDirectory=join(nativeScratch,'addons');await buildProductNative(nativeDirectory);}
+  if(nativeDirectory===undefined){nativeScratch=await mkdtemp(join(parent,'.product-native-'));nativeDirectory=join(nativeScratch,'addons');await buildProductNative(nativeDirectory,preparation?{deferCleanup:true}:undefined);}
   const addons=[...requiredAddons];
   await mkdir(join(stage,'host/build'),{recursive:true});
   for(const name of addons){const file=join(nativeDirectory,name+'.node'),info=await lstat(file);if(!info.isFile()||info.isSymbolicLink()||info.size===0)throw new Error('Invalid native addon: '+name);await copyFile(file,join(stage,'host/build',name+'.node'));}
   for(const name of productExecutables){const file=join(nativeDirectory,name),info=await lstat(file);if(!info.isFile()||info.isSymbolicLink()||!info.size||(info.mode&0o111)===0)throw new Error('Invalid native executable: '+name);await copyFile(file,join(stage,'host/build',name));}
-  try{await copyFile(join(nativeDirectory,'native-build-info.json'),join(stage,'host/build/native-build-info.json'));}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+  try{await copyFile(join(nativeDirectory,'native-build-info.json'),join(stage,'host/build/native-build-info.json'));}catch(error){if(preparation||(error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+  if(preparation){const receipt=JSON.parse(await readFile(join(stage,'host/build/native-build-info.json'),'utf8'));if(receipt.schema!==1||receipt.platform!==process.platform||receipt.arch!==process.arch||!receipt.sources?.['host/native/template/Cargo.lock']||!receipt.nodeHeaders?.['node_api.h'])throw new Error('Fresh native receipt missing');for(const name of [...addons.map(name=>name+'.node'),...productExecutables])if(receipt.outputs?.[name]!==createHash('sha256').update(await readFile(join(stage,'host/build',name))).digest('hex'))throw new Error('Fresh native output receipt mismatch');}
   const project=JSON.parse(await readFile(join(host,'package.json'),'utf8'));
   await writeFile(join(stage,'package.json'),JSON.stringify({name:project.name,private:true,type:'module',engines:project.engines,dependencies:project.dependencies,scripts:{start:'node scripts/product-host.js'}},null,2)+'\n');
   await copyFile(join(host,'package-lock.json'),join(stage,'package-lock.json'));
@@ -48,10 +51,10 @@ export async function buildProductHost(output=join(host,'build/product-host'),co
   const backup=join(lock,'previous');try{await rename(target,backup);oldMoved=true;}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
   try{await rename(stage,target);stage=undefined;published=true;}catch(error){if(oldMoved){await rename(backup,target);oldMoved=false;}throw error;}
  }finally{
-  if(stage&&compilerCleanupComplete)await rm(stage,{recursive:true,force:true});
-  if(nativeScratch)await rm(nativeScratch,{recursive:true,force:true});
+  if(stage&&compilerCleanupComplete&&!preparation)await rm(stage,{recursive:true,force:true});
+  if(nativeScratch&&!preparation)await rm(nativeScratch,{recursive:true,force:true});
   // A failed restoration leaves the prior build in the lock for recovery.
-  if(compilerCleanupComplete&&(!oldMoved||published))await rm(lock,{recursive:true,force:true});
+  if(!preparation&&compilerCleanupComplete&&(!oldMoved||published))await rm(lock,{recursive:true,force:true});
  }
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){

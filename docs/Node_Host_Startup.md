@@ -1396,42 +1396,9 @@ Web恢复仍仅为中断目录事务一致性恢复。完整Git、ZIP／executab
 核心自更新不得照搬Python venv／pip。本机与184定向测试不代表生产部署、掉电文件系统或真实设备验收。
 具体记录见[Web更新验收](../host/contracts/update-manager-web-acceptance.json)。
 
-#### Node 依赖事务基础（尚未接入更新入口）
-
-`NodeDependencyTransaction` 为后续 Git 部署提供独立的 manifest 捕获、
-`prepare`、`commit`、`rollback`、`reconcile` 和显式 `discardBackup`。
-本增量不启用 `enable_node_updates` 或公开 recover 的 `update_deps`，
-不重启服务，也不将普通 Git checkout 当作已验证的产品包。
-
-普通应用要求 npm v2／v3 锁文件、带完整性摘要的 HTTPS 生产依赖，
-在私有暂存目录实际执行隔离 npm `ci --omit=dev --include=optional --ignore-scripts`。
-只核实际生产树；省略的开发依赖含脚本不阻止纯生产包安装。
-普通应用的安装／prepare 脚本、原生构建或 `.node`、file／link 包、
-工作区、项目 `.npmrc` 目前明确拒绝，不能据此宣称本产品所需依赖已完整支持。
-用户 npmrc、registry 重写及凭据不继承，原始 npm 输出不公开。
-产品包来源另须调用方提供可信生成流程产出的 `build-info.json` 摘要并通过
-`verifyProductBundle`；本模块不生成或自签该文件，也不重建原生插件。
-
-提交前重核授权、manifest 和目录身份；失败／取消保留旧依赖并等 npm 退出。
-替换先耐久保存 intent，再两次 rename 与目录 fsync；关闭等一致性收尾。
-重开不执行脚本，须显式 `reconcile`；Git manifest 回到对应版本后才能回滚旧树。
-备份删除先保存可重复的 discard intent。当前只保留一代且须可信调用方显式清理，
-连续 A→B→C 与最新回滚协调仍须在 GitDeployment 接线批次完成，不能要求最终用户手工清理。
-manifest、条目、文件、输出和期限均有上限；50ms 采样暂存／cache 容量是应用层监测，
-不是内核磁盘配额。Linux 内核目录锁排除另一所有者。
-
-184 Node 26.12.0／npm 11.19.1 使用锁定纯包与隔离离线 cache 完成真实安装、
-A→B→回滚 A、取消排空和故障恢复；HTTPS 传输、产品实际 npm 安装、完整新包／原生构建、
-服务和设备均未验。复用既有依赖与 `sealed-file.node`，不是全新构建。
-分场首次失败、定向修正及一次有限计时见
-[Node 依赖基础验收](../host/contracts/node-dependency-update-acceptance.json)。
-测试 npm 从当前 Node 安装发现，也可显式设置可信 `ANYRAID_TEST_NPM_CLI`。
-功能项仅 Linux；真实预构建产品项要求 `ANYRAID_TEST_PRODUCT_BUNDLE` 指向现有可信产物，
-缺失时明确 skip，默认 CI 不覆盖该项，不能把 184 的实测结果归给 CI。
-
 ### Git 纯仓库应用更新候选
 
-下列显式无服务／无依赖配置接入现有update_manager，默认Git频道为dev，primary_branch为master：
+Git应用接入现有update_manager，默认Git频道为dev，primary_branch为master。下例显式关闭服务重启及依赖更新：
 
 ```ini
 [update_manager my-client]
@@ -1449,11 +1416,11 @@ GET状态只读内存缓存；显式刷新使用真实Git读取branch、remote�
 包含关系及GitVersion比较选择目标；pinned_commit至少8位，只向包含当前提交的固定提交前进，不自动降级。
 正常更新拒绝任意tracked／untracked改动、detached或diverged，须显式recover才能执行破坏性恢复。
 
-client与rollback接受必填name，适用纯Git应用；rollback持久保存commit／branch／version。
+client与rollback接受必填name，适用Git应用；rollback持久保存commit／branch／version。
 recover接受name与可选hard／update_deps布尔；HTTP查询可用true／false，其他类型400。
 公开参数按固定上游使用update_deps；内部名force_dep_update作为未知公开字段返回400。
 soft恢复优先pin／当前提交祖先，否则primary远端，并先有界备份原目录；hard克隆新候选、验证后保留原目录替换，
-不删除历史备份。update_deps=true仍501且不运行Git或写入恢复事务，不以无动作代替依赖更新。损坏旧config的hard恢复仅用先前可信目录身份，
+不删除历史Git恢复备份。启用enable_node_updates时update_deps=true执行真实强制依赖准备；未启用时仍501且无仓库动作。损坏旧config的hard恢复仅用先前可信目录身份，
 不运行旧仓库Git；未完成事务重开报告interrupted，必须显式恢复，不自动重放。
 
 安装目录、父目录及.git身份受保护，安装／控制目录不能与其他Web／Git应用或进程配置／数据库／备份重叠。
@@ -1462,13 +1429,99 @@ Linux内核目录锁按仓库规范路径区分所有者；取消等待Git及其
 目前仅支持无用户名密码、query或fragment的HTTPS源；SSH、file源、moved_origin、Python环境、安装脚本、系统依赖等明确拒绝。
 worktree／submodule仅读本地元数据，不fetch或mutation；主仓库有非空.git/worktrees或.git/modules时拒绝hard替换。
 
-is_system_service默认仍为true，默认托管自身服务，因此上述纯仓库场景必须显式false或managed_services留空。
-非空managed_services和enable_node_updates=true当前明确配置失败；现有product-install要求可信build-info清单、
-独立bundle且无node_modules，不能把任意Git checkout直接当作受支持npm安装。服务生命周期仍需把维护lease的producer
-fence同步交给持久ProductHostControl直至终态，own服务重启需afterResponse；本候选没有绕过这些约束。
+is_system_service默认true，未指定managed_services时托管自身服务；设为false使默认列表为空，显式空managed_services关闭服务动作。
+managed_services仅允许应用自身名称、klipper、moonraker，按此固定顺序去重，服务名须通过实际MachineControlPort许可。
+Git更新／回滚／显式恢复在仓库动作后沿可信ProductHostControl顺序提交服务动作；Node共进程的klipper／moonraker
+合并为一次最后执行的server_restart，并在service_progress记录别名映射。普通服务等待现有OS job submission终态，
+不证明服务ready；自己进程重启必须等待真实HTTP／RPC响应交接，响应返回时任务仍可处于忙态，不能据此认定更新成功。
+
+更新同时持有进程与当前设备维护租约，控制动作同步转移同一租约，普通终态归还后再提交下一服务。设备退役后
+由持续持有的进程维护所有者承接余下动作，配置写入和attachNativePrinter仍受围栏约束。离线控制保留原设备代际signal作为请求身份，
+维护动作取消另绑存活进程signal；旧代际请求不能借用该维护signal绕过身份核对。queued控制记录落盘后，
+先持久关联更新事务及request_id，才允许任何OS dispatch。关联写入挂起时超时／关闭立即拒绝admission并永久取消dispatch；
+已受理数据库写仍受控排空，completion及close等待真实I/O结束后才归还租约，不声称可终止不可取消的写入。
+失败不发送成功文案；未确认或重开后的服务结果保持interrupted，不自动重放，显式recover也拒绝重放未知服务动作。
+受信人工核对后的恢复出口仍待后续实现。enable_node_updates=true接入下述普通应用能力；现有product-install要求
+可信build-info清单、独立bundle且无node_modules，完整产品pipeline仍待接通，不能把任意Git checkout冒充产品包。
 本批真实接口测试的精确HTTPS fixture地址由测试可执行shim映射到临时bare仓库，生产不开放file入口，Git TLS网络传输未验。
 软件与有限桌面观测不代表完整provider、目标板、真实设备或部署验收。
 分项结果、初轮缺assets失败及限定补验见[Git更新候选验收](../host/contracts/update-manager-git-acceptance.json)。
+#### Git Node 依赖生命周期候选
+
+`NodeDependencyTransaction` 为后续 Git 部署提供独立的 manifest 捕获、
+`prepare`、`commit`、`rollback`、`reconcile` 和显式 `discardBackup`。
+GitDeployment在 `enable_node_updates=true` 时捕获变更前manifest及依赖目录身份，
+按两侧锁文件哈希变化触发真实prepare／commit；同锁校验并保留当前树。
+普通更新要求变更前已有有效lock和匹配生产树，缺失则在Git变更前拒绝并要求显式
+recover `update_deps=true`；新Git目标缺lock则保留interrupted，不隐式force或声称ready。
+公开 `update_deps=true` 是用户force；hard换根及其已记录中断的重建是独立内部原因。
+服务动作仅在依赖一致且阶段耐久保存后运行；未知服务结果继续拒绝重放。
+可信运行选项 `updateNodeDependencies` 可注入npm工具／cache，默认只从当前Node安装发现npm，
+不读取HTTP参数或用户环境中的npm路径，不将普通Git checkout当作已验证产品包。
+
+普通应用要求 npm v2／v3 锁文件、带完整性摘要的 HTTPS 生产依赖，
+在私有暂存目录实际执行隔离 npm `ci --omit=dev --include=optional --ignore-scripts`。
+只核实际生产树；省略的开发依赖含脚本不阻止纯生产包安装。
+普通应用的安装／prepare 脚本、原生构建或 `.node`、file／link 包、
+工作区、项目 `.npmrc` 目前明确拒绝，不能据此宣称本产品所需依赖已完整支持。
+用户 npmrc、registry 重写及凭据不继承，原始 npm 输出不公开。
+产品包来源另须调用方提供可信生成流程产出的 `build-info.json` 摘要并通过
+`verifyProductBundle`；本模块不生成或自签该文件，也不重建原生插件。
+
+提交前重核授权、manifest 和目录身份；失败／取消保留旧依赖并等 npm 退出。
+替换先耐久保存 intent，再两次 rename 与目录 fsync；关闭等一致性收尾。
+重开不执行脚本，须显式 `reconcile`；Git manifest 回到对应版本后才能回滚旧树。
+备份删除先保存可重复的discard intent。连续A→B→C自动保留最新一代B回滚：
+先耐久确立Git回滚目标及旧manifest，真实npm候选完成prepared后才清理过期备份、提交新树。
+同锁Git回滚识别当前依赖，不能误用更旧备份。失败保留旧树与interrupted阶段；显式recover
+对齐当前Git与旧依赖，不把Git更新但依赖过期的状态称为ready。
+hard恢复从耐久Git克隆记录读取旧root／.git、旧目录位置及新身份，逐项核验后重新绑定Node所有者；
+旧根依赖保留，新根实际准备依赖；迁移后prepared中断可重开显式恢复，不绕过身份检查。
+manifest、条目、文件、输出和期限均有上限；50ms 采样暂存／cache 容量是应用层监测，
+不是内核磁盘配额。Linux 内核目录锁排除另一所有者。
+
+184 Node 26.12.0／npm 11.19.1 使用锁定纯包与隔离离线 cache 完成真实安装、
+A→B→回滚 A、取消排空和故障恢复；HTTPS 传输、产品实际 npm 安装、完整新包／原生构建、
+服务和设备均未验。复用既有依赖与 `sealed-file.node`，不是全新构建。
+分场首次失败、定向修正及一次有限计时见
+[Node 依赖基础验收](../host/contracts/node-dependency-update-acceptance.json)。
+接线场次另见[Git Node生命周期验收](../host/contracts/update-git-node-lifecycle-acceptance.json)：
+真实Git＋离线npm首轮5／6，手工fetch绕过fixture映射失败保留；只补失败项与配置解析2／2。
+备份保留顺序与hard迁移后中断分别定向补验；服务顺序断言在可信hook边界，实际HTTP／RPC验证更新、
+回滚及force，不宣称本轮执行真实OS服务或网络TLS，也不重跑基础性能取代原样本。
+测试 npm 从当前 Node 安装发现，也可显式设置可信 `ANYRAID_TEST_NPM_CLI`。
+功能项仅 Linux；真实预构建产品项要求 `ANYRAID_TEST_PRODUCT_BUNDLE` 指向现有可信产物，
+缺失时明确 skip，默认 CI 不覆盖该项，不能把 184 的实测结果归给 CI。
+
+#### 可信产品代际准备候选
+
+`ProductUpdatePreparation` 是产品专用的受信运行API，提供 initialize／prepare／prepared／discard／close，
+没有公开HTTP执行路径或激活入口。调用方须预先批准物理Git仓库、无凭据HTTPS origin、完整commit及
+`productRecipeDigest`；摘要只证明内容一致，不能让任意checkout自行取得信任。
+从已批准commit的Git archive提取产品所需源码子集，拒绝链接、特殊文件、路径穿越、借用build或node_modules。
+工具绝对路径、Node headers和可选内容cache种子由可信配置提供；隔离HOME、npmrc、npm cache、Cargo registry／target，
+不继承用户registry重写、凭据或构建环境。缓存只提供锁定包内容，不复用既有编译输出。
+
+专用子进程执行完整产品配方：实际开发依赖安装、TypeScript编译、全新九个C／Rust addon与三个helper、
+生产依赖安装，以及九addon加载、sharp小图和Worker smoke。npm仍使用ignore-scripts；本产品当前锁定依赖不要求
+npm安装脚本，实际原生步骤由批准的产品配方显式构建。这不扩展普通Git应用的脚本／原生支持，也不宣称任意npm脚本可用。
+父进程异步监督，默认20分钟期限、4MiB输出、4GiB工作区／150000条目应用层采样上限；采样不是内核配额。
+继承模式的编译器子进程不自行声明整组已停，也不提前删构建目录；guardian在组排空后才耐久写入绑定attempt inode与nonce的凭据。
+父owner异常退出时继承flock仍被guardian持有，stdin EOF触发排空；正常close取消等待真实退出。
+guardian自身被强杀不能证明孙进程已停，即使锁随后可取也拒绝discard并保留interrupted；当前API无绕过出口，需受信人工排空和处理。
+已确认排空后的discard先耐久保存清理阶段，允许重开幂等收尾，不自动重建或重跑脚本。
+
+候选完整清单绑定批准来源、输入摘要、工具及运行时、build-info和实际代码／原生／node_modules文件摘要与模式；
+父进程在组排空后重核源码、原生输入／输出及Node headers，fsync后封存，重开prepared仍校验持锁身份与attempt inode。
+184 Node26.12一次fresh成功耗时63714.650655ms，10ms父timer6157样本的最大额外延迟17.837409ms；没有新增通过门限。
+该次源码夹具commit为d68f012c，先于最终guardian收口；后者另用真实父SIGKILL、guardian SIGKILL和close窄场验证，不重复fresh。
+前两次fresh的归档容量和缺Unicode输入失败保留，最终完整类型检查通过。
+默认CI不执行完整fresh：仅当显式提供`ANYRAID_TEST_PRODUCT_SOURCE`与JSON格式`ANYRAID_TEST_PRODUCT_BUILD_TOOLS`才启用，
+缺失会说明skip，不能把184工具链路径或结果当作CI覆盖。详见[产品准备验收](../host/contracts/product-update-preparation-acceptance.json)。
+
+本批不改变安装服务布局。现有unit的ExecStart／ExecStartPre固定realpath，不能靠切current软链接更新已安装服务；
+后续仍须固定launcher、代际指针、外部profile绑定／迁移、真实响应后的重启、新进程确认及失败回滚，完整核心更新尚未交付。
+未执行网络TLS、真实OS服务／设备、目标板或硬件验收。
 
 标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
 通过内部 `httpClient` 接口供组件借用，`server.info` 发现该组件。

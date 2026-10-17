@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "scope": "GitDeployment普通Node应用依赖生命周期候选；enable_node_updates及公开recover update_deps实际接线，完整产品pipeline仍开放",
+  "baseline": {
+    "services": "8af707147ff874d2b7e13b9fdbcdf0ccf6ab697c",
+    "dependencyFoundation": "5c5b94c823b2e5f615e4655e915ea11d2263301c",
+    "normalMerge": "c3d8cc5d0",
+    "developPrerequisite": "发布前由root正常同步develop前置合并；不继承任务头CI"
+  },
+  "contract": [
+    "Git变更前耐久记录manifest/依赖目录checkpoint；普通update要求有效lock及既有匹配依赖树，缺失在Git变更前明确拒绝，显式recover update_deps可安装",
+    "普通update只按两侧lock哈希均存在且变化触发；同锁校验保留当前tree inode；用户force仅公开update_deps，hard换根及其耐久记录后的重建是独立内部原因",
+    "候选真实npm完成并耐久prepared前保留旧backup；先耐久确立最新Git回滚目标及旧manifest，再清理过期backup并提交，连续A→B→C自动支持rollback B",
+    "同锁Git回滚辨识当前依赖已匹配，不能拿更旧backup A替换当前B；重开当前树身份与lock哈希须匹配",
+    "失败保留interrupted、旧依赖及Git/Node事务；reopen不自动执行npm或服务，显式recover对齐当前Git/manifest与依赖，不以旧依赖配新锁称ready",
+    "hard root迁移只从耐久Git克隆记录取旧root/.git身份、oldPath和新身份，并核验实际旧/新目录及所持控制锁；旧root依赖保留，新root实际安装；已迁移prepared中断可重开显式恢复",
+    "依赖一致且installed阶段持久后才调用既有restartServices；未知服务结果保留原拒重放/afterResponse语义，无直接systemctl",
+    "npm从当前Node安装发现或可信运行选项updateNodeDependencies注入；HTTP/RPC未知npmPath字段400，不开放任意可执行路径",
+    "跨Web/Git路径重叠包含.anyraid-node控制目录；普通Node生产树能力/资源限额沿依赖基础，不引入Python/pip",
+    "损坏Git配置重开时beforeCommit可为null；不写伪SHA。Git HEAD未知仍沿原引擎已保存rollback ref选目标，本轮新root/依赖A、旧root依赖B保持一致"
+  ],
+  "verification": {
+    "environment": "10.0.0.184专用git-node-lifecycle；Node26.12.0/npm11.19.1；复用同锁node_modules与sealed-file.node，非fresh build",
+    "packageLockSha256": "660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6",
+    "sealedFileSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+    "fixtures": "真实临时bare+checkout；锁定纯生产tarball以实际npm cache add装入隔离cache，npm ci --offline；仅精确fixture HTTPS Git URL由受信测试shim映射bare，网络TLS未验",
+    "runs": [
+      {
+        "session": "59474 / 73bfad",
+        "log": "first-lifecycle.stdout",
+        "passed": 5,
+        "failed": 1,
+        "failure": "测试手工/usr/bin/git fetch origin绕过fixture映射，意外访问fixture.invalid失败；尚未进入最终恢复断言",
+        "sha256": "c8edb4af377ce0a069b647b2c09b0fcf47d65d83d21b0d5ba49f96dd355b3bfc"
+      },
+      {
+        "session": "9426 / a23a06",
+        "log": "recovery-followup.stdout",
+        "passed": 2,
+        "failed": 0,
+        "scope": "仅失败项修正为明确临时bare refspec并观察reopen npm spawn=0；新配置解析",
+        "sha256": "197e6ad0dff3242a8278543cd108b1b8f01f1f10cd371100c63522d01319e657"
+      },
+      {
+        "session": "98014 / 61879c",
+        "log": "retained-backup-followup.stdout",
+        "passed": 1,
+        "failed": 1,
+        "failure": "新增备份存在断言误应用于interrupted/repository重开记录，已删backup ENOENT；hard通过",
+        "sha256": "d03fd9cef8e646a6846de1710922e02a7ce4c9cd7366c5416ecdfcb21732e2c8"
+      },
+      {
+        "session": "d24f60",
+        "log": "cleanup-recovery-followup.stdout",
+        "passed": 1,
+        "failed": 0,
+        "scope": "仅清理中断项，断言限定dependencies/cleaning，候选prepared后删除+保存失败可显式恢复",
+        "sha256": "287867bbf6ccc97e256804319b5bf2f63d0a953e48971baa155b0a73996f39b0"
+      },
+      {
+        "session": "10483 / 4cb1e8",
+        "log": "hard-reopen-followup.stdout",
+        "passed": 1,
+        "failed": 0,
+        "scope": "现有hard项加入newRoot真实npm prepared后阶段保存失败、reopen、非force显式recover，并核旧root依赖保留",
+        "sha256": "27cb2b1d8feb2f1341711d536f719151622e7cd47c46a93ac150d2e04fc8b42e"
+      },
+      {
+        "session": "90662 / 9f8f51",
+        "log": "corrupt-reopen-followup.stdout",
+        "passed": 0,
+        "failed": 1,
+        "failure": "既有hard用例增强为先损坏config并reopen后，断言误认目标B；原Git引擎HEAD未知沿已保存rollback A，实际Git/依赖A，旧root依赖B",
+        "sha256": "d45b524791ed0b1f5141c5ae4ddaf2b66e87c9d3f1639dcb9be62700bf4c5d62"
+      },
+      {
+        "session": "e30389",
+        "log": "corrupt-ref-followup.stdout",
+        "passed": 1,
+        "failed": 0,
+        "scope": "仅修正固定Git选ref断言，新A/旧B；hard迁移后prepared中断+重开显式恢复",
+        "sha256": "475d6c1f1e3f471d5e338b8e4c4e6ff01593d29cc6158d16d61a112e5ca47336"
+      }
+    ],
+    "typecheck": "首次借用链接层级错误ENOENT未开始；修正后通过。最终corrupt-reopen-typecheck stdout/stderr均空，exit0（1a4869），随后仅测试目标版本断言更正",
+    "coverage": [
+      "A→B→C/rollback B",
+      "同锁Git版本不更换依赖inode",
+      "update_deps同锁force实际替换tree",
+      "npm失败旧A保留/无服务、显式recover修正Git与依赖",
+      "hard root/.git迁移与prepared中断重开",
+      "清理backup后保存失败恢复",
+      "实际鉴权HTTP更新、RPC rollback与force、HTTP拒绝可执行路径"
+    ],
+    "serviceEvidence": "新增服务顺序在可信restartServices hook边界读取真实安装版本；既有控制保护不改，未执行真实OS服务或证明ready"
+  },
+  "remaining": [
+    "普通应用安装/prepare生命周期脚本、原生构建、.node、file/link/workspace仍明确不支持",
+    "本产品可信bundle生成/构建/依赖完整pipeline未接线，不把任意checkout自签为产品包",
+    "未知服务结果人工核对后的受信恢复出口仍开放",
+    "本轮无新性能运行、网络TLS、完整新包/CI、实际掉电/SIGKILL、目标板/打印/硬件/生产部署验收"
+  ],
+  "foundation": "node-dependency-update-acceptance.json记录基础历史12项、产品inventory和原一次有限计时；不将基础或本轮有限通过写成完整Node更新交付"
+}
