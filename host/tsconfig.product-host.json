@@ -14,6 +14,10 @@
     "../scripts/product-service-unit.ts",
     "../scripts/product-install-helper.ts",
     "../scripts/product-install.ts",
+    "../scripts/product-update-build.ts",
+    "../scripts/product-generation-entry.ts",
+    "../scripts/product-generation-launcher.ts",
+    "../scripts/product-generation-install.ts",
     "../scripts/product-preflight.ts",
     "../scripts/flash-sdcard.ts"
   ]

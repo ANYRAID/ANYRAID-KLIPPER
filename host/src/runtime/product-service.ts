@@ -1,3 +1,4 @@
+import type {MaintenanceLease} from '../operations/maintenance-gate.ts';
 import {loadWelcomeSource} from '../moonraker/welcome-application.ts';
 import {registerNativeDualCarriage} from '../moonraker/native-dual-carriage.ts';
 import {registerNativeLayerPause} from '../moonraker/native-layer-pause.ts';
@@ -70,6 +71,8 @@ export function startConfiguredProductService(reader:ConfigurationReader,policie
 type ProductOwnedServerFields='productPrint'|'productPressure'|'maintenanceGate'|'nativeHost'|'nativeObjects'|'nativePrinterIdentity';
 export type ProductServerOptions=(Omit<ConfiguredServerOptions,ProductOwnedServerFields>&{authorization?:never})|Omit<ConfiguredAuthorizationOptions,ProductOwnedServerFields>;
 export interface ProductServiceOptions {
+ /** Selected-generation startup fence is released only after durable ready confirmation. */
+ startupConfirmation?:true;
  configPath:string;
  server:ProductServerOptions;
  /** Process owner closes the listener explicitly after final printer retirement. */
@@ -108,7 +111,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
  if(options.existingServer){options.existingServer.assertNativeReuse(configPath,processServer);const state=options.existingServer.nativeGenerationStatus;if(!state?.detached||!state.drained||state.attaching||state.state!=='stopped')throw new Error('Existing native printer has not retired');}
  const screwsStatus=new ScrewsCalibrationStatus();
  const deltaPlan=readDeltaCalibrationPlan(reader),deltaState=readDeltaCalibrationState(reader);
- const printer=await connect();
+ const printer=await connect();let startupLease:MaintenanceLease|undefined;const holdStartup=()=>{if(options.startupConfirmation)startupLease=printer.maintenanceGate.acquireLease();};
  let closeGcodeHelp:(()=>void)|undefined;
  let closeGcodeOutput:(()=>void)|undefined;
  let closeDeltaCalibration:ReturnType<typeof registerNativeDeltaCalibration>|undefined;
@@ -134,7 +137,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
  let closeManualTilt:(()=>Promise<void>)|undefined;
  let closeTilt:(()=>Promise<void>)|undefined,closeTiltSave:(()=>Promise<void>)|undefined;
  let server:ConfiguredMoonraker|undefined,closing:Promise<void>|undefined,retiring:Promise<void>|undefined,started=false;let closeEndstopPhase:(()=>Promise<void>)|undefined;let closeDriverCurrent:(()=>Promise<void>)|undefined;let closeIdleSettings:(()=>void)|undefined;let closeConfiguration:(()=>Promise<void>)|undefined,closeProbe:(()=>Promise<void>)|undefined,closeGrid:(()=>Promise<void>)|undefined,closeHome:(()=>Promise<void>)|undefined;
- const nativeHost=():NativeHostSnapshot=>{const group=printer.group.status,gate=printer.maintenanceGate.status;return {group_state:group.state,hardware_state:printer.hardware.status.state,print_state:printer.controller.state,homed_axes:printer.machine.kinematics.status.homedAxes,closing:!!closing,admission_closed:gate.closed,maintenance:gate.maintenance,mcus:group.devices.map(({id,state})=>({id,state:state as NativeHostSnapshot['mcus'][number]['state']}))};};
+ const nativeHost=():NativeHostSnapshot=>{const group=printer.group.status,gate=printer.maintenanceGate.status;return {group_state:group.state,hardware_state:printer.hardware.status.state,print_state:printer.controller.state,homed_axes:printer.machine.kinematics.status.homedAxes,closing:!!closing,admission_closed:gate.closed||!!startupLease,maintenance:gate.maintenance,mcus:group.devices.map(({id,state})=>({id,state:state as NativeHostSnapshot['mcus'][number]['state']}))};};
  const retirePrinter=():Promise<void>=>{
   if(retiring)return retiring;const done=Promise.withResolvers<void>();retiring=done.promise;
   printer.maintenanceGate.invalidate();
@@ -252,13 +255,13 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   };
   if(options.existingServer){
    const previous=options.existingServer.nativeGenerationStatus!.generation;server=options.existingServer;
-   try{await server.attachNativePrinter({controller:printer.controller,gate:printer.maintenanceGate,host:nativeHost,objects:ownedServer.nativeObjects,pressure:printer.print.gcode.pressureAdvance,compatibility:serverOptions.productPrintCompatibility,uploads:serverOptions.nativeUploads},configureRoutes);}
+   try{await server.attachNativePrinter({controller:printer.controller,gate:printer.maintenanceGate,host:nativeHost,objects:ownedServer.nativeObjects,pressure:printer.print.gcode.pressureAdvance,compatibility:serverOptions.productPrintCompatibility,uploads:serverOptions.nativeUploads},configureRoutes,holdStartup);}
    catch(error){if(server.nativeGenerationStatus!.generation===previous)server=undefined;throw error;}
   }else{
-   server=serverOptions.authorization?await ConfiguredMoonraker.loadAuthorized(configPath,{...serverOptions,...ownedServer}):await ConfiguredMoonraker.load(configPath,{...serverOptions,...ownedServer});configureRoutes();
+   server=serverOptions.authorization?await ConfiguredMoonraker.loadAuthorized(configPath,{...serverOptions,...ownedServer}):await ConfiguredMoonraker.load(configPath,{...serverOptions,...ownedServer});configureRoutes();holdStartup();
   }
   const address=await server.start();signal.throwIfAborted();printer.group.assertActive();
-  started=true;return Object.freeze({printer,server,address,retirePrinter,close,calibrationDiagnostic:()=>closeDeltaCalibration?.diagnostic()});
+  started=true;return Object.freeze({printer,server,address,retirePrinter,close,confirmStartup:()=>{startupLease?.release();startupLease=undefined;},calibrationDiagnostic:()=>closeDeltaCalibration?.diagnostic()});
  }catch(error){try{await close();}catch(cleanup){throw new AggregateError([error,cleanup],'Product service startup and cleanup failed',{cause:error});}throw error;}
  finally{signal.removeEventListener('abort',aborted);}
 }

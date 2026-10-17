@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "scope": "可信产品代际准备；不含激活、服务重启或核心更新完成声明",
+  "baseline": "4f0dd720f6ce1d13cf3dd2d86698d865714afa31",
+  "controlFixMerge": "76d633e6315a3396071ac8d70bc02d0e483aa8a7",
+  "authority": {
+    "source": "调用方预先批准物理仓库、无凭据HTTPS origin、完整commit和配方摘要；摘要不能自行建立来源信任",
+    "execution": "仅受信API与绝对工具路径；私有HOME、npmrc、npm cache、Cargo registry和target",
+    "recipe": "锁定开发依赖与生产依赖实际npm安装；ignore-scripts；产品配方显式构建九C/Rust addon和三个helper",
+    "ordinaryApplications": "不改变普通Git应用对安装脚本、原生构建、工作区和file/link包的拒绝边界"
+  },
+  "durability": {
+    "owner": "内核目录flock、物理目录及attempt inode、await授权后重核；prepared与close共享取消并在导出前复核",
+    "build": "detached guardian继承flock；真实构建另组，默认编译器监督不变，继承模式不自行声称整组排空或清理",
+    "parentDeath": "stdin EOF触发guardian停止并排空worker及孙进程，排空凭据绑定attempt inode和nonce后fsync",
+    "guardianDeath": "不能确认排空时保留interrupted；即使后来取得锁也以build_drain_unconfirmed拒绝discard，无API绕过或自动脚本重放",
+    "discard": "先耐久保存已获准清理阶段，再删除私有attempt；重开可幂等收尾",
+    "generation": "完整代码、原生、node_modules清单及模式；输入、工具、Node运行时、build-info、native sources/outputs/headers重核，组排空后fsync封存"
+  },
+  "limits": {
+    "defaultTimeoutMs": 1200000,
+    "defaultOutputBytes": 4194304,
+    "defaultWorkspaceBytes": 4294967296,
+    "defaultEntries": 150000,
+    "capacityScope": "500ms应用层采样，不是内核配额；父进程不执行同步编译"
+  },
+  "environment": {
+    "host": "10.0.0.184独立隔离目录product-update-preparation",
+    "node": "26.12.0 Linux x64",
+    "npm": "11.19.1",
+    "rust": "1.89.0",
+    "parentTests": "复用既有node_modules和sealed-file.node，仅用于父测试/类型检查",
+    "freshWorker": "只种入锁定包内容cache；全新开发/生产安装、私有Cargo target、全新C/Rust输出，未借用旧build或node_modules"
+  },
+  "validation": [
+    {"log":"first-focused", "result":"7/7", "scope":"来源/commit/配方、目录锁/保留路径、归档、真实孙进程取消、期限/输出/容量、清单"},
+    {"log":"supervision-followup", "result":"3/3", "scope":"继承组真实TypeScript子进程不声称排空、取消与归档"},
+    {"log":"first-fresh", "result":"0/1", "scope":"归档整个host触发128MiB上限；保留首次失败，改为明确产品源码子集"},
+    {"log":"fixed-input-fresh", "result":"0/1", "scope":"子集缺三个Unicode JSON输入；诊断日志fresh-type-diagnostic保留，明确补齐输入"},
+    {"log":"unicode-input-fresh", "result":"1/1", "scope":"实际完整fresh产品构建及九addon、sharp小图、Worker smoke；先于最终guardian收口"},
+    {"log":"identity-followup", "result":"3/3", "scope":"来源、异步授权期间目录换代拒绝、完整清单"},
+    {"log":"guardian-first-typecheck", "result":"失败", "scope":"新增可变stdio类型需要stdout/stderr非空收窄；原输出保留，SSH包装退出码转义错误另记"},
+    {"log":"guardian-followup", "result":"2通过、1超时取消", "scope":"父owner SIGKILL和owner.close已过；guardian强杀夹具先等父close再杀worker构成等待环"},
+    {"log":"guardian-kill-followup", "result":"1/1", "scope":"仅修正夹具等待顺序；先确认仍locked，杀已知fixture leader后保留孙进程，重开拒绝discard"},
+    {"log":"guardian-final-typecheck", "result":"通过", "scope":"guardian类型收窄后完整类型检查"},
+    {"log":"prepared-final-typecheck", "result":"通过", "scope":"最终prepared与close共享取消、导出前再次核持锁及attempt身份；完整类型检查"},
+    {"log":"prepared-close-followup", "result":"1/1", "scope":"只补最终关闭定向场，关闭后的prepared拒绝；不包含fresh测试文件"}
+  ],
+  "freshObservation": {
+    "sourceFixtureCommit": "d68f012c76d5adfb37e7cc8c50dcc03dae07504c",
+    "generationSha256": "842556445331b72b7a99a8bd868627c3db15c0d7caed76f5028eba979c38d916",
+    "prepareDurationMs": 63714.650655,
+    "parentTimerIntervalMs": 10,
+    "parentTimerSamples": 6157,
+    "maxExtraParentTimerDelayMs": 17.837408999999752,
+    "threshold": null,
+    "retention": "成功夹具按测试清理，保留源码夹具commit及原始断言/摘要日志，不保留完整成功代际产物；失败目录保留",
+    "boundary": "最终guardian与父身份收口未重跑fresh，以对应真实故障定向验证；不把临时Linux夹具commit当项目发布头"
+  },
+  "ciSelection": "完整fresh仅显式ANYRAID_TEST_PRODUCT_SOURCE与ANYRAID_TEST_PRODUCT_BUILD_TOOLS启用；其他环境明确skip，不硬编码184工具路径",
+  "remaining": [
+    "固定launcher、代际指针、外部profile绑定/迁移、真实响应后重启、新进程确认及完整产品失败回滚",
+    "GitDeployment/manager产品准备与激活接线、普通Git应用的实际脚本/原生依赖支持",
+    "未知服务结果受信对账、其余完整update_manager和G0-G6",
+    "网络TLS、真实OS服务/设备、目标板/运动预算、硬件、主线发布均未执行"
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "scope": "Product launcher-v1 generation activation candidate; not complete full coordinator or hardware acceptance",
+  "baseline": {
+    "task": "aebbdd2ffcb3c14ef81e0d944daebbb6bf2c47e1",
+    "includesPreparation": "b41b1a227",
+    "includesSystem": "1c1787c32"
+  },
+  "runtime": {
+    "platform": "Linux x64",
+    "node": "26.12.0",
+    "isolation": "10.0.0.184 dedicated product-generation-activation directory; PTY/emulated MCUs; fake typed machine control, no OS services"
+  },
+  "contract": [
+    "Explicitly approved repo/commit/recipe generation digest; digest is content binding, not source authentication",
+    "Independent fixed launcher-v1 protocol and native ABI validation; full immutable code/native/production dependency selection",
+    "GNU libc 2.x not older than recorded build-host floor; reject musl, older and unknown major",
+    "External pinned v2 profile uses injected current-generation API; legacy/old-copy imports rejected",
+    "Public files/metadata/config/disk-import physical planned paths cannot overlap private store/bootstrap/generation",
+    "Authenticated HTTP and WebSocket RPC core cohost aliases select once and request restart after real response",
+    "Core confirmation durably records exact selection id/nonce/request id/SHA before same-generation awaited startup barrier releases producer lease",
+    "Confirmed A→B→C retains B rollback and only then removes older A; unknown response/control/boot never replays",
+    "Mainsail executable standard fields use durable per-SHA local v0.0.N publication ordinal; visible full version keeps source commit; no upstream release claim"
+  ],
+  "libcAuthority": [
+    "https://sourceware.org/glibc/",
+    "https://sourceware.org/pipermail/libc-alpha/2023-July/150165.html"
+  ],
+  "validation": [
+    {
+      "log": "publication-libc-store-tests",
+      "result": "7/7 before startup proof extension; real flock/store, state, publication and libc cases"
+    },
+    {
+      "log": "startup-proof-gnu-tests",
+      "result": "2/2 new GNU compatibility and internal restart/owner-only startup admission"
+    },
+    {
+      "log": "fixed-launcher-unit-test",
+      "result": "1/1 fixed unit selection and external profile mismatch"
+    },
+    {
+      "log": "host-unit-regression",
+      "result": "16/16 directly affected host ready/cleanup and legacy unit interfaces"
+    },
+    {
+      "log": "first-product-process-tests",
+      "result": "3/4; real A→B→C/rollback B HTTP/RPC, old-process lazy ESM/createRequire/native/dependencies, SIGKILL no replay, legacy profile rejection passed; confirmation failure found early ready publication"
+    },
+    {
+      "log": "startup-admission-failure-followup",
+      "result": "failure retained: ready corrected; test used unsupported M118 instead of admitted G28"
+    },
+    {
+      "log": "startup-supported-gcode-followup",
+      "result": "failure retained: G28 blocked; upload correctly blocked with409, fixture incorrectly expected201"
+    },
+    {
+      "log": "startup-producer-fence-followup",
+      "result": "failure retained: all producer assertions passed; actual confirmation abort incorrectly exited0"
+    },
+    {
+      "log": "confirmation-exit-followup",
+      "result": "1/1 after local-abort exit correction; ready=false, maintenance=true, G28/upload/existing print denied, history0, both MCUs stopped, exit1, next launch no replay"
+    },
+    {
+      "log": "private-storage-unit-test",
+      "result": "1/1 physical ancestor/child/symlink planned path rejection without creating public roots"
+    },
+    {
+      "log": "private-storage-process-test",
+      "result": "1/1 actual bootstrap rejects overlap before routes/import/device owners"
+    },
+    {
+      "log": "default-process-selection",
+      "result": "5 explicit artifact-dependent process skips; not default CI coverage"
+    },
+    {
+      "log": "frozen-typecheck",
+      "result": "standard tsc --noEmit exit0"
+    }
+  ],
+  "buildReuse": {
+    "kind": "Changed TypeScript recompiled after each production fix; no repeated fresh npm/native",
+    "nativeInputs": 84,
+    "nativeOutputs": 12,
+    "nativeBuiltWithNode": "26.11.1",
+    "testedWithNode": "26.12.0",
+    "dependencyLock": "exact match to reused product",
+    "freshEvidence": "Product preparation acceptance retains prior one fresh 63714.650655ms checkpoint; final guardian separately tested"
+  },
+  "retainedInitialFailures": [
+    "first-typecheck",
+    "first-store-tests",
+    "first-derived-build",
+    "startup-barrier-typecheck",
+    "first-product-process-tests",
+    "startup-admission-failure-followup",
+    "startup-supported-gcode-followup",
+    "startup-producer-fence-followup"
+  ],
+  "remaining": [
+    "Automatic trusted source preparation to manager activation",
+    "Full multiple-deployment terminal persistence must complete in awaited startup barrier before lease release; not status polling",
+    "Trusted reconciliation of unknown service results",
+    "Real systemd restart/unit installation, network TLS, actual glibc upgrade, target-board budget, hardware and production acceptance",
+    "Mainsail source consumer compatibility checked at fixed2.19.0 commit5fb9e77f; not browser UI acceptance"
+  ]
+}
