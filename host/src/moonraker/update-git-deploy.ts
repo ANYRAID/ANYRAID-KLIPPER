@@ -1,7 +1,7 @@
 // Git deployment adapter follows Moonraker 1cfb0c41 AppDeploy/BaseDeploy.
 // GPL-3.0-or-later. Generic applications use isolated script-free npm before
 // managed services; trusted product rebuilds and native/scripts remain separate.
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import {isAbsolute,join,dirname} from 'node:path';
 import {access} from 'node:fs/promises';
 import {NodeDependencyTransaction,NodeDependencyError,nodeDependenciesNeedUpdate,type NodeDependencyOptions,type NodeRootMigration} from './node-dependency-transaction.ts';
@@ -19,7 +19,7 @@ export interface GitDeploymentConfiguration extends GitRepositoryConfig {
  enableNodeUpdates:boolean;isSystemService:boolean;managedServices:string[];
 }
 export type GitNodeRuntime=Omit<NodeDependencyOptions,'source'|'reservedPaths'|'npmPath'>&{npmPath?:string};
-type Operation={action:'update'|'rollback'|'recover';stage:'repository'|'dependencies'|'services'|'awaiting_response'|'interrupted';services?:Json;dependencies?:{stage:'capturing'|'captured'|'repository'|'cleaning'|'preparing'|'installed';beforeCommit:string|null;rollbackTarget:string|null;manifestKey:string|null};migration?:NodeRootMigration};
+type Operation={id?:string;action:'update'|'rollback'|'recover';stage:'repository'|'dependencies'|'services'|'awaiting_response'|'interrupted';services?:Json;service_acknowledgement?:{receipt_id:string;fingerprint:string};dependencies?:{stage:'capturing'|'captured'|'repository'|'cleaning'|'preparing'|'installed';beforeCommit:string|null;rollbackTarget:string|null;manifestKey:string|null};migration?:NodeRootMigration};
 export interface GitDeploymentStorage extends Record<string,Json> {
  schema:1;last_config_hash:string;last_refresh_time:number;last_error:string;
  repository:Json;operation:Operation|null;
@@ -68,15 +68,21 @@ export class GitDeployment {
  }
  get lastRefresh(){return this.#saved.last_refresh_time;}
  needsRefresh(now=Date.now()/1000){return this.#saved.last_config_hash!==this.config.configHash||now>=this.lastRefresh+this.config.refreshInterval;}
- get status():Record<string,Json>{return {...this.#repo.status,configured_type:'git_repo',channel_invalid:false,info_tags:[...this.config.infoTags],last_error:this.#saved.last_error,deployment_state:this.#saved.operation?.stage??'idle',service_progress:this.#saved.operation?.services??null,dependency_progress:this.#saved.operation?.dependencies??null};}
+ get status():Record<string,Json>{return {...this.#repo.status,configured_type:'git_repo',channel_invalid:false,info_tags:[...this.config.infoTags],last_error:this.#saved.last_error,deployment_state:this.#saved.operation?.stage??'idle',operation_id:this.#saved.operation?.id??null,service_acknowledgement:this.#saved.operation?.service_acknowledgement as unknown as Json??null,last_service_reconciliation:this.#saved.last_service_reconciliation??null,service_progress:this.#saved.operation?.services??null,dependency_progress:this.#saved.operation?.dependencies??null};}
  get storage():GitDeploymentStorage{return structuredClone({...this.#saved,repository:this.#repo.storage as unknown as Json});}
+ /** Acknowledgement does not change the unknown service outcomes. */
+ get skipsAcknowledgedServiceReplay(){return !!this.#saved.operation?.service_acknowledgement;}
+ serviceReconciliationCandidate(){const operation=this.#saved.operation;if(!operation||operation.stage!=='interrupted'||!operation.id||operation.service_acknowledgement||!managedServiceProgress(operation.services)||!operation.services.entries.some(entry=>['queued','interrupted'].includes(entry.state)))throw Error('No unknown service batch requires reconciliation');return {operation:structuredClone(operation),config_hash:this.config.configHash,fingerprint:createHash('sha256').update(JSON.stringify([this.config.configHash,operation])).digest('hex')};}
+ async acknowledgeServiceResult(operationId:string,fingerprint:string,receiptId:string,context:GitDeploymentMutationContext){return this.#queue(async()=>{const candidate=this.serviceReconciliationCandidate();if(candidate.operation.id!==operationId||candidate.fingerprint!==fingerprint||!/^app-receipt-[a-f0-9-]{36}$/u.test(receiptId))throw Error('Application reconciliation identity changed');context.signal.throwIfAborted();await context.authorize();context.signal.throwIfAborted();const next={...this.storage,operation:{...candidate.operation,service_acknowledgement:{receipt_id:receiptId,fingerprint}}};await context.persist(next);this.#saved=next;});}
  restore(value:unknown):void{
   if(value===undefined)return;validateJson(value);if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Invalid saved Git deployment state');const r=value as GitDeploymentStorage;
   if(r.schema!==1||r.last_config_hash!==''&&r.last_config_hash!==this.config.configHash||typeof r.last_refresh_time!=='number'||!Number.isFinite(r.last_refresh_time)||r.last_refresh_time<0||!['','Git refresh failed','Git deployment action failed'].includes(r.last_error)||!Object.hasOwn(r,'repository')||!Object.hasOwn(r,'operation'))throw Error('Invalid saved Git deployment metadata');
   if(r.operation!==null&&(!r.operation||!['update','rollback','recover'].includes(r.operation.action)||!['repository','dependencies','services','awaiting_response','interrupted'].includes(r.operation.stage)||r.operation.services!==undefined&&!managedServiceProgress(r.operation.services)))throw Error('Invalid saved Git deployment operation');
   if(r.operation?.dependencies){const d=r.operation.dependencies;if(!this.config.enableNodeUpdates||!['capturing','captured','repository','cleaning','preparing','installed'].includes(d.stage)||d.beforeCommit!==null&&!/^[a-f0-9]{40,64}$/u.test(d.beforeCommit)||d.rollbackTarget!==null&&!/^[a-f0-9]{40,64}$/u.test(d.rollbackTarget)||d.manifestKey!==null&&!/^[a-f0-9]{64}$/u.test(d.manifestKey))throw Error('Invalid saved Git dependency operation');}
   if(r.operation?.migration){const m=r.operation.migration;if(!this.config.enableNodeUpdates||![m.oldRoot,m.oldGit,m.newRoot,m.newGit].every(v=>typeof v==='string'&&/^\d+:\d+$/u.test(v))||typeof m.oldPath!=='string'||dirname(dirname(m.oldPath))!==dirname(this.config.path)||!m.oldPath.endsWith('/original'))throw Error('Invalid saved Git dependency migration');}
-  this.#repo.restore(r.repository);this.#saved=structuredClone(r);if(this.#saved.operation){this.#saved.operation.stage='interrupted';if(managedServiceProgress(this.#saved.operation.services)){this.#saved.operation.services.state='interrupted';for(const entry of this.#saved.operation.services.entries)if(entry.state==='queued')entry.state='interrupted';}}
+  if(r.operation?.id!==undefined&&!/^app-(?:[a-f0-9-]{36}|[a-f0-9]{64})$/u.test(r.operation.id))throw Error('Invalid application operation ID');
+  const ack=r.operation?.service_acknowledgement;if(ack&&(!/^app-receipt-[a-f0-9-]{36}$/u.test(ack.receipt_id)||!/^[a-f0-9]{64}$/u.test(ack.fingerprint)))throw Error('Invalid service acknowledgement');
+  this.#repo.restore(r.repository);this.#saved=structuredClone(r);if(this.#saved.operation){this.#saved.operation.id??='app-'+createHash('sha256').update(JSON.stringify([this.config.configHash,r.operation])).digest('hex');this.#saved.operation.stage='interrupted';if(managedServiceProgress(this.#saved.operation.services)){this.#saved.operation.services.state='interrupted';for(const entry of this.#saved.operation.services.entries)if(entry.state==='queued')entry.state='interrupted';}}
  }
  #queue<T>(work:()=>Promise<T>):Promise<T>{if(this.#closing)return Promise.reject(Error('Git deployment closed'));const task=this.#tail.then(work);this.#tail=task.then(()=>{},()=>{});return task;}
  #signal(signal:AbortSignal){return AbortSignal.any([signal,this.#life.signal]);}
@@ -93,10 +99,10 @@ export class GitDeployment {
  }
  #mutate(action:Operation['action'],context:GitDeploymentMutationContext,hard=false,force=false):Promise<boolean>{return this.#queue(async()=>{
   const signal=this.#signal(context.signal);signal.throwIfAborted();if(this.#saved.operation&&action!=='recover')throw Error('Interrupted Git deployment requires explicit recovery');
-  if(this.config.managedServices.length&&!context.restartServices)throw Error('Managed services require the trusted product lifecycle');
-  if(action==='recover'&&managedServiceProgress(this.#saved.operation?.services)&&this.#saved.operation!.services.entries.some(entry=>entry.state==='queued'||entry.state==='interrupted'))throw Error('Managed service result is unknown; inspect the recorded control request before recovery, no service replay');
+  if(this.config.managedServices.length&&!context.restartServices&&!(action==='recover'&&this.skipsAcknowledgedServiceReplay))throw Error('Managed services require the trusted product lifecycle');
+  if(action==='recover'&&!this.skipsAcknowledgedServiceReplay&&managedServiceProgress(this.#saved.operation?.services)&&this.#saved.operation!.services.entries.some(entry=>entry.state==='queued'||entry.state==='interrupted'))throw Error('Managed service result is unknown; inspect the recorded control request before recovery, no service replay');
   await context.authorize();signal.throwIfAborted();
-  const prior=this.#saved.operation;const prepared:GitDeploymentStorage={...this.storage,operation:{...prior,action,stage:'repository'},last_error:''};await context.persist(prepared);this.#saved=prepared;
+  const prior=this.#saved.operation,skipServiceReplay=action==='recover'&&this.skipsAcknowledgedServiceReplay;const prepared:GitDeploymentStorage={...this.storage,operation:{...prior,id:prior?.id??'app-'+randomUUID(),action,stage:'repository'},last_error:''};await context.persist(prepared);this.#saved=prepared;
   const save=async(operation:Operation)=>{const next={...this.storage,operation};await context.persist(next);this.#saved=next;};
   const nodeContext={signal,authorize:context.authorize};
   const engineContext={signal,authorize:context.authorize,persist:async(repository:GitRepositoryStorage)=>{let operation=this.#saved.operation!;const t=repository.transaction;if(this.#node&&t?.action==='recover'&&t.backup&&t.newIdentity){operation={...operation,migration:{oldRoot:t.oldIdentity.root,oldGit:t.oldIdentity.git,oldPath:join(t.backup,'original'),newRoot:t.newIdentity.root,newGit:t.newIdentity.git}};}const next={...this.#saved,operation,repository:repository as unknown as Json};await context.persist(structuredClone(next));this.#saved=next;}};
@@ -132,8 +138,8 @@ export class GitDeployment {
     }
     await save({...this.#saved.operation!,dependencies:{...this.#saved.operation!.dependencies!,stage:'installed'}});
    }
-   if(result&&this.config.managedServices.length)await context.restartServices!(async progress=>{const next:GitDeploymentStorage={...this.storage,operation:{...this.#saved.operation,action,stage:progress.state==='awaiting_response'?'awaiting_response':'services',services:serviceProgressJson(progress)}};await context.persist(next);this.#saved=next;});
-   signal.throwIfAborted();const completed:GitDeploymentStorage={...this.storage,last_config_hash:this.config.configHash,last_refresh_time:Date.now()/1000,last_error:'',operation:null};await context.persist(completed);this.#saved=completed;return result;
+   if(result&&this.config.managedServices.length&&!skipServiceReplay)await context.restartServices!(async progress=>{const next:GitDeploymentStorage={...this.storage,operation:{...this.#saved.operation,action,stage:progress.state==='awaiting_response'?'awaiting_response':'services',services:serviceProgressJson(progress)}};await context.persist(next);this.#saved=next;});
+   signal.throwIfAborted();const completed:GitDeploymentStorage={...this.storage,...skipServiceReplay?{last_service_reconciliation:{...prior!.service_acknowledgement!,operation_id:prior!.id!,services:prior!.services!,recovery:'repository_dependencies_only',service_result:'unconfirmed',service_replay:'skipped_acknowledged'}}:{},last_config_hash:this.config.configHash,last_refresh_time:Date.now()/1000,last_error:'',operation:null};await context.persist(completed);this.#saved=completed;return result;
   }catch(error){const interrupted:GitDeploymentStorage={...this.storage,last_error:'Git deployment action failed',operation:{...this.#saved.operation,action,stage:'interrupted'}};this.#saved=interrupted;try{await context.persist(structuredClone(interrupted));}catch{}throw error;}
  });}
  async close():Promise<void>{this.#closing=true;this.#life.abort(Error('Git deployment closed'));await this.#tail;await this.#node?.close();await this.#repo.close();}
