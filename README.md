@@ -27,6 +27,7 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 恢复公开参数为update_deps：启用enable_node_updates的普通Git应用可强制准备锁定生产依赖，未启用时true返回501；内部名force_dep_update作为公开字段返回400。
 普通服务沿维护租约顺序提交，自己的进程重启沿真实响应交接；未知服务结果保留interrupted且不自动重放。
 Git Node依赖候选接通隔离npm准备、保旧替换和最新一代回滚，同锁不重装，依赖一致成功后才进入服务；普通应用脚本／原生依赖、完整产品pipeline及核心／系统等五类动作仍未实现，见[Web配置](docs/Node_Host_Startup.md#web-客户端更新状态与刷新)和[Git边界](docs/Node_Host_Startup.md#git-纯仓库应用更新候选)。
+独立 APT 后端候选已实现查询、刷新、解析、安装与 upgrade，并要求可信持久操作日志；尚未接入公开系统更新路由、PackageKit或维护租约，见[APT边界](docs/Node_Host_Startup.md#独立-apt-系统包后端候选)。
 可信 `createProcess` 路线现接入默认共享 `systemd_dbus` 所有者：真实
 Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共同借用连接。
 设备退役后已提交动作的未知结果持久为 interrupted，包装错误不丢失，
