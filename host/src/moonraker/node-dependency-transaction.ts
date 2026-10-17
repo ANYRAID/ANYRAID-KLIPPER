@@ -1,0 +1,152 @@
+// Lockfile-driven Node dependency preparation and directory transaction.
+// GPL-3.0-or-later. No Python, lifecycle script execution or service control.
+import {constants} from 'node:fs';
+import {access,lstat,open,realpath,mkdir,readdir,rename,rm} from 'node:fs/promises';
+import type {FileHandle} from 'node:fs/promises';
+import {createHash,randomUUID} from 'node:crypto';
+import {createRequire} from 'node:module';
+import {dirname,join,relative,isAbsolute,sep,resolve} from 'node:path';
+import {spawn} from 'node:child_process';
+import {verifyProductBundle} from '../runtime/product-service-unit.ts';
+
+export type NodeDependencySource={kind:'git-application';path:string}|{kind:'product-bundle';path:string;inventorySha256:string};
+export interface NodeDependencyOptions {source:NodeDependencySource;npmPath:string;reservedPaths?:readonly string[];cacheDirectory?:string;offline?:boolean;timeoutMs?:number;maxOutputBytes?:number;}
+export interface NodeDependencyContext {signal:AbortSignal;authorize:()=>void|Promise<void>;}
+export interface NodeManifestSnapshot {readonly packageHash:string;readonly lockHash:string;readonly key:string;readonly rootIdentity:string;readonly treeIdentity:string|null;}
+type ObjectRow=Record<string,unknown>;
+interface Material {snapshot:NodeManifestSnapshot;packageBytes:Buffer;lockBytes:Buffer;project:ObjectRow;lock:ObjectRow;packageIdentity:string;lockIdentity:string;}
+interface Generation {name:string;identity:string;manifestKey:string;treeIdentity:string|null;}
+interface Intent {kind:'install'|'rollback';stage:'installing'|'prepared'|'committing';rootIdentity:string;candidate:Generation;old:Generation|null;rollbackSource:Generation|null;}
+interface State {schema:1;sourceIdentity:string;sourceFingerprint:string;currentKey:string|null;backup:Generation|null;intent:Intent|null;discard:Generation|null;}
+const PACKAGE_MAX=1024**2,LOCK_MAX=8*1024**2,TREE_MAX=512*1024**2,FILE_MAX=128*1024**2,ENTRY_MAX=20000;
+const lifecycle=['preinstall','install','postinstall','prepublish','preprepare','prepare','postprepare'];
+const object=(v:unknown):v is ObjectRow=>v!==null&&typeof v==='object'&&!Array.isArray(v);
+const sha=(bytes:Buffer)=>createHash('sha256').update(bytes).digest('hex');
+const identity=(s:{dev:bigint;ino:bigint})=>`${s.dev}:${s.ino}`;
+const signature=(s:{dev:bigint;ino:bigint;size:bigint;mtimeNs:bigint;ctimeNs:bigint})=>`${identity(s)}:${s.size}:${s.mtimeNs}:${s.ctimeNs}`;
+const inside=(a:string,b:string)=>{const p=relative(a,b);return p===''||!isAbsolute(p)&&p!=='..'&&!p.startsWith('..'+sep);};
+const validKey=(s:unknown):s is string=>typeof s==='string'&&/^[a-f0-9]{64}$/u.test(s);
+const validIdentity=(s:unknown):s is string=>typeof s==='string'&&/^\d+:\d+$/u.test(s);
+const validGeneration=(v:unknown):v is Generation=>object(v)&&typeof v.name==='string'&&/^(stage|old)-[a-f0-9-]{36}$/u.test(v.name)&&validIdentity(v.identity)&&validKey(v.manifestKey)&&(v.treeIdentity===null||validIdentity(v.treeIdentity));
+export class NodeDependencyError extends Error {readonly code:string;constructor(code:string){super('Node dependency operation failed: '+code);this.name='NodeDependencyError';this.code=code;}}
+const failure=(code:string)=>new NodeDependencyError(code);
+async function exists(path:string){try{await lstat(path);return true;}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return false;throw e;}}
+async function directoryIdentity(path:string):Promise<string|null>{try{const s=await lstat(path,{bigint:true});if(!s.isDirectory()||s.isSymbolicLink()||await realpath(path)!==path)throw failure('directory_identity');return identity(s);}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return null;throw e;}}
+async function bounded(path:string,max:number,signal:AbortSignal):Promise<{bytes:Buffer;identity:string}>{
+ signal.throwIfAborted();const fd=await open(path,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
+ try{const before=await fd.stat({bigint:true});if(!before.isFile()||before.size>BigInt(max))throw failure('manifest_capacity');const bytes=Buffer.alloc(Number(before.size)+1);let at=0;while(at<bytes.length){signal.throwIfAborted();const r=await fd.read(bytes,at,bytes.length-at,null);if(!r.bytesRead)break;at+=r.bytesRead;}const after=await fd.stat({bigint:true});if(at!==Number(before.size)||signature(before)!==signature(after))throw failure('manifest_changed');return {bytes:bytes.subarray(0,at),identity:signature(after)};}finally{await fd.close();}
+}
+async function writeFile(path:string,bytes:string|Buffer){const fd=await open(path,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);try{await fd.writeFile(bytes);await fd.sync();}finally{await fd.close();}}
+async function syncDirectory(path:string){const fd=await open(path,constants.O_RDONLY|constants.O_DIRECTORY|constants.O_NOFOLLOW);try{await fd.sync();}finally{await fd.close();}}
+
+/** Preserve fixed upstream trigger: missing either old/new lock hash is false. */
+export function nodeDependenciesNeedUpdate(before:NodeManifestSnapshot|null,after:NodeManifestSnapshot|null,force=false):boolean{return force||before!==null&&after!==null&&before.lockHash!==after.lockHash;}
+
+export class NodeDependencyTransaction {
+ readonly options:NodeDependencyOptions;readonly directory:string;readonly #life=new AbortController();readonly #materials=new WeakMap<NodeManifestSnapshot,Material>();
+ #state:State|undefined;#lock:FileHandle|undefined;#tail:Promise<unknown>=Promise.resolve();#closed=false;#fault=false;#prepared:Material|undefined;
+ constructor(options:NodeDependencyOptions){
+  const path=options.source.path;if(!isAbsolute(path)||resolve(path)!==path||!['git-application','product-bundle'].includes(options.source.kind)||!isAbsolute(options.npmPath)||options.source.kind==='product-bundle'&&!validKey(options.source.inventorySha256)||options.timeoutMs!==undefined&&(!Number.isSafeInteger(options.timeoutMs)||options.timeoutMs<1||options.timeoutMs>600000)||options.maxOutputBytes!==undefined&&(!Number.isSafeInteger(options.maxOutputBytes)||options.maxOutputBytes<1||options.maxOutputBytes>4*1024**2))throw failure('configuration');
+  this.options={...options,source:{...options.source},reservedPaths:[...options.reservedPaths??[]]};this.directory=join(dirname(path),'.anyraid-node-'+sha(Buffer.from(path)));
+ }
+ get status(){return {state:this.#fault?'interrupted':this.#state?.intent?.stage??(this.#lock?'idle':'uninitialized'),prepared:!!this.#state?.intent&&this.#state.intent.stage==='prepared',rollbackAvailable:!!this.#state?.backup,requiresExplicitBackupDiscard:!!this.#state?.backup};}
+ #queue<T>(fn:()=>Promise<T>,allowFault=false):Promise<T>{if(this.#closed||this.#fault&&!allowFault)return Promise.reject(failure(this.#closed?'closed':'interrupted'));const task=this.#tail.then(()=>{if(this.#closed||this.#fault&&!allowFault)throw failure(this.#closed?'closed':'interrupted');return fn();});this.#tail=task.then(()=>{},()=>{});return task;}
+ #signal(signal:AbortSignal){return AbortSignal.any([signal,this.#life.signal]);}
+ async #paths(){
+  const root=this.options.source.path;if(await realpath(root)!==root||await realpath(dirname(root))!==dirname(root))throw failure('physical_source');
+  for(const reserved of this.options.reservedPaths??[]){let path=resolve(reserved);try{path=await realpath(path);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}for(const target of [root,this.directory])if(inside(path,target)||inside(target,path))throw failure('reserved_path');}
+  const id=await directoryIdentity(root);if(!id)throw failure('missing_source');return id;
+ }
+ async initialize(signal:AbortSignal):Promise<void>{return this.#queue(async()=>{
+  if(this.#lock)return;signal=this.#signal(signal);signal.throwIfAborted();if(process.platform!=='linux')throw failure('linux_required');const rootIdentity=await this.#paths();
+  await mkdir(this.directory,{mode:0o700}).catch(e=>{if((e as NodeJS.ErrnoException).code!=='EEXIST')throw e;});const fd=await open(this.directory,constants.O_RDONLY|constants.O_DIRECTORY|constants.O_NOFOLLOW);
+  try{const info=await fd.stat();if(info.uid!==process.getuid!()||(info.mode&0o077)!==0||await realpath(this.directory)!==this.directory)throw failure('private_control_directory');const addon=createRequire(import.meta.url)('../../build/sealed-file.node') as {lockDirectory(fd:number):void};try{addon.lockDirectory(fd.fd);}catch{throw failure('locked');}this.#lock=fd;
+   const sourceFingerprint=sha(Buffer.from(JSON.stringify(this.options.source)));
+   if(await exists(join(this.directory,'state.json'))){const row=JSON.parse((await bounded(join(this.directory,'state.json'),65536,signal)).bytes.toString('utf8')) as State;if(row.schema!==1||row.sourceIdentity!==rootIdentity||row.sourceFingerprint!==sourceFingerprint||row.currentKey!==null&&!validKey(row.currentKey)||row.backup!==null&&!validGeneration(row.backup)||row.discard!==null&&!validGeneration(row.discard)||row.intent!==null&&(!row.intent||!['install','rollback'].includes(row.intent.kind)||!['installing','prepared','committing'].includes(row.intent.stage)||row.intent.rootIdentity!==rootIdentity||!validGeneration(row.intent.candidate)||row.intent.old!==null&&!validGeneration(row.intent.old)||row.intent.rollbackSource!==null&&!validGeneration(row.intent.rollbackSource))||row.intent&&row.discard)throw failure('saved_state');this.#state=row;}
+   else await this.#save({schema:1,sourceIdentity:rootIdentity,sourceFingerprint,currentKey:null,backup:null,intent:null,discard:null});await syncDirectory(dirname(this.directory));
+   if(this.#state!.intent||this.#state!.discard)this.#fault=true;
+  }catch(e){this.#lock=undefined;await fd.close();throw e;}
+ });}
+ async #save(state:State){const tmp=join(this.directory,'state-'+randomUUID()+'.json');try{await writeFile(tmp,JSON.stringify(state));await rename(tmp,join(this.directory,'state.json'));await syncDirectory(this.directory);this.#state=structuredClone(state);}catch(e){this.#fault=true;throw e;}}
+ async #assert(signal:AbortSignal){signal.throwIfAborted();if(!this.#lock||!this.#state||await this.#paths()!==this.#state.sourceIdentity)throw failure('source_identity');const current=await lstat(this.directory,{bigint:true}),held=await this.#lock.stat({bigint:true});if(identity(current)!==identity(held)||current.isSymbolicLink())throw failure('control_identity');}
+ async #admit(context:NodeDependencyContext){await this.#assert(context.signal);await context.authorize();await this.#assert(context.signal);}
+ captureManifest(signal:AbortSignal):Promise<NodeManifestSnapshot|null>{return this.#queue(async()=>this.#capture(this.#signal(signal)));}
+ async #capture(signal:AbortSignal):Promise<NodeManifestSnapshot|null>{
+  await this.#assert(signal);const root=this.options.source.path;if(await exists(join(root,'.npmrc')))throw failure('project_npmrc_unsupported');
+  if(this.options.source.kind==='product-bundle'){
+   const marker=await bounded(join(root,'build-info.json'),4*1024**2,signal);if(sha(marker.bytes)!==this.options.source.inventorySha256)throw failure('bundle_inventory_identity');const inventory=JSON.parse(marker.bytes.toString('utf8'));if(!object(inventory)||!object(inventory.files)||!inventory.files['package.json']||!inventory.files['package-lock.json']||Object.keys(inventory.files).length>ENTRY_MAX)throw failure('bundle_inventory');let bytes=0;for(const name of Object.keys(inventory.files)){signal.throwIfAborted();const path=join(root,name);if(!inside(root,path))throw failure('bundle_inventory');const st=await lstat(path);if(!st.isFile()||st.isSymbolicLink()||st.size>FILE_MAX||(bytes+=st.size)>1024**3)throw failure('bundle_inventory_capacity');}await verifyProductBundle(root);signal.throwIfAborted();
+  }
+  let pkg,lock;try{pkg=await bounded(join(root,'package.json'),PACKAGE_MAX,signal);lock=await bounded(join(root,'package-lock.json'),LOCK_MAX,signal);}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return null;throw e;}
+  let project:unknown,lockRow:unknown;try{project=JSON.parse(pkg.bytes.toString('utf8'));lockRow=JSON.parse(lock.bytes.toString('utf8'));}catch{throw failure('manifest_json');}
+  if(!object(project)||!object(lockRow)||![2,3].includes(lockRow.lockfileVersion as number)||!object(lockRow.packages)||Object.keys(lockRow.packages).length>ENTRY_MAX||project.workspaces!==undefined)throw failure('manifest_shape_or_workspace');
+  if(this.options.source.kind==='git-application'&&object(project.scripts)&&lifecycle.some(k=>Object.hasOwn(project.scripts as ObjectRow,k)))throw failure('root_lifecycle_unsupported');
+  for(const [path,v]of Object.entries(lockRow.packages)){if(!path)continue;if(!/^node_modules\/(?:@[A-Za-z0-9_.-]+\/)?[A-Za-z0-9_.-]+(?:\/node_modules\/(?:@[A-Za-z0-9_.-]+\/)?[A-Za-z0-9_.-]+)*$/u.test(path)||!object(v))throw failure('lock_package_path');if(v.dev===true)continue;
+   if(v.link||typeof v.resolved!=='string'||typeof v.integrity!=='string'||!/^sha(?:256|384|512)-[A-Za-z0-9+/]+=*$/u.test(v.integrity))throw failure('dependency_source_unsupported');let url:URL;try{url=new URL(v.resolved);}catch{throw failure('dependency_source_unsupported');}if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash)throw failure('dependency_source_unsupported');
+  }
+  const packageHash=sha(pkg.bytes),lockHash=sha(lock.bytes),snapshot=Object.freeze({packageHash,lockHash,key:sha(Buffer.from(packageHash+':'+lockHash)),rootIdentity:this.#state!.sourceIdentity,treeIdentity:await directoryIdentity(join(root,'node_modules'))});
+  this.#materials.set(snapshot,{snapshot,packageBytes:pkg.bytes,lockBytes:lock.bytes,project,lock:lockRow,packageIdentity:pkg.identity,lockIdentity:lock.identity});return snapshot;
+ }
+ async #unchanged(expected:Material,signal:AbortSignal){const fresh=await this.#capture(signal);if(!fresh||fresh.key!==expected.snapshot.key||fresh.rootIdentity!==expected.snapshot.rootIdentity)throw failure('manifest_changed');const actual=this.#materials.get(fresh)!;if(actual.packageIdentity!==expected.packageIdentity||actual.lockIdentity!==expected.lockIdentity)throw failure('manifest_identity_changed');}
+ prepare(before:NodeManifestSnapshot|null,context:NodeDependencyContext,force=false):Promise<boolean>{return this.#queue(async()=>{
+  context={...context,signal:this.#signal(context.signal)};await this.#admit(context);if(this.#state!.intent)throw failure('unfinished_transaction');if(this.#state!.backup)throw failure('explicit_backup_discard_required');const after=await this.#capture(context.signal);
+  if(!nodeDependenciesNeedUpdate(before,after,force))return false;if(!after)throw failure('missing_lockfile');const material=this.#materials.get(after)!,old=before===null?undefined:this.#materials.get(before);if(before&&!old)throw failure('unowned_manifest_snapshot');if(before&&(before.rootIdentity!==after.rootIdentity||before.treeIdentity!==after.treeIdentity))throw failure('old_tree_changed');if(after.treeIdentity&&!before)throw failure('old_manifest_required');if(before&&after.treeIdentity&&this.#state!.currentKey&&this.#state!.currentKey!==before.key)throw failure('old_manifest_tree_mismatch');if(old&&before?.treeIdentity)await this.#validateTree(join(this.options.source.path,'node_modules'),old,context.signal,false);
+  const name='stage-'+randomUUID(),path=join(this.directory,name);await mkdir(path,{mode:0o700});const candidate:Generation={name,identity:(await directoryIdentity(path))!,manifestKey:after.key,treeIdentity:null};
+  const oldGeneration=after.treeIdentity?{name:'old-'+randomUUID(),identity:after.treeIdentity,manifestKey:before?.key??after.key,treeIdentity:after.treeIdentity}:null;
+  await this.#save({...this.#state!,intent:{kind:'install',stage:'installing',rootIdentity:after.rootIdentity,candidate,old:oldGeneration,rollbackSource:null}});
+  try{
+   await writeFile(join(path,'package.json'),material.packageBytes);await writeFile(join(path,'package-lock.json'),material.lockBytes);if(old){await writeFile(join(path,'before-package.json'),old.packageBytes);await writeFile(join(path,'before-package-lock.json'),old.lockBytes);}
+   await this.#npm(path,context.signal);if(!await exists(join(path,'node_modules')))await mkdir(join(path,'node_modules'),{mode:0o755});await this.#validateTree(join(path,'node_modules'),material,context.signal);await this.#syncTree(join(path,'node_modules'),context.signal);await this.#unchanged(material,context.signal);await this.#admit(context);
+   this.#prepared=material;await this.#save({...this.#state!,intent:{...this.#state!.intent!,candidate:{...candidate,treeIdentity:(await directoryIdentity(join(path,'node_modules')))!},stage:'prepared'}});return true;
+  }catch(e){this.#fault=true;throw e;}
+ });}
+ async #npm(path:string,signal:AbortSignal){
+  const home=join(path,'.npm-home'),cache=this.options.cacheDirectory??join(path,'.npm-cache');await mkdir(home,{mode:0o700});if(this.options.cacheDirectory){const info=await lstat(cache);if(!info.isDirectory()||info.isSymbolicLink()||await realpath(cache)!==cache||info.uid!==process.getuid!()||(info.mode&0o077)!==0)throw failure('private_npm_cache');}else await mkdir(cache,{mode:0o700});
+  const userconfig=join(home,'user.npmrc'),globalconfig=join(home,'global.npmrc');await writeFile(userconfig,'');await writeFile(globalconfig,'');const npm=await realpath(this.options.npmPath);await access(npm,constants.R_OK);
+  const env:NodeJS.ProcessEnv={HOME:home,PATH:dirname(process.execPath),TMPDIR:home,LANG:'C',LC_ALL:'C',NODE_OPTIONS:'--no-experimental-strip-types',NODE_DISABLE_COMPILE_CACHE:'1',npm_config_userconfig:userconfig,npm_config_globalconfig:globalconfig,npm_config_cache:cache,npm_config_registry:'https://registry.npmjs.org/',npm_config_ignore_scripts:'true',npm_config_fund:'false',npm_config_audit:'false',npm_config_update_notifier:'false'};
+  const args=[npm,'ci','--omit=dev','--include=optional','--ignore-scripts','--no-audit','--no-fund','--userconfig='+userconfig,'--globalconfig='+globalconfig,'--cache='+cache,...this.options.offline?['--offline']:[]];
+  await new Promise<void>((resolve,reject)=>{signal.throwIfAborted();let reason:string|undefined,bytes=0,scan:Promise<void>|undefined,finished=false;const child=spawn(process.execPath,args,{cwd:path,env,shell:false,detached:true,stdio:['ignore','pipe','pipe']});const kill=()=>{try{if(child.pid)process.kill(-child.pid,'SIGKILL');}catch{}};const stop=(code:string)=>{reason??=code;kill();};const abort=()=>stop('cancelled');signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();const timer=setTimeout(()=>stop('npm_timeout'),this.options.timeoutMs??120000);timer.unref();const capacity=setInterval(()=>{if(scan||finished)return;scan=this.#measureStaging(path,cache).catch(()=>stop('npm_staging_capacity')).finally(()=>{scan=undefined;});},50);capacity.unref();const collect=(b:Buffer)=>{bytes+=b.length;if(bytes>(this.options.maxOutputBytes??2*1024**2))stop('npm_output_capacity');};child.stdout.on('data',collect);child.stderr.on('data',collect);child.on('error',()=>{reason??='npm_spawn';});child.once('close',code=>{finished=true;clearTimeout(timer);clearInterval(capacity);signal.removeEventListener('abort',abort);void Promise.resolve(scan).then(()=>{if(reason)reject(failure(reason));else if(code!==0)reject(failure('npm_exit'));else resolve();});});});
+  if(!this.options.cacheDirectory)await this.#removePrivate(path,'.npm-cache');await this.#removePrivate(path,'.npm-home');
+ }
+ async #measureStaging(stage:string,cache:string){let bytes=0,count=0;const pending=inside(stage,cache)?[stage]:[stage,cache];while(pending.length){const path=pending.pop()!;let s;try{s=await lstat(path);}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')continue;throw e;}if(++count>ENTRY_MAX)throw failure('tree_capacity');if(s.isDirectory()){let names:string[];try{names=await readdir(path);}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')continue;throw e;}for(const name of names)pending.push(join(path,name));}else if(s.isFile()&&(s.size>FILE_MAX||(bytes+=s.size)>TREE_MAX))throw failure('tree_capacity');}}
+ async #validateTree(tree:string,material:Material,signal:AbortSignal,scan=true){
+  if(!await directoryIdentity(tree))throw failure('missing_node_modules');const packages=material.lock.packages as ObjectRow;
+  for(const [name,value]of Object.entries(packages)){if(!name||!object(value)||value.dev===true)continue;const path=join(tree,...name.split('/').slice(1));if(!await exists(path)){if(value.optional===true)continue;throw failure('missing_installed_package');}if(!await directoryIdentity(path))throw failure('linked_installed_package');const row=JSON.parse((await bounded(join(path,'package.json'),PACKAGE_MAX,signal)).bytes.toString('utf8'));if(!object(row)||row.version!==value.version)throw failure('installed_package_identity');
+   if(this.options.source.kind==='git-application'&&(value.hasInstallScript===true||object(row.scripts)&&lifecycle.some(k=>Object.hasOwn(row.scripts as ObjectRow,k))||await exists(join(path,'binding.gyp'))))throw failure('dependency_lifecycle_or_native_unsupported');
+  }
+  if(!scan)return;let count=0,bytes=0;const pending=[tree];while(pending.length){signal.throwIfAborted();const path=pending.pop()!,s=await lstat(path);if(++count>ENTRY_MAX)throw failure('tree_capacity');if(s.isSymbolicLink()){if(!relative(tree,path).split(sep).includes('.bin')||!inside(tree,await realpath(path)))throw failure('dependency_symlink');continue;}if(s.isDirectory()){for(const name of await readdir(path))pending.push(join(path,name));}else if(!s.isFile()||s.size>FILE_MAX||(bytes+=s.size)>TREE_MAX)throw failure('tree_capacity');else if(this.options.source.kind==='git-application'&&path.endsWith('.node'))throw failure('native_binary_unsupported');}
+ }
+ async #syncTree(path:string,signal:AbortSignal){signal.throwIfAborted();for(const entry of await readdir(path,{withFileTypes:true})){const name=join(path,entry.name);if(entry.isDirectory())await this.#syncTree(name,signal);else if(entry.isFile()){signal.throwIfAborted();const fd=await open(name,constants.O_RDONLY|constants.O_NOFOLLOW);try{await fd.sync();}finally{await fd.close();}}}await syncDirectory(path);}
+ async #removePrivate(parent:string,name:string){const path=join(parent,name);if(!inside(this.directory,path)||path===this.directory||await realpath(parent)!==parent)throw failure('cleanup_identity');await rm(path,{recursive:true,force:true});}
+ commit(context:NodeDependencyContext):Promise<boolean>{return this.#queue(async()=>{
+  context={...context,signal:this.#signal(context.signal)};await this.#admit(context);const intent=this.#state!.intent;if(!intent||intent.stage!=='prepared'||!this.#prepared)throw failure('no_prepared_dependencies');await this.#unchanged(this.#prepared,context.signal);await this.#swap(intent,context);return true;
+ });}
+ async #swap(intent:Intent,context:NodeDependencyContext){
+  const root=this.options.source.path,stage=join(this.directory,intent.candidate.name),candidate=join(stage,'node_modules'),target=join(root,'node_modules');if(await directoryIdentity(stage)!==intent.candidate.identity||await directoryIdentity(candidate)!==intent.candidate.treeIdentity||intent.candidate.treeIdentity===null||await directoryIdentity(target)!==(intent.old?.identity??null))throw failure('dependency_directory_changed');
+  await this.#save({...this.#state!,intent:{...intent,stage:'committing'}});await this.#admit(context);await this.#unchanged(this.#prepared!,context.signal);
+  const candidateIdentity=(await directoryIdentity(candidate))!;try{if(intent.old)await rename(target,join(this.directory,intent.old.name));try{await rename(candidate,target);}catch(e){if(intent.old&&!await exists(target))await rename(join(this.directory,intent.old.name),target);throw e;}await syncDirectory(root);await syncDirectory(this.directory);await syncDirectory(stage);
+   await this.#save({...this.#state!,currentKey:intent.candidate.manifestKey,backup:intent.old,intent:null});this.#prepared=undefined;await this.#removePrivate(this.directory,intent.candidate.name);await syncDirectory(this.directory);
+  }catch(e){this.#fault=true;throw e;}
+  // Directory commit drains to a consistent state even if cancellation arrives
+  // after its first rename; never restart npm or execute scripts here.
+  if(await directoryIdentity(target)!==candidateIdentity)throw failure('published_tree_changed');
+ }
+ rollback(context:NodeDependencyContext):Promise<void>{return this.#queue(async()=>{
+  context={...context,signal:this.#signal(context.signal)};await this.#admit(context);if(this.#state!.intent)throw failure('unfinished_transaction');const backup=this.#state!.backup;if(!backup||await directoryIdentity(join(this.directory,backup.name))!==backup.identity)throw failure('no_verified_backup');const manifest=await this.#capture(context.signal);if(!manifest||manifest.key!==backup.manifestKey)throw failure('rollback_manifest_mismatch');
+  // Wrap the old tree in a new owned stage; manifests are already the Git
+  // rollback target. The prior current tree becomes the next local backup.
+  await this.#validateTree(join(this.directory,backup.name),this.#materials.get(manifest)!,context.signal,false);const name='stage-'+randomUUID(),path=join(this.directory,name);await mkdir(path,{mode:0o700});const candidate:Generation={name,identity:(await directoryIdentity(path))!,manifestKey:manifest.key,treeIdentity:backup.identity},old=manifest.treeIdentity?{name:'old-'+randomUUID(),identity:manifest.treeIdentity,manifestKey:this.#state!.currentKey??manifest.key,treeIdentity:manifest.treeIdentity}:null;this.#prepared=this.#materials.get(manifest)!;
+  await this.#save({...this.#state!,intent:{kind:'rollback',stage:'installing',rootIdentity:manifest.rootIdentity,candidate,old,rollbackSource:backup}});await this.#admit(context);await this.#unchanged(this.#prepared,context.signal);await rename(join(this.directory,backup.name),join(path,'node_modules'));await syncDirectory(path);await syncDirectory(this.directory);await this.#save({...this.#state!,intent:{...this.#state!.intent!,stage:'prepared'}});await this.#swap(this.#state!.intent!,context);
+ });}
+ /** Explicit filesystem reconciliation only: never run npm or replay scripts. */
+ reconcile(context:NodeDependencyContext):Promise<void>{return this.#queue(async()=>{
+  context={...context,signal:this.#signal(context.signal)};await this.#admit(context);if(this.#state!.discard){await this.#completeDiscard(context);this.#fault=false;return;}const intent=this.#state!.intent;if(!intent){this.#fault=false;return;}const root=this.options.source.path,target=join(root,'node_modules'),stage=join(this.directory,intent.candidate.name),candidate=join(stage,'node_modules'),old=intent.old?join(this.directory,intent.old.name):null;let current=await directoryIdentity(target);const savedOld=old?await directoryIdentity(old):null;
+  const restoreKey=intent.old?.manifestKey??null;
+  if(current===null&&intent.old&&savedOld===intent.old.identity){const manifest=await this.#capture(context.signal);if(!manifest||manifest.key!==restoreKey)throw failure('recovery_manifest_mismatch');await rename(old!,target);await syncDirectory(root);await syncDirectory(this.directory);current=intent.old.identity;}
+  if(current===(intent.old?.identity??null)&&!await exists(old??join(stage,'impossible-old'))){if(restoreKey){const manifest=await this.#capture(context.signal);if(!manifest||manifest.key!==restoreKey)throw failure('recovery_manifest_mismatch');}const stageId=await directoryIdentity(stage);if(stageId!==null&&stageId!==intent.candidate.identity)throw failure('recovery_candidate_identity');if(intent.rollbackSource){const source=join(this.directory,intent.rollbackSource.name),candidateId=await directoryIdentity(candidate),sourceId=await directoryIdentity(source);if(candidateId===intent.rollbackSource.identity&&sourceId===null){await rename(candidate,source);await syncDirectory(stage);await syncDirectory(this.directory);}else if(candidateId!==null||sourceId!==intent.rollbackSource.identity)throw failure('recovery_backup_identity');}if(stageId!==null)await this.#removePrivate(this.directory,intent.candidate.name);await this.#save({...this.#state!,intent:null});}
+  else if(current===intent.candidate.treeIdentity&&current!==null&&savedOld===(intent.old?.identity??null)&&!await exists(candidate)){const manifest=await this.#capture(context.signal);if(!manifest||manifest.key!==intent.candidate.manifestKey)throw failure('recovery_manifest_mismatch');await this.#save({...this.#state!,currentKey:intent.candidate.manifestKey,backup:intent.old,intent:null});await this.#removePrivate(this.directory,intent.candidate.name);}
+  else throw failure('recovery_identity');this.#fault=false;this.#prepared=undefined;
+ },true);}
+ discardBackup(context:NodeDependencyContext):Promise<void>{return this.#queue(async()=>{context={...context,signal:this.#signal(context.signal)};await this.#admit(context);if(this.#state!.intent||this.#state!.discard)throw failure('unfinished_transaction');const backup=this.#state!.backup;if(!backup)return;if(await directoryIdentity(join(this.directory,backup.name))!==backup.identity)throw failure('backup_identity');await this.#save({...this.#state!,discard:backup});await this.#completeDiscard(context);});}
+ async #completeDiscard(context:NodeDependencyContext){const discard=this.#state!.discard!,backup=this.#state!.backup;if(!backup||backup.name!==discard.name||backup.identity!==discard.identity||backup.manifestKey!==discard.manifestKey)throw failure('discard_identity');await this.#admit(context);const actual=await directoryIdentity(join(this.directory,discard.name));if(actual!==null&&actual!==discard.identity)throw failure('discard_identity');if(actual!==null)await this.#removePrivate(this.directory,discard.name);await syncDirectory(this.directory);await this.#save({...this.#state!,backup:null,discard:null});}
+ async close(){this.#closed=true;this.#life.abort(failure('closed'));await this.#tail;const lock=this.#lock;this.#lock=undefined;await lock?.close();}
+}

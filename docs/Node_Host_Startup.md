@@ -1373,6 +1373,39 @@ Web恢复仍仅为中断目录事务一致性恢复。完整Git、ZIP／executab
 核心自更新不得照搬Python venv／pip。本机与184定向测试不代表生产部署、掉电文件系统或真实设备验收。
 具体记录见[Web更新验收](../host/contracts/update-manager-web-acceptance.json)。
 
+#### Node 依赖事务基础（尚未接入更新入口）
+
+`NodeDependencyTransaction` 为后续 Git 部署提供独立的 manifest 捕获、
+`prepare`、`commit`、`rollback`、`reconcile` 和显式 `discardBackup`。
+本增量不启用 `enable_node_updates` 或公开 recover 的 `update_deps`，
+不重启服务，也不将普通 Git checkout 当作已验证的产品包。
+
+普通应用要求 npm v2／v3 锁文件、带完整性摘要的 HTTPS 生产依赖，
+在私有暂存目录实际执行隔离 npm `ci --omit=dev --include=optional --ignore-scripts`。
+只核实际生产树；省略的开发依赖含脚本不阻止纯生产包安装。
+普通应用的安装／prepare 脚本、原生构建或 `.node`、file／link 包、
+工作区、项目 `.npmrc` 目前明确拒绝，不能据此宣称本产品所需依赖已完整支持。
+用户 npmrc、registry 重写及凭据不继承，原始 npm 输出不公开。
+产品包来源另须调用方提供可信生成流程产出的 `build-info.json` 摘要并通过
+`verifyProductBundle`；本模块不生成或自签该文件，也不重建原生插件。
+
+提交前重核授权、manifest 和目录身份；失败／取消保留旧依赖并等 npm 退出。
+替换先耐久保存 intent，再两次 rename 与目录 fsync；关闭等一致性收尾。
+重开不执行脚本，须显式 `reconcile`；Git manifest 回到对应版本后才能回滚旧树。
+备份删除先保存可重复的 discard intent。当前只保留一代且须可信调用方显式清理，
+连续 A→B→C 与最新回滚协调仍须在 GitDeployment 接线批次完成，不能要求最终用户手工清理。
+manifest、条目、文件、输出和期限均有上限；50ms 采样暂存／cache 容量是应用层监测，
+不是内核磁盘配额。Linux 内核目录锁排除另一所有者。
+
+184 Node 26.12.0／npm 11.19.1 使用锁定纯包与隔离离线 cache 完成真实安装、
+A→B→回滚 A、取消排空和故障恢复；HTTPS 传输、产品实际 npm 安装、完整新包／原生构建、
+服务和设备均未验。复用既有依赖与 `sealed-file.node`，不是全新构建。
+分场首次失败、定向修正及一次有限计时见
+[Node 依赖基础验收](../host/contracts/node-dependency-update-acceptance.json)。
+测试 npm 从当前 Node 安装发现，也可显式设置可信 `ANYRAID_TEST_NPM_CLI`。
+功能项仅 Linux；真实预构建产品项要求 `ANYRAID_TEST_PRODUCT_BUNDLE` 指向现有可信产物，
+缺失时明确 skip，默认 CI 不覆盖该项，不能把 184 的实测结果归给 CI。
+
 ### Git 纯仓库应用更新候选
 
 下列显式无服务／无依赖配置接入现有update_manager，默认Git频道为dev，primary_branch为master：
