@@ -1,5 +1,5 @@
 import type {TemperatureStore} from '../moonraker/temperature-store.ts';
-import {ProductHostControl,RestartAdmissionError,recoveryMachineAction,machineRecoveryKinds,type HostReloadKind} from './product-host-control.ts';
+import {ProductHostControl,RestartAdmissionError,recoveryMachineAction,machineRecoveryKinds,type HostReloadKind,type HostMaintenanceContext} from './product-host-control.ts';
 import type {MachineAction,MachineControlPort} from '../moonraker/machine-control.ts';
 import {InstallReadinessError} from '../moonraker/fixed-node-install.ts';
 import {startConfiguredMachineService,type ConfiguredProductServiceOptions} from './product-service.ts';
@@ -101,9 +101,9 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
    temperatureHistory=undefined;
    service.printer.group.assertActive();signal.throwIfAborted();
    const generation=service,change=Promise.withResolvers<void>();let requested:ReturnType<typeof Promise.withResolvers<void>>|undefined,machineAction:MachineAction|undefined;
-   const validate=(kind:HostReloadKind,unit?:string)=>{generation.server.requireConfigWriteIdle();
+   const validate=(kind:HostReloadKind,unit?:string,maintenance?:HostMaintenanceContext)=>{generation.server.requireConfigWriteIdle();
     signal.throwIfAborted();const printer=generation.printer,state=printer.controller.state,gate=printer.maintenanceGate.status;
-    const action=recoveryMachineAction(kind,unit);if(action){if(!processLifetime||!factory.machineControl)throw new RestartAdmissionError(503,'Machine control unavailable');factory.machineControl.retirement(action);if(gate.maintenance)throw new Error('Machine control requires no active maintenance');return;}
+    const action=recoveryMachineAction(kind,unit);if(action){if(!processLifetime||!factory.machineControl)throw new RestartAdmissionError(503,'Machine control unavailable');const retirement=factory.machineControl.retirement(action);if(maintenance&&retirement==='process'&&!maintenance.responseHandoff)throw new RestartAdmissionError(409,'Process restart requires a real response handoff');if(gate.maintenance&&!(maintenance?.gate===printer.maintenanceGate&&printer.maintenanceGate.owns(maintenance.lease)))throw new Error('Machine control requires no active maintenance or its current owned lease');return;}
     if(kind==='restart'||kind==='firmware_restart'){
      if(!processLifetime||gate.maintenance)throw new Error('Restart requires process ownership and no active maintenance');
      if(kind==='firmware_restart'&&printer.group.status.state==='ready')try{for(const id of profile!.policies.keys())printer.group.session(id).dictionary.lookup('reset');}catch{throw new RestartAdmissionError(503,'Configured MCU firmware reset capability is unavailable');}
@@ -111,11 +111,11 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
     }
     if(!['idle','completed','cancelled','failed'].includes(state)||printer.controller.pendingDeviceActions||printer.controller.safeStopPending||gate.activities||gate.maintenance||printer.group.status.state==='failed')throw new Error('Reinitialization requires a quiescent printer and confirmed physical stop');
    };
-   detach=control.attach((kind,unit)=>{validate(kind,unit);const printer=generation.printer,action=recoveryMachineAction(kind,unit);
+   detach=control.attach((kind,unit,maintenance)=>{validate(kind,unit,maintenance);const printer=generation.printer,action=recoveryMachineAction(kind,unit);
     if(action&&factory.machineControl!.retirement(action)==='none')return factory.machineControl!.execute(action,signal);
     // Fence producers synchronously before yielding to any HTTP request.
     printer.maintenanceGate.invalidate();machineAction=action;if(!action)reload.reason=kind;requested=Promise.withResolvers<void>();activeRequest=requested;change.resolve();return requested.promise;
-   },validate,{kinds:processLifetime?['reinitialize','restart',...factory.resetFirmware?['firmware_restart' as const]:[],...factory.machineControl?machineRecoveryKinds:[]]:['reinitialize'],generationSignal:service.server.nativeGenerationSignal});
+   },validate,{kinds:processLifetime?['reinitialize','restart',...factory.resetFirmware?['firmware_restart' as const]:[],...factory.machineControl?machineRecoveryKinds:[]]:['reinitialize'],generationSignal:service.server.nativeGenerationSignal,maintenanceGate:service.printer.maintenanceGate});
    log('device_ready',['initial','restart','firmware_restart','reinitialize'].includes(reload.reason)?reload.reason as 'initial'|'restart'|'firmware_restart'|'reinitialize':undefined);ready({...service.address});errors.length=0;completion?.resolve();completion=undefined;
    await Promise.race([stopped.promise,change.promise]);
    completion=requested;activeRequest=undefined;await closeGeneration();

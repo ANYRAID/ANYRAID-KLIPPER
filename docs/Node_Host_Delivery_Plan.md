@@ -24,6 +24,19 @@ g++等尾符号名称的精确安装为紧接缺口；私有solver已证明统�
 PackageKit、公开system接线／维护租约、真实系统升级与完整产品验收仍开放。
 见[APT验收](../host/contracts/update-manager-apt-acceptance.json)与[操作边界](Node_Host_Startup.md#独立-apt-系统包后端候选)。
 
+## 2026-10-18 维护租约向服务控制的连续交接前置能力
+
+MaintenanceGate增加不可按对象复制伪造的运行时lease身份与同步transfer，复制release接收者和旧release均不能解除真实持有者围栏。
+可信ProductHostControl维护调用显式绑定当前代际gate，同步返回admission／completion；持久写入、响应等待、
+最终dispatch与宿主validate／handler全链保持同一维护所有权。普通服务无须伪造HTTP回调，自己进程重启仍需真实响应交接。
+未退役时终态归还仍持围栏的新lease供顺序服务动作使用，消费者显式release；实际代际失效保留closed fence，不重放未知动作。
+
+184 Node26.12最终六文件51／51与标准typecheck通过；首轮五文件48／48保留，首次类型检查仅新增测试三参数隐式any失败，修正后通过。
+包含真实gate／control／持久journal屏障、失败／超时／关闭／代际变化，以及既有PTY产品宿主、LinuxMachineControl注入IO的四项新组合场。
+复用既有native输出与匹配lock依赖，未fresh build、全量CI或sanitizer；无真实设备或systemctl操作。
+OS job submission终态不证明目标服务ready；本批不宣称完成Git／核心provider、managed_services或Node依赖更新。
+紧凑记录见[系统控制验收](../host/contracts/native-machine-control-acceptance.json)的maintenanceLeaseHandoff。
+
 ## 2026-10-18 Web客户端实际更新、回滚与中断一致性恢复
 
 在#69状态／刷新基础上接入client更新和rollback本地目录回滚，使用真实共享HTTP下载，校验声明size、
@@ -3601,7 +3614,9 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 
 | 顺序 | 用户可见交付结果 | 退出条件 |
 | --- | --- | --- |
-| 当前收口 | PR #68已推送头9a62b43b4在合成989faf643的三组CI成功：普通5413／5413、协议／Linux MCU、Build、motion及sanitizer通过。Mainsail同1735原A4九项分场闭合；原42比较／28工厂启动保留704基线及门限一次通过（最大1.10412／1.00602），旧435／cd91归属及原失败保留；重获2.62602倍仍超原1.5预算 | 依据现有准入审当前候选与已知冷路径超限后走正常集成，不新开外围批次；本机11／16／14、G3、真实root／实机及发布边界分别保留，未合入develop／master |
+| 当前集成基线 | #68（e59ca7）、#69（43c4ce）及Web实际更新／回滚#70（d2f98713）均已合入develop；#70合并后CI仍须独立确认，不继承任务头成功。Mainsail1735原A4及42／28预算证据归属保持，服务重获2.62602倍仍超原1.5预算 | Git任务从d2f98713正常快进同步；当前候选尚未合入。G0–G6、本机11／16／14、G3、真实root／实机、目标板和主线发布门槛分别保留 |
+| 当前实现 | Git纯仓库应用的实际HTTP／RPC状态、刷新、client更新、持久rollback及严格recover；更新中持有现有动态维护门禁，持久化不丢其他部署项 | 固定Moonraker1cfb0c41契约、真实临时Git仓库、实际接口及受影响Web回归；恢复失败／配置变化不能抹去interrupted，不用独立引擎通过代替完整provider |
+| 下一实现 | Git Node依赖与managed_services生命周期，以及其余完整update_manager能力 | 可信product bundle、锁文件及依赖替换策略实际接通；maintenance lease同步转移producer fence至持久host control终态、own restart沿afterResponse，不直接systemctl或引入pip。两能力接通前配置明确拒绝 |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |
@@ -3612,7 +3627,7 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 
 覆盖增量及状态修复已正常集成，其合并后规定检查已通过。实际
 页面上传已使用现有 Playwright 获证，官方 Mainsail 登录仍有明确边界；继续保留这些出口，
-按既有允许范围推进独立 M2c 离线管理，不以新功能替代页面或 G3 验收。
+按本表继续Git依赖／服务及完整Moonraker队列，既有M2c离线管理等出口按实际受影响范围复验，不以新功能替代页面或G3验收。
 固定包设施仅支撑同包出口，生产实现来自正常合并的 develop。正常集成后的新包须核验变更范围，
 补齐受影响验证，不能直接继承两份旧包的同包通过声明。
 
