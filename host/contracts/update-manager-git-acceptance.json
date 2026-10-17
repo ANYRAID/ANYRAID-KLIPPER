@@ -56,11 +56,59 @@
       "session": "be2086",
       "log": "logs/first-integration-typecheck.stdout"
     },
-    "earlierIndependentChecks": "Repository 23/23, reserved-control 1/1, hard-recovery boundaries 2/2; final GitVersion 11/11; adapter 8/8 and real unreachable-origin 1/1. These were separate source checkpoints, not one final full-suite run. Earlier missing contracts and test type failures remain archived."
+    "earlierIndependentChecks": "Repository 23/23, reserved-control 1/1, hard-recovery boundaries 2/2; final GitVersion 11/11; adapter 8/8 and real unreachable-origin 1/1. These were separate source checkpoints, not one final full-suite run. Earlier missing contracts and test type failures remain archived.",
+    "recoveryProtocolFollowup": {
+      "baseline": "d858b9034; correction before #71 integration; no commit or push by validation agent",
+      "upstream": {
+        "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+        "file": "update_manager.py",
+        "sha256": "c077bdbfa6539a2b3f39d8033baa93f29ceb3486c56ea797b763fb54bda9f9ec",
+        "lines": "472-487",
+        "contract": "Public update_deps boolean, default false; forwarded to the internal recover argument. Internal force_dep_update is not a public request field."
+      },
+      "behavior": [
+        "Malformed update_deps or hard and unknown force_dep_update rejected 400 through actual HTTP/RPC",
+        "update_deps=true rejected 501 through actual HTTP/RPC; no Git invocation and unchanged persisted transaction state",
+        "HTTP soft recover with update_deps=false and RPC hard recover with update_deps=false succeed"
+      ],
+      "validation": {
+        "runtime": "Linux10.0.0.184 Node v26.12.0",
+        "directory": "/home/dek02/.codex/worktrees/supervisor-group-compat/git-update-provider",
+        "testCommand": "node --test --test-name-pattern=\"actual authenticated HTTP/RPC\" host/test/update-git-manager.test.ts",
+        "passed": 1,
+        "failed": 0,
+        "testExit": 0,
+        "testStderrEmpty": true,
+        "typecheckCommand": "cd host && node scripts/run-typescript.ts -p tsconfig.json",
+        "typecheckExit": 0,
+        "typecheckOutputEmpty": true,
+        "scope": "Only the affected real interface fixture plus required standard typecheck; existing fixtures/build/dependencies reused, no full-suite/build/sanitizer rerun"
+      },
+      "previousSourceSha256": {
+        "host/src/moonraker/update-manager.ts": "91c7a519b7d8c306d939e0596a45f176c387584dc6b721659e4633f52e4ef456",
+        "host/test/update-git-manager.test.ts": "6bc5948fb41d574cf3aadc4f6a43294c48104b853567c26d5395c1039fecd9b4"
+      },
+      "currentSourceSha256": {
+        "host/src/moonraker/update-manager.ts": "4eec7755c9681dd1fc7503cef8868fecebc05d65ebbb830a03148500ae976f39",
+        "host/test/update-git-manager.test.ts": "c4955fb44dfc1edee0a0363c7083e43ac2809cf12b6d3f6635a81b32898ee63c"
+      },
+      "logs": {
+        "recover-protocol-tests.stdout": "c0e4cd5f8e52999c22b16ad5c83105bc2ffa4dd4a92cf4284644d2fbcc843319",
+        "recover-protocol-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "recover-protocol-tests.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "recover-protocol-typecheck.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "recover-protocol-typecheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "recover-protocol-typecheck.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "recover-protocol-runtime.txt": "4117ab00dc2f8c90d93ceede8620caac1d817bf404f006f025788ac760102631",
+        "recover-protocol-sha256.txt": "b45ca6e53ae09037209d463ca006d03d1c5da49179bf348aeff0e01236e193e5"
+      },
+      "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/git-version-contract/recover-protocol/recover-protocol-receipt.json",
+      "evidencePreserved": "Original validation records and log hashes retained; previousSourceSha256 identifies the pre-correction manager/test checkpoint."
+    }
   },
   "actualInterfaces": [
     "Unauthenticated update rejected 401; three authenticated cached HTTP GETs add no Git command",
-    "Recovery malformed flag types or extra params rejected 400; force_dep_update=true rejected 501 before mutation",
+    "Recovery malformed update_deps/hard types and unknown force_dep_update rejected 400; update_deps=true rejected 501 with no Git command or transaction persistence",
     "HTTP update and WebSocket completion, RPC rollback, HTTP soft recovery of dirty file, RPC hard recovery of damaged old config",
     "Every transaction namespace write verified durable while peer Web state retained; reopen performs real rollback",
     "Revoked authority, asynchronous authorizer gate change, changed generation and process close do not apply late checkout",
@@ -99,11 +147,11 @@
     "host/src/moonraker/update-git-repo.ts": "6c002401cb9ed64e167b3795e1cd31db954d40a5560932ff00dc56e4e7e3abe6",
     "host/src/moonraker/update-git-version.ts": "d782c0149a46bbf0e12cac6f2f3fcae60abf26215b9e6420db9505ba9d36c97a",
     "host/src/moonraker/update-git-deploy.ts": "347464261db7264e3a96472bc87015ed3cebbe94f7ca2c0ee03942962b2889bd",
-    "host/src/moonraker/update-manager.ts": "91c7a519b7d8c306d939e0596a45f176c387584dc6b721659e4633f52e4ef456",
+    "host/src/moonraker/update-manager.ts": "4eec7755c9681dd1fc7503cef8868fecebc05d65ebbb830a03148500ae976f39",
     "host/test/update-git-repo.test.ts": "c057053806fd4fd434c5ae1fcf8010239168e34cd1d787962e3b928d21b6e66c",
     "host/test/update-git-version.test.ts": "45bd54865d06813e8ffc8db95e23976fd5e6c67ffd24f1fc5c82d5d881d6eae9",
     "host/test/update-git-deploy.test.ts": "227711a670c2c4d7335f91aaac2ca88d58d1b1aabff2a9733f1c21f6ea3af5df",
-    "host/test/update-git-manager.test.ts": "6bc5948fb41d574cf3aadc4f6a43294c48104b853567c26d5395c1039fecd9b4"
+    "host/test/update-git-manager.test.ts": "c4955fb44dfc1edee0a0363c7083e43ac2809cf12b6d3f6635a81b32898ee63c"
   },
   "logSha256": {
     "first-integration-tests.stdout": "c1bbfcebb137318aa1edb9dde19c5cab180e15c5fbcfd1ce37a2e6b93e7de9ea",
@@ -111,7 +159,15 @@
     "first-integration-typecheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "first-integration-typecheck.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "first-integration-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "integration-http-followup.stdout": "f7e193f9b4b092a283dea13925cb0b6d663434dc6a059c3d7458756d44cbe4d8"
+    "integration-http-followup.stdout": "f7e193f9b4b092a283dea13925cb0b6d663434dc6a059c3d7458756d44cbe4d8",
+    "recover-protocol-tests.stdout": "c0e4cd5f8e52999c22b16ad5c83105bc2ffa4dd4a92cf4284644d2fbcc843319",
+    "recover-protocol-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recover-protocol-tests.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "recover-protocol-typecheck.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recover-protocol-typecheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recover-protocol-typecheck.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "recover-protocol-runtime.txt": "4117ab00dc2f8c90d93ceede8620caac1d817bf404f006f025788ac760102631",
+    "recover-protocol-sha256.txt": "b45ca6e53ae09037209d463ca006d03d1c5da49179bf348aeff0e01236e193e5"
   },
   "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/git-provider-source/evidence/integration-receipt.json"
 }

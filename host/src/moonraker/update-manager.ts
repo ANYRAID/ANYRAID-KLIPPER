@@ -106,10 +106,10 @@ export class UpdateManager {
  }
  recover(params:Readonly<Record<string,Json>>,request:AbortSignal,authorize:()=>void|Promise<void>=()=>{}):Promise<string>{return this.#deploy(params,request,'recover',authorize);}
  #deploy(params:Readonly<Record<string,Json>>,request:AbortSignal,action:'update'|'rollback'|'recover',authorize:()=>void|Promise<void>):Promise<string>{
-  this.#active();if(Object.keys(params).some(k=>!['name',...action==='recover'?['hard','force_dep_update']:[]].includes(k))||typeof params.name!=='string')return Promise.reject(new ApiError(400,'Expected updater name and supported action parameters'));const name=params.name,app=this.#deployments.get(name);if(!app)return Promise.reject(new ApiError(400,'No updater registered for selected name'));
-  let hard=false,force=false;try{if(action==='recover'){hard=booleanParameter(params.hard,'hard');force=booleanParameter(params.force_dep_update,'force_dep_update');}}catch(error){return Promise.reject(error);}
+  this.#active();if(Object.keys(params).some(k=>!['name',...action==='recover'?['hard','update_deps']:[]].includes(k))||typeof params.name!=='string')return Promise.reject(new ApiError(400,'Expected updater name and supported action parameters'));const name=params.name,app=this.#deployments.get(name);if(!app)return Promise.reject(new ApiError(400,'No updater registered for selected name'));
+  let hard=false,updateDeps=false;try{if(action==='recover'){hard=booleanParameter(params.hard,'hard');updateDeps=booleanParameter(params.update_deps,'update_deps');}}catch(error){return Promise.reject(error);}
   if(action==='recover'&&!(app instanceof GitDeployment))return Promise.reject(new ApiError(501,'Recovery is not implemented for this deployment type'));
-  if(force)return Promise.reject(new ApiError(501,'Git dependency updates are not implemented; no action was performed'));
+  if(updateDeps)return Promise.reject(new ApiError(501,'Git dependency updates are not implemented; no action was performed'));
   if(!this.#initial||this.#blocked()||this.#updating||this.#pending.size)return Promise.reject(new ApiError(503,'Server is busy, cannot perform update'));
   const signal=AbortSignal.any([request,this.#life.signal]),task=this.#tail.then(async()=>{
    signal.throwIfAborted();this.#active();if(this.#blocked())throw new ApiError(503,'Printer is busy');
@@ -119,7 +119,7 @@ export class UpdateManager {
    const proc=Date.now(),notify=(message:string,complete=false)=>{if(this.#closing)return;try{this.#notify('notify_update_response',{message,application:name,proc_id:proc,complete});}catch{this.#notificationFailures++;}};
    const label=app instanceof GitDeployment?'Git application':'Web client';
    this.#updating=name;try{await admit();notify(label+' '+action+' started');
-    if(app instanceof GitDeployment){const context={signal,authorize:admit,persist:async(state:GitDeploymentStorage)=>{await this.#storeState(name,state);}};if(action==='recover')await app.recover(context,hard,force);else if(action==='rollback')await app.rollback(context);else await app.update(context);}
+    if(app instanceof GitDeployment){const context={signal,authorize:admit,persist:async(state:GitDeploymentStorage)=>{await this.#storeState(name,state);}};if(action==='recover')await app.recover(context,hard,updateDeps);else if(action==='rollback')await app.rollback(context);else await app.update(context);}
     else await app.deploy(action==='rollback',signal,admit,notify);
     await this.#storeState();notify(label+' '+action+' complete',true);this.#event();return 'ok';
    }catch(error){notify(label+' '+action+' failed',true);throw error;}finally{this.#updating=undefined;release();}
