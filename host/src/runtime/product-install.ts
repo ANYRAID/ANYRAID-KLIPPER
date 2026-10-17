@@ -18,7 +18,7 @@ function installFailure(error:unknown):Error{
 }
 /** Explicit fresh production dependency install. Does not replace an existing
  * dependency tree, import machine modules, touch services or open hardware. */
-export async function installProductDependencies(output:string,signal:AbortSignal,npmPath?:string):Promise<{durationMs:number;dependencies:number}>{
+export async function installProductDependencies(output:string,signal:AbortSignal,npmPath?:string,preparation?:{env:NodeJS.ProcessEnv;offline:boolean;deferCleanup?:true}):Promise<{durationMs:number;dependencies:number}>{
  signal.throwIfAborted();const bundle=await verifyProductBundle(output),lock=join(bundle,'.dependency-install.lock');
  const inventory=JSON.parse(await readFile(join(bundle,'build-info.json'),'utf8'));
  if(!inventory.files['package.json']||!inventory.files['package-lock.json'])throw new Error('Product install requires inventoried package and lock files');
@@ -30,8 +30,8 @@ export async function installProductDependencies(output:string,signal:AbortSigna
   // Keep incomplete downloads invisible to the runnable bundle. The lock is on
   // the same filesystem so publication can rename the completed tree.
   for(const name of ['package.json','package-lock.json'])await copyFile(join(bundle,name),join(lock,name));
-  const begin=performance.now(),env={...process.env,PATH:'/no-programs',NODE_OPTIONS:'--no-experimental-strip-types',NODE_PATH:'',NODE_DISABLE_COMPILE_CACHE:'1'};
-  const pending=execute(process.execPath,[resolve(npm),'ci','--omit=dev','--include=optional','--ignore-scripts','--no-audit','--no-fund'],{cwd:lock,env,signal,timeout:120000,maxBuffer:2*1024**2});
+  const begin=performance.now(),env={...preparation?.env??process.env,PATH:'/no-programs',NODE_OPTIONS:'--no-experimental-strip-types',NODE_PATH:'',NODE_DISABLE_COMPILE_CACHE:'1'};
+  const pending=execute(process.execPath,[resolve(npm),'ci','--omit=dev','--include=optional','--ignore-scripts','--no-audit','--no-fund',...preparation?.offline?['--offline']:[]],{cwd:lock,env,signal,timeout:120000,maxBuffer:2*1024**2});
   const closed=new Promise<void>(done=>pending.child.once('close',()=>done()));
   try{await pending;}catch(error){pending.child.kill('SIGKILL');await closed;if(signal.aborted)throw error;throw installFailure(error);}
   await closed;
@@ -44,7 +44,7 @@ export async function installProductDependencies(output:string,signal:AbortSigna
   try{await lstat(join(bundle,'node_modules'));throw new Error('Product dependencies already exist');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
   await rename(join(lock,'node_modules'),join(bundle,'node_modules'));
   return {durationMs:performance.now()-begin,dependencies:Object.keys(project.dependencies).length};
- }finally{await rm(lock,{recursive:true,force:true});}
+ }finally{if(!preparation?.deferCleanup)await rm(lock,{recursive:true,force:true});}
 }
 export async function productInstallCLI(args:readonly string[],signal:AbortSignal,write:(text:string)=>void){
  if(args.length===1&&['--help','-h'].includes(args[0])){write('Usage: node scripts/product-install.js --bundle /absolute/product-host [--npm /absolute/npm-cli.js]\nInstalls fresh locked production dependencies without lifecycle scripts. Does not start services.\n');return;}

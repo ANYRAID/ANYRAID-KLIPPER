@@ -11,7 +11,7 @@ export const productExecutables=['fatfs-helper','file-write-lease','lmdb-read'] 
 const scripts=['build-fatfs.ts','build-file-write-lease.ts','build-lmdb-read.ts','build-native.ts',...productAddons.slice(1).map(name=>'build-'+name+'.ts')];
 /** Compile a private snapshot of the required C and Rust sources. No existing addon or
  * Python file is copied; callers publish the result only after the whole build. */
-export async function buildProductNative(destination:string):Promise<void>{
+export async function buildProductNative(destination:string,supervision?:{deferCleanup:true}):Promise<void>{
  const target=resolve(destination);await mkdir(target);const scratch=await mkdtemp(join(dirname(target),'.native-source-'));
  try{
   const sources:Record<string,string>={},digest=(bytes:Buffer)=>createHash('sha256').update(bytes).digest('hex');
@@ -43,5 +43,5 @@ export async function buildProductNative(destination:string):Promise<void>{
   for(const script of scripts){const result=spawnSync(process.execPath,[join(scratch,'host/scripts',script)],{env:{...rustEnv,...rustFlags,NODE_INCLUDE:join(scratch,'node-headers'),CARGO_TARGET_DIR:join(scratch,'cargo-target'),NODE_PATH:'',NODE_OPTIONS:''},encoding:'utf8',timeout:script==='build-template.ts'?310000:60000,maxBuffer:1024**2});if(result.error||result.status!==0)throw new Error('Fresh native build failed: '+script+'\n'+(result.error?.message??result.stdout+result.stderr));}
   const outputs:Record<string,string>={};for(const name of [...productAddons.map(addon=>addon+'.node'),...productExecutables]){const source=join(scratch,'host/build',name);outputs[name]=digest(await readFile(source));await copyFile(source,join(target,name));}
   await writeFile(join(target,'native-build-info.json'),JSON.stringify({schema:1,node:process.version,platform:process.platform,arch:process.arch,compiler:version.stdout.trim().split('\n')[0],rustToolchain,rustPathRemap:'/anyraid-product-build',rustRegistryPathRemap:'/anyraid-cargo-registry',sources,nodeHeaders:headers,outputs,scope:'Private C/Rust source and Node header snapshots with locked Cargo dependencies and independent Rust output directory; toolchains, dependency caches, system headers and libraries are supplied by the build machine. Not a signed or hermetic toolchain attestation.'},null,2)+'\n');
- }catch(error){await rm(target,{recursive:true,force:true});throw error;}finally{await rm(scratch,{recursive:true,force:true});}
+ }catch(error){if(!supervision)await rm(target,{recursive:true,force:true});throw error;}finally{if(!supervision)await rm(scratch,{recursive:true,force:true});}
 }

@@ -1470,6 +1470,36 @@ A→B→回滚 A、取消排空和故障恢复；HTTPS 传输、产品实际 npm
 功能项仅 Linux；真实预构建产品项要求 `ANYRAID_TEST_PRODUCT_BUNDLE` 指向现有可信产物，
 缺失时明确 skip，默认 CI 不覆盖该项，不能把 184 的实测结果归给 CI。
 
+#### 可信产品代际准备候选
+
+`ProductUpdatePreparation` 是产品专用的受信运行API，提供 initialize／prepare／prepared／discard／close，
+没有公开HTTP执行路径或激活入口。调用方须预先批准物理Git仓库、无凭据HTTPS origin、完整commit及
+`productRecipeDigest`；摘要只证明内容一致，不能让任意checkout自行取得信任。
+从已批准commit的Git archive提取产品所需源码子集，拒绝链接、特殊文件、路径穿越、借用build或node_modules。
+工具绝对路径、Node headers和可选内容cache种子由可信配置提供；隔离HOME、npmrc、npm cache、Cargo registry／target，
+不继承用户registry重写、凭据或构建环境。缓存只提供锁定包内容，不复用既有编译输出。
+
+专用子进程执行完整产品配方：实际开发依赖安装、TypeScript编译、全新九个C／Rust addon与三个helper、
+生产依赖安装，以及九addon加载、sharp小图和Worker smoke。npm仍使用ignore-scripts；本产品当前锁定依赖不要求
+npm安装脚本，实际原生步骤由批准的产品配方显式构建。这不扩展普通Git应用的脚本／原生支持，也不宣称任意npm脚本可用。
+父进程异步监督，默认20分钟期限、4MiB输出、4GiB工作区／150000条目应用层采样上限；采样不是内核配额。
+继承模式的编译器子进程不自行声明整组已停，也不提前删构建目录；guardian在组排空后才耐久写入绑定attempt inode与nonce的凭据。
+父owner异常退出时继承flock仍被guardian持有，stdin EOF触发排空；正常close取消等待真实退出。
+guardian自身被强杀不能证明孙进程已停，即使锁随后可取也拒绝discard并保留interrupted；当前API无绕过出口，需受信人工排空和处理。
+已确认排空后的discard先耐久保存清理阶段，允许重开幂等收尾，不自动重建或重跑脚本。
+
+候选完整清单绑定批准来源、输入摘要、工具及运行时、build-info和实际代码／原生／node_modules文件摘要与模式；
+父进程在组排空后重核源码、原生输入／输出及Node headers，fsync后封存，重开prepared仍校验持锁身份与attempt inode。
+184 Node26.12一次fresh成功耗时63714.650655ms，10ms父timer6157样本的最大额外延迟17.837409ms；没有新增通过门限。
+该次源码夹具commit为d68f012c，先于最终guardian收口；后者另用真实父SIGKILL、guardian SIGKILL和close窄场验证，不重复fresh。
+前两次fresh的归档容量和缺Unicode输入失败保留，最终完整类型检查通过。
+默认CI不执行完整fresh：仅当显式提供`ANYRAID_TEST_PRODUCT_SOURCE`与JSON格式`ANYRAID_TEST_PRODUCT_BUILD_TOOLS`才启用，
+缺失会说明skip，不能把184工具链路径或结果当作CI覆盖。详见[产品准备验收](../host/contracts/product-update-preparation-acceptance.json)。
+
+本批不改变安装服务布局。现有unit的ExecStart／ExecStartPre固定realpath，不能靠切current软链接更新已安装服务；
+后续仍须固定launcher、代际指针、外部profile绑定／迁移、真实响应后的重启、新进程确认及失败回滚，完整核心更新尚未交付。
+未执行网络TLS、真实OS服务／设备、目标板或硬件验收。
+
 标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
 通过内部 `httpClient` 接口供组件借用，`server.info` 发现该组件。
 它不增加供外部调用者传入任意 URL／目标路径的公共端点，也不改变
