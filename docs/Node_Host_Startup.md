@@ -342,6 +342,64 @@ supervisor 安装属性消费，以及 none 的上游 503 与无 systemd
 
 详细结果和原始失败见[共享总线验收](../host/contracts/system-bus-provider-acceptance.json)。
 
+### PackageKit 内部 provider 候选
+
+独立PackageKitProvider借用SystemBusOwner的同一连接，提供initialize、getPackages、refreshPackages、
+resolvePackages、installPackages、upgradeSystem；status仅读缓存，不产生wire调用。该独立后端随后由系统部署层完成HTTP／RPC及
+update_manager接线与APT选择，见下方系统更新章节。固定Moonraker1cfb0c41及官方PackageKit v1.3.1
+接口；仅支持org.freedesktop.PackageKit API，最新packagekit1接口另属兼容工作，不静默猜测签名。
+
+owner限定CreateTransaction、GetUpdates、Resolve、RefreshCache、InstallPackages、UpdatePackages与Cancel，
+flags及签名固定；三个packagekit Polkit action与machine权限名单分离。事务先订阅，后提交；按unique sender、
+事务path和连接／owner epoch核信号，成功要求方法回复与Finished成功且无ErrorCode，允许Finished先到。
+结果最多4096包／4MiB，通知最多256条并限速，事务具有绝对期限；每次移除规则。RemoveMatch失败由owner
+撤销并实际关闭该连接后才允许重连，不由借用provider关闭owner，也不遗留无界守护进程规则。
+
+mutation必须先写入禁止公开的耐久journal，再关联事务身份，最后重核权限／epoch／取消状态后发出。
+发送后超时／取消／失联记interrupted，Cancel成功不证明包没有改变；Finished失败也可能已有部分包改变，
+failed同样阻止下一变更。重开pending改为interrupted且从不重放；受信人工对账出口由系统部署层提供。
+已受理数据库写不可取消：请求期限可先拒绝调用方，provider仍保留busy并排空写入，禁止迟到dispatch；close等待
+实际I/O，释放活动provider所有权但保留namespace公开屏蔽，不关闭借用总线或数据库。
+
+184 Node26.12的私有daemon＋合成PackageKit／Polkit与共享owner回归33／33；清理修复后仅补定向1／1、缓存恢复边界1／1及typecheck。
+缺dbus-daemon或非Linux显式skip；测试由既有npm test通配纳入，尚无本批CI运行结论，skip不作wire通过证据。
+复用已有native与匹配锁依赖，未fresh build、sanitizer或真实软件包／服务／设备操作，详见[PackageKit验收](../host/contracts/packagekit-provider-acceptance.json)。
+
+### 系统更新选择、维护与对账
+
+`enable_system_updates` 控制实际 `/machine/update/system` POST／`machine.update.system`。
+默认 `enable_packagekit=true` 时优先借用进程唯一共享 SystemBusOwner；仅初始化未提交变更且没有未知日志时才可选择APT。
+变更开始后失败、超时、断连或重开不转到另一后端执行。PackageKit配置身份绑定可信socket配置的非敏感摘要，
+重连不改变身份，换socket不能解除原操作围栏。APT命令和权限能力仅由可信启动装配提供，不从请求接收。
+
+初始化只读查询包清单，不运行OS缓存刷新；`package_query_confirmed=false` 表示未知，system返回503要求刷新，
+不能把未知空列表当无更新。公开及自动刷新都会执行OS动作，因此与升级一样持有进程和当前设备维护租约，
+重核调用者权限、打印准入与代次，并等待实际数据库／进程／总线工作排空。GET status只读缓存；
+status的`refresh=true`还须独立通过`machine.update.refresh`权限。调用方期限到达不等于真实排空，
+已受理的持久化会继续受控完成，期间围栏持续且禁止迟到dispatch。未知结果保持interrupted，不自动重放。
+
+启动先只读恢复耐久日志，再允许设备工厂取得硬件；未确认操作保持管理监听可用并阻止设备取得。
+等待解除围栏与取得process activity在现有gate同一同步栈完成；取得后跨工厂await到attach持续占有，
+既不把正常自动刷新竞争报成设备失败，也不在实际drain结束前提前唤醒。配置写入、打印producer和attach沿同一进程围栏拒绝。
+
+新增Node扩展 `/machine/update/reconcile` GET／POST（RPC `machine.update.get_reconcile`／`machine.update.post_reconcile`）
+均要求独立的`machine.update.reconcile`权限，不改变上游Git `/recover`契约。GET只执行固定typed只读探测：
+PackageKit GetTransactionList或APT模拟check与包清单，返回operation_id、短期revision及事实。
+POST要求原operation_id／revision、`confirm_external_check:true`和非空有界note；再次发现活动PK事务则409。
+探测不可用时仍可由有独立权限的操作者明确确认外部核对，但这只表示人工解除围栏，不能证明系统无活动事务或原升级正确。
+原失败、事实和actor／权限／时间／说明存为独立耐久receipt，操作变为acknowledged而非succeeded；后续必须显式发起新动作。
+该接口不接受任意命令、路径或后端配置。对账仅覆盖系统包操作，未知managed_services结果恢复仍为后续功能。
+
+`/machine/update/full`当前只建立完整计划并持久化预检结果，顺序包含system、配置客户端、klipper和moonraker；
+任一核心能力缺失就在任何system／client变更前409，不能当作完整full实现。moonraker、klipper及upgrade三个入口仍501。
+系统失败发送请求终止通知`complete:true`，不发送成功文案；HTTP／RPC及真实WS通知已有覆盖。
+
+184 Node26.12私有dbus-daemon／合成PackageKit与Polkit、真实PTY产品host和注入APT：系统11项与受管服务8项19／19，
+后端及manager受影响37／37；首次启动夹具装配身份错误导致5取消并保留，修复后分段及终轮通过。
+初始未知包清单修复另补1／1和typecheck。缓存10000快照额外命令0的耗时与yield观察不设门限，不声称性能门槛通过。
+复用既有native及匹配锁依赖，没有fresh native／sanitizer、真实软件包变更、systemctl、设备或部署验收；
+完整CI与核心pipeline仍开放，见[系统接线验收](../host/contracts/system-update-integration-acceptance.json)。
+
 ## 旧安装迁移的可信工厂装配
 
 LMDB 导出子进程在失败／取消时先终止、关闭尚未消费的 stdout／stderr，
@@ -1497,13 +1555,15 @@ executable 不替换 Node manifest，enable_node_updates=true 明确拒绝；Pyt
 
 system_dependencies 接受应用内相对 JSON 文件，以可信本机发行版 ID／alias／version／vendor 解析条件；
 install_script 仅 ZIP 的兼容静态 PKGLIST 读取，不执行脚本或 shell。应用包名不提供 APT selector，
-系统执行必须经过 typed installSystemPackages(names,{signal,authorize})；本批只有该 composition port，
-新系统依赖而未装配真实 port 时返回失败且不发布应用文件，生产 #79 薄接线和实际路径验收另行组合。
+系统执行经过 typed installSystemPackages(names,{signal,authorize})，由 manager 直接调用实际 SystemPackageDeployment.installPackages，
+沿当前 process／device 两份维护租约运行，不嵌套系统队列或重新取得租约。系统安装结果不确定时，真实 drain 后把两份租约
+转入系统持久围栏，应用文件不发布、服务不执行；缓存查询不 spawn，重试不重放。独立系统对账仅解除系统围栏，不能清除应用 interrupted。
 依赖一致后才顺序进入现有 managed_services，自己的进程重启保持真实响应交接和维护围栏。
 未知服务结果／重开中的应用操作持久 interrupted，不自动重放；Net 的受信核对／ack 出口仍未实现。
 
 184 Node26.12 的真实临时 HTTP／RPC、权限／用户文件、npm、SIGKILL 文件事务和组合容量定向通过；
-注入系统／服务 port 不等于生产系统依赖完成，测试未运行下载 exe、真实包安装、服务或设备。
+组合 #79 后新增实际产品宿主 HTTP 更新／RPC 回滚、未知结果围栏转交及关闭 drain 三项通过；仅 APT argv 执行器与服务执行为受控替身，
+manager／系统部署／日志／两层维护租约／PTY MCU 为实际路径。未运行下载 exe、真实包安装、OS 服务或设备。
 首轮夹具／类型失败与逐项补验、源码／日志 hash 见[Net应用验收](../host/contracts/update-net-application-acceptance.json)。
 
 标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
@@ -5744,3 +5804,56 @@ Fluidd 选择器上传和原受保护页面进程恢复通过，下载摘要一�
 新场次已关闭，旧上传 400 原因仍未确定，见
 [场次范围](../host/contracts/integrated-client-r5-r6-scenes.json)。临时
 代理和字段观察器属于验收夹具，不能作为正式部署配置。
+
+### 独立 APT 系统包后端候选
+
+AptPackageProvider 与 ProcessAptCommandExecutor 是独立 typed 后端，现由系统部署层接入 update_manager、
+公开 system 路由、PackageKit 选择与进程维护租约，见系统更新章节。
+可信 composition 显式提供 apt／apt-get／apt-cache 绝对路径，必要时提供固定权限执行能力，
+例如 sudo -n -- 配合绝对 env 路径。初始化探测三个命令并载入日志，不替调用者取得权限。
+执行器只传 argv，不使用 shell，不继承进程环境；固定 LC_ALL=C、非交互和受控 PATH／HOME，
+跨权限能力后用 env -i 重新应用这些环境。Dpkg 使用非交互及保留已有配置的固定选项。
+命令路径、权限前缀、aptConfiguration 与早期 configurationFile（APT_CONFIG）都是可信能力，
+可能指定特权 hooks，绝不能来自公开请求。生产默认系统配置属于受信系统能力。
+
+initialize／getPackages／refreshPackages／resolvePackages／installPackages／upgradeSystem 已实现。
+getPackages 实际运行 apt list --upgradable；status 仅读缓存，不启动进程。refreshPackages 串行运行
+apt-get update 后重新查询，全部成功且再次鉴权后才发布快照与刷新时间；失败保留上一快照及时间，
+标记 cacheStale 和错误码。resolve 使用已转义的精确名称正则，按原请求顺序保留存在项和重复项。
+包列表按实际 package/archive 记录解析，不复制固定上游丢弃头两条非空行、可能丢首包的行为。
+
+公开输入最多256个包名，每个2–192个ASCII字符，遵循小写 Debian 名称字符集；
+不接受公开架构／版本／发行版选择器或通配符。g++、末尾-及其他合法裸名称现在均可精确解析与安装。
+安装先刷新缓存、按原请求顺序／重复解析存在项，再由固定locale的 apt-cache policy 读取各包Candidate；
+版本必须通过有界Debian版本语法校验，并出现在该包版本表中。空值、(none)、重复／冲突包头、
+缺字段、恶意版本串或版本表无该候选均在安装intent之前拒绝。遵守APT pin选定的Candidate，
+不自行字符串比较版本。policy最多16MiB／65536行，每行4096字符，版本最多256字符，查询最长600秒。
+内部冻结精确 name=version 目标后写入pending，再一次执行 apt-get install --yes --no-remove；
+空解析结果不安装。候选版本若在之后消失，安装失败并保留interrupted，不回退到新候选、通配或碰撞包。
+--no-remove是相对上游的保守限制：若依赖求解要求删除既有包则明确失败，upgrade语义保持不变。
+原始统一追加+探针仍保留：g++／g+++等名称碰撞会选错包；本实现使用受信版本绑定，绝不改写名称后缀。
+timeout 单位为秒，默认300，范围0.001–3600；notify 可控制命令输出回调。retries 默认1，
+只接受1；其他值在任何命令前明确拒绝，与上游默认3次 mutation attempts 不同，绝不自动重试。
+upgradeSystem 只执行 apt-get upgrade --yes，最长3600秒；上层须显式刷新，不偷偷增加流程。
+refresh 最长600秒、列表60秒、resolve 600秒；默认合计输出4MiB，可信上限16MiB。
+一个 provider 同时只接受一个操作，含缓存刷新；并发请求直接 busy，关闭取消并等待已接收工作。
+执行器排空其独立 Linux 进程组；排空失败保留所有权并阻止新命令，不把失败报成已排空。
+
+安装／upgrade 必须有可信单一所有者提供的 durable journal，未配置时明确拒绝变更。
+新安装pending同时保存exactTargets（逐项包名／Candidate版本）并校验对应关系；旧无目标的interrupted日志仍可读，但不用于重放。
+先保存 pending 意图，再次校验授权后才发命令；保存失败不发命令。已保存但确认未spawn的拒绝
+会写回 idle，写回失败则阻止后续变更。已spawn后的非零退出可能部分执行；取消、超时、失联、
+撤权或完成记录写入失败均报告 typed interrupted，不假定已回滚，不重放。
+重开载入 pending／interrupted，仍拒绝变更但允许查询／刷新／resolve 供诊断。
+独立后端不提供公开清除接口；系统部署所有者须保留原始结果并完成独立人工对账后才能解除围栏，
+换 owner 本身不代表恢复。借用的执行器不被 provider 擅自关闭，默认自建执行器随 owner 排空。
+
+184 验证只使用可控子进程以及私有合成包根；安装／upgrade 强制 --simulate，未实际安装或升级宿主系统包，
+未运行真实sudo。仅 CLI -o Dir::* 不能阻止早期加载宿主 apt.conf.d，首轮场因此不证明完整配置隔离，
+可能触发宿主用户权限下的缓存通知 hooks；其原日志保留。后续场通过私有 APT_CONFIG 提前禁用
+默认parts/main，并先检查 apt-config dump 无宿主 hooks，再查询／刷新私有索引及模拟安装／upgrade，
+合成dpkg状态严格不变。精确选择增量另验证三组名称碰撞、pin选择较低候选版本、候选消失后拒绝fallback，
+以及--no-remove拒绝冲突移除；9项新增／7项受影响测试通过。首轮类型检查仅两处测试冗余guard窄化错误，修正后标准类型检查通过，原失败日志保留。
+真实执行器项仅Linux运行；真实APT场要求三个APT工具及apt-config可执行，
+其他平台仅跑纯解析／注入执行器契约并明确skip。完整进程接线、权限能力、真实系统升级、
+掉电／SIGKILL下的系统包事务、目标板及设备验收仍未完成，详见[APT验收](../host/contracts/update-manager-apt-acceptance.json)。

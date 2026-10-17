@@ -80,11 +80,10 @@
     "Final application stage and rollback copy share 10000-entry (root/directories/files/links included), 512MiB-content and 128MiB-file limits; .bin symlinks must remain inside node_modules",
     "ZIP Node actual new-version stages use locked fresh production-only no-script npm; same-version no-op; local whole-directory rollback needs no npm; root/production lifecycle/native needs remain explicit unsupported",
     "System dependency metadata uses trusted local distro facts and fixed upstream tuple/left-to-right condition behavior; install_script only reads static PKGLIST and never executes shell",
-    "Typed system install runs before publication and service lifecycle; this first batch only exposes composition port and does not claim production #79 integration",
+    "Typed system install runs before publication/services through actual SystemPackageDeployment under original outer leases; submitted unknown results retain both fences after real drain",
     "Managed services use existing dynamic maintenance owner/response handoff. Reopen marks incomplete app operations interrupted; unknown services never replay; public recover remains Git-only"
   ],
   "limits": [
-    "Production system dependency composition awaits normal #79 combination and actual-path directed verification",
     "Unknown application service reconciliation/ack is not implemented here; operations remain blocked pending trusted reconciliation",
     "ZIP fresh-per-version Node preparation intentionally differs from upstream same-lock reuse and costs an install for each actual version",
     "Rollback is one locally retained generation; no remote historic-tag fetch",
@@ -133,5 +132,52 @@
     "typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "typecheck-v1.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
-  "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/net-application-source/receipt.json"
+  "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/net-application-source/receipt.json",
+  "firstBatchEvidence": "checks/sourceSha256/logSha256 below describe committed first batch 0a0c49c6a; its original composition-only boundary is superseded only by productionSystemCombination.",
+  "productionSystemCombination": {
+    "parents": [
+      "0a0c49c6a1f40d32bebd4c9608afd5a50444c9fd",
+      "1c1787c32034fc3f67497a00f3c0c417643ac7a5"
+    ],
+    "runtime": "Linux 10.0.0.184 Node v26.12.0",
+    "tests": {
+      "command": "node --test --test-name-pattern=\"production system\" test/update-net-application.test.ts",
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "logs": "combined-system-v1"
+    },
+    "typecheck": {
+      "command": "node scripts/run-typescript.ts -p tsconfig.json",
+      "exit": 0,
+      "logs": "combined-typecheck-v1"
+    },
+    "conflictResolution": [
+      "README preserves Net application and incoming actual system route descriptions",
+      "update-manager preserves Net registration/state/close and incoming system selection/reconciliation/fences/full preflight"
+    ],
+    "increment": [
+      "Replace optional maintenance injection with direct this.#system.installPackages(names,{...context,notify}) under existing outer leases",
+      "Three actual product-host integration tests and current contract documentation"
+    ],
+    "verified": [
+      "Only one process and one device lease acquired per application request; system backend never reacquires them",
+      "Controlled submitted APT failure persists interrupted state, transfers both outer leases into system fence, blocks native admission and never replays install",
+      "Explicit system reconciliation acknowledges only system outcome; application remains interrupted and refuses replay",
+      "Host close retains process fence and database until accepted executor actually drains; reopened journals preserve interrupted app/system outcomes"
+    ],
+    "boundary": "Real manager, SystemPackageDeployment, APT parser, SQLite, HTTP/RPC, host control, both gates and PTY MCU models; only argv executor and service execution controlled. No real package installation, OS service/device action, executable download execution, full CI or deployment.",
+    "sourceSha256": {
+      "host/src/moonraker/update-manager.ts": "b4d9077b224f9cb3ddeea29de77bc98fbb1acbe8ba80be1e36ab4b77ebbe1ca8",
+      "host/src/moonraker/system-package-deployment.ts": "cb30ce9d828b1c01cf23280a08e23e48ab0330b6dc93ff96dbb7a8ac569187d7",
+      "host/test/update-net-application.test.ts": "c2de1f648b4847abd88ccf5d4c3f26e6f3108eb387a94557b04816eb50d8d5c7"
+    },
+    "logSha256": {
+      "combined-system-v1.stdout": "45a6f4cd043d1b732f21e711c35ea5d75e8f3c373da3fe90d2ab4eba998dbb87",
+      "combined-system-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combined-typecheck-v1.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combined-typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
 }
