@@ -9,6 +9,14 @@
 完成正常同步及 `10.0.0.184` 的隔离验证，无需逐次重复确认。该授权不包含 master／主线合并、
 生产部署或真实设备操作，也不允许绕过规定检查及既定 PR 流程。
 
+## 2026-10-18 Net应用未知服务核对候选
+
+基于b169b55c8正常合入Git对账基础及陈旧测试修复至db2338768；ZIP／exe以完整配置／发布身份和控制request匹配，
+复用target=app独立权限、固定只读事实及短期证据，先immutable原失败receipt再ack；活动控制、弱legacy身份、过期证据和写失败保持阻塞。
+ack不重放依赖或服务，旧failure／interrupted与unconfirmed状态保留；只放行该app后续新ID的显式client／rollback，系统及其他未知围栏不清。
+184四个新增实际HTTP／RPC／DB重开／晚确认场首轮4／4，受影响Net／Git／系统默认10／10、typecheck通过；首类型／装配失败保留。
+纯web无服务不扩入口，不执行真实服务／设备，不把人工核对称原升级或重启成功，见[Net验收](../host/contracts/update-net-application-acceptance.json)。
+
 ## 2026-10-18 未知受管服务结果对账候选
 
 基于#79提交1c1787c32，在独立分支加入target=app与独立reconcile_app权限；Git操作／控制request ID和完整指纹匹配，
@@ -3671,8 +3679,9 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 | --- | --- | --- |
 | 当前集成基线 | #71合并后5538／5538、#72合并后5486／5486且CI全绿；#73 merge ff30a6ba1合并后5555pass／1产品包skip，#77 merge11e303af9合并后5566pass／1skip，均0fail／cancel且Node与Build全绿；#75／#78已全绿合入develop981c8b03 | #73 Node39065514965／Build39065514889，#77 Node39065882562／Build39065882586已核原日志；#74／#76新头主checks仍运行，#79系统接线候选单列。各提交证据不混用；历史失败、G0–G6、实机及发布仍开放 |
 | 应用依赖接线候选 | Git应用HTTP／RPC及managed_services接通普通应用enable_node_updates与公开update_deps，锁驱动npm、连续版本／最新回滚与hard换根迁移 | 保留原首轮失败及限定补验；依赖一致且durable后进入服务。完整产品pipeline与原生构建仍开放 |
-| 下一实现 | 产品核心可信bundle pipeline与完整full协调器、Net未知应用服务结果受信对账 | 完整计划预检先于任一变更；不以占位preflight称full交付，不把人工系统包对账延伸为未知服务成功 |
+| 下一实现 | 产品核心可信bundle pipeline与完整full协调器 | 完整计划预检先于任一变更；不以占位preflight称full交付，不把人工系统包对账延伸为未知服务成功 |
 | 受管服务修复候选 | #74受管服务生命周期候选：普通服务顺序租约交接，设备退役后保持进程围栏，核心共进程别名合并一次真实afterResponse重启；本批修复退役请求身份与维护取消生命周期混用 | 184受影响104／104及独立产品进程3／3通过，后者复用native；保留前置构建失败及尚未复现的CI recover 409，修复头完整CI待确认。未知服务动作不重放，本批独立target=app人工核对出口候选另列 |
+| Net服务对账候选 | ZIP／exe已发布服务批次的配置／安装／control身份核对、独立权限、原失败receipt和ack；后续显式新动作，不重放旧批次 | 四场首轮4／4及既有10／10、类型通过；弱身份／活动／迟到确认拒绝，system/full/core围栏不清；纯Web无服务不扩入口，无真实服务／设备 |
 | 当前服务对账候选 | Git未知services原失败与control记录保留；独立权限、固定事实、活动拒绝与短期证据，人工确认后显式repo／deps恢复跳过旧批次 | 新增四场与既有22／22、系统默认2／2和typecheck；原失败保留，不证明旧服务成功或当前运行代码，不执行真实重启 |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |

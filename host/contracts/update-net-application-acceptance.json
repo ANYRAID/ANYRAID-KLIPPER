@@ -179,5 +179,84 @@
       "combined-typecheck-v1.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "combined-typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
+  },
+  "serviceReconciliation": {
+    "baseline": "b169b55c82ec1324eaf8419a1ccaadbfb8f1af14",
+    "gitReconciliationMerge": "b4d3ad6afe4c5c36ff31820d4672e08c8ebcb879",
+    "testCorrectionMerge": "db2338768",
+    "branch": "devac/net-service-reconciliation",
+    "status": "candidate; no real service/device or full/core update",
+    "scope": "ZIP/executable published service batches use existing target=app/name and independent machine.update.reconcile_app. Pure Web has no service lifecycle and is not expanded.",
+    "implementation": [
+      "Every new Net mutation has app-UUID; service progress captures config hash, published directory/version/repo and executable stat identity",
+      "Legacy stable ID hashes complete original persistent state and configuration; only original binding plus fixed local identity checks permit acknowledgement. Weak/mismatched provenance remains fenced",
+      "Existing bounded control request inspection rejects active/undrained work; service/process facts and five-minute revision remain external observation, not proof of previous submission success or running code",
+      "Immutable receipt records original operation/failure, evidence, latest facts, actor, permission and note before durable acknowledgement. Marker failure retains original block",
+      "Original operation.failure and interrupted service records/control journal stay unchanged after acknowledgement; status acknowledges permission only. Last reconciliation remains unconfirmed/not_replayed",
+      "Acknowledgement does not download/install/restart. Only a later explicit client or rollback may create a fresh operation ID/service batch. Public recover stays Git-only",
+      "System unknown state/fence is not cleared; original system acknowledgement still cannot clear a Net dependency-phase failure. No full/core executor or other fence semantics changed",
+      "Accepted write and host/control work drain on close. Late receipt after close cannot mark acknowledgement or dispatch services"
+    ],
+    "validation": {
+      "environment": "10.0.0.184 isolated; Node26.12.0; private DB/HTTP/serial models and private D-Bus/PackageKit fixture; service execution/APT argv injected, no real services or package management",
+      "reusedNative": "consumer-filament-operations/host/build -> original final-032dd-fix2-product build",
+      "lockSha256": "660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6",
+      "initialTypeFailures": [
+        "v1: shared control evidence parameter had Git-only candidate type; broadened to Git|Net. Same run isolated host-only export lacked committed scripts/product-install-helper.ts",
+        "v2/v3: committed helper lacked scripts/package.json ESM boundary in isolated export; corrected actual scripts/package.json; no functional test ran in failed typecheck chains"
+      ],
+      "finalTypecheck": {
+        "logs": "net-reconcile-typecheck-v4",
+        "exit": 0
+      },
+      "focused": {
+        "logs": "net-reconcile-focused-v1",
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skip": 0,
+        "durationMs": 5980.502581,
+        "coverage": "ZIP/exe actual HTTP/RPC and database reopen; immutable receipt, API-key actor, original interrupted control, later explicit rollback; stale/wrong evidence, independent permission, receipt/marker failure, active control, late close and complete/weak legacy identity"
+      },
+      "regression": {
+        "logs": "net-reconcile-regression-v1",
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skip": 0,
+        "durationMs": 6199.038805,
+        "coverage": "Existing Net file/HTTP/rollback/system-bridge/unknown/drain plus Git app and system default reconciliation"
+      },
+      "whitespace": {
+        "logs": "net-reconcile-whitespace",
+        "exit": 0,
+        "scope": "Project actual Node checker on six modified source/document files, including final LF; cached/working git diff --check also passed"
+      },
+      "limits": "No full suite, new native build, sanitizer, page, real software package/service mutation, target hardware or performance/precision acceptance; full/core independent paths not implemented by this increment"
+    },
+    "sourceSha256": {
+      "host/src/moonraker/update-manager.ts": "bb15133ba5393553953c8c1ac3cd2e3b1ead99af7fb2fd998eaf0b050962eb43",
+      "host/src/moonraker/update-net-application.ts": "3a0ce956ca5b5c7b72bfa6ae2799c065636e08e77361cacdd7a36565632bb575",
+      "host/test/update-net-application.test.ts": "3839caa93ec4ad8c286bd4e315462f90b0115790278f60513d2984aae2808c8d"
+    },
+    "logSha256": {
+      "net-reconcile-focused-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-focused-v1.stdout": "dcf5761d61c0ab6b8a2d915e48da1e2b5baaa3f6d4d1539754538a76ceb8615f",
+      "net-reconcile-regression-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-regression-v1.stdout": "6ebeead2d1bf7ac637638e2b8d3dbf8c6f5e964e3ccf812cfed24e1309cba8d9",
+      "net-reconcile-typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-typecheck-v1.stdout": "35ec7e1ba6ed92a794a770241a12b2baa65170cae1d53eac827c1088ec12d8a6",
+      "net-reconcile-typecheck-v2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-typecheck-v2.stdout": "84f60371ad61bd880a53b7e2a50c05e7929ed3687d2a541cea3e1702d28154c9",
+      "net-reconcile-typecheck-v3.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-typecheck-v3.stdout": "84f60371ad61bd880a53b7e2a50c05e7929ed3687d2a541cea3e1702d28154c9",
+      "net-reconcile-typecheck-v4.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-typecheck-v4.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-whitespace.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-whitespace.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "localReceipt": "C:/Devs/Codex/from-184/.cache/codex/tmp/anyraid-net-service-reconciliation/.cache/net-reconciliation/receipt.json"
   }
 }

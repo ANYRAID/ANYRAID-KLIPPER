@@ -1501,7 +1501,7 @@ POST要求匹配target／name／operation_id／revision、`confirm_external_chec
 确认含义只是操作者承认外部核对并允许将来的显式动作；不证明外部没有活动job或原请求成功。
 原control journal与services.entries的interrupted状态保持，重开不重放。
 
-确认后仍须显式调用原`recover`。该次只恢复仓库／依赖，跳过整个原服务批次；状态
+Git确认后仍须显式调用原`recover`。该次只恢复仓库／依赖，跳过整个原服务批次；状态
 `last_service_reconciliation.service_replay=skipped_acknowledged`、`service_result=unconfirmed`继续保留，
 通知明确“repository/dependency recovery complete; prior service result remains unconfirmed; service replay skipped”，
 不发送普通Git应用recover complete。只有清理完中断操作之后的新显式update，才可产生新服务请求。
@@ -1590,7 +1590,26 @@ install_script 仅 ZIP 的兼容静态 PKGLIST 读取，不执行脚本或 shell
 沿当前 process／device 两份维护租约运行，不嵌套系统队列或重新取得租约。系统安装结果不确定时，真实 drain 后把两份租约
 转入系统持久围栏，应用文件不发布、服务不执行；缓存查询不 spawn，重试不重放。独立系统对账仅解除系统围栏，不能清除应用 interrupted。
 依赖一致后才顺序进入现有 managed_services，自己的进程重启保持真实响应交接和维护围栏。
-未知服务结果／重开中的应用操作持久 interrupted，不自动重放；Net 的受信核对／ack 出口仍未实现。
+未知服务结果／重开中的应用操作持久 interrupted，不自动重放。ZIP／executable现复用
+`reconcile?target=app&name=...`及独立`machine.update.reconcile_app`权限，不新增recover路由。
+仅已完成文件／依赖发布且进入服务阶段的原批次可核对；新操作保存app-UUID和配置hash、
+目录／版本／仓库及exe文件身份。旧无ID记录以完整原持久状态与配置生成稳定ID，但仍须
+原记录的配置／安装依据和固定本地只读核验相符；无法证明的旧状态继续阻塞，hash本身不是追认依据。
+核对同时匹配control request ID／kind／service和五分钟证据，活动／未排空控制拒绝。
+没有任意命令／路径参数，普通status仍读缓存；本地事实与人工说明不证明原重启成功或运行代码已更新。
+
+先保存不可变receipt中的原operation／失败、事实、操作者、独立权限和note，再耐久写ack。
+receipt成功但ack失败仍保持阻塞；受理写入及关闭真实排空期间持有原维护围栏，迟到确认不执行服务。
+确认后原operation.failure和services的interrupted不变，status为acknowledged；
+`last_service_reconciliation`继续报告`service_result=unconfirmed`、`service_replay=not_replayed`。
+确认自身不下载、不安装依赖、不重启；只允许后续新的显式client／rollback，产生新ID和新批次，
+不把旧失败改成成功。独立system/full/core的未知记录／围栏不由本入口清除。
+纯Web provider没有managed_services操作，不伪造服务核对；文件／依赖阶段未知仍需其自身恢复。
+
+184 Node26.12新增实际HTTP／RPC、数据库重开、active控制、晚receipt关闭及错误证据四场首轮4／4；
+受影响既有Net／Git／系统默认对账10／10、标准类型检查通过。首轮类型／隔离装配错误保留，
+见[Net应用验收](../host/contracts/update-net-application-acceptance.json)的serviceReconciliation。
+复用native与依赖；没有真实服务／设备、新构建、full/core动作或实机验收。
 
 184 Node26.12 的真实临时 HTTP／RPC、权限／用户文件、npm、SIGKILL 文件事务和组合容量定向通过；
 组合 #79 后新增实际产品宿主 HTTP 更新／RPC 回滚、未知结果围栏转交及关闭 drain 三项通过；仅 APT argv 执行器与服务执行为受控替身，
