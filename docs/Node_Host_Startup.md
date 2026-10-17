@@ -342,6 +342,29 @@ supervisor 安装属性消费，以及 none 的上游 503 与无 systemd
 
 详细结果和原始失败见[共享总线验收](../host/contracts/system-bus-provider-acceptance.json)。
 
+### PackageKit 内部 provider 候选
+
+独立PackageKitProvider借用SystemBusOwner的同一连接，提供initialize、getPackages、refreshPackages、
+resolvePackages、installPackages、upgradeSystem；status仅读缓存，不产生wire调用。本批没有HTTP／RPC或
+update_manager接线，不改变现有系统更新501，也不选择或调用APT。固定Moonraker1cfb0c41及官方PackageKit v1.3.1
+接口；仅支持org.freedesktop.PackageKit API，最新packagekit1接口另属兼容工作，不静默猜测签名。
+
+owner限定CreateTransaction、GetUpdates、Resolve、RefreshCache、InstallPackages、UpdatePackages与Cancel，
+flags及签名固定；三个packagekit Polkit action与machine权限名单分离。事务先订阅，后提交；按unique sender、
+事务path和连接／owner epoch核信号，成功要求方法回复与Finished成功且无ErrorCode，允许Finished先到。
+结果最多4096包／4MiB，通知最多256条并限速，事务具有绝对期限；每次移除规则。RemoveMatch失败由owner
+撤销并实际关闭该连接后才允许重连，不由借用provider关闭owner，也不遗留无界守护进程规则。
+
+mutation必须先写入禁止公开的耐久journal，再关联事务身份，最后重核权限／epoch／取消状态后发出。
+发送后超时／取消／失联记interrupted，Cancel成功不证明包没有改变；Finished失败也可能已有部分包改变，
+failed同样阻止下一变更。重开pending改为interrupted且从不重放；受信对账后的恢复出口待系统部署层实现。
+已受理数据库写不可取消：请求期限可先拒绝调用方，provider仍保留busy并排空写入，禁止迟到dispatch；close等待
+实际I/O，释放活动provider所有权但保留namespace公开屏蔽，不关闭借用总线或数据库。
+
+184 Node26.12的私有daemon＋合成PackageKit／Polkit与共享owner回归33／33；清理修复后仅补定向1／1、缓存恢复边界1／1及typecheck。
+缺dbus-daemon或非Linux显式skip；测试由既有npm test通配纳入，尚无本批CI运行结论，skip不作wire通过证据。
+复用已有native与匹配锁依赖，未fresh build、sanitizer或真实软件包／服务／设备操作，详见[PackageKit验收](../host/contracts/packagekit-provider-acceptance.json)。
+
 ## 旧安装迁移的可信工厂装配
 
 LMDB 导出子进程在失败／取消时先终止、关闭尚未消费的 stdout／stderr，
@@ -1372,6 +1395,39 @@ moonraker／klipper／system／full／upgrade五类动作仍明确501，无部�
 Web恢复仍仅为中断目录事务一致性恢复。完整Git、ZIP／executable provider、系统包与Node核心自更新仍待完成，
 核心自更新不得照搬Python venv／pip。本机与184定向测试不代表生产部署、掉电文件系统或真实设备验收。
 具体记录见[Web更新验收](../host/contracts/update-manager-web-acceptance.json)。
+
+#### Node 依赖事务基础（尚未接入更新入口）
+
+`NodeDependencyTransaction` 为后续 Git 部署提供独立的 manifest 捕获、
+`prepare`、`commit`、`rollback`、`reconcile` 和显式 `discardBackup`。
+本增量不启用 `enable_node_updates` 或公开 recover 的 `update_deps`，
+不重启服务，也不将普通 Git checkout 当作已验证的产品包。
+
+普通应用要求 npm v2／v3 锁文件、带完整性摘要的 HTTPS 生产依赖，
+在私有暂存目录实际执行隔离 npm `ci --omit=dev --include=optional --ignore-scripts`。
+只核实际生产树；省略的开发依赖含脚本不阻止纯生产包安装。
+普通应用的安装／prepare 脚本、原生构建或 `.node`、file／link 包、
+工作区、项目 `.npmrc` 目前明确拒绝，不能据此宣称本产品所需依赖已完整支持。
+用户 npmrc、registry 重写及凭据不继承，原始 npm 输出不公开。
+产品包来源另须调用方提供可信生成流程产出的 `build-info.json` 摘要并通过
+`verifyProductBundle`；本模块不生成或自签该文件，也不重建原生插件。
+
+提交前重核授权、manifest 和目录身份；失败／取消保留旧依赖并等 npm 退出。
+替换先耐久保存 intent，再两次 rename 与目录 fsync；关闭等一致性收尾。
+重开不执行脚本，须显式 `reconcile`；Git manifest 回到对应版本后才能回滚旧树。
+备份删除先保存可重复的 discard intent。当前只保留一代且须可信调用方显式清理，
+连续 A→B→C 与最新回滚协调仍须在 GitDeployment 接线批次完成，不能要求最终用户手工清理。
+manifest、条目、文件、输出和期限均有上限；50ms 采样暂存／cache 容量是应用层监测，
+不是内核磁盘配额。Linux 内核目录锁排除另一所有者。
+
+184 Node 26.12.0／npm 11.19.1 使用锁定纯包与隔离离线 cache 完成真实安装、
+A→B→回滚 A、取消排空和故障恢复；HTTPS 传输、产品实际 npm 安装、完整新包／原生构建、
+服务和设备均未验。复用既有依赖与 `sealed-file.node`，不是全新构建。
+分场首次失败、定向修正及一次有限计时见
+[Node 依赖基础验收](../host/contracts/node-dependency-update-acceptance.json)。
+测试 npm 从当前 Node 安装发现，也可显式设置可信 `ANYRAID_TEST_NPM_CLI`。
+功能项仅 Linux；真实预构建产品项要求 `ANYRAID_TEST_PRODUCT_BUNDLE` 指向现有可信产物，
+缺失时明确 skip，默认 CI 不覆盖该项，不能把 184 的实测结果归给 CI。
 
 ### Git 纯仓库应用更新候选
 

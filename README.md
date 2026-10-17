@@ -34,6 +34,7 @@ Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共�
 其他 provider 的兼容边界见[共享总线验收](host/contracts/system-bus-provider-acceptance.json)
 和[启动装配](docs/Node_Host_Startup.md#共享-d-bus-进程所有者)。
 可信内部维护租约可连续交接到宿主服务控制，终态归还仍持围栏的租约或保持退役关闭；该前置能力尚未接入managed_services／核心更新。
+独立PackageKit候选借用同一总线，具备typed事务、专属Polkit检查及耐久未知结果围栏；尚未接入系统更新路由或APT选择，见[内部provider边界](docs/Node_Host_Startup.md#packagekit-内部-provider-候选)。
 本项目固定使用 `10.0.0.184` 作为 Linux 开发与调试环境。用户明确允许：
 “本项目开发实际需要linux环境的情况下，自行使用10.0.0.184”；持续允许
 在该机隔离调试及传输本项目所需源码。当前任务专用工作树为
