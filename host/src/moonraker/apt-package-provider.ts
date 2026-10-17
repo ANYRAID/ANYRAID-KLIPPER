@@ -6,7 +6,8 @@ import type {AptCommandExecutor,AptCommandRequest,AptOperationContext,AptErrorCo
 
 export const MAX_APT_PACKAGES=256;
 export const aptPackageName=(name:unknown):name is string=>typeof name==='string'&&name.length>=2&&name.length<=192&&/^[a-z0-9][a-z0-9+.-]+$/u.test(name);
-export type AptMutationState={schema:1;state:'idle'}|{schema:1;state:'pending'|'interrupted';id:string;operation:'install'|'upgrade';packages:string[];startedAt:number};
+export interface AptExactTarget {name:string;version:string;}
+export type AptMutationState={schema:1;state:'idle'}|{schema:1;state:'pending'|'interrupted';id:string;operation:'install'|'upgrade';packages:string[];startedAt:number;exactTargets?:AptExactTarget[]};
 /** Trusted owner supplies durable storage. load/save must finish and report a
  * failed write; save must not resolve before the record is durable. No automatic
  * replay or public clear exists. External reconciliation owns clearing records. */
@@ -30,10 +31,34 @@ const IDLE:AptMutationState={schema:1,state:'idle'};
 const ENV=Object.freeze({PATH:'/usr/sbin:/usr/bin:/sbin:/bin',HOME:'/nonexistent',LC_ALL:'C',LANG:'C',TERM:'dumb',DEBIAN_FRONTEND:'noninteractive',DEBCONF_NONINTERACTIVE_SEEN:'true',APT_LISTCHANGES_FRONTEND:'none',UCF_FORCE_CONFFOLD:'1'});
 function packages(value:readonly string[]):string[]{
  if(!Array.isArray(value)||value.length>MAX_APT_PACKAGES||value.some(name=>!aptPackageName(name)))throw new AptPackageError('invalid','Expected up to 256 bare Debian package names');
- // APT interprets trailing +/- as install/remove selectors, even without a
- // shell. Keep those valid Debian names visible in listings, but reject them
- // as public resolution/installation inputs until exact selection is provided.
- if(value.some(name=>/[+-]$/u.test(name)))throw new AptPackageError('unsupported','APT action suffixes are not supported in package requests');return [...value];
+ return [...value];
+}
+// Safe bounded Debian version grammar. This is validation only: APT policy,
+// including pin priorities, chooses the candidate; no local version comparison.
+export function aptPackageVersion(value:unknown):value is string{
+ if(typeof value!=='string'||value.length<1||value.length>256)return false;
+ let rest=value;const colon=value.indexOf(':');if(colon!==-1){if(!/^[0-9]+$/u.test(value.slice(0,colon)))return false;rest=value.slice(colon+1);}
+ const dash=rest.lastIndexOf('-');if(dash!==-1){if(!/^[A-Za-z0-9+.~]+$/u.test(rest.slice(dash+1)))return false;rest=rest.slice(0,dash);}
+ return /^[0-9][A-Za-z0-9.+:~-]*$/u.test(rest);
+}
+export function parseAptPolicyCandidates(output:string,requested:readonly string[]):AptExactTarget[]{
+ const names=packages(requested),expected=new Set(names);if(!expected.size)return [];
+ if(Buffer.byteLength(output)>16*1024*1024)throw new AptPackageError('output','APT policy exceeded capacity');
+ const rows=new Map<string,{candidate?:string;table:boolean;versions:Set<string>}>();let row:{candidate?:string;table:boolean;versions:Set<string>}|undefined;
+ const lines=output.split('\n');if(lines.length>65536)throw new AptPackageError('output','Too many APT policy lines');
+ for(const raw of lines){
+  if(raw.length>4096)throw new AptPackageError('output','APT policy line exceeded capacity');if(!raw.trim())continue;
+  const header=/^([a-z0-9][a-z0-9+.-]+):$/u.exec(raw);
+  if(header){if(!expected.has(header[1])||rows.has(header[1]))throw new AptPackageError('output','Unexpected or duplicate APT policy package');row={table:false,versions:new Set()};rows.set(header[1],row);continue;}
+  if(!row||!/^\s/u.test(raw))throw new AptPackageError('output','Invalid APT policy header');
+  const candidate=/^\s+Candidate:(.*)$/u.exec(raw);if(candidate){const value=candidate[1].trim();if(row.candidate!==undefined||!value)throw new AptPackageError('output','Invalid APT policy candidate');if(value!=='(none)'&&!aptPackageVersion(value))throw new AptPackageError('output','Invalid APT candidate version');row.candidate=value;continue;}
+  if(/^\s+Installed:/u.test(raw))continue;
+  if(/^\s+Version table:\s*$/u.test(raw)){if(row.table)throw new AptPackageError('output','Duplicate APT policy version table');row.table=true;continue;}
+  if(!row.table)throw new AptPackageError('output','Unexpected APT policy field');
+  const version=/^\s+(?:\*\*\*\s+)?(\S+)\s+-?[0-9]{1,10}\s*$/u.exec(raw);
+  if(version){if(!aptPackageVersion(version[1]))throw new AptPackageError('output','Invalid APT policy table version');row.versions.add(version[1]);}
+ }
+ return names.map(name=>{const item=rows.get(name);if(!item||item.candidate===undefined||!item.table)throw new AptPackageError('output','APT candidate metadata is incomplete');if(item.candidate==='(none)')throw new AptPackageError('unavailable','APT package has no candidate');if(!item.versions.has(item.candidate))throw new AptPackageError('output','APT candidate is absent from version table');return {name,version:item.candidate};});
 }
 function state(value:unknown):AptMutationState{
  if(value===null||value===undefined)return {...IDLE};
@@ -41,9 +66,11 @@ function state(value:unknown):AptMutationState{
  const row=value as Record<string,unknown>;
  if(row.schema!==1)throw new AptPackageError('journal','Invalid APT mutation journal schema');
  if(row.state==='idle'&&Object.keys(row).every(key=>['schema','state'].includes(key)))return {...IDLE};
- if(!['pending','interrupted'].includes(String(row.state))||!['install','upgrade'].includes(String(row.operation))||typeof row.id!=='string'||!/^[a-f0-9-]{36}$/u.test(row.id)||typeof row.startedAt!=='number'||!Number.isSafeInteger(row.startedAt)||row.startedAt<0||!Array.isArray(row.packages)||Object.keys(row).some(key=>!['schema','state','id','operation','packages','startedAt'].includes(key)))throw new AptPackageError('journal','Invalid APT mutation journal record');
+ if(!['pending','interrupted'].includes(String(row.state))||!['install','upgrade'].includes(String(row.operation))||typeof row.id!=='string'||!/^[a-f0-9-]{36}$/u.test(row.id)||typeof row.startedAt!=='number'||!Number.isSafeInteger(row.startedAt)||row.startedAt<0||!Array.isArray(row.packages)||Object.keys(row).some(key=>!['schema','state','id','operation','packages','startedAt','exactTargets'].includes(key)))throw new AptPackageError('journal','Invalid APT mutation journal record');
  const selected=packages(row.packages);if(row.operation==='upgrade'&&selected.length)throw new AptPackageError('journal','Invalid APT upgrade journal');
- return {schema:1,state:row.state as 'pending'|'interrupted',id:row.id,operation:row.operation as 'install'|'upgrade',packages:selected,startedAt:row.startedAt};
+ let exactTargets:AptExactTarget[]|undefined;
+ if(row.exactTargets!==undefined){if(row.operation!=='install'||!Array.isArray(row.exactTargets)||row.exactTargets.length!==selected.length)throw new AptPackageError('journal','Invalid APT exact-target journal');exactTargets=row.exactTargets.map((target,at)=>{if(!target||typeof target!=='object'||Array.isArray(target)||target.name!==selected[at]||!aptPackageVersion(target.version)||Object.keys(target).some(key=>!['name','version'].includes(key)))throw new AptPackageError('journal','Invalid APT exact-target journal');return {name:target.name,version:target.version};});}
+ return {schema:1,state:row.state as 'pending'|'interrupted',id:row.id,operation:row.operation as 'install'|'upgrade',packages:selected,startedAt:row.startedAt,...exactTargets?{exactTargets}:{}};
 }
 
 /** Parse actual package/archive records rather than upstream's unconditional
@@ -116,18 +143,24 @@ export class AptPackageProvider {
   return requested.filter(name=>found.has(name));
  }
  resolvePackages(requested:readonly string[],context:AptOperationContext):Promise<string[]>{let selected:string[];try{selected=packages(requested);}catch(error){return Promise.reject(error);}return this.#operate('resolve',context,ctx=>this.#resolve(selected,ctx));}
+ async #exactTargets(selected:string[],context:AptOperationContext):Promise<AptExactTarget[]>{
+  const output=await this.#run(this.#config.commands.aptCache,['policy',...new Set(selected)],600000,context);return parseAptPolicyCandidates(output,selected);
+ }
  async #save(value:AptMutationState):Promise<void>{try{await this.#config.journal!.save(structuredClone(value));}catch{throw new AptPackageError('journal','APT mutation journal could not be persisted');}}
  #canMutate(){if(!this.#config.journal)throw new AptPackageError('unavailable','APT mutation requires a trusted durable journal');if(this.#journal.state!=='idle')throw new AptPackageError('interrupted','APT mutation requires external reconciliation');}
- async #mutate(operation:'install'|'upgrade',selected:string[],timeoutMs:number,notify:boolean,context:AptOperationContext):Promise<void>{
+ async #mutate(operation:'install'|'upgrade',selected:string[],timeoutMs:number,notify:boolean,context:AptOperationContext,exactTargets?:AptExactTarget[]):Promise<void>{
   this.#canMutate();await this.#admit(context);
-  const pending:AptMutationState={schema:1,state:'pending',id:randomUUID(),operation,packages:[...selected],startedAt:Date.now()};
+  const pending:AptMutationState={schema:1,state:'pending',id:randomUUID(),operation,packages:[...selected],startedAt:Date.now(),...exactTargets?{exactTargets:structuredClone(exactTargets)}:{}};
   try{await this.#save(pending);}catch(error){this.#journal={...pending,state:'interrupted'};throw error;}
   this.#journal=pending;let executed=false;
   try{
    await this.#admit(context);
    // Record dispatch independently of success: nonzero exit can partially apply
    // dpkg changes, and completion persistence/authorization can also be lost.
-   let executable=this.#config.commands.aptGet,argv=[...this.#aptArgs,'-o','Dpkg::Use-Pty=0','-o','Dpkg::Options::=--force-confdef','-o','Dpkg::Options::=--force-confold',operation==='install'?'install':'upgrade','--yes',...selected];
+   // Exact candidates are captured before intent and never reselected after
+   // dispatch. If the cache changes, APT must fail rather than select a sibling.
+   const action=operation==='install'?['install','--yes','--no-remove',...exactTargets!.map(target=>target.name+'='+target.version)]:['upgrade','--yes'];
+   let executable=this.#config.commands.aptGet,argv=[...this.#aptArgs,'-o','Dpkg::Use-Pty=0','-o','Dpkg::Options::=--force-confdef','-o','Dpkg::Options::=--force-confold',...action];
    if(this.#config.privilege){const privilege=this.#config.privilege;argv=[...privilege.args,privilege.envCommand,'-i',...Object.entries(this.#env).map(([key,value])=>key+'='+value),executable,...argv];executable=privilege.command;}
    let result;try{result=await this.#executor.run({command:executable,args:argv,env:this.#env,timeoutMs,maxOutputBytes:this.#config.maxOutputBytes!,effect:operation,signal:context.signal,authorize:context.authorize,onOutput:notify?context.onOutput:undefined});executed=true;}catch(error){executed=!(error instanceof AptPackageError)||error.dispatched;throw error;}
    if(result.exitCode!==0)throw new AptPackageError('failed','APT mutation failed',true);await this.#admit(context);
@@ -140,7 +173,7 @@ export class AptPackageProvider {
  }
  installPackages(requested:readonly string[],context:AptOperationContext,options:AptInstallOptions={}):Promise<string[]>{
   let selected:string[],settings:Required<AptInstallOptions>;try{selected=packages(requested);settings=installOptions(options);}catch(error){return Promise.reject(error);}
-  return this.#operate('install',context,async ctx=>{this.#canMutate();await this.#refresh(ctx,settings.notify);const resolved=await this.#resolve(selected,ctx);if(!resolved.length){this.#config.notify?.('No packages detected');return [];}await this.#mutate('install',resolved,settings.timeout*1000,settings.notify,ctx);return [...resolved];});
+  return this.#operate('install',context,async ctx=>{this.#canMutate();await this.#refresh(ctx,settings.notify);const resolved=await this.#resolve(selected,ctx);if(!resolved.length){this.#config.notify?.('No packages detected');return [];}const targets=await this.#exactTargets(resolved,ctx);await this.#mutate('install',resolved,settings.timeout*1000,settings.notify,ctx,targets);return [...resolved];});
  }
  upgradeSystem(context:AptOperationContext):Promise<void>{return this.#operate('upgrade',context,async ctx=>{this.#canMutate();await this.#mutate('upgrade',[],3600000,true,ctx);});}
  async close():Promise<void>{this.#closing=true;this.#life.abort();await Promise.allSettled(this.#active?[this.#active]:[]);if(this.#ownsExecutor)await this.#executor.close?.();}
