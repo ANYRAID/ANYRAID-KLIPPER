@@ -28,6 +28,8 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 下载校验、持久文件保留和中断目录一致性恢复已接线；Git应用候选接入实际更新／回滚／显式恢复及managed_services，
 恢复公开参数为update_deps：启用enable_node_updates的普通Git应用可强制准备锁定生产依赖，未启用时true返回501；内部名force_dep_update作为公开字段返回400。
 普通服务沿维护租约顺序提交，自己的进程重启沿真实响应交接；未知服务结果保留interrupted且不自动重放。
+受管服务夹具已补真实ADC室温报告：8.5秒recover准备有采样成功、停采样仍温控过期409；生产安全门槛不变。
+该受控场证实夹具失采样缺陷，原CI未记录停止原因，不能宣称历史失败同因已确证，见[验收](host/contracts/update-manager-git-acceptance.json)。
 应用服务结果现可通过独立权限的`reconcile?target=app&name=...`核对；人工确认只放行显式仓库／依赖恢复，
 跳过旧服务批次，状态和通知继续标明服务结果未经确认，不把确认当作原重启成功。
 Git Node依赖候选接通隔离npm准备、保旧替换和最新一代回滚，同锁不重装，依赖一致成功后才进入服务；普通应用脚本／原生依赖、完整产品pipeline及核心动作仍未实现；full仅作完整计划能力预检，缺核心时在任何变更前拒绝，见[Web配置](docs/Node_Host_Startup.md#web-客户端更新状态与刷新)和[Git边界](docs/Node_Host_Startup.md#git-纯仓库应用更新候选)。

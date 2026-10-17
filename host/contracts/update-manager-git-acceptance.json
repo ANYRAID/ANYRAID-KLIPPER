@@ -349,5 +349,152 @@
       "No fresh native build success, sanitizer rerun, hardware or production deployment proof."
     ],
     "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/ci74-repair/receipt.json"
+  },
+  "managedAdmissionRecurrence": {
+    "schema": 1,
+    "head": "c3c8161dde0b7132112a93a0e339b2bf4c69bde5",
+    "runtime": "Linux 10.0.0.184 Node v26.12.0",
+    "ci": {
+      "run": 39067565379,
+      "job": 117498279982,
+      "tests": 5608,
+      "passed": 5606,
+      "failed": 1,
+      "skipped": 1,
+      "stage": "recover after update and rollback",
+      "response": "409 Printer maintenance admission changed",
+      "limit": "Original CI did not record stop causes; its exact failure cause is not proven by the following controlled reproduction."
+    },
+    "diagnosis": [
+      {
+        "logs": "recurrence-controlled-v1",
+        "passed": 0,
+        "failed": 1,
+        "cause": "Initial test incorrectly expected the old device lease to remain owned after a real MCU fault; actual closed gate is correct."
+      },
+      {
+        "logs": "recurrence-controlled-v2",
+        "passed": 1,
+        "failed": 0,
+        "cause": "Controlled PTY get_clock loss gives Unable to obtain clock response; gate_changed=false, lease_owned=false, blocked=true. Correct safety refusal, not evidence of CI cause."
+      },
+      {
+        "logs": "recurrence-live-hold-v1",
+        "passed": 0,
+        "failed": 1,
+        "cause": "With real clock replies but no ADC fixture reports, bounded 8.5s recover hold produces Temperature sensor timed out and the exact 409. Both MCU clocks continued, query counts 13/42."
+      }
+    ],
+    "fix": "Only managed-services fixture reuses emitClientTemperatures from actual query_analog_in parameters/sample count/MCU clock; 25C reports every250ms while attached and gate open; stopped devices skipped, timer cleared on startup failure/close. Production only exposes bounded admission cause data; all 409 checks, thermal and clock deadlines unchanged.",
+    "validation": {
+      "causalPair": {
+        "logs": "recurrence-causal-pair-v1",
+        "tests": 3,
+        "passed": 2,
+        "failed": 1,
+        "passing": [
+          "Original authenticated Git update/RPC rollback/recover path",
+          "Same bounded8.5s hold with ADC reports:200, no stop, clock queries20/69"
+        ],
+        "failure": "Negative stopped-sampling branch correctly409/no third service; assertion expected heater startup timeout but actual previously-sampled ADC expired earlier."
+      },
+      "negativeFollowup": {
+        "logs": "recurrence-negative-final",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "coverage": "Same8.5s hold with samples stopped: exact ADC temperature report expired, gate_changed=false/lease_owned=false/blocked=true,409, application interrupted and no third service."
+      },
+      "typecheck": {
+        "command": "node scripts/run-typescript.ts -p tsconfig.json",
+        "logs": "recurrence-typecheck-final",
+        "exit": 0
+      },
+      "boundary": "Separate affected checkpoints; no repeated whole CI or random pressure. Existing clock-loss counterexample retained without rerun. Reused existing native/dependencies; no OS services, hardware, fresh native build, sanitizer or deployment."
+    },
+    "sourceSha256": {
+      "host/src/moonraker/update-manager.ts": "cc778d46b54a47cd6afed5327f18fff5af939554a530163f0b86a15944fa2d46",
+      "host/test/update-managed-services.test.ts": "15737f41e701999d0dfcca0347eb65900859af82047800098a45eab620cf075e",
+      "host/test/helpers/client-temperature.ts": "a455f2ffe42ac24bd7b66e19a8aa9e3b19b29ff6dfcc2bb59ef58ae15558eb32",
+      "host/src/thermal/runtime.ts": "9e0202bce200445e5d68caf32a128dc5c102ccdcdac0e217b10543b8ce03d464",
+      "host/src/thermal/async-runtime.ts": "3ff5e225987c5b0daa351124ce5ec599a99c0719b2f824a6a780171a15baa42d"
+    },
+    "logSha256": {
+      "recurrence-causal-pair-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-causal-pair-v1.stdout": "ccc2637ebe6ba157822bd16c243e95e3fd4706acd9d4e8f4b353f86c0eebf87a",
+      "recurrence-controlled-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-controlled-v1.stdout": "c23420a588c23a7b3df7ea9bb8934c1a5d8ef1cba6b643e8e36e64f5b8aa8632",
+      "recurrence-controlled-v2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-controlled-v2.stdout": "73d1119075c32ff9fec66e09c833b08db238f62c7d52f92953113ff3fef889ee",
+      "recurrence-live-hold-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-live-hold-v1.stdout": "8e1a08021e713d1ff2ca147a67b2c9cc688b2e4619c163606c3d4a2a30a88dce",
+      "recurrence-negative-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-negative-final.stdout": "455c0db6007c0b277c2dff5854e8a7318a47d86baa1544e7232a9db5c8846d91",
+      "recurrence-typecheck-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-typecheck-final.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/managed-recurrence/receipt.json"
+  },
+  "consumerMergeValidation": {
+    "head": "02d69e6cb80604a79de17607e9ee1dd7f79185bc",
+    "mergeHead": "121d88a839b6d528cf5deda5b03f93bc1095a04a",
+    "status": "Uncommitted merge resolved; frozen for root commit",
+    "conflicts": {
+      "README": "Preserves current consumer/system/Node/app-reconciliation capabilities plus bounded ADC causal evidence; historical CI cause remains unproven",
+      "fixture": "Preserves facts/holdAction/advance(value), ADC timer lifecycle, bounded eight stop causes, stopped-sampling switch and all tests"
+    },
+    "managerReview": "Only current admission diagnostic data changed: gate_changed/lease_owned/blocked and plain original/current gate status. Same abort, gate identity, actual ownership and blocked rejection remain; authorize/assertIdle sequence unchanged.",
+    "validation": {
+      "host": "10.0.0.184 isolated",
+      "node": "26.12.0",
+      "typecheckExit": 0,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 41189.964046,
+      "withAdc": {
+        "holdMs": 8500,
+        "result": "ok",
+        "clockQueries": [
+          22,
+          68
+        ],
+        "stopCauses": [],
+        "serviceSubmissions": 3
+      },
+      "withoutAdc": {
+        "holdMs": 8500,
+        "status": 409,
+        "gate_changed": false,
+        "lease_owned": false,
+        "blocked": true,
+        "clockQueries": [
+          19,
+          57
+        ],
+        "stopCauses": [
+          "ADC temperature report expired",
+          "ADC temperature report expired"
+        ],
+        "serviceSubmissions": 2,
+        "operation": "interrupted"
+      },
+      "combined": "Default real authorized update/RPC rollback/recover, app HTTP/RPC reconciliation and active-control/accepted-acknowledgement close barriers passed",
+      "limits": "Native/dependencies reused. Existing consumer34 not repeated; no historical CI causal proof, hardware/services/deployment/full CI/new sanitizer evidence."
+    },
+    "sourceSha256": {
+      "host/src/moonraker/update-manager.ts": "e0bf84b02da4fe6d3162731f7c4ec6b4b23a0266799ec283f75d0ead9dd7edb5",
+      "host/test/update-managed-services.test.ts": "25228fe40c3179a8878c4f89c49d13e9dc239d19a40c02d8fc5bfb4f6dfcd3cc",
+      "host/test/helpers/client-temperature.ts": "a455f2ffe42ac24bd7b66e19a8aa9e3b19b29ff6dfcc2bb59ef58ae15558eb32"
+    },
+    "logSha256": {
+      "filament-merge-managed-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "filament-merge-managed-v1.stdout": "47d271a88a679f902f573ddbf8abc0b05e99014f181fe7f83f53b999ae06d746",
+      "filament-merge-typecheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "filament-merge-typecheck.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "localReceipt": "C:/Devs/Codex/from-184/.cache/codex/tmp/anyraid-consumer-filament-operations/.cache/managed-merge/receipt.json"
   }
 }
