@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "scope": "独立 Node 依赖事务基础；未接入 GitDeployment、enable_node_updates、update_deps 或服务生命周期",
+  "baseline": "d2f98713e6e8a687b7584df0651b3a61d99392cc",
+  "upstream": "Moonraker 1cfb0c41e468645951a371621f06d32777b6107c app_deploy.py：两侧锁哈希均存在且变化，或 force；本实现安装失败保旧并报错，不沿用上游吞错",
+  "sourceSha256": "7a7163fb38482792cc7c072ceb7ac3d83c122b1e6af10e55e7fc194da1189217",
+  "testSha256": "0eb694eee2cf8a73040d95d6114b5c37dcbfedca9c52b2fdbd71170565ef39cf",
+  "api": [
+    "initialize",
+    "captureManifest",
+    "prepare(before, context, force)",
+    "commit",
+    "rollback",
+    "reconcile",
+    "discardBackup",
+    "close"
+  ],
+  "boundaries": [
+    "普通 Git 应用只支持无安装生命周期脚本和原生构建的实际生产依赖树；省略的开发依赖不误拒绝",
+    "拒绝普通应用 .node、binding.gyp、file/link/工作区、项目 npmrc；仅 credential-free HTTPS resolved + sha256/384/512 SRI；网络 TLS 本轮未验",
+    "产品来源须外部可信 build-info 摘要与 verifyProductBundle；不生成 inventory、不把普通 checkout 自签为产品包；本轮只验证既有真实产品 inventory，未安装产品依赖/构建原生",
+    "实际 npm 在私有暂存与隔离配置/cache 中运行，ignore-scripts，不继承用户 npmrc/凭据；输出只计容量，不公开原文",
+    "提交前重核授权/manifest/目录身份；耐久 intent、两 rename、fsync、进程排空；回滚必须先对齐 Git manifest",
+    "中断显式 reconcile，不自动重跑 npm；discard 先耐久 intent，删除后保存失败可重复收尾；候选已清理但 clear-intent 失败可重复恢复",
+    "当前 backup 须显式可信 discard，尚无连续 A→B→C 与最新一代自动轮换；下一 GitDeployment 协调批次必须完成",
+    "Linux kernel directory lock；manifest/package 1MiB、lock 8MiB、20000条目、单文件128MiB、树/cache监测512MiB、输出默认2MiB/可配置最多4MiB、期限默认120s/最多600s；50ms容量监测不是内核磁盘配额"
+  ],
+  "environment": {
+    "host": "10.0.0.184 隔离目录 node-update-dependencies",
+    "node": "26.12.0",
+    "npm": "11.19.1",
+    "npmCliSha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+    "packageLockSha256": "660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6",
+    "sealedFileSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+    "borrowed": "既有同锁 node_modules、sealed-file.node，非 fresh build",
+    "realBundleInventorySha256": "55dc44c989609940684a8fd1a15fdc407f1caa71cb4bade95324bc885897c96a"
+  },
+  "verification": [
+    {
+      "session": "ada3f4",
+      "scope": "实际离线 npm 锁定纯包 A→B→rollback A；dev-only 脚本省略、生产脚本拒绝、环境隔离、失败保旧、授权、取消提交一致性、重开与锁、一次计时",
+      "passed": 12,
+      "failed": 0,
+      "stdoutSha256": "21abd745c1bdff0d8b6c96ed25b2bc937b4b97465a9e39f097164f395717bed3"
+    },
+    {
+      "session": "dc9714",
+      "scope": "首轮类型检查 TS2783 fixture duplicate version；已修",
+      "passed": false,
+      "stdoutSha256": "71eea854d70df9b4fd01aedc2080b282a8fad8019a01bb51369bd61591c767f2"
+    },
+    {
+      "session": "a89e9f",
+      "scope": "新增真实 npm 取消进程 ESRCH、人工重建 old-moved（非真实SIGKILL/掉电）、两耐久窗口、真实产品inventory",
+      "passed": 4,
+      "failed": 1,
+      "failure": "产品 fixture 跨文件系统 hardlink EXDEV；改 copyFile",
+      "stdoutSha256": "60cd6efa58e2f6351ab920a6e2e056393032876e918f4fef2ab1c1367ae64afc",
+      "typecheck": "通过，stdout/stderr空"
+    },
+    {
+      "session": "c037d6",
+      "scope": "仅补跑产品inventory项，未生成 build-info、未执行产品 npm/native/service",
+      "passed": 1,
+      "failed": 0,
+      "stdoutSha256": "a82dc96cb6431e538f3418ec08727898188532c52ee616b55e73b8e3b237d215"
+    },
+    {
+      "session": "a469d3",
+      "scope": "可移植工具/可选artifact选择",
+      "passed": 1,
+      "skipped": 1,
+      "stdoutSha256": "9b8adb32194f48b538e295db9b97017438fa80debbbec94b031402a6f3b383a1",
+      "typecheck": "初次 wrapper unknown 返回类型 TS2345；保留失败"
+    },
+    {
+      "session": "8d7752",
+      "scope": "wrapper 返回类型 void 修正后标准类型检查",
+      "exit": 0,
+      "stdoutAndStderr": "empty"
+    }
+  ],
+  "portableFixtures": {
+    "npm": "优先显式受信 ANYRAID_TEST_NPM_CLI，否则当前 Node 安装相邻 npm；缺 npm 明确 skip",
+    "platform": "功能项仅 Linux；跨平台 trigger/discovery 仍运行",
+    "product": "只有显式受信 ANYRAID_TEST_PRODUCT_BUNDLE 时执行真实预构建产品项；默认 CI 缺 artifact 明确 skip，不声称 CI 覆盖"
+  },
+  "finiteObservation": {
+    "singleRun": true,
+    "fixture": "one locked pure ESM package in isolated offline cache",
+    "prepareMs": 236.57156599999962,
+    "commitMs": 1.9704650000003312,
+    "timerIntervalMs": 1,
+    "timerSamples": 223,
+    "maxExtraTimerDelayMs": 1.9988789999997607,
+    "acceptanceThreshold": null,
+    "limitation": "单场桌面观测，无网络/目标板/运动/设备或生产验收结论"
+  },
+  "notVerified": [
+    "HTTP/RPC 接线",
+    "连续 A→B→C 自动轮换",
+    "普通应用实际脚本/原生构建",
+    "真实产品 npm 安装与全新产品包",
+    "HTTPS 网络传输",
+    "实际 SIGKILL/掉电",
+    "服务、硬件、打印、生产部署"
+  ]
+}
