@@ -1,3 +1,4 @@
+import type {FilamentRecipe} from '../config/filament-recipe.ts';
 import {ProductIdleTimeout,readProductIdleTimeout} from '../operations/product-idle.ts';
 import {FilamentEncoder,readFilamentEncoderPolicy} from '../inputs/filament-encoder.ts';
 import type {connectConfiguredPrinter} from './configured-printer.ts';
@@ -12,6 +13,7 @@ import {FilamentSwitch,readFilamentPolicy} from '../inputs/filament-switch.ts';
 import {registerConfiguredCleanup} from './configured-hardware.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
 export interface ProductPrinterOptions {
+ filamentRecipe?:FilamentRecipe;
  configurationSession?:KlipperSaveSession;
  limits:PrintLimits;deadlines?:Partial<PrintDeadlines>;maxRememberedRequests?:number;
  /** External owners: share gate with Moonraker and retain journal until shutdown

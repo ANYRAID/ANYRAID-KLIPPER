@@ -23,7 +23,7 @@ export class FilamentSwitch {
   this.#detach=source.subscribe((time,present)=>this.#input(time,present));
   const initial=source.status;if(initial.received)this.#input(initial.time!,initial.present);
  }
- get status(){return {filament_detected:this.#present,enabled:!this.#closed,pause_on_runout:this.policy.pause,valid:this.#received,closed:this.#closed};}
+ get status(){return {filament_detected:this.#present,enabled:!this.#closed,pause_on_runout:this.policy.pause,valid:this.#received,settling:!this.#received||this.#present!==this.#raw,closed:this.#closed};}
  get canResume():boolean{return !this.policy.pause||(!this.#closed&&this.#received&&this.#present&&this.#raw);}
  #input(time:number,present:boolean):void{
   if(this.#closed)return;

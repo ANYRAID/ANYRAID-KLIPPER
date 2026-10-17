@@ -123,6 +123,14 @@ export class AsyncPrinterHeaters {
   const pending=heater.setTarget(0,signal);this.#zero.set(heater,pending);
   const clear=()=>{if(this.#zero.get(heater)===pending)this.#zero.delete(heater);};void pending.then(clear,clear);return pending;
  }
+ /** Emergency zero for one target owned by an exclusive typed operation. No
+  * motion barrier and no restoration of another owner's later target. */
+ turnOffOwnedTarget(name:string,expected:number):Promise<void>{
+  const entry=this.#entries.get(name);if(!entry||!Number.isFinite(expected)||expected<=0)return Promise.reject(new GCodeError('Invalid owned heater target'));
+  if(this.#closed)return this.#stop??Promise.reject(new GCodeError('Heater registry closed'));
+  const current=entry.heater.getTemperature().target;if(current!==0&&current!==expected)return Promise.reject(new GCodeError('Heater target ownership changed'));
+  return this.#target(entry.heater,0,new AbortController().signal);
+ }
  turnOffAll():Promise<void>{
   if(this.#stop)return this.#stop;if(this.#off)return this.#off;
   if(!this.#started)return this.shutdown('Heater turn off before startup completed');

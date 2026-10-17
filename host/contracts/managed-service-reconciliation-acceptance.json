@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "baseline": "1c1787c32034fc3f67497a00f3c0c417643ac7a5",
+  "branch": "devac/managed-service-reconciliation",
+  "status": "internal and HTTP/RPC integration candidate; human acknowledgement never proves old service success",
+  "interface": {
+    "system": "default or target=system; original machine.update.reconcile permission and package semantics preserved",
+    "rpc": [
+      "machine.update.get_reconcile",
+      "machine.update.post_reconcile"
+    ],
+    "application": {
+      "name": "configured Git application",
+      "target": "app",
+      "post": [
+        "operation_id",
+        "revision",
+        "confirm_external_check=true",
+        "note"
+      ],
+      "permission": "machine.update.reconcile_app"
+    },
+    "endpoint": "/machine/update/reconcile"
+  },
+  "guarantees": [
+    "app UUID for new operations; complete legacy operation plus configHash SHA-256 compatibility identity",
+    "same original control request IDs and action kind/service required; no guessed association",
+    "queued/running, outstanding control tasks or storage fault prevent acknowledgement",
+    "existing trusted SystemServices read-only refresh and current /proc/self/stat pid/startTicks; no request-supplied command/path",
+    "five-minute revision binds app name, operation ID, complete operation/config fingerprint and current control owner/records",
+    "current facts and explicit human external-check confirmation do not prove old request success, no active external job or loaded code",
+    "immutable receipt with original failure/outcomes, facts, actor and independent permission saved before acknowledgement marker",
+    "accepted database IO remains fenced and drained during close; write failure cannot unblock recover",
+    "control receipt and unknown service entries remain interrupted; reopen never dispatches",
+    "after acknowledgement explicit recover repairs repository/dependencies only, skips original entire service batch and reports unconfirmed/skipped_acknowledged in status and notification",
+    "normal recover without acknowledgement retains existing service semantics; only new explicit update after recovery may create new requests",
+    "ordinary status adds no system calls; system default semantics unchanged"
+  ],
+  "environment": {
+    "directory": "/home/dek02/.codex/worktrees/supervisor-group-compat/managed-service-reconciliation",
+    "node": "v26.12.0",
+    "native": "reused final-032dd-fix2-product native outputs",
+    "dependencies": "reused matching package-lock 660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6",
+    "fixture": "real ProductHost/HTTP/RPC/WS/PTYS, injected service read/control IO, real SQLite journals with exact DB barriers",
+    "host": "10.0.0.184"
+  },
+  "runs": [
+    {
+      "log": "reconcile-typecheck-v1",
+      "passed": false,
+      "reason": "ProcessPowerIdentity lacks Json index signature; fixed explicit pid/startTicks object"
+    },
+    {
+      "pass": 0,
+      "cancelled": 2,
+      "log": "reconcile-focused-v1",
+      "durationMs": 69980.132299,
+      "fail": 3,
+      "reason": "test edit extra brace syntax error; invalid fixture instance_ids; DB parseKeys=false array key missed by string-only fault barrier causing timeout"
+    },
+    {
+      "log": "reconcile-focused-v2",
+      "pass": 3,
+      "fail": 1,
+      "reason": "close test queried already-closed borrowed database; corrected actual reopen at same path",
+      "durationMs": 12053.119115
+    },
+    {
+      "pass": 3,
+      "cancelled": 0,
+      "log": "reconcile-focused-v3",
+      "durationMs": 9181.441692,
+      "fail": 0,
+      "scope": "affected legacy+HTTP/RPC identity/expiry+close persistence cases; unchanged permissions/receipt/marker held-IO case already passed v2"
+    },
+    {
+      "pass": 22,
+      "cancelled": 0,
+      "log": "reconcile-regression",
+      "durationMs": 25618.595012,
+      "fail": 0,
+      "scope": "existing Git9 + managed services8 + manager5; skip already-passed new cases"
+    },
+    {
+      "pass": 2,
+      "cancelled": 0,
+      "log": "reconcile-system-compat",
+      "durationMs": 3319.07553,
+      "fail": 0,
+      "scope": "default actual system HTTP/RPC/WS and unknown PackageKit independent acknowledgement"
+    },
+    {
+      "log": "reconcile-typecheck-v4",
+      "passed": true,
+      "command": "node scripts/run-typescript.ts -p tsconfig.json"
+    }
+  ],
+  "sourceSha256": {
+    "host/src/moonraker/update-manager.ts": "558d2458f527396a5bb0064a4304a4f85fe5be8a05095cf73348464aee09f195",
+    "host/src/moonraker/update-git-deploy.ts": "e998e59729ec2e5a43d7bbbf86690f056d897cab69ef6c9c1dca4edb4a0a5ebc",
+    "host/src/runtime/product-host-control.ts": "9aee1e9d8d73bcef8370660485a6b07643233d2fb68af6c5d22b8be2a5bb5c81",
+    "host/src/moonraker/configured-server.ts": "7e83fb1e549e1dfb34dd532a3e725b52c9e233ac528c0f913da4302ec10738e7",
+    "host/test/update-managed-services.test.ts": "55ae304ccb17c1944a15b37a6a532085bd1dce851d5bb6b7331ea1453243f4a1",
+    "host/test/update-git-deploy.test.ts": "f6eb96f11026aaf96dcccb87a8a5f0ed02c845fa2df6518432795e7e5a9835a7"
+  },
+  "limitations": [
+    "manual acknowledgement is not service success or ready proof",
+    "missing historical control records or unavailable facts remain explicit unknown requiring privileged external confirmation",
+    "no real service, systemctl, package mutation or physical device operation",
+    "no fresh native build, sanitizer, full suite, new CI result, production or hardware acceptance",
+    "full and core pipeline remain separate integration work",
+    "first failed phases retained; final source hashes do not retroactively identify earlier test versions"
+  ],
+  "evidence": ".cache/service-reconciliation (untracked; raw stdout/stderr, commands, source hashes and receipt only)"
+}

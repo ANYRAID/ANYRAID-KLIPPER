@@ -1,3 +1,4 @@
+import {validateFilamentRecipeBinding} from '../config/filament-recipe.ts';
 import {loadWelcomeSource} from '../moonraker/welcome-application.ts';
 import {open,constants} from 'node:fs/promises';
 import {isAbsolute} from 'node:path';
@@ -39,6 +40,7 @@ export async function preflightProductMachine(path:string,signal:AbortSignal){
  const config=await readProductMachine(path,signal);
  const configuration=await KlipperSaveSession.load(config.printerConfig,{signal});
  const reader=new ConfigurationReader(configuration.source,null);signal.throwIfAborted();
+ if(config.filamentRecipe)validateFilamentRecipeBinding(reader,config.filamentRecipe,config.deviceId,config.limits.maxNozzle);
  const moonraker=new ConfigurationReader(await loadConfiguration(config.moonrakerConfig));readNetworkBinding(moonraker);signal.throwIfAborted();
  // Validate topology and transport declarations before acquiring adapter resources.
  const provisional=new Map(Object.entries(config.mcus));
@@ -67,6 +69,6 @@ export async function loadProductMachineProfile(path:string,createBindings:Produ
   const policies=new Map<string,MCUMachinePolicy>();for(const [id,p] of Object.entries(config.mcus)){const stopDevice=bindings.stops.get(id);if(typeof stopDevice!=='function')throw new TypeError('Missing physical stop binding: '+id);policies.set(id,{...p,stopDevice} as MCUMachinePolicy);}
   if(bindings.journal&&(!(bindings.journal instanceof PrintJournal)||bindings.journal.closed||bindings.journal.identity.path!==config.journalPath||bindings.journal.identity.deviceId!==config.deviceId))throw new TypeError('Invalid borrowed process journal');
   journal=bindings.journal??await PrintJournal.open({path:config.journalPath,deviceId:config.deviceId});signal.throwIfAborted();
-  return {recoveryJournal:{path:config.journalPath+'.host-recovery.sqlite',deviceId:config.deviceId},reader,policies,product:{journal,configurationSession:configuration.session,maintenanceGate:gate,limits:{...config.limits},deadlines:{...config.deadlines}},options:{configPath:config.moonrakerConfig,machine:{...config.machine},hardware:config.hardware,print:{...config.print,open:bindings.print.open,output:bindings.print.output,lifecycle:{...bindings.print.lifecycle}},server:{...bindings.server}},release};
+  return {recoveryJournal:{path:config.journalPath+'.host-recovery.sqlite',deviceId:config.deviceId},reader,policies,product:{journal,filamentRecipe:config.filamentRecipe,configurationSession:configuration.session,maintenanceGate:gate,limits:{...config.limits},deadlines:{...config.deadlines}},options:{configPath:config.moonrakerConfig,machine:{...config.machine},hardware:config.hardware,print:{...config.print,open:bindings.print.open,output:bindings.print.output,lifecycle:{...bindings.print.lifecycle}},server:{...bindings.server}},release};
  }catch(error){try{await release();}catch(cleanup){throw new AggregateError([error,cleanup],'Machine profile assembly and cleanup failed',{cause:error});}throw error;}
 }

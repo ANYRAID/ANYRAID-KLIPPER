@@ -1,0 +1,8 @@
+import {FilamentOperation} from '../operations/filament-operation.ts';
+import type {EndpointRegistry} from './endpoints.ts';
+import {ApiError,authorizedContext,type RpcContext} from './rpc.ts';
+export function registerNativeFilament(registry:EndpointRegistry,operation:FilamentOperation){
+ const authorize=(context:RpcContext,method:string,params:Parameters<FilamentOperation['start']>[0])=>async(signal:AbortSignal)=>{const local=AbortSignal.any([signal,context.signal]);local.throwIfAborted();const cancelled=Promise.withResolvers<never>(),abort=()=>cancelled.reject(local.reason);local.addEventListener('abort',abort,{once:true});let identity:ReturnType<typeof authorizedContext>;try{identity=authorizedContext(context,await Promise.race([Promise.resolve().then(()=>context.authorize(method,params)),cancelled.promise]));}finally{local.removeEventListener('abort',abort);}local.throwIfAborted();if(identity.user?.username!==context.user?.username)throw new ApiError(403,'Filament operation identity changed');context.signal.throwIfAborted();};
+ const releases=[registry.register({endpoint:'/printer/filament',methods:['GET','POST']},(params,verb,context)=>{if(verb==='GET'){if(Object.keys(params).length)throw new ApiError(400,'Filament status accepts no action parameters');return operation.snapshot();}return operation.start(params,context.signal,authorize(context,'printer.post_filament',params));}),registry.register({endpoint:'/printer/filament/cancel',methods:['POST']},(params,_verb,context)=>operation.cancel(params,authorize(context,'printer.filament.cancel',params)))];
+ return async()=>{for(const release of releases)release();await operation.close();};
+}

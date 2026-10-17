@@ -345,8 +345,8 @@ supervisor 安装属性消费，以及 none 的上游 503 与无 systemd
 ### PackageKit 内部 provider 候选
 
 独立PackageKitProvider借用SystemBusOwner的同一连接，提供initialize、getPackages、refreshPackages、
-resolvePackages、installPackages、upgradeSystem；status仅读缓存，不产生wire调用。本批没有HTTP／RPC或
-update_manager接线，不改变现有系统更新501，也不选择或调用APT。固定Moonraker1cfb0c41及官方PackageKit v1.3.1
+resolvePackages、installPackages、upgradeSystem；status仅读缓存，不产生wire调用。该独立后端随后由系统部署层完成HTTP／RPC及
+update_manager接线与APT选择，见下方系统更新章节。固定Moonraker1cfb0c41及官方PackageKit v1.3.1
 接口；仅支持org.freedesktop.PackageKit API，最新packagekit1接口另属兼容工作，不静默猜测签名。
 
 owner限定CreateTransaction、GetUpdates、Resolve、RefreshCache、InstallPackages、UpdatePackages与Cancel，
@@ -357,13 +357,48 @@ flags及签名固定；三个packagekit Polkit action与machine权限名单分�
 
 mutation必须先写入禁止公开的耐久journal，再关联事务身份，最后重核权限／epoch／取消状态后发出。
 发送后超时／取消／失联记interrupted，Cancel成功不证明包没有改变；Finished失败也可能已有部分包改变，
-failed同样阻止下一变更。重开pending改为interrupted且从不重放；受信对账后的恢复出口待系统部署层实现。
+failed同样阻止下一变更。重开pending改为interrupted且从不重放；受信人工对账出口由系统部署层提供。
 已受理数据库写不可取消：请求期限可先拒绝调用方，provider仍保留busy并排空写入，禁止迟到dispatch；close等待
 实际I/O，释放活动provider所有权但保留namespace公开屏蔽，不关闭借用总线或数据库。
 
 184 Node26.12的私有daemon＋合成PackageKit／Polkit与共享owner回归33／33；清理修复后仅补定向1／1、缓存恢复边界1／1及typecheck。
 缺dbus-daemon或非Linux显式skip；测试由既有npm test通配纳入，尚无本批CI运行结论，skip不作wire通过证据。
 复用已有native与匹配锁依赖，未fresh build、sanitizer或真实软件包／服务／设备操作，详见[PackageKit验收](../host/contracts/packagekit-provider-acceptance.json)。
+
+### 系统更新选择、维护与对账
+
+`enable_system_updates` 控制实际 `/machine/update/system` POST／`machine.update.system`。
+默认 `enable_packagekit=true` 时优先借用进程唯一共享 SystemBusOwner；仅初始化未提交变更且没有未知日志时才可选择APT。
+变更开始后失败、超时、断连或重开不转到另一后端执行。PackageKit配置身份绑定可信socket配置的非敏感摘要，
+重连不改变身份，换socket不能解除原操作围栏。APT命令和权限能力仅由可信启动装配提供，不从请求接收。
+
+初始化只读查询包清单，不运行OS缓存刷新；`package_query_confirmed=false` 表示未知，system返回503要求刷新，
+不能把未知空列表当无更新。公开及自动刷新都会执行OS动作，因此与升级一样持有进程和当前设备维护租约，
+重核调用者权限、打印准入与代次，并等待实际数据库／进程／总线工作排空。GET status只读缓存；
+status的`refresh=true`还须独立通过`machine.update.refresh`权限。调用方期限到达不等于真实排空，
+已受理的持久化会继续受控完成，期间围栏持续且禁止迟到dispatch。未知结果保持interrupted，不自动重放。
+
+启动先只读恢复耐久日志，再允许设备工厂取得硬件；未确认操作保持管理监听可用并阻止设备取得。
+等待解除围栏与取得process activity在现有gate同一同步栈完成；取得后跨工厂await到attach持续占有，
+既不把正常自动刷新竞争报成设备失败，也不在实际drain结束前提前唤醒。配置写入、打印producer和attach沿同一进程围栏拒绝。
+
+新增Node扩展 `/machine/update/reconcile` GET／POST（RPC `machine.update.get_reconcile`／`machine.update.post_reconcile`）
+省略target或target=system时要求独立的`machine.update.reconcile`权限，保持系统对账语义。GET只执行固定typed只读探测：
+PackageKit GetTransactionList或APT模拟check与包清单，返回operation_id、短期revision及事实。
+POST要求原operation_id／revision、`confirm_external_check:true`和非空有界note；再次发现活动PK事务则409。
+探测不可用时仍可由有独立权限的操作者明确确认外部核对，但这只表示人工解除围栏，不能证明系统无活动事务或原升级正确。
+原失败、事实和actor／权限／时间／说明存为独立耐久receipt，操作变为acknowledged而非succeeded；后续必须显式发起新动作。
+该接口不接受任意命令、路径或后端配置。target=app的独立服务结果对账见Git应用章节，不共用系统操作ID或权限。
+
+`/machine/update/full`当前只建立完整计划并持久化预检结果，顺序包含system、配置客户端、klipper和moonraker；
+任一核心能力缺失就在任何system／client变更前409，不能当作完整full实现。moonraker、klipper及upgrade三个入口仍501。
+系统失败发送请求终止通知`complete:true`，不发送成功文案；HTTP／RPC及真实WS通知已有覆盖。
+
+184 Node26.12私有dbus-daemon／合成PackageKit与Polkit、真实PTY产品host和注入APT：系统11项与受管服务8项19／19，
+后端及manager受影响37／37；首次启动夹具装配身份错误导致5取消并保留，修复后分段及终轮通过。
+初始未知包清单修复另补1／1和typecheck。缓存10000快照额外命令0的耗时与yield观察不设门限，不声称性能门槛通过。
+复用既有native及匹配锁依赖，没有fresh native／sanitizer、真实软件包变更、systemctl、设备或部署验收；
+完整CI与核心pipeline仍开放，见[系统接线验收](../host/contracts/system-update-integration-acceptance.json)。
 
 ## 旧安装迁移的可信工厂装配
 
@@ -1396,42 +1431,9 @@ Web恢复仍仅为中断目录事务一致性恢复。完整Git、ZIP／executab
 核心自更新不得照搬Python venv／pip。本机与184定向测试不代表生产部署、掉电文件系统或真实设备验收。
 具体记录见[Web更新验收](../host/contracts/update-manager-web-acceptance.json)。
 
-#### Node 依赖事务基础（尚未接入更新入口）
-
-`NodeDependencyTransaction` 为后续 Git 部署提供独立的 manifest 捕获、
-`prepare`、`commit`、`rollback`、`reconcile` 和显式 `discardBackup`。
-本增量不启用 `enable_node_updates` 或公开 recover 的 `update_deps`，
-不重启服务，也不将普通 Git checkout 当作已验证的产品包。
-
-普通应用要求 npm v2／v3 锁文件、带完整性摘要的 HTTPS 生产依赖，
-在私有暂存目录实际执行隔离 npm `ci --omit=dev --include=optional --ignore-scripts`。
-只核实际生产树；省略的开发依赖含脚本不阻止纯生产包安装。
-普通应用的安装／prepare 脚本、原生构建或 `.node`、file／link 包、
-工作区、项目 `.npmrc` 目前明确拒绝，不能据此宣称本产品所需依赖已完整支持。
-用户 npmrc、registry 重写及凭据不继承，原始 npm 输出不公开。
-产品包来源另须调用方提供可信生成流程产出的 `build-info.json` 摘要并通过
-`verifyProductBundle`；本模块不生成或自签该文件，也不重建原生插件。
-
-提交前重核授权、manifest 和目录身份；失败／取消保留旧依赖并等 npm 退出。
-替换先耐久保存 intent，再两次 rename 与目录 fsync；关闭等一致性收尾。
-重开不执行脚本，须显式 `reconcile`；Git manifest 回到对应版本后才能回滚旧树。
-备份删除先保存可重复的 discard intent。当前只保留一代且须可信调用方显式清理，
-连续 A→B→C 与最新回滚协调仍须在 GitDeployment 接线批次完成，不能要求最终用户手工清理。
-manifest、条目、文件、输出和期限均有上限；50ms 采样暂存／cache 容量是应用层监测，
-不是内核磁盘配额。Linux 内核目录锁排除另一所有者。
-
-184 Node 26.12.0／npm 11.19.1 使用锁定纯包与隔离离线 cache 完成真实安装、
-A→B→回滚 A、取消排空和故障恢复；HTTPS 传输、产品实际 npm 安装、完整新包／原生构建、
-服务和设备均未验。复用既有依赖与 `sealed-file.node`，不是全新构建。
-分场首次失败、定向修正及一次有限计时见
-[Node 依赖基础验收](../host/contracts/node-dependency-update-acceptance.json)。
-测试 npm 从当前 Node 安装发现，也可显式设置可信 `ANYRAID_TEST_NPM_CLI`。
-功能项仅 Linux；真实预构建产品项要求 `ANYRAID_TEST_PRODUCT_BUNDLE` 指向现有可信产物，
-缺失时明确 skip，默认 CI 不覆盖该项，不能把 184 的实测结果归给 CI。
-
 ### Git 纯仓库应用更新候选
 
-下列显式无服务／无依赖配置接入现有update_manager，默认Git频道为dev，primary_branch为master：
+Git应用接入现有update_manager，默认Git频道为dev，primary_branch为master。下例显式关闭服务重启及依赖更新：
 
 ```ini
 [update_manager my-client]
@@ -1449,11 +1451,11 @@ GET状态只读内存缓存；显式刷新使用真实Git读取branch、remote�
 包含关系及GitVersion比较选择目标；pinned_commit至少8位，只向包含当前提交的固定提交前进，不自动降级。
 正常更新拒绝任意tracked／untracked改动、detached或diverged，须显式recover才能执行破坏性恢复。
 
-client与rollback接受必填name，适用纯Git应用；rollback持久保存commit／branch／version。
+client与rollback接受必填name，适用Git应用；rollback持久保存commit／branch／version。
 recover接受name与可选hard／update_deps布尔；HTTP查询可用true／false，其他类型400。
 公开参数按固定上游使用update_deps；内部名force_dep_update作为未知公开字段返回400。
 soft恢复优先pin／当前提交祖先，否则primary远端，并先有界备份原目录；hard克隆新候选、验证后保留原目录替换，
-不删除历史备份。update_deps=true仍501且不运行Git或写入恢复事务，不以无动作代替依赖更新。损坏旧config的hard恢复仅用先前可信目录身份，
+不删除历史Git恢复备份。启用enable_node_updates时update_deps=true执行真实强制依赖准备；未启用时仍501且无仓库动作。损坏旧config的hard恢复仅用先前可信目录身份，
 不运行旧仓库Git；未完成事务重开报告interrupted，必须显式恢复，不自动重放。
 
 安装目录、父目录及.git身份受保护，安装／控制目录不能与其他Web／Git应用或进程配置／数据库／备份重叠。
@@ -1462,13 +1464,100 @@ Linux内核目录锁按仓库规范路径区分所有者；取消等待Git及其
 目前仅支持无用户名密码、query或fragment的HTTPS源；SSH、file源、moved_origin、Python环境、安装脚本、系统依赖等明确拒绝。
 worktree／submodule仅读本地元数据，不fetch或mutation；主仓库有非空.git/worktrees或.git/modules时拒绝hard替换。
 
-is_system_service默认仍为true，默认托管自身服务，因此上述纯仓库场景必须显式false或managed_services留空。
-非空managed_services和enable_node_updates=true当前明确配置失败；现有product-install要求可信build-info清单、
-独立bundle且无node_modules，不能把任意Git checkout直接当作受支持npm安装。服务生命周期仍需把维护lease的producer
-fence同步交给持久ProductHostControl直至终态，own服务重启需afterResponse；本候选没有绕过这些约束。
+is_system_service默认true，未指定managed_services时托管自身服务；设为false使默认列表为空，显式空managed_services关闭服务动作。
+managed_services仅允许应用自身名称、klipper、moonraker，按此固定顺序去重，服务名须通过实际MachineControlPort许可。
+Git更新／回滚／显式恢复在仓库动作后沿可信ProductHostControl顺序提交服务动作；Node共进程的klipper／moonraker
+合并为一次最后执行的server_restart，并在service_progress记录别名映射。普通服务等待现有OS job submission终态，
+不证明服务ready；自己进程重启必须等待真实HTTP／RPC响应交接，响应返回时任务仍可处于忙态，不能据此认定更新成功。
+
+更新同时持有进程与当前设备维护租约，控制动作同步转移同一租约，普通终态归还后再提交下一服务。设备退役后
+由持续持有的进程维护所有者承接余下动作，配置写入和attachNativePrinter仍受围栏约束。离线控制保留原设备代际signal作为请求身份，
+维护动作取消另绑存活进程signal；旧代际请求不能借用该维护signal绕过身份核对。queued控制记录落盘后，
+先持久关联更新事务及request_id，才允许任何OS dispatch。关联写入挂起时超时／关闭立即拒绝admission并永久取消dispatch；
+已受理数据库写仍受控排空，completion及close等待真实I/O结束后才归还租约，不声称可终止不可取消的写入。
+失败不发送成功文案；未确认或重开后的服务结果保持interrupted，不自动重放，显式recover也拒绝重放未知服务动作。
+受信人工核对出口见下节。enable_node_updates=true接入下述普通应用能力；现有product-install要求
+可信build-info清单、独立bundle且无node_modules，完整产品pipeline仍待接通，不能把任意Git checkout冒充产品包。
 本批真实接口测试的精确HTTPS fixture地址由测试可执行shim映射到临时bare仓库，生产不开放file入口，Git TLS网络传输未验。
 软件与有限桌面观测不代表完整provider、目标板、真实设备或部署验收。
 分项结果、初轮缺assets失败及限定补验见[Git更新候选验收](../host/contracts/update-manager-git-acceptance.json)。
+#### 未知 managed_services 结果的人工对账
+
+`/machine/update/reconcile` GET／POST沿用RPC `machine.update.get_reconcile`／`post_reconcile`，
+应用分支必须明确`target=app`与配置中的`name`，要求独立`machine.update.reconcile_app`权限；
+默认或`target=system`继续使用系统包对账，不可混用operation_id、revision或参数。
+Git新操作保存app-UUID；旧无ID的中断日志以完整原操作与配置身份生成稳定SHA-256兼容ID，
+不根据服务名猜测control关联。status暴露operation_id和独立service_acknowledgement。
+
+GET在现有进程／设备维护租约下读取原service request_id对应的ProductHostControl耐久记录，
+校验kind／service匹配，queued／running、未排空关联／journal任务或控制存储故障均拒绝。
+固定只读事实来自已有SystemServices刷新及当前进程PID／startTicks、设备代次；没有任意命令／路径参数，
+普通status不增加系统调用。记录缺失和服务事实不可用明确显示，不推断旧动作未执行或已经成功；
+当前active状态也不证明运行进程已加载新代码。GET产生五分钟revision及完整操作指纹。
+
+POST要求匹配target／name／operation_id／revision、`confirm_external_check:true`及非空有界note，
+重新鉴权和核对控制已排空／记录与操作身份，先保存独立receipt中的原失败、原服务结果、事实、操作者、权限和说明，
+再耐久写确认标记。写失败不解除应用恢复围栏；已受理写入期间维护租约持续，关闭等待真实IO，迟到确认不会执行服务。
+确认含义只是操作者承认外部核对并允许将来的显式动作；不证明外部没有活动job或原请求成功。
+原control journal与services.entries的interrupted状态保持，重开不重放。
+
+确认后仍须显式调用原`recover`。该次只恢复仓库／依赖，跳过整个原服务批次；状态
+`last_service_reconciliation.service_replay=skipped_acknowledged`、`service_result=unconfirmed`继续保留，
+通知明确“repository/dependency recovery complete; prior service result remains unconfirmed; service replay skipped”，
+不发送普通Git应用recover complete。只有清理完中断操作之后的新显式update，才可产生新服务请求。
+本扩展与普通recover仍按原服务契约执行的分支可区分，不把原服务动作改成成功。
+
+184 Node26.12真实HTTP／RPC／WS、PTY产品host、注入LinuxMachineControl与数据库屏障验证：
+四个新增场次经限定修复通过，受影响既有22／22，默认系统对账2／2和标准类型检查通过。
+首次语法／fixture错误与超时、第二轮关闭后误用旧DB句柄失败均保留；没有真实服务、systemctl、软件包或设备操作，
+未fresh native／sanitizer／全量测试或宣称CI与硬件通过，见[验收契约](../host/contracts/managed-service-reconciliation-acceptance.json)。
+
+#### Git Node 依赖生命周期候选
+
+`NodeDependencyTransaction` 为后续 Git 部署提供独立的 manifest 捕获、
+`prepare`、`commit`、`rollback`、`reconcile` 和显式 `discardBackup`。
+GitDeployment在 `enable_node_updates=true` 时捕获变更前manifest及依赖目录身份，
+按两侧锁文件哈希变化触发真实prepare／commit；同锁校验并保留当前树。
+普通更新要求变更前已有有效lock和匹配生产树，缺失则在Git变更前拒绝并要求显式
+recover `update_deps=true`；新Git目标缺lock则保留interrupted，不隐式force或声称ready。
+公开 `update_deps=true` 是用户force；hard换根及其已记录中断的重建是独立内部原因。
+服务动作仅在依赖一致且阶段耐久保存后运行；未知服务结果继续拒绝重放。
+可信运行选项 `updateNodeDependencies` 可注入npm工具／cache，默认只从当前Node安装发现npm，
+不读取HTTP参数或用户环境中的npm路径，不将普通Git checkout当作已验证产品包。
+
+普通应用要求 npm v2／v3 锁文件、带完整性摘要的 HTTPS 生产依赖，
+在私有暂存目录实际执行隔离 npm `ci --omit=dev --include=optional --ignore-scripts`。
+只核实际生产树；省略的开发依赖含脚本不阻止纯生产包安装。
+普通应用的安装／prepare 脚本、原生构建或 `.node`、file／link 包、
+工作区、项目 `.npmrc` 目前明确拒绝，不能据此宣称本产品所需依赖已完整支持。
+用户 npmrc、registry 重写及凭据不继承，原始 npm 输出不公开。
+产品包来源另须调用方提供可信生成流程产出的 `build-info.json` 摘要并通过
+`verifyProductBundle`；本模块不生成或自签该文件，也不重建原生插件。
+
+提交前重核授权、manifest 和目录身份；失败／取消保留旧依赖并等 npm 退出。
+替换先耐久保存 intent，再两次 rename 与目录 fsync；关闭等一致性收尾。
+重开不执行脚本，须显式 `reconcile`；Git manifest 回到对应版本后才能回滚旧树。
+备份删除先保存可重复的discard intent。连续A→B→C自动保留最新一代B回滚：
+先耐久确立Git回滚目标及旧manifest，真实npm候选完成prepared后才清理过期备份、提交新树。
+同锁Git回滚识别当前依赖，不能误用更旧备份。失败保留旧树与interrupted阶段；显式recover
+对齐当前Git与旧依赖，不把Git更新但依赖过期的状态称为ready。
+hard恢复从耐久Git克隆记录读取旧root／.git、旧目录位置及新身份，逐项核验后重新绑定Node所有者；
+旧根依赖保留，新根实际准备依赖；迁移后prepared中断可重开显式恢复，不绕过身份检查。
+manifest、条目、文件、输出和期限均有上限；50ms 采样暂存／cache 容量是应用层监测，
+不是内核磁盘配额。Linux 内核目录锁排除另一所有者。
+
+184 Node 26.12.0／npm 11.19.1 使用锁定纯包与隔离离线 cache 完成真实安装、
+A→B→回滚 A、取消排空和故障恢复；HTTPS 传输、产品实际 npm 安装、完整新包／原生构建、
+服务和设备均未验。复用既有依赖与 `sealed-file.node`，不是全新构建。
+分场首次失败、定向修正及一次有限计时见
+[Node 依赖基础验收](../host/contracts/node-dependency-update-acceptance.json)。
+接线场次另见[Git Node生命周期验收](../host/contracts/update-git-node-lifecycle-acceptance.json)：
+真实Git＋离线npm首轮5／6，手工fetch绕过fixture映射失败保留；只补失败项与配置解析2／2。
+备份保留顺序与hard迁移后中断分别定向补验；服务顺序断言在可信hook边界，实际HTTP／RPC验证更新、
+回滚及force，不宣称本轮执行真实OS服务或网络TLS，也不重跑基础性能取代原样本。
+测试 npm 从当前 Node 安装发现，也可显式设置可信 `ANYRAID_TEST_NPM_CLI`。
+功能项仅 Linux；真实预构建产品项要求 `ANYRAID_TEST_PRODUCT_BUNDLE` 指向现有可信产物，
+缺失时明确 skip，默认 CI 不覆盖该项，不能把 184 的实测结果归给 CI。
 
 标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
 通过内部 `httpClient` 接口供组件借用，`server.info` 发现该组件。
@@ -3802,6 +3891,45 @@ MCU 前缀、上拉和反相）、`debounce_delay`（0–60 秒，默认 0）、
 目前验证使用预编译 Node.js 26 产品和模拟 MCU。实际开关电气逻辑、
 抖动时长、耗材行程及目标板上的机械停稳时间仍需真机验收。
 
+### 受控加载与反向卸载首批
+
+可信机器 JSON profile 可选 `filamentRecipe`，未配置不注册操作。配方必须绑定实际
+`deviceId`、唯一 `extruder` 和两个不同的 `filament_switch_sensor 名称`；连接前验证
+机型绑定、开关拓扑、温度与实际挤出行程／速度限制。版本为 `version: 1`，
+`unloadMode` 固定为 `reverse_only`；公共字段为 `chunkLength`、`timeoutMs`，
+`load` 包含 `temperature`、正向最大 `seekDistance`、非负 `purgeDistance`、`speed`，
+`unload` 包含 `temperature`、负向最大 `seekDistance`、非正 `retractDistance`、`speed`。
+全部数值有有限值、符号、容量和配置边界检查；没有生产默认数值或 XY／切刀／擦嘴坐标。
+配方应由有实际材料依据的装配方提供，普通 API 不能覆盖温度、距离或速度。
+
+鉴权 `GET /printer/filament`（RPC `printer.get_filament`）只读状态，拒绝动作参数；
+`filament_operation` 对象可查询／订阅。显式 `POST /printer/filament`（RPC
+`printer.post_filament`）只接受 `version: 1`、`request_id`、查询得到的 `state_token`
+及 `action: load|unload`。取消使用 `POST /printer/filament/cancel`（RPC
+`printer.filament.cancel`），只传 `request_id`。重复请求重新授权且不能修改身份，
+相同 ID 的已保存回执不会再次送料。最多保存最近 64 份回执；旧令牌不会成为重放入口。
+
+操作占用既有 G-code 调度准入和同一维护租约，拒绝打印／维护并发、非零已有热目标及
+无效挤出比例。等待入口开关后沿现有加热稳定判定；每个小段经过原生运动排空，工具头
+开关到达／离开即结束最大寻料段，再执行独立定量清料／回抽。消抖未稳定时不继续送料，
+故可观测的开关转换后超程上限为一个配方 chunk；这不是机械实际停止距离证明。
+加载最终要求两开关有料；反向卸载最终等待两开关无料，可等待用户取出。
+长等待沿原有 idle clock checkpoint、同一调度 lane 和原期限／容差规则维护时钟；
+校准失败不得继续加热或送料。物理 E 距离／速度按当前比例换算，保留用户模态与其他热目标。
+
+取消、总期限、传感器失效或退役均停止本操作；已经受理的热／运动 I/O、停止 ACK 和
+持久化真实排空前不释放维护租约，迟到回调不能接续送料。仅关闭仍由本操作拥有的热目标；
+全局故障关断仍沿原安全所有者。失败或取消保留原终态，物理操作失败使设备维护门失效，
+需显式重新初始化；停止未确认不能伪报成功。未开始物理动作的取消回执表示无需物理停止。
+重开只将旧 pending 标为 interrupted，不自动加热、恢复或送料。
+
+Linux184 Node26.12 隔离串口模型已覆盖实际产品 HTTP／RPC／WS、双开关、热目标、
+模态隔离和真实关闭排空；新操作七场及产品三场分阶段覆盖，既有回归34／34，标准类型检查通过。
+首轮失败及限定补验见[验收契约](../host/contracts/consumer-filament-operations-acceptance.json)。
+这里没有真实 MCU／电气／机械试验、同包页面或目标板性能精度验收；三份历史包系列归属仍未确认。
+`reverse_only` 不是完整切刀卸料；原 LOAD／SCREEN／UNLOAD 文本宏、擦嘴和打印准备仍有差额，
+见[宏场景](Node_Host_Macro_Scenarios.md#受控加载与反向卸载首批)。
+
 ### 编码器式堵料检测
 
 原生入口支持 `[filament_motion_sensor 名称]`，必填 `switch_pin` 和
@@ -5711,8 +5839,8 @@ Fluidd 选择器上传和原受保护页面进程恢复通过，下载摘要一�
 
 ### 独立 APT 系统包后端候选
 
-AptPackageProvider 与 ProcessAptCommandExecutor 是独立 typed 后端，尚未接入 update_manager、
-公开 system 路由、PackageKit 或进程维护租约；现有 system 请求仍按其既有边界返回501。
+AptPackageProvider 与 ProcessAptCommandExecutor 是独立 typed 后端，现由系统部署层接入 update_manager、
+公开 system 路由、PackageKit 选择与进程维护租约，见系统更新章节。
 可信 composition 显式提供 apt／apt-get／apt-cache 绝对路径，必要时提供固定权限执行能力，
 例如 sudo -n -- 配合绝对 env 路径。初始化探测三个命令并载入日志，不替调用者取得权限。
 执行器只传 argv，不使用 shell，不继承进程环境；固定 LC_ALL=C、非交互和受控 PATH／HOME，
@@ -5749,7 +5877,7 @@ refresh 最长600秒、列表60秒、resolve 600秒；默认合计输出4MiB，�
 会写回 idle，写回失败则阻止后续变更。已spawn后的非零退出可能部分执行；取消、超时、失联、
 撤权或完成记录写入失败均报告 typed interrupted，不假定已回滚，不重放。
 重开载入 pending／interrupted，仍拒绝变更但允许查询／刷新／resolve 供诊断。
-本批没有公开清除接口；外部可信所有者必须独立对账后才能清理记录并重建 owner，
+独立后端不提供公开清除接口；系统部署所有者须保留原始结果并完成独立人工对账后才能解除围栏，
 换 owner 本身不代表恢复。借用的执行器不被 provider 擅自关闭，默认自建执行器随 owner 排空。
 
 184 验证只使用可控子进程以及私有合成包根；安装／upgrade 强制 --simulate，未实际安装或升级宿主系统包，

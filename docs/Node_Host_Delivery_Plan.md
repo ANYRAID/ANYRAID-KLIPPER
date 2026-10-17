@@ -9,6 +9,29 @@
 完成正常同步及 `10.0.0.184` 的隔离验证，无需逐次重复确认。该授权不包含 master／主线合并、
 生产部署或真实设备操作，也不允许绕过规定检查及既定 PR 流程。
 
+## 2026-10-18 受控加载与反向卸载首批候选
+
+基于84381e9960，首批可选可信配方接通实际产品HTTP／RPC／WS、调度与维护门、原生热／运动及双开关。
+有限寻料在开关转换后转入独立定量段，期限／取消／关闭等待真实I/O和停止确认；重开只标interrupted、不送料。
+新操作七场及实际产品三场分阶段覆盖，既有回归34／34、最终类型检查与两项clock受影响补验通过；
+首轮失败保留，覆盖不累计为互不重叠的总数。reverse_only不含切刀／擦嘴，系列身份仍未确认，G3／实机／性能精度不关闭。
+范围与源码指纹见[首批验收契约](../host/contracts/consumer-filament-operations-acceptance.json)。
+## 2026-10-18 未知受管服务结果对账候选
+
+基于#79提交1c1787c32，在独立分支加入target=app与独立reconcile_app权限；Git操作／控制request ID和完整指纹匹配，
+固定只读服务／进程事实、短期revision与人工确认分开记录，活动或未排空控制不可确认。先保存原失败receipt再写ack，
+确认后只允许显式仓库／依赖恢复并跳过旧服务批次，状态与通知保留服务结果unconfirmed；不自动重启或宣称原动作成功。
+新增四场经限定修复通过、既有22／22、默认系统语义2／2及typecheck通过，原始失败保留；不调用真实服务或设备。
+详情见[服务对账验收](../host/contracts/managed-service-reconciliation-acceptance.json)，#79系统默认语义保持，完整full／核心及实机验收仍开放。
+
+## 2026-10-18 系统更新实际接线候选
+
+SystemPackageDeployment把共享PackageKit优先／变更前APT选择接入实际system、refresh与缓存status；
+初始化仅查询，未知清单不当无更新。公开／自动刷新与升级跨真实IO持有维护租约，失败耐久围栏、重开先恢复再取得设备，
+独立权限对账保留原结果与人工确认，不能宣称原升级成功或自动重放。full仅完整计划预检，缺核心在任何变更前409，完整协调器仍待实现。
+184系统与受管服务19／19、后端与manager37／37及类型通过；首次5取消和两轮类型失败保留，限定修复分别补验。
+本候选正常组合最新develop 981c8b03及#74 2f6677fa；未真实系统变更、设备／部署或完整产品验收，详见[验收](../host/contracts/system-update-integration-acceptance.json)。
+
 ## 2026-10-18 APT受信Candidate精确选择增量
 
 从已发布#75头18d0042d独立开发。安装先读受控apt-cache policy的Candidate及版本表，遵守APT pin，
@@ -21,6 +44,18 @@
 所有真实APT场先验证私有APT_CONFIG无hosthooks，再仅--simulate；三组名称碰撞选原包、pin选择较低版本、
 无替换依赖时Remv为空、候选消失不fallback及冲突移除被拒均有定向证据，fixture dpkg未变；未运行真实sudo或系统安装。
 PackageKit、公开system接线／维护租约、真实系统升级与完整验收仍开放，见[既有APT验收](../host/contracts/update-manager-apt-acceptance.json)的exactCandidateSelection。
+
+## 2026-10-18 受管服务 recover 409 的有限因果诊断
+
+CI c3c8161d 的唯一失败为 recover 阶段 admission changed409，原日志没有停止原因，历史同因尚未证明。
+新增有界拒绝原因后，8.5秒准备屏障在时钟持续响应、夹具不发ADC时复现温度超时和同409；
+本fixture复用现有按query_analog_in生成的25C时间戳报告，停止设备不发，启动失败／close清timer。
+修复后默认路径及有采样屏障通过；停采样屏障仍实际ADC过期409、保interrupted且无第三次服务动作，标准typecheck通过。
+首次受控lease预期、原无采样屏障与负向过窄错误文本断言均保留；生产仅增加原因data，不放宽维护／温控／时钟门槛。
+新头完整CI仍待执行；无真实OS服务／硬件，见[Git验收](../host/contracts/update-manager-git-acceptance.json)的managedAdmissionRecurrence。
+与consumer首批02d69e6cb正常组合121d88a83后，保留对账facts／挂起控制及ADC报告夹具；
+默认实际路径、app对账／活动关闭及同8.5秒采样／停采样共5／5和typecheck通过，源码指纹见同契约consumerMergeValidation。
+原首失败保留；未重复消费者34场，不扩展为历史CI同因或硬件证明。
 
 ## 2026-10-18 独立 APT 系统包后端候选
 
@@ -3623,19 +3658,27 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 新头完整 CI 待执行；运动 workflow 的路径条件
 未命中此批，不能将其记为当前头成功。
 
+本批#74的Node CI保留5515／5548（33失败）。已复现并修复退役attach把设备请求身份signal换成进程signal的共同回归，
+内部维护取消另绑存活进程，普通旧代际身份检查保持。184 Node26.12受影响八文件104／104及标准typecheck通过；
+当前TS独立编译产品、复用native并fresh生产依赖后的实际安装进程文件3／3通过。前置缺Rust、缺npm-cli及Rust ICE失败原样保留，
+不称fresh native构建通过。CI另一个managed recover 409在限定场未复现，已补错误响应体诊断，修正头完整CI仍待执行。
+
 ### 唯一实现队列与提速规则
 
 | 顺序 | 用户可见交付结果 | 退出条件 |
 | --- | --- | --- |
-| 当前集成基线 | #68／#69／#70、Git应用更新#71（67c710551）及维护租约#72（e1db00d84）已合入develop；#70合并后5464／5464及全部CI通过，#71／#72合并后检查分别运行中 | 各提交证据不混用。Mainsail1735、42／28及服务重获2.62602倍的原归属与门限保持；G0–G6、本机11／16／14、G3、目标板、实机及主线发布仍开放 |
-| 当前实现 | Git纯仓库HTTP／RPC更新／rollback／recover已集成；本批独立Node依赖事务提供真实隔离npm准备、保旧替换和显式中断恢复 | 尚未接入enable_node_updates／update_deps；不以独立引擎验证代替完整provider |
-| 下一实现 | #74受管服务生命周期、Git依赖实际接线，以及其余完整update_manager能力 | 连续A→B→C与最新回滚协调、实际脚本／原生依赖及可信产品包路径仍待完成；沿维护租约和真实afterResponse，不直接systemctl或引入pip |
+| 当前集成基线 | #71合并后5538／5538、#72合并后5486／5486且CI全绿；#73 merge ff30a6ba1合并后5555pass／1产品包skip，#77 merge11e303af9合并后5566pass／1skip，均0fail／cancel且Node与Build全绿；#75／#78已全绿合入develop981c8b03 | #73 Node39065514965／Build39065514889，#77 Node39065882562／Build39065882586已核原日志；#74／#76新头主checks仍运行，#79系统接线候选单列。各提交证据不混用；历史失败、G0–G6、实机及发布仍开放 |
+| 应用依赖接线候选 | Git应用HTTP／RPC及managed_services接通普通应用enable_node_updates与公开update_deps，锁驱动npm、连续版本／最新回滚与hard换根迁移 | 保留原首轮失败及限定补验；依赖一致且durable后进入服务。完整产品pipeline与原生构建仍开放 |
+| 消费者操作首批候选 | 可信绑定配方、双开关有限寻料、到位后清料／反向回抽、耐久取消与实际产品API／通知 | 首失败保留；七场操作、三场产品分阶段及34场既有回归通过；series unconfirmed，切刀／擦嘴／旧宏入口／同包页面／真实停止及目标板性能精度待验 |
+| 下一实现 | 产品核心可信bundle pipeline与完整full协调器、Net应用及系统依赖薄port组合 | 完整计划预检先于任一变更；不以占位preflight称full交付，不把人工系统包对账延伸为未知服务成功 |
+| 受管服务修复候选 | #74受管服务生命周期候选：普通服务顺序租约交接，设备退役后保持进程围栏，核心共进程别名合并一次真实afterResponse重启；本批修复退役请求身份与维护取消生命周期混用 | 184受影响104／104及独立产品进程3／3通过，后者复用native；保留前置构建失败及尚未复现的CI recover 409，修复头完整CI待确认。未知服务动作不重放，本批独立target=app人工核对出口候选另列 |
+| 当前服务对账候选 | Git未知services原失败与control记录保留；独立权限、固定事实、活动拒绝与短期证据，人工确认后显式repo／deps恢复跳过旧批次 | 新增四场与既有22／22、系统默认2／2和typecheck；原失败保留，不证明旧服务成功或当前运行代码，不执行真实重启 |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |
 | M3 验收 | 可观察、可取消、可恢复的作业队列，复用已集成软件 | 复用现有日志与状态机，幂等明确，不自动重放危险动作 |
 | M4 验收与缺口 | 当前平台服务、网络及维护可控，复用已有 provider 和事件设施 | 明确 provider、权限、真实停止、失败和安装回滚 |
-| 系统更新前置 | 独立PackageKit typed provider候选，借用唯一共享bus；缓存查询、刷新、解析、安装及升级事务，durable pending／未知结果不重放 | 184 Node26.12私有daemon／合成服务与既有owner33／33；RemoveMatch清理修复后限定1／1、缓存恢复1／1及typecheck。未接manager／HTTP／APT，failed亦阻断变更；未来受信对账出口与完整系统部署层待接，非真实包或设备验收 |
+| 当前系统接线候选 | PackageKit／APT真实选择、HTTP／RPC system与refresh、状态缓存、持久失败和独立权限人工对账；启动及变更持续进程围栏 | 本批19／19＋37／37与限定补验／typecheck，原始失败保留；full只有完整计划预检，核心与真实系统／设备验收仍开放 |
 | M5／C | 剩余完整 Moonraker 与全部 Python／旧宏场景退役 | 完整契约、目标性能／精度、系列和发布门槛全部通过 |
 | 最后 G6 | 其他机型 | 当前系列完整交付后再展开 |
 
@@ -3650,7 +3693,7 @@ build-info 生成／核验流程，不能把任意 checkout 自签成产品包�
 两处耐久窗口分别用删除后保存失败、暂存清理后保存失败验证可重复恢复；
 重建 old-moved 状态不是实际掉电／SIGKILL 证明。
 一次有限 npm／事件循环观测无新验收阈值，不推断运动或目标板性能。
-接线与一代备份自动轮换仍为下一独立批次；详见
+接线候选已完成一代备份自动轮换、同锁辨识和hard换根身份迁移；实际脚本／原生依赖与产品pipeline仍开放。新增接线证据见[生命周期验收](../host/contracts/update-git-node-lifecycle-acceptance.json)，基础历史详见
 [精简验收契约](../host/contracts/node-dependency-update-acceptance.json)及启动说明对应小节。
 
 覆盖增量及状态修复已正常集成，其合并后规定检查已通过。实际

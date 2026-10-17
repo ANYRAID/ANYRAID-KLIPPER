@@ -10,7 +10,7 @@ import {productPrintStatus,productPauseStatus} from './product-print-status.ts';
 /** Publish only fields backed by the assembled native owners. Missing fields
  * retain the query protocol's null behavior; durations come from the controller. */
 export type ProductServicePrinter=Omit<Awaited<ReturnType<typeof connectProductPrinter>>,'linear'|'machine'>&{machine:{port:NativeLinearHomingPort;kinematics:{readonly status:{homedAxes:string;axisMinimum:number[];axisMaximum:number[]}}}};
-export function productObjects(printer:ProductServicePrinter,nativeHost:NativeHostStatusSource,filename:((fileId:string)=>string)|undefined=undefined,zTilt=false,quad=false,screws?:NativeObjectReader):NativeObjects{
+export function productObjects(printer:ProductServicePrinter,nativeHost:NativeHostStatusSource,filename:((fileId:string)=>string)|undefined=undefined,zTilt=false,quad=false,screws?:NativeObjectReader,filament?:NativeObjectReader):NativeObjects{
  const pressure=printer.print.gcode.pressureAdvance;
  const readers=new Map<string,NativeObjectReader>([
   ['webhooks',()=>nativePrinterState(readNativeHostStatus(nativeHost))],
@@ -48,5 +48,6 @@ export function productObjects(printer:ProductServicePrinter,nativeHost:NativeHo
  for(const fan of printer.hardware.fans)readers.set(fan.section,()=>({speed:fan.runtime.status.speed,rpm:null}));
  for(const fan of printer.hardware.temperatureFans)readers.set(fan.section,()=>({temperature:fan.state.objectStatus.temperature,target:fan.control.settings.target,speed:printer.hardware.fans.find(f=>f.section===fan.section)!.runtime.status.speed,rpm:null}));
  for(const sensor of printer.filamentSensors)readers.set(sensor.section,()=>({...sensor.runtime.status}));
+ if(filament)readers.set('filament_operation',filament);
  return new NativeObjects(readers,serialClock.now);
 }
