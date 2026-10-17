@@ -1,5 +1,6 @@
 import dbus from 'dbus-native';
 import net from 'node:net';
+import {createHash} from 'node:crypto';
 import {open,lstat} from 'node:fs/promises';
 import {isAbsolute,resolve} from 'node:path';
 import {MachineControlError} from './machine-control.ts';
@@ -40,6 +41,8 @@ export class SystemBusOwner {
  }
  installationCurrent(proof:SystemdProperties){return this.status.ready&&proof.identity.connection===this.#connectionEpoch&&proof.identity.owner===(this.#ownerEpoch.get(systemd)??0)&&proof.identity.revision===(this.#installationRevision.get(proof.path)??0)&&this.#unitPaths.has(proof.path);}
  get generation(){return this.#generation;}
+ /** Stable trusted configuration identity; no socket path or live epoch exposed. */
+ get configurationIdentity(){return createHash('sha256').update('system-bus-unix-external-v1\0'+this.#socket).digest('hex');}
  get status(){return {generation:this.#generation,connection_epoch:this.#connectionEpoch,permission_epoch:this.#ownerEpoch.get('org.freedesktop.PolicyKit1')??0,ready:!!this.#bus?.name&&!this.#abort.signal.aborted,closed:this.#abort.signal.aborted,pending:this.#pending.size,transport_closed:this.#transportClosed};}
  observeInvalidation(observer:()=>void){this.#observers.add(observer);return ()=>{this.#observers.delete(observer);};}
  #invalidate(){this.#generation++;this.#ownUnit=undefined;for(const observer of this.#observers)try{observer();}catch{}}
@@ -70,7 +73,7 @@ export class SystemBusOwner {
   }catch(error){if(this.#bus===bus){this.#bus=undefined;this.#matched.clear();this.#matching.clear();this.#unitPaths.clear();this.#installationRevision.clear();this.#owners.clear();this.#subscription=undefined;this.#connectionEpoch++;this.#invalidate();}this.#retired=closeConnection();await this.#retired;throw error;}
  }
  #wire(bus:Bus,message:Parameters<Bus['invoke']>[0],signal:AbortSignal,sender:string):Promise<unknown>{
-  const signatures:Record<string,string>={Hello:'s',Introspect:'s',GetNameOwner:'s',AddMatch:'',RemoveMatch:'',Subscribe:'',GetUnit:'o',GetUnitByPID:'o',GetAll:'a{sv}',Get:'v',ListUnitsFiltered:'a(ssssssouso)',CheckAuthorization:'(bba{ss})',StartUnit:'o',StopUnit:'o',RestartUnit:'o',PowerOff:'',Halt:'',Reboot:'',CreateTransaction:'o',GetUpdates:'',Resolve:'',RefreshCache:'',InstallPackages:'',UpdatePackages:'',Cancel:''};
+  const signatures:Record<string,string>={Hello:'s',Introspect:'s',GetNameOwner:'s',AddMatch:'',RemoveMatch:'',Subscribe:'',GetUnit:'o',GetUnitByPID:'o',GetAll:'a{sv}',Get:'v',ListUnitsFiltered:'a(ssssssouso)',CheckAuthorization:'(bba{ss})',StartUnit:'o',StopUnit:'o',RestartUnit:'o',PowerOff:'',Halt:'',Reboot:'',CreateTransaction:'o',GetTransactionList:'ao',GetUpdates:'',Resolve:'',RefreshCache:'',InstallPackages:'',UpdatePackages:'',Cancel:''};
   const expected=message.member?signatures[message.member]:undefined;if(expected===undefined)return Promise.reject(new MachineControlError('not_allowed','Unknown typed bus method'));
   return new Promise((resolve,reject)=>{bus.invoke(message,{signal,timeout:2000},function(this:{message?:dbus.Message}|undefined,error,...values){
    const reply=this?.message;
@@ -163,6 +166,8 @@ export class SystemBusOwner {
  }
  async #packageReady(signal:AbortSignal){await this.ready(signal);await this.#match(this.#bus!,`type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged',arg0='${packageKitName}'`);signal.throwIfAborted();}
  async packageKitAvailable(signal:AbortSignal):Promise<void>{await this.#packageReady(signal);const xml=await this.#invoke(packageKitName,'/org/freedesktop/PackageKit','org.freedesktop.DBus.Introspectable','Introspect','',[],signal);if(typeof xml!=='string'||Buffer.byteLength(xml)>1048576||!/<interface\s+name\s*=\s*['"]org\.freedesktop\.PackageKit['"]/u.test(xml))throw new PackageKitError('interface-unavailable');}
+ /** Official v1.3.1 GetTransactionList('', 'ao'); fixed read-only reconciliation fact. */
+ async packageKitTransactions(signal:AbortSignal):Promise<string[]>{await this.#packageReady(signal);const list=await this.#invoke(packageKitName,'/org/freedesktop/PackageKit',packageKitName,'GetTransactionList','',[],signal);if(!Array.isArray(list)||list.length>4096||list.some(path=>typeof path!=='string'||path.length>200||!/^\/[0-9]+_[A-Za-z0-9_]+$/u.test(path)))throw new PackageKitError('invalid-transaction-list');return [...list];}
  async #packageTransaction(request:PackageKitRequest,call:ReturnType<typeof packageKitCall>,signal:AbortSignal,hooks:PackageKitHooks,timeoutMs:number):Promise<PackageKitPackage[]>{
   const deadline=new AbortController(),timer=setTimeout(()=>deadline.abort(new PackageKitError('timeout','unknown')),timeoutMs);timer.unref();
   const active=AbortSignal.any([signal,this.#abort.signal,deadline.signal]),finished=Promise.withResolvers<void>();void finished.promise.catch(()=>{});

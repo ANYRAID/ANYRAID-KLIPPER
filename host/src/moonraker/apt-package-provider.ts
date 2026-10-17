@@ -176,5 +176,11 @@ export class AptPackageProvider {
   return this.#operate('install',context,async ctx=>{this.#canMutate();await this.#refresh(ctx,settings.notify);const resolved=await this.#resolve(selected,ctx);if(!resolved.length){this.#config.notify?.('No packages detected');return [];}const targets=await this.#exactTargets(resolved,ctx);await this.#mutate('install',resolved,settings.timeout*1000,settings.notify,ctx,targets);return [...resolved];});
  }
  upgradeSystem(context:AptOperationContext):Promise<void>{return this.#operate('upgrade',context,async ctx=>{this.#canMutate();await this.#mutate('upgrade',[],3600000,true,ctx);});}
+ /** Fixed read-only dependency check, never a request-supplied command or repair. */
+ inspectReconciliation(context:AptOperationContext):Promise<{dependency_check:'passed';packages:string[]}>{return this.#operate('reconcile_inspect',context,async ctx=>{await this.#run(this.#config.commands.aptGet,['--simulate','check'],60000,ctx);return {dependency_check:'passed',packages:await this.#query(ctx)};});}
+ /** The coordinator durably retains the original result and operator decision.
+  * Clearing this block is not a successful replay of the old upgrade. */
+ acknowledgeReconciliation(id:string,context:AptOperationContext):Promise<void>{return this.#operate('reconcile_acknowledge',context,async ctx=>{if(this.#journal.state==='idle')return;if(this.#journal.id!==id)throw new AptPackageError('interrupted','Stale APT reconciliation');await this.#admit(ctx);await this.#save(IDLE);this.#journal={...IDLE};await this.#admit(ctx);});}
+ async drain():Promise<void>{await this.#active?.catch(()=>{});}
  async close():Promise<void>{this.#closing=true;this.#life.abort();await Promise.allSettled(this.#active?[this.#active]:[]);if(this.#ownsExecutor)await this.#executor.close?.();}
 }
