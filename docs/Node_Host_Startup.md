@@ -4596,6 +4596,19 @@ systemctl 参数无 shell、sudo、交互授权或任意脚本；两秒／64 KiB
 inactive／failed 且 MainPID=0，不把 stop 作业受理当停止证明。
 这些检查不提供对任意外部启动者的全局排他锁。
 
+可信内部维护调用可使用 MaintenanceGate.acquireLease() 和 ProductHostControl.requestMaintenanceAction(action, lease, afterResponse?)。
+attach 必须绑定当前设备代际的 gate；无绑定的退休分支、陌生／复制／过期lease拒绝，不创建公网参数或新接口。
+transfer 在同一同步栈内更换令牌并保持 maintenance=true，复制对象的release不能释放原lease，旧release也不能解除新持有者的围栏；现有acquire()闭包仍兼容。
+#request、running持久写入之后、#begin及宿主validate／handler均核当前所有权／代际，所有生产者activity入口持续拒绝。
+
+调用同步返回 admission／completion 句柄；同步前置拒绝仍由调用者持有原lease，转移后即使admission拒绝也必须等待completion。
+普通外部服务内部调用直接等待控制生命周期，不伪造HTTP响应回调；server_restart及当前进程自己的服务重启必须传真实afterResponse。
+queued／running／终态journal写入、响应未发送／十秒超时、动作失败和不确定结果均有结算路径；结果含operation和failure分类。
+未换代且gate仍有效时，completion归还重新key且仍持围栏的lease，调用者可以连续执行下一服务，最终必须显式release。
+单独control.close会取消未派发请求或等待已派发动作，仍可归还有效lease；实际退役／代际失效则返回fenced且无lease，旧gate保持closed。
+租约不进入持久回执或公开status。控制succeeded仍只表示OS job submission生命周期结束，不能证明目标服务ready或停止。
+本能力尚未接入update provider、managed_services或Node依赖更新，不提供其他进程／外部服务启动者的全局锁。
+
 候选日志 v4 增加六类各 64 条独立回执（总计 640）；服务身份为不可变字段。
 一个共享 pending 槽；只淘汰同类终态记录，淘汰与准入同事务提交。
 SIGKILL 或重开后的 queued／running 变 interrupted，不重新执行 OS 动作。

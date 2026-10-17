@@ -9,6 +9,19 @@
 完成正常同步及 `10.0.0.184` 的隔离验证，无需逐次重复确认。该授权不包含 master／主线合并、
 生产部署或真实设备操作，也不允许绕过规定检查及既定 PR 流程。
 
+## 2026-10-18 维护租约向服务控制的连续交接前置能力
+
+MaintenanceGate增加不可按对象复制伪造的运行时lease身份与同步transfer，复制release接收者和旧release均不能解除真实持有者围栏。
+可信ProductHostControl维护调用显式绑定当前代际gate，同步返回admission／completion；持久写入、响应等待、
+最终dispatch与宿主validate／handler全链保持同一维护所有权。普通服务无须伪造HTTP回调，自己进程重启仍需真实响应交接。
+未退役时终态归还仍持围栏的新lease供顺序服务动作使用，消费者显式release；实际代际失效保留closed fence，不重放未知动作。
+
+184 Node26.12最终六文件51／51与标准typecheck通过；首轮五文件48／48保留，首次类型检查仅新增测试三参数隐式any失败，修正后通过。
+包含真实gate／control／持久journal屏障、失败／超时／关闭／代际变化，以及既有PTY产品宿主、LinuxMachineControl注入IO的四项新组合场。
+复用既有native输出与匹配lock依赖，未fresh build、全量CI或sanitizer；无真实设备或systemctl操作。
+OS job submission终态不证明目标服务ready；本批不宣称完成Git／核心provider、managed_services或Node依赖更新。
+紧凑记录见[系统控制验收](../host/contracts/native-machine-control-acceptance.json)的maintenanceLeaseHandoff。
+
 ## 2026-10-18 Web客户端实际更新、回滚与中断一致性恢复
 
 在#69状态／刷新基础上接入client更新和rollback本地目录回滚，使用真实共享HTTP下载，校验声明size、

@@ -1967,5 +1967,144 @@
     "Cycnumbris 500 verified profile/board and physical stop evidence",
     "G3 precision/motion, default Python entry, 177 klippy Python files, full Moonraker and normal master release"
   ],
-  "sourcesScope": "Current candidate source fingerprints. Earlier results retain their recorded bundle and execution identities. Final preparation bundle validates only the explicitly recorded read-only preparation, 640-receipt original-budget benchmark and one default software PTY mixed scenario; full CI, actual system authorization, target performance and physical gates are separate."
+  "sourcesScope": "Current candidate source fingerprints. Earlier results retain their recorded bundle and execution identities. Final preparation bundle validates only the explicitly recorded read-only preparation, 640-receipt original-budget benchmark and one default software PTY mixed scenario; full CI, actual system authorization, target performance and physical gates are separate.",
+  "maintenanceLeaseHandoff": {
+    "schema": 1,
+    "date": "2026-10-18",
+    "baseCommit": "d2f98713",
+    "scope": "Continuous trusted maintenance lease ownership through ProductHostControl and actual native product-host OS job submission lifecycle; no update-provider integration or target service readiness proof",
+    "platform": "Linux x64 Node26.12.0",
+    "linuxRoot": "/home/dek02/.codex/worktrees/supervisor-group-compat/update-service-lease",
+    "runtime": "/home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node",
+    "dependency": "Reused ANYRAID-KLIPPER/host/node_modules; actual package-lock SHA256 equality checked",
+    "native": "Reused final-032dd-fix2-product/host/build native output; not a fresh build or sanitizer execution",
+    "commands": {
+      "typecheck": "node scripts/run-typescript.ts -p tsconfig.json",
+      "initialTests": "node --test test/maintenance-host-control.test.ts test/native-product-machine-control.test.ts test/product-host-control.test.ts test/host-recovery-journal.test.ts test/maintenance-gate.test.ts",
+      "finalTests": "node --test test/maintenance-host-control.test.ts test/native-product-machine-control.test.ts test/product-host-control.test.ts test/host-recovery-journal.test.ts test/maintenance-gate.test.ts test/machine-control-api.test.ts",
+      "timeout": "/usr/bin/timeout --signal=TERM --kill-after=2s 120s"
+    },
+    "validation": {
+      "typecheckFirst": {
+        "exit": 1,
+        "logs": "typecheck-v1",
+        "reason": "Only three newly added createAdapter test parameters had implicit any; no production type error"
+      },
+      "typecheckCorrected": {
+        "exit": 0,
+        "logs": "typecheck-v2"
+      },
+      "firstTests": {
+        "passed": 48,
+        "failed": 0,
+        "cancelled": 0,
+        "durationMs": 15117.583133,
+        "logs": "targeted-v1"
+      },
+      "finalTypecheck": {
+        "exit": 0,
+        "logs": "typecheck-final2"
+      },
+      "finalTests": {
+        "passed": 51,
+        "failed": 0,
+        "cancelled": 0,
+        "durationMs": 15433.263644,
+        "logs": "targeted-final2"
+      }
+    },
+    "testedSourceSha256": {
+      "host/src/operations/maintenance-gate.ts": "d700b9111cdf62c7c6f214a5ab6a44e0e225b33e784e4275f440a82e7fa85fb7",
+      "host/src/runtime/product-host-control.ts": "79de6c00178e20027f135c8c9f0c2e33a372deae67d4d6aa39c1c817c799b334",
+      "host/src/runtime/product-host.ts": "5df00761234475e464567323c23d677d1e6ce3efa2fafd9b1ed3901ece9cb65b",
+      "host/test/maintenance-host-control.test.ts": "3fb0afe2412977517226f9a59a9179b9ff873948c05c0a4442b8c1dcc043cd91",
+      "host/test/native-product-machine-control.test.ts": "6b8d1fc5cd021f7a8abd10a71b57fad94b44600379b46633b3cdd1d92031b61a"
+    },
+    "sourceSha256": {
+      "host/src/operations/maintenance-gate.ts": "d700b9111cdf62c7c6f214a5ab6a44e0e225b33e784e4275f440a82e7fa85fb7",
+      "host/src/runtime/product-host-control.ts": "79de6c00178e20027f135c8c9f0c2e33a372deae67d4d6aa39c1c817c799b334",
+      "host/src/runtime/product-host.ts": "5df00761234475e464567323c23d677d1e6ce3efa2fafd9b1ed3901ece9cb65b",
+      "host/test/maintenance-host-control.test.ts": "3fb0afe2412977517226f9a59a9179b9ff873948c05c0a4442b8c1dcc043cd91",
+      "host/test/native-product-machine-control.test.ts": "6b8d1fc5cd021f7a8abd10a71b57fad94b44600379b46633b3cdd1d92031b61a"
+    },
+    "postValidationWhitespaceChange": {
+      "file": "host/test/maintenance-host-control.test.ts",
+      "testedSha256": "25b2ca384aeff1038ab85ca437b91224e48385b2644f0adc2450635e2c60b894",
+      "currentSha256": "e7ba5e165fc16e7b1561a82f853405cc617aa0f9a95f9991f1b9ecee05cbb69e",
+      "change": "Removed one CR before LF on line 26; no test logic changed, tests and typecheck not repeated"
+    },
+    "logs": {
+      "targeted-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targeted-final.stdout": "f7084548d84ea0a9d9744c96ea38d888f5f7a0844ba897171b54d15c4dcbf2de",
+      "targeted-final2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targeted-final2.stdout": "cb628d2da0ae89d32f0a5a0cd7c7469c5c04acfade10f58cdd2810944b48e409",
+      "targeted-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targeted-v1.stdout": "360a917fd0a0b902d713771e488fd281602bc3c3fb4576fdf1bcd1e73f2e25e2",
+      "typecheck-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-final.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-final2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-final2.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-v1.stdout": "d3fb8b3eeb579e778aab128ea19b64b3089480a5fed6353523ea452e92b0b4f0",
+      "typecheck-v2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-v2.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "cleanup": "Post-run ps snapshot contained no matching Node test/task processes; not a full registered-PID lifecycle proof",
+    "invariants": [
+      "Synchronous transfer rekeys ownership while maintenance remains true; stale release or copied object cannot reopen producer admission",
+      "Every producer using gate.activity remains excluded across journal awaits, response handoff wait, dispatch checks, action execution and terminal journal settlement",
+      "Only trusted in-process method, bound to actual attach generation gate; public machine params and default interfaces are unchanged",
+      "Ordinary service internal dispatch does not fabricate an HTTP response; server/own process restart needs actual afterResponse",
+      "Synchronous precondition rejection retains original ownership; after transfer completion always returns fresh held ownership or permanent retired fence",
+      "A still-current gate returns a held lease even on admission/action/storage failure or control-only close; caller must explicitly finish ownership",
+      "Runtime gate/token/native signal validated at admission, after running durable write, final begin and actual host validate/handler",
+      "Uncertain external submission remains interrupted and is not replayed; succeeded proves existing submission lifecycle only"
+    ],
+    "coverage": [
+      "Real gate/control/SQLite recovery journal with queued/running/succeeded barriers and injected persistent failures",
+      "Missing, thrown and mocked ten-second expired response handoff, close and generation abort while persistence is pending",
+      "Producer attempts throughout all barriers; stale releases, foreign/copied tokens and sequential handback",
+      "Actual runProductHost, native process resources, two PTY MCUs and injected LinuxMachineControl IO: external-service sequence, device retirement, own-unit response requirement, uncertain external submission"
+    ],
+    "evidenceLocation": ".cache/maintenance-service-lease/receipt.json (task-local raw logs excluded from Git)",
+    "limitations": [
+      "Not integrated with manager, Git/core providers, managed_services or Node dependency update",
+      "Existing OS job submission completion is not target-service readiness or stopped-state confirmation",
+      "No fresh build, whole suite CI, sanitizer rerun, hardware/production service mutation or deployment acceptance"
+    ],
+    "beforeReleaseReceiverCheck": {
+      "testedSourceSha256": {
+        "host/src/operations/maintenance-gate.ts": "aa496333b1ff67744502877c6741208d0d8cdcdc08dc6c3490322e1a6e177fc4",
+        "host/src/runtime/product-host-control.ts": "79de6c00178e20027f135c8c9f0c2e33a372deae67d4d6aa39c1c817c799b334",
+        "host/src/runtime/product-host.ts": "5df00761234475e464567323c23d677d1e6ce3efa2fafd9b1ed3901ece9cb65b",
+        "host/test/maintenance-host-control.test.ts": "25b2ca384aeff1038ab85ca437b91224e48385b2644f0adc2450635e2c60b894",
+        "host/test/native-product-machine-control.test.ts": "6b8d1fc5cd021f7a8abd10a71b57fad94b44600379b46633b3cdd1d92031b61a"
+      },
+      "sourceSha256": {
+        "host/src/operations/maintenance-gate.ts": "aa496333b1ff67744502877c6741208d0d8cdcdc08dc6c3490322e1a6e177fc4",
+        "host/src/runtime/product-host-control.ts": "79de6c00178e20027f135c8c9f0c2e33a372deae67d4d6aa39c1c817c799b334",
+        "host/src/runtime/product-host.ts": "5df00761234475e464567323c23d677d1e6ce3efa2fafd9b1ed3901ece9cb65b",
+        "host/test/maintenance-host-control.test.ts": "e7ba5e165fc16e7b1561a82f853405cc617aa0f9a95f9991f1b9ecee05cbb69e",
+        "host/test/native-product-machine-control.test.ts": "6b8d1fc5cd021f7a8abd10a71b57fad94b44600379b46633b3cdd1d92031b61a"
+      },
+      "whitespaceOnlyChange": {
+        "file": "host/test/maintenance-host-control.test.ts",
+        "testedSha256": "25b2ca384aeff1038ab85ca437b91224e48385b2644f0adc2450635e2c60b894",
+        "currentSha256": "e7ba5e165fc16e7b1561a82f853405cc617aa0f9a95f9991f1b9ecee05cbb69e",
+        "change": "Removed one CR before LF on line 26; no test logic changed, tests and typecheck not repeated"
+      },
+      "typecheck": {
+        "exit": 0,
+        "logs": "typecheck-final"
+      },
+      "tests": {
+        "passed": 51,
+        "failed": 0,
+        "cancelled": 0,
+        "durationMs": 15466.974729,
+        "logs": "targeted-final"
+      }
+    },
+    "releaseReceiverCheck": "A copied lease object cannot invoke its copied release method to release the original lease; acquire() remains an unbound closure wrapper"
+  }
 }
