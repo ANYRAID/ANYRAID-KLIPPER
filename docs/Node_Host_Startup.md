@@ -1413,7 +1413,8 @@ Git更新／回滚／显式恢复在仓库动作后沿可信ProductHostControl�
 不证明服务ready；自己进程重启必须等待真实HTTP／RPC响应交接，响应返回时任务仍可处于忙态，不能据此认定更新成功。
 
 更新同时持有进程与当前设备维护租约，控制动作同步转移同一租约，普通终态归还后再提交下一服务。设备退役后
-由持续持有的进程维护所有者承接余下动作，配置写入和attachNativePrinter仍受围栏约束。queued控制记录落盘后，
+由持续持有的进程维护所有者承接余下动作，配置写入和attachNativePrinter仍受围栏约束。离线控制保留原设备代际signal作为请求身份，
+维护动作取消另绑存活进程signal；旧代际请求不能借用该维护signal绕过身份核对。queued控制记录落盘后，
 先持久关联更新事务及request_id，才允许任何OS dispatch。关联写入挂起时超时／关闭立即拒绝admission并永久取消dispatch；
 已受理数据库写仍受控排空，completion及close等待真实I/O结束后才归还租约，不声称可终止不可取消的写入。
 失败不发送成功文案；未确认或重开后的服务结果保持interrupted，不自动重放，显式recover也拒绝重放未知服务动作。
