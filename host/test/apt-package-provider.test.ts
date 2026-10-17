@@ -17,7 +17,7 @@ const context=():AptOperationContext=>({signal:AbortSignal.timeout(10000),author
 const rejects=(code:string,dispatched?:boolean)=>(error:unknown)=>error instanceof AptPackageError&&error.code===code&&(dispatched===undefined||error.dispatched===dispatched);
 const listing='Listing... Done\nfixture-alpha/test 2 amd64 [upgradable from: 1]\nfixture+plus/test 3 all [upgradable from: 2]\n';
 class FakeExecutor implements AptCommandExecutor {
- calls:AptCommandRequest[]=[];handler:(request:AptCommandRequest)=>Promise<AptCommandResult>=async request=>({stdout:request.args.includes('--upgradable')?listing:request.args.includes('search')?'fixture-alpha - Alpha\nfixture+plus - Plus\n':'',stderr:'',exitCode:0});
+ calls:AptCommandRequest[]=[];handler:(request:AptCommandRequest)=>Promise<AptCommandResult>=async request=>({stdout:request.args.includes('--upgradable')?listing:request.args.includes('search')?'fixture-alpha - Alpha\nfixture+plus - Plus\n':request.args.includes('policy')?request.args.slice(request.args.indexOf('policy')+1).map(name=>`${name}:\n  Installed: (none)\n  Candidate: 2\n  Version table:\n     2 500\n        500 fixture Packages\n`).join(''):'',stderr:'',exitCode:0});
  async run(request:AptCommandRequest){this.calls.push(request);return this.handler(request);}
 }
 function memoryJournal(initial:unknown=null){let value=structuredClone(initial);const writes:AptMutationState[]=[];const journal:AptMutationJournal={async load(){return structuredClone(value);},async save(next){writes.push(structuredClone(next));value=structuredClone(next);}};return {journal,writes,value:()=>structuredClone(value)};}
@@ -59,16 +59,16 @@ test('invalid package names, option injection and unsupported retry counts fail 
  assert.equal(f.executor.calls.length,count);
 });
 
-test('APT action suffix requests are rejected before commands while real package listings retain those names',async t=>{
+test('legal trailing-sign names reach exact-name resolution and remain visible in listings',async t=>{
  const f=await fixture();t.after(()=>f.provider.close());const count=f.executor.calls.length;
- for(const name of ['fixture-alpha-','fixture-alpha+','g++']){assert.equal(aptPackageName(name),true);await assert.rejects(f.provider.installPackages([name],context()),rejects('unsupported'));await assert.rejects(f.provider.resolvePackages([name],context()),rejects('unsupported'));}
- assert.equal(f.executor.calls.length,count);assert.deepEqual(parseAptUpgradablePackages('g++/test 2 amd64 [upgradable from: 1]\n'),['g++']);
+ for(const name of ['fixture-alpha-','fixture-alpha+','g++']){assert.equal(aptPackageName(name),true);assert.deepEqual(await f.provider.resolvePackages([name],context()),[]);}
+ assert.equal(f.executor.calls.length,count+3);assert.deepEqual(parseAptUpgradablePackages('g++/test 2 amd64 [upgradable from: 1]\n'),['g++']);
 });
 
 test('install refreshes, resolves and durably records one mutation; upgrade uses no implicit refresh/retry',async t=>{
  const f=await fixture();t.after(()=>f.provider.close());assert.deepEqual(await f.provider.installPackages(['missing','fixture-alpha'],context(),{timeout:2,retries:1}),['fixture-alpha']);
- const calls=f.executor.calls.slice(3);assert.equal(calls.length,3);assert.deepEqual(calls.map(call=>call.effect),['cache','query','install']);assert.equal(calls[2].timeoutMs,2000);assert.deepEqual(calls[2].args.slice(-3),['install','--yes','fixture-alpha']);assert.equal(calls[2].env.LC_ALL,'C');assert.equal(calls[2].env.DEBIAN_FRONTEND,'noninteractive');assert.equal(calls[2].env.HOME,'/nonexistent');assert.equal('NODE_OPTIONS' in calls[2].env,false);
- assert.equal(f.j.writes[0].state,'pending');assert.deepEqual(f.j.writes.at(-1),{schema:1,state:'idle'});assert.equal(f.provider.status.cacheStale,true);
+ const calls=f.executor.calls.slice(3);assert.equal(calls.length,4);assert.deepEqual(calls.map(call=>call.effect),['cache','query','query','install']);assert.equal(calls[3].timeoutMs,2000);assert.deepEqual(calls[3].args.slice(-4),['install','--yes','--no-remove','fixture-alpha=2']);assert.equal(calls[3].env.LC_ALL,'C');assert.equal(calls[3].env.DEBIAN_FRONTEND,'noninteractive');assert.equal(calls[3].env.HOME,'/nonexistent');assert.equal('NODE_OPTIONS' in calls[3].env,false);
+ assert.equal(f.j.writes[0].state,'pending');assert.deepEqual(f.j.writes[0].exactTargets,[{name:'fixture-alpha',version:'2'}]);assert.deepEqual(f.j.writes.at(-1),{schema:1,state:'idle'});assert.equal(f.provider.status.cacheStale,true);
  const count=f.executor.calls.length;await f.provider.upgradeSystem(context());assert.equal(f.executor.calls.length,count+1);assert.deepEqual(f.executor.calls.at(-1)!.args.slice(-2),['upgrade','--yes']);assert.equal(f.executor.calls.at(-1)!.timeoutMs,3600000);
 });
 
