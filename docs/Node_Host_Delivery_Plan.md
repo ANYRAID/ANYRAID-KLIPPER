@@ -5,6 +5,34 @@
 用户持续允许本项目的修复并进行隔离验证，并明确“本项目开发实际需要linux环境的情况下，
 自行使用10.0.0.184”，包括该固定 Linux 开发机的本项目源码传输与调试。修复仍在独立任务分支和工作树中完成，
 不扩大到真实设备操作、生产部署或绕过任务 → develop → 主线的 PR 流程。
+用户对本项目此类请求持续自动授权：规定检查通过后，将任务 PR 转为正式并按正常流程合入 develop，
+完成正常同步及 `10.0.0.184` 的隔离验证，无需逐次重复确认。该授权不包含 master／主线合并、
+生产部署或真实设备操作，也不允许绕过规定检查及既定 PR 流程。
+
+## 2026-10-17 update_manager 的 Web 状态与刷新增量
+
+#68 已按正常流程合入 develop（e59ca7，树与已验 bffc 一致）。合并后
+[Node Host](https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38937779267)、
+[Build](https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38937779181)、
+[Motion](https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/38937779194)均成功；
+普通5431／5431、协议／Linux MCU及ASAN／UBSAN各1238通过，Motion十项通过。
+这不关闭历史服务重获2.626预算、184 G3或真实设备门槛。
+
+本增量以固定 Moonraker 1cfb0c41 为契约，实际读取 Web 客户端 release_info／.version／受限manifest，
+通过进程共享 HTTP 读取 GitHub release 元数据，并接入鉴权 HTTP／RPC、持久缓存及延迟刷新通知。
+GET 只读缓存；显式刷新串行且受打印／安装忙态和启动状态约束。配置／数据库／备份重叠路径无效，
+仓库或目录身份变化不沿用旧远端版本；退出取消并等待刷新，先于共享 HTTP／数据库关闭。
+十路由均登记，其中八个部署动作明确501且不执行；核心未知状态仍为{}，不宣称就绪。
+下载／安装／恢复／回滚、Git等provider、系统包及实际Node核心自更新仍在完整队列，
+不得用本次只读增量替代完整update_manager，也不引入Python venv／pip运行依赖。
+
+184 Node26.12首轮四文件40／40；保留路径补充后两文件11／11及标准类型检查通过。
+首轮类型检查仅新测试类型推断失败，修正标注后通过，原结果保留。
+最终固定缓存GET七个20000次计时批中位496.116ns／次、批平均P95为534.939ns／次；
+七次刷新中位6.476ms（含固定5ms回环响应），1ms计时器39样本最大额外延迟0.860ms。
+这些是桌面有限观察，无专用通过门限、单请求P95或目标板／运动性能结论。
+配置、边界、原始计时批与源码指纹见[Web更新验收](../host/contracts/update-manager-web-acceptance.json)，
+操作说明见[启动装配](Node_Host_Startup.md#web-客户端更新状态与刷新)。
 
 ## 2026-10-17 安装进程测试的限定包复用
 

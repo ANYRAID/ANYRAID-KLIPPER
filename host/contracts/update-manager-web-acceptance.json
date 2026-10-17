@@ -1,0 +1,545 @@
+{
+  "schema": 1,
+  "scope": "First process-owned web NetDeploy metadata/status/refresh slice; not complete update_manager or deployment acceptance",
+  "upstream": {
+    "repository": "Arksine/moonraker",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "files": [
+      "moonraker/components/update_manager/update_manager.py",
+      "moonraker/components/update_manager/net_deploy.py",
+      "moonraker/components/update_manager/app_deploy.py",
+      "moonraker/components/update_manager/base_deploy.py",
+      "moonraker/components/update_manager/common.py",
+      "moonraker/common.py"
+    ]
+  },
+  "sourceSha256": {
+    "host/src/moonraker/update-manager.ts": "4806973aca00e0d0a8eac3181542adb2eb99706f61f24e2c5750427c3b595143",
+    "host/src/moonraker/update-web-deploy.ts": "521a3addc681a95fa7013cec4da85cc6c473e591933d919f6f2588810efe1968",
+    "host/src/moonraker/configured-server.ts": "3bd381367487ad0396985a56703091588f65bf007f77c2487af40fc733d76b7d",
+    "host/src/moonraker/http-client.ts": "de8dd68a7d326f5c182361ed4b15e5cac22e7cd6e8911faa78fb7e3db0c6675f",
+    "host/test/update-manager.test.ts": "5803892c484a8c42a40cbc24956a3c1eb492a80531965d7329b5f430f1a833d6",
+    "host/test/update-web-deploy.test.ts": "56c8137f681bd2b814776a4f99ecf6536380b3245f95875b65dc8f6d490f8ccb"
+  },
+  "routes": {
+    "status": {
+      "method": "GET",
+      "rpc": "machine.update.status",
+      "params": {
+        "refresh": "optional boolean or case-insensitive true/false REST string"
+      },
+      "returns": "github_rate_limit/github_requests_remaining/github_limit_reset_time/version_info/busy",
+      "cached": true,
+      "forcedRefreshThrottleSeconds": 60
+    },
+    "refresh": {
+      "method": "POST",
+      "rpc": "machine.update.refresh",
+      "params": {
+        "name": "optional registered web or moonraker/klipper BaseDeploy no-op"
+      },
+      "returns": "full status snapshot",
+      "serialization": true,
+      "busyOrNotInitialized": 503
+    },
+    "unimplementedActions": {
+      "method": "POST",
+      "names": [
+        "moonraker",
+        "klipper",
+        "system",
+        "client",
+        "full",
+        "upgrade",
+        "recover",
+        "rollback"
+      ],
+      "status": 501,
+      "sideEffect": "none"
+    }
+  },
+  "notifications": {
+    "refresh": "notify_update_refreshed, one full snapshot in params; delayed 200ms after state commit",
+    "response": "notify_update_response reserved for real deployment actions; not emitted by this slice"
+  },
+  "ownership": {
+    "scope": "ConfiguredMoonraker process, independent of printer generation",
+    "initialization": "validate local metadata before listen; first remote refresh after listener startup",
+    "close": "abort and await admitted refresh; clear delayed events before closing shared HTTP/database",
+    "reservedPaths": "configuration primary/include files, database and backup paths cannot overlap web installation",
+    "filesystem": "physical directory, no git ancestor; regular bounded UTF-8 metadata; no executable deployment"
+  },
+  "validation": {
+    "platform": "Linux x64 Node26.12.0",
+    "native": "Reused final-032dd-fix2-product/host/build native files with matching dependency lock; source tests, not a newly compiled product",
+    "firstTargeted": {
+      "name": "tests",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "test/update-web-deploy.test.ts",
+        "test/update-manager.test.ts",
+        "test/http-client.test.ts",
+        "test/configured-server.test.ts"
+      ],
+      "started": 1792172656050,
+      "elapsed": 16863,
+      "code": 0,
+      "signal": null,
+      "error": null,
+      "files": 4,
+      "tests": 40,
+      "passed": 40,
+      "failed": 0
+    },
+    "firstTypecheck": {
+      "name": "typecheck",
+      "args": [
+        "scripts/run-typescript.ts",
+        "-p",
+        "tsconfig.json"
+      ],
+      "started": 1792172672913,
+      "elapsed": 3345,
+      "code": 1,
+      "signal": null,
+      "error": null,
+      "classification": "New test configuration union inferred optional undefined properties; production type errors absent"
+    },
+    "testTypeAnnotationFix": {
+      "started": 1792172717363,
+      "elapsed": 3269,
+      "code": 0,
+      "signal": null,
+      "testSha256": "d785f910c648c6442425dfe598d20c86f7d759827569778e01a8cb41ac3996b6",
+      "error": null
+    },
+    "finalReservedPathRegression": {
+      "name": "reserved-tests",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "test/update-web-deploy.test.ts",
+        "test/update-manager.test.ts"
+      ],
+      "timeout": "60s",
+      "started": 1792172866136,
+      "elapsed": 1828,
+      "code": 0,
+      "signal": null,
+      "error": null,
+      "files": 2,
+      "tests": 11,
+      "passed": 11,
+      "failed": 0
+    },
+    "finalTypecheck": {
+      "name": "reserved-typecheck",
+      "args": [
+        "scripts/run-typescript.ts",
+        "-p",
+        "tsconfig.json"
+      ],
+      "timeout": "120s",
+      "started": 1792172867964,
+      "elapsed": 3371,
+      "code": 0,
+      "signal": null,
+      "error": null
+    },
+    "coverage": [
+      "Strict release_info fields and no malformed-file fallback",
+      "Only pinned Mainsail/Fluidd manifest fallback; stable/beta/dev-invalid handling",
+      "304 empty/body; asset selection; repo/directory/config hash cache identity",
+      "Missing local version cannot inherit previous directory version",
+      "Initialization, busy printing/install guard, sixty-second forced-GET throttle, core BaseDeploy refresh",
+      "Real loopback HTTP serialization; queued cancellation; close abort/no late DB commit or event",
+      "Real ConfiguredMoonraker authenticated REST/RPC/WebSocket and delayed notification; REST refresh true/FALSE/:bool/invalid values",
+      "Reserved config/database/backup path overlap stays invalid with no remote IO"
+    ],
+    "commands": [
+      "node --test --test-reporter=tap test/update-web-deploy.test.ts test/update-manager.test.ts test/http-client.test.ts test/configured-server.test.ts",
+      "node --test --test-reporter=tap test/update-web-deploy.test.ts test/update-manager.test.ts",
+      "node scripts/run-typescript.ts -p tsconfig.json"
+    ]
+  },
+  "performance": {
+    "registration": {
+      "refresh": {
+        "remoteResponseDelayMs": 5,
+        "samples": 7,
+        "allRawDelays": true,
+        "eventLoopTimerMs": 1
+      },
+      "schema": 1,
+      "cachedGet": {
+        "retainedBatches": 7,
+        "warmupBatches": 2,
+        "callsPerBatch": 20000,
+        "statistic": "batch-average ns/op, median and nearest-rank P95, not single-request latency",
+        "maximumHttpCallsDuringPolling": 0
+      },
+      "script": "4fa019f25a308561ca80b25ca3aa3fc747d2d7b1efdf8238b16cac93b184a5bc",
+      "outerTimeout": "30s TERM +2s KILL",
+      "scope": "Node26.12 Linux desktop; source component; no dedicated pass threshold; no hardware/motion",
+      "registeredBeforeExecution": true
+    },
+    "beforeReservedPathCheck": {
+      "node": "v26.12.0",
+      "platform": "linux",
+      "arch": "x64",
+      "sources": {
+        "update-manager.ts": "cdca12a7da4b0d707192aba7c32a95a2ae9ab0f003bba373aad048546ff2580c",
+        "update-web-deploy.ts": "ad616ff1e15607e345b8bf41036c7d079ea7456ef7fbe6a6d8d78ca23a714a6a",
+        "http-client.ts": "de8dd68a7d326f5c182361ed4b15e5cac22e7cd6e8911faa78fb7e3db0c6675f"
+      },
+      "elapsedMs": 218,
+      "raw": [
+        {
+          "batch": 0,
+          "retained": false,
+          "nsPerCallBatchAverage": 831.9909500000008
+        },
+        {
+          "batch": 1,
+          "retained": false,
+          "nsPerCallBatchAverage": 581.9799500000001
+        },
+        {
+          "batch": 2,
+          "retained": true,
+          "nsPerCallBatchAverage": 527.7466499999989
+        },
+        {
+          "batch": 3,
+          "retained": true,
+          "nsPerCallBatchAverage": 491.2444000000007
+        },
+        {
+          "batch": 4,
+          "retained": true,
+          "nsPerCallBatchAverage": 492.0929000000001
+        },
+        {
+          "batch": 5,
+          "retained": true,
+          "nsPerCallBatchAverage": 492.9174499999988
+        },
+        {
+          "batch": 6,
+          "retained": true,
+          "nsPerCallBatchAverage": 485.78185000000076
+        },
+        {
+          "batch": 7,
+          "retained": true,
+          "nsPerCallBatchAverage": 491.15290000000016
+        },
+        {
+          "batch": 8,
+          "retained": true,
+          "nsPerCallBatchAverage": 491.0179499999998
+        }
+      ],
+      "checksum": 360000,
+      "cachedGet": {
+        "httpCallsBefore": 1,
+        "httpCallsAfter": 1,
+        "medianNs": 491.2444000000007,
+        "p95BatchAverageNs": 527.7466499999989
+      },
+      "refresh": [
+        {
+          "sample": 0,
+          "durationMs": 7.113301999999976,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0,
+            0,
+            0.0013560000000438777,
+            0.5250089999999545,
+            0.4009290000000192,
+            0.05662599999999429
+          ]
+        },
+        {
+          "sample": 1,
+          "durationMs": 5.612364000000014,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0,
+            0.8098309999999742,
+            0.06036600000004455,
+            0.06187599999998383,
+            0.056445999999994
+          ]
+        },
+        {
+          "sample": 2,
+          "durationMs": 6.585529000000008,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0,
+            0.12924599999996644,
+            0.059607000000028165,
+            0.056526000000019394,
+            0.05906599999997297,
+            0.17420700000002398,
+            0
+          ]
+        },
+        {
+          "sample": 3,
+          "durationMs": 5.56560300000001,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0.831181000000015,
+            0.02990599999998267,
+            0.05654600000002574,
+            0.1974169999999731
+          ]
+        },
+        {
+          "sample": 4,
+          "durationMs": 6.577379000000008,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0,
+            0.549539999999979,
+            0.05860599999999749,
+            0.05907600000000457,
+            0.05611700000002884,
+            0.14687599999996337,
+            0
+          ]
+        },
+        {
+          "sample": 5,
+          "durationMs": 5.353640999999982,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0.7057399999999916,
+            0.058965999999998076,
+            0.05885599999999158,
+            0.12945700000000215
+          ]
+        },
+        {
+          "sample": 6,
+          "durationMs": 6.439058999999986,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0,
+            0.38844899999998006,
+            0.058785999999997784,
+            0.055975999999986925,
+            0.06723700000003419,
+            0.1398360000000025
+          ]
+        }
+      ],
+      "refreshSummary": {
+        "durationMedianMs": 6.439058999999986,
+        "timerSampleCount": 39,
+        "maxTimerExtraDelayMs": 0.831181000000015
+      },
+      "scope": "One Linux desktop process, one real web directory, private SQLite, real loopback HTTP delayed 5ms. Batch-average ns/op quantiles, not individual request latency. No registered pass threshold, no hardware or motion claim."
+    },
+    "finalSource": {
+      "node": "v26.12.0",
+      "platform": "linux",
+      "arch": "x64",
+      "sources": {
+        "update-manager.ts": "4806973aca00e0d0a8eac3181542adb2eb99706f61f24e2c5750427c3b595143",
+        "update-web-deploy.ts": "521a3addc681a95fa7013cec4da85cc6c473e591933d919f6f2588810efe1968",
+        "http-client.ts": "de8dd68a7d326f5c182361ed4b15e5cac22e7cd6e8911faa78fb7e3db0c6675f"
+      },
+      "elapsedMs": 219,
+      "raw": [
+        {
+          "batch": 0,
+          "retained": false,
+          "nsPerCallBatchAverage": 807.1058499999992
+        },
+        {
+          "batch": 1,
+          "retained": false,
+          "nsPerCallBatchAverage": 588.8019
+        },
+        {
+          "batch": 2,
+          "retained": true,
+          "nsPerCallBatchAverage": 534.939
+        },
+        {
+          "batch": 3,
+          "retained": true,
+          "nsPerCallBatchAverage": 498.5303000000002
+        },
+        {
+          "batch": 4,
+          "retained": true,
+          "nsPerCallBatchAverage": 493.3183
+        },
+        {
+          "batch": 5,
+          "retained": true,
+          "nsPerCallBatchAverage": 491.4637499999983
+        },
+        {
+          "batch": 6,
+          "retained": true,
+          "nsPerCallBatchAverage": 494.94325
+        },
+        {
+          "batch": 7,
+          "retained": true,
+          "nsPerCallBatchAverage": 496.11579999999833
+        },
+        {
+          "batch": 8,
+          "retained": true,
+          "nsPerCallBatchAverage": 496.6472999999979
+        }
+      ],
+      "checksum": 360000,
+      "cachedGet": {
+        "httpCallsBefore": 1,
+        "httpCallsAfter": 1,
+        "medianNs": 496.11579999999833,
+        "p95BatchAverageNs": 534.939
+      },
+      "refresh": [
+        {
+          "sample": 0,
+          "durationMs": 7.59770999999995,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0,
+            0,
+            0.0033270000000129585,
+            0.4158090000000243,
+            0.5331400000000031,
+            0.030687000000000353
+          ]
+        },
+        {
+          "sample": 1,
+          "durationMs": 5.65652799999998,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0,
+            0.8391619999999875,
+            0.06144700000004377,
+            0.06335699999999633,
+            0.025116999999966083
+          ]
+        },
+        {
+          "sample": 2,
+          "durationMs": 6.66079400000001,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0,
+            0.1252370000000269,
+            0.0579569999999876,
+            0.05614700000000994,
+            0.05921699999998964,
+            0.17301800000001322,
+            0
+          ]
+        },
+        {
+          "sample": 3,
+          "durationMs": 6.7547649999999635,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0,
+            0.06568700000002536,
+            0.06144699999998693,
+            0.06068700000002991,
+            0.05691699999999855,
+            0.20894799999996394
+          ]
+        },
+        {
+          "sample": 4,
+          "durationMs": 5.560665999999969,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0,
+            0.8592719999999758,
+            0.05897700000002715,
+            0.057256999999992786,
+            0.14389799999997877
+          ]
+        },
+        {
+          "sample": 5,
+          "durationMs": 6.475982999999985,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0,
+            0.1014369999999758,
+            0.05774700000000621,
+            0.05924700000002758,
+            0.06149699999997438,
+            0.12755800000002182
+          ]
+        },
+        {
+          "sample": 6,
+          "durationMs": 5.47657700000002,
+          "httpCalls": 1,
+          "eventLoopTimerExtraDelayMs": [
+            0.801872000000003,
+            0.06398699999999735,
+            0.07207699999997885,
+            0.037507000000005064
+          ]
+        }
+      ],
+      "refreshSummary": {
+        "durationMedianMs": 6.475982999999985,
+        "timerSampleCount": 39,
+        "maxTimerExtraDelayMs": 0.8592719999999758
+      },
+      "scope": "One Linux desktop process, one real web directory, private SQLite, real loopback HTTP delayed 5ms. Batch-average ns/op quantiles, not individual request latency. No registered pass threshold, no hardware or motion claim."
+    },
+    "cleanup": {
+      "cleanup": [
+        {
+          "name": "manager",
+          "closed": true
+        },
+        {
+          "name": "client",
+          "closed": true
+        },
+        {
+          "name": "database",
+          "closed": true
+        },
+        {
+          "name": "peer",
+          "closed": true
+        },
+        {
+          "name": "directory",
+          "closed": true
+        }
+      ],
+      "rootRemoved": true
+    },
+    "interpretation": "Two explicitly different source stages, no sample substitution. Quantiles concern batch average ns/op, not individual request P95. Final stage reran the same registered finite plan after adding reserved-path refresh work. No dedicated passing gate, motion, hardware or full-product performance claim."
+  },
+  "remaining": [
+    "Download, verified extraction, atomic install and persistent_files lifecycle",
+    "Web recovery and rollback deployment",
+    "Git/ZIP/executable providers and controlled system package provider",
+    "Actual Node release/core installation identity self-update; no Python venv/pip runtime dependency",
+    "Separate explicit decision for third-party Python application compatibility",
+    "Full mutation notifications/restarts/known-or-unknown deployment result lifecycle"
+  ],
+  "publication": "Records implementation and targeted validation; publication status is authoritative in Git and the pull request. Does not establish deployment or real-device acceptance."
+}

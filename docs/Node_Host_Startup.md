@@ -1321,6 +1321,37 @@ UI 整数直传原型因交错预算失败未采用，模板 ABI／协议保持�
 原始模板词法与不可变代际。源码／独立 JS 各 136 项及原桌面预算
 通过，初版退化保留，见[精确 JSON 记录](../host/contracts/http-exact-json-acceptance.json)。
 
+### Web 客户端更新状态与刷新
+
+配置可启用进程所有的 update_manager；须有进程数据库，目录为实际独立 Web 安装：
+
+```ini
+[update_manager]
+enable_system_updates: false
+enable_auto_refresh: false
+
+[update_manager mainsail]
+type: web
+path: ~/mainsail
+repo: mainsail-crew/mainsail
+channel: stable
+```
+
+本阶段支持 stable／beta；dev 明确告警并回落stable。优先严格读取release_info.json；
+文件损坏不回退，仅缺文件时读取.version及已知Mainsail／Fluidd manifest。路径须可写、
+无Git祖先，不能与进程配置／数据库／备份路径重叠。只刷新版本元数据，不修改安装目录。
+GET /machine/update/status（RPC machine.update.status）返回缓存、共享GitHub限额和version_info；
+refresh=true可要求刷新，仍受60秒节流及忙态约束。POST /machine/update/refresh接受可选name，
+启动未完成或打印／安装忙时503，其余串行刷新；成功持久化后延迟200ms广播notify_update_refreshed。
+两入口沿既有鉴权，GET不请求网络或启动子进程。首次刷新在监听启动后，退出取消并等待I/O，
+不在打印设备代际切换时重建，也不关闭借用的共享资源。
+
+moonraker／klipper状态目前为上游BaseDeploy的{}，指定refresh为无动作；不表示核心可更新。
+其余八个更新／恢复／回滚路由明确501，无部署效果。后续必须补齐实际下载、校验、安装、
+恢复／回滚和其他provider；核心自更新采用Node发布与现有安装身份，不能照搬Python venv／pip。
+本批定向验证、桌面有限轮询／刷新测量和完整剩余队列见
+[Web更新验收](../host/contracts/update-manager-web-acceptance.json)。
+
 标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
 通过内部 `httpClient` 接口供组件借用，`server.info` 发现该组件。
 它不增加供外部调用者传入任意 URL／目标路径的公共端点，也不改变
