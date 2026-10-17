@@ -110,6 +110,7 @@ export interface NativeProductProcessOptions extends Omit<NativeProductMachineOp
 }
 function overlapping(a:string,b:string):boolean {const rel=relative(a,b);return rel===''||!isAbsolute(rel)&&rel!=='..'&&!rel.startsWith('..'+sep);}
 async function plannedPath(input:string):Promise<string>{let current=resolve(input);const suffix:string[]=[];for(let depth=0;depth<128;depth++){try{return resolve(await realpath(current),...suffix);}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;const parent=dirname(current);if(parent===current)throw error;suffix.unshift(basename(current));current=parent;}}throw new Error('Storage path depth exceeded');}
+export {plannedPath as plannedProductStoragePath};
 function storageRoots(options:Pick<NativeProductMachineOptions,'filesRoot'|'metadataRoot'>){
  for(const path of [options.filesRoot,options.metadataRoot])if(typeof path!=='string'||!isAbsolute(path)||/[\0\r\n]/u.test(path))throw new TypeError('Native product storage requires absolute paths');
  const filesRoot=resolve(options.filesRoot),metadataRoot=resolve(options.metadataRoot);

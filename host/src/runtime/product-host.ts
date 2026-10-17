@@ -34,6 +34,8 @@ export interface ProductHostProfile {
 }
 export interface HostReloadContext {readonly reason:'initial'|HostReloadKind;}
 export interface ProductHostFactory {
+ /** Launcher-v1 waits for durable confirmation while the startup producer fence is held. */
+ readonly startupConfirmation?:true;
  configureLogging?(options:import('../moonraker/process-logs.ts').ProcessLoggingOptions):void;
  logLifecycle?(event:import('../moonraker/process-logs.ts').ProcessLogEvent,reason?:'initial'|'restart'|'firmware_restart'|'reinitialize'):void;
  /** Process inbox diagnostics; no mutation or filesystem capability. */
@@ -56,9 +58,9 @@ export interface ProductHostFactory {
 /** One process lifetime: load -> connect -> listen -> stop -> release dependencies.
  * Hardware stop does not close the API: keep durable outcomes and unavailable
  * hardware status observable until explicit process shutdown. No automatic reconnect or replay. */
-export async function runProductHost(factory:ProductHostFactory,signal:AbortSignal,ready:(address:AddressInfo)=>void,control?:ProductHostControl,listening?:(address:AddressInfo)=>void):Promise<void>{
+export async function runProductHost(factory:ProductHostFactory,signal:AbortSignal,ready:(address:AddressInfo,server:ConfiguredMoonraker)=>unknown,control?:ProductHostControl,listening?:(address:AddressInfo)=>void):Promise<void>{
  control??=new ProductHostControl();
- signal.throwIfAborted();if(typeof factory!=='function'||typeof ready!=='function'||factory.close!==undefined&&typeof factory.close!=='function'||factory.serverLifetime!==undefined&&factory.serverLifetime!=='process'||factory.serverLifetime==='process'&&!factory.close)throw new TypeError('Invalid product host callbacks');
+ signal.throwIfAborted();if(typeof factory!=='function'||typeof ready!=='function'||factory.startupConfirmation!==undefined&&factory.startupConfirmation!==true||factory.close!==undefined&&typeof factory.close!=='function'||factory.serverLifetime!==undefined&&factory.serverLifetime!=='process'||factory.serverLifetime==='process'&&!factory.close)throw new TypeError('Invalid product host callbacks');
  if(factory.bootstrap!==undefined&&(typeof factory.bootstrap!=='function'||factory.serverLifetime!=='process')||factory.resetFirmware!==undefined&&(typeof factory.resetFirmware!=='function'||factory.serverLifetime!=='process')||listening!==undefined&&typeof listening!=='function')throw new TypeError('Invalid product process bootstrap');
  let loggingFailed=false;
  const log:(event:import('../moonraker/process-logs.ts').ProcessLogEvent,reason?:'initial'|'restart'|'firmware_restart'|'reinitialize')=>void=(event,reason)=>{try{factory.logLifecycle?.(event,reason);}catch{loggingFailed=true;}};
@@ -98,7 +100,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
    const policies=reload.reason==='restart'||reload.reason==='firmware_restart'?new Map([...profile.policies].map(([id,p])=>[id,p.transport==='uart'?{...p,leaveBootloader:false}:p])):profile.policies;
    await control.configure(profile.recoveryJournal);signal.throwIfAborted();
    if(reload.reason==='firmware_restart'){if(!factory.resetFirmware)throw new Error('Firmware reset strategy unavailable');await factory.resetFirmware(profile,signal);signal.throwIfAborted();}
-   service=await startConfiguredMachineService(profile.reader,policies,profile.product,{...profile.options,hardware:{...profile.options.hardware,...reload.reason==='firmware_restart'?{firmwareRestart:true}:{}},serverLifetime:processLifetime?'process':'generation',existingServer:processServer,server:{...profile.options.server,temperatureStore:{...profile.options.server.temperatureStore,previous:temperatureHistory},productHostControl:control}},signal);
+   service=await startConfiguredMachineService(profile.reader,policies,profile.product,{...profile.options,hardware:{...profile.options.hardware,...reload.reason==='firmware_restart'?{firmwareRestart:true}:{}},serverLifetime:processLifetime?'process':'generation',existingServer:processServer,startupConfirmation:factory.startupConfirmation,server:{...profile.options.server,temperatureStore:{...profile.options.server.temperatureStore,previous:temperatureHistory},productHostControl:control}},signal);
    if(processLifetime)processServer??=service.server;
    temperatureHistory=undefined;
    service.printer.group.assertActive();signal.throwIfAborted();
@@ -118,7 +120,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
     // Fence producers synchronously before yielding to any HTTP request.
     printer.maintenanceGate.invalidate();machineAction=action;if(!action)reload.reason=kind;requested=Promise.withResolvers<void>();activeRequest=requested;change.resolve();return requested.promise;
    },validate,{kinds:processLifetime?['reinitialize','restart',...factory.resetFirmware?['firmware_restart' as const]:[],...factory.machineControl?machineRecoveryKinds:[]]:['reinitialize'],generationSignal:service.server.nativeGenerationSignal,maintenanceGate:service.printer.maintenanceGate,machineRetirement:action=>factory.machineControl!.retirement(action)});
-   releaseAcquisition?.();releaseAcquisition=undefined;log('device_ready',['initial','restart','firmware_restart','reinitialize'].includes(reload.reason)?reload.reason as 'initial'|'restart'|'firmware_restart'|'reinitialize':undefined);ready({...service.address});errors.length=0;completion?.resolve();completion=undefined;
+   await ready({...service.address},service.server);service.confirmStartup();releaseAcquisition?.();releaseAcquisition=undefined;log('device_ready',['initial','restart','firmware_restart','reinitialize'].includes(reload.reason)?reload.reason as 'initial'|'restart'|'firmware_restart'|'reinitialize':undefined);errors.length=0;completion?.resolve();completion=undefined;
    await Promise.race([stopped.promise,change.promise]);
    completion=requested;activeRequest=undefined;await closeGeneration();
    if(!requested)break;

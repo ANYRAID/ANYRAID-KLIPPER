@@ -3644,8 +3644,9 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 | 应用依赖接线候选 | Git应用HTTP／RPC及managed_services接通普通应用enable_node_updates与公开update_deps，锁驱动npm、连续版本／最新回滚与hard换根迁移 | 保留原首轮失败及限定补验；依赖一致且durable后进入服务。完整产品pipeline与原生构建仍开放 |
 | 下一实现 | 产品核心可信bundle pipeline与完整full协调器、Net应用及系统依赖薄port组合、未知服务结果受信对账 | 完整计划预检先于任一变更；不以占位preflight称full交付，不把人工系统包对账延伸为未知服务成功 |
 | 受管服务修复候选 | #74受管服务生命周期候选：普通服务顺序租约交接，设备退役后保持进程围栏，核心共进程别名合并一次真实afterResponse重启；本批修复退役请求身份与维护取消生命周期混用 | 184受影响104／104及独立产品进程3／3通过，后者复用native；保留前置构建失败及尚未复现的CI recover 409，修复头完整CI待确认。未知服务动作不重放，人工核对后的恢复出口仍待实现 |
-| 当前实现 | 在#76普通Git依赖生命周期基础上准备可信产品代际：固定repo＋commit＋配方摘要，隔离fresh TS／九addon／三helper／生产依赖，完整清单封存 | 184实际fresh一次成功，前两失败保留；最终guardian边界另验父退出／自身强杀／close，未知排空拒绝清理。准备不等于激活；普通应用A→B→C／最新回滚、同锁与hard迁移既有证据保留 |
-| 下一实现 | 固定launcher与代际指针、外部profile绑定／迁移、响应后真实重启、新进程确认和完整代际回滚；未知服务结果对账及其余update_manager | 已安装unit固定realpath，不以current软链接替换冒充激活。普通应用脚本／原生仍有边界；来源批准与内容摘要分开，不把任意checkout自签为可信产品。沿既有围栏／afterResponse，不直接systemctl或引入pip |
+| 已实现准备候选 | #80 b41b1a227：固定repo＋commit＋配方摘要的可信产品代际，隔离fresh TS／九addon／三helper／生产依赖及完整清单封存 | 保留184一次fresh与前两失败；最终guardian另验父退出／自身强杀／close，未知排空拒绝清理。准备证据不冒充激活或硬件 |
+| 当前实现 | 当前任务树正常组合#80 b41b1a227与#79 1c1787c32；固定独立launcher-v1、不可变全量代际、v2外部profile、公开核心HTTP／RPC共进程选择、真实响应交接、新进程耐久确认／最近confirmed回滚 | 184真实产品进程／PTY的A→B→C／rollback B、旧进程lazy／native／依赖绑定、确认故障producer fence和SIGKILL无重放；首轮失败及定向修复分开记录。JS重编译，native／生产依赖仅按已核指纹复用，未重复fresh |
+| 下一实现 | 自动受信来源准备→核心激活、完整full多部署协调、未知服务结果受信对账及其余update_manager | 本批提供本代await确认屏障供full组合；必须在释放startup lease前耐久关闭full，不能靠轮询同SHA推断成功。旧profile不自动改写；普通应用脚本／原生仍有限制，不直接systemctl或引入pip |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |

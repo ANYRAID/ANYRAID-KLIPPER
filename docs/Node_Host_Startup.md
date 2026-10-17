@@ -1554,9 +1554,44 @@ guardian自身被强杀不能证明孙进程已停，即使锁随后可取也拒
 默认CI不执行完整fresh：仅当显式提供`ANYRAID_TEST_PRODUCT_SOURCE`与JSON格式`ANYRAID_TEST_PRODUCT_BUILD_TOOLS`才启用，
 缺失会说明skip，不能把184工具链路径或结果当作CI覆盖。详见[产品准备验收](../host/contracts/product-update-preparation-acceptance.json)。
 
-本批不改变安装服务布局。现有unit的ExecStart／ExecStartPre固定realpath，不能靠切current软链接更新已安装服务；
-后续仍须固定launcher、代际指针、外部profile绑定／迁移、真实响应后的重启、新进程确认及失败回滚，完整核心更新尚未交付。
-未执行网络TLS、真实OS服务／设备、目标板或硬件验收。
+准备层本身不激活代际；实际选择与确认见下一节。未执行网络TLS、真实OS服务／设备、目标板或硬件验收。
+
+#### 固定 launcher 与产品代际激活候选
+
+`ProductGenerationStore` 与独立 `launcher-v1` 使用版本化磁盘协议1。固定包仅含launcher、两份仅依赖Node内置模块的协议／存储文件及sealed-file addon；
+不从可切换代际借用bootstrap，也不跨副本传递Control、Gate或Database实例。首次安装核对Node平台／架构／modules ABI，
+GNU libc版本不得低于候选记录的构建主机下限；允许同为GNU2.x的更新版本，拒绝musl、旧版本和未知major。
+此保守下限依据[GNU兼容性说明](https://sourceware.org/glibc/)与[2.38发布说明](https://sourceware.org/pipermail/libc-alpha/2023-July/150165.html)，
+数字反例验证不等于真实系统glibc升级验收。内容摘要用于绑定批准对象，来源批准仍由可信配置固定repo／commit／配方完成。
+
+受信本地CLI `scripts/product-generation-install.js` 的 `--initialize` 接收精确store、bootstrap路径／SHA、profile路径／SHA和generation路径／SHA，
+复制外部profile快照并准备首代；`--prepare`只接收批准generation路径／SHA。两者均不运行profile、不安装unit、不启动设备。
+`product-service-unit --generation-store /physical/private/store`只生成指向固定launcher的ExecStart／ExecStartPre，`Restart=no`；旧unit不会自动改写。
+profile必须导出`productGenerationProfileProtocol=1`和`createProductGenerationProfile(api)`，返回注入的当前代际factory。
+通过`api.moduleURL`读取当前代际模块；resolve hook也检查createRequire和lazy import，拒绝偷用旧bundle。它保证代际一致性，不是代码沙箱。
+公开files／metadata／config／disk-import根在bootstrap前复用物理planned-path核验，拒绝包含store／bootstrap／选中代际或落在其中，也拒绝symlink下的计划路径。
+旧profile原样拒绝并说明迁移需求。Node和外部机器配置保持在代际目录外；profile快照随安装固定，变更需显式迁移。
+
+准备复制整份已封存代码／native／生产node_modules到私有SHA目录，完整校验并fsync后才发布选择。
+运行进程一次解析物理目录，不读取可变current软链接；后续切换不改变旧进程的代码、原生库或延迟依赖。
+configured update_manager的`moonraker`／`klipper` HTTP与RPC更新别名共用同一次选择；回滚使用`machine.update.rollback {name}`。
+服务动作沿原Control与维护租约，经真实afterResponse绑定控制requestId；HTTP ok只是接受请求，OS提交也不是升级完成。
+新进程持运行锁、核nonce／PID／startTicks和完整代际，取得startup producer lease后才发布设备接入；
+实际ready链先await代际确认耐久写入，再await本代`confirmCoreStartup`屏障，最后释放lease。
+确认写失败时HTTP ready=false，G-code／上传／打印均被拒绝，设备停止且进程失败退出；未知或未确认启动不自动重放。
+服务响应未发送、控制unknown及未确认启动保留可解释持久状态。离线`--rollback`仅在无运行owner时显式选择已确认代际，不执行系统重启；无已确认首代时不伪造回滚。
+
+连续A→B→C自动保留最近current／previous，确认C耐久后才清理更旧A；清理意图先持久化，缺位可幂等收尾，不删正在引用的代际。
+Mainsail固定v2.19.0按`executable`标准字段消费：`version`／`remote_version`使用首次接纳SHA时耐久分配的`v0.0.N`本安装序号，
+重复prepare／refresh／restart不变，rollback复用原序号；它不是上游项目发布版本，完整可见版本串保留真实commit与代际SHA。
+内部current／previous／prepared／operation／running／last与启动证明继续可读。
+
+184隔离真实产品进程／PTY完成HTTP及WebSocket RPC的A→B→C／rollback B、旧进程lazy ESM／createRequire／native／依赖绑定、
+SIGKILL无重放、旧profile拒绝；确认写故障首轮发现ready发布及失败退出问题，定向修复后通过。
+候选JS重新编译，native84输入／12输出和生产lock匹配后复用既有产物，未重复fresh npm/native。默认CI的五场进程测试需显式
+`ANYRAID_TEST_PRODUCT_GENERATIONS`批准产物输入，否则明确skip；不可归作CI真实产品覆盖。
+详见[激活验收范围](../host/contracts/product-generation-activation-acceptance.json)。
+自动来源准备→公开激活、完整full多部署协调与未知服务受信对账仍须后续组合；本批未安装／重启真实服务，也不代替实机、目标板或硬件验收。
 
 标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
 通过内部 `httpClient` 接口供组件借用，`server.info` 发现该组件。
