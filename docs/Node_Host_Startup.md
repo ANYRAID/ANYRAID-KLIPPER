@@ -3891,6 +3891,45 @@ MCU 前缀、上拉和反相）、`debounce_delay`（0–60 秒，默认 0）、
 目前验证使用预编译 Node.js 26 产品和模拟 MCU。实际开关电气逻辑、
 抖动时长、耗材行程及目标板上的机械停稳时间仍需真机验收。
 
+### 受控加载与反向卸载首批
+
+可信机器 JSON profile 可选 `filamentRecipe`，未配置不注册操作。配方必须绑定实际
+`deviceId`、唯一 `extruder` 和两个不同的 `filament_switch_sensor 名称`；连接前验证
+机型绑定、开关拓扑、温度与实际挤出行程／速度限制。版本为 `version: 1`，
+`unloadMode` 固定为 `reverse_only`；公共字段为 `chunkLength`、`timeoutMs`，
+`load` 包含 `temperature`、正向最大 `seekDistance`、非负 `purgeDistance`、`speed`，
+`unload` 包含 `temperature`、负向最大 `seekDistance`、非正 `retractDistance`、`speed`。
+全部数值有有限值、符号、容量和配置边界检查；没有生产默认数值或 XY／切刀／擦嘴坐标。
+配方应由有实际材料依据的装配方提供，普通 API 不能覆盖温度、距离或速度。
+
+鉴权 `GET /printer/filament`（RPC `printer.get_filament`）只读状态，拒绝动作参数；
+`filament_operation` 对象可查询／订阅。显式 `POST /printer/filament`（RPC
+`printer.post_filament`）只接受 `version: 1`、`request_id`、查询得到的 `state_token`
+及 `action: load|unload`。取消使用 `POST /printer/filament/cancel`（RPC
+`printer.filament.cancel`），只传 `request_id`。重复请求重新授权且不能修改身份，
+相同 ID 的已保存回执不会再次送料。最多保存最近 64 份回执；旧令牌不会成为重放入口。
+
+操作占用既有 G-code 调度准入和同一维护租约，拒绝打印／维护并发、非零已有热目标及
+无效挤出比例。等待入口开关后沿现有加热稳定判定；每个小段经过原生运动排空，工具头
+开关到达／离开即结束最大寻料段，再执行独立定量清料／回抽。消抖未稳定时不继续送料，
+故可观测的开关转换后超程上限为一个配方 chunk；这不是机械实际停止距离证明。
+加载最终要求两开关有料；反向卸载最终等待两开关无料，可等待用户取出。
+长等待沿原有 idle clock checkpoint、同一调度 lane 和原期限／容差规则维护时钟；
+校准失败不得继续加热或送料。物理 E 距离／速度按当前比例换算，保留用户模态与其他热目标。
+
+取消、总期限、传感器失效或退役均停止本操作；已经受理的热／运动 I/O、停止 ACK 和
+持久化真实排空前不释放维护租约，迟到回调不能接续送料。仅关闭仍由本操作拥有的热目标；
+全局故障关断仍沿原安全所有者。失败或取消保留原终态，物理操作失败使设备维护门失效，
+需显式重新初始化；停止未确认不能伪报成功。未开始物理动作的取消回执表示无需物理停止。
+重开只将旧 pending 标为 interrupted，不自动加热、恢复或送料。
+
+Linux184 Node26.12 隔离串口模型已覆盖实际产品 HTTP／RPC／WS、双开关、热目标、
+模态隔离和真实关闭排空；新操作七场及产品三场分阶段覆盖，既有回归34／34，标准类型检查通过。
+首轮失败及限定补验见[验收契约](../host/contracts/consumer-filament-operations-acceptance.json)。
+这里没有真实 MCU／电气／机械试验、同包页面或目标板性能精度验收；三份历史包系列归属仍未确认。
+`reverse_only` 不是完整切刀卸料；原 LOAD／SCREEN／UNLOAD 文本宏、擦嘴和打印准备仍有差额，
+见[宏场景](Node_Host_Macro_Scenarios.md#受控加载与反向卸载首批)。
+
 ### 编码器式堵料检测
 
 原生入口支持 `[filament_motion_sensor 名称]`，必填 `switch_pin` 和

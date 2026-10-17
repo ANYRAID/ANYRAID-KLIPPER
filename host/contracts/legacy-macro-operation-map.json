@@ -2,7 +2,7 @@
   "version": 1,
   "sourceRevision": "6ad9f5950ad0a6e1b45d68866484fddce342aa21",
   "inventory": "legacy-macro-source-inventory.json",
-  "status": "static-preparation-only",
+  "status": "partial-runtime-candidate",
   "seriesIdentity": "unconfirmed",
   "effectiveMacroUnionCount": 48,
   "ownerHashes": [
@@ -137,10 +137,13 @@
       ],
       "existingOwners": [
         "host/src/runtime/product-motion-printer.ts",
-        "host/src/inputs/filament-switch.ts"
+        "host/src/inputs/filament-switch.ts",
+        "host/src/operations/filament-operation.ts",
+        "host/src/runtime/product-filament.ts",
+        "host/src/moonraker/native-filament.ts"
       ],
-      "migrationStatus": "not-implemented",
-      "gap": "检测输入已有；等待挤出机开关、加热送料、等待工具头开关、清料和擦嘴的持久受控操作尚缺。",
+      "migrationStatus": "partial",
+      "gap": "首批typed操作已覆盖双开关、现有温控稳定、最大寻料后独立清料、期限和耐久取消；旧LOAD/SCREEN文本宏、擦嘴及可信系列配方和机型验收仍缺。",
       "acceptance": "每个等待阶段有期限、取消及停止确认；传感器抖动、缺料、迟到回调、重复请求和重启不送料。"
     },
     {
@@ -154,10 +157,13 @@
       ],
       "existingOwners": [
         "host/src/runtime/product-motion-printer.ts",
-        "host/src/operations/maintenance-gate.ts"
+        "host/src/operations/maintenance-gate.ts",
+        "host/src/operations/filament-operation.ts",
+        "host/src/runtime/product-filament.ts",
+        "host/src/moonraker/native-filament.ts"
       ],
-      "migrationStatus": "not-implemented",
-      "gap": "尚缺切刀路径、加热退料、工具头开关检查和取料等待的受控操作；不复制原坐标为机器策略。",
+      "migrationStatus": "partial",
+      "gap": "首批reverse_only覆盖有限反向寻料、离开工具头开关后定量回抽及取料等待；切刀完整卸料、旧文本宏、可信系列配方与机械验收仍缺。",
       "acceptance": "切刀与刷子机械边界、离开模型再下降、冷热挤出、等待超时、取消所有回调、断电恢复。"
     },
     {
@@ -297,5 +303,10 @@
       "gap": "已有停车和版本化机器数据；需将辅助用途并入对应 typed 操作，未核对的 M8/G9 不能自动翻译。",
       "acceptance": "拒绝任意脚本与未支持命令、冷挤出、模态隔离、配置范围和零副作用的迟到授权。"
     }
-  ]
+  ],
+  "currentImplementation": {
+    "baseline": "84381e9960ef0a7b793b5c8395587800910f5089",
+    "contract": "consumer-filament-operations-acceptance.json",
+    "historicalOwnerHashes": "ownerHashes remain bound to sourceRevision; current source hashes are in the acceptance contract"
+  }
 }

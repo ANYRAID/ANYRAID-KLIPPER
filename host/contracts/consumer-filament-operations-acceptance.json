@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "baseline": "84381e9960ef0a7b793b5c8395587800910f5089",
+  "branch": "devac/consumer-filament-operations",
+  "status": "partial-runtime-candidate",
+  "seriesIdentity": "unconfirmed",
+  "scope": "Trusted optional single-extruder load and reverse_only unload on actual product owners; no legacy text macro aliases, XY/cutter/wipe recipe or full consumer workflow",
+  "environment": {
+    "host": "10.0.0.184 isolated directory",
+    "node": "26.12.0",
+    "nodeSha256": "caa24debe02770c92a70677e2a62ca98890150e7ac1c17bcfe31bcc98cc89943",
+    "lockSha256": "660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6",
+    "nativeReuse": "final-032dd-fix2-product/host/build",
+    "nativeSealedSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+    "actualHardware": false,
+    "realServices": false
+  },
+  "implemented": [
+    "Strict recipe/device/switch/temperature/travel/speed and exact per-stage chunk-count validation before connect; current modal factors finite and positive before heating",
+    "Actual product HTTP/RPC and WS native object; repeated requests reauthorize and do not replay",
+    "Shared dispatch admission, maintenance lease, actual debounced enabled/open switches, existing heater stability and native E drain",
+    "Seek is a maximum; switch transition ends seek before separate exact purge/retract; settling input blocks next chunk",
+    "Long waits checkpoint existing idle clocks in same dispatch lane without changing tolerances or deadlines",
+    "Accepted journal/heater/motion and stop ACK drain retain fence; close joins late callbacks; owned target off preserves other heater/modal state",
+    "Durable pending reopens interrupted without heater/feed replay; cleanup cannot turn failure/cancel into success"
+  ],
+  "phases": [
+    {
+      "name": "typecheck-v1",
+      "result": "failed",
+      "reason": "TS18048 optional filament closure; fixed definite existing binding"
+    },
+    {
+      "name": "typecheck-v2",
+      "result": "failed",
+      "reason": "TS2554 test EndpointRegistry missing JsonRpcDispatcher; fixture corrected"
+    },
+    {
+      "name": "focused-v1",
+      "tests": 9,
+      "pass": 6,
+      "fail": 3,
+      "cancelled": 0,
+      "durationMs": 19958.529663,
+      "reason": "Retry authority assertion hit outer registry wrapper; fixture G-code disabled; fixture sampled retired MCU group. Direct retry authorization assertion and enabled/ready guarded fixture corrected"
+    },
+    {
+      "name": "focused-v2",
+      "tests": 4,
+      "pass": 3,
+      "fail": 1,
+      "cancelled": 0,
+      "durationMs": 9961.080372,
+      "reason": "M221 S0 already rejected by parser; invalid factor defense tested through read-only coordinate-state injection instead"
+    },
+    {
+      "name": "focused-v3",
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "durationMs": 11234.076929,
+      "reason": "Actual operations completed; WS fixture lacked authorizeNotification. Explicit notification authorization added"
+    },
+    {
+      "name": "focused-v4",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "durationMs": 5202.139073
+    },
+    {
+      "name": "regression",
+      "tests": 34,
+      "pass": 34,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 8522.877133
+    },
+    {
+      "name": "clock",
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 5200.239011,
+      "scope": "Finite checkpoint failure plus actual HTTP/RPC/WS"
+    },
+    {
+      "name": "boundary-launch-failure",
+      "result": "not-started",
+      "reason": "Shell redirection target absent; corrected without changing test"
+    },
+    {
+      "name": "boundary",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 114.802544,
+      "scope": "ceil(abs(seek)/chunk)+ceil(abs(finish)/chunk)<=256; 128.1+127.1 with chunk1 rejected"
+    },
+    {
+      "name": "typecheck-v3/v4/final/clock/boundary",
+      "result": "passed",
+      "command": "node scripts/run-typescript.ts -p tsconfig.json"
+    }
+  ],
+  "coverage": "Seven operation tests and three product tests covered in overlapping finite phases; counts are not summed. Actual close test joins native pending drain and actual MCU stop ACK; no hardware proof.",
+  "sourceHashes": [
+    {
+      "file": "host/src/config/filament-recipe.ts",
+      "sha256": "4d4444e6378dd362b13b7bc3b27646ff35f73202e927e05d5151c820e6abf6e3"
+    },
+    {
+      "file": "host/src/operations/filament-operation.ts",
+      "sha256": "0f18f8e0631e2f4df4863abc2ef208216e52c650b3dfca68d903518bf0108f18"
+    },
+    {
+      "file": "host/src/moonraker/native-filament.ts",
+      "sha256": "f00d191eaa952702dc8e7171832386d52534ee717753ef42f6abab0c8bd0292c"
+    },
+    {
+      "file": "host/src/runtime/product-filament.ts",
+      "sha256": "6c443e06de47786df068048b874bfcbd16062f8b70946d9467c50bdae3457709"
+    },
+    {
+      "file": "host/src/config/product-machine.ts",
+      "sha256": "681609b4b72dc336f11364a7888ede7bae820a8e5dcda0f3a823bb8c7a2d717a"
+    },
+    {
+      "file": "host/src/runtime/product-machine-profile.ts",
+      "sha256": "3b4fc29daa42f2cadb127eb5b820d1ccabb2682fd6ad93e15c3dcb5ff0db080a"
+    },
+    {
+      "file": "host/src/runtime/product-motion-printer.ts",
+      "sha256": "9dc979280d6e487fa7247c02845e58af0103e0ac7abac7f8876b3cee8cc0c740"
+    },
+    {
+      "file": "host/src/runtime/product-service.ts",
+      "sha256": "9659d6e4b693a80f123cf72b9baea37464d66e7d4b7828c0ad098b16151c31a7"
+    },
+    {
+      "file": "host/src/runtime/product-objects.ts",
+      "sha256": "5260c86af018b2d2799335c123c58201fa3d563714c0537d06b38e38668db213"
+    },
+    {
+      "file": "host/src/thermal/async-heaters.ts",
+      "sha256": "19e2eae030af09068dad8b16c71a4deeeddf5143c1cb7d62c1aa59d13d336203"
+    },
+    {
+      "file": "host/src/inputs/filament-switch.ts",
+      "sha256": "52ca187b95d29a947a1e474ab2ae0d2176c220ea9fca2a8df2d607cd8e27b11e"
+    },
+    {
+      "file": "host/test/filament-operation.test.ts",
+      "sha256": "ffe95973affa50aee728cf7eee8c9788ec1cebcd8100daf10588a3ee119fa2da"
+    },
+    {
+      "file": "host/test/product-filament.test.ts",
+      "sha256": "c68726923a8b2e9481b12d962862294239f15fedcb858dd3b0be14d311ea6978"
+    }
+  ],
+  "priorClockSourceHashesFile": ".cache/filament/filament-source.sha256",
+  "finalDelta": "After clock acceptance only recipe separate-stage chunk-count validation and its existing boundary test changed. Final typecheck plus that single test passed.",
+  "legacyInputs": [
+    {
+      "file": "中高配配置文件.zip",
+      "sha256": "f2530ec9386660f08b575d64f7f4c4d50e174a47f69fc874231f7c41166ce091"
+    },
+    {
+      "file": "低配机器配置文件.zip",
+      "sha256": "836e6f36cf5ae3c12214f31a1c27a0bf1df24ea9322f62cbfec1f94c03d3dc96"
+    },
+    {
+      "file": "高坚果配置文件.zip",
+      "sha256": "9b0a31b21b7a4f2e5ce56e6b6d024d6b6fd065e13327688fc2f52b29bcae40fa"
+    }
+  ],
+  "legacyEvidence": "Current read-only ZIP hashes match historical inventory; no new full inventory export or series confirmation. Historical ownerHashes remain sourceRevision6ad9f595.",
+  "limits": [
+    "reverse_only excludes cutter/wiper/XY and full legacy macro or screen workflow",
+    "Trusted current-series production numeric recipe, board/sensor wiring and physical stopping evidence still missing",
+    "Timeout remains cancelled with explicit cancelled-or-timed-out error; physical failure invalidates maintenance and needs explicit reinitialization",
+    "A cancelled request before physical begin requires no physical stop; no proof of stopping hardware is inferred",
+    "No actual device, deployment, compiled bundle, new native build, sanitizer, full CI, page or target performance/precision acceptance"
+  ],
+  "evidence": ".cache/filament/receipt.json (local only): original stdout/stderr, commands and SHA256; transfer archives excluded"
+}

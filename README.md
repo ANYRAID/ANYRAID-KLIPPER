@@ -22,6 +22,8 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+可信机器profile可选配置首批受控加载／反向卸载：实际双开关、温控、运动排空与维护门共用，支持耐久回执、取消和重启不重放。
+这不是完整切刀／擦嘴宏或机型验收；系列身份仍未确认，见[操作与配方边界](docs/Node_Host_Startup.md#受控加载与反向卸载首批)。
 配置 update_manager 后可通过鉴权HTTP／RPC读取Web版本、刷新GitHub元数据并实际更新／本地回滚Web客户端；
 下载校验、持久文件保留和中断目录一致性恢复已接线；Git应用候选接入实际更新／回滚／显式恢复及managed_services，
 恢复公开参数为update_deps：启用enable_node_updates的普通Git应用可强制准备锁定生产依赖，未启用时true返回501；内部名force_dep_update作为公开字段返回400。

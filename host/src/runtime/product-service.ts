@@ -1,3 +1,7 @@
+import {FilamentOperation} from '../operations/filament-operation.ts';
+import {createProductFilament} from './product-filament.ts';
+import {registerNativeFilament} from '../moonraker/native-filament.ts';
+import {validateFilamentRecipeBinding} from '../config/filament-recipe.ts';
 import {loadWelcomeSource} from '../moonraker/welcome-application.ts';
 import {registerNativeDualCarriage} from '../moonraker/native-dual-carriage.ts';
 import {registerNativeLayerPause} from '../moonraker/native-layer-pause.ts';
@@ -108,7 +112,9 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
  if(options.existingServer){options.existingServer.assertNativeReuse(configPath,processServer);const state=options.existingServer.nativeGenerationStatus;if(!state?.detached||!state.drained||state.attaching||state.state!=='stopped')throw new Error('Existing native printer has not retired');}
  const screwsStatus=new ScrewsCalibrationStatus();
  const deltaPlan=readDeltaCalibrationPlan(reader),deltaState=readDeltaCalibrationState(reader);
+ if(product.filamentRecipe){validateFilamentRecipeBinding(reader,product.filamentRecipe,product.journal.identity.deviceId,product.limits.maxNozzle);if(!serverOptions.database)throw new Error('Filament operations require the durable process database');}
  const printer=await connect();
+ let filament:FilamentOperation|undefined,closeFilament:(()=>Promise<void>)|undefined;
  let closeGcodeHelp:(()=>void)|undefined;
  let closeGcodeOutput:(()=>void)|undefined;
  let closeDeltaCalibration:ReturnType<typeof registerNativeDeltaCalibration>|undefined;
@@ -147,7 +153,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   closeLayerPause?.();
   const driverCurrentClosed=closeDriverCurrent?.(),endstopPhaseClosed=closeEndstopPhase?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
-  const jobs:Promise<void>[]=[];if(apiRetired)jobs.push(apiRetired);if(closeCarriage)jobs.push(closeCarriage());if(closeAdaptiveMesh)jobs.push(closeAdaptiveMesh());if(closeMeshSelection)jobs.push(closeMeshSelection());if(closeManualMesh)jobs.push(closeManualMesh());if(closeManualDelta)jobs.push(closeManualDelta());if(closeDeltaCalibration)jobs.push(closeDeltaCalibration());if(closeBedScrews)jobs.push(closeBedScrews());if(closeScrews)jobs.push(closeScrews());if(closeManualScrews)jobs.push(closeManualScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);try{jobs.push(printer.close());}catch(error){jobs.push(Promise.reject(error));}
+  const jobs:Promise<void>[]=[];if(closeFilament)jobs.push(closeFilament());else if(filament)jobs.push(filament.close());if(apiRetired)jobs.push(apiRetired);if(closeCarriage)jobs.push(closeCarriage());if(closeAdaptiveMesh)jobs.push(closeAdaptiveMesh());if(closeMeshSelection)jobs.push(closeMeshSelection());if(closeManualMesh)jobs.push(closeManualMesh());if(closeManualDelta)jobs.push(closeManualDelta());if(closeDeltaCalibration)jobs.push(closeDeltaCalibration());if(closeBedScrews)jobs.push(closeBedScrews());if(closeScrews)jobs.push(closeScrews());if(closeManualScrews)jobs.push(closeManualScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);try{jobs.push(printer.close());}catch(error){jobs.push(Promise.reject(error));}
   void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);server?.confirmNativeRetirement(errors.length?'failed':'stopped');if(errors.length)done.reject(new AggregateError(errors,'Product printer cleanup failed'));else done.resolve();}).catch(done.reject);return retiring;
  };
  const close=():Promise<void>=>{
@@ -162,8 +168,9 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   signal.throwIfAborted();
   if(zTilt){const z=printer.initial.emitters.filter(e=>e.mode==='z');if(z.length!==zTilt.motors.length||z.some(e=>!zTilt.motors.some(m=>m.id===e.id))||!printer.hardware.plan.homing.some(h=>h.section==='probe'||h.section==='bltouch'))throw new Error('Configured Z tilt hardware ownership differs');}
   if(quad){const z=printer.initial.emitters.filter(e=>e.mode==='z');if(z.length!==quad.motorIds.length||z.some(e=>!quad.motorIds.includes(e.id))||!printer.hardware.plan.homing.some(h=>h.section==='probe'||h.section==='bltouch'))throw new Error('Configured Quad gantry hardware ownership differs');}
-  const ownedServer={...processDefaults,productPrint:printer.controller,productPressure:printer.print.gcode.pressureAdvance,maintenanceGate:printer.maintenanceGate,nativeHost,nativeObjects:productObjects(printer,nativeHost,serverOptions.nativeUploads?id=>serverOptions.nativeUploads!.filename(id):undefined,!!zTilt,!!quad,screws?()=>screwsStatus.status:undefined)};
-  const configureRoutes=()=>{const target=server!;
+  if(product.filamentRecipe)filament=await createProductFilament(reader,printer,product.filamentRecipe,serverOptions.database!);
+  const ownedServer={...processDefaults,productPrint:printer.controller,productPressure:printer.print.gcode.pressureAdvance,maintenanceGate:printer.maintenanceGate,nativeHost,nativeObjects:productObjects(printer,nativeHost,serverOptions.nativeUploads?id=>serverOptions.nativeUploads!.filename(id):undefined,!!zTilt,!!quad,screws?()=>screwsStatus.status:undefined,filament?()=>filament!.snapshot():undefined)};
+  const configureRoutes=()=>{const target=server!;if(filament)closeFilament=registerNativeFilament(target.endpoints,filament);
   closeLayerPause=registerNativeLayerPause(target.endpoints,new PrintLayerPause(printer.controller,printer.print.file,printer.print.gcode.layers));
   closeGcodeHelp=target.endpoints.register({endpoint:'/printer/gcode/help',methods:['GET']},()=>printer.print.gcode.dispatch.commandHelp());
   closeGcodeOutput=printer.print.gcode.dispatch.observeOutput(response=>target.recordNativeGcodeResponse(response));
