@@ -3623,6 +3623,11 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 新头完整 CI 待执行；运动 workflow 的路径条件
 未命中此批，不能将其记为当前头成功。
 
+本批#74的Node CI保留5515／5548（33失败）。已复现并修复退役attach把设备请求身份signal换成进程signal的共同回归，
+内部维护取消另绑存活进程，普通旧代际身份检查保持。184 Node26.12受影响八文件104／104及标准typecheck通过；
+当前TS独立编译产品、复用native并fresh生产依赖后的实际安装进程文件3／3通过。前置缺Rust、缺npm-cli及Rust ICE失败原样保留，
+不称fresh native构建通过。CI另一个managed recover 409在限定场未复现，已补错误响应体诊断，修正头完整CI仍待执行。
+
 ### 唯一实现队列与提速规则
 
 | 顺序 | 用户可见交付结果 | 退出条件 |

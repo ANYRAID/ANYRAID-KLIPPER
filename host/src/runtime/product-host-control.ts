@@ -30,7 +30,7 @@ export class ProductHostControl {
  #standards=new Map<StandardReloadKind,{token:string;id:string;admission:Promise<RecoveryRecord>}>();
  #machines=new Map<MachineRecoveryKind,{token:string;id:string;service?:string;admission:Promise<RecoveryRecord>}>();
  #requests=new Map<string,RecoveryRecord>();#journal:HostRecoveryJournal|undefined;#identity:string|undefined;#configured=false;#storageFault:unknown;#closed=false;#tasks=new Set<Promise<unknown>>();
- #maintenanceGate:MaintenanceGate|undefined;#machineRetirement:((action:MachineAction)=>MachineRetirement)|undefined;
+ #maintenanceGate:MaintenanceGate|undefined;#maintenanceSignal:AbortSignal|undefined;#machineRetirement:((action:MachineAction)=>MachineRetirement)|undefined;
  #counts=new Map<keyof typeof recoveryCapacity,number>();
  #handler:((kind:HostReloadKind,service?:string,maintenance?:HostMaintenanceContext)=>Promise<void>)|undefined;#pending:Promise<void>|undefined;#pendingService:string|undefined;
  #count(kind:keyof typeof recoveryCapacity){return this.#counts.get(kind)??0;}
@@ -74,8 +74,10 @@ export class ProductHostControl {
   if(action.kind==='server_restart'&&typeof afterResponse!=='function'||afterResponse!==undefined&&typeof afterResponse!=='function')throw new RestartAdmissionError(409,'Server restart requires a real response handoff');
   if(!this.#handler||this.#closed||this.#storageFault||this.#pending||this.#remoteBusy)throw new RestartAdmissionError(409,'Maintenance control is unavailable or busy');
   const gate=this.#maintenanceGate;if(!gate||!gate.owns(lease))throw new RestartAdmissionError(409,'Maintenance lease does not belong to the current host generation');
-  const owned:OwnedMaintenance={gate,lease:gate.transfer(lease),token:this.#token,signal:this.#generationSignal,responseHandoff:afterResponse!==undefined,done:Promise.withResolvers<MaintenanceActionResult>(),dispatched:false,settled:false,beforeDispatch,associationAbort:new AbortController()};
-  let admission:Promise<RecoveryRecord>;try{admission=this.#requestMachineAction(action,this.#generationSignal,false,afterResponse,owned);}catch(error){this.#completeMaintenance(owned,'admission');admission=Promise.reject(error);}
+  const owned:OwnedMaintenance={gate,lease:gate.transfer(lease),token:this.#token,signal:this.#maintenanceSignal,responseHandoff:afterResponse!==undefined,done:Promise.withResolvers<MaintenanceActionResult>(),dispatched:false,settled:false,beforeDispatch,associationAbort:new AbortController()};
+  // A retired device may still have a live process maintenance owner. Keep its
+  // request identity while the separate maintenance lifetime gates dispatch.
+  let admission:Promise<RecoveryRecord>;try{admission=this.#requestMachineAction(action,this.#generationSignal,this.#generationSignal?.aborted,afterResponse,owned);}catch(error){this.#completeMaintenance(owned,'admission');admission=Promise.reject(error);}
   void admission.catch(()=>{if(!owned.dispatched)this.#completeMaintenance(owned,this.#storageFault?'storage':'admission');});
   return Object.freeze({admission,completion:owned.done.promise});
  }
@@ -140,8 +142,8 @@ export class ProductHostControl {
   }catch(error){failure=this.#storageFault?'storage':this.#closed||record.state_token!==this.#token||maintenance?.signal?.aborted?'generation':uncertainMachineResult(error)?'uncertain':'action';if(!this.#storageFault)await this.#save({...record,state:uncertainMachineResult(error)?'interrupted':'failed',error:uncertainMachineResult(error)?'System action result is unknown; inspect the daemon and do not replay this request':'Reinitialization failed; inspect host readiness and process error'});}
   finally{if(maintenance?.association)await Promise.allSettled([maintenance.association]);this.#remoteBusy=false;if(maintenance)this.#completeMaintenance(maintenance,this.#storageFault?'storage':failure);}
  }
- attach(handler:(kind:HostReloadKind,service?:string,maintenance?:HostMaintenanceContext)=>Promise<void>,validate:(kind:HostReloadKind,service?:string,maintenance?:HostMaintenanceContext)=>void=()=>{},options:{kinds?:readonly HostReloadKind[];generationSignal?:AbortSignal;maintenanceGate?:MaintenanceGate;machineRetirement?:(action:MachineAction)=>MachineRetirement}={}):()=>void{
-  if(this.#handler||this.#closed)throw new Error('Product host control already owned or closed');this.#handler=handler;this.#validate=validate;this.#token=randomUUID();this.#kinds=new Set(options.kinds??['reinitialize','restart']);this.#generationSignal=options.generationSignal;this.#maintenanceGate=options.maintenanceGate;this.#machineRetirement=options.machineRetirement;
+ attach(handler:(kind:HostReloadKind,service?:string,maintenance?:HostMaintenanceContext)=>Promise<void>,validate:(kind:HostReloadKind,service?:string,maintenance?:HostMaintenanceContext)=>void=()=>{},options:{kinds?:readonly HostReloadKind[];generationSignal?:AbortSignal;maintenanceSignal?:AbortSignal;maintenanceGate?:MaintenanceGate;machineRetirement?:(action:MachineAction)=>MachineRetirement}={}):()=>void{
+  if(this.#handler||this.#closed)throw new Error('Product host control already owned or closed');this.#handler=handler;this.#validate=validate;this.#token=randomUUID();this.#kinds=new Set(options.kinds??['reinitialize','restart']);this.#generationSignal=options.generationSignal;this.#maintenanceSignal=options.maintenanceSignal??options.generationSignal;this.#maintenanceGate=options.maintenanceGate;this.#machineRetirement=options.machineRetirement;
   return ()=>{if(this.#handler===handler){this.#queuedCancel?.();this.#handler=undefined;}};
  }
  reinitialize():Promise<void>{
