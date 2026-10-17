@@ -256,5 +256,98 @@
       "No Node dependency transaction, core update, full provider, real services, hardware or deployment proof"
     ],
     "localReceipt": "C:/Devs/Codex/from-184/.cache/codex/tmp/anyraid-managed-service-updates/.cache/managed-services/receipt.json"
+  },
+  "ciRegressionRepair": {
+    "schema": 1,
+    "baseline": "5d1c066a6322eed1e5c4bc8976dcf69f07cd54fe",
+    "ci": {
+      "run": 39063725783,
+      "job": 117486876351,
+      "tests": 5548,
+      "passed": 5515,
+      "failed": 33
+    },
+    "rootCause": "Retired host attach replaced the native request identity signal with the process lifetime signal; explicit HTTP/RPC recovery failed identity admission. Separate maintenanceSignal now retains process cancellation without changing request identity.",
+    "reproduction": {
+      "exactBaseline": "repro-74-head.stdout: native restart failed 503 != 200; managed default passed",
+      "managed409": "CI recover 409 was not reproduced by exact-baseline single case, full 8-case managed file, or repaired 104-case affected batch. Remains unconfirmed; assertion now includes response body. No admission relaxation or retry added."
+    },
+    "tests": {
+      "runtime": "10.0.0.184 Node v26.12.0",
+      "affected": {
+        "files": 8,
+        "tests": 104,
+        "passed": 104,
+        "failed": 0,
+        "cancelled": 0,
+        "durationMs": 103499.813101,
+        "stdout": "ci74-affected.stdout"
+      },
+      "compiledProduct": {
+        "file": "service-installation-process.test.ts",
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "cancelled": 0,
+        "durationMs": 15483.020875,
+        "stdout": "ci74-service-product.stdout",
+        "identity": {
+          "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/managed-service-updates/ci74-product",
+          "manifestSha256": "3254879ca12066138425197897894ecf0e8f6f22bda745ca5ea63f9049a1d382",
+          "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+        },
+        "scope": "Current TypeScript compiled into independent product; existing native outputs reused; fresh production-only dependencies; actual product processes, HTTP, /proc, injected CLI/helper and PTY devices. No real service or device mutation."
+      },
+      "typecheck": {
+        "exit": 0,
+        "stdout": "ci74-typecheck.stdout"
+      },
+      "earlierProductFailures": [
+        "ci74-service-process.stdout: three blocked before behavior by missing Rust toolchain path",
+        "ci74-service-process-tools.stdout: first two lacked npm-cli in Node distribution; third fresh Rust build ICE/SIGABRT in serde_json. Both failures retained; native fresh-build completion not claimed."
+      ],
+      "postTestDiagnosticOnlyChange": {
+        "path": "host/test/update-managed-services.test.ts",
+        "testedSha256": "804bb78b4d338b3b14c418522dae86a3a1d63d54c55ec047587f85a2baa66191",
+        "currentSha256": "7317a168173b94f452299a991463d08490e4637add133778eea8df7be47345c2",
+        "change": "Keep recover result then add its body to existing 200 assertion. Success path and expectation unchanged; 104 tests not repeated."
+      }
+    },
+    "sourceSha256": {
+      "host/src/runtime/product-host-control.ts": "2373e348f031b670cf72769ceeb4ef3568ed28a07bc1b7ce1cc18bf1b1ccdb82",
+      "host/src/runtime/product-host.ts": "677326bbff12bb871848fe83a9a2effa4856e0c7893c69551443e58e367382b1",
+      "host/test/maintenance-host-control.test.ts": "206a073e14ea00311656d65bab796e5c68e89a051214c577fd398b226dd2af87",
+      "host/test/update-managed-services.test.ts": "7317a168173b94f452299a991463d08490e4637add133778eea8df7be47345c2"
+    },
+    "logSha256": {
+      "ci74-affected.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-affected.stdout": "1777d7478b192375701747d378ad700c9786df9755d1f725685ac21d5a3de49b",
+      "ci74-failures.log": "6039e4a7cf7933eb985db2951461e9daaddc7e84c1846f560444ebb0667105d5",
+      "ci74-fingerprints.stdout": "013ccd3371ca3d70ab1cc1eed0bff56c090229c8ccfd30a48531b21c7e939623",
+      "ci74-product-install.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-product-install.stdout": "b132601d2d34c36a24d268b7bcd69712050a42df223c0c54de2f7cb1a832e627",
+      "ci74-product-run.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-product-run.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-service-process-tools.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-service-process-tools.stdout": "7c87cc946633a81f1844c4a51b1c17b9691754f3e541c5283b8262e3b3e1b4f9",
+      "ci74-service-process.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-service-process.stdout": "70e58cc01bc3e96919ff7c88e73e8293decc53e7749a785333d5f389fd6fce7c",
+      "ci74-service-product.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-service-product.stdout": "cc16efe6110e803e887832adc5ffe154ffc9f3cf8d17ae8ed7ba4c34965e62d1",
+      "ci74-typecheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-typecheck.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "repro-74-head.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "repro-74-head.stdout": "865f2edecc5e415f75d70efd0daef9b793975044326e00bdb0504d847db2cfa3",
+      "repro-74-managed.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "repro-74-managed.stdout": "f677f6ce7d546b154731de2884ea044913047fb191f045abd560c39754b9dc96",
+      "repro-74.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "repro-74.stdout": "b5cb87f6a56b424d448f3530456789cd8e791246f29f102fb9b8b33940453399"
+    },
+    "limits": [
+      "Full CI must rerun on the repaired head; prior 33 failures remain historical evidence.",
+      "Managed recover 409 remains unconfirmed until diagnostic CI outcome.",
+      "No fresh native build success, sanitizer rerun, hardware or production deployment proof."
+    ],
+    "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/ci74-repair/receipt.json"
   }
 }

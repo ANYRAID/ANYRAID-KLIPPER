@@ -10,6 +10,19 @@ import {MachineActionUncertain} from '../src/moonraker/machine-control.ts';
 const turn=()=>new Promise<void>(r=>setImmediate(r));
 const action={kind:'service',action:'restart',service:'crowsnest'} as const;
 function fenced(gate:MaintenanceGate){assert.equal(gate.status.maintenance||gate.status.closed,true);for(let i=0;i<3;i++)assert.throws(()=>gate.activity());}
+test('retired device request identity and live process maintenance lifetime stay separate',async()=>{
+ const control=new ProductHostControl(),device=new AbortController(),processOwner=new AbortController(),gate=new MaintenanceGate();let calls=0,returned:MaintenanceLease|undefined;
+ device.abort();control.attach(async()=>{calls++;},()=>{},{kinds:['restart','service_restart'],generationSignal:device.signal,maintenanceSignal:processOwner.signal,maintenanceGate:gate});
+ try{
+  await assert.rejects(control.requestRestart(processOwner.signal,true,()=>assert.fail()),/retired device/);
+  await assert.rejects(control.requestRestart(device.signal,false,()=>assert.fail()),/retired device/);
+  const restart=await control.requestRestart(device.signal,true,cb=>cb(true));await turn();assert.equal(control.operation(restart.request_id)?.state,'succeeded');
+  const handle=control.requestMaintenanceAction(action,gate.acquireLease());await handle.admission;const completed=await handle.completion;returned=completed.lease;
+  assert.equal(completed.operation?.state,'succeeded');assert.equal(calls,2);assert(returned&&gate.owns(returned));
+  processOwner.abort();const stopped=control.requestMaintenanceAction(action,returned);returned=undefined;await assert.rejects(stopped.admission,/ownership changed/);const denied=await stopped.completion;
+  assert.equal(calls,2);assert.equal(denied.fenced,true);assert.equal(gate.status.closed,true);
+ }finally{returned?.release();await control.close();}
+});
 async function fixture(){
  const dir=await mkdtemp(join(tmpdir(),'maintenance-control-')),control=new ProductHostControl(),gate=new MaintenanceGate(),scope=new AbortController(),done=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>();let calls=0,validations=0,failure:Error|undefined;
  await control.configure({path:join(dir,'receipts.sqlite'),deviceId:'lease-test'});
