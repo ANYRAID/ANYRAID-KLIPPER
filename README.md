@@ -24,6 +24,7 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 实现尚未完成硬件验收。
 配置 update_manager 后可通过鉴权HTTP／RPC读取Web版本、刷新GitHub元数据并实际更新／本地回滚Web客户端；
 下载校验、持久文件保留和中断目录一致性恢复已接线，六类其他动作仍501，见[配置与边界](docs/Node_Host_Startup.md#web-客户端更新状态与刷新)。
+独立 APT 后端候选已实现查询、刷新、解析、安装与 upgrade，并要求可信持久操作日志；尚未接入公开系统更新路由、PackageKit或维护租约，见[APT边界](docs/Node_Host_Startup.md#独立-apt-系统包后端候选)。
 可信 `createProcess` 路线现接入默认共享 `systemd_dbus` 所有者：真实
 Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共同借用连接。
 设备退役后已提交动作的未知结果持久为 interrupted，包装错误不丢失，
