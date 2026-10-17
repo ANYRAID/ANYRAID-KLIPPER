@@ -1375,7 +1375,7 @@ Web恢复仍仅为中断目录事务一致性恢复。完整Git、ZIP／executab
 
 ### Git 纯仓库应用更新候选
 
-下列显式无服务／无依赖配置接入现有update_manager，默认Git频道为dev，primary_branch为master：
+Git应用接入现有update_manager，默认Git频道为dev，primary_branch为master。下例显式关闭服务重启及依赖更新：
 
 ```ini
 [update_manager my-client]
@@ -1393,7 +1393,7 @@ GET状态只读内存缓存；显式刷新使用真实Git读取branch、remote�
 包含关系及GitVersion比较选择目标；pinned_commit至少8位，只向包含当前提交的固定提交前进，不自动降级。
 正常更新拒绝任意tracked／untracked改动、detached或diverged，须显式recover才能执行破坏性恢复。
 
-client与rollback接受必填name，适用纯Git应用；rollback持久保存commit／branch／version。
+client与rollback接受必填name，适用Git应用；rollback持久保存commit／branch／version。
 recover接受name与可选hard／update_deps布尔；HTTP查询可用true／false，其他类型400。
 公开参数按固定上游使用update_deps；内部名force_dep_update作为未知公开字段返回400。
 soft恢复优先pin／当前提交祖先，否则primary远端，并先有界备份原目录；hard克隆新候选、验证后保留原目录替换，
@@ -1406,10 +1406,19 @@ Linux内核目录锁按仓库规范路径区分所有者；取消等待Git及其
 目前仅支持无用户名密码、query或fragment的HTTPS源；SSH、file源、moved_origin、Python环境、安装脚本、系统依赖等明确拒绝。
 worktree／submodule仅读本地元数据，不fetch或mutation；主仓库有非空.git/worktrees或.git/modules时拒绝hard替换。
 
-is_system_service默认仍为true，默认托管自身服务，因此上述纯仓库场景必须显式false或managed_services留空。
-非空managed_services和enable_node_updates=true当前明确配置失败；现有product-install要求可信build-info清单、
-独立bundle且无node_modules，不能把任意Git checkout直接当作受支持npm安装。服务生命周期仍需把维护lease的producer
-fence同步交给持久ProductHostControl直至终态，own服务重启需afterResponse；本候选没有绕过这些约束。
+is_system_service默认true，未指定managed_services时托管自身服务；设为false使默认列表为空，显式空managed_services关闭服务动作。
+managed_services仅允许应用自身名称、klipper、moonraker，按此固定顺序去重，服务名须通过实际MachineControlPort许可。
+Git更新／回滚／显式恢复在仓库动作后沿可信ProductHostControl顺序提交服务动作；Node共进程的klipper／moonraker
+合并为一次最后执行的server_restart，并在service_progress记录别名映射。普通服务等待现有OS job submission终态，
+不证明服务ready；自己进程重启必须等待真实HTTP／RPC响应交接，响应返回时任务仍可处于忙态，不能据此认定更新成功。
+
+更新同时持有进程与当前设备维护租约，控制动作同步转移同一租约，普通终态归还后再提交下一服务。设备退役后
+由持续持有的进程维护所有者承接余下动作，配置写入和attachNativePrinter仍受围栏约束。queued控制记录落盘后，
+先持久关联更新事务及request_id，才允许任何OS dispatch。关联写入挂起时超时／关闭立即拒绝admission并永久取消dispatch；
+已受理数据库写仍受控排空，completion及close等待真实I/O结束后才归还租约，不声称可终止不可取消的写入。
+失败不发送成功文案；未确认或重开后的服务结果保持interrupted，不自动重放，显式recover也拒绝重放未知服务动作。
+受信人工核对后的恢复出口仍待后续实现。enable_node_updates=true及update_deps=true仍未实现；现有product-install要求
+可信build-info清单、独立bundle且无node_modules，不能把任意Git checkout直接当作受支持npm安装。
 本批真实接口测试的精确HTTPS fixture地址由测试可执行shim映射到临时bare仓库，生产不开放file入口，Git TLS网络传输未验。
 软件与有限桌面观测不代表完整provider、目标板、真实设备或部署验收。
 分项结果、初轮缺assets失败及限定补验见[Git更新候选验收](../host/contracts/update-manager-git-acceptance.json)。

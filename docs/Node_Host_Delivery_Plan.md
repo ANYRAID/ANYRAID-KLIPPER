@@ -3600,8 +3600,8 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 | 顺序 | 用户可见交付结果 | 退出条件 |
 | --- | --- | --- |
 | 当前集成基线 | #68（e59ca7）、#69（43c4ce）及Web实际更新／回滚#70（d2f98713）均已合入develop；#70合并后CI仍须独立确认，不继承任务头成功。Mainsail1735原A4及42／28预算证据归属保持，服务重获2.62602倍仍超原1.5预算 | Git任务从d2f98713正常快进同步；当前候选尚未合入。G0–G6、本机11／16／14、G3、真实root／实机、目标板和主线发布门槛分别保留 |
-| 当前实现 | Git纯仓库应用的实际HTTP／RPC状态、刷新、client更新、持久rollback及严格recover；更新中持有现有动态维护门禁，持久化不丢其他部署项 | 固定Moonraker1cfb0c41契约、真实临时Git仓库、实际接口及受影响Web回归；恢复失败／配置变化不能抹去interrupted，不用独立引擎通过代替完整provider |
-| 下一实现 | Git Node依赖与managed_services生命周期，以及其余完整update_manager能力 | 可信product bundle、锁文件及依赖替换策略实际接通；maintenance lease同步转移producer fence至持久host control终态、own restart沿afterResponse，不直接systemctl或引入pip。两能力接通前配置明确拒绝 |
+| 当前实现 | Git应用HTTP／RPC状态、更新／rollback／recover及managed_services候选；默认托管自身服务，普通服务顺序租约交接，设备退役后保持进程围栏，核心共进程别名合并一次真实afterResponse重启 | 184 Node26.12三文件首轮36／37（1项fixture查询指针错误）；限定修正后受影响3／3及typecheck通过。实际PTY宿主、Git目录、HTTP／RPC、WS及注入OS IO；复用native／依赖，非fresh build、实服务ready或硬件验收。失败／未知结果耐久interrupted不重放，未知动作经人工核对后的恢复出口仍待实现 |
+| 下一实现 | Git Node依赖、未知服务结果的受信对账恢复出口及其余完整update_manager能力 | 可信product bundle、锁文件及依赖替换策略实际接通；enable_node_updates／强制依赖更新仍拒绝。服务关联写超时／关闭取消admission和dispatch，已受理写排空期间维持围栏；OS submission不等于服务ready，不直接systemctl或引入pip |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "candidate: repository-only Git applications; not a complete update provider",
+  "status": "candidate: Git applications with managed-service lifecycle; not a complete update provider",
   "baseline": {
     "branch": "devac/git-update-provider",
     "develop": "d2f98713e6e8a687b7584df0651b3a61d99392cc",
@@ -13,11 +13,11 @@
     "Shared Web/Git installation and control path protection; protected process paths; kernel directory lock",
     "Dynamic maintenance gate and authorization rechecked after each await and before destructive boundaries",
     "Full private namespace persistence retains peer and removed deployment records; interrupted removed configuration fails startup",
-    "Cancellation joins Git helper process group; manager close waits for pending tasks and every Git deployment close"
+    "Cancellation joins Git helper process group; manager close waits for pending tasks and every Git deployment close",
+    "Managed services default/sorted configuration, actual trusted host-control submission, sequential lease return and process owner after native retirement; durable queued request linkage and real self-restart afterResponse"
   ],
   "notImplemented": [
     "Git Node dependency installation and replacement; enable_node_updates=true is rejected",
-    "Managed service lifecycle and maintenance lease transfer; nonempty managed_services is rejected; upstream is_system_service default remains true",
     "Core self-update, system package update, ZIP/Python/executable providers and full/upgrade operations",
     "SSH, file origin in public config, credential helpers/URLs, moved_origin, Python environments, install scripts and system dependency config",
     "Mutation or remote fetch through linked worktree/submodule; hard replacement of main repository with linked worktrees/submodules"
@@ -169,5 +169,92 @@
     "recover-protocol-runtime.txt": "4117ab00dc2f8c90d93ceede8620caac1d817bf404f006f025788ac760102631",
     "recover-protocol-sha256.txt": "b45ca6e53ae09037209d463ca006d03d1c5da49179bf348aeff0e01236e193e5"
   },
-  "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/git-provider-source/evidence/integration-receipt.json"
+  "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/git-provider-source/evidence/integration-receipt.json",
+  "managedServices": {
+    "schema": 1,
+    "baseline": "0bebfcaa42ba3e32f08271245c786813a4c17308",
+    "branch": "devac/managed-service-updates",
+    "runtime": "Linux 10.0.0.184 Node v26.12.0",
+    "commands": {
+      "workingDirectory": "/home/dek02/.codex/worktrees/supervisor-group-compat/managed-service-updates/host",
+      "typecheck": "/home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node scripts/run-typescript.ts -p tsconfig.json",
+      "initial": "/usr/bin/timeout --signal=TERM --kill-after=2s 180s /home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node --test test/update-managed-services.test.ts test/maintenance-host-control.test.ts test/update-git-deploy.test.ts",
+      "final": "/usr/bin/timeout --signal=TERM --kill-after=2s 90s /home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node --test --test-name-pattern=\"beforeDispatch timeout|beforeDispatch close|failure to persist a queued\" test/update-managed-services.test.ts test/maintenance-host-control.test.ts"
+    },
+    "first": {
+      "tests": 37,
+      "passed": 36,
+      "failed": 1,
+      "cancelled": 0,
+      "durationMs": 25833.532712,
+      "cause": "Fixture asserted failed admission through latest pointer; existing control restores previous latest pointer. Corrected to saved request_id durable control.operation(id).",
+      "sourceSha256": {
+        "host/src/moonraker/configured-server.ts": "b7ae424cd83ca3e36d8a71c117fcce9274b51d512b7dc11b68205d0326695f0c",
+        "host/src/moonraker/update-git-deploy.ts": "359459dd25ece631180c1ba553bf5af67d2e999a14d4f91ad489dd9e872ab3c4",
+        "host/src/moonraker/update-manager.ts": "64afd43b072bd914eeff4a53bb96451720a8525e0d085d105bf87d48b4aa2176",
+        "host/src/runtime/product-host-control.ts": "b855c12b9d3cd78e14d4a71b11e969a3c6a382166e50c11c520b174c3c0f59a7",
+        "host/src/runtime/product-host.ts": "018b096416b25f8d2723d32d1677b38c3a1e0e89cae22b28d485b6e838e94525",
+        "host/src/moonraker/update-managed-services.ts": "067383d92728ae96daa857fdaae9ef99b38165b8b8d7f9f8b57fcd7b4be5c48a",
+        "host/test/update-managed-services.test.ts": "6afc058e046938d759fe8c8b16589201a8427ee856ec47c06071c3b08fd903b7",
+        "host/test/update-git-deploy.test.ts": "0c63211c990e5ddb441f5f12533e3726b8ca09ed5417edbdb189157578f57829",
+        "host/test/maintenance-host-control.test.ts": "50cb596a0249b16edcbe3fa095696c6217d99d647b493b3bf6ddfa254bb55e5e"
+      },
+      "log": "targeted-v1.stdout"
+    },
+    "followup": {
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "cancelled": 0,
+      "durationMs": 3679.100905,
+      "scope": "Only beforeDispatch timeout/close and failed queued association. Narrow production changes add pre-cancel and same-owned-lease checks. No full 37 rerun.",
+      "log": "targeted-final.stdout"
+    },
+    "typecheck": {
+      "exit": 0,
+      "log": "typecheck-final.stdout",
+      "earlierFailures": [
+        "typecheck-v1.stdout: stale renamed private field",
+        "typecheck-v2.stdout: new mock parameter implicit any"
+      ],
+      "intermediateSuccess": "typecheck-v3.stdout"
+    },
+    "sourceSha256": {
+      "host/src/moonraker/configured-server.ts": "b7ae424cd83ca3e36d8a71c117fcce9274b51d512b7dc11b68205d0326695f0c",
+      "host/src/moonraker/update-git-deploy.ts": "359459dd25ece631180c1ba553bf5af67d2e999a14d4f91ad489dd9e872ab3c4",
+      "host/src/moonraker/update-manager.ts": "64afd43b072bd914eeff4a53bb96451720a8525e0d085d105bf87d48b4aa2176",
+      "host/src/runtime/product-host-control.ts": "57be6af894109bbab4ec9e244d0ef60196f9eda060f3c7165b5a41b8a65b62d4",
+      "host/src/runtime/product-host.ts": "018b096416b25f8d2723d32d1677b38c3a1e0e89cae22b28d485b6e838e94525",
+      "host/src/moonraker/update-managed-services.ts": "067383d92728ae96daa857fdaae9ef99b38165b8b8d7f9f8b57fcd7b4be5c48a",
+      "host/test/update-managed-services.test.ts": "804bb78b4d338b3b14c418522dae86a3a1d63d54c55ec047587f85a2baa66191",
+      "host/test/update-git-deploy.test.ts": "0c63211c990e5ddb441f5f12533e3726b8ca09ed5417edbdb189157578f57829",
+      "host/test/maintenance-host-control.test.ts": "50cb596a0249b16edcbe3fa095696c6217d99d647b493b3bf6ddfa254bb55e5e"
+    },
+    "logSha256": {
+      "remote-final-fingerprints.stdout": "06f6a7e4196f4f370dfa88b4ff6fc0b845d704ca8651ced9b11fe5de1bc73b32",
+      "targeted-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targeted-final.stdout": "4dbfe34ee0b2df3defde63b831c0e6c9c977dae0e71bc0a491690a314e69b8e9",
+      "targeted-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targeted-v1.stdout": "26b1392c4617555fd89cb02ea0eb43d5582869d688f6efa46141e483a5e8a29a",
+      "typecheck-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-final.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-v1.stdout": "8013a0766688472f08b3ae35b0fb6b264cfc110a5b5b0ff1154a971a9a1797db",
+      "typecheck-v2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-v2.stdout": "9403a151a3184bc35629da7ad2c187dfc3a648c8653ea4e2de5ae1a83b103aea",
+      "typecheck-v3.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-v3.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "packageLockSha256": "660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6",
+    "nodeBinarySha256": "caa24debe02770c92a70677e2a62ca98890150e7ac1c17bcfe31bcc98cc89943",
+    "sealedFileAddonSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+    "reuse": "Matching-lock node_modules and existing host/build borrowed from isolated prior checkout; not fresh build or sanitizer",
+    "limits": [
+      "OS job submission terminal is not service readiness",
+      "Accepted database writes must drain; close may wait real I/O",
+      "Interrupted/unknown managed service actions never replay; trusted human reconciliation exit remains future work",
+      "No Node dependency transaction, core update, full provider, real services, hardware or deployment proof"
+    ],
+    "localReceipt": "C:/Devs/Codex/from-184/.cache/codex/tmp/anyraid-managed-service-updates/.cache/managed-services/receipt.json"
+  }
 }

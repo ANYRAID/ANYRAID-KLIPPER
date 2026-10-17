@@ -2,7 +2,9 @@
 // GPL-3.0-or-later. Core and other deployment providers remain unavailable.
 import {createHash} from 'node:crypto';
 import {dirname,join,isAbsolute,relative,sep} from 'node:path';
-import {MaintenanceGate,MaintenanceBusyError} from '../operations/maintenance-gate.ts';
+import {MaintenanceGate,MaintenanceBusyError,type MaintenanceLease} from '../operations/maintenance-gate.ts';
+import type {ProductHostControl} from '../runtime/product-host-control.ts';
+import type {ManagedServiceProgress} from './update-managed-services.ts';
 import {ConfigurationError} from './config-source.ts';
 import {resolveConfigurationPath} from './config-path.ts';
 import type {ConfigurationReader} from './config-reader.ts';
@@ -21,7 +23,7 @@ const overlaps=(a:string,b:string)=>{const p=relative(a,b);return p===''||!isAbs
 const deploymentLocations=(c:DeploymentConfiguration)=>[c.path,join(dirname(c.path),'origin' in c?'.anyraid-git-'+createHash('sha256').update(c.path).digest('hex'):'.anyraid-web-'+createHash('sha256').update(c.path).digest('hex').slice(0,20))];
 const booleanParameter=(value:Json|undefined,name:string)=>{if(value===undefined)return false;if(value===true||value==='true')return true;if(value===false||value==='false')return false;throw new ApiError(400,'Expected '+name+' boolean');};
 interface Stored extends Record<string,Json>{schema:1;deployments:Record<string,Json>;}
-export interface UpdateMaintenance {gate:()=>MaintenanceGate;assertIdle:()=>void|Promise<void>;}
+export interface UpdateMaintenance {gate:()=>MaintenanceGate;assertIdle:()=>void|Promise<void>;processGate?:()=>MaintenanceGate;control?:ProductHostControl;}
 export class UpdateManager {
  readonly #database:DatabaseStore;readonly #http:MoonrakerHttpClient;readonly #reader:ConfigurationReader;
  readonly #blocked:()=>boolean;readonly #notify:(method:UpdateNotification,value:Json)=>void;
@@ -40,7 +42,7 @@ export class UpdateManager {
   cfg.getBoolean('enable_repo_debug',{defaultValue:false,deprecate:true});const system=cfg.getBoolean('enable_system_updates',{defaultValue:true});cfg.getBoolean('enable_packagekit',{defaultValue:true});
   const globalChannel=cfg.get('channel',{defaultValue:null});if(globalChannel!==null&&!['stable','beta','dev'].includes(globalChannel))throw new ConfigurationError('Invalid update channel');
   if(system)reader.warn('update_manager: system package provider is not implemented; no system update status or action is claimed');
-  reader.warn('update_manager: Node core deployment/update, Git dependency/service lifecycle and other deployment types remain unimplemented');
+  reader.warn('update_manager: Node core deployment/update, Git dependency lifecycle and other deployment types remain unimplemented');
   const reserved=[reader.source.primaryFile,...reader.source.definitionSources().map(source=>source.filename),database.storagePaths.path,...database.storagePaths.backupDirectory?[database.storagePaths.backupDirectory]:[]];
   const configurations=new Map<string,DeploymentConfiguration>();
   const add=(config:DeploymentConfiguration)=>{for(const previous of configurations.values())for(const a of deploymentLocations(previous))for(const b of deploymentLocations(config))if(overlaps(a,b)||overlaps(b,a))throw new ConfigurationError('Update installation and control paths cannot overlap');configurations.set(config.name,config);};
@@ -101,38 +103,65 @@ export class UpdateManager {
    }finally{this.#refreshing=false;}
   });this.#pending.add(task);this.#tail=task.then(()=>{},()=>{});void task.then(()=>this.#pending.delete(task),()=>this.#pending.delete(task));return task;
  }
- deploy(params:Readonly<Record<string,Json>>,request:AbortSignal,rollback:boolean,authorize:()=>void|Promise<void>=()=>{}):Promise<string>{
-  return this.#deploy(params,request,rollback?'rollback':'update',authorize);
+ deploy(params:Readonly<Record<string,Json>>,request:AbortSignal,rollback:boolean,authorize:()=>void|Promise<void>=()=>{},afterResponse?:((callback:(sent:boolean)=>void)=>void)):Promise<string>{
+  return this.#deploy(params,request,rollback?'rollback':'update',authorize,afterResponse);
  }
- recover(params:Readonly<Record<string,Json>>,request:AbortSignal,authorize:()=>void|Promise<void>=()=>{}):Promise<string>{return this.#deploy(params,request,'recover',authorize);}
- #deploy(params:Readonly<Record<string,Json>>,request:AbortSignal,action:'update'|'rollback'|'recover',authorize:()=>void|Promise<void>):Promise<string>{
+ recover(params:Readonly<Record<string,Json>>,request:AbortSignal,authorize:()=>void|Promise<void>=()=>{},afterResponse?:((callback:(sent:boolean)=>void)=>void)):Promise<string>{return this.#deploy(params,request,'recover',authorize,afterResponse);}
+ #deploy(params:Readonly<Record<string,Json>>,request:AbortSignal,action:'update'|'rollback'|'recover',authorize:()=>void|Promise<void>,afterResponse?:((callback:(sent:boolean)=>void)=>void)):Promise<string>{
   this.#active();if(Object.keys(params).some(k=>!['name',...action==='recover'?['hard','update_deps']:[]].includes(k))||typeof params.name!=='string')return Promise.reject(new ApiError(400,'Expected updater name and supported action parameters'));const name=params.name,app=this.#deployments.get(name);if(!app)return Promise.reject(new ApiError(400,'No updater registered for selected name'));
   let hard=false,updateDeps=false;try{if(action==='recover'){hard=booleanParameter(params.hard,'hard');updateDeps=booleanParameter(params.update_deps,'update_deps');}}catch(error){return Promise.reject(error);}
   if(action==='recover'&&!(app instanceof GitDeployment))return Promise.reject(new ApiError(501,'Recovery is not implemented for this deployment type'));
   if(updateDeps)return Promise.reject(new ApiError(501,'Git dependency updates are not implemented; no action was performed'));
   if(!this.#initial||this.#blocked()||this.#updating||this.#pending.size)return Promise.reject(new ApiError(503,'Server is busy, cannot perform update'));
-  const signal=AbortSignal.any([request,this.#life.signal]),task=this.#tail.then(async()=>{
+  const response=Promise.withResolvers<string>(),owned=new AbortController(),cancel=()=>owned.abort(request.reason),stop=()=>owned.abort(this.#life.signal.reason);request.addEventListener('abort',cancel,{once:true});this.#life.signal.addEventListener('abort',stop,{once:true});if(request.aborted)cancel();if(this.#life.signal.aborted)stop();
+  const signal=owned.signal,task=this.#tail.then(async()=>{
    signal.throwIfAborted();this.#active();if(this.#blocked())throw new ApiError(503,'Printer is busy');
-   const gate=this.#maintenance.gate();let release:()=>void;try{release=gate.acquire();}catch(e){if(e instanceof MaintenanceBusyError)throw new ApiError(409,e.message);throw e;}
-   const current=()=>{signal.throwIfAborted();if(gate!==this.#maintenance.gate()||gate.status.closed||this.#blocked())throw new ApiError(409,'Printer maintenance admission changed');};
+   const initial=this.#maintenance.gate(),process=this.#maintenance.processGate?.();let processLease:MaintenanceLease|undefined,deviceLease:MaintenanceLease|undefined,gate=initial;
+   try{if(process)processLease=process.acquireLease();if(initial!==process)deviceLease=initial.acquireLease();}catch(e){processLease?.release();if(e instanceof MaintenanceBusyError)throw new ApiError(409,e.message);throw e;}
+   const lease=()=>gate===process?processLease:deviceLease;
+   const current=()=>{signal.throwIfAborted();if(gate!==this.#maintenance.gate()||!gate.owns(lease())||this.#blocked())throw new ApiError(409,'Printer maintenance admission changed');};
    const admit=async()=>{current();await authorize();current();await this.#maintenance.assertIdle();current();};
    const proc=Date.now(),notify=(message:string,complete=false)=>{if(this.#closing)return;try{this.#notify('notify_update_response',{message,application:name,proc_id:proc,complete});}catch{this.#notificationFailures++;}};
    const label=app instanceof GitDeployment?'Git application':'Web client';
    this.#updating=name;try{await admit();notify(label+' '+action+' started');
-    if(app instanceof GitDeployment){const context={signal,authorize:admit,persist:async(state:GitDeploymentStorage)=>{await this.#storeState(name,state);}};if(action==='recover')await app.recover(context,hard,updateDeps);else if(action==='rollback')await app.rollback(context);else await app.update(context);}
+    let restartServices:((persist:(progress:ManagedServiceProgress)=>Promise<void>)=>Promise<void>)|undefined;
+    if(app instanceof GitDeployment&&app.config.managedServices.length){
+     const control=this.#maintenance.control;if(!control||!process||!processLease)throw new ApiError(503,'Managed services require the process control and maintenance owner');const plan=control.planMaintenanceServices(app.config.managedServices);if(plan.some(item=>item.retirement==='process')&&!afterResponse)throw new ApiError(503,'Process restart requires a real response handoff');
+     restartServices=async persist=>{
+      const progress:ManagedServiceProgress={schema:1,state:'running',next:0,entries:plan.map(item=>({...structuredClone(item),state:'planned',request_id:null}))};await persist(structuredClone(progress));
+      for(let i=0;i<progress.entries.length;i++){
+       const entry=progress.entries[i]!;await admit();notify('Restarting managed service '+entry.aliases.join(', '));let finish:((sent:boolean)=>void)|undefined;
+       const originalLease=lease()!;const handle=control.requestMaintenanceAction(entry.action,originalLease,entry.retirement==='process'?callback=>{finish=callback;if(signal.aborted)finish(false);}:undefined,async(record,associationSignal)=>{associationSignal.throwIfAborted();signal.throwIfAborted();entry.request_id=record.request_id;entry.state='queued';progress.state=entry.retirement==='process'?'awaiting_response':'running';await persist(structuredClone(progress));associationSignal.throwIfAborted();signal.throwIfAborted();});
+       const cancelControl=()=>finish?.(false);signal.addEventListener('abort',cancelControl,{once:true});if(signal.aborted)cancelControl();
+       if(gate===process)processLease=undefined;else deviceLease=undefined;
+       let admitted=false;try{await handle.admission;admitted=true;
+        if(entry.retirement==='process'){
+         // Durable association precedes exposing the real response callback.
+         request.removeEventListener('abort',cancel);afterResponse!(sent=>finish!(sent));response.resolve('ok');
+        }
+       }catch(error){finish?.(false);const outcome=await handle.completion;signal.removeEventListener('abort',cancelControl);if(gate===process)processLease=outcome.lease;else deviceLease=outcome.lease;entry.state=outcome.operation?.state==='interrupted'?'interrupted':'failed';progress.state=entry.state;await persist(structuredClone(progress)).catch(()=>{});throw error;}
+       const outcome=await handle.completion;signal.removeEventListener('abort',cancelControl);if(gate===process)processLease=outcome.lease;else deviceLease=outcome.lease;
+       entry.state=outcome.operation?.state==='succeeded'?'succeeded':outcome.operation?.state==='interrupted'?'interrupted':'failed';progress.state=entry.state==='succeeded'?'running':entry.state;progress.next=entry.state==='succeeded'?i+1:i;await persist(structuredClone(progress));
+       if(!admitted||outcome.failure||entry.state!=='succeeded')throw new ApiError(500,'Managed service control did not complete successfully; inspect its durable receipt');
+       if(outcome.fenced){if(!processLease||!process.owns(processLease)||this.#maintenance.gate()!==process)throw new ApiError(409,'Retired service requires confirmed process maintenance continuity');gate=process;}
+      }
+      progress.state='complete';await persist(structuredClone(progress));
+     };
+    }
+    if(app instanceof GitDeployment){const context={signal,authorize:admit,persist:async(state:GitDeploymentStorage)=>{await this.#storeState(name,state);},restartServices};if(action==='recover')await app.recover(context,hard,updateDeps);else if(action==='rollback')await app.rollback(context);else await app.update(context);}
     else await app.deploy(action==='rollback',signal,admit,notify);
     await this.#storeState();notify(label+' '+action+' complete',true);this.#event();return 'ok';
-   }catch(error){notify(label+' '+action+' failed',true);throw error;}finally{this.#updating=undefined;release();}
-  });this.#pending.add(task);this.#tail=task.then(()=>{},()=>{});void task.then(()=>this.#pending.delete(task),()=>this.#pending.delete(task));return task;
+   }catch(error){notify(label+' '+action+' failed',true);throw error;}finally{this.#updating=undefined;deviceLease?.release();processLease?.release();}
+  });this.#pending.add(task);this.#tail=task.then(()=>{},()=>{});void task.then(value=>{this.#pending.delete(task);response.resolve(value);},error=>{this.#pending.delete(task);response.reject(error);}).finally(()=>{request.removeEventListener('abort',cancel);this.#life.signal.removeEventListener('abort',stop);});return response.promise;
  }
  async #storeState(name?:string,candidate?:GitDeploymentStorage){const deployments={...this.#storedDeployments,...Object.fromEntries([...this.#deployments].map(([id,app])=>[id,id===name?candidate!:app.storage]))};const state:Stored={schema:1,deployments};await this.#namespace!.insert('state',state);this.#storedDeployments=structuredClone(deployments);}
  #event(){if(this.#closing)return;const timer=setTimeout(()=>{this.#events.delete(timer);if(this.#closing)return;try{this.#notify('notify_update_refreshed',this.snapshot());}catch{this.#notificationFailures++;}},200);this.#events.add(timer);timer.unref();}
  register(registry:EndpointRegistry):()=>void{
   const status=registry.register({endpoint:'/machine/update/status',methods:['GET']},(params,_verb,context)=>this.get(params,context.signal));
   const refresh=registry.register({endpoint:'/machine/update/refresh',methods:['POST']},(params,_verb,context)=>this.refresh(params,context.signal));
-  const client=registry.register({endpoint:'/machine/update/client',methods:['POST']},(params,_verb,context)=>this.deploy(params,context.signal,false,async()=>{authorizedContext(context,await context.authorize('machine.update.client',params));}));
-  const rollback=registry.register({endpoint:'/machine/update/rollback',methods:['POST']},(params,_verb,context)=>this.deploy(params,context.signal,true,async()=>{authorizedContext(context,await context.authorize('machine.update.rollback',params));}));
-  const recover=registry.register({endpoint:'/machine/update/recover',methods:['POST']},(params,_verb,context)=>this.recover(params,context.signal,async()=>{authorizedContext(context,await context.authorize('machine.update.recover',params));}));
+  const client=registry.register({endpoint:'/machine/update/client',methods:['POST']},(params,_verb,context)=>this.deploy(params,context.signal,false,async()=>{authorizedContext(context,await context.authorize('machine.update.client',params));},context.afterResponse));
+  const rollback=registry.register({endpoint:'/machine/update/rollback',methods:['POST']},(params,_verb,context)=>this.deploy(params,context.signal,true,async()=>{authorizedContext(context,await context.authorize('machine.update.rollback',params));},context.afterResponse));
+  const recover=registry.register({endpoint:'/machine/update/recover',methods:['POST']},(params,_verb,context)=>this.recover(params,context.signal,async()=>{authorizedContext(context,await context.authorize('machine.update.recover',params));},context.afterResponse));
   const unavailable=['moonraker','klipper','system','full','upgrade'].map(name=>registry.register({endpoint:'/machine/update/'+name,methods:['POST']},()=>{this.#active();throw new ApiError(501,'Update deployment actions are not implemented; no action was performed');}));
   const release=()=>{for(const fn of [status,refresh,client,rollback,recover,...unavailable])fn();};this.#releases.push(release);return release;
  }
