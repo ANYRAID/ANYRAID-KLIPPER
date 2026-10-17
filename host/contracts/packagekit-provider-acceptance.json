@@ -1,0 +1,210 @@
+{
+  "schema": 1,
+  "baseline": "e1db00d841fed08fd6a522b5812a57a05e6dbc56",
+  "branch": "devac/packagekit-provider",
+  "status": "standalone candidate; no system deployment or public route integration",
+  "upstream": {
+    "moonraker": {
+      "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "file": "moonraker/components/update_manager/system_deploy.py:227-305",
+      "enumsSha256": "482b0b14b9d824f9cb272eec55869a28ad0a5cbe77cf9d97fb31ffa47af926d2"
+    },
+    "packagekit": {
+      "tag": "v1.3.1",
+      "commit": "0f33069752fe06f6daf3d977cd09665b059494d8",
+      "url": "https://github.com/PackageKit/PackageKit/tree/0f33069752fe06f6daf3d977cd09665b059494d8",
+      "gitBlobs": {
+        "src/org.freedesktop.PackageKit.xml": "0e2811ff0034827d6fd5da016b65790f06a8744f",
+        "src/org.freedesktop.PackageKit.Transaction.xml": "ea3b68f257b07d6e66c38c833c7b3e13a034c76c",
+        "lib/packagekit-glib2/pk-enum.h": "5fea789844dffecfd79acfe1019fabbc23bf154a"
+      }
+    }
+  },
+  "protocol": {
+    "methods": {
+      "CreateTransaction": [
+        "",
+        "o"
+      ],
+      "GetUpdates": [
+        "t",
+        ""
+      ],
+      "Resolve": [
+        "tas",
+        ""
+      ],
+      "RefreshCache": [
+        "b",
+        ""
+      ],
+      "InstallPackages": [
+        "tas",
+        ""
+      ],
+      "UpdatePackages": [
+        "tas",
+        ""
+      ],
+      "Cancel": [
+        "",
+        ""
+      ]
+    },
+    "signals": {
+      "Package": "uss",
+      "ErrorCode": "us",
+      "Finished": "uu",
+      "PropertiesChanged": "sa{sv}as"
+    },
+    "enumValues": {
+      "filterNone": "2",
+      "resolveNotInstalledBasenameNewestArch": "344072",
+      "onlyTrusted": "2",
+      "exitSuccess": 1
+    }
+  },
+  "runtime": {
+    "node": "v26.12.0",
+    "dbusDaemon": "1.14.10",
+    "packageLockSha256": "660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6",
+    "nodeBinarySha256": "caa24debe02770c92a70677e2a62ca98890150e7ac1c17bcfe31bcc98cc89943",
+    "sealedFileAddonSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+    "reuse": "Matching lock node_modules and existing native outputs borrowed; no fresh build or sanitizer"
+  },
+  "validation": {
+    "first": {
+      "passed": 6,
+      "failed": 2,
+      "cancelled": 0,
+      "log": "packagekit-v1.stdout",
+      "cause": "Real same-database reopen exposed namespace already registered; fixed shared forbidden registration and exclusive active provider, never unregistering public protection"
+    },
+    "second": {
+      "passed": 8,
+      "failed": 0,
+      "log": "packagekit-v2.stdout"
+    },
+    "initialOwnerRegression": {
+      "passed": 32,
+      "failed": 1,
+      "cancelled": 0,
+      "log": "targeted-v3.stdout",
+      "cause": "Existing exact AddMatch count was 5 instead of 4 because eager PackageKit owner watch widened unused connection startup; changed to lazy PackageKit watch, assertion unchanged"
+    },
+    "ownerRegression": {
+      "passed": 33,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 7010.352095,
+      "log": "targeted-final.stdout",
+      "sourceSha256": {
+        "host/src/moonraker/system-bus-owner.ts": "6725f7c30d74d1168deb8bbc1868272c0e71a675694c05ce8b6f118875b119bc",
+        "host/src/moonraker/packagekit-protocol.ts": "13533a9b71d23db341087b9a4ae7e24e8296a7faed0268bca72414519340cbd1",
+        "host/src/moonraker/packagekit-provider.ts": "97916b7217150cf1fb98270be3909dc2717736c686ae348c22f683ba94b97606",
+        "host/test/packagekit.test.ts": "d943664145cd78cd49374d29b2a1ae8ee4e59b1f023e858c64ac26b4cc17edd8"
+      }
+    },
+    "cleanupFollowup": {
+      "passed": 1,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 207.042838,
+      "log": "cleanup-followup.stdout",
+      "scope": "Only RemoveMatch failure after narrow owner retirement refactor; real daemon MatchRuleNotFound, actual peer gone/socket closed, new peer query. Earlier33 not rerun.",
+      "sourceSha256": {
+        "host/src/moonraker/system-bus-owner.ts": "fb47657d35f58410024fb0a003c6c66be79b687986801452816691a40c78a0aa",
+        "host/src/moonraker/packagekit-protocol.ts": "13533a9b71d23db341087b9a4ae7e24e8296a7faed0268bca72414519340cbd1",
+        "host/src/moonraker/packagekit-provider.ts": "97916b7217150cf1fb98270be3909dc2717736c686ae348c22f683ba94b97606",
+        "host/test/packagekit.test.ts": "e98cfb0cc5fc1c360d54fcff69c795de70159613091a593994ddfdd2a3811571"
+      }
+    },
+    "typecheck": {
+      "exit": 0,
+      "log": "typecheck-cache.stdout",
+      "earlier": [
+        "typecheck-v1: missing transferred bench/contracts plus new fixture type errors",
+        "typecheck-v2: pass",
+        "typecheck-final: pass"
+      ]
+    },
+    "ci": "Existing ubuntu-latest Node26 npm test glob discovers packagekit.test.ts. Non-Linux or absent /usr/bin/dbus-daemon explicitly skips. No task CI has run; skip is not wire success.",
+    "cacheRecoveryFollowup": {
+      "passed": 1,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 275.162669,
+      "log": "cache-followup.stdout",
+      "scope": "Only existing cancellation+actual DB worker reopen scenario: cache a 300-byte name accepted by bounded package_id wire validation; reopen retains it. Restore bound aligned to2048 bytes; no broader33 rerun."
+    }
+  },
+  "performance": {
+    "cacheReads": 50000,
+    "batches": 5,
+    "readsPerBatch": 10000,
+    "nsPerRead": [
+      2590.0782,
+      2390.6601,
+      2339.5188,
+      2332.4968,
+      2316.9528
+    ],
+    "wireCalls": 0,
+    "threshold": null,
+    "scope": "finite desktop cached-status observation at33 checkpoint"
+  },
+  "limits": [
+    "No HTTP/RPC/update_manager/system deployment selection integration; current501 unchanged",
+    "No real package manager, OS service, hardware or deployment action",
+    "Finished failure can partially change packages; failed/interrupted block all new mutations until future trusted reconciliation",
+    "Accepted DB writes drain under owned busy state after caller deadline; close can wait real IO",
+    "No APT fallback or Node dependency module; no automatic replay",
+    "Existing org.freedesktop.PackageKit only; latest packagekit1 API not implemented",
+    "Finite source/component validation, not full CI/product or readiness acceptance"
+  ],
+  "commands": {
+    "directory": "/home/dek02/.codex/worktrees/supervisor-group-compat/packagekit-provider/host",
+    "typecheck": "/home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node scripts/run-typescript.ts -p tsconfig.json",
+    "first": "/usr/bin/timeout --signal=TERM --kill-after=2s 90s /home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node --test test/packagekit.test.ts",
+    "second": "/usr/bin/timeout --signal=TERM --kill-after=2s 60s /home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node --test test/packagekit.test.ts",
+    "ownerRegression": "/usr/bin/timeout --signal=TERM --kill-after=2s 90s /home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node --test test/packagekit.test.ts test/system-bus-owner.test.ts",
+    "cleanup": "/usr/bin/timeout --signal=TERM --kill-after=2s 30s /home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node --test --test-name-pattern=\"RemoveMatch failure\" test/packagekit.test.ts",
+    "cache": "/usr/bin/timeout --signal=TERM --kill-after=2s 30s /home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node --test --test-name-pattern=\"cancel after submission\" test/packagekit.test.ts"
+  },
+  "sourceSha256": {
+    "host/src/moonraker/system-bus-owner.ts": "fb47657d35f58410024fb0a003c6c66be79b687986801452816691a40c78a0aa",
+    "host/src/moonraker/packagekit-protocol.ts": "13533a9b71d23db341087b9a4ae7e24e8296a7faed0268bca72414519340cbd1",
+    "host/src/moonraker/packagekit-provider.ts": "e90b6bcd8a4676415559c070ee1d362b406031bca7d94c6552763ae149f8735c",
+    "host/test/packagekit.test.ts": "942d44f34aa736e6aa90e4e9fc54ab805ddc7a22b3151ae7aef664d3a4e616d0"
+  },
+  "logSha256": {
+    "cache-followup.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cache-followup.stdout": "04eb6e17843605c48ae5b664168c646339d53778818e828e1dca6594354bc51b",
+    "cleanup-followup.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cleanup-followup.stdout": "8d483a331078182476a92becb93696a4f3c3152b7159803cbcf629e0453e9405",
+    "packagekit-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "packagekit-v1.stdout": "00657b3efa023744e89257706624906b6f09315d5fc9ba39b94072e55296375e",
+    "packagekit-v2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "packagekit-v2.stdout": "9d9d84c5910cff043258ce89b1d28fd6d31fbcc02a7db9fc924605ce99e39833",
+    "remote-final.stdout": "0caefbf99c6b2a3cc5e46c0782c9ce3ac1f1b7d144089261beefd6a4bb579e4a",
+    "source-final.stdout": "4f818972bd1775c66b89f4ca44f873e37280b27fecdd16bb5cb1d1b0c2575a0b",
+    "targeted-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "targeted-final.stdout": "c08b46750c26e9fa3d98e0813d32295287b100f20792d9540f5eeee99fba4476",
+    "targeted-v3.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "targeted-v3.stdout": "75f0f0b865291fdaf020e1bc7229c9359f01867e610ff82a663647e42c940efc",
+    "typecheck-cache.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-cache.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-cleanup.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-cleanup.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-v1.stdout": "98febdd9a518fd9a48bfde8cfdcee765d99afc49e3bbc8a7622cb1d91522e54a",
+    "typecheck-v2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-v2.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "localReceipt": "C:/Devs/Codex/from-184/.cache/codex/tmp/anyraid-packagekit-provider/.cache/packagekit/receipt.json"
+}
