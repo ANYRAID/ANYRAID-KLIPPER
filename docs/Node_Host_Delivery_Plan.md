@@ -22,6 +22,15 @@
 无替换依赖时Remv为空、候选消失不fallback及冲突移除被拒均有定向证据，fixture dpkg未变；未运行真实sudo或系统安装。
 PackageKit、公开system接线／维护租约、真实系统升级与完整验收仍开放，见[既有APT验收](../host/contracts/update-manager-apt-acceptance.json)的exactCandidateSelection。
 
+## 2026-10-18 受管服务 recover 409 的有限因果诊断
+
+CI c3c8161d 的唯一失败为 recover 阶段 admission changed409，原日志没有停止原因，历史同因尚未证明。
+新增有界拒绝原因后，8.5秒准备屏障在时钟持续响应、夹具不发ADC时复现温度超时和同409；
+本fixture复用现有按query_analog_in生成的25C时间戳报告，停止设备不发，启动失败／close清timer。
+修复后默认路径及有采样屏障通过；停采样屏障仍实际ADC过期409、保interrupted且无第三次服务动作，标准typecheck通过。
+首次受控lease预期、原无采样屏障与负向过窄错误文本断言均保留；生产仅增加原因data，不放宽维护／温控／时钟门槛。
+新头完整CI仍待执行；无真实OS服务／硬件，见[Git验收](../host/contracts/update-manager-git-acceptance.json)的managedAdmissionRecurrence。
+
 ## 2026-10-18 独立 APT 系统包后端候选
 
 实现独立 APT 初始化、包列表、刷新、精确解析、安装与upgrade；真实默认argv执行器受授权、

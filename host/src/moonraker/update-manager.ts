@@ -119,7 +119,7 @@ export class UpdateManager {
    const initial=this.#maintenance.gate(),process=this.#maintenance.processGate?.();let processLease:MaintenanceLease|undefined,deviceLease:MaintenanceLease|undefined,gate=initial;
    try{if(process)processLease=process.acquireLease();if(initial!==process)deviceLease=initial.acquireLease();}catch(e){processLease?.release();if(e instanceof MaintenanceBusyError)throw new ApiError(409,e.message);throw e;}
    const lease=()=>gate===process?processLease:deviceLease;
-   const current=()=>{signal.throwIfAborted();if(gate!==this.#maintenance.gate()||!gate.owns(lease())||this.#blocked())throw new ApiError(409,'Printer maintenance admission changed');};
+   const current=()=>{signal.throwIfAborted();const selected=this.#maintenance.gate(),sameGate=gate===selected,ownedLease=gate.owns(lease()),blocked=this.#blocked();if(!sameGate||!ownedLease||blocked)throw new ApiError(409,'Printer maintenance admission changed',{gate_changed:!sameGate,lease_owned:ownedLease,blocked,original_gate:gate.status,current_gate:selected.status});};
    const admit=async()=>{current();await authorize();current();await this.#maintenance.assertIdle();current();};
    const proc=Date.now(),notify=(message:string,complete=false)=>{if(this.#closing)return;try{this.#notify('notify_update_response',{message,application:name,proc_id:proc,complete});}catch{this.#notificationFailures++;}};
    const label=app instanceof GitDeployment?'Git application':'Web client';
