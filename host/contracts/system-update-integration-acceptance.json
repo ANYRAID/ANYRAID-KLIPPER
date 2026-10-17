@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "branch": "devac/system-update-integration",
+  "assemblyHead": "ab96806c1",
+  "assembledDevelop": "981c8b03ab72c7a3cd7ad64f5a4e085c8f3873b3",
+  "assembledManagedServices": "2f6677fa4eb44532fe2a5093f7ece37b4e825e79",
+  "status": "system route integration candidate; full is complete-plan preflight only",
+  "upstream": {
+    "source": "moonraker/components/update_manager/system_deploy.py",
+    "moonraker": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "baseContracts": [
+      "update-manager-apt-acceptance.json",
+      "packagekit-provider-acceptance.json"
+    ],
+    "packagekit": "org.freedesktop.PackageKit v1.3.1"
+  },
+  "behavior": {
+    "timeout": "provider caller rejection does not mean drained; accepted journal IO is owned and late dispatch forbidden; close drains before release",
+    "composition": "one normalized trusted systemPackages object shared by bootstrap/profile; installPackages(names,{signal,authorize}) is internal capability only; future Net manager adapter not wired in this batch",
+    "ownership": "existing process plus dynamic device gate; factory acquisition and gate activity atomic; no waiter notification before actual drain and lease release; unknown startup leaves management up and devices blocked",
+    "reconciliation": "same stable backend configuration required; fixed typed read-only facts; active PK list rejects; unavailable facts require explicit privileged external-check confirmation; immutable original result receipt and separate acknowledged state; acknowledgement is not proof of no active system work or original upgrade success",
+    "selection": "PackageKit preferred; APT only before submission with no unresolved operation; no mutation fallback or replay",
+    "cache": "initialization queries read-only; package_query_confirmed=false cannot yield successful no-op; explicit refresh restores known state",
+    "routes": {
+      "reconcile": "GET/POST /machine/update/reconcile; machine.update.get_reconcile/post_reconcile; independent machine.update.reconcile permission",
+      "status": "cached only; refresh=true additionally requires machine.update.refresh",
+      "refresh": "public and automatic refresh use maintenance plus actual drain",
+      "full": "persist full inventory preflight; missing core yields409 before any system/client mutation",
+      "system": "POST /machine/update/system; machine.update.system",
+      "unimplemented501": [
+        "moonraker",
+        "klipper",
+        "upgrade"
+      ]
+    }
+  },
+  "environment": {
+    "skip": "non-Linux or absent /usr/bin/dbus-daemon explicitly skip; final Linux runs zero skip; no new CI conclusion",
+    "sealedFileSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+    "nodeVersion": "v26.12.0",
+    "native": "reused final-032dd-fix2-product/host/build",
+    "directory": "/home/dek02/.codex/worktrees/supervisor-group-compat/system-update-integration",
+    "lockSha256": "660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6",
+    "wire": "real private dbus-daemon with synthetic PackageKit/Polkit",
+    "hostFixture": "real ProductHost with PTY MCU fixture and injected machine/apt IO",
+    "nodeSha256": "caa24debe02770c92a70677e2a62ca98890150e7ac1c17bcfe31bcc98cc89943",
+    "host": "10.0.0.184"
+  },
+  "runs": [
+    {
+      "outcome": "failed TS2367 redundant idle comparison",
+      "passed": false,
+      "log": "typecheck-v1"
+    },
+    {
+      "outcome": "failed TS2345 Json to string",
+      "passed": false,
+      "log": "typecheck-v2"
+    },
+    {
+      "fail": 0,
+      "cancelled": 5,
+      "pass": 0,
+      "log": "system-integration-v1",
+      "outcome": "four20s fixture readiness timeouts plus outer100s pending cancellation; bootstrap/profile systemPackages identity mismatch; raw failure preserved"
+    },
+    {
+      "durationMs": 2082.897072,
+      "pass": 1,
+      "log": "system-integration-bootstrap-fix"
+    },
+    {
+      "durationMs": 9771.921946,
+      "pass": 7,
+      "log": "system-integration-v2"
+    },
+    {
+      "durationMs": 749.358642,
+      "pass": 2,
+      "log": "system-boundaries"
+    },
+    {
+      "durationMs": 1877.621551,
+      "scope": "APT21 + PackageKit11 + existing manager5; pre-final cache-status delta",
+      "pass": 37,
+      "log": "backends-manager-v1"
+    },
+    {
+      "durationMs": 2103.146608,
+      "pass": 2,
+      "log": "initial-cache-close"
+    },
+    {
+      "skipped": 0,
+      "log": "post-merge-targeted",
+      "pass": 19,
+      "scope": "system11 + managed services8 after a819 merge; before explicit cache-confirmation delta",
+      "cancelled": 0,
+      "durationMs": 26246.501926,
+      "fail": 0
+    },
+    {
+      "skipped": 0,
+      "log": "cache-unknown",
+      "pass": 1,
+      "scope": "only final readonly query failure delta; no false no-op, explicit refresh and upgrade recovery",
+      "cancelled": 0,
+      "durationMs": 651.503105,
+      "fail": 0
+    },
+    {
+      "pass": true,
+      "log": "typecheck-final-standard",
+      "command": "/home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node scripts/run-typescript.ts -p tsconfig.json"
+    }
+  ],
+  "observation": {
+    "elapsedMs": 2.571506,
+    "batchSize": 100,
+    "additionalCommands": 0,
+    "threshold": null,
+    "claim": "finite cache snapshot observation only; not HTTP or OS mutation performance acceptance",
+    "log": "cache-observation",
+    "snapshots": 10000,
+    "maxYieldGapMs": 0.389977
+  },
+  "finalSourceSha256": {
+    "host/src/moonraker/system-package-deployment.ts": "cb30ce9d828b1c01cf23280a08e23e48ab0330b6dc93ff96dbb7a8ac569187d7",
+    "host/test/system-update-integration.test.ts": "c54ca8fa33992bfd6a1ec0aa3f2d0f45cf811558ffec2d22c109029a0a5b17fa",
+    "host/src/moonraker/apt-package-provider.ts": "9bb067ad9f1d4cb8dbb3ab5598821207cdde5ec86eae50d44ae3990aae4c9388",
+    "host/src/moonraker/configured-server.ts": "4b4a5e503d66ddab3317cf98b9da357c0a93728b0d4c101a1c4132609a7987c4",
+    "host/src/moonraker/packagekit-provider.ts": "ca862ced289dc5705ad1130eb075d2e663837c2e5d6b3a84e3ae8f0f8057213e",
+    "host/src/moonraker/system-bus-owner.ts": "33360c39cc6e082d4ed280db10ab4dace473149abcbce20c0bccb39ab946030c",
+    "host/src/moonraker/update-manager.ts": "d54928bc23f97df16f3636f02fed090b39d1ad2625944fbe05b419abb1bc4198",
+    "host/src/runtime/native-product-machine.ts": "b9f1fe736974e75dd36f985fc564d2e3c1058447ebc99fb601869b65b5bda651",
+    "host/src/runtime/product-host.ts": "b5e914edd4709112efc4931fd468d125d53eba23eaaeec4a30c313d924ac5a7a"
+  },
+  "limitations": [
+    "full/core pipeline not delivered",
+    "unknown managed_services reconciliation remains separate future work",
+    "manual system acknowledgement does not prove upgrade correctness",
+    "not complete Moonraker or Python retirement",
+    "no fresh native build or sanitizer",
+    "no real package mutation, systemctl, service/device action or deployment",
+    "no full CI conclusion; existing wildcard includes test but Linux wire CI execution must be observed",
+    "earlier phase source checkpoint hashes were not captured; final source hashes apply to final typecheck/cache-unknown and unchanged files, not retroactively to old phases"
+  ],
+  "localEvidence": ".cache/system-update (untracked raw logs, commands, receipt and hashes; not for Git inclusion)"
+}
