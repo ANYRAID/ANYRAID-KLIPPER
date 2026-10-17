@@ -1470,6 +1470,42 @@ A→B→回滚 A、取消排空和故障恢复；HTTPS 传输、产品实际 npm
 功能项仅 Linux；真实预构建产品项要求 `ANYRAID_TEST_PRODUCT_BUNDLE` 指向现有可信产物，
 缺失时明确 skip，默认 CI 不覆盖该项，不能把 184 的实测结果归给 CI。
 
+### ZIP／executable 网络应用更新候选
+
+`[update_manager 应用名]` 的 `type=zip`／`executable` 已真正注册到鉴权 HTTP／RPC 的
+client／rollback 与状态、refresh 路径。两者要求实际 `release_info.json` 的 project_owner、project_name、version；
+不会以 Web manifest 回退冒充应用身份。stable／beta 沿 GitHub release 选择；dev 明确降为 stable。
+公开 recover 按固定上游继续仅支持 Git。
+
+ZIP 复用 Web 的下载 size／可选 sha256／CRC 校验、私有 staging 和耐久目录切换，
+保留归档普通执行位，去除特殊权限位；persistent_files 仅限指定顶层用户目录／文件，不能覆盖版本、包清单或 node_modules。
+最终 stage（归档加 npm）与 rollback copy 都计入根目录、目录、普通文件及链接，最多 10000 条，
+普通文件内容累计 512MiB、单文件 128MiB；受控 node_modules/.bin 链接只可指向该树内部。
+达到限制在发布前拒绝，不生成不能按同一容量策略复制的候选。
+
+executable 要求 release_info 中有安全的顶层 asset_name，且现有同名二进制为普通文件；
+远端必须含该准确名称的 asset，缺失不退回任意首个二进制。只替换该文件及 release_info，
+应用目录及其他文件／inode 保持；新二进制设普通 0755 权限，provider 不执行下载内容。
+耐久双文件 intent 可在重开时完成已核对的匹配版本，不能称两个 rename 全程原子。
+两种格式均保留一代本地目录／文件回滚，需校验身份；不是旧 tag 的远端重新下载。
+
+ZIP 的 enable_node_updates=true 在每次实际新版本的私有 stage 内按 lock 准备独立生产依赖，
+不接受归档自带 node_modules；同版本不运行 npm，回滚直接恢复整目录及 .bin 链接，无需重新 npm。
+这有意不同于上游仅锁变时触发 npm，也不改变 Git 同锁优化；每个新 ZIP 版本承担 fresh 安装成本。
+共享 Node 事务禁止普通应用的生命周期脚本／原生构建／workspace 等需求，不能把忽略 scripts 称为完整支持。
+executable 不替换 Node manifest，enable_node_updates=true 明确拒绝；Python／pip／venv 未实现。
+
+system_dependencies 接受应用内相对 JSON 文件，以可信本机发行版 ID／alias／version／vendor 解析条件；
+install_script 仅 ZIP 的兼容静态 PKGLIST 读取，不执行脚本或 shell。应用包名不提供 APT selector，
+系统执行必须经过 typed installSystemPackages(names,{signal,authorize})；本批只有该 composition port，
+新系统依赖而未装配真实 port 时返回失败且不发布应用文件，生产 #79 薄接线和实际路径验收另行组合。
+依赖一致后才顺序进入现有 managed_services，自己的进程重启保持真实响应交接和维护围栏。
+未知服务结果／重开中的应用操作持久 interrupted，不自动重放；Net 的受信核对／ack 出口仍未实现。
+
+184 Node26.12 的真实临时 HTTP／RPC、权限／用户文件、npm、SIGKILL 文件事务和组合容量定向通过；
+注入系统／服务 port 不等于生产系统依赖完成，测试未运行下载 exe、真实包安装、服务或设备。
+首轮夹具／类型失败与逐项补验、源码／日志 hash 见[Net应用验收](../host/contracts/update-net-application-acceptance.json)。
+
 标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
 通过内部 `httpClient` 接口供组件借用，`server.info` 发现该组件。
 它不增加供外部调用者传入任意 URL／目标路径的公共端点，也不改变

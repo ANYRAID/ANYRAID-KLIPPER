@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "branch": "devac/net-application-updates",
+  "base": "4f0dd720f",
+  "merge": "05021c49e75fc35c86f5ac099327f969044dbd38",
+  "pinnedUpstream": {
+    "repository": "Arksine/moonraker",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "sysdepsParserSha256": "3104621c5a7e78594159760e24bb49fa9e2be83902bd67e36fd3bfc2ac7664ee"
+  },
+  "runtime": "Linux 10.0.0.184 Node v26.12.0 / npm11.19.1",
+  "checks": {
+    "first": {
+      "tests": 21,
+      "passed": 18,
+      "failed": 3,
+      "logs": "targeted-v1",
+      "failures": "Two HTTP fixtures omitted fixed welcome asset; npm wrapper generated an unescaped newline. No production change required."
+    },
+    "fixtureFollowup": {
+      "tests": 3,
+      "passed": 2,
+      "failed": 1,
+      "logs": "targeted-fixture-followup",
+      "remaining": "npm wrapper newline"
+    },
+    "npmFollowup": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "logs": "npm-fixture-followup"
+    },
+    "sharedWebManager": {
+      "tests": 26,
+      "passed": 26,
+      "failed": 0,
+      "logs": "shared-web-manager"
+    },
+    "sharedNode": {
+      "tests": 18,
+      "passed": 17,
+      "failed": 0,
+      "skipped": 1,
+      "logs": "shared-node",
+      "skip": "External immutable product bundle not supplied; not this application source scope"
+    },
+    "finalDirected": {
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "logs": "final-directed",
+      "coverage": "archive root lifecycle refusal; real npm/.bin rollback; executable permission fsync and three SIGKILL boundaries"
+    },
+    "combinedCapacity": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "logs": "final-capacity",
+      "coverage": "Sparse archive + node_modules combined >512MiB refused before publication; v2 target and existing v1 rollback still usable"
+    },
+    "parser": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "logs": "final-parser",
+      "coverage": "Fixed Python mixed-tuple inequality; no Python execution"
+    },
+    "typecheck": {
+      "exit": 0,
+      "logs": "typecheck-final-parser",
+      "earlier": "typecheck-tests-v1 failed on new test Buffer generic/config table typing; corrected and retained"
+    },
+    "testCommand": "ANYRAID_TEST_NPM_CLI=<trusted absolute npm-cli> node --test <affected files/name patterns>",
+    "note": "Separate successful affected batches cover current behavior; no blanket full-suite result is claimed. No repeated whole matrix after directed changes."
+  },
+  "invariants": [
+    "ZIP delegates bounded asynchronous CRC/digest ZIP extraction, durable directory publication and verified local rollback; application files retain ordinary execution bits, special mode bits stripped",
+    "Executable keeps directory and all unrelated entries/inodes; only safe top-level asset_name and release_info.json are replaced",
+    "Executable durable intent finishes a matching mixed binary/metadata pair; reopening repairs files only and never replays dependencies/services",
+    "Final application stage and rollback copy share 10000-entry (root/directories/files/links included), 512MiB-content and 128MiB-file limits; .bin symlinks must remain inside node_modules",
+    "ZIP Node actual new-version stages use locked fresh production-only no-script npm; same-version no-op; local whole-directory rollback needs no npm; root/production lifecycle/native needs remain explicit unsupported",
+    "System dependency metadata uses trusted local distro facts and fixed upstream tuple/left-to-right condition behavior; install_script only reads static PKGLIST and never executes shell",
+    "Typed system install runs before publication and service lifecycle; this first batch only exposes composition port and does not claim production #79 integration",
+    "Managed services use existing dynamic maintenance owner/response handoff. Reopen marks incomplete app operations interrupted; unknown services never replay; public recover remains Git-only"
+  ],
+  "limits": [
+    "Production system dependency composition awaits normal #79 combination and actual-path directed verification",
+    "Unknown application service reconciliation/ack is not implemented here; operations remain blocked pending trusted reconciliation",
+    "ZIP fresh-per-version Node preparation intentionally differs from upstream same-lock reuse and costs an install for each actual version",
+    "Rollback is one locally retained generation; no remote historic-tag fetch",
+    "Real tests use temporary loopback HTTP, offline npm/cache, SQLite/file transactions, controlled child SIGKILL and injected system/service ports; downloaded executable bytes are never run",
+    "Existing matching-lock node_modules and native addons reused; no fresh product/native build, whole CI, Mainsail, real system package/service/device action or deployment claim",
+    "Existing Web/Node test files include one finite observation each; no new performance gate or repeated benchmark is claimed"
+  ],
+  "sourceSha256": {
+    "host/src/moonraker/application-dependencies.ts": "a2848ed09b6d037f5d30ba98205f52636d82d05ae18e00b31d373fcc91fbdc41",
+    "host/src/moonraker/update-executable-transaction.ts": "82669f623a72176f9665692a9439ed058b6b209a872d139f5c6b8feab3f63593",
+    "host/src/moonraker/update-net-application.ts": "3716066431ae4d351f409e04e5e8a5c5f3f7c8f670a3c300e176d8132638352a",
+    "host/src/moonraker/update-web-deploy.ts": "fba16fe4654fbcdde1c8dfdae436e1cd5f182f2849554d44cb51f501c7de656d",
+    "host/src/moonraker/update-web-transaction.ts": "890ae91d029faf1df7c05a73d4393412fe71d10294d8fb8126eeaab53d254341",
+    "host/src/moonraker/node-dependency-transaction.ts": "564929cebb7a137b90076702fed54c21e658298885fc4a6fa8521e53ca8d3908",
+    "host/src/moonraker/update-manager.ts": "b4b08b4f0d9db7064212c4170d8649c7fc77fa043db4fe269a1b8331b1aea475",
+    "host/test/update-net-application.test.ts": "8ce7ec7dfe289daf6a237f46797db9a1b703c60cfe9d68f61038574abcb4ac51"
+  },
+  "logSha256": {
+    "final-capacity.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-capacity.stdout": "b39c4796e342fa30a3b9fecee2527ed6570da5537ab0adb3e08c8bcc54e470e6",
+    "final-directed.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-directed.stdout": "f3177482220c99f56eb1989cedad5b6f3fdb02c66202784d788b1d67a824ac34",
+    "final-parser.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-parser.stdout": "306b681be5a0a7b0abb5e14149e863f70435d4c380c061e79c33d57ddf72cc3a",
+    "final-source.sha256": "28a5867ae5a131b9fd62cab1e0e223bfc37561c1414317c57c09a4b4c72571e5",
+    "npm-fixture-followup.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "npm-fixture-followup.stdout": "c135425a7970fd41b0c8133cc08c185aeff9ec14a4baec18810b6821d14945b6",
+    "shared-node.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "shared-node.stdout": "a8187a895e9f52363158ee149b04db197af664fb7f0673a8c5a2fc9ab4a2714f",
+    "shared-web-manager.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "shared-web-manager.stdout": "a75b0e7d232591dd6b3e54f331152064900d881d85cacd91728717ee73cc294f",
+    "targeted-fixture-followup.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "targeted-fixture-followup.stdout": "b79748b4891ba08265d59dde207d4c85de8441c300b12e3f8423e86f66961648",
+    "targeted-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "targeted-v1.stdout": "706547dffbdf9b524d1d4f920553815e657e89a1fc7a952ecdf9a62f985fa021",
+    "typecheck-capacity.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-capacity.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final-directed.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final-directed.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final-parser.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final-parser.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-tests-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-tests-v1.stdout": "8d4778ed0e4fe28d623508752659eaaf49afbe027fc270c426d0ab564c9dec0e",
+    "typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-v1.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/net-application-source/receipt.json"
+}

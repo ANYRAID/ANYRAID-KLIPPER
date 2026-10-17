@@ -1,9 +1,9 @@
 // Web-only directory transaction. GPL-3.0-or-later.
 import {createHash,randomUUID} from 'node:crypto';
 import {constants} from 'node:fs';
-import {open,lstat,realpath,mkdir,rename,rm,readdir,opendir,chmod} from 'node:fs/promises';
+import {open,lstat,realpath,mkdir,rename,rm,readdir,opendir,chmod,readlink,symlink} from 'node:fs/promises';
 import type {FileHandle} from 'node:fs/promises';
-import {join,dirname,basename} from 'node:path';
+import {join,dirname,basename,relative,isAbsolute,sep} from 'node:path';
 import {Readable} from 'node:stream';
 import {crc32} from 'node:zlib';
 import {RandomAccessReader,fromRandomAccessReaderPromise,type ZipFile} from 'yauzl';
@@ -30,7 +30,7 @@ class ArchiveReader extends RandomAccessReader {
  async drain(){while(this.reads.size)await Promise.allSettled([...this.reads]);}
  override close(callback:(error:Error|null)=>void){void this.drain().then(()=>callback(null),callback);}
 }
-async function extract(path:string,target:string,size:number,digest:string,signal:AbortSignal){
+async function extract(path:string,target:string,size:number,digest:string,signal:AbortSignal,applicationPermissions=false){
  const source=await open(path,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);let reader:ArchiveReader|undefined,zip:ZipFile|undefined,active:Readable|undefined;
  const abort=()=>{active?.destroy(signal.reason instanceof Error?signal.reason:Error('Cancelled'));reader?.stop();};signal.addEventListener('abort',abort,{once:true});
  try{const before=await source.stat({bigint:true});if(!before.isFile()||before.size!==BigInt(size)||size<1||size>MAX_ARCHIVE)throw new ApiError(422,'Web archive size mismatch or exceeds capacity');
@@ -45,22 +45,24 @@ async function extract(path:string,target:string,size:number,digest:string,signa
    const key=name.toLowerCase();if(names.has(key)||!isDirectory&&directories.has(key))throw new ApiError(422,'Duplicate Web archive path');names.add(key);
    const parts=key.split('/');for(let i=1;i<parts.length;i++){const parent=parts.slice(0,i).join('/');if(files.has(parent))throw new ApiError(422,'Conflicting Web archive path');directories.add(parent);}if(isDirectory)directories.add(key);else files.add(key);
    const destination=join(target,...name.split('/'));await mkdir(isDirectory?destination:dirname(destination),{recursive:true,mode:0o755});for(let dir=isDirectory?destination:dirname(destination);dir!==target;dir=dirname(dir))await chmod(dir,0o755);
-   if(!isDirectory){const output=await open(destination,'wx',0o600);try{active=await zip.openReadStreamPromise(entry);active.on('error',()=>{});let checksum=0,length=0;for await(const chunk of active){signal.throwIfAborted();const bytes=chunk as Buffer;if(length+bytes.length>entry.uncompressedSize)throw new ApiError(422,'Web member size mismatch');checksum=crc32(bytes,checksum);for(let at=0;at<bytes.length;){const n=(await output.write(bytes,at,bytes.length-at,null)).bytesWritten;if(!n)throw Error('Web write made no progress');at+=n;}length+=bytes.length;}if(length!==entry.uncompressedSize||checksum!==entry.crc32)throw new ApiError(422,'Web member CRC or size mismatch');await output.chmod(0o644);await output.sync();}finally{active?.destroy();active=undefined;await output.close();}}
+   if(!isDirectory){const output=await open(destination,'wx',0o600);try{active=await zip.openReadStreamPromise(entry);active.on('error',()=>{});let checksum=0,length=0;for await(const chunk of active){signal.throwIfAborted();const bytes=chunk as Buffer;if(length+bytes.length>entry.uncompressedSize)throw new ApiError(422,'Web member size mismatch');checksum=crc32(bytes,checksum);for(let at=0;at<bytes.length;){const n=(await output.write(bytes,at,bytes.length-at,null)).bytesWritten;if(!n)throw Error('Web write made no progress');at+=n;}length+=bytes.length;}if(length!==entry.uncompressedSize||checksum!==entry.crc32)throw new ApiError(422,'Web member CRC or size mismatch');await output.chmod(applicationPermissions?((entry.externalFileAttributes>>>16)&0o777)||0o644:0o644);await output.sync();}finally{active?.destroy();active=undefined;await output.close();}}
   }
   const after=await source.stat({bigint:true});if((['dev','ino','size','mtimeNs','ctimeNs'] as const).some(k=>before[k]!==after[k]))throw new ApiError(409,'Web archive changed');
  }catch(e){signal.throwIfAborted();if(e instanceof ApiError)throw e;throw new ApiError(422,'Invalid Web archive');}finally{signal.removeEventListener('abort',abort);active?.destroy();zip?.close();reader?.stop();await reader?.drain();await source.close();}
 }
 /** Bounded copy rejects links/special files. The original installation stays intact. */
-async function copy(source:string,target:string,signal:AbortSignal,budget={bytes:0,entries:0}){
+async function applicationLink(source:string,root:string){const parts=relative(root,source).split(sep),modules=join(root,'node_modules'),resolved=await realpath(source),part=relative(modules,resolved),link=await readlink(source);if(parts[0]!=='node_modules'||parts.at(-2)!=='.bin'||isAbsolute(link)||isAbsolute(part)||part==='..'||part.startsWith('..'+sep))throw new ApiError(422,'Unsafe application dependency link');return link;}
+async function copy(source:string,target:string,signal:AbortSignal,budget={bytes:0,entries:0},applicationLinks=false,root=source){
  signal.throwIfAborted();if(++budget.entries>MAX_ENTRIES)throw new ApiError(413,'Persistent Web data capacity exceeded');const info=await lstat(source,{bigint:true});
+ if(info.isSymbolicLink()&&applicationLinks){await symlink(await applicationLink(source,root),target);return;}
  if(info.isSymbolicLink()||!info.isFile()&&!info.isDirectory())throw new ApiError(422,'Persistent Web data must contain regular files and directories');
- if(info.isDirectory()){await mkdir(target,{mode:0o700});for await(const entry of await opendir(source))await copy(join(source,entry.name),join(target,entry.name),signal,budget);await chmod(target,Number(info.mode)&0o777);await sync(target);}
+ if(info.isDirectory()){await mkdir(target,{mode:0o700});for await(const entry of await opendir(source))await copy(join(source,entry.name),join(target,entry.name),signal,budget,applicationLinks,root);await chmod(target,Number(info.mode)&0o777);await sync(target);}
  else{if(info.size>BigInt(MAX_FILE)||(budget.bytes+=Number(info.size))>MAX_CONTENT)throw new ApiError(413,'Persistent Web data capacity exceeded');const input=await open(source,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);let out:FileHandle|undefined;try{out=await open(target,'wx',0o600);const opened=await input.stat({bigint:true});if(opened.dev!==info.dev||opened.ino!==info.ino)throw fail();for(let at=0;at<Number(info.size);){signal.throwIfAborted();const bytes=Buffer.allocUnsafe(Math.min(65536,Number(info.size)-at)),n=(await input.read(bytes,0,bytes.length,at)).bytesRead;if(!n)throw fail();for(let written=0;written<n;){const count=(await out.write(bytes,written,n-written,null)).bytesWritten;if(!count)throw Error('Web copy made no progress');written+=count;}at+=n;}const after=await input.stat({bigint:true});if((['dev','ino','size','mtimeNs','ctimeNs'] as const).some(k=>info[k]!==after[k]))throw new ApiError(409,'Persistent Web data changed during copy');await out.chmod(Number(info.mode)&0o777);await out.sync();}finally{await Promise.all([input.close(),out?.close()]);}}
 }
 export class WebDirectoryTransaction {
  readonly directory:string;#parent='';#backup:Backup|undefined;#lock:FileHandle|undefined;
- readonly target:string;
- constructor(target:string){this.target=target;this.directory=join(dirname(target),'.anyraid-web-'+createHash('sha256').update(target).digest('hex').slice(0,20));}
+ readonly target:string;readonly #applicationPermissions:boolean;
+ constructor(target:string,applicationPermissions=false){this.target=target;this.#applicationPermissions=applicationPermissions;this.directory=join(dirname(target),'.anyraid-web-'+createHash('sha256').update(target).digest('hex').slice(0,20));}
  async initialize():Promise<void>{
   if(await realpath(dirname(this.target))!==dirname(this.target))throw fail();this.#parent=(await id(dirname(this.target)))!;
   try{await mkdir(this.directory,{mode:0o700});await sync(dirname(this.target));}catch(e){if((e as NodeJS.ErrnoException).code!=='EEXIST')throw e;}
@@ -73,13 +75,13 @@ export class WebDirectoryTransaction {
  async close(){const handle=this.#lock;this.#lock=undefined;await handle?.close();}
  get rollback(){return this.#backup?{version:this.#backup.version,repo:this.#backup.repo}:undefined;}
  async stage(signal:AbortSignal):Promise<string>{signal.throwIfAborted();const path=join(this.directory,'stage-'+randomUUID());await mkdir(path,{mode:0o700});return path;}
- async archive(path:string,stage:string,size:number,digest:string,signal:AbortSignal){await extract(path,stage,size,digest,signal);}
- async rollbackStage(signal:AbortSignal):Promise<string>{if(!this.#backup||await id(join(this.directory,this.#backup.name))!==this.#backup.id)throw new ApiError(409,'No verified Web rollback is available');const path=join(this.directory,'stage-'+randomUUID());await copy(join(this.directory,this.#backup.name),path,signal);return path;}
+ async archive(path:string,stage:string,size:number,digest:string,signal:AbortSignal){await extract(path,stage,size,digest,signal,this.#applicationPermissions);}
+ async rollbackStage(signal:AbortSignal):Promise<string>{if(!this.#backup||await id(join(this.directory,this.#backup.name))!==this.#backup.id)throw new ApiError(409,'No verified Web rollback is available');const path=join(this.directory,'stage-'+randomUUID());await copy(join(this.directory,this.#backup.name),path,signal,{bytes:0,entries:0},this.#applicationPermissions);return path;}
  async preserve(stage:string,names:readonly string[],signal:AbortSignal){const budget={bytes:0,entries:0};for(const name of names){const source=join(this.target,name);try{await lstat(source);}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')continue;throw e;}await rm(join(stage,name),{recursive:true,force:true});await copy(source,join(stage,name),signal,budget);}}
  async discard(stage:string){if(dirname(stage)!==this.directory||!safeName(basename(stage))||!basename(stage).startsWith('stage-'))throw fail();await rm(stage,{recursive:true,force:true});}
  async publish(stage:string,expected:string,version:string,repo:string,signal:AbortSignal,admit:()=>void|Promise<void>):Promise<void>{
   signal.throwIfAborted();await admit();signal.throwIfAborted();if(await id(dirname(this.target))!==this.#parent||await id(this.target)!==expected||dirname(stage)!==this.directory)throw fail();const candidate=(await id(stage))!;
-  await chmod(stage,0o755);await this.#syncTree(stage);signal.throwIfAborted();await admit();signal.throwIfAborted();if(await id(this.target)!==expected||await id(dirname(this.target))!==this.#parent)throw fail();
+  await chmod(stage,0o755);await this.#syncTree(stage,this.#applicationPermissions?{bytes:0,entries:0}:undefined);signal.throwIfAborted();await admit();signal.throwIfAborted();if(await id(this.target)!==expected||await id(dirname(this.target))!==this.#parent)throw fail();
   const intent:Intent={schema:1,target:this.target,parent:this.#parent,old:{name:'old-'+randomUUID(),id:expected,version,repo},candidate:{name:basename(stage),id:candidate},previous:this.#backup??null};
   await store(join(this.directory,'intent.json'),intent);
   try{signal.throwIfAborted();await admit();signal.throwIfAborted();if(await id(this.target)!==expected||await id(dirname(this.target))!==this.#parent)throw fail();}catch(error){await this.#recover(intent);throw error;}
@@ -87,7 +89,12 @@ export class WebDirectoryTransaction {
   await rename(this.target,join(this.directory,intent.old.name));await sync(dirname(this.target));await sync(this.directory);
   await rename(stage,this.target);await sync(dirname(this.target));await sync(this.directory);await this.#recover(intent);
  }
- async #syncTree(path:string){for(const entry of await readdir(path,{withFileTypes:true}))if(entry.isDirectory())await this.#syncTree(join(path,entry.name));await sync(path);}
+ async #syncTree(path:string,budget?:{bytes:number;entries:number},root=path){
+  // Match rollback copy: root, directories, files and links each count once;
+  // only regular file contents count toward bytes, with the same file limit.
+  if(budget){if(++budget.entries>MAX_ENTRIES)throw new ApiError(413,'Application stage capacity exceeds rollback limits');const info=await lstat(path,{bigint:true});if(info.isSymbolicLink()){await applicationLink(path,root);return;}if(info.isFile()){if(info.size>BigInt(MAX_FILE)||(budget.bytes+=Number(info.size))>MAX_CONTENT)throw new ApiError(413,'Application stage capacity exceeds rollback limits');await sync(path);return;}if(!info.isDirectory())throw new ApiError(422,'Application stage contains an unsupported entry');}
+  for(const entry of await readdir(path,{withFileTypes:true}))if(budget||entry.isDirectory())await this.#syncTree(join(path,entry.name),budget,root);await sync(path);
+ }
  async #recover(intent:Intent){
   const current=await id(this.target),oldPath=join(this.directory,intent.old.name),stage=join(this.directory,intent.candidate.name),old=await id(oldPath),candidate=await id(stage);
   if(current===intent.old.id&&old===undefined&&(candidate===intent.candidate.id||candidate===undefined)){if(candidate!==undefined)await this.discard(stage);}

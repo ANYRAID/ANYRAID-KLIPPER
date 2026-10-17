@@ -15,19 +15,22 @@ import type {EndpointRegistry} from './endpoints.ts';
 import {ApiError,authorizedContext,type Json} from './rpc.ts';
 import {WebDeployment,webRepository,type WebDeploymentConfiguration} from './update-web-deploy.ts';
 import {GitDeployment,parseGitDeploymentConfiguration,type GitDeploymentConfiguration,type GitDeploymentStorage,type GitNodeRuntime} from './update-git-deploy.ts';
+import {NetApplication,parseNetApplicationConfiguration,type NetApplicationConfiguration,type NetApplicationStorage,type InstallSystemPackages} from './update-net-application.ts';
+import type {SystemDependencyFacts} from './application-dependencies.ts';
 type UpdateNotification='notify_update_refreshed'|'notify_update_response';
 const registrations=new WeakMap<DatabaseStore,Promise<DatabaseNamespace>>();
 const namePattern=/^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/u;
-type DeploymentConfiguration=WebDeploymentConfiguration|GitDeploymentConfiguration;
+type DeploymentConfiguration=WebDeploymentConfiguration|GitDeploymentConfiguration|NetApplicationConfiguration;
+const netConfiguration=(c:DeploymentConfiguration):c is NetApplicationConfiguration=>'applicationType' in c&&c.applicationType!==undefined;
 const overlaps=(a:string,b:string)=>{const p=relative(a,b);return p===''||!isAbsolute(p)&&p!=='..'&&!p.startsWith('..'+sep);};
-const deploymentLocations=(c:DeploymentConfiguration)=>[c.path,join(dirname(c.path),'origin' in c?'.anyraid-git-'+createHash('sha256').update(c.path).digest('hex'):'.anyraid-web-'+createHash('sha256').update(c.path).digest('hex').slice(0,20)),...('origin' in c&&c.enableNodeUpdates?[join(dirname(c.path),'.anyraid-node-'+createHash('sha256').update(c.path).digest('hex'))]:[])];
+const deploymentLocations=(c:DeploymentConfiguration)=>[c.path,join(dirname(c.path),'origin' in c?'.anyraid-git-'+createHash('sha256').update(c.path).digest('hex'):(netConfiguration(c)&&c.applicationType==='executable'?'.anyraid-exec-':'.anyraid-web-')+createHash('sha256').update(c.path).digest('hex').slice(0,20)),...('origin' in c&&c.enableNodeUpdates?[join(dirname(c.path),'.anyraid-node-'+createHash('sha256').update(c.path).digest('hex'))]:[])];
 const booleanParameter=(value:Json|undefined,name:string)=>{if(value===undefined)return false;if(value===true||value==='true')return true;if(value===false||value==='false')return false;throw new ApiError(400,'Expected '+name+' boolean');};
 interface Stored extends Record<string,Json>{schema:1;deployments:Record<string,Json>;}
-export interface UpdateMaintenance {gate:()=>MaintenanceGate;assertIdle:()=>void|Promise<void>;processGate?:()=>MaintenanceGate;control?:ProductHostControl;}
+export interface UpdateMaintenance {gate:()=>MaintenanceGate;assertIdle:()=>void|Promise<void>;processGate?:()=>MaintenanceGate;control?:ProductHostControl;installSystemPackages?:InstallSystemPackages;systemDependencyFacts?:(signal:AbortSignal)=>Promise<SystemDependencyFacts>;}
 export class UpdateManager {
  readonly #database:DatabaseStore;readonly #http:MoonrakerHttpClient;readonly #reader:ConfigurationReader;
  readonly #blocked:()=>boolean;readonly #notify:(method:UpdateNotification,value:Json)=>void;
- readonly #deployments=new Map<string,WebDeployment|GitDeployment>();readonly #auto:boolean;readonly #window:number[];
+ readonly #deployments=new Map<string,WebDeployment|GitDeployment|NetApplication>();readonly #auto:boolean;readonly #window:number[];
  readonly #life=new AbortController();readonly #pending=new Set<Promise<unknown>>();readonly #events=new Set<ReturnType<typeof setTimeout>>();
  #namespace:DatabaseNamespace|undefined;#storedDeployments:Record<string,Json>=Object.create(null);#ready=false;#initial=false;#closing=false;#failed=false;#refreshing=false;
  #tail=Promise.resolve();#opening:Promise<void>|undefined;#closed:Promise<void>|undefined;#timer:ReturnType<typeof setTimeout>|undefined;
@@ -42,7 +45,7 @@ export class UpdateManager {
   cfg.getBoolean('enable_repo_debug',{defaultValue:false,deprecate:true});const system=cfg.getBoolean('enable_system_updates',{defaultValue:true});cfg.getBoolean('enable_packagekit',{defaultValue:true});
   const globalChannel=cfg.get('channel',{defaultValue:null});if(globalChannel!==null&&!['stable','beta','dev'].includes(globalChannel))throw new ConfigurationError('Invalid update channel');
   if(system)reader.warn('update_manager: system package provider is not implemented; no system update status or action is claimed');
-  reader.warn('update_manager: Node core deployment/update, Git dependency lifecycle and other deployment types remain unimplemented');
+  reader.warn('update_manager: Node core deployment/update and Python deployment remain unimplemented');
   const reserved=[reader.source.primaryFile,...reader.source.definitionSources().map(source=>source.filename),database.storagePaths.path,...database.storagePaths.backupDirectory?[database.storagePaths.backupDirectory]:[]];
   const configurations=new Map<string,DeploymentConfiguration>();
   const add=(config:DeploymentConfiguration)=>{for(const previous of configurations.values())for(const a of deploymentLocations(previous))for(const b of deploymentLocations(config))if(overlaps(a,b)||overlaps(b,a))throw new ConfigurationError('Update installation and control paths cannot overlap');configurations.set(config.name,config);};
@@ -50,7 +53,7 @@ export class UpdateManager {
    const c=reader.section(section),name=section.slice('update_manager '.length).replace(/^client /u,'');if(!namePattern.test(name))throw new ConfigurationError('Invalid update application name');
    if(['moonraker','klipper'].includes(name)){for(const option of ['channel','pinned_commit','refresh_interval','report_anomalies'])if(c.hasOption(option))c.get(option);continue;}
    if(name==='system'||configurations.has(name))throw new ConfigurationError('Duplicate update application name');
-   const type=c.getChoice('type',['web','git_repo','zip','python','executable']);if(type==='git_repo'){add(parseGitDeploymentConfiguration(reader,section,{refreshInterval:interval,reservedPaths:reserved}));continue;}if(type!=='web'){reader.warn('update_manager: deployment type '+type+' is not yet implemented for '+name);continue;}
+   const type=c.getChoice('type',['web','git_repo','zip','python','executable']);if(type==='git_repo'){add(parseGitDeploymentConfiguration(reader,section,{refreshInterval:interval,reservedPaths:reserved}));continue;}if(type==='zip'||type==='executable'){add(parseNetApplicationConfiguration(reader,section,interval));continue;}if(type!=='web'){reader.warn('update_manager: deployment type '+type+' is not yet implemented for '+name);continue;}
    const source=c.get('path');if(source.length>4096||/[\0\r\n]/u.test(source))throw new ConfigurationError('Invalid update application path');const target=resolveConfigurationPath(source);if(!isAbsolute(target))throw new ConfigurationError('Update application path must resolve to an absolute directory');
    const repo=c.get('repo').trim().replace(/^\/+|\/+$/gu,'');if(!webRepository(repo))throw new ConfigurationError('Update web repo must be owner/project');
    const requested=c.getChoice('channel',['stable','beta','dev'],{defaultValue:'stable'}) as 'stable'|'beta'|'dev',channel=requested==='dev'?'stable':requested;
@@ -61,7 +64,7 @@ export class UpdateManager {
    const value:WebDeploymentConfiguration={...config,persistentFiles:persistent,configHash:createHash('sha256').update(JSON.stringify({...config,persistent})).digest('hex')};add(value);
   }
   if(configurations.size>32)throw new ConfigurationError('Update application capacity exceeded');
-  for(const [name,config]of configurations){const protectedPaths=[...reserved,...[...configurations].flatMap(([id,value])=>id===name?[]:deploymentLocations(value))];this.#deployments.set(name,'origin' in config?new GitDeployment({...config,reservedPaths:protectedPaths},nodeRuntime):new WebDeployment(config,http,protectedPaths));}
+  for(const [name,config]of configurations){const protectedPaths=[...reserved,...[...configurations].flatMap(([id,value])=>id===name?[]:deploymentLocations(value))];this.#deployments.set(name,'origin' in config?new GitDeployment({...config,reservedPaths:protectedPaths},nodeRuntime):netConfiguration(config)?new NetApplication(config,http,protectedPaths,{node:nodeRuntime,dependencyFacts:this.#maintenance.systemDependencyFacts}):new WebDeployment(config,http,protectedPaths));}
  }
  get status(){return {ready:this.#ready,initialRefreshComplete:this.#initial,refreshing:this.#refreshing,updating:this.#updating??null,pending:this.#pending.size,closing:this.#closing,failed:this.#failed,notificationFailures:this.#notificationFailures};}
  snapshot():Record<string,Json>{this.#active();const versions:Record<string,Json>=Object.create(null);versions.moonraker={};versions.klipper={};for(const [name,app]of this.#deployments)versions[name]=app.status;return {...this.#http.githubApiStats(),version_info:versions,busy:this.#updating!==undefined};}
@@ -122,10 +125,10 @@ export class UpdateManager {
    const current=()=>{signal.throwIfAborted();if(gate!==this.#maintenance.gate()||!gate.owns(lease())||this.#blocked())throw new ApiError(409,'Printer maintenance admission changed');};
    const admit=async()=>{current();await authorize();current();await this.#maintenance.assertIdle();current();};
    const proc=Date.now(),notify=(message:string,complete=false)=>{if(this.#closing)return;try{this.#notify('notify_update_response',{message,application:name,proc_id:proc,complete});}catch{this.#notificationFailures++;}};
-   const label=app instanceof GitDeployment?'Git application':'Web client';
+   const label=app instanceof GitDeployment?'Git application':app instanceof NetApplication?'Application':'Web client';
    this.#updating=name;try{await admit();notify(label+' '+action+' started');
     let restartServices:((persist:(progress:ManagedServiceProgress)=>Promise<void>)=>Promise<void>)|undefined;
-    if(app instanceof GitDeployment&&app.config.managedServices.length){
+    if((app instanceof GitDeployment||app instanceof NetApplication)&&app.config.managedServices.length){
      const control=this.#maintenance.control;if(!control||!process||!processLease)throw new ApiError(503,'Managed services require the process control and maintenance owner');const plan=control.planMaintenanceServices(app.config.managedServices);if(plan.some(item=>item.retirement==='process')&&!afterResponse)throw new ApiError(503,'Process restart requires a real response handoff');
      restartServices=async persist=>{
       const progress:ManagedServiceProgress={schema:1,state:'running',next:0,entries:plan.map(item=>({...structuredClone(item),state:'planned',request_id:null}))};await persist(structuredClone(progress));
@@ -149,12 +152,13 @@ export class UpdateManager {
      };
     }
     if(app instanceof GitDeployment){const context={signal,authorize:admit,persist:async(state:GitDeploymentStorage)=>{await this.#storeState(name,state);},restartServices};if(action==='recover')await app.recover(context,hard,updateDeps);else if(action==='rollback')await app.rollback(context);else await app.update(context);}
+    else if(app instanceof NetApplication)await app.mutate(action==='rollback',{signal,authorize:admit,persist:async(state:NetApplicationStorage)=>{await this.#storeState(name,state);},restartServices,installSystemPackages:this.#maintenance.installSystemPackages});
     else await app.deploy(action==='rollback',signal,admit,notify);
     await this.#storeState();notify(label+' '+action+' complete',true);this.#event();return 'ok';
    }catch(error){notify(label+' '+action+' failed',true);throw error;}finally{this.#updating=undefined;deviceLease?.release();processLease?.release();}
   });this.#pending.add(task);this.#tail=task.then(()=>{},()=>{});void task.then(value=>{this.#pending.delete(task);response.resolve(value);},error=>{this.#pending.delete(task);response.reject(error);}).finally(()=>{request.removeEventListener('abort',cancel);this.#life.signal.removeEventListener('abort',stop);});return response.promise;
  }
- async #storeState(name?:string,candidate?:GitDeploymentStorage){const deployments={...this.#storedDeployments,...Object.fromEntries([...this.#deployments].map(([id,app])=>[id,id===name?candidate!:app.storage]))};const state:Stored={schema:1,deployments};await this.#namespace!.insert('state',state);this.#storedDeployments=structuredClone(deployments);}
+ async #storeState(name?:string,candidate?:GitDeploymentStorage|NetApplicationStorage){const deployments={...this.#storedDeployments,...Object.fromEntries([...this.#deployments].map(([id,app])=>[id,id===name?candidate!:app.storage]))};const state:Stored={schema:1,deployments};await this.#namespace!.insert('state',state);this.#storedDeployments=structuredClone(deployments);}
  #event(){if(this.#closing)return;const timer=setTimeout(()=>{this.#events.delete(timer);if(this.#closing)return;try{this.#notify('notify_update_refreshed',this.snapshot());}catch{this.#notificationFailures++;}},200);this.#events.add(timer);timer.unref();}
  register(registry:EndpointRegistry):()=>void{
   const status=registry.register({endpoint:'/machine/update/status',methods:['GET']},(params,_verb,context)=>this.get(params,context.signal));
@@ -165,5 +169,5 @@ export class UpdateManager {
   const unavailable=['moonraker','klipper','system','full','upgrade'].map(name=>registry.register({endpoint:'/machine/update/'+name,methods:['POST']},()=>{this.#active();throw new ApiError(501,'Update deployment actions are not implemented; no action was performed');}));
   const release=()=>{for(const fn of [status,refresh,client,rollback,recover,...unavailable])fn();};this.#releases.push(release);return release;
  }
- close():Promise<void>{return this.#closed??=(async()=>{this.#closing=true;clearTimeout(this.#timer);this.#timer=undefined;for(const timer of this.#events)clearTimeout(timer);this.#events.clear();this.#life.abort(new Error('Update manager closed'));for(const release of this.#releases)release();await Promise.allSettled([this.#opening,...this.#pending]);await Promise.all([...this.#deployments.values()].filter((app):app is GitDeployment=>app instanceof GitDeployment).map(app=>app.close()));})();}
+ close():Promise<void>{return this.#closed??=(async()=>{this.#closing=true;clearTimeout(this.#timer);this.#timer=undefined;for(const timer of this.#events)clearTimeout(timer);this.#events.clear();this.#life.abort(new Error('Update manager closed'));for(const release of this.#releases)release();await Promise.allSettled([this.#opening,...this.#pending]);await Promise.all([...this.#deployments.values()].filter((app):app is GitDeployment|NetApplication=>app instanceof GitDeployment||app instanceof NetApplication).map(app=>app.close()));})();}
 }

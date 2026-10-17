@@ -22,6 +22,16 @@ MaintenanceGate增加不可按对象复制伪造的运行时lease身份与同步
 OS job submission终态不证明目标服务ready；本批不宣称完成Git／核心provider、managed_services或Node依赖更新。
 紧凑记录见[系统控制验收](../host/contracts/native-machine-control-acceptance.json)的maintenanceLeaseHandoff。
 
+## 2026-10-18 ZIP／executable 网络应用 provider 候选
+
+两类配置接实际鉴权 HTTP／RPC 更新及本地回滚；ZIP 复用发行／下载／耐久目录事务，exe 仅换二进制和release_info，保目录其他文件。
+ZIP普通执行位、最终归档＋npm总容量与rollback一致；实际新版本在stage fresh锁定生产依赖，同版本no-op，整目录rollback不再npm。
+依赖后沿既有managed_services时序，未知结果不重放，公开recover仍仅Git；Python/pip不实现。
+system_dependencies／静态PKGLIST及typed系统安装port已具备，本批不把测试注入port称生产依赖完整，须正常组合#79后验证真实薄接线。
+184首轮21项18过/3夹具失败，限定补验收口；Web/manager26过，Node17过/1外部产品artifact缺失skip；最后6项、容量1项与解析1项定向及标准typecheck通过。
+实际临时HTTP／RPC、离线npm及三处SIGKILL重开，不运行下载exe或真实系统服务/设备；完整CI和生产集成另验。
+证据见[Net应用验收](../host/contracts/update-net-application-acceptance.json)，原始失败与分批成功均保留。
+
 ## 2026-10-18 Web客户端实际更新、回滚与中断一致性恢复
 
 在#69状态／刷新基础上接入client更新和rollback本地目录回滚，使用真实共享HTTP下载，校验声明size、
