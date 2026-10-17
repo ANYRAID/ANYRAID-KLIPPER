@@ -1339,18 +1339,39 @@ channel: stable
 
 本阶段支持 stable／beta；dev 明确告警并回落stable。优先严格读取release_info.json；
 文件损坏不回退，仅缺文件时读取.version及已知Mainsail／Fluidd manifest。路径须可写、
-无Git祖先，不能与进程配置／数据库／备份路径重叠。只刷新版本元数据，不修改安装目录。
+无Git祖先，不能与进程配置／数据库／备份路径重叠；私有事务目录同样不能重叠这些路径。
 GET /machine/update/status（RPC machine.update.status）返回缓存、共享GitHub限额和version_info；
 refresh=true可要求刷新，仍受60秒节流及忙态约束。POST /machine/update/refresh接受可选name，
 启动未完成或打印／安装忙时503，其余串行刷新；成功持久化后延迟200ms广播notify_update_refreshed。
 两入口沿既有鉴权，GET不请求网络或启动子进程。首次刷新在监听启动后，退出取消并等待I/O，
 不在打印设备代际切换时重建，也不关闭借用的共享资源。
 
+POST /machine/update/client 与 RPC machine.update.client 接受必填 name，实际下载并更新指定Web客户端；
+POST /machine/update/rollback 与 RPC machine.update.rollback 使用本地保留的前一目录回滚，成功返回 ok。
+这是相对固定上游重新下载旧版的可靠性改进：回滚也以当前 persistent_files 覆盖候选，不倒退更新后的用户设置。
+persistent_files 仅允许不同的顶层文件／目录名，禁止 .version／release_info.json；嵌套配置明确报错。
+旧用户内容覆盖发行包同名项；普通包目录0755、文件0644，保留文件／目录保留原普通权限位，特殊位不复制。
+需要进程用户写入安装父目录及同父目录私有 .anyraid-web-* 控制目录；控制目录0700，使用内核目录锁排除竞争进程。
+
+下载上限128MiB，逐项核声明size、若GitHub提供则核sha256摘要、ZIP成员CRC和候选版本／仓库元数据；
+没有摘要时仍执行长度、CRC及元数据检查，不将其表述为签名或可信来源证明。不支持加密、穿越、重复／冲突路径、
+符号链接或特殊文件。解压／复制使用异步有界I/O；最多10000项、单文件128MiB、解压总量512MiB，持久文件复制同样有界。
+元数据在持久文件覆盖后再次验证。安装／回滚期间持有当前维护门禁，阻止新打印；发布前重新鉴权并复核当前门禁、
+打印所有者及安装／父目录身份，旧设备代际或撤销身份不能迟到切换。明确native退休且排空、硬件／组状态均stopped时
+允许离线Web更新；未知或陈旧的外部Klippy断连状态保守拒绝，尚非上游全部离线兼容。
+
+先保留旧目录，再以两次rename切换；这不是全程原子操作，中间安装路径可能短暂缺位。
+耐久intent、目录身份和目录fsync支持重开判定：旧目录尚在则取消准备，旧目录已移走而新目录未发布则恢复旧目录，
+新目录已发布则确认备份。恢复自身可重复；身份不匹配时拒绝并要求检查，绝不按名称盲删用户安装。
+进入两rename提交阶段后关闭等待一致性收尾，再释放门禁；新设备附着也等待本次维护结束。此前取消下载会排空I/O。
+进程被强杀于intent写入之前可能留下私有准备目录／下载文件；它们不自动重放或按名称盲删，需离线核对后清理。
+notify_update_response 含 message／application／proc_id／complete；更新／回滚完成持久缓存后发完成事件，并延迟发送notify_update_refreshed。
+
 moonraker／klipper状态目前为上游BaseDeploy的{}，指定refresh为无动作；不表示核心可更新。
-其余八个更新／恢复／回滚路由明确501，无部署效果。后续必须补齐实际下载、校验、安装、
-恢复／回滚和其他provider；核心自更新采用Node发布与现有安装身份，不能照搬Python venv／pip。
-本批定向验证、桌面有限轮询／刷新测量和完整剩余队列见
-[Web更新验收](../host/contracts/update-manager-web-acceptance.json)。
+moonraker／klipper／system／full／upgrade／recover六类动作仍明确501，无部署效果；公开recover保持固定上游Git边界，
+本次Web恢复仅为中断目录事务一致性恢复。Git／ZIP／executable provider、系统包与Node核心自更新仍待完成，
+核心自更新不得照搬Python venv／pip。本机与184定向测试不代表生产部署、掉电文件系统或真实设备验收。
+具体记录见[Web更新验收](../host/contracts/update-manager-web-acceptance.json)。
 
 标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
 通过内部 `httpClient` 接口供组件借用，`server.info` 发现该组件。
