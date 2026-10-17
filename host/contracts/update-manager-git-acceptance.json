@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "status": "candidate: repository-only Git applications; not a complete update provider",
+  "baseline": {
+    "branch": "devac/git-update-provider",
+    "develop": "d2f98713e6e8a687b7584df0651b3a61d99392cc",
+    "sync": "fetch origin then merge --ff-only origin/develop; six untracked implementation files preserved; no reset",
+    "upstreamContract": "Moonraker 1cfb0c41e468645951a371621f06d32777b6107c git_deploy.py, app_deploy.py, common.py, update_manager.py, utils/versions.py"
+  },
+  "implemented": [
+    "Real Git metadata and fetch, fixed-channel/pinned selection, cached status without Git spawn",
+    "Authenticated HTTP/RPC client update, durable commit/branch/version rollback and explicit soft/hard recovery",
+    "Shared Web/Git installation and control path protection; protected process paths; kernel directory lock",
+    "Dynamic maintenance gate and authorization rechecked after each await and before destructive boundaries",
+    "Full private namespace persistence retains peer and removed deployment records; interrupted removed configuration fails startup",
+    "Cancellation joins Git helper process group; manager close waits for pending tasks and every Git deployment close"
+  ],
+  "notImplemented": [
+    "Git Node dependency installation and replacement; enable_node_updates=true is rejected",
+    "Managed service lifecycle and maintenance lease transfer; nonempty managed_services is rejected; upstream is_system_service default remains true",
+    "Core self-update, system package update, ZIP/Python/executable providers and full/upgrade operations",
+    "SSH, file origin in public config, credential helpers/URLs, moved_origin, Python environments, install scripts and system dependency config",
+    "Mutation or remote fetch through linked worktree/submodule; hard replacement of main repository with linked worktrees/submodules"
+  ],
+  "validation": {
+    "runtime": "Linux 10.0.0.184, Node v26.12.0, Git 2.51.0",
+    "directory": "/home/dek02/.codex/worktrees/supervisor-group-compat/git-update-provider",
+    "reuse": "Matching package-lock node_modules and existing host/build native outputs borrowed from the established isolated checkout; not fresh build",
+    "packageLockSha256": "660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6",
+    "sealedFileAddonSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+    "managerFirstRun": {
+      "files": [
+        "update-git-manager.test.ts",
+        "update-manager.test.ts",
+        "update-web-transactions.test.ts"
+      ],
+      "passed": 30,
+      "failed": 3,
+      "total": 33,
+      "cause": "All three ConfiguredMoonraker interface fixtures failed loading missing host/assets/moonraker/welcome.html from the transferred input archive",
+      "cleanup": "Existing status-test fixture created its peer before the load try/finally; after tests finished, its remaining test worker was identified by exact PID/argv and terminated with SIGTERM so the original runner could emit its full failure report",
+      "session": "4828a1",
+      "log": "logs/first-integration-tests.stdout"
+    },
+    "managerInterfaceFollowup": {
+      "change": "Transferred missing tracked host/assets from the same baseline; production source unchanged",
+      "selection": "Only the three failed ConfiguredMoonraker HTTP/RPC fixtures; no repeat of the other 30 or performance observation",
+      "passed": 3,
+      "failed": 0,
+      "session": "5c01a6",
+      "log": "logs/integration-http-followup.stdout"
+    },
+    "typecheck": {
+      "command": "node scripts/run-typescript.ts -p tsconfig.json",
+      "exit": 0,
+      "session": "be2086",
+      "log": "logs/first-integration-typecheck.stdout"
+    },
+    "earlierIndependentChecks": "Repository 23/23, reserved-control 1/1, hard-recovery boundaries 2/2; final GitVersion 11/11; adapter 8/8 and real unreachable-origin 1/1. These were separate source checkpoints, not one final full-suite run. Earlier missing contracts and test type failures remain archived.",
+    "recoveryProtocolFollowup": {
+      "baseline": "d858b9034; correction before #71 integration; no commit or push by validation agent",
+      "upstream": {
+        "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+        "file": "update_manager.py",
+        "sha256": "c077bdbfa6539a2b3f39d8033baa93f29ceb3486c56ea797b763fb54bda9f9ec",
+        "lines": "472-487",
+        "contract": "Public update_deps boolean, default false; forwarded to the internal recover argument. Internal force_dep_update is not a public request field."
+      },
+      "behavior": [
+        "Malformed update_deps or hard and unknown force_dep_update rejected 400 through actual HTTP/RPC",
+        "update_deps=true rejected 501 through actual HTTP/RPC; no Git invocation and unchanged persisted transaction state",
+        "HTTP soft recover with update_deps=false and RPC hard recover with update_deps=false succeed"
+      ],
+      "validation": {
+        "runtime": "Linux10.0.0.184 Node v26.12.0",
+        "directory": "/home/dek02/.codex/worktrees/supervisor-group-compat/git-update-provider",
+        "testCommand": "node --test --test-name-pattern=\"actual authenticated HTTP/RPC\" host/test/update-git-manager.test.ts",
+        "passed": 1,
+        "failed": 0,
+        "testExit": 0,
+        "testStderrEmpty": true,
+        "typecheckCommand": "cd host && node scripts/run-typescript.ts -p tsconfig.json",
+        "typecheckExit": 0,
+        "typecheckOutputEmpty": true,
+        "scope": "Only the affected real interface fixture plus required standard typecheck; existing fixtures/build/dependencies reused, no full-suite/build/sanitizer rerun"
+      },
+      "previousSourceSha256": {
+        "host/src/moonraker/update-manager.ts": "91c7a519b7d8c306d939e0596a45f176c387584dc6b721659e4633f52e4ef456",
+        "host/test/update-git-manager.test.ts": "6bc5948fb41d574cf3aadc4f6a43294c48104b853567c26d5395c1039fecd9b4"
+      },
+      "currentSourceSha256": {
+        "host/src/moonraker/update-manager.ts": "4eec7755c9681dd1fc7503cef8868fecebc05d65ebbb830a03148500ae976f39",
+        "host/test/update-git-manager.test.ts": "c4955fb44dfc1edee0a0363c7083e43ac2809cf12b6d3f6635a81b32898ee63c"
+      },
+      "logs": {
+        "recover-protocol-tests.stdout": "c0e4cd5f8e52999c22b16ad5c83105bc2ffa4dd4a92cf4284644d2fbcc843319",
+        "recover-protocol-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "recover-protocol-tests.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "recover-protocol-typecheck.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "recover-protocol-typecheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "recover-protocol-typecheck.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "recover-protocol-runtime.txt": "4117ab00dc2f8c90d93ceede8620caac1d817bf404f006f025788ac760102631",
+        "recover-protocol-sha256.txt": "b45ca6e53ae09037209d463ca006d03d1c5da49179bf348aeff0e01236e193e5"
+      },
+      "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/git-version-contract/recover-protocol/recover-protocol-receipt.json",
+      "evidencePreserved": "Original validation records and log hashes retained; previousSourceSha256 identifies the pre-correction manager/test checkpoint."
+    }
+  },
+  "actualInterfaces": [
+    "Unauthenticated update rejected 401; three authenticated cached HTTP GETs add no Git command",
+    "Recovery malformed update_deps/hard types and unknown force_dep_update rejected 400; update_deps=true rejected 501 with no Git command or transaction persistence",
+    "HTTP update and WebSocket completion, RPC rollback, HTTP soft recovery of dirty file, RPC hard recovery of damaged old config",
+    "Every transaction namespace write verified durable while peer Web state retained; reopen performs real rollback",
+    "Revoked authority, asynchronous authorizer gate change, changed generation and process close do not apply late checkout",
+    "Failed completion persists interrupted; changed or removed app configuration cannot erase it"
+  ],
+  "finitePerformanceObservation": {
+    "runs": 1,
+    "cachedStatusBatches": 7,
+    "cachedStatusReadsPerBatch": 2000,
+    "cachedStatusNsPerRead": [
+      6187.4525000002905,
+      5899.499000000105,
+      5514.184500000738,
+      5690.461000000141,
+      5610.880500000349,
+      5427.5385000000815,
+      5355.427500000587
+    ],
+    "cachedStatusGitSpawns": 0,
+    "payloadBytes": 1048576,
+    "realRefreshMs": 413.41008800000054,
+    "realUpdateMs": 1214.271944,
+    "timerIntervalMs": 1,
+    "timerSamples": 1409,
+    "maxExtraTimerDelayMs": 3.815037000000302,
+    "threshold": null,
+    "scope": "Finite desktop source test; includes trusted test executable shim startup; no target-board, motion, causal speedup or acceptance conclusion"
+  },
+  "evidenceLimits": [
+    "Exact fixture HTTPS URL was remapped by a trusted test Git executable to a temporary real local bare repository; unmatched URL is rejected; production file origin remains disabled. Git HTTPS/TLS transport was not tested",
+    "Earlier old-moved crash snapshot was reconstructed explicitly for state recovery; it is not a real Git SIGKILL/power-loss test",
+    "No fresh product build, sanitizer rerun, browser page, real service, printer operation, target board or deployment acceptance",
+    "No task PR, develop integration of this candidate, mainline merge or production release is claimed"
+  ],
+  "sourceSha256": {
+    "host/src/moonraker/update-git-repo.ts": "6c002401cb9ed64e167b3795e1cd31db954d40a5560932ff00dc56e4e7e3abe6",
+    "host/src/moonraker/update-git-version.ts": "d782c0149a46bbf0e12cac6f2f3fcae60abf26215b9e6420db9505ba9d36c97a",
+    "host/src/moonraker/update-git-deploy.ts": "347464261db7264e3a96472bc87015ed3cebbe94f7ca2c0ee03942962b2889bd",
+    "host/src/moonraker/update-manager.ts": "4eec7755c9681dd1fc7503cef8868fecebc05d65ebbb830a03148500ae976f39",
+    "host/test/update-git-repo.test.ts": "c057053806fd4fd434c5ae1fcf8010239168e34cd1d787962e3b928d21b6e66c",
+    "host/test/update-git-version.test.ts": "45bd54865d06813e8ffc8db95e23976fd5e6c67ffd24f1fc5c82d5d881d6eae9",
+    "host/test/update-git-deploy.test.ts": "227711a670c2c4d7335f91aaac2ca88d58d1b1aabff2a9733f1c21f6ea3af5df",
+    "host/test/update-git-manager.test.ts": "c4955fb44dfc1edee0a0363c7083e43ac2809cf12b6d3f6635a81b32898ee63c"
+  },
+  "logSha256": {
+    "first-integration-tests.stdout": "c1bbfcebb137318aa1edb9dde19c5cab180e15c5fbcfd1ce37a2e6b93e7de9ea",
+    "integration-http-followup.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "first-integration-typecheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "first-integration-typecheck.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "first-integration-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "integration-http-followup.stdout": "f7e193f9b4b092a283dea13925cb0b6d663434dc6a059c3d7458756d44cbe4d8",
+    "recover-protocol-tests.stdout": "c0e4cd5f8e52999c22b16ad5c83105bc2ffa4dd4a92cf4284644d2fbcc843319",
+    "recover-protocol-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recover-protocol-tests.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "recover-protocol-typecheck.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recover-protocol-typecheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recover-protocol-typecheck.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "recover-protocol-runtime.txt": "4117ab00dc2f8c90d93ceede8620caac1d817bf404f006f025788ac760102631",
+    "recover-protocol-sha256.txt": "b45ca6e53ae09037209d463ca006d03d1c5da49179bf348aeff0e01236e193e5"
+  },
+  "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/git-provider-source/evidence/integration-receipt.json"
+}

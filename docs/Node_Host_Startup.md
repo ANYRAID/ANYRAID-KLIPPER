@@ -1391,10 +1391,51 @@ persistent_files 仅允许不同的顶层文件／目录名，禁止 .version／
 notify_update_response 含 message／application／proc_id／complete；更新／回滚完成持久缓存后发完成事件，并延迟发送notify_update_refreshed。
 
 moonraker／klipper状态目前为上游BaseDeploy的{}，指定refresh为无动作；不表示核心可更新。
-moonraker／klipper／system／full／upgrade／recover六类动作仍明确501，无部署效果；公开recover保持固定上游Git边界，
-本次Web恢复仅为中断目录事务一致性恢复。Git／ZIP／executable provider、系统包与Node核心自更新仍待完成，
+moonraker／klipper／system／full／upgrade五类动作仍明确501，无部署效果；公开recover仅供下述Git候选，
+Web恢复仍仅为中断目录事务一致性恢复。完整Git、ZIP／executable provider、系统包与Node核心自更新仍待完成，
 核心自更新不得照搬Python venv／pip。本机与184定向测试不代表生产部署、掉电文件系统或真实设备验收。
 具体记录见[Web更新验收](../host/contracts/update-manager-web-acceptance.json)。
+
+### Git 纯仓库应用更新候选
+
+下列显式无服务／无依赖配置接入现有update_manager，默认Git频道为dev，primary_branch为master：
+
+```ini
+[update_manager my-client]
+type: git_repo
+path: ~/my-client
+origin: https://example.org/owner/my-client.git
+is_system_service: false
+enable_node_updates: false
+channel: dev
+primary_branch: master
+```
+
+GET状态只读内存缓存；显式刷新使用真实Git读取branch、remote、hash、dirty／detached／diverged、
+版本和commits_behind，fetch失败保留last_error且不推进成功刷新时间。stable／beta按固定上游标签创建顺序、
+包含关系及GitVersion比较选择目标；pinned_commit至少8位，只向包含当前提交的固定提交前进，不自动降级。
+正常更新拒绝任意tracked／untracked改动、detached或diverged，须显式recover才能执行破坏性恢复。
+
+client与rollback接受必填name，适用纯Git应用；rollback持久保存commit／branch／version。
+recover接受name与可选hard／update_deps布尔；HTTP查询可用true／false，其他类型400。
+公开参数按固定上游使用update_deps；内部名force_dep_update作为未知公开字段返回400。
+soft恢复优先pin／当前提交祖先，否则primary远端，并先有界备份原目录；hard克隆新候选、验证后保留原目录替换，
+不删除历史备份。update_deps=true仍501且不运行Git或写入恢复事务，不以无动作代替依赖更新。损坏旧config的hard恢复仅用先前可信目录身份，
+不运行旧仓库Git；未完成事务重开报告interrupted，必须显式恢复，不自动重放。
+
+安装目录、父目录及.git身份受保护，安装／控制目录不能与其他Web／Git应用或进程配置／数据库／备份重叠。
+Linux内核目录锁按仓库规范路径区分所有者；取消等待Git及其子进程退出，关闭先排空更新再关闭数据库。
+所有Git命令使用argv与有界输出／超时，禁用hooks、外部filter、credential helper及不安全配置，不公开原始stderr／凭据。
+目前仅支持无用户名密码、query或fragment的HTTPS源；SSH、file源、moved_origin、Python环境、安装脚本、系统依赖等明确拒绝。
+worktree／submodule仅读本地元数据，不fetch或mutation；主仓库有非空.git/worktrees或.git/modules时拒绝hard替换。
+
+is_system_service默认仍为true，默认托管自身服务，因此上述纯仓库场景必须显式false或managed_services留空。
+非空managed_services和enable_node_updates=true当前明确配置失败；现有product-install要求可信build-info清单、
+独立bundle且无node_modules，不能把任意Git checkout直接当作受支持npm安装。服务生命周期仍需把维护lease的producer
+fence同步交给持久ProductHostControl直至终态，own服务重启需afterResponse；本候选没有绕过这些约束。
+本批真实接口测试的精确HTTPS fixture地址由测试可执行shim映射到临时bare仓库，生产不开放file入口，Git TLS网络传输未验。
+软件与有限桌面观测不代表完整provider、目标板、真实设备或部署验收。
+分项结果、初轮缺assets失败及限定补验见[Git更新候选验收](../host/contracts/update-manager-git-acceptance.json)。
 
 标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
 通过内部 `httpClient` 接口供组件借用，`server.info` 发现该组件。
