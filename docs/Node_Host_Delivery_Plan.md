@@ -3623,13 +3623,19 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 新头完整 CI 待执行；运动 workflow 的路径条件
 未命中此批，不能将其记为当前头成功。
 
+本批#74的Node CI保留5515／5548（33失败）。已复现并修复退役attach把设备请求身份signal换成进程signal的共同回归，
+内部维护取消另绑存活进程，普通旧代际身份检查保持。184 Node26.12受影响八文件104／104及标准typecheck通过；
+当前TS独立编译产品、复用native并fresh生产依赖后的实际安装进程文件3／3通过。前置缺Rust、缺npm-cli及Rust ICE失败原样保留，
+不称fresh native构建通过。CI另一个managed recover 409在限定场未复现，已补错误响应体诊断，修正头完整CI仍待执行。
+
 ### 唯一实现队列与提速规则
 
 | 顺序 | 用户可见交付结果 | 退出条件 |
 | --- | --- | --- |
 | 当前集成基线 | #68／#69／#70、Git应用更新#71（67c710551）及维护租约#72（e1db00d84）已合入develop；#70合并后5464／5464及全部CI通过，#71／#72合并后检查分别运行中 | 各提交证据不混用。Mainsail1735、42／28及服务重获2.62602倍的原归属与门限保持；G0–G6、本机11／16／14、G3、目标板、实机及主线发布仍开放 |
-| 当前实现 | Git纯仓库HTTP／RPC更新／rollback／recover已集成；本批独立Node依赖事务提供真实隔离npm准备、保旧替换和显式中断恢复 | 尚未接入enable_node_updates／update_deps；不以独立引擎验证代替完整provider |
-| 下一实现 | #74受管服务生命周期、Git依赖实际接线，以及其余完整update_manager能力 | 连续A→B→C与最新回滚协调、实际脚本／原生依赖及可信产品包路径仍待完成；沿维护租约和真实afterResponse，不直接systemctl或引入pip |
+| 当前实现 | Git应用HTTP／RPC及managed_services基础上接通普通应用enable_node_updates与公开update_deps，真实锁驱动npm、连续A→B→C/最新回滚与hard换根迁移 | 依赖一致且durable后才进入已有服务链；同锁不重装，失败与重开保留interrupted，未知服务不重放。184六项首轮5／6（手工fetch fixture映射遗漏），限定补验通过；保留首次失败及后续定向，不代替CI/完整产品/设备验收 |
+| 下一实现 | 产品所需脚本／原生依赖和可信bundle完整pipeline、未知服务结果受信对账及其余完整update_manager | 普通应用增量不关闭完整Node依赖交付；可信build-info生成／验证与实际构建不得自签绕过。服务关联写超时／关闭、持续围栏及afterResponse保护沿既有实现；不直接systemctl或引入pip |
+| 已审依赖基础 | 5c5b94c8经正常merge c3d8cc5d0并入本组合树，服务基础8af70714；#72另已合入develop e1db00d8，本分支已正常同步#73头725779c8及#74头5d1c066a，前置PR仍待各自检查与集成 | 基础12／12及产品inventory等补验记录保持，接线新增验证单列，不继承旧头CI；#68／#69／#70已合入记录和G0–G6边界保留 |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |
@@ -3650,7 +3656,7 @@ build-info 生成／核验流程，不能把任意 checkout 自签成产品包�
 两处耐久窗口分别用删除后保存失败、暂存清理后保存失败验证可重复恢复；
 重建 old-moved 状态不是实际掉电／SIGKILL 证明。
 一次有限 npm／事件循环观测无新验收阈值，不推断运动或目标板性能。
-接线与一代备份自动轮换仍为下一独立批次；详见
+接线候选已完成一代备份自动轮换、同锁辨识和hard换根身份迁移；实际脚本／原生依赖与产品pipeline仍开放。新增接线证据见[生命周期验收](../host/contracts/update-git-node-lifecycle-acceptance.json)，基础历史详见
 [精简验收契约](../host/contracts/node-dependency-update-acceptance.json)及启动说明对应小节。
 
 覆盖增量及状态修复已正常集成，其合并后规定检查已通过。实际
