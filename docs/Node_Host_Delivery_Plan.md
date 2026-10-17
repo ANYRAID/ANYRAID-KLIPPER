@@ -9,6 +9,21 @@
 完成正常同步及 `10.0.0.184` 的隔离验证，无需逐次重复确认。该授权不包含 master／主线合并、
 生产部署或真实设备操作，也不允许绕过规定检查及既定 PR 流程。
 
+## 2026-10-18 独立 APT 系统包后端候选
+
+实现独立 APT 初始化、包列表、刷新、精确解析、安装与upgrade；真实默认argv执行器受授权、
+时间／输出／单操作并发及进程组排空约束。安装前durable pending、未知结果interrupted，
+新owner加载原日志，不自动重试或伪回滚；只读诊断仍可用。retries仅1，动作后缀明确拒绝。
+
+184 Node26.12首轮16／17，权限wrapper真实参数缺陷修正后定向1／1；新增持久化／关闭3／3、
+动作后缀1／1、早期APT_CONFIG隔离及wrapper2／2，最终标准typecheck通过；这是递增检查点，
+没有冒称同一最终全套。首轮CLI目录参数未阻止宿主hooks加载，隔离结论已降级并保留日志；
+后续先检查dump无宿主hooks，再在私有合成根运行真实APT查询／刷新和强制--simulate安装／upgrade，
+未实际变更宿主系统包。仅一次Linux有限缓存观测，无性能验收门槛；Windows先前检查点16过5明确skip。
+g++等尾符号名称的精确安装为紧接缺口；私有solver已证明统一追加+会因名称碰撞错选包，故保留显式unsupported。
+PackageKit、公开system接线／维护租约、真实系统升级与完整产品验收仍开放。
+见[APT验收](../host/contracts/update-manager-apt-acceptance.json)与[操作边界](Node_Host_Startup.md#独立-apt-系统包后端候选)。
+
 ## 2026-10-18 维护租约向服务控制的连续交接前置能力
 
 MaintenanceGate增加不可按对象复制伪造的运行时lease身份与同步transfer，复制release接收者和旧release均不能解除真实持有者围栏。
