@@ -1,0 +1,262 @@
+{
+  "schema": 1,
+  "branch": "devac/net-application-updates",
+  "base": "4f0dd720f",
+  "merge": "05021c49e75fc35c86f5ac099327f969044dbd38",
+  "pinnedUpstream": {
+    "repository": "Arksine/moonraker",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "sysdepsParserSha256": "3104621c5a7e78594159760e24bb49fa9e2be83902bd67e36fd3bfc2ac7664ee"
+  },
+  "runtime": "Linux 10.0.0.184 Node v26.12.0 / npm11.19.1",
+  "checks": {
+    "first": {
+      "tests": 21,
+      "passed": 18,
+      "failed": 3,
+      "logs": "targeted-v1",
+      "failures": "Two HTTP fixtures omitted fixed welcome asset; npm wrapper generated an unescaped newline. No production change required."
+    },
+    "fixtureFollowup": {
+      "tests": 3,
+      "passed": 2,
+      "failed": 1,
+      "logs": "targeted-fixture-followup",
+      "remaining": "npm wrapper newline"
+    },
+    "npmFollowup": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "logs": "npm-fixture-followup"
+    },
+    "sharedWebManager": {
+      "tests": 26,
+      "passed": 26,
+      "failed": 0,
+      "logs": "shared-web-manager"
+    },
+    "sharedNode": {
+      "tests": 18,
+      "passed": 17,
+      "failed": 0,
+      "skipped": 1,
+      "logs": "shared-node",
+      "skip": "External immutable product bundle not supplied; not this application source scope"
+    },
+    "finalDirected": {
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "logs": "final-directed",
+      "coverage": "archive root lifecycle refusal; real npm/.bin rollback; executable permission fsync and three SIGKILL boundaries"
+    },
+    "combinedCapacity": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "logs": "final-capacity",
+      "coverage": "Sparse archive + node_modules combined >512MiB refused before publication; v2 target and existing v1 rollback still usable"
+    },
+    "parser": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "logs": "final-parser",
+      "coverage": "Fixed Python mixed-tuple inequality; no Python execution"
+    },
+    "typecheck": {
+      "exit": 0,
+      "logs": "typecheck-final-parser",
+      "earlier": "typecheck-tests-v1 failed on new test Buffer generic/config table typing; corrected and retained"
+    },
+    "testCommand": "ANYRAID_TEST_NPM_CLI=<trusted absolute npm-cli> node --test <affected files/name patterns>",
+    "note": "Separate successful affected batches cover current behavior; no blanket full-suite result is claimed. No repeated whole matrix after directed changes."
+  },
+  "invariants": [
+    "ZIP delegates bounded asynchronous CRC/digest ZIP extraction, durable directory publication and verified local rollback; application files retain ordinary execution bits, special mode bits stripped",
+    "Executable keeps directory and all unrelated entries/inodes; only safe top-level asset_name and release_info.json are replaced",
+    "Executable durable intent finishes a matching mixed binary/metadata pair; reopening repairs files only and never replays dependencies/services",
+    "Final application stage and rollback copy share 10000-entry (root/directories/files/links included), 512MiB-content and 128MiB-file limits; .bin symlinks must remain inside node_modules",
+    "ZIP Node actual new-version stages use locked fresh production-only no-script npm; same-version no-op; local whole-directory rollback needs no npm; root/production lifecycle/native needs remain explicit unsupported",
+    "System dependency metadata uses trusted local distro facts and fixed upstream tuple/left-to-right condition behavior; install_script only reads static PKGLIST and never executes shell",
+    "Typed system install runs before publication/services through actual SystemPackageDeployment under original outer leases; submitted unknown results retain both fences after real drain",
+    "Managed services use existing dynamic maintenance owner/response handoff. Reopen marks incomplete app operations interrupted; unknown services never replay; public recover remains Git-only"
+  ],
+  "limits": [
+    "Unknown application service reconciliation/ack is not implemented here; operations remain blocked pending trusted reconciliation",
+    "ZIP fresh-per-version Node preparation intentionally differs from upstream same-lock reuse and costs an install for each actual version",
+    "Rollback is one locally retained generation; no remote historic-tag fetch",
+    "Real tests use temporary loopback HTTP, offline npm/cache, SQLite/file transactions, controlled child SIGKILL and injected system/service ports; downloaded executable bytes are never run",
+    "Existing matching-lock node_modules and native addons reused; no fresh product/native build, whole CI, Mainsail, real system package/service/device action or deployment claim",
+    "Existing Web/Node test files include one finite observation each; no new performance gate or repeated benchmark is claimed"
+  ],
+  "sourceSha256": {
+    "host/src/moonraker/application-dependencies.ts": "a2848ed09b6d037f5d30ba98205f52636d82d05ae18e00b31d373fcc91fbdc41",
+    "host/src/moonraker/update-executable-transaction.ts": "82669f623a72176f9665692a9439ed058b6b209a872d139f5c6b8feab3f63593",
+    "host/src/moonraker/update-net-application.ts": "3716066431ae4d351f409e04e5e8a5c5f3f7c8f670a3c300e176d8132638352a",
+    "host/src/moonraker/update-web-deploy.ts": "fba16fe4654fbcdde1c8dfdae436e1cd5f182f2849554d44cb51f501c7de656d",
+    "host/src/moonraker/update-web-transaction.ts": "890ae91d029faf1df7c05a73d4393412fe71d10294d8fb8126eeaab53d254341",
+    "host/src/moonraker/node-dependency-transaction.ts": "564929cebb7a137b90076702fed54c21e658298885fc4a6fa8521e53ca8d3908",
+    "host/src/moonraker/update-manager.ts": "b4b08b4f0d9db7064212c4170d8649c7fc77fa043db4fe269a1b8331b1aea475",
+    "host/test/update-net-application.test.ts": "8ce7ec7dfe289daf6a237f46797db9a1b703c60cfe9d68f61038574abcb4ac51"
+  },
+  "logSha256": {
+    "final-capacity.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-capacity.stdout": "b39c4796e342fa30a3b9fecee2527ed6570da5537ab0adb3e08c8bcc54e470e6",
+    "final-directed.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-directed.stdout": "f3177482220c99f56eb1989cedad5b6f3fdb02c66202784d788b1d67a824ac34",
+    "final-parser.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-parser.stdout": "306b681be5a0a7b0abb5e14149e863f70435d4c380c061e79c33d57ddf72cc3a",
+    "final-source.sha256": "28a5867ae5a131b9fd62cab1e0e223bfc37561c1414317c57c09a4b4c72571e5",
+    "npm-fixture-followup.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "npm-fixture-followup.stdout": "c135425a7970fd41b0c8133cc08c185aeff9ec14a4baec18810b6821d14945b6",
+    "shared-node.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "shared-node.stdout": "a8187a895e9f52363158ee149b04db197af664fb7f0673a8c5a2fc9ab4a2714f",
+    "shared-web-manager.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "shared-web-manager.stdout": "a75b0e7d232591dd6b3e54f331152064900d881d85cacd91728717ee73cc294f",
+    "targeted-fixture-followup.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "targeted-fixture-followup.stdout": "b79748b4891ba08265d59dde207d4c85de8441c300b12e3f8423e86f66961648",
+    "targeted-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "targeted-v1.stdout": "706547dffbdf9b524d1d4f920553815e657e89a1fc7a952ecdf9a62f985fa021",
+    "typecheck-capacity.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-capacity.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final-directed.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final-directed.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final-parser.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final-parser.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-final.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-tests-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-tests-v1.stdout": "8d4778ed0e4fe28d623508752659eaaf49afbe027fc270c426d0ab564c9dec0e",
+    "typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "typecheck-v1.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/net-application-source/receipt.json",
+  "firstBatchEvidence": "checks/sourceSha256/logSha256 below describe committed first batch 0a0c49c6a; its original composition-only boundary is superseded only by productionSystemCombination.",
+  "productionSystemCombination": {
+    "parents": [
+      "0a0c49c6a1f40d32bebd4c9608afd5a50444c9fd",
+      "1c1787c32034fc3f67497a00f3c0c417643ac7a5"
+    ],
+    "runtime": "Linux 10.0.0.184 Node v26.12.0",
+    "tests": {
+      "command": "node --test --test-name-pattern=\"production system\" test/update-net-application.test.ts",
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "logs": "combined-system-v1"
+    },
+    "typecheck": {
+      "command": "node scripts/run-typescript.ts -p tsconfig.json",
+      "exit": 0,
+      "logs": "combined-typecheck-v1"
+    },
+    "conflictResolution": [
+      "README preserves Net application and incoming actual system route descriptions",
+      "update-manager preserves Net registration/state/close and incoming system selection/reconciliation/fences/full preflight"
+    ],
+    "increment": [
+      "Replace optional maintenance injection with direct this.#system.installPackages(names,{...context,notify}) under existing outer leases",
+      "Three actual product-host integration tests and current contract documentation"
+    ],
+    "verified": [
+      "Only one process and one device lease acquired per application request; system backend never reacquires them",
+      "Controlled submitted APT failure persists interrupted state, transfers both outer leases into system fence, blocks native admission and never replays install",
+      "Explicit system reconciliation acknowledges only system outcome; application remains interrupted and refuses replay",
+      "Host close retains process fence and database until accepted executor actually drains; reopened journals preserve interrupted app/system outcomes"
+    ],
+    "boundary": "Real manager, SystemPackageDeployment, APT parser, SQLite, HTTP/RPC, host control, both gates and PTY MCU models; only argv executor and service execution controlled. No real package installation, OS service/device action, executable download execution, full CI or deployment.",
+    "sourceSha256": {
+      "host/src/moonraker/update-manager.ts": "b4d9077b224f9cb3ddeea29de77bc98fbb1acbe8ba80be1e36ab4b77ebbe1ca8",
+      "host/src/moonraker/system-package-deployment.ts": "cb30ce9d828b1c01cf23280a08e23e48ab0330b6dc93ff96dbb7a8ac569187d7",
+      "host/test/update-net-application.test.ts": "c2de1f648b4847abd88ccf5d4c3f26e6f3108eb387a94557b04816eb50d8d5c7"
+    },
+    "logSha256": {
+      "combined-system-v1.stdout": "45a6f4cd043d1b732f21e711c35ea5d75e8f3c373da3fe90d2ab4eba998dbb87",
+      "combined-system-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combined-typecheck-v1.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combined-typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "serviceReconciliation": {
+    "baseline": "b169b55c82ec1324eaf8419a1ccaadbfb8f1af14",
+    "gitReconciliationMerge": "b4d3ad6afe4c5c36ff31820d4672e08c8ebcb879",
+    "testCorrectionMerge": "db2338768",
+    "branch": "devac/net-service-reconciliation",
+    "status": "candidate; no real service/device or full/core update",
+    "scope": "ZIP/executable published service batches use existing target=app/name and independent machine.update.reconcile_app. Pure Web has no service lifecycle and is not expanded.",
+    "implementation": [
+      "Every new Net mutation has app-UUID; service progress captures config hash, published directory/version/repo and executable stat identity",
+      "Legacy stable ID hashes complete original persistent state and configuration; only original binding plus fixed local identity checks permit acknowledgement. Weak/mismatched provenance remains fenced",
+      "Existing bounded control request inspection rejects active/undrained work; service/process facts and five-minute revision remain external observation, not proof of previous submission success or running code",
+      "Immutable receipt records original operation/failure, evidence, latest facts, actor, permission and note before durable acknowledgement. Marker failure retains original block",
+      "Original operation.failure and interrupted service records/control journal stay unchanged after acknowledgement; status acknowledges permission only. Last reconciliation remains unconfirmed/not_replayed",
+      "Acknowledgement does not download/install/restart. Only a later explicit client or rollback may create a fresh operation ID/service batch. Public recover stays Git-only",
+      "System unknown state/fence is not cleared; original system acknowledgement still cannot clear a Net dependency-phase failure. No full/core executor or other fence semantics changed",
+      "Accepted write and host/control work drain on close. Late receipt after close cannot mark acknowledgement or dispatch services"
+    ],
+    "validation": {
+      "environment": "10.0.0.184 isolated; Node26.12.0; private DB/HTTP/serial models and private D-Bus/PackageKit fixture; service execution/APT argv injected, no real services or package management",
+      "reusedNative": "consumer-filament-operations/host/build -> original final-032dd-fix2-product build",
+      "lockSha256": "660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6",
+      "initialTypeFailures": [
+        "v1: shared control evidence parameter had Git-only candidate type; broadened to Git|Net. Same run isolated host-only export lacked committed scripts/product-install-helper.ts",
+        "v2/v3: committed helper lacked scripts/package.json ESM boundary in isolated export; corrected actual scripts/package.json; no functional test ran in failed typecheck chains"
+      ],
+      "finalTypecheck": {
+        "logs": "net-reconcile-typecheck-v4",
+        "exit": 0
+      },
+      "focused": {
+        "logs": "net-reconcile-focused-v1",
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skip": 0,
+        "durationMs": 5980.502581,
+        "coverage": "ZIP/exe actual HTTP/RPC and database reopen; immutable receipt, API-key actor, original interrupted control, later explicit rollback; stale/wrong evidence, independent permission, receipt/marker failure, active control, late close and complete/weak legacy identity"
+      },
+      "regression": {
+        "logs": "net-reconcile-regression-v1",
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skip": 0,
+        "durationMs": 6199.038805,
+        "coverage": "Existing Net file/HTTP/rollback/system-bridge/unknown/drain plus Git app and system default reconciliation"
+      },
+      "whitespace": {
+        "logs": "net-reconcile-whitespace",
+        "exit": 0,
+        "scope": "Project actual Node checker on six modified source/document files, including final LF; cached/working git diff --check also passed"
+      },
+      "limits": "No full suite, new native build, sanitizer, page, real software package/service mutation, target hardware or performance/precision acceptance; full/core independent paths not implemented by this increment"
+    },
+    "sourceSha256": {
+      "host/src/moonraker/update-manager.ts": "bb15133ba5393553953c8c1ac3cd2e3b1ead99af7fb2fd998eaf0b050962eb43",
+      "host/src/moonraker/update-net-application.ts": "3a0ce956ca5b5c7b72bfa6ae2799c065636e08e77361cacdd7a36565632bb575",
+      "host/test/update-net-application.test.ts": "3839caa93ec4ad8c286bd4e315462f90b0115790278f60513d2984aae2808c8d"
+    },
+    "logSha256": {
+      "net-reconcile-focused-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-focused-v1.stdout": "dcf5761d61c0ab6b8a2d915e48da1e2b5baaa3f6d4d1539754538a76ceb8615f",
+      "net-reconcile-regression-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-regression-v1.stdout": "6ebeead2d1bf7ac637638e2b8d3dbf8c6f5e964e3ccf812cfed24e1309cba8d9",
+      "net-reconcile-typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-typecheck-v1.stdout": "35ec7e1ba6ed92a794a770241a12b2baa65170cae1d53eac827c1088ec12d8a6",
+      "net-reconcile-typecheck-v2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-typecheck-v2.stdout": "84f60371ad61bd880a53b7e2a50c05e7929ed3687d2a541cea3e1702d28154c9",
+      "net-reconcile-typecheck-v3.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-typecheck-v3.stdout": "84f60371ad61bd880a53b7e2a50c05e7929ed3687d2a541cea3e1702d28154c9",
+      "net-reconcile-typecheck-v4.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-typecheck-v4.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-whitespace.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "net-reconcile-whitespace.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "localReceipt": "C:/Devs/Codex/from-184/.cache/codex/tmp/anyraid-net-service-reconciliation/.cache/net-reconciliation/receipt.json"
+  }
+}
