@@ -345,8 +345,8 @@ supervisor 安装属性消费，以及 none 的上游 503 与无 systemd
 ### PackageKit 内部 provider 候选
 
 独立PackageKitProvider借用SystemBusOwner的同一连接，提供initialize、getPackages、refreshPackages、
-resolvePackages、installPackages、upgradeSystem；status仅读缓存，不产生wire调用。本批没有HTTP／RPC或
-update_manager接线，不改变现有系统更新501，也不选择或调用APT。固定Moonraker1cfb0c41及官方PackageKit v1.3.1
+resolvePackages、installPackages、upgradeSystem；status仅读缓存，不产生wire调用。该独立后端随后由系统部署层完成HTTP／RPC及
+update_manager接线与APT选择，见下方系统更新章节。固定Moonraker1cfb0c41及官方PackageKit v1.3.1
 接口；仅支持org.freedesktop.PackageKit API，最新packagekit1接口另属兼容工作，不静默猜测签名。
 
 owner限定CreateTransaction、GetUpdates、Resolve、RefreshCache、InstallPackages、UpdatePackages与Cancel，
@@ -357,13 +357,48 @@ flags及签名固定；三个packagekit Polkit action与machine权限名单分�
 
 mutation必须先写入禁止公开的耐久journal，再关联事务身份，最后重核权限／epoch／取消状态后发出。
 发送后超时／取消／失联记interrupted，Cancel成功不证明包没有改变；Finished失败也可能已有部分包改变，
-failed同样阻止下一变更。重开pending改为interrupted且从不重放；受信对账后的恢复出口待系统部署层实现。
+failed同样阻止下一变更。重开pending改为interrupted且从不重放；受信人工对账出口由系统部署层提供。
 已受理数据库写不可取消：请求期限可先拒绝调用方，provider仍保留busy并排空写入，禁止迟到dispatch；close等待
 实际I/O，释放活动provider所有权但保留namespace公开屏蔽，不关闭借用总线或数据库。
 
 184 Node26.12的私有daemon＋合成PackageKit／Polkit与共享owner回归33／33；清理修复后仅补定向1／1、缓存恢复边界1／1及typecheck。
 缺dbus-daemon或非Linux显式skip；测试由既有npm test通配纳入，尚无本批CI运行结论，skip不作wire通过证据。
 复用已有native与匹配锁依赖，未fresh build、sanitizer或真实软件包／服务／设备操作，详见[PackageKit验收](../host/contracts/packagekit-provider-acceptance.json)。
+
+### 系统更新选择、维护与对账
+
+`enable_system_updates` 控制实际 `/machine/update/system` POST／`machine.update.system`。
+默认 `enable_packagekit=true` 时优先借用进程唯一共享 SystemBusOwner；仅初始化未提交变更且没有未知日志时才可选择APT。
+变更开始后失败、超时、断连或重开不转到另一后端执行。PackageKit配置身份绑定可信socket配置的非敏感摘要，
+重连不改变身份，换socket不能解除原操作围栏。APT命令和权限能力仅由可信启动装配提供，不从请求接收。
+
+初始化只读查询包清单，不运行OS缓存刷新；`package_query_confirmed=false` 表示未知，system返回503要求刷新，
+不能把未知空列表当无更新。公开及自动刷新都会执行OS动作，因此与升级一样持有进程和当前设备维护租约，
+重核调用者权限、打印准入与代次，并等待实际数据库／进程／总线工作排空。GET status只读缓存；
+status的`refresh=true`还须独立通过`machine.update.refresh`权限。调用方期限到达不等于真实排空，
+已受理的持久化会继续受控完成，期间围栏持续且禁止迟到dispatch。未知结果保持interrupted，不自动重放。
+
+启动先只读恢复耐久日志，再允许设备工厂取得硬件；未确认操作保持管理监听可用并阻止设备取得。
+等待解除围栏与取得process activity在现有gate同一同步栈完成；取得后跨工厂await到attach持续占有，
+既不把正常自动刷新竞争报成设备失败，也不在实际drain结束前提前唤醒。配置写入、打印producer和attach沿同一进程围栏拒绝。
+
+新增Node扩展 `/machine/update/reconcile` GET／POST（RPC `machine.update.get_reconcile`／`machine.update.post_reconcile`）
+均要求独立的`machine.update.reconcile`权限，不改变上游Git `/recover`契约。GET只执行固定typed只读探测：
+PackageKit GetTransactionList或APT模拟check与包清单，返回operation_id、短期revision及事实。
+POST要求原operation_id／revision、`confirm_external_check:true`和非空有界note；再次发现活动PK事务则409。
+探测不可用时仍可由有独立权限的操作者明确确认外部核对，但这只表示人工解除围栏，不能证明系统无活动事务或原升级正确。
+原失败、事实和actor／权限／时间／说明存为独立耐久receipt，操作变为acknowledged而非succeeded；后续必须显式发起新动作。
+该接口不接受任意命令、路径或后端配置。对账仅覆盖系统包操作，未知managed_services结果恢复仍为后续功能。
+
+`/machine/update/full`当前只建立完整计划并持久化预检结果，顺序包含system、配置客户端、klipper和moonraker；
+任一核心能力缺失就在任何system／client变更前409，不能当作完整full实现。moonraker、klipper及upgrade三个入口仍501。
+系统失败发送请求终止通知`complete:true`，不发送成功文案；HTTP／RPC及真实WS通知已有覆盖。
+
+184 Node26.12私有dbus-daemon／合成PackageKit与Polkit、真实PTY产品host和注入APT：系统11项与受管服务8项19／19，
+后端及manager受影响37／37；首次启动夹具装配身份错误导致5取消并保留，修复后分段及终轮通过。
+初始未知包清单修复另补1／1和typecheck。缓存10000快照额外命令0的耗时与yield观察不设门限，不声称性能门槛通过。
+复用既有native及匹配锁依赖，没有fresh native／sanitizer、真实软件包变更、systemctl、设备或部署验收；
+完整CI与核心pipeline仍开放，见[系统接线验收](../host/contracts/system-update-integration-acceptance.json)。
 
 ## 旧安装迁移的可信工厂装配
 
@@ -5734,8 +5769,8 @@ Fluidd 选择器上传和原受保护页面进程恢复通过，下载摘要一�
 
 ### 独立 APT 系统包后端候选
 
-AptPackageProvider 与 ProcessAptCommandExecutor 是独立 typed 后端，尚未接入 update_manager、
-公开 system 路由、PackageKit 或进程维护租约；现有 system 请求仍按其既有边界返回501。
+AptPackageProvider 与 ProcessAptCommandExecutor 是独立 typed 后端，现由系统部署层接入 update_manager、
+公开 system 路由、PackageKit 选择与进程维护租约，见系统更新章节。
 可信 composition 显式提供 apt／apt-get／apt-cache 绝对路径，必要时提供固定权限执行能力，
 例如 sudo -n -- 配合绝对 env 路径。初始化探测三个命令并载入日志，不替调用者取得权限。
 执行器只传 argv，不使用 shell，不继承进程环境；固定 LC_ALL=C、非交互和受控 PATH／HOME，
@@ -5772,7 +5807,7 @@ refresh 最长600秒、列表60秒、resolve 600秒；默认合计输出4MiB，�
 会写回 idle，写回失败则阻止后续变更。已spawn后的非零退出可能部分执行；取消、超时、失联、
 撤权或完成记录写入失败均报告 typed interrupted，不假定已回滚，不重放。
 重开载入 pending／interrupted，仍拒绝变更但允许查询／刷新／resolve 供诊断。
-本批没有公开清除接口；外部可信所有者必须独立对账后才能清理记录并重建 owner，
+独立后端不提供公开清除接口；系统部署所有者须保留原始结果并完成独立人工对账后才能解除围栏，
 换 owner 本身不代表恢复。借用的执行器不被 provider 擅自关闭，默认自建执行器随 owner 排空。
 
 184 验证只使用可控子进程以及私有合成包根；安装／upgrade 强制 --simulate，未实际安装或升级宿主系统包，

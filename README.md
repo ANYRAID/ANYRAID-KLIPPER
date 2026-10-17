@@ -26,16 +26,19 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 下载校验、持久文件保留和中断目录一致性恢复已接线；Git应用候选接入实际更新／回滚／显式恢复及managed_services，
 恢复公开参数为update_deps：启用enable_node_updates的普通Git应用可强制准备锁定生产依赖，未启用时true返回501；内部名force_dep_update作为公开字段返回400。
 普通服务沿维护租约顺序提交，自己的进程重启沿真实响应交接；未知服务结果保留interrupted且不自动重放。
-Git Node依赖候选接通隔离npm准备、保旧替换和最新一代回滚，同锁不重装，依赖一致成功后才进入服务；普通应用脚本／原生依赖、完整产品pipeline及核心／系统等五类动作仍未实现，见[Web配置](docs/Node_Host_Startup.md#web-客户端更新状态与刷新)和[Git边界](docs/Node_Host_Startup.md#git-纯仓库应用更新候选)。
-独立 APT 后端候选已实现查询、刷新、解析、安装与 upgrade，g++等合法尾符号名称按受信Candidate精确版本安装，安装禁止删除其他包，并要求可信持久操作日志；尚未接入公开系统更新路由、PackageKit或维护租约，见[APT边界](docs/Node_Host_Startup.md#独立-apt-系统包后端候选)。
+Git Node依赖候选接通隔离npm准备、保旧替换和最新一代回滚，同锁不重装，依赖一致成功后才进入服务；普通应用脚本／原生依赖、完整产品pipeline及核心动作仍未实现；full仅作完整计划能力预检，缺核心时在任何变更前拒绝，见[Web配置](docs/Node_Host_Startup.md#web-客户端更新状态与刷新)和[Git边界](docs/Node_Host_Startup.md#git-纯仓库应用更新候选)。
+独立 APT 后端候选已实现查询、刷新、解析、安装与 upgrade，g++等合法尾符号名称按受信Candidate精确版本安装，安装禁止删除其他包，并要求可信持久操作日志；现由系统部署层与PackageKit统一选择并接入公开system路由及连续维护租约，见[APT边界](docs/Node_Host_Startup.md#独立-apt-系统包后端候选)。
 可信 `createProcess` 路线现接入默认共享 `systemd_dbus` 所有者：真实
 Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共同借用连接。
 设备退役后已提交动作的未知结果持久为 interrupted，包装错误不丢失，
 新进程不重放；备份换代先释放首轮真实 socket。默认入口的软件与模拟验证、
 其他 provider 的兼容边界见[共享总线验收](host/contracts/system-bus-provider-acceptance.json)
 和[启动装配](docs/Node_Host_Startup.md#共享-d-bus-进程所有者)。
-可信内部维护租约可连续交接到宿主服务控制，终态归还仍持围栏的租约或保持退役关闭；该前置能力尚未接入managed_services／核心更新。
-独立PackageKit候选借用同一总线，具备typed事务、专属Polkit检查及耐久未知结果围栏；尚未接入系统更新路由或APT选择，见[内部provider边界](docs/Node_Host_Startup.md#packagekit-内部-provider-候选)。
+可信内部维护租约可连续交接到宿主服务控制，终态归还仍持围栏的租约或保持退役关闭；已接入managed_services；完整核心更新仍待交付。
+独立PackageKit候选借用同一总线，具备typed事务、专属Polkit检查及耐久未知结果围栏；现与APT接通系统更新路由与选择，见[内部provider边界](docs/Node_Host_Startup.md#packagekit-内部-provider-候选)。
+系统更新优先借用共享PackageKit，仅在变更前初始化不可用时选择APT；公开／自动缓存刷新同样持有维护围栏。
+失败或未知结果耐久保留，重开先阻止设备取得，管理接口仍可使用；新增独立权限的人工对账出口，
+确认仅解除后续操作围栏，不证明原升级成功。缓存查询失败不会报告“没有更新”，见[系统接线](docs/Node_Host_Startup.md#系统更新选择维护与对账)。
 本项目固定使用 `10.0.0.184` 作为 Linux 开发与调试环境。用户明确允许：
 “本项目开发实际需要linux环境的情况下，自行使用10.0.0.184”；持续允许
 在该机隔离调试及传输本项目所需源码。当前任务专用工作树为
