@@ -1368,8 +1368,8 @@ persistent_files 仅允许不同的顶层文件／目录名，禁止 .version／
 notify_update_response 含 message／application／proc_id／complete；更新／回滚完成持久缓存后发完成事件，并延迟发送notify_update_refreshed。
 
 moonraker／klipper状态目前为上游BaseDeploy的{}，指定refresh为无动作；不表示核心可更新。
-moonraker／klipper／system／full／upgrade／recover六类动作仍明确501，无部署效果；公开recover保持固定上游Git边界，
-本次Web恢复仅为中断目录事务一致性恢复。Git／ZIP／executable provider、系统包与Node核心自更新仍待完成，
+moonraker／klipper／system／full／upgrade五类动作仍明确501，无部署效果；公开recover仅供下述Git候选，
+Web恢复仍仅为中断目录事务一致性恢复。完整Git、ZIP／executable provider、系统包与Node核心自更新仍待完成，
 核心自更新不得照搬Python venv／pip。本机与184定向测试不代表生产部署、掉电文件系统或真实设备验收。
 具体记录见[Web更新验收](../host/contracts/update-manager-web-acceptance.json)。
 
@@ -1405,6 +1405,47 @@ A→B→回滚 A、取消排空和故障恢复；HTTPS 传输、产品实际 npm
 测试 npm 从当前 Node 安装发现，也可显式设置可信 `ANYRAID_TEST_NPM_CLI`。
 功能项仅 Linux；真实预构建产品项要求 `ANYRAID_TEST_PRODUCT_BUNDLE` 指向现有可信产物，
 缺失时明确 skip，默认 CI 不覆盖该项，不能把 184 的实测结果归给 CI。
+
+### Git 纯仓库应用更新候选
+
+下列显式无服务／无依赖配置接入现有update_manager，默认Git频道为dev，primary_branch为master：
+
+```ini
+[update_manager my-client]
+type: git_repo
+path: ~/my-client
+origin: https://example.org/owner/my-client.git
+is_system_service: false
+enable_node_updates: false
+channel: dev
+primary_branch: master
+```
+
+GET状态只读内存缓存；显式刷新使用真实Git读取branch、remote、hash、dirty／detached／diverged、
+版本和commits_behind，fetch失败保留last_error且不推进成功刷新时间。stable／beta按固定上游标签创建顺序、
+包含关系及GitVersion比较选择目标；pinned_commit至少8位，只向包含当前提交的固定提交前进，不自动降级。
+正常更新拒绝任意tracked／untracked改动、detached或diverged，须显式recover才能执行破坏性恢复。
+
+client与rollback接受必填name，适用纯Git应用；rollback持久保存commit／branch／version。
+recover接受name与可选hard／update_deps布尔；HTTP查询可用true／false，其他类型400。
+公开参数按固定上游使用update_deps；内部名force_dep_update作为未知公开字段返回400。
+soft恢复优先pin／当前提交祖先，否则primary远端，并先有界备份原目录；hard克隆新候选、验证后保留原目录替换，
+不删除历史备份。update_deps=true仍501且不运行Git或写入恢复事务，不以无动作代替依赖更新。损坏旧config的hard恢复仅用先前可信目录身份，
+不运行旧仓库Git；未完成事务重开报告interrupted，必须显式恢复，不自动重放。
+
+安装目录、父目录及.git身份受保护，安装／控制目录不能与其他Web／Git应用或进程配置／数据库／备份重叠。
+Linux内核目录锁按仓库规范路径区分所有者；取消等待Git及其子进程退出，关闭先排空更新再关闭数据库。
+所有Git命令使用argv与有界输出／超时，禁用hooks、外部filter、credential helper及不安全配置，不公开原始stderr／凭据。
+目前仅支持无用户名密码、query或fragment的HTTPS源；SSH、file源、moved_origin、Python环境、安装脚本、系统依赖等明确拒绝。
+worktree／submodule仅读本地元数据，不fetch或mutation；主仓库有非空.git/worktrees或.git/modules时拒绝hard替换。
+
+is_system_service默认仍为true，默认托管自身服务，因此上述纯仓库场景必须显式false或managed_services留空。
+非空managed_services和enable_node_updates=true当前明确配置失败；现有product-install要求可信build-info清单、
+独立bundle且无node_modules，不能把任意Git checkout直接当作受支持npm安装。服务生命周期仍需把维护lease的producer
+fence同步交给持久ProductHostControl直至终态，own服务重启需afterResponse；本候选没有绕过这些约束。
+本批真实接口测试的精确HTTPS fixture地址由测试可执行shim映射到临时bare仓库，生产不开放file入口，Git TLS网络传输未验。
+软件与有限桌面观测不代表完整provider、目标板、真实设备或部署验收。
+分项结果、初轮缺assets失败及限定补验见[Git更新候选验收](../host/contracts/update-manager-git-acceptance.json)。
 
 标准 `ConfiguredMoonraker` 现拥有一份 Node HTTP／HTTPS 客户端，
 通过内部 `httpClient` 接口供组件借用，`server.info` 发现该组件。
@@ -4628,6 +4669,19 @@ systemctl 参数无 shell、sudo、交互授权或任意脚本；两秒／64 KiB
 提交后保留退役 API；显式 RESTART 接入前验证允许的其他设备单位
 inactive／failed 且 MainPID=0，不把 stop 作业受理当停止证明。
 这些检查不提供对任意外部启动者的全局排他锁。
+
+可信内部维护调用可使用 MaintenanceGate.acquireLease() 和 ProductHostControl.requestMaintenanceAction(action, lease, afterResponse?)。
+attach 必须绑定当前设备代际的 gate；无绑定的退休分支、陌生／复制／过期lease拒绝，不创建公网参数或新接口。
+transfer 在同一同步栈内更换令牌并保持 maintenance=true，复制对象的release不能释放原lease，旧release也不能解除新持有者的围栏；现有acquire()闭包仍兼容。
+#request、running持久写入之后、#begin及宿主validate／handler均核当前所有权／代际，所有生产者activity入口持续拒绝。
+
+调用同步返回 admission／completion 句柄；同步前置拒绝仍由调用者持有原lease，转移后即使admission拒绝也必须等待completion。
+普通外部服务内部调用直接等待控制生命周期，不伪造HTTP响应回调；server_restart及当前进程自己的服务重启必须传真实afterResponse。
+queued／running／终态journal写入、响应未发送／十秒超时、动作失败和不确定结果均有结算路径；结果含operation和failure分类。
+未换代且gate仍有效时，completion归还重新key且仍持围栏的lease，调用者可以连续执行下一服务，最终必须显式release。
+单独control.close会取消未派发请求或等待已派发动作，仍可归还有效lease；实际退役／代际失效则返回fenced且无lease，旧gate保持closed。
+租约不进入持久回执或公开status。控制succeeded仍只表示OS job submission生命周期结束，不能证明目标服务ready或停止。
+本能力尚未接入update provider、managed_services或Node依赖更新，不提供其他进程／外部服务启动者的全局锁。
 
 候选日志 v4 增加六类各 64 条独立回执（总计 640）；服务身份为不可变字段。
 一个共享 pending 槽；只淘汰同类终态记录，淘汰与准入同事务提交。

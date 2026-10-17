@@ -23,13 +23,16 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
 配置 update_manager 后可通过鉴权HTTP／RPC读取Web版本、刷新GitHub元数据并实际更新／本地回滚Web客户端；
-下载校验、持久文件保留和中断目录一致性恢复已接线，六类其他动作仍501，见[配置与边界](docs/Node_Host_Startup.md#web-客户端更新状态与刷新)。
+下载校验、持久文件保留和中断目录一致性恢复已接线；Git纯仓库应用候选接入实际更新／回滚／显式恢复，
+恢复公开参数为update_deps：false按请求恢复，true返回501且无仓库动作；内部名force_dep_update作为公开字段返回400。
+依赖更新、服务生命周期及核心／系统等五类动作仍未实现，见[Web配置](docs/Node_Host_Startup.md#web-客户端更新状态与刷新)和[Git边界](docs/Node_Host_Startup.md#git-纯仓库应用更新候选)。
 可信 `createProcess` 路线现接入默认共享 `systemd_dbus` 所有者：真实
 Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共同借用连接。
 设备退役后已提交动作的未知结果持久为 interrupted，包装错误不丢失，
 新进程不重放；备份换代先释放首轮真实 socket。默认入口的软件与模拟验证、
 其他 provider 的兼容边界见[共享总线验收](host/contracts/system-bus-provider-acceptance.json)
 和[启动装配](docs/Node_Host_Startup.md#共享-d-bus-进程所有者)。
+可信内部维护租约可连续交接到宿主服务控制，终态归还仍持围栏的租约或保持退役关闭；该前置能力尚未接入managed_services／核心更新。
 本项目固定使用 `10.0.0.184` 作为 Linux 开发与调试环境。用户明确允许：
 “本项目开发实际需要linux环境的情况下，自行使用10.0.0.184”；持续允许
 在该机隔离调试及传输本项目所需源码。当前任务专用工作树为

@@ -9,6 +9,19 @@
 完成正常同步及 `10.0.0.184` 的隔离验证，无需逐次重复确认。该授权不包含 master／主线合并、
 生产部署或真实设备操作，也不允许绕过规定检查及既定 PR 流程。
 
+## 2026-10-18 维护租约向服务控制的连续交接前置能力
+
+MaintenanceGate增加不可按对象复制伪造的运行时lease身份与同步transfer，复制release接收者和旧release均不能解除真实持有者围栏。
+可信ProductHostControl维护调用显式绑定当前代际gate，同步返回admission／completion；持久写入、响应等待、
+最终dispatch与宿主validate／handler全链保持同一维护所有权。普通服务无须伪造HTTP回调，自己进程重启仍需真实响应交接。
+未退役时终态归还仍持围栏的新lease供顺序服务动作使用，消费者显式release；实际代际失效保留closed fence，不重放未知动作。
+
+184 Node26.12最终六文件51／51与标准typecheck通过；首轮五文件48／48保留，首次类型检查仅新增测试三参数隐式any失败，修正后通过。
+包含真实gate／control／持久journal屏障、失败／超时／关闭／代际变化，以及既有PTY产品宿主、LinuxMachineControl注入IO的四项新组合场。
+复用既有native输出与匹配lock依赖，未fresh build、全量CI或sanitizer；无真实设备或systemctl操作。
+OS job submission终态不证明目标服务ready；本批不宣称完成Git／核心provider、managed_services或Node依赖更新。
+紧凑记录见[系统控制验收](../host/contracts/native-machine-control-acceptance.json)的maintenanceLeaseHandoff。
+
 ## 2026-10-18 Web客户端实际更新、回滚与中断一致性恢复
 
 在#69状态／刷新基础上接入client更新和rollback本地目录回滚，使用真实共享HTTP下载，校验声明size、
@@ -3586,7 +3599,9 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 
 | 顺序 | 用户可见交付结果 | 退出条件 |
 | --- | --- | --- |
-| 当前收口 | #68／#69／#70 已分别合入 develop e59ca7／43c4ce／d2f98713；其历史头结果不替代后续合并提交检查。#71 Git HTTP／RPC 接口与服务生命周期增量由各自 PR 推进；本批仅提供独立 Node 依赖事务基础 | 锁文件驱动的真实隔离 npm 准备、保旧替换、匹配 manifest 回滚和显式中断恢复已分场验证；尚未接入 enable_node_updates／update_deps，连续 A→B→C 最新备份协调与实际脚本／原生依赖仍开放。不得据此关闭完整 Git provider、M5 或 G0–G6 |
+| 当前集成基线 | #68／#69／#70、Git应用更新#71（67c710551）及维护租约#72（e1db00d84）已合入develop；#70合并后5464／5464及全部CI通过，#71／#72合并后检查分别运行中 | 各提交证据不混用。Mainsail1735、42／28及服务重获2.62602倍的原归属与门限保持；G0–G6、本机11／16／14、G3、目标板、实机及主线发布仍开放 |
+| 当前实现 | Git纯仓库HTTP／RPC更新／rollback／recover已集成；本批独立Node依赖事务提供真实隔离npm准备、保旧替换和显式中断恢复 | 尚未接入enable_node_updates／update_deps；不以独立引擎验证代替完整provider |
+| 下一实现 | #74受管服务生命周期、Git依赖实际接线，以及其余完整update_manager能力 | 连续A→B→C与最新回滚协调、实际脚本／原生依赖及可信产品包路径仍待完成；沿维护租约和真实afterResponse，不直接systemctl或引入pip |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |
@@ -3611,7 +3626,7 @@ build-info 生成／核验流程，不能把任意 checkout 自签成产品包�
 
 覆盖增量及状态修复已正常集成，其合并后规定检查已通过。实际
 页面上传已使用现有 Playwright 获证，官方 Mainsail 登录仍有明确边界；继续保留这些出口，
-按既有允许范围推进独立 M2c 离线管理，不以新功能替代页面或 G3 验收。
+按本表继续Git依赖／服务及完整Moonraker队列，既有M2c离线管理等出口按实际受影响范围复验，不以新功能替代页面或G3验收。
 固定包设施仅支撑同包出口，生产实现来自正常合并的 develop。正常集成后的新包须核验变更范围，
 补齐受影响验证，不能直接继承两份旧包的同包通过声明。
 
