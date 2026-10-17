@@ -1394,9 +1394,10 @@ GET状态只读内存缓存；显式刷新使用真实Git读取branch、remote�
 正常更新拒绝任意tracked／untracked改动、detached或diverged，须显式recover才能执行破坏性恢复。
 
 client与rollback接受必填name，适用纯Git应用；rollback持久保存commit／branch／version。
-recover接受name与可选hard／force_dep_update布尔；HTTP查询可用true／false，其他类型400。
+recover接受name与可选hard／update_deps布尔；HTTP查询可用true／false，其他类型400。
+公开参数按固定上游使用update_deps；内部名force_dep_update作为未知公开字段返回400。
 soft恢复优先pin／当前提交祖先，否则primary远端，并先有界备份原目录；hard克隆新候选、验证后保留原目录替换，
-不删除历史备份。force_dep_update=true仍501，不以无动作代替依赖更新。损坏旧config的hard恢复仅用先前可信目录身份，
+不删除历史备份。update_deps=true仍501且不运行Git或写入恢复事务，不以无动作代替依赖更新。损坏旧config的hard恢复仅用先前可信目录身份，
 不运行旧仓库Git；未完成事务重开报告interrupted，必须显式恢复，不自动重放。
 
 安装目录、父目录及.git身份受保护，安装／控制目录不能与其他Web／Git应用或进程配置／数据库／备份重叠。
