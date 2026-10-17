@@ -383,12 +383,12 @@ status的`refresh=true`还须独立通过`machine.update.refresh`权限。调用
 既不把正常自动刷新竞争报成设备失败，也不在实际drain结束前提前唤醒。配置写入、打印producer和attach沿同一进程围栏拒绝。
 
 新增Node扩展 `/machine/update/reconcile` GET／POST（RPC `machine.update.get_reconcile`／`machine.update.post_reconcile`）
-均要求独立的`machine.update.reconcile`权限，不改变上游Git `/recover`契约。GET只执行固定typed只读探测：
+省略target或target=system时要求独立的`machine.update.reconcile`权限，保持系统对账语义。GET只执行固定typed只读探测：
 PackageKit GetTransactionList或APT模拟check与包清单，返回operation_id、短期revision及事实。
 POST要求原operation_id／revision、`confirm_external_check:true`和非空有界note；再次发现活动PK事务则409。
 探测不可用时仍可由有独立权限的操作者明确确认外部核对，但这只表示人工解除围栏，不能证明系统无活动事务或原升级正确。
 原失败、事实和actor／权限／时间／说明存为独立耐久receipt，操作变为acknowledged而非succeeded；后续必须显式发起新动作。
-该接口不接受任意命令、路径或后端配置。对账仅覆盖系统包操作，未知managed_services结果恢复仍为后续功能。
+该接口不接受任意命令、路径或后端配置。target=app的独立服务结果对账见Git应用章节，不共用系统操作ID或权限。
 
 `/machine/update/full`当前只建立完整计划并持久化预检结果，顺序包含system、配置客户端、klipper和moonraker；
 任一核心能力缺失就在任何system／client变更前409，不能当作完整full实现。moonraker、klipper及upgrade三个入口仍501。
@@ -1476,11 +1476,42 @@ Git更新／回滚／显式恢复在仓库动作后沿可信ProductHostControl�
 先持久关联更新事务及request_id，才允许任何OS dispatch。关联写入挂起时超时／关闭立即拒绝admission并永久取消dispatch；
 已受理数据库写仍受控排空，completion及close等待真实I/O结束后才归还租约，不声称可终止不可取消的写入。
 失败不发送成功文案；未确认或重开后的服务结果保持interrupted，不自动重放，显式recover也拒绝重放未知服务动作。
-受信人工核对后的恢复出口仍待后续实现。enable_node_updates=true接入下述普通应用能力；现有product-install要求
+受信人工核对出口见下节。enable_node_updates=true接入下述普通应用能力；现有product-install要求
 可信build-info清单、独立bundle且无node_modules，完整产品pipeline仍待接通，不能把任意Git checkout冒充产品包。
 本批真实接口测试的精确HTTPS fixture地址由测试可执行shim映射到临时bare仓库，生产不开放file入口，Git TLS网络传输未验。
 软件与有限桌面观测不代表完整provider、目标板、真实设备或部署验收。
 分项结果、初轮缺assets失败及限定补验见[Git更新候选验收](../host/contracts/update-manager-git-acceptance.json)。
+#### 未知 managed_services 结果的人工对账
+
+`/machine/update/reconcile` GET／POST沿用RPC `machine.update.get_reconcile`／`post_reconcile`，
+应用分支必须明确`target=app`与配置中的`name`，要求独立`machine.update.reconcile_app`权限；
+默认或`target=system`继续使用系统包对账，不可混用operation_id、revision或参数。
+Git新操作保存app-UUID；旧无ID的中断日志以完整原操作与配置身份生成稳定SHA-256兼容ID，
+不根据服务名猜测control关联。status暴露operation_id和独立service_acknowledgement。
+
+GET在现有进程／设备维护租约下读取原service request_id对应的ProductHostControl耐久记录，
+校验kind／service匹配，queued／running、未排空关联／journal任务或控制存储故障均拒绝。
+固定只读事实来自已有SystemServices刷新及当前进程PID／startTicks、设备代次；没有任意命令／路径参数，
+普通status不增加系统调用。记录缺失和服务事实不可用明确显示，不推断旧动作未执行或已经成功；
+当前active状态也不证明运行进程已加载新代码。GET产生五分钟revision及完整操作指纹。
+
+POST要求匹配target／name／operation_id／revision、`confirm_external_check:true`及非空有界note，
+重新鉴权和核对控制已排空／记录与操作身份，先保存独立receipt中的原失败、原服务结果、事实、操作者、权限和说明，
+再耐久写确认标记。写失败不解除应用恢复围栏；已受理写入期间维护租约持续，关闭等待真实IO，迟到确认不会执行服务。
+确认含义只是操作者承认外部核对并允许将来的显式动作；不证明外部没有活动job或原请求成功。
+原control journal与services.entries的interrupted状态保持，重开不重放。
+
+确认后仍须显式调用原`recover`。该次只恢复仓库／依赖，跳过整个原服务批次；状态
+`last_service_reconciliation.service_replay=skipped_acknowledged`、`service_result=unconfirmed`继续保留，
+通知明确“repository/dependency recovery complete; prior service result remains unconfirmed; service replay skipped”，
+不发送普通Git应用recover complete。只有清理完中断操作之后的新显式update，才可产生新服务请求。
+本扩展与普通recover仍按原服务契约执行的分支可区分，不把原服务动作改成成功。
+
+184 Node26.12真实HTTP／RPC／WS、PTY产品host、注入LinuxMachineControl与数据库屏障验证：
+四个新增场次经限定修复通过，受影响既有22／22，默认系统对账2／2和标准类型检查通过。
+首次语法／fixture错误与超时、第二轮关闭后误用旧DB句柄失败均保留；没有真实服务、systemctl、软件包或设备操作，
+未fresh native／sanitizer／全量测试或宣称CI与硬件通过，见[验收契约](../host/contracts/managed-service-reconciliation-acceptance.json)。
+
 #### Git Node 依赖生命周期候选
 
 `NodeDependencyTransaction` 为后续 Git 部署提供独立的 manifest 捕获、

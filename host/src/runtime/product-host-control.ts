@@ -37,6 +37,15 @@ export class ProductHostControl {
  #latest(kind:StandardReloadKind){const standard=this.#standards.get(kind);return standard?this.operation(standard.id):null;}
  get status(){const open=!!this.#handler&&!this.#closed&&!this.#storageFault;return {state_token:this.#token,available:open&&this.#kinds.has('reinitialize'),restart_available:open&&this.#kinds.has('restart'),restart_operation:this.#latest('restart'),firmware_restart_available:open&&this.#kinds.has('firmware_restart'),firmware_restart_operation:this.#latest('firmware_restart'),machine_control:{available_kinds:open?machineRecoveryKinds.filter(kind=>this.#kinds.has(kind)):[],operations:machineRecoveryKinds.map(kind=>{const request=this.#machines.get(kind);return request?this.operation(request.id):null;}).filter(r=>r!==null)},busy:!!this.#pending||this.#remoteBusy,durable:!!this.#journal,storage_failed:!!this.#storageFault,recovery_history:{controlled:{retained:this.#count('reinitialize'),capacity:recoveryCapacity.reinitialize},standard_restart:{retained:this.#count('restart'),capacity:recoveryCapacity.restart},standard_firmware_restart:{retained:this.#count('firmware_restart'),capacity:recoveryCapacity.firmware_restart}}};}
  operation(id:string){const record=this.#requests.get(id);return record?{...record}:null;}
+ /** Fixed read-only inspection: no dispatch or journal edits. Outstanding
+  * association/journal tasks count as active even before a record is visible. */
+ inspectMaintenanceRequests(ids:readonly string[]){
+  if(this.#closed||this.#storageFault||!this.#journal)throw new RestartAdmissionError(503,'Durable control evidence is unavailable');
+  if(this.#pending||this.#remoteBusy||this.#tasks.size)throw new RestartAdmissionError(409,'Control work has not drained');
+  if(ids.length>3||ids.some(id=>!/^machine-[a-f0-9-]{36}$/u.test(id)))throw new RestartAdmissionError(409,'Invalid control request identity');
+  const records=ids.map(id=>this.operation(id));if(records.some(record=>record&&['queued','running'].includes(record.state)))throw new RestartAdmissionError(409,'Recorded control request is active');
+  return {state_token:this.#token,records};
+ }
  async configure(options?:RecoveryJournalOptions):Promise<void>{
   const identity=options?JSON.stringify(options):undefined;if(this.#configured){if(identity!==this.#identity)throw new Error('Recovery journal identity cannot change during host lifetime');return;}
   if(this.#handler||this.#requests.size||this.#closed)throw new Error('Recovery journal must be configured before host startup');

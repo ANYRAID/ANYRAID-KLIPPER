@@ -1,6 +1,6 @@
 // Process-owned updates follow Moonraker1cfb0c41 update_manager.
 // GPL-3.0-or-later. Core and other deployment providers remain unavailable.
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import {dirname,join,isAbsolute,relative,sep} from 'node:path';
 import {MaintenanceGate,MaintenanceBusyError,type MaintenanceLease} from '../operations/maintenance-gate.ts';
 import type {ProductHostControl} from '../runtime/product-host-control.ts';
@@ -24,7 +24,7 @@ const overlaps=(a:string,b:string)=>{const p=relative(a,b);return p===''||!isAbs
 const deploymentLocations=(c:DeploymentConfiguration)=>[c.path,join(dirname(c.path),'origin' in c?'.anyraid-git-'+createHash('sha256').update(c.path).digest('hex'):'.anyraid-web-'+createHash('sha256').update(c.path).digest('hex').slice(0,20)),...('origin' in c&&c.enableNodeUpdates?[join(dirname(c.path),'.anyraid-node-'+createHash('sha256').update(c.path).digest('hex'))]:[])];
 const booleanParameter=(value:Json|undefined,name:string)=>{if(value===undefined)return false;if(value===true||value==='true')return true;if(value===false||value==='false')return false;throw new ApiError(400,'Expected '+name+' boolean');};
 interface Stored extends Record<string,Json>{schema:1;deployments:Record<string,Json>;}
-export interface UpdateMaintenance {gate:()=>MaintenanceGate;assertIdle:()=>void|Promise<void>;processGate?:()=>MaintenanceGate;control?:ProductHostControl;}
+export interface UpdateMaintenance {gate:()=>MaintenanceGate;assertIdle:()=>void|Promise<void>;processGate?:()=>MaintenanceGate;control?:ProductHostControl;serviceFacts?:(names:readonly string[],signal:AbortSignal)=>Promise<Json>;}
 export class UpdateManager {
  readonly #database:DatabaseStore;readonly #http:MoonrakerHttpClient;readonly #reader:ConfigurationReader;
  readonly #blocked:()=>boolean;readonly #notify:(method:UpdateNotification,value:Json)=>void;
@@ -131,10 +131,10 @@ export class UpdateManager {
    const current=()=>{signal.throwIfAborted();if(gate!==this.#maintenance.gate()||!gate.owns(lease())||this.#blocked())throw new ApiError(409,'Printer maintenance admission changed');};
    const admit=async()=>{current();await authorize();current();await this.#maintenance.assertIdle();current();};
    const proc=Date.now(),notify=(message:string,complete=false)=>{if(this.#closing)return;try{this.#notify('notify_update_response',{message,application:name,proc_id:proc,complete});}catch{this.#notificationFailures++;}};
-   const label=app instanceof GitDeployment?'Git application':'Web client';
+   const label=app instanceof GitDeployment?'Git application':'Web client',skipsServiceReplay=action==='recover'&&app instanceof GitDeployment&&app.skipsAcknowledgedServiceReplay;
    this.#updating=name;try{await admit();notify(label+' '+action+' started');
     let restartServices:((persist:(progress:ManagedServiceProgress)=>Promise<void>)=>Promise<void>)|undefined;
-    if(app instanceof GitDeployment&&app.config.managedServices.length){
+    if(app instanceof GitDeployment&&app.config.managedServices.length&&!skipsServiceReplay){
      const control=this.#maintenance.control;if(!control||!process||!processLease)throw new ApiError(503,'Managed services require the process control and maintenance owner');const plan=control.planMaintenanceServices(app.config.managedServices);if(plan.some(item=>item.retirement==='process')&&!afterResponse)throw new ApiError(503,'Process restart requires a real response handoff');
      restartServices=async persist=>{
       const progress:ManagedServiceProgress={schema:1,state:'running',next:0,entries:plan.map(item=>({...structuredClone(item),state:'planned',request_id:null}))};await persist(structuredClone(progress));
@@ -159,7 +159,7 @@ export class UpdateManager {
     }
     if(app instanceof GitDeployment){const context={signal,authorize:admit,persist:async(state:GitDeploymentStorage)=>{await this.#storeState(name,state);},restartServices};if(action==='recover')await app.recover(context,hard,updateDeps);else if(action==='rollback')await app.rollback(context);else await app.update(context);}
     else await app.deploy(action==='rollback',signal,admit,notify);
-    await this.#storeState();notify(label+' '+action+' complete',true);this.#event();return 'ok';
+    await this.#storeState();notify(skipsServiceReplay?'Git repository/dependency recovery complete; prior service result remains unconfirmed; service replay skipped':label+' '+action+' complete',true);this.#event();return 'ok';
    }catch(error){notify(label+' '+action+' failed',true);throw error;}finally{await this.#system.drain();if(this.systemBlocked&&!this.#systemFence){const owner=process??gate,ownedLease=process?processLease:deviceLease,current=this.#maintenance.gate(),currentLease=current===process?processLease:deviceLease;if(ownedLease&&currentLease&&owner.owns(ownedLease)&&current.owns(currentLease)){this.#systemFence={process:owner,processLease:ownedLease,gate:current,lease:currentLease};processLease=deviceLease=undefined;}}this.#updating=undefined;deviceLease?.release();processLease?.release();this.#nativeAdmissionChanged();}
   });this.#pending.add(task);this.#tail=task.then(()=>{},()=>{});void task.then(value=>{this.#pending.delete(task);response.resolve(value);},error=>{this.#pending.delete(task);response.reject(error);}).finally(()=>{request.removeEventListener('abort',cancel);this.#life.signal.removeEventListener('abort',stop);});return response.promise;
  }
@@ -187,6 +187,30 @@ export class UpdateManager {
  }
  inspectSystem(request:AbortSignal,authorize:()=>void|Promise<void>):Promise<Record<string,Json>>{return this.#systemQueue(request,authorize,context=>this.#system.inspect(context));}
  reconcileSystem(params:Readonly<Record<string,Json>>,request:AbortSignal,authorize:()=>void|Promise<void>,actor:()=>string|null):Promise<string>{return this.#systemQueue(request,authorize,async context=>{await this.#system.reconcile(params,actor(),context);this.#event();return 'ok';});}
+ #applicationForReconciliation(name:Json|undefined){const app=typeof name==='string'?this.#deployments.get(name):undefined;if(!(app instanceof GitDeployment))throw new ApiError(400,'Expected configured Git application name');return app;}
+ #serviceCandidate(app:GitDeployment){try{return app.serviceReconciliationCandidate();}catch{throw new ApiError(409,'No matching unknown service batch requires acknowledgement');}}
+ #controlEvidence(candidate:ReturnType<GitDeployment['serviceReconciliationCandidate']>){
+  const control=this.#maintenance.control;if(!control)throw new ApiError(503,'Process control evidence is unavailable');
+  const progress=candidate.operation.services as unknown as ManagedServiceProgress,entries=progress.entries.filter(entry=>entry.request_id!==null);let evidence:ReturnType<ProductHostControl['inspectMaintenanceRequests']>;
+  try{evidence=control.inspectMaintenanceRequests(entries.map(entry=>entry.request_id!));}catch(error){throw new ApiError(typeof(error as {status?:unknown}).status==='number'?(error as {status:number}).status:503,'Control evidence unavailable or active');}
+  for(let i=0;i<entries.length;i++){const record=evidence.records[i],entry=entries[i]!;if(record&&(record.kind!==(entry.action.kind==='service'?'service_restart':'server_restart')||record.service!==(entry.action.kind==='service'?entry.action.service:undefined)))throw new ApiError(409,'Control request does not match recorded application action');}
+  return evidence;
+ }
+ async #serviceFacts(app:GitDeployment,context:SystemPackageContext):Promise<Json>{try{return this.#maintenance.serviceFacts?await this.#maintenance.serviceFacts(app.config.managedServices,context.signal):{available:false,reason:'read-only service facts unavailable'};}catch{context.signal.throwIfAborted();return {available:false,reason:'read-only service facts unavailable'};}}
+ inspectApplication(params:Readonly<Record<string,Json>>,request:AbortSignal,authorize:()=>void|Promise<void>):Promise<Record<string,Json>>{
+  if(Object.keys(params).some(key=>!['target','name'].includes(key))||params.target!=='app')return Promise.reject(new ApiError(400,'Expected target=app and name'));const app=this.#applicationForReconciliation(params.name);
+  return this.#systemQueue(request,authorize,async context=>{await context.authorize();const candidate=this.#serviceCandidate(app),controls=this.#controlEvidence(candidate),facts=await this.#serviceFacts(app,context);await context.authorize();if(this.#serviceCandidate(app).fingerprint!==candidate.fingerprint||JSON.stringify(this.#controlEvidence(candidate))!==JSON.stringify(controls))throw new ApiError(409,'Application/control identity changed during inspection');
+   const evidence={target:'app',name:app.config.name,operation_id:candidate.operation.id!,fingerprint:candidate.fingerprint,revision:randomUUID(),at:Date.now()/1000,controls:controls as unknown as Json,facts,meaning:'current facts do not prove the old control request succeeded'};await this.#namespace!.insert('app-evidence-'+app.config.name,evidence);await context.authorize();return evidence;
+  });
+ }
+ reconcileApplication(params:Readonly<Record<string,Json>>,request:AbortSignal,authorize:()=>void|Promise<void>,actor:()=>string|null):Promise<string>{
+  if(Object.keys(params).some(key=>!['target','name','operation_id','revision','confirm_external_check','note'].includes(key))||params.target!=='app'||typeof params.operation_id!=='string'||typeof params.revision!=='string'||params.confirm_external_check!==true||typeof params.note!=='string'||!params.note.trim()||Buffer.byteLength(params.note)>2048||/[\0\r]/u.test(params.note))return Promise.reject(new ApiError(400,'Expected app identity, revision, explicit external-check confirmation and bounded note'));const app=this.#applicationForReconciliation(params.name);
+  return this.#systemQueue(request,authorize,async context=>{await context.authorize();const evidence=await this.#namespace!.get('app-evidence-'+app.config.name) as Record<string,Json>|null,candidate=this.#serviceCandidate(app);if(!evidence||evidence.target!=='app'||evidence.name!==app.config.name||evidence.operation_id!==params.operation_id||candidate.operation.id!==params.operation_id||evidence.revision!==params.revision||evidence.fingerprint!==candidate.fingerprint||typeof evidence.at!=='number'||Date.now()/1000-evidence.at<0||Date.now()/1000-evidence.at>300)throw new ApiError(409,'Application reconciliation evidence is stale');
+   const controls=this.#controlEvidence(candidate);if(JSON.stringify(controls)!==JSON.stringify(evidence.controls))throw new ApiError(409,'Control owner or receipts changed');const facts=await this.#serviceFacts(app,context);await context.authorize();const current=()=>{if(this.#serviceCandidate(app).fingerprint!==candidate.fingerprint||JSON.stringify(this.#controlEvidence(candidate))!==JSON.stringify(controls))throw new ApiError(409,'Application/control identity changed before acknowledgement');};current();
+   const receiptId='app-receipt-'+randomUUID(),receipt={target:'app',name:app.config.name,operation_id:params.operation_id,config_hash:candidate.config_hash,original:candidate.operation as unknown as Json,evidence,latest_facts:facts,acknowledgement:{actor:actor(),permission:'machine.update.reconcile_app',at:Date.now()/1000,note:params.note,external_check_confirmed:true,meaning:'permits explicit repository/dependency recovery only; old service outcome remains unconfirmed; no restart replay'}};await this.#namespace!.insert(receiptId,receipt);await context.authorize();current();
+   await app.acknowledgeServiceResult(params.operation_id as string,candidate.fingerprint,receiptId,{signal:context.signal,authorize:async()=>{await context.authorize();current();},persist:state=>this.#storeState(app.config.name,state)});await context.authorize();this.#event();return 'ok';
+  });
+ }
  /** Complete inventory is checked before the first package/client mutation.
   * Core deployment supplies its real executors in the following integration;
   * this batch never claims a partial client/system plan is full success. */
@@ -204,7 +228,7 @@ export class UpdateManager {
   const recover=registry.register({endpoint:'/machine/update/recover',methods:['POST']},(params,_verb,context)=>this.recover(params,context.signal,async()=>{authorizedContext(context,await context.authorize('machine.update.recover',params));},context.afterResponse));
   const system=registry.register({endpoint:'/machine/update/system',methods:['POST']},(params,_verb,context)=>this.system(params,context.signal,async()=>{authorizedContext(context,await context.authorize('machine.update.system',params));}));
   const full=registry.register({endpoint:'/machine/update/full',methods:['POST']},(params,_verb,context)=>this.full(params,context.signal,async()=>{authorizedContext(context,await context.authorize('machine.update.full',params));}));
-  const reconcile=registry.register({endpoint:'/machine/update/reconcile',methods:['GET','POST']},(params,verb,context)=>{let actor:string|null=null;const authorize=async()=>{actor=authorizedContext(context,await context.authorize('machine.update.reconcile',params)).user?.username??null;};if(verb==='GET'){if(Object.keys(params).length)throw new ApiError(400,'Reconciliation inspection accepts no parameters');return this.inspectSystem(context.signal,authorize);}return this.reconcileSystem(params,context.signal,authorize,()=>actor);});
+  const reconcile=registry.register({endpoint:'/machine/update/reconcile',methods:['GET','POST']},(params,verb,context)=>{if(params.target!==undefined&&!['system','app'].includes(String(params.target)))throw new ApiError(400,'Expected system or app reconciliation target');let actor:string|null=null;const application=params.target==='app',authorize=async()=>{actor=authorizedContext(context,await context.authorize(application?'machine.update.reconcile_app':'machine.update.reconcile',params)).user?.username??null;};if(application)return verb==='GET'?this.inspectApplication(params,context.signal,authorize):this.reconcileApplication(params,context.signal,authorize,()=>actor);const {target,...systemParams}=params;if(verb==='GET'){if(Object.keys(systemParams).length)throw new ApiError(400,'Reconciliation inspection accepts no system parameters');return this.inspectSystem(context.signal,authorize);}return this.reconcileSystem(systemParams,context.signal,authorize,()=>actor);});
   const unavailable=['moonraker','klipper','upgrade'].map(name=>registry.register({endpoint:'/machine/update/'+name,methods:['POST']},()=>{this.#active();throw new ApiError(501,'Update deployment actions are not implemented; no action was performed');}));
   const release=()=>{for(const fn of [status,refresh,client,rollback,recover,system,full,reconcile,...unavailable])fn();};this.#releases.push(release);return release;
  }
