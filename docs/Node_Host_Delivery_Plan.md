@@ -3600,9 +3600,9 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 | 顺序 | 用户可见交付结果 | 退出条件 |
 | --- | --- | --- |
 | 当前集成基线 | #68（e59ca7）、#69（43c4ce）及Web实际更新／回滚#70（d2f98713）均已合入develop；#70合并后CI仍须独立确认，不继承任务头成功。Mainsail1735原A4及42／28预算证据归属保持，服务重获2.62602倍仍超原1.5预算 | Git任务从d2f98713正常快进同步；当前候选尚未合入。G0–G6、本机11／16／14、G3、真实root／实机、目标板和主线发布门槛分别保留 |
-| 当前实现 | Git应用HTTP／RPC状态、更新／rollback／recover及managed_services候选；默认托管自身服务，普通服务顺序租约交接，设备退役后保持进程围栏，核心共进程别名合并一次真实afterResponse重启 | 184 Node26.12三文件首轮36／37（1项fixture查询指针错误）；限定修正后受影响3／3及typecheck通过。实际PTY宿主、Git目录、HTTP／RPC、WS及注入OS IO；复用native／依赖，非fresh build、实服务ready或硬件验收。失败／未知结果耐久interrupted不重放，未知动作经人工核对后的恢复出口仍待实现 |
-| 下一实现 | Git Node依赖、未知服务结果的受信对账恢复出口及其余完整update_manager能力 | 可信product bundle、锁文件及依赖替换策略实际接通；enable_node_updates／强制依赖更新仍拒绝。服务关联写超时／关闭取消admission和dispatch，已受理写排空期间维持围栏；OS submission不等于服务ready，不直接systemctl或引入pip |
-| 依赖基础待接线 | #68／#69／#70 已分别合入 develop e59ca7／43c4ce／d2f98713；其历史头结果不替代后续合并提交检查。#71 Git HTTP／RPC 接口与服务生命周期增量由各自 PR 推进；本批仅提供独立 Node 依赖事务基础 | 锁文件驱动的真实隔离 npm 准备、保旧替换、匹配 manifest 回滚和显式中断恢复已分场验证；尚未接入 enable_node_updates／update_deps，连续 A→B→C 最新备份协调与实际脚本／原生依赖仍开放。不得据此关闭完整 Git provider、M5 或 G0–G6 |
+| 当前实现 | Git应用HTTP／RPC及managed_services基础上接通普通应用enable_node_updates与公开update_deps，真实锁驱动npm、连续A→B→C/最新回滚与hard换根迁移 | 依赖一致且durable后才进入已有服务链；同锁不重装，失败与重开保留interrupted，未知服务不重放。184六项首轮5／6（手工fetch fixture映射遗漏），限定补验通过；保留首次失败及后续定向，不代替CI/完整产品/设备验收 |
+| 下一实现 | 产品所需脚本／原生依赖和可信bundle完整pipeline、未知服务结果受信对账及其余完整update_manager | 普通应用增量不关闭完整Node依赖交付；可信build-info生成／验证与实际构建不得自签绕过。服务关联写超时／关闭、持续围栏及afterResponse保护沿既有实现；不直接systemctl或引入pip |
+| 已审依赖基础 | 5c5b94c8经正常merge c3d8cc5d0并入本组合树，服务基础8af70714；#72另已合入develop e1db00d8，发布前仍须正常同步前置合并 | 基础12／12及产品inventory等补验记录保持，接线新增验证单列，不继承旧头CI；#68／#69／#70已合入记录和G0–G6边界保留 |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |
@@ -3622,7 +3622,7 @@ build-info 生成／核验流程，不能把任意 checkout 自签成产品包�
 两处耐久窗口分别用删除后保存失败、暂存清理后保存失败验证可重复恢复；
 重建 old-moved 状态不是实际掉电／SIGKILL 证明。
 一次有限 npm／事件循环观测无新验收阈值，不推断运动或目标板性能。
-接线与一代备份自动轮换仍为下一独立批次；详见
+接线候选已完成一代备份自动轮换、同锁辨识和hard换根身份迁移；实际脚本／原生依赖与产品pipeline仍开放。新增接线证据见[生命周期验收](../host/contracts/update-git-node-lifecycle-acceptance.json)，基础历史详见
 [精简验收契约](../host/contracts/node-dependency-update-acceptance.json)及启动说明对应小节。
 
 覆盖增量及状态修复已正常集成，其合并后规定检查已通过。实际

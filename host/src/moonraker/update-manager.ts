@@ -14,13 +14,13 @@ import type {MoonrakerHttpClient} from './http-client.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 import {ApiError,authorizedContext,type Json} from './rpc.ts';
 import {WebDeployment,webRepository,type WebDeploymentConfiguration} from './update-web-deploy.ts';
-import {GitDeployment,parseGitDeploymentConfiguration,type GitDeploymentConfiguration,type GitDeploymentStorage} from './update-git-deploy.ts';
+import {GitDeployment,parseGitDeploymentConfiguration,type GitDeploymentConfiguration,type GitDeploymentStorage,type GitNodeRuntime} from './update-git-deploy.ts';
 type UpdateNotification='notify_update_refreshed'|'notify_update_response';
 const registrations=new WeakMap<DatabaseStore,Promise<DatabaseNamespace>>();
 const namePattern=/^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/u;
 type DeploymentConfiguration=WebDeploymentConfiguration|GitDeploymentConfiguration;
 const overlaps=(a:string,b:string)=>{const p=relative(a,b);return p===''||!isAbsolute(p)&&p!=='..'&&!p.startsWith('..'+sep);};
-const deploymentLocations=(c:DeploymentConfiguration)=>[c.path,join(dirname(c.path),'origin' in c?'.anyraid-git-'+createHash('sha256').update(c.path).digest('hex'):'.anyraid-web-'+createHash('sha256').update(c.path).digest('hex').slice(0,20))];
+const deploymentLocations=(c:DeploymentConfiguration)=>[c.path,join(dirname(c.path),'origin' in c?'.anyraid-git-'+createHash('sha256').update(c.path).digest('hex'):'.anyraid-web-'+createHash('sha256').update(c.path).digest('hex').slice(0,20)),...('origin' in c&&c.enableNodeUpdates?[join(dirname(c.path),'.anyraid-node-'+createHash('sha256').update(c.path).digest('hex'))]:[])];
 const booleanParameter=(value:Json|undefined,name:string)=>{if(value===undefined)return false;if(value===true||value==='true')return true;if(value===false||value==='false')return false;throw new ApiError(400,'Expected '+name+' boolean');};
 interface Stored extends Record<string,Json>{schema:1;deployments:Record<string,Json>;}
 export interface UpdateMaintenance {gate:()=>MaintenanceGate;assertIdle:()=>void|Promise<void>;processGate?:()=>MaintenanceGate;control?:ProductHostControl;}
@@ -32,7 +32,7 @@ export class UpdateManager {
  #namespace:DatabaseNamespace|undefined;#storedDeployments:Record<string,Json>=Object.create(null);#ready=false;#initial=false;#closing=false;#failed=false;#refreshing=false;
  #tail=Promise.resolve();#opening:Promise<void>|undefined;#closed:Promise<void>|undefined;#timer:ReturnType<typeof setTimeout>|undefined;
  readonly #releases:Array<()=>void>=[];#notificationFailures=0;#updating:string|undefined;readonly #maintenance:UpdateMaintenance;
- constructor(reader:ConfigurationReader,database:DatabaseStore,http:MoonrakerHttpClient,blocked:()=>boolean,notify:(method:UpdateNotification,value:Json)=>void,maintenance?:UpdateMaintenance){
+ constructor(reader:ConfigurationReader,database:DatabaseStore,http:MoonrakerHttpClient,blocked:()=>boolean,notify:(method:UpdateNotification,value:Json)=>void,maintenance?:UpdateMaintenance,nodeRuntime?:GitNodeRuntime){
   if(!(database instanceof DatabaseStore)||database.status.closed||typeof blocked!=='function'||typeof notify!=='function')throw new ConfigurationError('Update manager requires the process database and activity guard');
   const fallback=new MaintenanceGate();this.#maintenance=maintenance??{gate:()=>fallback,assertIdle:()=>{if(blocked())throw new ApiError(503,'Printer is busy');}};this.#reader=reader;this.#database=database;this.#http=http;this.#blocked=blocked;this.#notify=notify;
   const cfg=reader.section('update_manager');this.#auto=cfg.getBoolean('enable_auto_refresh',{defaultValue:false});this.#window=cfg.getIntList('refresh_window',{defaultValue:[0,5],separator:'-',count:2});
@@ -61,7 +61,7 @@ export class UpdateManager {
    const value:WebDeploymentConfiguration={...config,persistentFiles:persistent,configHash:createHash('sha256').update(JSON.stringify({...config,persistent})).digest('hex')};add(value);
   }
   if(configurations.size>32)throw new ConfigurationError('Update application capacity exceeded');
-  for(const [name,config]of configurations){const protectedPaths=[...reserved,...[...configurations].flatMap(([id,value])=>id===name?[]:deploymentLocations(value))];this.#deployments.set(name,'origin' in config?new GitDeployment({...config,reservedPaths:protectedPaths}):new WebDeployment(config,http,protectedPaths));}
+  for(const [name,config]of configurations){const protectedPaths=[...reserved,...[...configurations].flatMap(([id,value])=>id===name?[]:deploymentLocations(value))];this.#deployments.set(name,'origin' in config?new GitDeployment({...config,reservedPaths:protectedPaths},nodeRuntime):new WebDeployment(config,http,protectedPaths));}
  }
  get status(){return {ready:this.#ready,initialRefreshComplete:this.#initial,refreshing:this.#refreshing,updating:this.#updating??null,pending:this.#pending.size,closing:this.#closing,failed:this.#failed,notificationFailures:this.#notificationFailures};}
  snapshot():Record<string,Json>{this.#active();const versions:Record<string,Json>=Object.create(null);versions.moonraker={};versions.klipper={};for(const [name,app]of this.#deployments)versions[name]=app.status;return {...this.#http.githubApiStats(),version_info:versions,busy:this.#updating!==undefined};}
@@ -111,7 +111,7 @@ export class UpdateManager {
   this.#active();if(Object.keys(params).some(k=>!['name',...action==='recover'?['hard','update_deps']:[]].includes(k))||typeof params.name!=='string')return Promise.reject(new ApiError(400,'Expected updater name and supported action parameters'));const name=params.name,app=this.#deployments.get(name);if(!app)return Promise.reject(new ApiError(400,'No updater registered for selected name'));
   let hard=false,updateDeps=false;try{if(action==='recover'){hard=booleanParameter(params.hard,'hard');updateDeps=booleanParameter(params.update_deps,'update_deps');}}catch(error){return Promise.reject(error);}
   if(action==='recover'&&!(app instanceof GitDeployment))return Promise.reject(new ApiError(501,'Recovery is not implemented for this deployment type'));
-  if(updateDeps)return Promise.reject(new ApiError(501,'Git dependency updates are not implemented; no action was performed'));
+  if(updateDeps&&app instanceof GitDeployment&&!app.config.enableNodeUpdates)return Promise.reject(new ApiError(501,'Forced dependency updates require enable_node_updates; no action was performed'));
   if(!this.#initial||this.#blocked()||this.#updating||this.#pending.size)return Promise.reject(new ApiError(503,'Server is busy, cannot perform update'));
   const response=Promise.withResolvers<string>(),owned=new AbortController(),cancel=()=>owned.abort(request.reason),stop=()=>owned.abort(this.#life.signal.reason);request.addEventListener('abort',cancel,{once:true});this.#life.signal.addEventListener('abort',stop,{once:true});if(request.aborted)cancel();if(this.#life.signal.aborted)stop();
   const signal=owned.signal,task=this.#tail.then(async()=>{

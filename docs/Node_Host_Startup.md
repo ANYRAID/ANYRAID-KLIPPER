@@ -1397,7 +1397,7 @@ client与rollback接受必填name，适用Git应用；rollback持久保存commit
 recover接受name与可选hard／update_deps布尔；HTTP查询可用true／false，其他类型400。
 公开参数按固定上游使用update_deps；内部名force_dep_update作为未知公开字段返回400。
 soft恢复优先pin／当前提交祖先，否则primary远端，并先有界备份原目录；hard克隆新候选、验证后保留原目录替换，
-不删除历史备份。update_deps=true仍501且不运行Git或写入恢复事务，不以无动作代替依赖更新。损坏旧config的hard恢复仅用先前可信目录身份，
+不删除历史Git恢复备份。启用enable_node_updates时update_deps=true执行真实强制依赖准备；未启用时仍501且无仓库动作。损坏旧config的hard恢复仅用先前可信目录身份，
 不运行旧仓库Git；未完成事务重开报告interrupted，必须显式恢复，不自动重放。
 
 安装目录、父目录及.git身份受保护，安装／控制目录不能与其他Web／Git应用或进程配置／数据库／备份重叠。
@@ -1417,17 +1417,23 @@ Git更新／回滚／显式恢复在仓库动作后沿可信ProductHostControl�
 先持久关联更新事务及request_id，才允许任何OS dispatch。关联写入挂起时超时／关闭立即拒绝admission并永久取消dispatch；
 已受理数据库写仍受控排空，completion及close等待真实I/O结束后才归还租约，不声称可终止不可取消的写入。
 失败不发送成功文案；未确认或重开后的服务结果保持interrupted，不自动重放，显式recover也拒绝重放未知服务动作。
-受信人工核对后的恢复出口仍待后续实现。enable_node_updates=true及update_deps=true仍未实现；现有product-install要求
-可信build-info清单、独立bundle且无node_modules，不能把任意Git checkout直接当作受支持npm安装。
+受信人工核对后的恢复出口仍待后续实现。enable_node_updates=true接入下述普通应用能力；现有product-install要求
+可信build-info清单、独立bundle且无node_modules，完整产品pipeline仍待接通，不能把任意Git checkout冒充产品包。
 本批真实接口测试的精确HTTPS fixture地址由测试可执行shim映射到临时bare仓库，生产不开放file入口，Git TLS网络传输未验。
 软件与有限桌面观测不代表完整provider、目标板、真实设备或部署验收。
 分项结果、初轮缺assets失败及限定补验见[Git更新候选验收](../host/contracts/update-manager-git-acceptance.json)。
-#### Node 依赖事务基础（尚未接入更新入口）
+#### Git Node 依赖生命周期候选
 
 `NodeDependencyTransaction` 为后续 Git 部署提供独立的 manifest 捕获、
 `prepare`、`commit`、`rollback`、`reconcile` 和显式 `discardBackup`。
-本增量不启用 `enable_node_updates` 或公开 recover 的 `update_deps`，
-不重启服务，也不将普通 Git checkout 当作已验证的产品包。
+GitDeployment在 `enable_node_updates=true` 时捕获变更前manifest及依赖目录身份，
+按两侧锁文件哈希变化触发真实prepare／commit；同锁校验并保留当前树。
+普通更新要求变更前已有有效lock和匹配生产树，缺失则在Git变更前拒绝并要求显式
+recover `update_deps=true`；新Git目标缺lock则保留interrupted，不隐式force或声称ready。
+公开 `update_deps=true` 是用户force；hard换根及其已记录中断的重建是独立内部原因。
+服务动作仅在依赖一致且阶段耐久保存后运行；未知服务结果继续拒绝重放。
+可信运行选项 `updateNodeDependencies` 可注入npm工具／cache，默认只从当前Node安装发现npm，
+不读取HTTP参数或用户环境中的npm路径，不将普通Git checkout当作已验证产品包。
 
 普通应用要求 npm v2／v3 锁文件、带完整性摘要的 HTTPS 生产依赖，
 在私有暂存目录实际执行隔离 npm `ci --omit=dev --include=optional --ignore-scripts`。
@@ -1441,8 +1447,12 @@ Git更新／回滚／显式恢复在仓库动作后沿可信ProductHostControl�
 提交前重核授权、manifest 和目录身份；失败／取消保留旧依赖并等 npm 退出。
 替换先耐久保存 intent，再两次 rename 与目录 fsync；关闭等一致性收尾。
 重开不执行脚本，须显式 `reconcile`；Git manifest 回到对应版本后才能回滚旧树。
-备份删除先保存可重复的 discard intent。当前只保留一代且须可信调用方显式清理，
-连续 A→B→C 与最新回滚协调仍须在 GitDeployment 接线批次完成，不能要求最终用户手工清理。
+备份删除先保存可重复的discard intent。连续A→B→C自动保留最新一代B回滚：
+先耐久确立Git回滚目标及旧manifest，真实npm候选完成prepared后才清理过期备份、提交新树。
+同锁Git回滚识别当前依赖，不能误用更旧备份。失败保留旧树与interrupted阶段；显式recover
+对齐当前Git与旧依赖，不把Git更新但依赖过期的状态称为ready。
+hard恢复从耐久Git克隆记录读取旧root／.git、旧目录位置及新身份，逐项核验后重新绑定Node所有者；
+旧根依赖保留，新根实际准备依赖；迁移后prepared中断可重开显式恢复，不绕过身份检查。
 manifest、条目、文件、输出和期限均有上限；50ms 采样暂存／cache 容量是应用层监测，
 不是内核磁盘配额。Linux 内核目录锁排除另一所有者。
 
@@ -1451,6 +1461,10 @@ A→B→回滚 A、取消排空和故障恢复；HTTPS 传输、产品实际 npm
 服务和设备均未验。复用既有依赖与 `sealed-file.node`，不是全新构建。
 分场首次失败、定向修正及一次有限计时见
 [Node 依赖基础验收](../host/contracts/node-dependency-update-acceptance.json)。
+接线场次另见[Git Node生命周期验收](../host/contracts/update-git-node-lifecycle-acceptance.json)：
+真实Git＋离线npm首轮5／6，手工fetch绕过fixture映射失败保留；只补失败项与配置解析2／2。
+备份保留顺序与hard迁移后中断分别定向补验；服务顺序断言在可信hook边界，实际HTTP／RPC验证更新、
+回滚及force，不宣称本轮执行真实OS服务或网络TLS，也不重跑基础性能取代原样本。
 测试 npm 从当前 Node 安装发现，也可显式设置可信 `ANYRAID_TEST_NPM_CLI`。
 功能项仅 Linux；真实预构建产品项要求 `ANYRAID_TEST_PRODUCT_BUNDLE` 指向现有可信产物，
 缺失时明确 skip，默认 CI 不覆盖该项，不能把 184 的实测结果归给 CI。
