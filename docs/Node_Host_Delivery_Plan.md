@@ -3605,6 +3605,7 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |
 | M3 验收 | 可观察、可取消、可恢复的作业队列，复用已集成软件 | 复用现有日志与状态机，幂等明确，不自动重放危险动作 |
 | M4 验收与缺口 | 当前平台服务、网络及维护可控，复用已有 provider 和事件设施 | 明确 provider、权限、真实停止、失败和安装回滚 |
+| 系统更新前置 | 独立PackageKit typed provider候选，借用唯一共享bus；缓存查询、刷新、解析、安装及升级事务，durable pending／未知结果不重放 | 184 Node26.12私有daemon／合成服务与既有owner33／33；RemoveMatch清理修复后限定1／1、缓存恢复1／1及typecheck。未接manager／HTTP／APT，failed亦阻断变更；未来受信对账出口与完整系统部署层待接，非真实包或设备验收 |
 | M5／C | 剩余完整 Moonraker 与全部 Python／旧宏场景退役 | 完整契约、目标性能／精度、系列和发布门槛全部通过 |
 | 最后 G6 | 其他机型 | 当前系列完整交付后再展开 |
 
