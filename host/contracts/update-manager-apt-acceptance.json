@@ -15,21 +15,22 @@
     "Initialization, actual package query, refresh, exact escaped resolution, install and upgrade",
     "Cached defensive status, serialized operations, failed refresh retains prior successful snapshot/time",
     "Required injected durable mutation journal; pending before dispatch, known non-dispatch clears intent, ambiguous results interrupted; diagnostic reads remain available",
-    "Real process-group cancellation/drain, bounded time/output; no automatic install/upgrade retry or rollback claim"
+    "Real process-group cancellation/drain, bounded time/output; no automatic install/upgrade retry or rollback claim",
+    "Trusted APT Candidate exact-version targets, legal trailing-sign names, durable exactTargets and no-remove installation"
   ],
   "compatibilityDifferences": [
     "Parse actual package/archive records instead of unconditional upstream nonempty-lines[2:] dropping first package",
     "retries defaults to 1 and accepts only 1, unlike upstream default 3 mutation attempts; all other values rejected before commands",
-    "Strict bare names only; max256 names each2-192 ASCII chars; version/arch/distribution selectors and trailing +/- action selectors unsupported, even when a trailing sign is a legal Debian name",
+    "Strict bare names only; max256 names each2-192 ASCII chars; public version/arch/distribution/glob selectors unsupported. Legal trailing +/- names install through trusted Candidate version binding.",
     "No-match resolution returns without install; empty resolver avoids upstream unbounded empty regex",
-    "Dpkg noninteractive confdef/confold preserves prior config; query refresh atomically publishes only after all successful steps"
+    "Dpkg noninteractive confdef/confold preserves prior config; query refresh atomically publishes only after all successful steps",
+    "Install uses exact trusted name=Candidate with --no-remove; removal-requiring solutions fail instead of removing packages. Upgrade unchanged."
   ],
   "notImplemented": [
     "PackageKit, public HTTP/RPC system wiring, process maintenance lease and service ownership transfer",
     "Public journal clear/reconciliation; only trusted external reconciliation may clear persisted unknown intent",
     "Real host package installation/upgrade, real sudo capability verification, service/target-board/device acceptance",
-    "Power loss, escaped/new-session processes and real package maintainer-script recovery guarantees",
-    "Exact installation for legal names ending +/- including common g++; naive + suffix rewriting was rejected by real collision solver evidence"
+    "Power loss, escaped/new-session processes and real package maintainer-script recovery guarantees"
   ],
   "api": {
     "methods": [
@@ -145,8 +146,9 @@
   ],
   "sourceSha256": {
     "host/src/moonraker/apt-command-executor.ts": "bb4f11fde0ea7363115985790672eeb7bf136d2651f9466ef2fc986bf86d689a",
-    "host/src/moonraker/apt-package-provider.ts": "03badb9406527253ebfbeeb6ed606abe9989a977011162380143cdb1b79ba150",
-    "host/test/apt-package-provider.test.ts": "584fa48bd5bd50cfa89ca5fb5e3b5131f77c36bb1b7c811bb16df8f02326f2c5"
+    "host/src/moonraker/apt-package-provider.ts": "2062a9977638f5aa9f1014ee2efe1299c8040a95682befe0c5028f42f2cedf3c",
+    "host/test/apt-package-provider.test.ts": "1a58afe42e013b8422dde71f83e96bbf0504ced97b7adc19a79a31f92ceb33a7",
+    "host/test/apt-exact-selection.test.ts": "a6cee9bd1ab9c335bba16ad98ce12ba60dc028ae57262ba7d6cc9f3e24b854b4"
   },
   "logSha256": {
     "action-suffix-followup.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
@@ -219,6 +221,97 @@
         "removals": []
       }
     ],
-    "decision": "Keep explicit trailing +/- unsupported; do not ship name rewriting. Immediate follow-up: trusted metadata-backed exact name=version or official exact patterns, including g++, with collision/no-removal validation."
+    "decision": "Keep explicit trailing +/- unsupported; do not ship name rewriting. Immediate follow-up: trusted metadata-backed exact name=version or official exact patterns, including g++, with collision/no-removal validation.",
+    "supersededBy": "exactCandidateSelection: historical + rewriting counterexample retained; legal trailing signs now use trusted name=version rather than rewriting"
+  },
+  "exactCandidateSelection": {
+    "branch": "devac/apt-exact-selection",
+    "base": "18d0042d4122a0d2416c08a2d2b557228d42a1c0 (#75 published head, frozen source not modified)",
+    "contract": [
+      "Public bare names include legal trailing +/-; no user-supplied version/architecture/distribution/glob selectors",
+      "Resolve still uses exact escaped names, preserving request order, duplicates and missing-item filtering",
+      "Installation reads fixed-locale apt-cache policy Candidate and requires it in the package version table; APT pin priorities choose the version, no local comparison",
+      "Internally generate exact name=version, persist exactTargets before dispatch; old journals remain readable for interrupted-state diagnosis, never replayed",
+      "One install attempt with --no-remove; dependencies requiring removal explicitly fail. Upgrade argv and behavior unchanged",
+      "Captured version disappearance is an interrupted failure, never fallback to a different version/name"
+    ],
+    "metadataBounds": {
+      "maxOutputBytes": 16777216,
+      "maxLines": 65536,
+      "maxLineChars": 4096,
+      "maxVersionChars": 256,
+      "timeoutSeconds": 600
+    },
+    "previousSourceSha256": {
+      "host/src/moonraker/apt-package-provider.ts": "03badb9406527253ebfbeeb6ed606abe9989a977011162380143cdb1b79ba150",
+      "host/test/apt-package-provider.test.ts": "584fa48bd5bd50cfa89ca5fb5e3b5131f77c36bb1b7c811bb16df8f02326f2c5"
+    },
+    "currentSourceSha256": {
+      "host/src/moonraker/apt-package-provider.ts": "2062a9977638f5aa9f1014ee2efe1299c8040a95682befe0c5028f42f2cedf3c",
+      "host/test/apt-package-provider.test.ts": "1a58afe42e013b8422dde71f83e96bbf0504ced97b7adc19a79a31f92ceb33a7",
+      "host/test/apt-exact-selection.test.ts": "a6cee9bd1ab9c335bba16ad98ce12ba60dc028ae57262ba7d6cc9f3e24b854b4"
+    },
+    "validation": {
+      "runtime": "v26.12.0",
+      "apt": "apt 2.8.0 (amd64)",
+      "directory": "/home/dek02/.codex/worktrees/supervisor-group-compat/apt-exact-selection",
+      "reuse": "Exact package-lock matched before borrowing existing node_modules; no fresh build/native addon/sanitizer/browser/full host or old cache-performance rerun",
+      "probe": {
+        "command": "node check-exact-selector.mjs",
+        "log": "exact-selector-probe.stdout",
+        "exit": 0,
+        "scope": "Three collision pairs and pinned lower Candidate selected through actual APT --simulate, no Remv, private dpkg status unchanged"
+      },
+      "newTests": {
+        "command": "node --test host/test/apt-exact-selection.test.ts",
+        "passed": 9,
+        "failed": 0,
+        "log": "first-exact-tests.stdout"
+      },
+      "affectedTests": {
+        "command": "node --test --test-name-pattern=\"resolve escapes|invalid package names|legal trailing-sign|install refreshes|empty resolution|pending journal|real APT uses\" host/test/apt-package-provider.test.ts",
+        "passed": 7,
+        "failed": 0,
+        "log": "first-affected-tests.stdout"
+      },
+      "firstTypecheck": {
+        "exit": 1,
+        "log": "first-typecheck.stdout",
+        "cause": "Two test-only TS2367 comparisons against idle after assert.equal had already narrowed state to pending"
+      },
+      "finalTypecheck": {
+        "command": "cd host && node scripts/run-typescript.ts -p tsconfig.json",
+        "exit": 0,
+        "log": "final-typecheck.stdout",
+        "scope": "Final production source unchanged from 9+7 passing tests; only two redundant always-true test guards removed, no repeat functional tests"
+      },
+      "safety": "All actual APT scenes first assert no host hooks from early private APT_CONFIG; private synthetic indexes only, --simulate forced for install/upgrade; no actual sudo or host package mutation"
+    },
+    "logs": {
+      "apt-runtime.txt": "e3110b2e346de96cf6d2eaaf86c306a4fb581e9a9329e4de74490128ff6ab422",
+      "exact-selector-probe.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "exact-selector-probe.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exact-selector-probe.stdout": "72658f1bf5d349f22cfc20c7f93a54135a897112715226ed72feb53610320a6b",
+      "final-source-sha256.txt": "29c58b18538c138f426620e0ee8c39406207350f226d9fb5c1c4b95c6cb3d087",
+      "final-typecheck.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "final-typecheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "final-typecheck.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "first-affected-tests.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "first-affected-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "first-affected-tests.stdout": "c069f22ef245e281a53d86f63702cbeaab86253a4665a8d49e8fc067b3e4ab4f",
+      "first-exact-tests.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "first-exact-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "first-exact-tests.stdout": "37b17a49bb21e729c6351699d51b4ef306b9132b2f0235c50cb5cc2c10813c01",
+      "first-typecheck.exit": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "first-typecheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "first-typecheck.stdout": "6f79159269a02ee82d304d87ca32906b8f576bd5c38ca5a10128bb11473a68c4",
+      "node-runtime.txt": "4117ab00dc2f8c90d93ceede8620caac1d817bf404f006f025788ac760102631"
+    },
+    "localEvidence": "C:\\Devs\\Codex\\from-184\\.codex\\worktrees\\2eff\\ANYRAID-KLIPPER\\.cache\\apt-exact-source\\evidence",
+    "limitations": [
+      "Public system routes, PackageKit and maintenance lease wiring remain out of scope",
+      "--no-remove intentionally does not support install solutions requiring removals",
+      "Actual privileged package mutation, physical target, power-loss safety and complete system update integration not validated"
+    ]
   }
 }
