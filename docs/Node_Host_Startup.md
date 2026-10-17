@@ -342,6 +342,29 @@ supervisor 安装属性消费，以及 none 的上游 503 与无 systemd
 
 详细结果和原始失败见[共享总线验收](../host/contracts/system-bus-provider-acceptance.json)。
 
+### PackageKit 内部 provider 候选
+
+独立PackageKitProvider借用SystemBusOwner的同一连接，提供initialize、getPackages、refreshPackages、
+resolvePackages、installPackages、upgradeSystem；status仅读缓存，不产生wire调用。本批没有HTTP／RPC或
+update_manager接线，不改变现有系统更新501，也不选择或调用APT。固定Moonraker1cfb0c41及官方PackageKit v1.3.1
+接口；仅支持org.freedesktop.PackageKit API，最新packagekit1接口另属兼容工作，不静默猜测签名。
+
+owner限定CreateTransaction、GetUpdates、Resolve、RefreshCache、InstallPackages、UpdatePackages与Cancel，
+flags及签名固定；三个packagekit Polkit action与machine权限名单分离。事务先订阅，后提交；按unique sender、
+事务path和连接／owner epoch核信号，成功要求方法回复与Finished成功且无ErrorCode，允许Finished先到。
+结果最多4096包／4MiB，通知最多256条并限速，事务具有绝对期限；每次移除规则。RemoveMatch失败由owner
+撤销并实际关闭该连接后才允许重连，不由借用provider关闭owner，也不遗留无界守护进程规则。
+
+mutation必须先写入禁止公开的耐久journal，再关联事务身份，最后重核权限／epoch／取消状态后发出。
+发送后超时／取消／失联记interrupted，Cancel成功不证明包没有改变；Finished失败也可能已有部分包改变，
+failed同样阻止下一变更。重开pending改为interrupted且从不重放；受信对账后的恢复出口待系统部署层实现。
+已受理数据库写不可取消：请求期限可先拒绝调用方，provider仍保留busy并排空写入，禁止迟到dispatch；close等待
+实际I/O，释放活动provider所有权但保留namespace公开屏蔽，不关闭借用总线或数据库。
+
+184 Node26.12的私有daemon＋合成PackageKit／Polkit与共享owner回归33／33；清理修复后仅补定向1／1、缓存恢复边界1／1及typecheck。
+缺dbus-daemon或非Linux显式skip；测试由既有npm test通配纳入，尚无本批CI运行结论，skip不作wire通过证据。
+复用已有native与匹配锁依赖，未fresh build、sanitizer或真实软件包／服务／设备操作，详见[PackageKit验收](../host/contracts/packagekit-provider-acceptance.json)。
+
 ## 旧安装迁移的可信工厂装配
 
 LMDB 导出子进程在失败／取消时先终止、关闭尚未消费的 stdout／stderr，
