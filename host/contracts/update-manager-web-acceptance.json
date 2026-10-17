@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "scope": "First process-owned web NetDeploy metadata/status/refresh slice; not complete update_manager or deployment acceptance",
+  "scope": "Process-owned Web metadata/status/refresh plus actual ZIP client update, local rollback and interrupted directory transaction consistency; not complete update_manager or hardware/deployment acceptance",
   "upstream": {
     "repository": "Arksine/moonraker",
     "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
@@ -14,12 +14,14 @@
     ]
   },
   "sourceSha256": {
-    "host/src/moonraker/update-manager.ts": "4806973aca00e0d0a8eac3181542adb2eb99706f61f24e2c5750427c3b595143",
-    "host/src/moonraker/update-web-deploy.ts": "521a3addc681a95fa7013cec4da85cc6c473e591933d919f6f2588810efe1968",
-    "host/src/moonraker/configured-server.ts": "3bd381367487ad0396985a56703091588f65bf007f77c2487af40fc733d76b7d",
+    "host/src/moonraker/update-manager.ts": "36c506073d1f36f9e7ff24a97e58331e917b8eff001004be1b9260d7406406a6",
+    "host/src/moonraker/update-web-deploy.ts": "55a0eaef5be1ef0adef663db125e5147af1adfe8ee11462e8e63bf82b4341142",
+    "host/src/moonraker/configured-server.ts": "473c5ad90c719fe052e8a34e88d1ca7f3ac866902a44a34ef2e6dbba732a1569",
     "host/src/moonraker/http-client.ts": "de8dd68a7d326f5c182361ed4b15e5cac22e7cd6e8911faa78fb7e3db0c6675f",
-    "host/test/update-manager.test.ts": "5803892c484a8c42a40cbc24956a3c1eb492a80531965d7329b5f430f1a833d6",
-    "host/test/update-web-deploy.test.ts": "56c8137f681bd2b814776a4f99ecf6536380b3245f95875b65dc8f6d490f8ccb"
+    "host/test/update-manager.test.ts": "b9b26faf1ffb212666c321adbcb1d0b06df78f905915ec10df06b5e9e5d04920",
+    "host/test/update-web-deploy.test.ts": "b0b3d8fc042e2469182bd8734ebac9d610f5224d6d9b46f53b0ae2570818b6b9",
+    "host/src/moonraker/update-web-transaction.ts": "b831b327dd5ca770419da99d53b36ed3f08f82ff85c937c01f37c96fe5257868",
+    "host/test/update-web-transactions.test.ts": "4b35051bdf554080f150fe078a5433616ae6f41993f89dc9a4acc634bf3c1f62"
   },
   "routes": {
     "status": {
@@ -48,26 +50,42 @@
         "moonraker",
         "klipper",
         "system",
-        "client",
         "full",
         "upgrade",
-        "recover",
-        "rollback"
+        "recover"
       ],
       "status": 501,
       "sideEffect": "none"
+    },
+    "client": {
+      "method": "POST",
+      "rpc": "machine.update.client",
+      "params": {
+        "name": "required registered web application"
+      },
+      "returns": "ok",
+      "deployment": "real bounded HTTP download, ZIP validation, persistent overlay and directory transaction"
+    },
+    "rollback": {
+      "method": "POST",
+      "rpc": "machine.update.rollback",
+      "params": {
+        "name": "required registered web application"
+      },
+      "returns": "ok",
+      "deployment": "verified local previous directory; current persistent files overlay rollback candidate"
     }
   },
   "notifications": {
     "refresh": "notify_update_refreshed, one full snapshot in params; delayed 200ms after state commit",
-    "response": "notify_update_response reserved for real deployment actions; not emitted by this slice"
+    "response": "Actual notify_update_response messages with application/proc_id/message/complete; completion follows deployment and cache commit, never emitted after owner close"
   },
   "ownership": {
     "scope": "ConfiguredMoonraker process, independent of printer generation",
-    "initialization": "validate local metadata before listen; first remote refresh after listener startup",
-    "close": "abort and await admitted refresh; clear delayed events before closing shared HTTP/database",
+    "initialization": "Reserved-path and canonical parent checks precede transaction filesystem work; take private directory kernel lock, recover by dev/ino then read local metadata; first remote refresh after listen",
+    "close": "Abort and drain preparation/HTTP; after first rename finish consistent durable publication and persist cache before releasing maintenance, while suppressing late notifications; then close borrowed HTTP/database",
     "reservedPaths": "configuration primary/include files, database and backup paths cannot overlap web installation",
-    "filesystem": "physical directory, no git ancestor; regular bounded UTF-8 metadata; no executable deployment"
+    "filesystem": "Web physical target and same-parent private mode0700 control directory; no Git ancestor or process-path overlap. Archive dirs0755/files0644, persistent ordinary modes preserved, special bits removed. Two renames are not globally atomic."
   },
   "validation": {
     "platform": "Linux x64 Node26.12.0",
@@ -534,12 +552,138 @@
     "interpretation": "Two explicitly different source stages, no sample substitution. Quantiles concern batch average ns/op, not individual request P95. Final stage reran the same registered finite plan after adding reserved-path refresh work. No dedicated passing gate, motion, hardware or full-product performance claim."
   },
   "remaining": [
-    "Download, verified extraction, atomic install and persistent_files lifecycle",
-    "Web recovery and rollback deployment",
-    "Git/ZIP/executable providers and controlled system package provider",
+    "Git/ZIP/executable application providers and controlled system package provider",
     "Actual Node release/core installation identity self-update; no Python venv/pip runtime dependency",
     "Separate explicit decision for third-party Python application compatibility",
-    "Full mutation notifications/restarts/known-or-unknown deployment result lifecycle"
+    "Full mutation/restart and full-update orchestration, Git recover, upstream offline compatibility and other provider acceptance",
+    "Preparation remnants before durable intent require offline identity review; power-loss and production filesystem acceptance remain open"
   ],
-  "publication": "Records implementation and targeted validation; publication status is authoritative in Git and the pull request. Does not establish deployment or real-device acceptance."
+  "publication": "Records implementation and targeted validation; publication status is authoritative in Git and the pull request. Does not establish deployment or real-device acceptance.",
+  "metadataSliceSourceSha256": {
+    "host/src/moonraker/update-manager.ts": "4806973aca00e0d0a8eac3181542adb2eb99706f61f24e2c5750427c3b595143",
+    "host/src/moonraker/update-web-deploy.ts": "521a3addc681a95fa7013cec4da85cc6c473e591933d919f6f2588810efe1968",
+    "host/src/moonraker/configured-server.ts": "3bd381367487ad0396985a56703091588f65bf007f77c2487af40fc733d76b7d",
+    "host/src/moonraker/http-client.ts": "de8dd68a7d326f5c182361ed4b15e5cac22e7cd6e8911faa78fb7e3db0c6675f",
+    "host/test/update-manager.test.ts": "5803892c484a8c42a40cbc24956a3c1eb492a80531965d7329b5f430f1a833d6",
+    "host/test/update-web-deploy.test.ts": "56c8137f681bd2b814776a4f99ecf6536380b3245f95875b65dc8f6d490f8ccb"
+  },
+  "transactionValidation": {
+    "schema": 1,
+    "date": "2026-10-18",
+    "platform": "Linux x64 Node26.12.0",
+    "baseCommit": "43c4ce6ddab8d20e2e3286279d724717d7a62edd",
+    "linuxRoot": "/home/dek02/.codex/worktrees/supervisor-group-compat/web-update-transactions",
+    "runtime": "/home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node",
+    "native": "Borrowed final-032dd-fix2-product/host/build; source tests, not fresh product/native build or sanitizer execution",
+    "dependency": "Borrowed ANYRAID-KLIPPER/host/node_modules; SHA256 package-lock checked equal",
+    "commands": {
+      "typecheck": "node scripts/run-typescript.ts -p tsconfig.json",
+      "initial": "node --test test/update-web-transactions.test.ts test/update-web-deploy.test.ts test/update-manager.test.ts",
+      "final": "node --test test/update-web-transactions.test.ts test/update-web-deploy.test.ts test/update-manager.test.ts test/http-client.test.ts test/configured-server.test.ts test/maintenance-gate.test.ts",
+      "outerTimeout": "/usr/bin/timeout --signal=TERM --kill-after=2s 120s"
+    },
+    "runs": {
+      "first": {
+        "logs": "targeted-v1",
+        "passed": 28,
+        "failed": 1,
+        "cancelled": 1,
+        "reason": "ConfiguredMoonraker detached integration fixture omitted mandatory native process resources. load was outside try, so failed setup leaked fixture and outer 120s interrupted its file. Production/ZIP/interruption cases passed; retained without substitution."
+      },
+      "repaired": {
+        "logs": "targeted-v2",
+        "passed": 32,
+        "failed": 0,
+        "cancelled": 0,
+        "durationMs": 1846.93054
+      },
+      "final": {
+        "logs": "targeted-final",
+        "passed": 70,
+        "failed": 0,
+        "cancelled": 0,
+        "durationMs": 16901.692743
+      },
+      "typecheck": {
+        "logs": "typecheck-final",
+        "exitCode": 0
+      }
+    },
+    "sourceSha256": {
+      "host/src/moonraker/update-manager.ts": "36c506073d1f36f9e7ff24a97e58331e917b8eff001004be1b9260d7406406a6",
+      "host/src/moonraker/update-web-deploy.ts": "55a0eaef5be1ef0adef663db125e5147af1adfe8ee11462e8e63bf82b4341142",
+      "host/src/moonraker/update-web-transaction.ts": "b831b327dd5ca770419da99d53b36ed3f08f82ff85c937c01f37c96fe5257868",
+      "host/src/moonraker/configured-server.ts": "473c5ad90c719fe052e8a34e88d1ca7f3ac866902a44a34ef2e6dbba732a1569",
+      "host/test/update-web-transactions.test.ts": "4b35051bdf554080f150fe078a5433616ae6f41993f89dc9a4acc634bf3c1f62",
+      "host/test/update-web-deploy.test.ts": "b0b3d8fc042e2469182bd8734ebac9d610f5224d6d9b46f53b0ae2570818b6b9",
+      "host/test/update-manager.test.ts": "b9b26faf1ffb212666c321adbcb1d0b06df78f905915ec10df06b5e9e5d04920"
+    },
+    "logs": {
+      "baseline-tests.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "baseline-tests.stdout": "bcc03940bbe3a3524611e9451c34150e7db0e44b2eb7a32d725d81fbd0a161fd",
+      "targeted-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targeted-final.stdout": "4dc15ed9aa9a938655eccde724f94b64bc574b3ef7489ae40ebb58855a7fc934",
+      "targeted-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targeted-v1.stdout": "03d768c5daed7f38afc43fa2263e9e6ee563aa097e21de416aba936f5e92253c",
+      "targeted-v2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targeted-v2.stdout": "87914837afdbd9e453509323bdb070562d2c2509906b336178e972c5d58b416c",
+      "typecheck-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-final.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "remoteSourceFingerprintsMatch": true,
+    "dependencyLockMatch": true,
+    "cleanup": "After bounded test exit, remote ps snapshot contained no matching Node processes for the task/test path; no full process lifecycle attestation",
+    "coverage": [
+      "actual loopback HTTP ZIP v1 to v2; local rollback across owner reopen and no network",
+      "current persistent user changes survive rollback; regular permissions preserved",
+      "declared size, optional digest, CRC, traversal, case-fold duplicate, link, file-parent conflict and candidate version rejection",
+      "after-overlay metadata validation and reserved paths before filesystem mutation",
+      "dynamic maintenance gate excludes new activity, stale generation and revoked authorization cannot publish",
+      "close after first rename drains commit; no late completion; kernel ownership released",
+      "SIGKILL after intent, old rename, published rename and abort cleanup; two repeated reopens",
+      "ConfiguredMoonraker actual authorized HTTP update, WebSocket completion and HTTP JSON-RPC rollback with confirmed detached native process resources",
+      "shared HTTP, ConfiguredMoonraker and maintenance gate regression"
+    ],
+    "performance": {
+      "final": {
+        "payloadBytes": 8388608,
+        "updateMs": 50.87733899999989,
+        "rollbackMs": 5.120795000000044,
+        "timerSamples": 53,
+        "maxExtraTimerDelayMs": 2.5679770000001554
+      },
+      "priorRepaired": {
+        "payloadBytes": 8388608,
+        "updateMs": 49.593830000000025,
+        "rollbackMs": 4.8179009999998925,
+        "timerSamples": 50,
+        "maxExtraTimerDelayMs": 3.5771269999997912
+      },
+      "interpretation": "One loopback execution per source stage, 1ms timer observations. Both stages retained; no acceptance threshold or single-request percentile. Local rollback does not copy the retained new 8MiB payload."
+    },
+    "limitations": [
+      "No archive signature is claimed: declaration length, optional provided GitHub SHA256, CRC and repository/version metadata have distinct meanings",
+      "Unknown external Klippy disconnected status conservatively rejects deployment; confirmed drained native stopped retirement is allowed",
+      "Public recover remains unavailable; Web recovery is only interrupted directory consistency, not replay of unknown requested operations",
+      "SIGKILL before durable intent can leave private preparation directories/download remnants. They are not automatically replayed or removed solely by names; offline identity review is required",
+      "No whole-suite CI, fresh build, sanitizer rerun, power-loss filesystem simulation, target-board, production service or physical printer acceptance is established here"
+    ],
+    "evidenceLocation": ".cache/web-transaction-validation/receipt.json (task-local raw logs are not all included in Git)",
+    "testedSourceSha256": {
+      "host/src/moonraker/update-manager.ts": "36c506073d1f36f9e7ff24a97e58331e917b8eff001004be1b9260d7406406a6",
+      "host/src/moonraker/update-web-deploy.ts": "55a0eaef5be1ef0adef663db125e5147af1adfe8ee11462e8e63bf82b4341142",
+      "host/src/moonraker/update-web-transaction.ts": "9becf074fbc513f32724a75cc9d3749523a600ccb818f9a208162b26ad0375a3",
+      "host/src/moonraker/configured-server.ts": "473c5ad90c719fe052e8a34e88d1ca7f3ac866902a44a34ef2e6dbba732a1569",
+      "host/test/update-web-transactions.test.ts": "4b35051bdf554080f150fe078a5433616ae6f41993f89dc9a4acc634bf3c1f62",
+      "host/test/update-web-deploy.test.ts": "b0b3d8fc042e2469182bd8734ebac9d610f5224d6d9b46f53b0ae2570818b6b9",
+      "host/test/update-manager.test.ts": "b9b26faf1ffb212666c321adbcb1d0b06df78f905915ec10df06b5e9e5d04920"
+    },
+    "postValidationWhitespaceChange": {
+      "file": "host/src/moonraker/update-web-transaction.ts",
+      "testedSha256": "9becf074fbc513f32724a75cc9d3749523a600ccb818f9a208162b26ad0375a3",
+      "currentSha256": "b831b327dd5ca770419da99d53b36ed3f08f82ff85c937c01f37c96fe5257868",
+      "change": "Removed only the final-line CR before LF at line 100; no other source byte changed",
+      "validation": "git diff HEAD^ --check; functional tests and standard typecheck results remain those of testedSourceSha256, not rerun for this whitespace-only change"
+    }
+  }
 }

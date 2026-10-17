@@ -22,8 +22,8 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
-配置 update_manager 后可通过鉴权HTTP／RPC读取真实Web客户端版本并刷新GitHub元数据；
-更新／恢复／回滚动作尚未实现，明确返回501，见[配置与边界](docs/Node_Host_Startup.md#web-客户端更新状态与刷新)。
+配置 update_manager 后可通过鉴权HTTP／RPC读取Web版本、刷新GitHub元数据并实际更新／本地回滚Web客户端；
+下载校验、持久文件保留和中断目录一致性恢复已接线，六类其他动作仍501，见[配置与边界](docs/Node_Host_Startup.md#web-客户端更新状态与刷新)。
 可信 `createProcess` 路线现接入默认共享 `systemd_dbus` 所有者：真实
 Hello／Subscribe、服务采样、安装身份属性与受限 typed 控制共同借用连接。
 设备退役后已提交动作的未知结果持久为 interrupted，包装错误不丢失，

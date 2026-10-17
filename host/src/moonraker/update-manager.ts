@@ -1,8 +1,8 @@
-// Process-owned update status/refresh follows Moonraker1cfb0c41 update_manager.
-// GPL-3.0-or-later. No package installation or executable deployment here.
+// Process-owned updates follow Moonraker1cfb0c41 update_manager.
+// GPL-3.0-or-later. Core and other deployment providers remain unavailable.
 import {createHash} from 'node:crypto';
-import {lstat} from 'node:fs/promises';
-import {isAbsolute} from 'node:path';
+import {isAbsolute,relative,sep} from 'node:path';
+import {MaintenanceGate,MaintenanceBusyError} from '../operations/maintenance-gate.ts';
 import {ConfigurationError} from './config-source.ts';
 import {resolveConfigurationPath} from './config-path.ts';
 import type {ConfigurationReader} from './config-reader.ts';
@@ -10,12 +10,13 @@ import {DatabaseStore} from './database.ts';
 import type {DatabaseNamespace} from './database-namespace.ts';
 import type {MoonrakerHttpClient} from './http-client.ts';
 import type {EndpointRegistry} from './endpoints.ts';
-import {ApiError,type Json} from './rpc.ts';
+import {ApiError,authorizedContext,type Json} from './rpc.ts';
 import {WebDeployment,webRepository,type WebDeploymentConfiguration} from './update-web-deploy.ts';
 type UpdateNotification='notify_update_refreshed'|'notify_update_response';
 const registrations=new WeakMap<DatabaseStore,Promise<DatabaseNamespace>>();
 const namePattern=/^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/u;
 interface Stored extends Record<string,Json>{schema:1;deployments:Record<string,Json>;}
+export interface UpdateMaintenance {gate:()=>MaintenanceGate;assertIdle:()=>void|Promise<void>;}
 export class UpdateManager {
  readonly #database:DatabaseStore;readonly #http:MoonrakerHttpClient;readonly #reader:ConfigurationReader;
  readonly #blocked:()=>boolean;readonly #notify:(method:UpdateNotification,value:Json)=>void;
@@ -23,10 +24,10 @@ export class UpdateManager {
  readonly #life=new AbortController();readonly #pending=new Set<Promise<unknown>>();readonly #events=new Set<ReturnType<typeof setTimeout>>();
  #namespace:DatabaseNamespace|undefined;#ready=false;#initial=false;#closing=false;#failed=false;#refreshing=false;
  #tail=Promise.resolve();#opening:Promise<void>|undefined;#closed:Promise<void>|undefined;#timer:ReturnType<typeof setTimeout>|undefined;
- readonly #releases:Array<()=>void>=[];#notificationFailures=0;
- constructor(reader:ConfigurationReader,database:DatabaseStore,http:MoonrakerHttpClient,blocked:()=>boolean,notify:(method:UpdateNotification,value:Json)=>void){
+ readonly #releases:Array<()=>void>=[];#notificationFailures=0;#updating:string|undefined;readonly #maintenance:UpdateMaintenance;
+ constructor(reader:ConfigurationReader,database:DatabaseStore,http:MoonrakerHttpClient,blocked:()=>boolean,notify:(method:UpdateNotification,value:Json)=>void,maintenance?:UpdateMaintenance){
   if(!(database instanceof DatabaseStore)||database.status.closed||typeof blocked!=='function'||typeof notify!=='function')throw new ConfigurationError('Update manager requires the process database and activity guard');
-  this.#reader=reader;this.#database=database;this.#http=http;this.#blocked=blocked;this.#notify=notify;
+  const fallback=new MaintenanceGate();this.#maintenance=maintenance??{gate:()=>fallback,assertIdle:()=>{if(blocked())throw new ApiError(503,'Printer is busy');}};this.#reader=reader;this.#database=database;this.#http=http;this.#blocked=blocked;this.#notify=notify;
   const cfg=reader.section('update_manager');this.#auto=cfg.getBoolean('enable_auto_refresh',{defaultValue:false});this.#window=cfg.getIntList('refresh_window',{defaultValue:[0,5],separator:'-',count:2});
   if(this.#window.some(h=>h<0||h>23)||this.#window[0]===this.#window[1])throw new ConfigurationError('Update refresh window needs two distinct hours0..23');
   const interval=cfg.getInt('refresh_interval',{defaultValue:168,minval:0,maxval:8760})*3600;
@@ -34,7 +35,7 @@ export class UpdateManager {
   cfg.getBoolean('enable_repo_debug',{defaultValue:false,deprecate:true});const system=cfg.getBoolean('enable_system_updates',{defaultValue:true});cfg.getBoolean('enable_packagekit',{defaultValue:true});
   const globalChannel=cfg.get('channel',{defaultValue:null});if(globalChannel!==null&&!['stable','beta','dev'].includes(globalChannel))throw new ConfigurationError('Invalid update channel');
   if(system)reader.warn('update_manager: system package provider is not implemented; no system update status or action is claimed');
-  reader.warn('update_manager: Node core deployment/update, other deployment types and mutation routes remain unimplemented');
+  reader.warn('update_manager: Node core deployment/update, other deployment types and their mutation routes remain unimplemented');
   const reserved=[reader.source.primaryFile,...reader.source.definitionSources().map(source=>source.filename),database.storagePaths.path,...database.storagePaths.backupDirectory?[database.storagePaths.backupDirectory]:[]];
   for(const section of reader.prefixSections('update_manager ')){
    const c=reader.section(section),name=section.slice('update_manager '.length).replace(/^client /u,'');if(!namePattern.test(name))throw new ConfigurationError('Invalid update application name');
@@ -45,22 +46,23 @@ export class UpdateManager {
    const repo=c.get('repo').trim().replace(/^\/+|\/+$/gu,'');if(!webRepository(repo))throw new ConfigurationError('Update web repo must be owner/project');
    const requested=c.getChoice('channel',['stable','beta','dev'],{defaultValue:'stable'}) as 'stable'|'beta'|'dev',channel=requested==='dev'?'stable':requested;
    if(requested==='dev')reader.warn('['+section+']: web channel dev is invalid; falling back to stable');
-   const persistent=c.getList('persistent_files',{defaultValue:[],separator:','}).map(v=>v.trim().replace(/^\/+|\/+$/gu,''));if(persistent.some(v=>['.version','release_info.json'].includes(v)))throw new ConfigurationError('Web version metadata cannot be persistent');
+   const persistent=c.getList('persistent_files',{defaultValue:[],separator:','}).map(v=>v.trim().replace(/^\/+|\/+$/gu,''));if(persistent.length>64||persistent.some(v=>!v||v==='.'||v==='..'||v.includes('/')||v.includes(String.fromCharCode(92))||/[\0\r\n:]/u.test(v)||v.length>255||['.version','release_info.json'].includes(v.toLowerCase()))||new Set(persistent.map(v=>v.toLowerCase())).size!==persistent.length)throw new ConfigurationError('persistent_files must contain distinct top-level names excluding version metadata');
    const config={name,path:target,repo,channel,channelInvalid:requested==='dev',reportAnomalies:c.getBoolean('report_anomalies',{defaultValue:true}),infoTags:c.getList('info_tags',{defaultValue:[],separator:','}),refreshInterval:c.getInt('refresh_interval',{defaultValue:interval/3600,minval:0,maxval:8760})*3600};
    if(config.infoTags.length>32||config.infoTags.some(t=>t.length>256))throw new ConfigurationError('Update info_tags exceed capacity');
-   const value:WebDeploymentConfiguration={...config,configHash:createHash('sha256').update(JSON.stringify({...config,persistent})).digest('hex')};this.#deployments.set(name,new WebDeployment(value,http,reserved));
+   for(const existing of this.#deployments.values()){const part=relative(existing.config.path,target),back=relative(target,existing.config.path);if(part===''||!isAbsolute(part)&&part!=='..'&&!part.startsWith('..'+sep)||!isAbsolute(back)&&back!=='..'&&!back.startsWith('..'+sep))throw new ConfigurationError('Web update paths cannot overlap');}
+   const value:WebDeploymentConfiguration={...config,persistentFiles:persistent,configHash:createHash('sha256').update(JSON.stringify({...config,persistent})).digest('hex')};this.#deployments.set(name,new WebDeployment(value,http,reserved));
   }
   if(this.#deployments.size>32)throw new ConfigurationError('Update application capacity exceeded');
  }
- get status(){return {ready:this.#ready,initialRefreshComplete:this.#initial,refreshing:this.#refreshing,pending:this.#pending.size,closing:this.#closing,failed:this.#failed,notificationFailures:this.#notificationFailures};}
- snapshot():Record<string,Json>{this.#active();const versions:Record<string,Json>=Object.create(null);versions.moonraker={};versions.klipper={};for(const [name,app]of this.#deployments)versions[name]=app.status;return {...this.#http.githubApiStats(),version_info:versions,busy:false};}
+ get status(){return {ready:this.#ready,initialRefreshComplete:this.#initial,refreshing:this.#refreshing,updating:this.#updating??null,pending:this.#pending.size,closing:this.#closing,failed:this.#failed,notificationFailures:this.#notificationFailures};}
+ snapshot():Record<string,Json>{this.#active();const versions:Record<string,Json>=Object.create(null);versions.moonraker={};versions.klipper={};for(const [name,app]of this.#deployments)versions[name]=app.status;return {...this.#http.githubApiStats(),version_info:versions,busy:this.#updating!==undefined};}
  #active(){if(!this.#ready||this.#closing||this.#failed)throw new ApiError(503,'Update manager unavailable');}
  start():Promise<void>{if(this.#closing)return Promise.reject(new ApiError(503,'Update manager closed'));return this.#opening??=this.#start();}
  async #start(){
   let registration=registrations.get(this.#database);if(!registration){registration=this.#database.registerLocalNamespace('native_update_manager',{forbidden:true});registrations.set(this.#database,registration);}this.#namespace=await registration;
   this.#life.signal.throwIfAborted();const exists=await this.#namespace.contains('state'),saved=await this.#namespace.get('state');
   if(exists&&(!saved||typeof saved!=='object'||Array.isArray(saved)||saved.schema!==1||!saved.deployments||typeof saved.deployments!=='object'||Array.isArray(saved.deployments)))throw new ApiError(503,'Invalid saved update manager state');
-  for(const [name,app]of this.#deployments){this.#life.signal.throwIfAborted();const directory=await lstat(app.config.path);if(!directory.isDirectory()||directory.isSymbolicLink())throw new ConfigurationError('Configured web update path must be a physical directory');app.restore(exists?(saved as Stored).deployments[name]:undefined);await app.initialize(this.#life.signal);}
+  for(const [name,app]of this.#deployments){this.#life.signal.throwIfAborted();app.restore(exists?(saved as Stored).deployments[name]:undefined);await app.initialize(this.#life.signal);}
   this.#life.signal.throwIfAborted();this.#ready=true;
  }
  beginUpdates():void{this.#active();if(this.#timer||this.#initial)return;this.#timer=setTimeout(()=>{this.#timer=undefined;void this.#automatic().catch(()=>{this.#failed=true;});},0);this.#timer.unref();}
@@ -90,12 +92,27 @@ export class UpdateManager {
    }finally{this.#refreshing=false;}
   });this.#pending.add(task);this.#tail=task.then(()=>{},()=>{});void task.then(()=>this.#pending.delete(task),()=>this.#pending.delete(task));return task;
  }
+ deploy(params:Readonly<Record<string,Json>>,request:AbortSignal,rollback:boolean,authorize:()=>void|Promise<void>=()=>{}):Promise<string>{
+  this.#active();if(Object.keys(params).some(k=>k!=='name')||typeof params.name!=='string')return Promise.reject(new ApiError(400,'Expected Web updater name'));const name=params.name,app=this.#deployments.get(name);if(!app)return Promise.reject(new ApiError(400,'No Web updater registered for selected name'));
+  if(!this.#initial||this.#blocked()||this.#updating||this.#pending.size)return Promise.reject(new ApiError(503,'Server is busy, cannot perform update'));
+  const signal=AbortSignal.any([request,this.#life.signal]),task=this.#tail.then(async()=>{
+   signal.throwIfAborted();this.#active();if(this.#blocked())throw new ApiError(503,'Printer is busy');
+   const gate=this.#maintenance.gate();let release:()=>void;try{release=gate.acquire();}catch(e){if(e instanceof MaintenanceBusyError)throw new ApiError(409,e.message);throw e;}
+   const admit=async()=>{signal.throwIfAborted();if(gate!==this.#maintenance.gate()||gate.status.closed||this.#blocked())throw new ApiError(409,'Printer maintenance admission changed');await authorize();await this.#maintenance.assertIdle();signal.throwIfAborted();};
+   const proc=Date.now(),notify=(message:string,complete=false)=>{if(this.#closing)return;try{this.#notify('notify_update_response',{message,application:name,proc_id:proc,complete});}catch{this.#notificationFailures++;}};
+   this.#updating=name;try{await admit();notify(rollback?'Rolling back Web client':'Updating Web client');await app.deploy(rollback,signal,admit,notify);
+    await this.#namespace!.insert('state',{schema:1,deployments:Object.fromEntries([...this.#deployments].map(([id,item])=>[id,item.storage]))});notify('Web client '+(rollback?'rollback':'update')+' complete',true);this.#event();return 'ok';
+   }catch(error){notify('Web client '+(rollback?'rollback':'update')+' failed',true);throw error;}finally{this.#updating=undefined;release();}
+  });this.#pending.add(task);this.#tail=task.then(()=>{},()=>{});void task.then(()=>this.#pending.delete(task),()=>this.#pending.delete(task));return task;
+ }
  #event(){if(this.#closing)return;const timer=setTimeout(()=>{this.#events.delete(timer);if(this.#closing)return;try{this.#notify('notify_update_refreshed',this.snapshot());}catch{this.#notificationFailures++;}},200);this.#events.add(timer);timer.unref();}
  register(registry:EndpointRegistry):()=>void{
   const status=registry.register({endpoint:'/machine/update/status',methods:['GET']},(params,_verb,context)=>this.get(params,context.signal));
   const refresh=registry.register({endpoint:'/machine/update/refresh',methods:['POST']},(params,_verb,context)=>this.refresh(params,context.signal));
-  const unavailable=['moonraker','klipper','system','client','full','upgrade','recover','rollback'].map(name=>registry.register({endpoint:'/machine/update/'+name,methods:['POST']},()=>{this.#active();throw new ApiError(501,'Update deployment actions are not implemented; no action was performed');}));
-  const release=()=>{for(const fn of [status,refresh,...unavailable])fn();};this.#releases.push(release);return release;
+  const client=registry.register({endpoint:'/machine/update/client',methods:['POST']},(params,_verb,context)=>this.deploy(params,context.signal,false,async()=>{authorizedContext(context,await context.authorize('machine.update.client',params));}));
+  const rollback=registry.register({endpoint:'/machine/update/rollback',methods:['POST']},(params,_verb,context)=>this.deploy(params,context.signal,true,async()=>{authorizedContext(context,await context.authorize('machine.update.rollback',params));}));
+  const unavailable=['moonraker','klipper','system','full','upgrade','recover'].map(name=>registry.register({endpoint:'/machine/update/'+name,methods:['POST']},()=>{this.#active();throw new ApiError(501,'Update deployment actions are not implemented; no action was performed');}));
+  const release=()=>{for(const fn of [status,refresh,client,rollback,...unavailable])fn();};this.#releases.push(release);return release;
  }
  close():Promise<void>{return this.#closed??=(async()=>{this.#closing=true;clearTimeout(this.#timer);this.#timer=undefined;for(const timer of this.#events)clearTimeout(timer);this.#events.clear();this.#life.abort(new Error('Update manager closed'));for(const release of this.#releases)release();await Promise.allSettled([this.#opening,...this.#pending]);})();}
 }
