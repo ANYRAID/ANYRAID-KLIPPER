@@ -9,6 +9,34 @@
 完成正常同步及 `10.0.0.184` 的隔离验证，无需逐次重复确认。该授权不包含 master／主线合并、
 生产部署或真实设备操作，也不允许绕过规定检查及既定 PR 流程。
 
+## 2026-10-18 APT受信Candidate精确选择增量
+
+从已发布#75头18d0042d独立开发。安装先读受控apt-cache policy的Candidate及版本表，遵守APT pin，
+不自行比较版本；合法g++／尾部-名称由内部name=version绑定，pending持久记录exactTargets并兼容读取旧日志。
+保留resolve请求顺序／重复和不存在项语义；公开版本／架构／发行版选择器仍拒绝。候选缺失或恶意元数据不发安装，
+捕获后版本消失则失败interrupted，不降级或重选。install新增--no-remove，需删除其他包的求解明确失败；upgrade不变。
+
+184 Node26.12新增9／9、受影响既有7／7通过；首轮类型检查仅两处测试冗余guard的TS2367，
+移除恒成立guard后标准typecheck通过，无生产变更或功能重跑。原追加+碰撞反例及本轮原始输出均保留。
+所有真实APT场先验证私有APT_CONFIG无hosthooks，再仅--simulate；三组名称碰撞选原包、pin选择较低版本、
+无替换依赖时Remv为空、候选消失不fallback及冲突移除被拒均有定向证据，fixture dpkg未变；未运行真实sudo或系统安装。
+PackageKit、公开system接线／维护租约、真实系统升级与完整验收仍开放，见[既有APT验收](../host/contracts/update-manager-apt-acceptance.json)的exactCandidateSelection。
+
+## 2026-10-18 独立 APT 系统包后端候选
+
+实现独立 APT 初始化、包列表、刷新、精确解析、安装与upgrade；真实默认argv执行器受授权、
+时间／输出／单操作并发及进程组排空约束。安装前durable pending、未知结果interrupted，
+新owner加载原日志，不自动重试或伪回滚；只读诊断仍可用。retries仅1；原候选动作后缀拒绝边界已由上述精确选择增量替代。
+
+184 Node26.12首轮16／17，权限wrapper真实参数缺陷修正后定向1／1；新增持久化／关闭3／3、
+动作后缀1／1、早期APT_CONFIG隔离及wrapper2／2，最终标准typecheck通过；这是递增检查点，
+没有冒称同一最终全套。首轮CLI目录参数未阻止宿主hooks加载，隔离结论已降级并保留日志；
+后续先检查dump无宿主hooks，再在私有合成根运行真实APT查询／刷新和强制--simulate安装／upgrade，
+未实际变更宿主系统包。仅一次Linux有限缓存观测，无性能验收门槛；Windows先前检查点16过5明确skip。
+原候选g++等尾符号名称缺口已由上述Candidate精确绑定补齐；私有solver证明统一追加+会因名称碰撞错选包的反例继续保留。
+PackageKit、公开system接线／维护租约、真实系统升级与完整产品验收仍开放。
+见[APT验收](../host/contracts/update-manager-apt-acceptance.json)与[操作边界](Node_Host_Startup.md#独立-apt-系统包后端候选)。
+
 ## 2026-10-18 维护租约向服务控制的连续交接前置能力
 
 MaintenanceGate增加不可按对象复制伪造的运行时lease身份与同步transfer，复制release接收者和旧release均不能解除真实持有者围栏。

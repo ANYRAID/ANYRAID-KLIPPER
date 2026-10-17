@@ -5718,3 +5718,56 @@ Fluidd 选择器上传和原受保护页面进程恢复通过，下载摘要一�
 新场次已关闭，旧上传 400 原因仍未确定，见
 [场次范围](../host/contracts/integrated-client-r5-r6-scenes.json)。临时
 代理和字段观察器属于验收夹具，不能作为正式部署配置。
+
+### 独立 APT 系统包后端候选
+
+AptPackageProvider 与 ProcessAptCommandExecutor 是独立 typed 后端，尚未接入 update_manager、
+公开 system 路由、PackageKit 或进程维护租约；现有 system 请求仍按其既有边界返回501。
+可信 composition 显式提供 apt／apt-get／apt-cache 绝对路径，必要时提供固定权限执行能力，
+例如 sudo -n -- 配合绝对 env 路径。初始化探测三个命令并载入日志，不替调用者取得权限。
+执行器只传 argv，不使用 shell，不继承进程环境；固定 LC_ALL=C、非交互和受控 PATH／HOME，
+跨权限能力后用 env -i 重新应用这些环境。Dpkg 使用非交互及保留已有配置的固定选项。
+命令路径、权限前缀、aptConfiguration 与早期 configurationFile（APT_CONFIG）都是可信能力，
+可能指定特权 hooks，绝不能来自公开请求。生产默认系统配置属于受信系统能力。
+
+initialize／getPackages／refreshPackages／resolvePackages／installPackages／upgradeSystem 已实现。
+getPackages 实际运行 apt list --upgradable；status 仅读缓存，不启动进程。refreshPackages 串行运行
+apt-get update 后重新查询，全部成功且再次鉴权后才发布快照与刷新时间；失败保留上一快照及时间，
+标记 cacheStale 和错误码。resolve 使用已转义的精确名称正则，按原请求顺序保留存在项和重复项。
+包列表按实际 package/archive 记录解析，不复制固定上游丢弃头两条非空行、可能丢首包的行为。
+
+公开输入最多256个包名，每个2–192个ASCII字符，遵循小写 Debian 名称字符集；
+不接受公开架构／版本／发行版选择器或通配符。g++、末尾-及其他合法裸名称现在均可精确解析与安装。
+安装先刷新缓存、按原请求顺序／重复解析存在项，再由固定locale的 apt-cache policy 读取各包Candidate；
+版本必须通过有界Debian版本语法校验，并出现在该包版本表中。空值、(none)、重复／冲突包头、
+缺字段、恶意版本串或版本表无该候选均在安装intent之前拒绝。遵守APT pin选定的Candidate，
+不自行字符串比较版本。policy最多16MiB／65536行，每行4096字符，版本最多256字符，查询最长600秒。
+内部冻结精确 name=version 目标后写入pending，再一次执行 apt-get install --yes --no-remove；
+空解析结果不安装。候选版本若在之后消失，安装失败并保留interrupted，不回退到新候选、通配或碰撞包。
+--no-remove是相对上游的保守限制：若依赖求解要求删除既有包则明确失败，upgrade语义保持不变。
+原始统一追加+探针仍保留：g++／g+++等名称碰撞会选错包；本实现使用受信版本绑定，绝不改写名称后缀。
+timeout 单位为秒，默认300，范围0.001–3600；notify 可控制命令输出回调。retries 默认1，
+只接受1；其他值在任何命令前明确拒绝，与上游默认3次 mutation attempts 不同，绝不自动重试。
+upgradeSystem 只执行 apt-get upgrade --yes，最长3600秒；上层须显式刷新，不偷偷增加流程。
+refresh 最长600秒、列表60秒、resolve 600秒；默认合计输出4MiB，可信上限16MiB。
+一个 provider 同时只接受一个操作，含缓存刷新；并发请求直接 busy，关闭取消并等待已接收工作。
+执行器排空其独立 Linux 进程组；排空失败保留所有权并阻止新命令，不把失败报成已排空。
+
+安装／upgrade 必须有可信单一所有者提供的 durable journal，未配置时明确拒绝变更。
+新安装pending同时保存exactTargets（逐项包名／Candidate版本）并校验对应关系；旧无目标的interrupted日志仍可读，但不用于重放。
+先保存 pending 意图，再次校验授权后才发命令；保存失败不发命令。已保存但确认未spawn的拒绝
+会写回 idle，写回失败则阻止后续变更。已spawn后的非零退出可能部分执行；取消、超时、失联、
+撤权或完成记录写入失败均报告 typed interrupted，不假定已回滚，不重放。
+重开载入 pending／interrupted，仍拒绝变更但允许查询／刷新／resolve 供诊断。
+本批没有公开清除接口；外部可信所有者必须独立对账后才能清理记录并重建 owner，
+换 owner 本身不代表恢复。借用的执行器不被 provider 擅自关闭，默认自建执行器随 owner 排空。
+
+184 验证只使用可控子进程以及私有合成包根；安装／upgrade 强制 --simulate，未实际安装或升级宿主系统包，
+未运行真实sudo。仅 CLI -o Dir::* 不能阻止早期加载宿主 apt.conf.d，首轮场因此不证明完整配置隔离，
+可能触发宿主用户权限下的缓存通知 hooks；其原日志保留。后续场通过私有 APT_CONFIG 提前禁用
+默认parts/main，并先检查 apt-config dump 无宿主 hooks，再查询／刷新私有索引及模拟安装／upgrade，
+合成dpkg状态严格不变。精确选择增量另验证三组名称碰撞、pin选择较低候选版本、候选消失后拒绝fallback，
+以及--no-remove拒绝冲突移除；9项新增／7项受影响测试通过。首轮类型检查仅两处测试冗余guard窄化错误，修正后标准类型检查通过，原失败日志保留。
+真实执行器项仅Linux运行；真实APT场要求三个APT工具及apt-config可执行，
+其他平台仅跑纯解析／注入执行器契约并明确skip。完整进程接线、权限能力、真实系统升级、
+掉电／SIGKILL下的系统包事务、目标板及设备验收仍未完成，详见[APT验收](../host/contracts/update-manager-apt-acceptance.json)。
