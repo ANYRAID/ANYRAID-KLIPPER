@@ -22,6 +22,15 @@
 无替换依赖时Remv为空、候选消失不fallback及冲突移除被拒均有定向证据，fixture dpkg未变；未运行真实sudo或系统安装。
 PackageKit、公开system接线／维护租约、真实系统升级与完整验收仍开放，见[既有APT验收](../host/contracts/update-manager-apt-acceptance.json)的exactCandidateSelection。
 
+## 2026-10-18 受管服务 recover 409 的有限因果诊断
+
+CI c3c8161d 的唯一失败为 recover 阶段 admission changed409，原日志没有停止原因，历史同因尚未证明。
+新增有界拒绝原因后，8.5秒准备屏障在时钟持续响应、夹具不发ADC时复现温度超时和同409；
+本fixture复用现有按query_analog_in生成的25C时间戳报告，停止设备不发，启动失败／close清timer。
+修复后默认路径及有采样屏障通过；停采样屏障仍实际ADC过期409、保interrupted且无第三次服务动作，标准typecheck通过。
+首次受控lease预期、原无采样屏障与负向过窄错误文本断言均保留；生产仅增加原因data，不放宽维护／温控／时钟门槛。
+新头完整CI仍待执行；无真实OS服务／硬件，见[Git验收](../host/contracts/update-manager-git-acceptance.json)的managedAdmissionRecurrence。
+
 ## 2026-10-18 独立 APT 系统包后端候选
 
 实现独立 APT 初始化、包列表、刷新、精确解析、安装与upgrade；真实默认argv执行器受授权、
@@ -3623,13 +3632,18 @@ SIGTRAP、representable-profile 模块退出、shaper help SIGSEGV），
 新头完整 CI 待执行；运动 workflow 的路径条件
 未命中此批，不能将其记为当前头成功。
 
+本批#74的Node CI保留5515／5548（33失败）。已复现并修复退役attach把设备请求身份signal换成进程signal的共同回归，
+内部维护取消另绑存活进程，普通旧代际身份检查保持。184 Node26.12受影响八文件104／104及标准typecheck通过；
+当前TS独立编译产品、复用native并fresh生产依赖后的实际安装进程文件3／3通过。前置缺Rust、缺npm-cli及Rust ICE失败原样保留，
+不称fresh native构建通过。CI另一个managed recover 409在限定场未复现，已补错误响应体诊断，修正头完整CI仍待执行。
+
 ### 唯一实现队列与提速规则
 
 | 顺序 | 用户可见交付结果 | 退出条件 |
 | --- | --- | --- |
-| 当前集成基线 | #68／#69／#70、Git应用更新#71（67c710551）及维护租约#72（e1db00d84）已合入develop；#70合并后5464／5464及全部CI通过，#71／#72合并后检查分别运行中 | 各提交证据不混用。Mainsail1735、42／28及服务重获2.62602倍的原归属与门限保持；G0–G6、本机11／16／14、G3、目标板、实机及主线发布仍开放 |
-| 当前实现 | Git纯仓库HTTP／RPC更新／rollback／recover已集成；本批独立Node依赖事务提供真实隔离npm准备、保旧替换和显式中断恢复 | 尚未接入enable_node_updates／update_deps；不以独立引擎验证代替完整provider |
-| 下一实现 | #74受管服务生命周期、Git依赖实际接线，以及其余完整update_manager能力 | 连续A→B→C与最新回滚协调、实际脚本／原生依赖及可信产品包路径仍待完成；沿维护租约和真实afterResponse，不直接systemctl或引入pip |
+| 当前集成基线 | #68／#69／#70、Git应用更新#71（67c710551）、维护租约#72（e1db00d84）、Node依赖事务#73（ff30a6ba1）和PackageKit后端#77（11e303af9）已合入develop；#70／#71／#72合并后CI通过，#73／#77合并后CI尚在运行 | 各提交证据不混用。Mainsail1735、42／28及服务重获2.62602倍的原归属与门限保持；G0–G6、本机11／16／14、G3、目标板、实机及主线发布仍开放 |
+| 当前实现 | #74受管服务生命周期候选：普通服务顺序租约交接，设备退役后保持进程围栏，核心共进程别名合并一次真实afterResponse重启；本批修复退役请求身份与维护取消生命周期混用 | 184受影响104／104及独立产品进程3／3通过，后者复用native；保留前置构建失败及尚未复现的CI recover 409，修复头完整CI待确认。未知服务动作不重放，人工核对后的恢复出口仍待实现 |
+| 下一实现 | Git Node依赖实际接线、未知服务结果的受信对账恢复出口及其余完整update_manager能力 | 独立Node依赖事务已集成，实际应用接线仍为候选；连续A→B→C、实际脚本／原生依赖及可信产品包路径按各自批次验收。沿维护租约和真实afterResponse，不直接systemctl或引入pip |
 | 已集成公告路径 | 固定 Fluidd 所需公告列表／忽略及同一进程的持久公告、RSS、订阅和通知已接通 | 软件契约、性能与原混合负载通过并正常集成，实际同包页面仍须验收；不替代 A 或 G3 |
 | A | 同包 Mainsail 文件到打印及恢复闭环 | 实际页面证据与固定源码／产物／依赖绑定；API 上传和预置文件打印不能替代页面上传 |
 | M2c 验收 | 设备未就绪时可管理文件和清理非空目录，复用已集成软件 | 固定上游边界、授权、活动身份保护、通知、耐久及进程恢复闭合 |

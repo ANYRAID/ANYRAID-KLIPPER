@@ -213,8 +213,9 @@ export function readNetworkBinding(reader:ConfigurationReader):NetworkBinding{
  * startup publishes their records and unused-option warnings together. */
 export class ConfiguredMoonraker {
  #configHostControl:ProductHostControl|undefined;
- #maintenanceGate:MaintenanceGate;readonly #retiredWebGate=new MaintenanceGate();
+ #maintenanceGate:MaintenanceGate;readonly #processMaintenanceGate=new MaintenanceGate();
  get maintenanceGate(){return this.#maintenanceGate;}
+ get processMaintenanceGate(){return this.#processMaintenanceGate;}
  #webcams:Webcams|undefined;#webcamNotifications=notificationMetrics();
  readonly #httpClient=new MoonrakerHttpClient();
  readonly #octoprint:OctoprintCompatibility|undefined;
@@ -336,7 +337,7 @@ export class ConfiguredMoonraker {
   const releaseMqttSubscribe=this.#sensorTransport?registerMqttSubscribe(this.endpoints,this.#sensorTransport):()=>{};
   this.#database=options.database;if(this.#database){this.#webcams=new Webcams(reader,this.#database,event=>{if(!this.#stopping)this.#broadcastTracked('notify_webcams_changed',[event],this.#webcamNotifications);},this.#httpClient);this.#announcements=new Announcements(reader,this.#database,(method,event)=>{if(!this.#stopping)this.#broadcastTracked(method,[event],this.#announcementNotifications);},options.announcements,this.#httpClient);}const releaseWebcams=this.#webcams?.register(this.endpoints)??(()=>{});const releaseAnnouncements=this.#announcements?.register(this.endpoints)??(()=>{});const releaseDatabase=this.#database?registerDatabase(this.endpoints,this.#database):()=>{};
   const updatesConfigured=reader.hasSection('update_manager')||reader.prefixSections('update_manager ').length>0;
-  if(updatesConfigured){if(!this.#database)throw new ConfigurationError('Update manager requires the process database');this.#updateManager=new UpdateManager(reader,this.#database,this.#httpClient,()=>!!this.#installer&&!this.#installer.status.ready||(this.#nativeController?!['idle','completed','cancelled'].includes(this.#nativeController.state):['printing','paused'].includes(String(this.#jobState?.lastStats?.state??''))),(method,event)=>{if(!this.#stopping)this.#broadcastTracked(method,[event],this.#updateNotifications);},{gate:()=>this.#nativeRetirementDrained&&this.#nativeRetiredSnapshot?.hardware_state==='stopped'&&this.#nativeRetiredSnapshot?.group_state==='stopped'&&!this.#nativeController?this.#retiredWebGate:this.maintenanceGate,assertIdle:()=>{if(this.#nativeRetirementDrained&&this.#nativeRetiredSnapshot?.hardware_state==='stopped'&&this.#nativeRetiredSnapshot?.group_state==='stopped'&&!this.#nativeController)return;this.#requireDatabaseIdle();}});}
+  if(updatesConfigured){if(!this.#database)throw new ConfigurationError('Update manager requires the process database');this.#updateManager=new UpdateManager(reader,this.#database,this.#httpClient,()=>!!this.#installer&&!this.#installer.status.ready||(this.#nativeController?!['idle','completed','cancelled'].includes(this.#nativeController.state):['printing','paused'].includes(String(this.#jobState?.lastStats?.state??''))),(method,event)=>{if(!this.#stopping)this.#broadcastTracked(method,[event],this.#updateNotifications);},{control:options.productHostControl,processGate:()=>this.#processMaintenanceGate,gate:()=>this.#nativeRetirementDrained&&this.#nativeRetiredSnapshot?.hardware_state==='stopped'&&this.#nativeRetiredSnapshot?.group_state==='stopped'&&!this.#nativeController?this.#processMaintenanceGate:this.maintenanceGate,assertIdle:()=>{if(this.#nativeRetirementDrained&&this.#nativeRetiredSnapshot?.hardware_state==='stopped'&&this.#nativeRetiredSnapshot?.group_state==='stopped'&&!this.#nativeController)return;this.#requireDatabaseIdle();}});}
   const releaseUpdates=this.#updateManager?.register(this.endpoints)??(()=>{});
   if(options.history)this.#historyRuntime=new HistoryRuntime(options.history.repository,{auxiliary:options.history.auxiliary,metadata:options.history.metadata??(this.#metadataFiles?filename=>this.#metadataFiles!.historyMetadata(filename):undefined),onFailure:()=>{if(!this.#stopping)this.setInformation(this.#base);},notify:async event=>{
    if(this.#stopping)return;const signal=this.#startupAbort.signal;signal.throwIfAborted();const exists=await options.history!.fileExists(event.job.filename,event.job.metadata.modified,signal);signal.throwIfAborted();if(typeof exists!=='boolean')throw new ApiError(502,'Invalid history file existence result');
@@ -637,7 +638,7 @@ export class ConfiguredMoonraker {
  get databaseRestoreStatus(){return {...this.#databaseRestart,state:this.#database?.status.restoreState??null};}
  requireConfigWriteIdle():void{if(this.#installer?.status.running)throw new ApiError(409,'Installation validation is pending');if(this.#configFiles?.status.writing)throw new ApiError(409,'Configuration save is pending');}
  #beginConfigWrite(context:RpcContext):{release:()=>void;signal:AbortSignal}{
-  if(this.#stopping||this.#nativeReattaching||this.#configHostControl?.status.busy)throw new ApiError(409,'Host transition blocks configuration save');
+  if(this.#stopping||this.#nativeReattaching||this.#processMaintenanceGate.status.maintenance||this.#configHostControl?.status.busy)throw new ApiError(409,'Host transition blocks configuration save');
   if(!this.#nativeScope||context.nativeGenerationSignal&&context.nativeGenerationSignal!==this.#nativeScope.signal)throw new ApiError(503,'Configuration request belongs to another generation');
   if(this.#nativeRetirement){
    if(!context.nativeGenerationRetiredAtAdmission||!this.#nativeRetirementDrained||this.#nativeRetiredSnapshot?.hardware_state!=='stopped')throw new ApiError(409,'Printer stop is not confirmed');
@@ -721,7 +722,7 @@ export class ConfiguredMoonraker {
   this.#nativeReattaching=true;const retirement=this.#nativeRetirement;
   try{
    await retirement;await this.#configFiles?.drainWrites();
-   if(this.#stopping||this.#updateManager?.status.updating||this.#nativeRetirement!==retirement||this.#nativeRetiredSnapshot?.hardware_state!=='stopped'||this.maintenanceGate.status.activities||this.maintenanceGate.status.maintenance)throw new ApiError(409,'Native printer retirement is not confirmed');
+   if(this.#stopping||this.#processMaintenanceGate.status.maintenance||this.#updateManager?.status.updating||this.#nativeRetirement!==retirement||this.#nativeRetiredSnapshot?.hardware_state!=='stopped'||this.maintenanceGate.status.activities||this.maintenanceGate.status.maintenance)throw new ApiError(409,'Native printer retirement is not confirmed');
    const {controller,gate,host,objects,uploads}=binding;if(prepare!==undefined&&typeof prepare!=='function')throw new ApiError(400,'Invalid native route preparation');
    if(!(controller instanceof PrintController)||!(gate instanceof MaintenanceGate)||gate===this.maintenanceGate||gate.status.closed||gate.status.activities||gate.status.maintenance||!(objects instanceof NativeObjects)||typeof host!=='function'||!['idle','interrupted'].includes(controller.state)||controller.pendingDeviceActions||controller.safeStopPending)throw new ApiError(400,'Invalid fresh native printer binding');
    const status=readNativeHostStatus(host);

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "candidate: repository-only Git applications; not a complete update provider",
+  "status": "candidate: Git applications with managed-service lifecycle; not a complete update provider",
   "baseline": {
     "branch": "devac/git-update-provider",
     "develop": "d2f98713e6e8a687b7584df0651b3a61d99392cc",
@@ -13,11 +13,11 @@
     "Shared Web/Git installation and control path protection; protected process paths; kernel directory lock",
     "Dynamic maintenance gate and authorization rechecked after each await and before destructive boundaries",
     "Full private namespace persistence retains peer and removed deployment records; interrupted removed configuration fails startup",
-    "Cancellation joins Git helper process group; manager close waits for pending tasks and every Git deployment close"
+    "Cancellation joins Git helper process group; manager close waits for pending tasks and every Git deployment close",
+    "Managed services default/sorted configuration, actual trusted host-control submission, sequential lease return and process owner after native retirement; durable queued request linkage and real self-restart afterResponse"
   ],
   "notImplemented": [
     "Git Node dependency installation and replacement; enable_node_updates=true is rejected",
-    "Managed service lifecycle and maintenance lease transfer; nonempty managed_services is rejected; upstream is_system_service default remains true",
     "Core self-update, system package update, ZIP/Python/executable providers and full/upgrade operations",
     "SSH, file origin in public config, credential helpers/URLs, moved_origin, Python environments, install scripts and system dependency config",
     "Mutation or remote fetch through linked worktree/submodule; hard replacement of main repository with linked worktrees/submodules"
@@ -169,5 +169,270 @@
     "recover-protocol-runtime.txt": "4117ab00dc2f8c90d93ceede8620caac1d817bf404f006f025788ac760102631",
     "recover-protocol-sha256.txt": "b45ca6e53ae09037209d463ca006d03d1c5da49179bf348aeff0e01236e193e5"
   },
-  "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/git-provider-source/evidence/integration-receipt.json"
+  "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/git-provider-source/evidence/integration-receipt.json",
+  "managedServices": {
+    "schema": 1,
+    "baseline": "0bebfcaa42ba3e32f08271245c786813a4c17308",
+    "branch": "devac/managed-service-updates",
+    "runtime": "Linux 10.0.0.184 Node v26.12.0",
+    "commands": {
+      "workingDirectory": "/home/dek02/.codex/worktrees/supervisor-group-compat/managed-service-updates/host",
+      "typecheck": "/home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node scripts/run-typescript.ts -p tsconfig.json",
+      "initial": "/usr/bin/timeout --signal=TERM --kill-after=2s 180s /home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node --test test/update-managed-services.test.ts test/maintenance-host-control.test.ts test/update-git-deploy.test.ts",
+      "final": "/usr/bin/timeout --signal=TERM --kill-after=2s 90s /home/dek02/.codex/worktrees/supervisor-group-compat/node26.12-asan-review/bin/node --test --test-name-pattern=\"beforeDispatch timeout|beforeDispatch close|failure to persist a queued\" test/update-managed-services.test.ts test/maintenance-host-control.test.ts"
+    },
+    "first": {
+      "tests": 37,
+      "passed": 36,
+      "failed": 1,
+      "cancelled": 0,
+      "durationMs": 25833.532712,
+      "cause": "Fixture asserted failed admission through latest pointer; existing control restores previous latest pointer. Corrected to saved request_id durable control.operation(id).",
+      "sourceSha256": {
+        "host/src/moonraker/configured-server.ts": "b7ae424cd83ca3e36d8a71c117fcce9274b51d512b7dc11b68205d0326695f0c",
+        "host/src/moonraker/update-git-deploy.ts": "359459dd25ece631180c1ba553bf5af67d2e999a14d4f91ad489dd9e872ab3c4",
+        "host/src/moonraker/update-manager.ts": "64afd43b072bd914eeff4a53bb96451720a8525e0d085d105bf87d48b4aa2176",
+        "host/src/runtime/product-host-control.ts": "b855c12b9d3cd78e14d4a71b11e969a3c6a382166e50c11c520b174c3c0f59a7",
+        "host/src/runtime/product-host.ts": "018b096416b25f8d2723d32d1677b38c3a1e0e89cae22b28d485b6e838e94525",
+        "host/src/moonraker/update-managed-services.ts": "067383d92728ae96daa857fdaae9ef99b38165b8b8d7f9f8b57fcd7b4be5c48a",
+        "host/test/update-managed-services.test.ts": "6afc058e046938d759fe8c8b16589201a8427ee856ec47c06071c3b08fd903b7",
+        "host/test/update-git-deploy.test.ts": "0c63211c990e5ddb441f5f12533e3726b8ca09ed5417edbdb189157578f57829",
+        "host/test/maintenance-host-control.test.ts": "50cb596a0249b16edcbe3fa095696c6217d99d647b493b3bf6ddfa254bb55e5e"
+      },
+      "log": "targeted-v1.stdout"
+    },
+    "followup": {
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "cancelled": 0,
+      "durationMs": 3679.100905,
+      "scope": "Only beforeDispatch timeout/close and failed queued association. Narrow production changes add pre-cancel and same-owned-lease checks. No full 37 rerun.",
+      "log": "targeted-final.stdout"
+    },
+    "typecheck": {
+      "exit": 0,
+      "log": "typecheck-final.stdout",
+      "earlierFailures": [
+        "typecheck-v1.stdout: stale renamed private field",
+        "typecheck-v2.stdout: new mock parameter implicit any"
+      ],
+      "intermediateSuccess": "typecheck-v3.stdout"
+    },
+    "sourceSha256": {
+      "host/src/moonraker/configured-server.ts": "b7ae424cd83ca3e36d8a71c117fcce9274b51d512b7dc11b68205d0326695f0c",
+      "host/src/moonraker/update-git-deploy.ts": "359459dd25ece631180c1ba553bf5af67d2e999a14d4f91ad489dd9e872ab3c4",
+      "host/src/moonraker/update-manager.ts": "64afd43b072bd914eeff4a53bb96451720a8525e0d085d105bf87d48b4aa2176",
+      "host/src/runtime/product-host-control.ts": "57be6af894109bbab4ec9e244d0ef60196f9eda060f3c7165b5a41b8a65b62d4",
+      "host/src/runtime/product-host.ts": "018b096416b25f8d2723d32d1677b38c3a1e0e89cae22b28d485b6e838e94525",
+      "host/src/moonraker/update-managed-services.ts": "067383d92728ae96daa857fdaae9ef99b38165b8b8d7f9f8b57fcd7b4be5c48a",
+      "host/test/update-managed-services.test.ts": "804bb78b4d338b3b14c418522dae86a3a1d63d54c55ec047587f85a2baa66191",
+      "host/test/update-git-deploy.test.ts": "0c63211c990e5ddb441f5f12533e3726b8ca09ed5417edbdb189157578f57829",
+      "host/test/maintenance-host-control.test.ts": "50cb596a0249b16edcbe3fa095696c6217d99d647b493b3bf6ddfa254bb55e5e"
+    },
+    "logSha256": {
+      "remote-final-fingerprints.stdout": "06f6a7e4196f4f370dfa88b4ff6fc0b845d704ca8651ced9b11fe5de1bc73b32",
+      "targeted-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targeted-final.stdout": "4dbfe34ee0b2df3defde63b831c0e6c9c977dae0e71bc0a491690a314e69b8e9",
+      "targeted-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targeted-v1.stdout": "26b1392c4617555fd89cb02ea0eb43d5582869d688f6efa46141e483a5e8a29a",
+      "typecheck-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-final.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-v1.stdout": "8013a0766688472f08b3ae35b0fb6b264cfc110a5b5b0ff1154a971a9a1797db",
+      "typecheck-v2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-v2.stdout": "9403a151a3184bc35629da7ad2c187dfc3a648c8653ea4e2de5ae1a83b103aea",
+      "typecheck-v3.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typecheck-v3.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "packageLockSha256": "660660c5ad53be7e416ec905e03fe8989941a6ad78cfccb7a35bde257c5a06e6",
+    "nodeBinarySha256": "caa24debe02770c92a70677e2a62ca98890150e7ac1c17bcfe31bcc98cc89943",
+    "sealedFileAddonSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+    "reuse": "Matching-lock node_modules and existing host/build borrowed from isolated prior checkout; not fresh build or sanitizer",
+    "limits": [
+      "OS job submission terminal is not service readiness",
+      "Accepted database writes must drain; close may wait real I/O",
+      "Interrupted/unknown managed service actions never replay; trusted human reconciliation exit remains future work",
+      "No Node dependency transaction, core update, full provider, real services, hardware or deployment proof"
+    ],
+    "localReceipt": "C:/Devs/Codex/from-184/.cache/codex/tmp/anyraid-managed-service-updates/.cache/managed-services/receipt.json"
+  },
+  "ciRegressionRepair": {
+    "schema": 1,
+    "baseline": "5d1c066a6322eed1e5c4bc8976dcf69f07cd54fe",
+    "ci": {
+      "run": 39063725783,
+      "job": 117486876351,
+      "tests": 5548,
+      "passed": 5515,
+      "failed": 33
+    },
+    "rootCause": "Retired host attach replaced the native request identity signal with the process lifetime signal; explicit HTTP/RPC recovery failed identity admission. Separate maintenanceSignal now retains process cancellation without changing request identity.",
+    "reproduction": {
+      "exactBaseline": "repro-74-head.stdout: native restart failed 503 != 200; managed default passed",
+      "managed409": "CI recover 409 was not reproduced by exact-baseline single case, full 8-case managed file, or repaired 104-case affected batch. Remains unconfirmed; assertion now includes response body. No admission relaxation or retry added."
+    },
+    "tests": {
+      "runtime": "10.0.0.184 Node v26.12.0",
+      "affected": {
+        "files": 8,
+        "tests": 104,
+        "passed": 104,
+        "failed": 0,
+        "cancelled": 0,
+        "durationMs": 103499.813101,
+        "stdout": "ci74-affected.stdout"
+      },
+      "compiledProduct": {
+        "file": "service-installation-process.test.ts",
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "cancelled": 0,
+        "durationMs": 15483.020875,
+        "stdout": "ci74-service-product.stdout",
+        "identity": {
+          "path": "/home/dek02/.codex/worktrees/supervisor-group-compat/managed-service-updates/ci74-product",
+          "manifestSha256": "3254879ca12066138425197897894ecf0e8f6f22bda745ca5ea63f9049a1d382",
+          "dependenciesSha256": "0b53079c853e4894141cf231e68b278c04de0db39fc26ea8e6326742f2e01fd4"
+        },
+        "scope": "Current TypeScript compiled into independent product; existing native outputs reused; fresh production-only dependencies; actual product processes, HTTP, /proc, injected CLI/helper and PTY devices. No real service or device mutation."
+      },
+      "typecheck": {
+        "exit": 0,
+        "stdout": "ci74-typecheck.stdout"
+      },
+      "earlierProductFailures": [
+        "ci74-service-process.stdout: three blocked before behavior by missing Rust toolchain path",
+        "ci74-service-process-tools.stdout: first two lacked npm-cli in Node distribution; third fresh Rust build ICE/SIGABRT in serde_json. Both failures retained; native fresh-build completion not claimed."
+      ],
+      "postTestDiagnosticOnlyChange": {
+        "path": "host/test/update-managed-services.test.ts",
+        "testedSha256": "804bb78b4d338b3b14c418522dae86a3a1d63d54c55ec047587f85a2baa66191",
+        "currentSha256": "7317a168173b94f452299a991463d08490e4637add133778eea8df7be47345c2",
+        "change": "Keep recover result then add its body to existing 200 assertion. Success path and expectation unchanged; 104 tests not repeated."
+      }
+    },
+    "sourceSha256": {
+      "host/src/runtime/product-host-control.ts": "2373e348f031b670cf72769ceeb4ef3568ed28a07bc1b7ce1cc18bf1b1ccdb82",
+      "host/src/runtime/product-host.ts": "677326bbff12bb871848fe83a9a2effa4856e0c7893c69551443e58e367382b1",
+      "host/test/maintenance-host-control.test.ts": "206a073e14ea00311656d65bab796e5c68e89a051214c577fd398b226dd2af87",
+      "host/test/update-managed-services.test.ts": "7317a168173b94f452299a991463d08490e4637add133778eea8df7be47345c2"
+    },
+    "logSha256": {
+      "ci74-affected.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-affected.stdout": "1777d7478b192375701747d378ad700c9786df9755d1f725685ac21d5a3de49b",
+      "ci74-failures.log": "6039e4a7cf7933eb985db2951461e9daaddc7e84c1846f560444ebb0667105d5",
+      "ci74-fingerprints.stdout": "013ccd3371ca3d70ab1cc1eed0bff56c090229c8ccfd30a48531b21c7e939623",
+      "ci74-product-install.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-product-install.stdout": "b132601d2d34c36a24d268b7bcd69712050a42df223c0c54de2f7cb1a832e627",
+      "ci74-product-run.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-product-run.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-service-process-tools.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-service-process-tools.stdout": "7c87cc946633a81f1844c4a51b1c17b9691754f3e541c5283b8262e3b3e1b4f9",
+      "ci74-service-process.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-service-process.stdout": "70e58cc01bc3e96919ff7c88e73e8293decc53e7749a785333d5f389fd6fce7c",
+      "ci74-service-product.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-service-product.stdout": "cc16efe6110e803e887832adc5ffe154ffc9f3cf8d17ae8ed7ba4c34965e62d1",
+      "ci74-typecheck.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "ci74-typecheck.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "repro-74-head.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "repro-74-head.stdout": "865f2edecc5e415f75d70efd0daef9b793975044326e00bdb0504d847db2cfa3",
+      "repro-74-managed.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "repro-74-managed.stdout": "f677f6ce7d546b154731de2884ea044913047fb191f045abd560c39754b9dc96",
+      "repro-74.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "repro-74.stdout": "b5cb87f6a56b424d448f3530456789cd8e791246f29f102fb9b8b33940453399"
+    },
+    "limits": [
+      "Full CI must rerun on the repaired head; prior 33 failures remain historical evidence.",
+      "Managed recover 409 remains unconfirmed until diagnostic CI outcome.",
+      "No fresh native build success, sanitizer rerun, hardware or production deployment proof."
+    ],
+    "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/ci74-repair/receipt.json"
+  },
+  "managedAdmissionRecurrence": {
+    "schema": 1,
+    "head": "c3c8161dde0b7132112a93a0e339b2bf4c69bde5",
+    "runtime": "Linux 10.0.0.184 Node v26.12.0",
+    "ci": {
+      "run": 39067565379,
+      "job": 117498279982,
+      "tests": 5608,
+      "passed": 5606,
+      "failed": 1,
+      "skipped": 1,
+      "stage": "recover after update and rollback",
+      "response": "409 Printer maintenance admission changed",
+      "limit": "Original CI did not record stop causes; its exact failure cause is not proven by the following controlled reproduction."
+    },
+    "diagnosis": [
+      {
+        "logs": "recurrence-controlled-v1",
+        "passed": 0,
+        "failed": 1,
+        "cause": "Initial test incorrectly expected the old device lease to remain owned after a real MCU fault; actual closed gate is correct."
+      },
+      {
+        "logs": "recurrence-controlled-v2",
+        "passed": 1,
+        "failed": 0,
+        "cause": "Controlled PTY get_clock loss gives Unable to obtain clock response; gate_changed=false, lease_owned=false, blocked=true. Correct safety refusal, not evidence of CI cause."
+      },
+      {
+        "logs": "recurrence-live-hold-v1",
+        "passed": 0,
+        "failed": 1,
+        "cause": "With real clock replies but no ADC fixture reports, bounded 8.5s recover hold produces Temperature sensor timed out and the exact 409. Both MCU clocks continued, query counts 13/42."
+      }
+    ],
+    "fix": "Only managed-services fixture reuses emitClientTemperatures from actual query_analog_in parameters/sample count/MCU clock; 25C reports every250ms while attached and gate open; stopped devices skipped, timer cleared on startup failure/close. Production only exposes bounded admission cause data; all 409 checks, thermal and clock deadlines unchanged.",
+    "validation": {
+      "causalPair": {
+        "logs": "recurrence-causal-pair-v1",
+        "tests": 3,
+        "passed": 2,
+        "failed": 1,
+        "passing": [
+          "Original authenticated Git update/RPC rollback/recover path",
+          "Same bounded8.5s hold with ADC reports:200, no stop, clock queries20/69"
+        ],
+        "failure": "Negative stopped-sampling branch correctly409/no third service; assertion expected heater startup timeout but actual previously-sampled ADC expired earlier."
+      },
+      "negativeFollowup": {
+        "logs": "recurrence-negative-final",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "coverage": "Same8.5s hold with samples stopped: exact ADC temperature report expired, gate_changed=false/lease_owned=false/blocked=true,409, application interrupted and no third service."
+      },
+      "typecheck": {
+        "command": "node scripts/run-typescript.ts -p tsconfig.json",
+        "logs": "recurrence-typecheck-final",
+        "exit": 0
+      },
+      "boundary": "Separate affected checkpoints; no repeated whole CI or random pressure. Existing clock-loss counterexample retained without rerun. Reused existing native/dependencies; no OS services, hardware, fresh native build, sanitizer or deployment."
+    },
+    "sourceSha256": {
+      "host/src/moonraker/update-manager.ts": "cc778d46b54a47cd6afed5327f18fff5af939554a530163f0b86a15944fa2d46",
+      "host/test/update-managed-services.test.ts": "15737f41e701999d0dfcca0347eb65900859af82047800098a45eab620cf075e",
+      "host/test/helpers/client-temperature.ts": "a455f2ffe42ac24bd7b66e19a8aa9e3b19b29ff6dfcc2bb59ef58ae15558eb32",
+      "host/src/thermal/runtime.ts": "9e0202bce200445e5d68caf32a128dc5c102ccdcdac0e217b10543b8ce03d464",
+      "host/src/thermal/async-runtime.ts": "3ff5e225987c5b0daa351124ce5ec599a99c0719b2f824a6a780171a15baa42d"
+    },
+    "logSha256": {
+      "recurrence-causal-pair-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-causal-pair-v1.stdout": "ccc2637ebe6ba157822bd16c243e95e3fd4706acd9d4e8f4b353f86c0eebf87a",
+      "recurrence-controlled-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-controlled-v1.stdout": "c23420a588c23a7b3df7ea9bb8934c1a5d8ef1cba6b643e8e36e64f5b8aa8632",
+      "recurrence-controlled-v2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-controlled-v2.stdout": "73d1119075c32ff9fec66e09c833b08db238f62c7d52f92953113ff3fef889ee",
+      "recurrence-live-hold-v1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-live-hold-v1.stdout": "8e1a08021e713d1ff2ca147a67b2c9cc688b2e4619c163606c3d4a2a30a88dce",
+      "recurrence-negative-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-negative-final.stdout": "455c0db6007c0b277c2dff5854e8a7318a47d86baa1544e7232a9db5c8846d91",
+      "recurrence-typecheck-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recurrence-typecheck-final.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "localReceipt": "C:/Devs/Codex/from-184/.codex/worktrees/2eff/ANYRAID-KLIPPER/.cache/managed-recurrence/receipt.json"
+  }
 }
