@@ -148,7 +148,8 @@ lychee --config .lychee.toml --scheme http --scheme https README.md AGENTS.md 'd
 
 Windows 可使用 `python` 代替 `python3`，或通过环境变量 `LYCHEE_BIN` 指定检查器
 可执行文件的完整路径。CI 固定 checkout、Lychee action 的提交 SHA 和 CLI 版本，
-不使用链接缓存，不上传 Actions 产物，只保留日志与 job summary。外链失败、限流、
+不使用链接缓存，不上传 Actions 产物，只保留日志与 job summary。现有 Build test
+保留全部构建测试，移除数据字典上传步骤，避免存储配额影响测试结论。外链失败、限流、
 超时均会使检查失败，不能把未成功检查的链接记为通过。
 
 例外集中记录在根目录 `.lychee.toml`，需注明原因并在相关上游文档变更时复查。
