@@ -15,13 +15,13 @@ exclude = [
   '^https://www\.raspberrypi\.com/documentation/computers/raspberry-pi\.html#power-supply$',
   '^https://forums\.raspberrypi\.com/viewtopic\.php\?p=589877#p589877$',
   '^https://www\.patreon\.com/koconnor$',
+  # Linux CI 2026-10-22: still 429 after retries at one request/second.
+  '^https://bigtree-tech\.com/collections/all-products$',
+  # Linux CI 2026-10-22: official target rejects this HTTP/2 client.
+  '^https://www\.analog\.com/en/lp/001/trinamic-support\.html$',
 ]
 
-# Conservative rate for sites that returned 429 on the first Linux run.
+# GNU SimulAVR succeeds in Linux CI at this conservative request rate.
 [hosts."www.nongnu.org"]
-concurrency = 1
-request_interval = "1s"
-
-[hosts."bigtree-tech.com"]
 concurrency = 1
 request_interval = "1s"

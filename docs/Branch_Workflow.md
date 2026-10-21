@@ -163,4 +163,8 @@ Raspberry Pi 的 `configuration.html#configuring-uarts`、
 `raspberry-pi.html#power-supply`、论坛 `viewtopic.php?p=589877#p589877`，以及
 Patreon 的 `www.patreon.com/koconnor`。官方网站文档和 Patreon 页面可独立读取，
 论坛受访问限制；这些例外不代表已验证公网可达性，不影响同站点新增 URL 的检查。
-GNU SimulAVR 与 BIGTREETECH 首次 Linux 请求返回 429，先采用单并发及 1 秒间隔复测。
+GNU SimulAVR 采用单并发及 1 秒间隔后在 Linux CI 通过，继续检查。
+BIGTREETECH 的 `bigtree-tech.com/collections/all-products` 在同样节流及重试后仍为
+429；ADI 官方 `www.analog.com/en/lp/001/trinamic-support.html` 在 Linux CI 发生
+HTTP/2 协议错误。这两个完整 URL 亦精确排除，网页内容已独立读取，后续需手工复查
+自动请求限制；排除项不计为自动检查成功。
