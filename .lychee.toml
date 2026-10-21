@@ -1,0 +1,13 @@
+# Lychee v0.24.2; always use fresh responses, without an Actions/cache entry.
+cache = false
+no_progress = true
+timeout = 20
+max_retries = 2
+max_concurrency = 8
+exclude_all_private = true
+
+# Exact exceptions only. Review these when upstream documentation changes.
+exclude = [
+  # Installation example on the reader's local BeagleBone, not a public site.
+  '^http://beaglebone:5000/$',
+]

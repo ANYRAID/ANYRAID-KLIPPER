@@ -1,0 +1,45 @@
+name: Documentation links
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-links-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs-links:
+    name: docs-links
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Check local files, images and anchors
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2
+        with:
+          lycheeVersion: v0.24.2
+          args: --config .lychee.toml --offline --include-fragments README.md AGENTS.md 'docs/**/*.md'
+          output: /dev/null
+
+      - name: Verify checker detects broken links
+        run: python3 scripts/test-docs-links.py
+
+      - name: Check external HTTP links
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          lychee --config .lychee.toml --scheme http --scheme https --format markdown README.md AGENTS.md 'docs/**/*.md' | tee -a "$GITHUB_STEP_SUMMARY"
