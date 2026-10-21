@@ -19,4 +19,3 @@ jobs:
 
     - name: Test
       run: ./scripts/ci-build.sh 2>&1
-
