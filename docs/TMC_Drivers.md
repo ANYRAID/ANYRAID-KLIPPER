@@ -439,7 +439,7 @@ the driver.
 
 All of the reported fields are defined in the Trinamic datasheet for
 each driver. These datasheets can be found on the
-[Trinamic website](https://www.trinamic.com/). Obtain and review the
+[Trinamic website](https://www.analog.com/en/lp/001/trinamic-support.html). Obtain and review the
 Trinamic datasheet for the driver to interpret the results of
 DUMP_TMC.
 
@@ -455,7 +455,7 @@ In addition, almost all fields can be modified at run-time using the
 
 Each of these fields is defined in the Trinamic datasheet for each
 driver. These datasheets can be found on the
-[Trinamic website](https://www.trinamic.com/).
+[Trinamic website](https://www.analog.com/en/lp/001/trinamic-support.html).
 
 Note that the Trinamic datasheets sometime use wording that can
 confuse a high-level setting (such as "hysteresis end") with a
@@ -573,7 +573,7 @@ disabled itself. This may be due to wiring or power supply issues.
 
 ### How do I tune spreadCycle/coolStep/etc. mode on my drivers?
 
-The [Trinamic website](https://www.trinamic.com/) has guides on
+The [Trinamic website](https://www.analog.com/en/lp/001/trinamic-support.html) has guides on
 configuring the drivers. These guides are often technical, low-level,
 and may require specialized hardware. Regardless, they are the best
 source of information.

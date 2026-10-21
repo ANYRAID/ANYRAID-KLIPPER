@@ -157,3 +157,10 @@ Windows 可使用 `python` 代替 `python3`，或通过环境变量 `LYCHEE_BIN`
 是安装示例中读者本机的服务，按完整 URL 排除。不得忽略所有外链、整个站点，或全局
 接受 HTTP 403/429。新增例外前，区分真实失效与自动请求限制，先确认官方替代地址，
 并记录验证日期；工具/环境限制应在 PR 说明中明确列出。
+
+2026-10-22 Linux CI 实测以下完整 URL 对自动请求返回 HTTP 403，按 URL 精确排除：
+Raspberry Pi 的 `configuration.html#configuring-uarts`、
+`raspberry-pi.html#power-supply`、论坛 `viewtopic.php?p=589877#p589877`，以及
+Patreon 的 `www.patreon.com/koconnor`。官方网站文档和 Patreon 页面可独立读取，
+论坛受访问限制；这些例外不代表已验证公网可达性，不影响同站点新增 URL 的检查。
+GNU SimulAVR 与 BIGTREETECH 首次 Linux 请求返回 429，先采用单并发及 1 秒间隔复测。

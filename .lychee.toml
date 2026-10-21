@@ -10,4 +10,18 @@ exclude_all_private = true
 exclude = [
   # Installation example on the reader's local BeagleBone, not a public site.
   '^http://beaglebone:5000/$',
+  # Linux CI 2026-10-22: exact URLs reject automated clients (HTTP 403).
+  '^https://www\.raspberrypi\.com/documentation/computers/configuration\.html#configuring-uarts$',
+  '^https://www\.raspberrypi\.com/documentation/computers/raspberry-pi\.html#power-supply$',
+  '^https://forums\.raspberrypi\.com/viewtopic\.php\?p=589877#p589877$',
+  '^https://www\.patreon\.com/koconnor$',
 ]
+
+# Conservative rate for sites that returned 429 on the first Linux run.
+[hosts."www.nongnu.org"]
+concurrency = 1
+request_interval = "1s"
+
+[hosts."bigtree-tech.com"]
+concurrency = 1
+request_interval = "1s"
