@@ -1,11 +1,11 @@
-blank_issues_enabled: false
+blank_issues_enabled: true
 contact_links:
-  - name: Contact Directions
+  - name: Upstream Klipper Contact / 上游联系指引
     url: https://www.klipper3d.org/Contact.html
-    about: Have a question? Need help? Start here.
-  - name: Klipper Forum
+    about: General Klipper questions and support / Klipper 通用问题与支持。
+  - name: Upstream Klipper Forum / 上游论坛
     url: https://community.klipper3d.org/
-    about: Klipper community Discourse server.
-  - name: Klipper Chat
+    about: Upstream Klipper community Discourse server / 上游 Klipper 社区论坛。
+  - name: Upstream Klipper Chat / 上游聊天
     url: https://discord.klipper3d.org/
-    about: Klipper community Discord chat server.
+    about: Upstream Klipper community Discord server / 上游 Klipper 社区聊天。
