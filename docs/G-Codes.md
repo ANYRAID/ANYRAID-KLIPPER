@@ -1532,7 +1532,7 @@ must be run to make the changes to persistent memory permanent.
 Several commands are available when a
 [smart_effector config section](Config_Reference.md#smart_effector) is enabled.
 Be sure to check the official documentation for the Smart Effector on the
-[Duet3D Wiki](https://duet3d.dozuki.com/Wiki/Smart_effector_and_carriage_adapters_for_delta_printer)
+[Duet3D Wiki](https://docs.duet3d.com/en/Duet3D_hardware/Accessories/Smart_Effector)
 before changing the Smart Effector parameters. Also check the
 [probe calibration guide](Probe_Calibrate.md).
 

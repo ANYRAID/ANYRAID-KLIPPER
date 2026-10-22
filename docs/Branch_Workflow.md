@@ -120,3 +120,51 @@ PR 来源、上游镜像内容及上述合并方式由维护者核对；当前 G
 - 保留 [COPYING](../COPYING)、上游版权声明及贡献来源；提交前检查敏感信息。
   Git 提交主题和正文使用中文，可保留英文类型、作用域、标识符及专有名称；
   保留上游贡献指南要求的 `Signed-off-by`。向上游贡献时按上游格式另行准备提交。
+
+## 文档链接检查
+
+`Documentation links` 工作流的固定检查名为 `docs-links`，在目标为 `develop`、
+`main` 的所有 PR、这两个分支的 push 上运行，也可在 Actions 页面手动运行。
+不按文件路径过滤 PR，避免要求此检查时出现一直等待的状态。维护者将该检查设为
+`develop`、`main` 的必需状态检查；合并前须确认当前提交检查成功。
+
+检查范围为根目录 `README.md`、`AGENTS.md` 和 `docs/**/*.md`，包括 Markdown
+链接、引用式链接、图片及内嵌 HTML 的图片路径。使用固定版本 Lychee `v0.24.2`：
+
+1. 离线检查文件、目录、图片路径和本地 Markdown 锚点（包括中英文标题）。
+2. 在临时目录验证有效样例、缺文件、缺锚点、缺图片和真实 HTTP 404 负例。
+3. 联网检查 HTTP/HTTPS 外链，遵循重定向，超时 20 秒、最多重试 2 次。
+   外部网页只检查可达性，不验证动态 HTML 锚点；代码块中的示例 URL 和邮件地址
+   不在检查范围。内链检查不能证明页面语义或设备操作正确。
+
+安装同版 [Lychee](https://github.com/lycheeverse/lychee/releases/tag/lychee-v0.24.2)
+后，从仓库根目录运行（PowerShell 同样保留 glob 两侧引号）：
+
+```sh
+lychee --config .lychee.toml --offline --include-fragments README.md AGENTS.md 'docs/**/*.md'
+python3 scripts/test-docs-links.py
+lychee --config .lychee.toml --scheme http --scheme https README.md AGENTS.md 'docs/**/*.md'
+```
+
+Windows 可使用 `python` 代替 `python3`，或通过环境变量 `LYCHEE_BIN` 指定检查器
+可执行文件的完整路径。CI 固定 checkout、Lychee action 的提交 SHA 和 CLI 版本，
+不使用链接缓存，不上传 Actions 产物，只保留日志与 job summary。现有 Build test
+保留全部构建测试，移除数据字典上传步骤，避免存储配额影响测试结论。外链失败、限流、
+超时均会使检查失败，不能把未成功检查的链接记为通过。
+
+例外集中记录在根目录 `.lychee.toml`，需注明原因并在相关上游文档变更时复查。
+私网、回环和链路本地 IP 不向公网检查器发起请求；`http://beaglebone:5000/`
+是安装示例中读者本机的服务，按完整 URL 排除。不得忽略所有外链、整个站点，或全局
+接受 HTTP 403/429。新增例外前，区分真实失效与自动请求限制，先确认官方替代地址，
+并记录验证日期；工具/环境限制应在 PR 说明中明确列出。
+
+2026-10-22 Linux CI 实测以下完整 URL 对自动请求返回 HTTP 403，按 URL 精确排除：
+Raspberry Pi 的 `configuration.html#configuring-uarts`、
+`raspberry-pi.html#power-supply`、论坛 `viewtopic.php?p=589877#p589877`，以及
+Patreon 的 `www.patreon.com/koconnor`。官方网站文档和 Patreon 页面可独立读取，
+论坛受访问限制；这些例外不代表已验证公网可达性，不影响同站点新增 URL 的检查。
+GNU SimulAVR 采用单并发及 1 秒间隔后在 Linux CI 通过，继续检查。
+BIGTREETECH 的 `bigtree-tech.com/collections/all-products` 在同样节流及重试后仍为
+429；ADI 官方 `www.analog.com/en/lp/001/trinamic-support.html` 在 Linux CI 发生
+HTTP/2 协议错误。这两个完整 URL 亦精确排除，网页内容已独立读取，后续需手工复查
+自动请求限制；排除项不计为自动检查成功。

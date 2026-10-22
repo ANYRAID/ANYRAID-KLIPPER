@@ -251,7 +251,7 @@ carriage are exported as `printer.dual_carriage.carriage_0` and
 
 20230619: The `relative_reference_index` option has been deprecated
 and superseded by the `zero_reference_position` option.  Refer to the
-[Bed Mesh Documentation](./Bed_Mesh.md#the-deprecated-relative_reference_index)
+[Bed Mesh Documentation](./Bed_Mesh.md#configuring-the-zero-reference-position)
 for details on how to update the configuration.  With this deprecation
 the `RELATIVE_REFERENCE_INDEX` is no longer available as a parameter
 for the `BED_MESH_CALIBRATE` gcode command.
