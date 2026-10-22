@@ -1,0 +1,27 @@
+# Lychee v0.24.2; always use fresh responses, without an Actions/cache entry.
+cache = false
+no_progress = true
+timeout = 20
+max_retries = 2
+max_concurrency = 8
+exclude_all_private = true
+
+# Exact exceptions only. Review these when upstream documentation changes.
+exclude = [
+  # Installation example on the reader's local BeagleBone, not a public site.
+  '^http://beaglebone:5000/$',
+  # Linux CI 2026-10-22: exact URLs reject automated clients (HTTP 403).
+  '^https://www\.raspberrypi\.com/documentation/computers/configuration\.html#configuring-uarts$',
+  '^https://www\.raspberrypi\.com/documentation/computers/raspberry-pi\.html#power-supply$',
+  '^https://forums\.raspberrypi\.com/viewtopic\.php\?p=589877#p589877$',
+  '^https://www\.patreon\.com/koconnor$',
+  # Linux CI 2026-10-22: still 429 after retries at one request/second.
+  '^https://bigtree-tech\.com/collections/all-products$',
+  # Linux CI 2026-10-22: official target rejects this HTTP/2 client.
+  '^https://www\.analog\.com/en/lp/001/trinamic-support\.html$',
+]
+
+# GNU SimulAVR succeeds in Linux CI at this conservative request rate.
+[hosts."www.nongnu.org"]
+concurrency = 1
+request_interval = "1s"
