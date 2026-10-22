@@ -17,11 +17,8 @@ exclude = [
   '^https://www\.patreon\.com/koconnor$',
   # Linux CI 2026-10-22: still 429 after retries at one request/second.
   '^https://bigtree-tech\.com/collections/all-products$',
+  # Linux CI 2026-10-22: main returned 429 after earlier passes at 1 req/s.
+  '^http://www\.nongnu\.org/simulavr/$',
   # Linux CI 2026-10-22: official target rejects this HTTP/2 client.
   '^https://www\.analog\.com/en/lp/001/trinamic-support\.html$',
 ]
-
-# GNU SimulAVR succeeds in Linux CI at this conservative request rate.
-[hosts."www.nongnu.org"]
-concurrency = 1
-request_interval = "1s"
