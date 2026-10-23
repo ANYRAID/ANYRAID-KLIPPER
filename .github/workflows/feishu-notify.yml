@@ -1,0 +1,79 @@
+name: 飞书仓库通知
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [closed]
+    branches: [main]
+  schedule:
+    # UTC，香港时间周一至周五 09:07–17:52，每 15 分钟尝试补发。
+    - cron: '7,22,37,52 1-9 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 补发队列、创建测试消息或补录漏掉的事件
+        type: choice
+        options: [flush, test, issue, pr]
+        default: flush
+      number:
+        description: 补录 Issue 或已合入 main 的 PR 编号
+        type: string
+        default: '0'
+
+permissions:
+  contents: read
+
+env:
+  FEISHU_QUEUE_ISSUE: ${{ vars.FEISHU_QUEUE_ISSUE }}
+
+jobs:
+  enqueue:
+    if: >-
+      github.repository == 'ANYRAID/ANYRAID-KLIPPER' &&
+      (github.event_name == 'issues' || github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true))
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - name: 持久保存事件（不发送飞书）
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/feishu-queue.cjs enqueue
+  notify:
+    needs: enqueue
+    if: >-
+      always() && github.repository == 'ANYRAID/ANYRAID-KLIPPER' &&
+      (github.event_name == 'schedule' || needs.enqueue.result == 'success')
+    permissions:
+      contents: read
+      issues: write
+    concurrency:
+      group: feishu-queue-sender
+      cancel-in-progress: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - name: 工作时段发送并保存结果
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+        run: node scripts/feishu-queue.cjs flush
