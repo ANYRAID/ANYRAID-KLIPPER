@@ -38,8 +38,16 @@ jobs:
         run: python3 scripts/test-docs-links.py
 
       - name: Check external HTTP links
+        id: external-links
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           lychee --config .lychee.toml --scheme http --scheme https --format markdown README.md AGENTS.md 'docs/**/*.md' | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Report external link issues
+        if: ${{ !cancelled() && steps.external-links.outcome == 'failure' }}
+        run: |
+          echo "::warning::External link check reported issues. See the job summary and logs; these issues do not block merging."
+          echo 'External link check reported issues; review the report above and step logs. External link issues are advisory and do not block merging.' >> "$GITHUB_STEP_SUMMARY"
