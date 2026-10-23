@@ -5,8 +5,6 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-22.04
-    env:
-      PIP_CACHE_DIR: ${{ runner.temp }}/pip-cache
     steps:
     - uses: actions/checkout@v5
 
@@ -24,10 +22,12 @@ jobs:
     - name: Cache Python downloads and wheels
       uses: actions/cache@v5
       with:
-        path: ${{ env.PIP_CACHE_DIR }}
+        path: ${{ runner.temp }}/pip-cache
         key: ${{ runner.os }}-${{ runner.arch }}-ubuntu22.04-pip-v1-py2.7-py${{ steps.python-cache-env.outputs.python3 }}-${{ hashFiles('scripts/ci-install.sh', 'scripts/klippy-requirements.txt', 'scripts/tests-requirements.txt') }}
 
     - name: Prepare tests
+      env:
+        PIP_CACHE_DIR: ${{ runner.temp }}/pip-cache
       run: ./scripts/ci-install.sh
 
     - name: Test
