@@ -1,6 +1,14 @@
 # Perform continuous integration tests on updates and pull requests
 name: Build test
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      benchmark:
+        description: Run a full serial baseline before the parallel validation
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -43,6 +51,16 @@ jobs:
         CI_APT_PLAN_READY: "1"
         PIP_CACHE_DIR: ${{ runner.temp }}/pip-cache
       run: ./scripts/ci-install.sh
+
+    - name: Test regression file isolation
+      run: python3 scripts/test-ci-klippy.py
+
+    - name: Serial benchmark
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.benchmark }}
+      env:
+        CI_BUILD_JOBS: '1'
+        CI_PARALLEL_TESTS: '0'
+      run: ./scripts/ci-build.sh 2>&1
 
     - name: Test
       run: ./scripts/ci-build.sh 2>&1
