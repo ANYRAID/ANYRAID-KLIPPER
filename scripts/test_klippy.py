@@ -91,11 +91,12 @@ class TestCase:
         sys.stderr.write("    Starting %s (%s)\n" % (
             self.fname, os.path.basename(config_fname)))
         args = [ sys.executable, './klippy/klippy.py', config_fname,
-                 '-i', gcode_fname, '-o', TEMP_OUTPUT_FILE, '-v' ]
+                 '-i', gcode_fname,
+                 '-o', self.relpath(TEMP_OUTPUT_FILE, 'temp'), '-v' ]
         for df in dict_fnames:
             args += ['-d', df]
         if not self.verbose:
-            args += ['-l', TEMP_LOG_FILE]
+            args += ['-l', self.relpath(TEMP_LOG_FILE, 'temp')]
         res = subprocess.call(args)
         is_fail = (should_fail and not res) or (not should_fail and res)
         if is_fail:
@@ -109,9 +110,9 @@ class TestCase:
             return
         for fname in os.listdir(self.tempdir):
             if fname.startswith(TEMP_OUTPUT_FILE):
-                os.unlink(fname)
+                os.unlink(self.relpath(fname, 'temp'))
         if not self.verbose:
-            os.unlink(TEMP_LOG_FILE)
+            os.unlink(self.relpath(TEMP_LOG_FILE, 'temp'))
         else:
             sys.stderr.write('\n')
         if gcode_is_temp:
@@ -126,7 +127,7 @@ class TestCase:
             return "internal error"
         return "success"
     def show_log(self):
-        f = open(TEMP_LOG_FILE, 'r')
+        f = open(self.relpath(TEMP_LOG_FILE, 'temp'), 'r')
         data = f.read()
         f.close()
         sys.stdout.write(data)
