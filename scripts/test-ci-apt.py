@@ -95,7 +95,7 @@ class AptTests(unittest.TestCase):
                 patch.object(apt.subprocess, 'run',
                              side_effect=self.fetch) as run:
             apt.download([PACKAGE, second], self.cache)
-        self.assertEqual([c.float(command[2][:-1]) for c in run.call_args_list],
+        self.assertEqual([float(c.args[0][2][:-1]) for c in run.call_args_list],
                          [290, 200])
 
 
