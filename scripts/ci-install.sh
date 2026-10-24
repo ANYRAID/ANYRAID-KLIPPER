@@ -16,11 +16,10 @@ mkdir -p ${BUILD_DIR} ${CACHE_DIR}
 ######################################################################
 
 echo -e "\n\n=============== Install system dependencies\n\n"
-PKGS="virtualenv python2-dev libffi-dev build-essential"
-PKGS="${PKGS} gcc-avr avr-libc"
-PKGS="${PKGS} libnewlib-arm-none-eabi gcc-arm-none-eabi binutils-arm-none-eabi"
-sudo apt-get update
-sudo apt-get install ${PKGS}
+if [ -z "${CI_APT_PLAN_READY:-}" ]; then
+    python3 scripts/ci-apt.py plan
+fi
+python3 scripts/ci-apt.py install
 
 
 ######################################################################
