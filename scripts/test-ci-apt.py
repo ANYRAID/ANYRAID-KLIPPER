@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Regression tests for CI archive reuse and bounded mirror fallback."""
 import hashlib
+import http.server
+import threading
+import time
 import importlib.util
 from pathlib import Path
 import subprocess
@@ -87,6 +90,37 @@ class AptTests(unittest.TestCase):
     def test_other_hosts_are_not_rewritten(self):
         url = 'https://security.ubuntu.com/ubuntu/pool/test.deb'
         self.assertEqual(apt.fallback_url(url), url)
+
+    @unittest.skipUnless(Path('/usr/lib/apt/apt-helper').exists(),
+                         'Native APT transport requires Linux')
+    def test_native_timeout_then_fallback(self):
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                if self.path == '/slow':
+                    time.sleep(3)
+                    return
+                self.send_response(200)
+                self.send_header('Content-Length', str(len(DATA)))
+                self.end_headers()
+                self.wfile.write(DATA)
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = 'http://127.0.0.1:%d' % server.server_port
+        package = dict(PACKAGE, url=base + '/slow')
+        try:
+            with patch.object(apt, 'fallback_url', return_value=base + '/ok'):
+                apt.download([package], self.cache, budget=1)
+            self.assertTrue(apt.valid_archive(
+                self.cache / package['name'], package))
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
 
     def test_budget_is_shared_across_packages(self):
         second = dict(PACKAGE, name='second_1_amd64.deb')
