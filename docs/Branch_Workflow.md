@@ -161,7 +161,8 @@ Windows 可使用 `python` 代替 `python3`，或通过环境变量 `LYCHEE_BIN`
 可执行文件的完整路径。CI 固定 checkout、Lychee action 的提交 SHA 和 CLI 版本，
 不使用链接缓存，不上传 Actions 产物，只保留日志与 job summary。现有 Build test
 保留全部构建测试，移除数据字典上传步骤，避免存储配额影响测试结论。外链失败、限流、
-超时均会使检查失败，不能把未成功检查的链接记为通过。
+超时及外链检查异常会在 Actions 中标记警告，并保留日志与 job summary，不阻止合并。
+离线内链检查和检查器样例验证仍须通过；外链警告不代表链接已验证通过。
 
 例外集中记录在根目录 `.lychee.toml`，需注明原因并在相关上游文档变更时复查。
 私网、回环和链路本地 IP 不向公网检查器发起请求；`http://beaglebone:5000/`
@@ -181,6 +182,27 @@ BIGTREETECH 的 `bigtree-tech.com/collections/all-products` 在同样节流及�
 429；ADI 官方 `www.analog.com/en/lp/001/trinamic-support.html` 在 Linux CI 发生
 HTTP/2 协议错误。这两个完整 URL 亦精确排除，网页内容已独立读取，后续需手工复查
 自动请求限制；排除项不计为自动检查成功。
+
+## Python 依赖缓存
+
+Build test 单独缓存 pip 下载响应及已构建的 wheels，通过 `PIP_CACHE_DIR`
+为 Python 2/3 指定同一个缓存目录；不缓存虚拟环境、源码或测试结果。
+现有 `ci_cache` 工具链缓存保持独立，APT 包不在此缓存范围内。
+
+缓存键包含 runner 操作系统、架构、Ubuntu 22.04、Python 2.7 环境标识、
+runner 实际 Python 3 补丁版本，以及安装脚本和两份 requirements 文件的哈希。
+pip 自身继续校验包版本及 wheel 的 Python/ABI/平台兼容标签；不使用宽泛的
+`restore-keys` 回退。依赖或安装方式变化会产生新键，缓存缺失时正常下载安装。
+需要主动失效缓存时递增工作流中的 `pip-v1` 版本。
+
+每次运行仍创建 Python 2/3 虚拟环境，执行全部依赖安装、42 个现有 MCU 配置
+构建、两套 Python 导入及全部 Klippy 回归；配置和测试清单仍由原脚本动态发现，
+不因缓存命中而跳过。pip 缓存不能保证离线安装，索引
+查询和缓存过期验证仍可能访问网络；缓存命中不代表测试通过或必然提速。
+
+验证缓存变更时，先确认冷缓存运行完整通过且成功保存缓存，再对相同提交的
+同一工作流重跑，确认命中、安装日志复用缓存及全部测试通过。记录恢复缓存、
+依赖准备和完整测试的实际耗时，不将 APT 网络波动归因于 Python 缓存。
 
 ## 飞书仓库通知
 
