@@ -7,8 +7,8 @@ on:
     types: [closed]
     branches: [main]
   schedule:
-    # UTC，香港时间周一至周五 09:07–17:52，每 15 分钟尝试补发。
-    - cron: '7,22,37,52 1-9 * * 1-5'
+    # UTC，香港时间周一至周五 09:00–17:55，每 5 分钟尝试补发。
+    - cron: '*/5 1-9 * * 1-5'
   workflow_dispatch:
     inputs:
       action:
