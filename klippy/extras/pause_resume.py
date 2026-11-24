@@ -55,6 +55,8 @@ class PauseResume:
                 self.v_sd.do_pause()
             else:
                 self.sd_paused = False
+                if self.v_sd is not None:
+                    self.v_sd.invalidate_screen_start()
                 self.gcode.respond_info("action:paused")
             self.pause_command_sent = True
     cmd_PAUSE_help = ("Pauses the current print")
@@ -93,6 +95,8 @@ class PauseResume:
         if self.is_sd_active() or self.sd_paused:
             self.v_sd.do_cancel()
         else:
+            if self.v_sd is not None:
+                self.v_sd.invalidate_screen_start()
             gcmd.respond_info("action:cancel")
         self.cmd_CLEAR_PAUSE(gcmd)
 

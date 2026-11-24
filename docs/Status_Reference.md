@@ -422,6 +422,12 @@ defined):
    TOTAL_LAYER=<value>` G-Code command.
 - `info.current_layer`: The current layer value of the last
   `SET_PRINT_STATS_INFO CURRENT_LAYER=<value>` G-Code command.
+- `anyraid_start_receipt`: With SCREEN start receipts enabled under
+  [virtual_sdcard](Config_Reference.md#virtual_sdcard), this is the signed
+  receipt of the current verified start. The value becomes available at the
+  first software printing transition and clears when the file selection
+  resets. Ordinary starts have a null value. The receipt authenticates
+  admission of the verified file bytes to the virtual SD worker.
 
 ## probe
 

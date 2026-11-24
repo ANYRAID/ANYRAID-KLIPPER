@@ -9,6 +9,7 @@ class PrintStats:
         printer = config.get_printer()
         self.gcode_move = printer.load_object(config, 'gcode_move')
         self.reactor = printer.get_reactor()
+        self.screen_start_receipts = False
         self.reset()
         # Register commands
         self.gcode = printer.lookup_object('gcode')
@@ -88,6 +89,7 @@ class PrintStats:
                 current_layer != self.info_current_layer:
             self.info_current_layer = min(current_layer, self.info_total_layer)
     def reset(self):
+        self.screen_start_receipt = None
         self.filename = self.error_message = ""
         self.state = "standby"
         self.prev_pause_duration = self.last_epos = 0.
@@ -110,7 +112,7 @@ class PrintStats:
                 # Track duration prior to extrusion
                 self.init_duration = self.total_duration - time_paused
         print_duration = self.total_duration - self.init_duration - time_paused
-        return {
+        status = {
             'filename': self.filename,
             'total_duration': self.total_duration,
             'print_duration': print_duration,
@@ -120,6 +122,9 @@ class PrintStats:
             'info': {'total_layer': self.info_total_layer,
                      'current_layer': self.info_current_layer}
         }
+        if self.screen_start_receipts:
+            status['anyraid_start_receipt'] = self.screen_start_receipt
+        return status
 
 def load_config(config):
     return PrintStats(config)

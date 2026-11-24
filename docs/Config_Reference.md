@@ -1656,6 +1656,45 @@ path:
 #   run TURN_OFF_HEATERS.
 ```
 
+The ANYRAID history receipt integration is optional and uses the standard
+virtual SD start path on Linux with Python 3. In the Klippy environment it requires
+`libnacl==2.1.0` and the system libsodium library. Enable the following options
+only when Moonraker and SCREEN are configured to use the same history
+authority.
+
+```
+#screen_start_receipts: False
+#   Enable signed SCREEN print admission and start receipts.
+#screen_start_origin:
+#   The history authority origin in canonical http://127.0.0.1:<port> form.
+#screen_start_authority_key_id:
+#   The lowercase SHA-256 digest of the Moonraker proof key's DER SPKI.
+#screen_start_dispatch_public_key:
+#   The SCREEN intent verification key as 64 lowercase hexadecimal digits
+#   encoding the raw Ed25519 public key.
+#screen_start_signing_key:
+#   Absolute path to the separate Klippy Ed25519 receipt signing seed. The
+#   seed is 64 lowercase hexadecimal digits followed by an optional newline.
+#   Klippy must own the regular file with no group or other permissions.
+#screen_start_state_dir:
+#   Absolute path to a persistent directory owned by the Klippy service user
+#   with mode 0700. The directory must be outside the uploaded G-code tree.
+#   It stores consumed intent identifiers and anonymous print snapshots.
+```
+
+Keep the state directory and its database across restarts, and preserve
+consumption records during backup and restore. Klippy rejects signed launches
+if the live database is removed or replaced. If the ledger is lost or a
+backup can omit consumed intents, rotate the SCREEN dispatch key before
+re-enabling signed launches. A rollback while an earlier intent is still
+valid can otherwise reopen its one-shot admission after restart.
+
+An unsuccessful launch may consume its intent. A retry requires a new task.
+Choose a local filesystem with space for a complete copy of the print file
+and keep the system clock synchronized with SCREEN. A macro replacement for
+`SDCARD_PRINT_FILE` is incompatible with signed admission. Use a standard
+virtual SD command on printers configured for receipts.
+
 ### [sdcard_loop]
 
 Some printers with stage-clearing features, such as a part ejector or

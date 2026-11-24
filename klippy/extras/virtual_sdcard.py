@@ -3,7 +3,7 @@
 # Copyright (C) 2018-2024  Kevin O'Connor <kevin@koconnor.net>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
-import os, sys, logging, io
+import os, sys, logging, io, sqlite3
 
 VALID_GCODE_EXTS = ['gcode', 'g', 'gco']
 
@@ -20,9 +20,14 @@ class VirtualSD:
         sd = config.get('path')
         self.sdcard_dirname = os.path.normpath(os.path.expanduser(sd))
         self.current_file = None
+        self.current_file_path = None
         self.file_position = self.file_size = 0
         # Print Stat Tracking
         self.print_stats = self.printer.load_object(config, 'print_stats')
+        self.screen_start_receipt = None
+        self.preparing_screen_start = False
+        self.pending_screen_start = None
+        self.screen_start_serial = 0
         # Work timer
         self.reactor = self.printer.get_reactor()
         self.must_pause_work = self.cmd_from_sd = False
@@ -34,6 +39,13 @@ class VirtualSD:
         self.executor = aio.allocate_executor("virtual_sdcard")
         self.on_error_gcode = gcode_macro.load_template(
             config, 'on_error_gcode', DEFAULT_ERROR_GCODE)
+        if config.getboolean('screen_start_receipts', False):
+            from .screen_start_receipt import ScreenStartReceipt
+            self.screen_start_receipt = ScreenStartReceipt(
+                config, self.sdcard_dirname)
+            self.print_stats.screen_start_receipts = True
+            self.printer.register_event_handler(
+                "klippy:disconnect", self.screen_start_receipt.close)
         # Register commands
         self.gcode = self.printer.lookup_object('gcode')
         for cmd in ['M20', 'M21', 'M23', 'M24', 'M25', 'M26', 'M27']:
@@ -46,6 +58,8 @@ class VirtualSD:
         self.gcode.register_command(
             "SDCARD_PRINT_FILE", self.cmd_SDCARD_PRINT_FILE,
             desc=self.cmd_SDCARD_PRINT_FILE_help)
+        self.standard_print_handler = self.gcode.ready_gcode_handlers[
+            'SDCARD_PRINT_FILE']
         self.printer.register_event_handler("klippy:analyze_shutdown",
                                             self._handle_analyze_shutdown)
         self.printer.register_event_handler("gcode:debuginput_exit",
@@ -110,8 +124,8 @@ class VirtualSD:
             'file_size': self.file_size,
         }
     def file_path(self):
-        if self.current_file:
-            return self.current_file.name
+        if self.current_file is not None:
+            return self.current_file_path
         return None
     def progress(self):
         if self.file_size:
@@ -121,6 +135,7 @@ class VirtualSD:
     def is_active(self):
         return self.work_timer is not None
     def do_pause(self):
+        self.invalidate_screen_start()
         if self.work_timer is not None:
             self.must_pause_work = True
             while self.work_timer is not None and not self.cmd_from_sd:
@@ -128,12 +143,15 @@ class VirtualSD:
     def do_resume(self):
         if self.work_timer is not None:
             raise self.gcode.error("SD busy")
+        self.invalidate_screen_start()
         self.must_pause_work = False
         self.work_timer = self.reactor.register_timer(
             self.work_handler, self.reactor.NOW)
     def do_cancel(self):
+        self.invalidate_screen_start()
         if self.current_file is not None:
             self.do_pause()
+        if self.current_file is not None:
             self.current_file.close()
             self.current_file = None
             self.print_stats.note_cancel()
@@ -142,10 +160,13 @@ class VirtualSD:
     def cmd_error(self, gcmd):
         raise gcmd.error("SD write not supported")
     def _reset_file(self):
+        self.invalidate_screen_start()
         if self.current_file is not None:
             self.do_pause()
+        if self.current_file is not None:
             self.current_file.close()
             self.current_file = None
+        self.pending_screen_start = None
         self.file_position = self.file_size = 0
         self.print_stats.reset()
         self.printer.send_event("virtual_sdcard:reset_file")
@@ -167,6 +188,52 @@ class VirtualSD:
             filename = filename[1:]
         self._load_file(gcmd, filename, check_subdirs=True)
         self.do_resume()
+    def _check_screen_start_ready(self):
+        command = self.gcode.gcode_handlers.get('SDCARD_PRINT_FILE')
+        if (not self.gcode.is_printer_ready
+                or command is not self.standard_print_handler):
+            raise self.gcode.error("Screen start requires standard virtual SD")
+        if self.work_timer is not None:
+            raise self.gcode.error("SD busy")
+    def invalidate_screen_start(self):
+        self.screen_start_serial += 1
+    def start_with_screen_intent(self, intent):
+        if self.screen_start_receipt is None:
+            raise self.gcode.error("Screen start receipts are disabled")
+        self._check_screen_start_ready()
+        if self.preparing_screen_start:
+            raise self.gcode.error("Screen start already in progress")
+        serial = self.screen_start_serial
+        self.preparing_screen_start = True
+        snapshot = None
+        try:
+            snapshot, size = self.executor.submit(
+                self.screen_start_receipt.prepare, intent, VALID_GCODE_EXTS)
+            filename = intent['filename']
+            with self.gcode.get_mutex():
+                self._check_screen_start_ready()
+                if serial != self.screen_start_serial:
+                    raise self.gcode.error("Virtual SD changed during start")
+                self.screen_start_receipt.check_expiry(intent)
+                selected_file = io.TextIOWrapper(
+                    io.BufferedReader(self.executor.wrap_obj(snapshot)),
+                    encoding='utf-8', newline='')
+                self._reset_file()
+                self._check_screen_start_ready()
+                gcmd = self.gcode.create_gcode_command(
+                    'SDCARD_PRINT_FILE', 'SDCARD_PRINT_FILE', {})
+                self._select_file(gcmd, filename,
+                                  os.path.join(self.sdcard_dirname, filename),
+                                  selected_file, size)
+                snapshot = None
+                self.pending_screen_start = intent
+                self.do_resume()
+        except (ValueError, OSError, sqlite3.Error):
+            raise self.gcode.error("Screen start intent or file rejected")
+        finally:
+            if snapshot is not None:
+                self.executor.submit(snapshot.close)
+            self.preparing_screen_start = False
     def cmd_M20(self, gcmd):
         # List SD card
         files = self.get_file_list()
@@ -205,9 +272,12 @@ class VirtualSD:
         except:
             logging.exception("virtual_sdcard file open")
             raise gcmd.error("Unable to open file")
+        self._select_file(gcmd, filename, fname, f, fsize)
+    def _select_file(self, gcmd, filename, path, f, fsize):
         gcmd.respond_raw("File opened:%s Size:%d" % (filename, fsize))
         gcmd.respond_raw("File selected")
         self.current_file = f
+        self.current_file_path = path
         self.file_position = 0
         self.file_size = fsize
         self.print_stats.set_current_file(filename)
@@ -222,6 +292,7 @@ class VirtualSD:
         if self.work_timer is not None:
             raise gcmd.error("SD busy")
         pos = gcmd.get_int('S', minval=0)
+        self.invalidate_screen_start()
         self.file_position = pos
     def cmd_M27(self, gcmd):
         # Report SD print status
@@ -237,16 +308,49 @@ class VirtualSD:
     def is_cmd_from_sd(self):
         return self.cmd_from_sd
     # Background work timer
+    def _discard_screen_start(self):
+        snapshot = self.current_file
+        self.current_file = self.current_file_path = None
+        self.file_position = self.file_size = 0
+        self.work_timer = None
+        snapshot.close()
     def work_handler(self, eventtime):
         logging.info("Starting SD card print (position %d)", self.file_position)
         self.reactor.unregister_timer(self.work_timer)
+        intent = self.pending_screen_start
+        self.pending_screen_start = None
         try:
             self.current_file.seek(self.file_position)
         except:
             logging.exception("virtual_sdcard seek")
-            self.work_timer = None
+            if intent is None:
+                self.work_timer = None
+            else:
+                self._discard_screen_start()
             return self.reactor.NEVER
+        if intent is not None:
+            try:
+                self.screen_start_receipt.check_expiry(intent)
+            except ValueError:
+                self._discard_screen_start()
+                return self.reactor.NEVER
+            if self.must_pause_work or not self.gcode.is_printer_ready:
+                self._discard_screen_start()
+                return self.reactor.NEVER
+            # Let existing subscriptions observe the real selected-file state
+            # before entering printing, even between periodic status samples.
+            self.printer.send_event("virtual_sdcard:screen_status_changed")
         self.print_stats.note_start()
+        if intent is not None:
+            try:
+                self.print_stats.screen_start_receipt = \
+                    self.screen_start_receipt.issue(intent)
+            except Exception:
+                logging.exception("Unable to sign screen start receipt")
+                self.print_stats.note_error("Unable to sign screen start")
+                self._discard_screen_start()
+                return self.reactor.NEVER
+            self.printer.send_event("virtual_sdcard:screen_status_changed")
         gcode_mutex = self.gcode.get_mutex()
         partial_input = ""
         lines = []
@@ -317,6 +421,8 @@ class VirtualSD:
             self.print_stats.note_pause()
         else:
             self.print_stats.note_complete()
+        if intent is not None:
+            self.printer.send_event("virtual_sdcard:screen_status_changed")
         return self.reactor.NEVER
 
 def load_config(config):

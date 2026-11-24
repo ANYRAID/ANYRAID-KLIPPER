@@ -252,13 +252,16 @@ class ClientConnection:
         requests[0] = self.partial_data + requests[0]
         self.partial_data = requests.pop()
         for req in requests:
-            self.request_log.append((eventtime, req))
             try:
                 web_request = WebRequest(self, req)
             except Exception:
                 logging.exception("webhooks: Error decoding Server Request %s"
                                   % (req))
                 continue
+            if (web_request.method == 'gcode/script'
+                    and 'anyraid_start_intent' in web_request.params):
+                req = b'gcode/script: [screen start intent omitted]'
+            self.request_log.append((eventtime, req))
             self.reactor.register_callback(
                 lambda e, s=self, wr=web_request: s._process_request(wr))
 
@@ -445,7 +448,16 @@ class GCodeHelper:
     def _handle_help(self, web_request):
         web_request.send(self.gcode.get_command_help())
     def _handle_script(self, web_request):
-        self.gcode.run_script(web_request.get_str('script'))
+        if 'anyraid_start_intent' not in web_request.params:
+            self.gcode.run_script(web_request.get_str('script'))
+            return
+        if web_request.params.keys() != {'anyraid_start_intent'}:
+            raise web_request.error("Invalid screen start arguments")
+        sdcard = self.printer.lookup_object('virtual_sdcard', None)
+        if sdcard is None:
+            raise web_request.error("Screen start receipts are disabled")
+        sdcard.start_with_screen_intent(
+            web_request.get_dict('anyraid_start_intent'))
     def _handle_restart(self, web_request):
         self.gcode.run_script('restart')
     def _handle_firmware_restart(self, web_request):
@@ -480,6 +492,11 @@ class QueryStatusHelper:
         webhooks.register_endpoint("objects/list", self._handle_list)
         webhooks.register_endpoint("objects/query", self._handle_query)
         webhooks.register_endpoint("objects/subscribe", self._handle_subscribe)
+        printer.register_event_handler("virtual_sdcard:screen_status_changed",
+                                       self._screen_status_changed)
+    def _screen_status_changed(self):
+        if self.query_timer is not None:
+            self._do_query(self.printer.get_reactor().monotonic())
     def _handle_list(self, web_request):
         objects = [n for n, o in self.printer.lookup_objects()
                    if hasattr(o, 'get_status')]
