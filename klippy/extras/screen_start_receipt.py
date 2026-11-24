@@ -8,10 +8,10 @@ import os
 import re
 import sqlite3
 import stat
+import sys
 import tempfile
 import time
 from contextlib import closing
-from pathlib import Path
 
 RECEIPT_FIELDS = (
     'origin', 'databaseGeneration', 'backendEpoch', 'taskId', 'startId',
@@ -78,6 +78,9 @@ def _open_source(root, filename):
 
 class ScreenStartReceipt:
     def __init__(self, config, gcode_dir):
+        if sys.version_info[0] < 3:
+            raise config.error("Screen start receipts require Python 3")
+        from pathlib import Path
         self.origin = config.get('screen_start_origin')
         self.authority = config.get('screen_start_authority_key_id')
         dispatch_key = config.get('screen_start_dispatch_public_key')
@@ -127,7 +130,7 @@ class ScreenStartReceipt:
                 raise
         except (ImportError, OSError, ValueError, sqlite3.Error):
             raise config.error('Unable to initialize screen start receipt keys '
-                               'or state') from None
+                               'or state')
 
     def close(self):
         if self.database_fd is not None:
