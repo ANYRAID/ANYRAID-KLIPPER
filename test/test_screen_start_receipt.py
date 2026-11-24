@@ -77,8 +77,8 @@ class OfflineMutex:
 
 
 class OfflineExecutor:
-    def submit(self, callback, *args):
-        return callback(*args)
+    def submit(self, callback, *args, **kwargs):
+        return callback(*args, **kwargs)
 
     def wrap_obj(self, obj):
         return obj
