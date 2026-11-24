@@ -250,6 +250,29 @@ significant (eg, if a G-Code wait for temperature command is running).
 The JSON response message is sent when the processing of the script
 fully completes.
 
+With the ANYRAID [virtual SD receipt options](Config_Reference.md#virtual_sdcard)
+enabled, the local Moonraker bridge can use this endpoint with
+`anyraid_start_intent` as the sole parameter. The value is a signed object with
+the following fields in canonical signing order.
+
+- `origin`, `databaseGeneration`, `backendEpoch`, `taskId`, `startId`,
+  `authorityKeyId`, `filename`, `fileSha256`, and `expiresAt`
+- `signature`, the detached Ed25519 signature in unpadded base64url
+
+The signer prefixes `screen-history-start-intent-v1` and a zero byte to the
+UTF-8 JSON array of the ordered values, using compact separators and
+unescaped Unicode. The expiration is an integer POSIX timestamp up to 300
+seconds in the future. The filename is relative to the virtual SD directory.
+Klippy opens a regular file without following symlinks below that directory,
+copies and verifies its bytes against the signed SHA-256, and consumes the
+start and task identifiers before scheduling the copy for execution.
+
+A successful response indicates that Klippy scheduled the worker. The worker
+signs the first eight fields with the distinct Klippy receipt key and domain
+`screen-history-start-receipt-v1` followed by a zero byte when it enters the
+printing state. Existing `print_stats` subscriptions receive that transition
+and its `anyraid_start_receipt` together.
+
 ### gcode/restart
 
 This endpoint allows one to request a restart - it is similar to

@@ -16,6 +16,12 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
+    - name: Test signed virtual SD starts without devices
+      run: |
+        python3 -m venv "$RUNNER_TEMP/screen-start-tests"
+        "$RUNNER_TEMP/screen-start-tests/bin/pip" install 'libnacl==2.1.0'
+        "$RUNNER_TEMP/screen-start-tests/bin/python" test/test_screen_start_receipt.py -v
+
     - name: Setup cache
       uses: actions/cache@v5
       with:
